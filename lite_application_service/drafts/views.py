@@ -27,10 +27,10 @@ def drafts_list(request):
 def draft_detail(request, id):
     if request.method == "POST":
         # Pull draft info from post
-        control_code = request.POST['control_code']
-        activity = request.POST['activity']
-        destination = request.POST['destination']
-        usage = request.POST['usage']
+        control_code = request.POST.get('control_code', None)
+        activity = request.POST.get('activity', None)
+        destination = request.POST.get('destination', None)
+        usage = request.POST.get('usage', None)
 
         try:
             draft = Draft.objects.get(id=id)
