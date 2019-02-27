@@ -9,8 +9,10 @@ from drafts.serializers import DraftSerializer
 @csrf_exempt
 def drafts_list(request):
     if request.method == "POST":
+        control_code = request.POST.get('control_code', None)
+
         # Create a new draft
-        new_draft = Draft()
+        new_draft = Draft(control_code=control_code)
         new_draft.save()
 
         # Return the new object
@@ -55,7 +57,16 @@ def draft_detail(request, id):
         # Return the updated object
         serializer = DraftSerializer(draft)
         return JsonResponse(serializer.data)
-    else:
+
+    if request.method == "DELETE":
+        try:
+            draft = Draft.objects.get(id=id)
+        except Draft.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        draft.delete()
+
+    if request.method == "GET":
         try:
             draft = Draft.objects.get(id=id)
         except Draft.DoesNotExist:

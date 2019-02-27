@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.db import models
 import uuid
 
@@ -10,8 +9,8 @@ class Draft(models.Model):
     activity = models.TextField(default='')
     destination = models.TextField(default='')
     usage = models.TextField(default='')
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
-    last_modified_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     class Meta:
         db_table = "draft"
