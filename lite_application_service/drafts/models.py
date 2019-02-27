@@ -1,10 +1,10 @@
-import datetime
-import uuid
-
+from datetime import datetime
 from django.db import models
+import uuid
 
 
 class Draft(models.Model):
+    db_table = 'draft'
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     exporter_id = models.TextField(default='')
     control_code = models.CharField(max_length=30, default='')
