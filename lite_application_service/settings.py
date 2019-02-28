@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drafts.apps.DraftsConfig',
+    'applications.apps.ApplicationsConfig',
     'rest_framework'
 ]
 
@@ -84,9 +85,11 @@ WSGI_APPLICATION = 'lite_application_service.wsgi.application'
 
 import sys
 if 'test' in sys.argv:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'mydatabase'
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'mydatabase'
+        }
     }
 else:
     DATABASES = {
