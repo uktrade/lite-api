@@ -1,13 +1,10 @@
-from django.test import TestCase
-
-# Create your tests here.
+import json
 
 from django.test import TestCase, Client
 
-# I want this test to assert that when an incomplete application is submitted (via GET/POST to submit_application?)
-# it returns a response about the missing data, doing this test driven so haven't created the necessary views yet
-from .models import FormComplete
+from .models import FormComplete, Application
 from drafts.models import Draft
+
 
 class ApplicationTests(TestCase):
 
@@ -58,3 +55,38 @@ class ApplicationTests(TestCase):
         self.assertEqual(FormComplete(empty_draft).activity, "Activity cannot be blank")
         self.assertEqual(FormComplete(empty_draft).usage, "Usage cannot be blank")
         self.assertEqual(FormComplete(empty_draft).ready_for_submission, False)
+
+
+    def test_application_successful_submit(self):
+        complete_draft = Draft()
+        complete_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        complete_draft.control_code = "ML2"
+        complete_draft.destination = "Poland"
+        complete_draft.activity = "Trade"
+        complete_draft.usage = "Fun"
+        complete_draft.save()
+
+        client = Client()
+        response = client.post('/applications/', {'id': '90D6C724-0339-425A-99D2-9D2B8E864EC7'})
+
+        self.assertEqual(response.status_code, 201)
+
+        self.assertEqual(len(Draft.objects.filter(id="90D6C724-0339-425A-99D2-9D2B8E864EC7")), 0)
+        self.assertEqual(Application.objects.get(id="90D6C724-0339-425A-99D2-9D2B8E864EC7").destination, "Poland")
+
+    def test_application_unsuccessful_submit_empty_form(self):
+        empty_draft = Draft()
+        empty_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        empty_draft.save()
+
+        client = Client()
+        response = client.post('/applications/', {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC7"})
+
+        self.assertEqual(response.status_code, 422)
+
+        data = json.loads(response.content)
+
+        self.assertEqual(data["control_code"], "Control code cannot be blank")
+        self.assertEqual(data["activity"], "Activity cannot be blank")
+        self.assertEqual(data["destination"], "Destination cannot be blank")
+        self.assertEqual(data["usage"], "Usage cannot be blank")

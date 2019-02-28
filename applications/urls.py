@@ -1,3 +1,7 @@
 from django.urls import path
 
-urlpatterns = []
+from applications import views
+
+urlpatterns = [
+    path('', views.applications_list),
+]
