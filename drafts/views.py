@@ -8,9 +8,11 @@ from drafts.serializers import DraftSerializer
 def drafts_list(request):
     if request.method == "POST":
         control_code = request.POST.get('control_code', None)
+        user_id = request.POST.get('user_id', None)
 
         # Create a new draft
-        new_draft = Draft(control_code=control_code)
+        new_draft = Draft(control_code=control_code,
+                          user_id=user_id)
         new_draft.save()
 
         # Return the new object
