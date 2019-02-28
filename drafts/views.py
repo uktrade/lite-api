@@ -6,7 +6,6 @@ from drafts.models import Draft
 from drafts.serializers import DraftSerializer
 
 
-@csrf_exempt
 def drafts_list(request):
     if request.method == "POST":
         control_code = request.POST.get('control_code', None)
@@ -25,7 +24,6 @@ def drafts_list(request):
         return JsonResponse(serializer.data, safe=False)
 
 
-@csrf_exempt
 def draft_detail(request, id):
     if request.method == "POST":
         # Pull draft info from post
