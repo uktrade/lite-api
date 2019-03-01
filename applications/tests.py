@@ -1,7 +1,8 @@
+import json
 from rest_framework import status
 from django.test import TestCase, Client
 from drafts.models import Draft
-from applications.models import Application
+from applications.models import Application, FormComplete
 
 
 class ApplicationTests(TestCase):
@@ -46,7 +47,7 @@ class ApplicationTests(TestCase):
         url = 'http://localhost:8000/applications/'
         data = {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC6"}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(len(Draft.objects.filter(id=draft_id)), 1)
 
     def test_create_application_without_id(self):
@@ -65,11 +66,12 @@ class ApplicationTests(TestCase):
 
         url = 'http://localhost:8000/applications/'
         response = self.client.post(url, {}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(len(Draft.objects.filter(id=draft_id)), 1)
 
     def test_reject_submit_if_usage_data_is_missing(self):
         incomplete_draft = Draft()
+        incomplete_draft.user_id = "12345"
         incomplete_draft.control_code = "ML2"
         incomplete_draft.destination = "Poland"
         incomplete_draft.activity = "Trade"
@@ -78,6 +80,7 @@ class ApplicationTests(TestCase):
 
     def test_reject_submit_if_activity_data_is_missing(self):
         incomplete_draft = Draft()
+        incomplete_draft.user_id = "12345"
         incomplete_draft.control_code = "ML2"
         incomplete_draft.destination = "Poland"
         incomplete_draft.usage = "some purpose"
@@ -86,6 +89,7 @@ class ApplicationTests(TestCase):
 
     def test_reject_submit_if_destination_data_is_missing(self):
         incomplete_draft = Draft()
+        incomplete_draft.user_id = "12345"
         incomplete_draft.control_code = "ML2"
         incomplete_draft.activity = "Trade"
         incomplete_draft.usage = "some purpose"
@@ -94,6 +98,7 @@ class ApplicationTests(TestCase):
 
     def test_reject_submit_if_control_code_data_is_missing(self):
         incomplete_draft = Draft()
+        incomplete_draft.user_id = "12345"
         incomplete_draft.destination = "Poland"
         incomplete_draft.activity = "Trade"
         incomplete_draft.usage = "some purpose"
@@ -101,7 +106,8 @@ class ApplicationTests(TestCase):
         self.assertEqual(FormComplete(incomplete_draft).ready_for_submission, False)
 
     def test_accept_submit_if_form_is_ready_for_submission(self):
-        complete_draft = Draft
+        complete_draft = Draft()
+        complete_draft.user_id = "12345"
         complete_draft.control_code = "ML2"
         complete_draft.destination = "Poland"
         complete_draft.activity = "Trade"
@@ -120,6 +126,7 @@ class ApplicationTests(TestCase):
     def test_application_successful_submit(self):
         complete_draft = Draft()
         complete_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        complete_draft.user_id = "12345"
         complete_draft.control_code = "ML2"
         complete_draft.destination = "Poland"
         complete_draft.activity = "Trade"
@@ -137,6 +144,7 @@ class ApplicationTests(TestCase):
     def test_application_unsuccessful_submit_empty_form(self):
         empty_draft = Draft()
         empty_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        empty_draft.user_id = "12345"
         empty_draft.save()
 
         client = Client()
