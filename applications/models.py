@@ -19,18 +19,18 @@ class Application(models.Model):
 class FormComplete:
     def __init__(self, draft):
         self.ready_for_submission = True
-        if draft.user_id == '':
-            self.user_id = "user_id cannot be blank"
+        if draft.user_id == None:
+            self.user_id = "User id cannot be blank"
             self.ready_for_submission = False
-        if draft.usage == '':
-            self.usage = "usage cannot be blank"
+        if draft.usage == None:
+            self.usage = "Usage cannot be blank"
             self.ready_for_submission = False
-        if draft.activity == '':
-            self.activity = "activity cannot be blank"
+        if draft.activity == None:
+            self.activity = "Activity cannot be blank"
             self.ready_for_submission = False
-        if draft.destination == '':
-            self.destination = "destination cannot be blank"
+        if draft.destination == None:
+            self.destination = "Destination cannot be blank"
             self.ready_for_submission = False
-        if draft.control_code == '':
-            self.control_code = "control_code cannot be blank"
+        if draft.control_code == None:
+            self.control_code = "Control code cannot be blank"
             self.ready_for_submission = False

@@ -33,7 +33,7 @@ def applications_list(request):
                 return response
         else:
             response = JsonResponse(submit_id, safe=False)
-            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            response.status_code = status.HTTP_404_NOT_FOUND
             return response
     else:
         response = JsonResponse({}, safe=False)
