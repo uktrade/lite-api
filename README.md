@@ -11,9 +11,9 @@ Service for managing applications and drafts in LITE.
   * `cp conf/sample-application.conf conf/application.conf`
   * In service config options, replace `ENTER_USERNAME_HERE` and `ENTER_PASSWORD_HERE` values with their corresponding
     usernames and passwords from Vault.
-  * If your local Redis and Postgres are not running with default options, edit the `db` and `redis` sections of the
+  * If your local Postgres is not running with default options, edit the `db` sections of the
     config file.
-* Run the application: `sbt run`
+* Run the application: `python manage.py runserver`
 * Go to the index page (e.g. `http://localhost:8000`)
 
 ## Endpoints
