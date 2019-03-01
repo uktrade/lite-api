@@ -23,7 +23,7 @@ class ApplicationTests(TestCase):
                                usage="Fun")
         complete_draft.save()
 
-        url = 'http://localhost:8000/applications/'
+        url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -44,7 +44,7 @@ class ApplicationTests(TestCase):
                                usage="Fun")
         complete_draft.save()
 
-        url = 'http://localhost:8000/applications/'
+        url = '/applications/'
         data = {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC6"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -64,7 +64,7 @@ class ApplicationTests(TestCase):
                                usage="Fun")
         complete_draft.save()
 
-        url = 'http://localhost:8000/applications/'
+        url = '/applications/'
         response = self.client.post(url, {}, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(len(Draft.objects.filter(id=draft_id)), 1)
