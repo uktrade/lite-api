@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Draft',
+            name='Application',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('user_id', models.TextField(default=None)),
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('last_modified_at', models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'draft',
+                'db_table': 'application',
             },
         ),
     ]

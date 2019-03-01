@@ -10,6 +10,9 @@ def drafts_list(request):
         control_code = request.POST.get('control_code', None)
         user_id = request.POST.get('user_id', None)
 
+        if not user_id:
+            return JsonResponse({}, status=422)
+
         # Create a new draft
         new_draft = Draft(control_code=control_code,
                           user_id=user_id)
@@ -18,7 +21,7 @@ def drafts_list(request):
         # Return the new object
         draft = Draft.objects.get(id=new_draft.id)
         serializer = DraftSerializer(draft)
-        return JsonResponse(serializer.data)
+        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
     else:
         drafts = Draft.objects.all()
         serializer = DraftSerializer(drafts, many=True)

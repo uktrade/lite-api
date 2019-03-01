@@ -4,8 +4,8 @@ import uuid
 
 class Draft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.TextField(default='')
-    control_code = models.CharField(max_length=30, default=None)
+    user_id = models.TextField(default=None)
+    control_code = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     destination = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
