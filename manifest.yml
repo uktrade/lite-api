@@ -2,4 +2,3 @@
 applications:
   -
     buildpack: python_buildpack
-    command: python manage.py migrate && ./manage.py runserver 0.0.0.0:$PORT
