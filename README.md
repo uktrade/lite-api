@@ -8,11 +8,9 @@ Service for managing applications and drafts in LITE.
   * `cd lite-application-service` 
 * Start a local Postgres: `docker run --name my-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
 * Set up your local config file:
+  * `cp local.env .env`
   * `cp conf/sample-application.conf conf/application.conf`
-  * In service config options, replace `ENTER_USERNAME_HERE` and `ENTER_PASSWORD_HERE` values with their corresponding
-    usernames and passwords from Vault.
-  * If your local Postgres is not running with default options, edit the `db` sections of the
-    config file.
+  * If your local Postgres is not running with default options, edit the `DATABASE_URL` sections of `.env` file
 * Run the application: `python manage.py runserver`
 * Go to the index page (e.g. `http://localhost:8000`)
 
