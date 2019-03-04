@@ -10,8 +10,10 @@ from drafts.serializers import DraftSerializer
 def applications_list(request):
     if request.method == "POST":
         submit_id = request.POST.get('id', None)
-        if len(Draft.objects.filter(id=submit_id)) > 0:
+
+        if Draft.objects.filter(id=submit_id).exists():
             draft_to_be_submitted = Draft.objects.get(id=submit_id)
+
             if FormComplete(draft_to_be_submitted).ready_for_submission:
                 new_application = Application(id=draft_to_be_submitted.id,
                                               user_id=draft_to_be_submitted.user_id,
@@ -27,14 +29,17 @@ def applications_list(request):
                 response = JsonResponse(DraftSerializer(FormComplete(draft_to_be_submitted)).data, safe=False)
                 response.status_code = status.HTTP_201_CREATED
                 return response
+
             else:
                 response = JsonResponse(DraftSerializer(FormComplete(draft_to_be_submitted)).data, safe=False)
                 response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
                 return response
+
         else:
             response = JsonResponse(submit_id, safe=False)
             response.status_code = status.HTTP_404_NOT_FOUND
             return response
+
     else:
         response = JsonResponse({}, safe=False)
         response.status_code = status.HTTP_405_METHOD_NOT_ALLOWED
