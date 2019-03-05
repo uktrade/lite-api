@@ -79,6 +79,8 @@ else:
         'default': env.db()
     }
 
+    DATABASES['default']['OPTIONS'] = {'options': '-c search_path=application_service,public'}
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
