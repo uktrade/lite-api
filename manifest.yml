@@ -2,3 +2,5 @@
 applications:
   -
     buildpack: python_buildpack
+    services:
+      - lite-backend-dev-pg
