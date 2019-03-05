@@ -1,4 +1,5 @@
 # lite-api
+
 Service for handling backend calls in LITE.
 
 ## Running the service
@@ -11,7 +12,7 @@ Service for handling backend calls in LITE.
   * `cp local.env .env`
   * `cp conf/sample-application.conf conf/application.conf`
   * If your local Postgres is not running with default options, edit the `DATABASE_URL` sections of `.env` file
-* Run the application: `python manage.py runserver`
+* Run the application: `python manage.py migrate && ./manage.py runserver`
 * Go to the index page (e.g. `http://localhost:8000`)
 
 ## Endpoints
