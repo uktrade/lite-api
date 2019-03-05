@@ -1,11 +1,11 @@
-# lite-application-service
-Service for managing applications and drafts in LITE.
+# lite-api
+Service for handling backend calls in LITE.
 
 ## Running the service
 
 * Download the repository:
-  * `git clone https://github.com/uktrade/lite-application-service.git`
-  * `cd lite-application-service` 
+  * `git clone https://github.com/uktrade/lite-api.git`
+  * `cd lite-api` 
 * Start a local Postgres: `docker run --name my-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
 * Set up your local config file:
   * `cp local.env .env`
@@ -35,3 +35,12 @@ Endpoint Group #2 description
 **GET** `/drafts/user/:id` - Returns a list of drafts belonging to the specified user.
 
 **POST** `/drafts/user/:id` - Creates a new draft belonging to the specified user.
+
+
+### Control Codes
+
+Endpoint Group #2 description
+
+**GET** `/control-codes/:id` - Returns the specified draft.
+
+**POST** `/control-codes/:id` - Updates the specified draft with the data sent.
