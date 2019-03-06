@@ -1,6 +1,4 @@
 ---
 applications:
   -
-    memory: 384M
-    disk: 128M
     buildpack: python_buildpack
