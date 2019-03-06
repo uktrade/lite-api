@@ -1,3 +1,4 @@
+import json
 import os
 
 import environ
@@ -10,7 +11,8 @@ if os.path.exists(ENV_FILE):
     environ.Env.read_env(ENV_FILE)
 
 env = environ.Env(
-    DEBUG=(bool, False)
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(str, '')
 )
 
 # Quick-start development settings - unsuitable for production
@@ -21,7 +23,7 @@ SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
 # Application definition
 
