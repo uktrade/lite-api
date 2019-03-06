@@ -70,48 +70,63 @@ class ApplicationTests(TestCase):
         self.assertEqual(len(Draft.objects.filter(id=draft_id)), 1)
 
     def test_reject_submit_if_usage_data_is_missing(self):
-        incomplete_draft = Draft()
-        incomplete_draft.user_id = "12345"
-        incomplete_draft.control_code = "ML2"
-        incomplete_draft.destination = "Poland"
-        incomplete_draft.activity = "Trade"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        incomplete_draft = Draft(id=draft_id,
+                                 user_id="12345",
+                                 control_code="ML2",
+                                 destination="Poland",
+                                 activity="Trade")
+
         self.assertEqual(FormComplete(incomplete_draft).usage, "Usage cannot be blank")
         self.assertEqual(FormComplete(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_activity_data_is_missing(self):
-        incomplete_draft = Draft()
-        incomplete_draft.user_id = "12345"
-        incomplete_draft.control_code = "ML2"
-        incomplete_draft.destination = "Poland"
-        incomplete_draft.usage = "some purpose"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        incomplete_draft = Draft(id=draft_id,
+                                 user_id="12345",
+                                 control_code="ML2",
+                                 destination="Poland",
+                                 usage="Fun")
+
         self.assertEqual(FormComplete(incomplete_draft).activity, "Activity cannot be blank")
         self.assertEqual(FormComplete(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_destination_data_is_missing(self):
-        incomplete_draft = Draft()
-        incomplete_draft.user_id = "12345"
-        incomplete_draft.control_code = "ML2"
-        incomplete_draft.activity = "Trade"
-        incomplete_draft.usage = "some purpose"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        incomplete_draft = Draft(id=draft_id,
+                                 user_id="12345",
+                                 control_code="ML2",
+                                 activity="Trade",
+                                 usage="Fun")
+
         self.assertEqual(FormComplete(incomplete_draft).destination, "Destination cannot be blank")
         self.assertEqual(FormComplete(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_control_code_data_is_missing(self):
-        incomplete_draft = Draft()
-        incomplete_draft.user_id = "12345"
-        incomplete_draft.destination = "Poland"
-        incomplete_draft.activity = "Trade"
-        incomplete_draft.usage = "some purpose"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        incomplete_draft = Draft(id=draft_id,
+                                 user_id="12345",
+                                 destination="Poland",
+                                 activity="Trade",
+                                 usage="Fun")
+
         self.assertEqual(FormComplete(incomplete_draft).control_code, "Control code cannot be blank")
         self.assertEqual(FormComplete(incomplete_draft).ready_for_submission, False)
 
     def test_accept_submit_if_form_is_ready_for_submission(self):
-        complete_draft = Draft()
-        complete_draft.user_id = "12345"
-        complete_draft.control_code = "ML2"
-        complete_draft.destination = "Poland"
-        complete_draft.activity = "Trade"
-        complete_draft.usage = "Fun"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        complete_draft = Draft(id=draft_id,
+                               user_id="12345",
+                               control_code="ML2",
+                               destination="Poland",
+                               activity="Trade",
+                               usage="Fun")
+
         self.assertEqual(FormComplete(complete_draft).ready_for_submission, True)
 
     def test_reject_submit_if_all_fields_missing(self):
@@ -124,13 +139,15 @@ class ApplicationTests(TestCase):
 
 
     def test_application_successful_submit(self):
-        complete_draft = Draft()
-        complete_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
-        complete_draft.user_id = "12345"
-        complete_draft.control_code = "ML2"
-        complete_draft.destination = "Poland"
-        complete_draft.activity = "Trade"
-        complete_draft.usage = "Fun"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        complete_draft = Draft(id=draft_id,
+                               user_id="12345",
+                               control_code="ML2",
+                               destination="Poland",
+                               activity="Trade",
+                               usage="Fun")
+
         complete_draft.save()
 
         client = Client()
@@ -142,9 +159,11 @@ class ApplicationTests(TestCase):
         self.assertEqual(Application.objects.get(id="90D6C724-0339-425A-99D2-9D2B8E864EC7").destination, "Poland")
 
     def test_application_unsuccessful_submit_empty_form(self):
-        empty_draft = Draft()
-        empty_draft.id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
-        empty_draft.user_id = "12345"
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+
+        empty_draft = Draft(id=draft_id,
+                            user_id="12345")
+
         empty_draft.save()
 
         client = Client()
