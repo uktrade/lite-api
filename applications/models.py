@@ -14,23 +14,3 @@ class Application(models.Model):
 
     class Meta:
         db_table = "application"
-
-
-class FormComplete:
-    def __init__(self, draft):
-        self.ready_for_submission = True
-        if draft.user_id == None:
-            self.user_id = "User id cannot be blank"
-            self.ready_for_submission = False
-        if draft.usage == None:
-            self.usage = "Usage cannot be blank"
-            self.ready_for_submission = False
-        if draft.activity == None:
-            self.activity = "Activity cannot be blank"
-            self.ready_for_submission = False
-        if draft.destination == None:
-            self.destination = "Destination cannot be blank"
-            self.ready_for_submission = False
-        if draft.control_code == None:
-            self.control_code = "Control code cannot be blank"
-            self.ready_for_submission = False

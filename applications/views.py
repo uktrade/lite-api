@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 
 from rest_framework import status
-from applications.models import FormComplete, Application
+from applications.models import Application
+from applications.libraries.ValidateFormFields import ValidateFormFields
 from rest_framework.response import Response
 from drafts.models import Draft
 from drafts.serializers import DraftSerializer
@@ -14,7 +15,7 @@ def applications_list(request):
         if Draft.objects.filter(id=submit_id).exists():
             draft_to_be_submitted = Draft.objects.get(id=submit_id)
 
-            if FormComplete(draft_to_be_submitted).ready_for_submission:
+            if ValidateFormFields(draft_to_be_submitted).ready_for_submission:
                 new_application = Application(id=draft_to_be_submitted.id,
                                               user_id=draft_to_be_submitted.user_id,
                                               control_code=draft_to_be_submitted.control_code,
@@ -26,12 +27,12 @@ def applications_list(request):
                 if Application.objects.get(id=draft_to_be_submitted.id):
                     draft_to_be_submitted.delete()
 
-                response = JsonResponse(DraftSerializer(FormComplete(draft_to_be_submitted)).data, safe=False)
+                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
                 response.status_code = status.HTTP_201_CREATED
                 return response
 
             else:
-                response = JsonResponse(DraftSerializer(FormComplete(draft_to_be_submitted)).data, safe=False)
+                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
                 response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
                 return response
 
