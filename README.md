@@ -11,11 +11,11 @@ Service for handling backend calls in LITE.
 * Set up your local config file:
   * `cp local.env .env`
   * If your local Postgres is not running with default options, edit the `DATABASE_URL` sections of `.env` file
-* activate your Python virtual environment
+* Activate your Python virtual environment:
   * `cd venv`
   * `source bin/activate`
   * `cd ..`
-* run `pip install -r requirements.txt`
+* Run `pip install -r requirements.txt`
 * Run the application: `python manage.py migrate && ./manage.py runserver`
 * Go to the index page (e.g. `http://localhost:8000`)
 
