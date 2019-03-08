@@ -43,7 +43,14 @@ def draft_detail(request, id):
 
         # Update draft
         if control_code:
-            draft.control_code = control_code
+            return JsonResponse({
+                "status": "error",
+                "errors":
+                    {
+                        "control_code": "Invalid Control Code"
+                    }
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            # draft.control_code = control_code
 
         if activity:
             draft.activity = activity
