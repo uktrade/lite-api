@@ -6,6 +6,7 @@ from applications.libraries.ValidateFormFields import ValidateFormFields
 from rest_framework.response import Response
 from drafts.models import Draft
 from drafts.serializers import DraftSerializer
+from applications.serializers import ApplicationSerializer
 
 
 def applications_list(request):
@@ -42,6 +43,6 @@ def applications_list(request):
             return response
 
     else:
-        response = JsonResponse({}, safe=False)
-        response.status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        return response
+        applications = Application.objects.all()
+        serializer = ApplicationSerializer(applications, many=True)
+        return JsonResponse(serializer.data, safe=False)
