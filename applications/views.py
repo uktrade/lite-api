@@ -6,6 +6,7 @@ from applications.libraries.ValidateFormFields import ValidateFormFields
 from rest_framework.response import Response
 from drafts.models import Draft
 from drafts.serializers import DraftSerializer
+from applications.serializers import ApplicationSerializer
 
 
 def applications_list(request):
