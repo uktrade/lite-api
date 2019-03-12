@@ -42,6 +42,6 @@ def applications_list(request):
             return response
 
     else:
-        response = JsonResponse({}, safe=False)
-        response.status_code = status.HTTP_405_METHOD_NOT_ALLOWED
-        return response
+        applications = Application.objects.all()
+        serializer = ApplicationSerializer(applications, many=True)
+        return JsonResponse(serializer.data, safe=False)
