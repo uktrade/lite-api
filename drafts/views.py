@@ -31,6 +31,7 @@ def drafts_list(request):
 def draft_detail(request, id):
     if request.method == "POST":
         # Pull draft info from post
+        name = request.POST.get('name', None)
         control_code = request.POST.get('control_code', None)
         activity = request.POST.get('activity', None)
         destination = request.POST.get('destination', None)
@@ -42,6 +43,17 @@ def draft_detail(request, id):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # Update draft
+        if name.strip() is '':
+            return JsonResponse({
+                "status": "error",
+                "errors":
+                    {
+                        "name": "Invalid Application Name"
+                    }
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        else:
+            draft.name = name
+
         if control_code:
             return JsonResponse({
                 "status": "error",

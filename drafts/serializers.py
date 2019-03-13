@@ -7,6 +7,7 @@ class DraftSerializer(serializers.ModelSerializer):
         model = Draft
         fields = ('id',
                   'user_id',
+                  'name',
                   'control_code',
                   'activity',
                   'destination',
