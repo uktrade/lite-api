@@ -53,3 +53,11 @@ Endpoint Group #2 description
 ## Common Issues
 
 `ModuleNotFoundError: No module named 'environ'` - Type `pip install -r requirements.txt`
+
+## LITE Repositories
+
+**[lite-api](https://github.com/uktrade/lite-api)** - Service for handling backend calls in LITE.
+
+[lite-exporter-frontend](https://github.com/uktrade/lite-exporter-frontend) - Application for handling exporter related activity in LITE.
+
+[lite-internal](https://github.com/uktrade/lite-internal-frontend) - Application for handling internal information in LITE.
