@@ -4,5 +4,5 @@ from drafts import views
 
 urlpatterns = [
     path('', views.drafts_list),
-    path('<uuid:id>/', views.draft_detail)
+    path('<uuid:id>/', views.draft_detail),
 ]

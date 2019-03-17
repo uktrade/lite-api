@@ -1,9 +1,9 @@
 from django.http import JsonResponse
+from django.shortcuts import redirect
 
 from rest_framework import status
-from applications.models import Application
+from applications.models import Application, Destination, Good
 from applications.libraries.ValidateFormFields import ValidateFormFields
-from rest_framework.response import Response
 from drafts.models import Draft
 from drafts.serializers import DraftSerializer
 from applications.serializers import ApplicationSerializer
@@ -45,4 +45,38 @@ def applications_list(request):
     else:
         applications = Application.objects.all()
         serializer = ApplicationSerializer(applications, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
+                            safe=False,
+                            json_dumps_params={'indent': 2})
+
+
+def application_detail(request, id):
+    try:
+        application = Application.objects.get(id=id)
+    except Application.DoesNotExist:
+        return JsonResponse(status=status.HTTP_404_NOT_FOUND, data={'status': 'error'})
+
+    serializer = ApplicationSerializer(application)
+    return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                        json_dumps_params={'indent': 2})
+
+
+def test_data(request):
+    application = Application(name="Bloodbuzz Ohio",
+                              user_id=1)
+
+    application.save()
+
+    destination = Destination(name="Poland",
+                              application=application)
+
+    destination.save()
+
+    good = Good(name="Ball Bearings",
+                quantity=3,
+                control_code="ML1a",
+                application=application)
+
+    good.save()
+
+    return redirect("/applications/")
