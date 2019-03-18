@@ -14,7 +14,8 @@ class ApplicationTests(TestCase):
         """
             Ensure we can create a new draft object.
             """
-        complete_draft = Draft(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        complete_draft = Draft(id=draft_id,
                                user_id="12345",
                                control_code="ML2",
                                destination="Poland",
@@ -23,17 +24,18 @@ class ApplicationTests(TestCase):
         complete_draft.save()
 
         url = '/applications/'
-        data = {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC7"}
+        data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(len(Draft.objects.filter(id="90D6C724-0339-425A-99D2-9D2B8E864EC7")), 0)
-        self.assertEqual(Application.objects.get(id="90D6C724-0339-425A-99D2-9D2B8E864EC7").destination, "Poland")
+        self.assertEqual(len(Draft.objects.filter(id=draft_id)), 0)
+        self.assertEqual(Application.objects.get(id=draft_id).destination, "Poland")
 
     def test_create_application_with_invalid_id(self):
         """
             Ensure we cannot create a new application object with an invalid draft id.
             """
-        complete_draft = Draft(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        complete_draft = Draft(id=draft_id,
                                user_id="12345",
                                control_code="ML2",
                                destination="Poland",
@@ -45,7 +47,7 @@ class ApplicationTests(TestCase):
         data = {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC6"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(len(Draft.objects.filter(id="90D6C724-0339-425A-99D2-9D2B8E864EC7")), 1)
+        self.assertEqual(len(Draft.objects.filter(id=draft_id)), 1)
 
     def test_create_application_without_id(self):
         """
@@ -124,7 +126,8 @@ class ApplicationTests(TestCase):
 
 
     def test_application_successful_submit(self):
-        complete_draft = Draft(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
+        draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
+        complete_draft = Draft(id=draft_id,
                                user_id="12345",
                                control_code="ML2",
                                destination="Poland",
@@ -134,12 +137,12 @@ class ApplicationTests(TestCase):
         complete_draft.save()
 
         client = Client()
-        response = client.post('/applications/', {'id': '90D6C724-0339-425A-99D2-9D2B8E864EC7'})
+        response = client.post('/applications/', {'id': draft_id})
 
         self.assertEqual(response.status_code, 201)
 
-        self.assertEqual(len(Draft.objects.filter(id="90D6C724-0339-425A-99D2-9D2B8E864EC7")), 0)
-        self.assertEqual(Application.objects.get(id="90D6C724-0339-425A-99D2-9D2B8E864EC7").destination, "Poland")
+        self.assertEqual(len(Draft.objects.filter(id=draft_id)), 0)
+        self.assertEqual(Application.objects.get(id=draft_id).destination, "Poland")
 
     def test_application_unsuccessful_submit_empty_form(self):
         empty_draft = Draft(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
