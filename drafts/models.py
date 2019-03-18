@@ -12,3 +12,6 @@ class Draft(models.Model):
     usage = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
+
+    class Meta:
+        db_table = "draft"

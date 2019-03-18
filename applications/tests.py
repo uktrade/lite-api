@@ -167,15 +167,3 @@ class ApplicationTests(TestCase):
         response = client.post('/applications/', {'id': "90D6C724-0339-425A-99D2-9D2B8E864EC9"})
 
         self.assertEqual(response.status_code, 404)
-
-    def test_application_submit_invalid_methods(self):
-        client = Client()
-
-        response = client.get('/applications/')
-        self.assertEqual(response.status_code, 405)
-
-        response = client.put('/applications/')
-        self.assertEqual(response.status_code, 405)
-
-        response = client.delete('/applications/')
-        self.assertEqual(response.status_code, 405)
