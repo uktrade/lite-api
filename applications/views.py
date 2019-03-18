@@ -1,82 +1,46 @@
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.http import JsonResponse, Http404
+from rest_framework import status, permissions
+from rest_framework.decorators import permission_classes
+from rest_framework.views import APIView
 
-from rest_framework import status
-from applications.models import Application, Destination, Good
-from applications.libraries.ValidateFormFields import ValidateFormFields
-from drafts.models import Draft
-from drafts.serializers import DraftSerializer
+import conf
+from applications.models import Application
 from applications.serializers import ApplicationSerializer
+from conf.settings import JSON_INDENT
 
 
-def applications_list(request):
-    if request.method == "POST":
-        submit_id = request.POST.get('id', None)
-
-        if Draft.objects.filter(id=submit_id).exists():
-            draft_to_be_submitted = Draft.objects.get(id=submit_id)
-
-            if ValidateFormFields(draft_to_be_submitted).ready_for_submission:
-                new_application = Application(id=draft_to_be_submitted.id,
-                                              user_id=draft_to_be_submitted.user_id,
-                                              control_code=draft_to_be_submitted.control_code,
-                                              destination=draft_to_be_submitted.destination,
-                                              activity=draft_to_be_submitted.activity,
-                                              usage=draft_to_be_submitted.usage)
-                new_application.save()
-
-                if Application.objects.get(id=draft_to_be_submitted.id):
-                    draft_to_be_submitted.delete()
-
-                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
-                response.status_code = status.HTTP_201_CREATED
-                return response
-
-            else:
-                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
-                response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-                return response
-
-        else:
-            response = JsonResponse(submit_id, safe=False)
-            response.status_code = status.HTTP_404_NOT_FOUND
-            return response
-
-    else:
-        applications = Application.objects.all()
-        serializer = ApplicationSerializer(applications, many=True)
+@permission_classes((permissions.AllowAny,))
+class ApplicationList(APIView):
+    """
+    List all applications, or create a new application from a draft.
+    """
+    def get(self, request):
+        snippets = Application.objects.all()
+        serializer = ApplicationSerializer(snippets, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
-                            safe=False,
-                            json_dumps_params={'indent': 2})
+                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
+
+    def post(self, request):
+        serializer = ApplicationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def application_detail(request, id):
-    try:
-        application = Application.objects.get(id=id)
-    except Application.DoesNotExist:
-        return JsonResponse(status=status.HTTP_404_NOT_FOUND, data={'status': 'error'})
+@permission_classes((permissions.AllowAny,))
+class ApplicationDetail(APIView):
+    """
+    Retrieve, update or delete a application instance.
+    """
+    def get_object(self, pk):
+        try:
+            return Application.objects.get(pk=pk)
+        except Application.DoesNotExist:
+            raise Http404
 
-    serializer = ApplicationSerializer(application)
-    return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                        json_dumps_params={'indent': 2})
-
-
-def test_data(request):
-    application = Application(name="Bloodbuzz Ohio",
-                              user_id=1)
-
-    application.save()
-
-    destination = Destination(name="Poland",
-                              application=application)
-
-    destination.save()
-
-    good = Good(name="Ball Bearings",
-                quantity=3,
-                control_code="ML1a",
-                application=application)
-
-    good.save()
-
-    return redirect("/applications/")
+    def get(self, request, pk):
+        snippet = self.get_object(pk)
+        serializer = ApplicationSerializer(snippet)
+        return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                            json_dumps_params={'indent': JSON_INDENT})
