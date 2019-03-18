@@ -3,8 +3,7 @@ from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-import conf
-from applications.models import Application
+from applications.models import Application, Good, Destination
 from applications.serializers import ApplicationSerializer
 from conf.settings import JSON_INDENT
 
@@ -44,3 +43,32 @@ class ApplicationDetail(APIView):
         serializer = ApplicationSerializer(snippet)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT})
+
+
+@permission_classes((permissions.AllowAny,))
+class TestData(APIView):
+    """
+    Create test data
+    """
+
+    def get(self, request):
+
+        application = Application(user_id='123',
+                                  name='Lemonworld')
+        application.save()
+
+        good = Good(name='Lemon',
+                    description='big slice of lemon',
+                    quantity=4,
+                    control_code='lem0n',
+                    application=application)
+        good.save()
+
+        destination = Destination(name='Ohio',
+                                  application=application)
+        destination.save()
+
+        snippets = Application.objects.all()
+        serializer = ApplicationSerializer(snippets, many=True)
+        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
+                            json_dumps_params={'indent': JSON_INDENT}, safe=False)

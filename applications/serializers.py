@@ -11,7 +11,7 @@ class DestinationSerializer(serializers.ModelSerializer):
 class GoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
-        fields = ('id', 'name', 'quantity', 'control_code')
+        fields = ('id', 'name', 'description', 'quantity', 'control_code')
 
 
 class ApplicationSerializer(serializers.ModelSerializer):

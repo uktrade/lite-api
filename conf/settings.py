@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'applications.apps.ApplicationsConfig',
     'drafts.apps.DraftsConfig',
-    'control_codes.apps.ControlCodesConfig',
 ]
 
 MIDDLEWARE = [

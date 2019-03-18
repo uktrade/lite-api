@@ -14,6 +14,7 @@ class Application(models.Model):
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
+    description = models.TextField(default=None, blank=True)
     quantity = models.IntegerField()
     control_code = models.TextField(default=None, blank=True)
     application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
