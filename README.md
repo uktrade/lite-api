@@ -41,15 +41,6 @@ Endpoint Group #2 description
 
 **POST** `/drafts/user/:id` - Creates a new draft belonging to the specified user.
 
-
-### Control Codes
-
-Endpoint Group #2 description
-
-**GET** `/control-codes/:id` - Returns the specified draft.
-
-**POST** `/control-codes/:id` - Updates the specified draft with the data sent.
-
 ## Common Issues
 
 `ModuleNotFoundError: No module named 'environ'` - Type `pip install -r requirements.txt`

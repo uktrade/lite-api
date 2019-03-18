@@ -1,5 +1,5 @@
 from rest_framework import status
-from django.test import TestCase, Client
+from django.test import TestCase
 from drafts.models import Draft
 
 

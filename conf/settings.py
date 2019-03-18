@@ -24,6 +24,8 @@ SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'
 
 DEBUG = env('DEBUG')
 
+JSON_INDENT = 2 if DEBUG else 0
+
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
 # Application definition
@@ -32,8 +34,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'rest_framework',
-    'drafts.apps.DraftsConfig',
     'applications.apps.ApplicationsConfig',
+    'drafts.apps.DraftsConfig',
 ]
 
 MIDDLEWARE = [
@@ -48,7 +50,9 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
       'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 4,
 }
 
 WSGI_APPLICATION = 'conf.wsgi.application'

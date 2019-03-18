@@ -1,48 +1,74 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
+from rest_framework import status, permissions
+from rest_framework.decorators import permission_classes
+from rest_framework.views import APIView
 
-from rest_framework import status
-from applications.models import Application
-from applications.libraries.ValidateFormFields import ValidateFormFields
-from rest_framework.response import Response
-from drafts.models import Draft
-from drafts.serializers import DraftSerializer
+from applications.models import Application, Good, Destination
 from applications.serializers import ApplicationSerializer
+from conf.settings import JSON_INDENT
 
 
-def applications_list(request):
-    if request.method == "POST":
-        submit_id = request.POST.get('id', None)
+@permission_classes((permissions.AllowAny,))
+class ApplicationList(APIView):
+    """
+    List all applications, or create a new application from a draft.
+    """
+    def get(self, request):
+        snippets = Application.objects.all()
+        serializer = ApplicationSerializer(snippets, many=True)
+        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
+                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
 
-        if Draft.objects.filter(id=submit_id).exists():
-            draft_to_be_submitted = Draft.objects.get(id=submit_id)
+    def post(self, request):
+        serializer = ApplicationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            if ValidateFormFields(draft_to_be_submitted).ready_for_submission:
-                new_application = Application(id=draft_to_be_submitted.id,
-                                              user_id=draft_to_be_submitted.user_id,
-                                              control_code=draft_to_be_submitted.control_code,
-                                              destination=draft_to_be_submitted.destination,
-                                              activity=draft_to_be_submitted.activity,
-                                              usage=draft_to_be_submitted.usage)
-                new_application.save()
 
-                if Application.objects.get(id=draft_to_be_submitted.id):
-                    draft_to_be_submitted.delete()
+@permission_classes((permissions.AllowAny,))
+class ApplicationDetail(APIView):
+    """
+    Retrieve, update or delete a application instance.
+    """
+    def get_object(self, pk):
+        try:
+            return Application.objects.get(pk=pk)
+        except Application.DoesNotExist:
+            raise Http404
 
-                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
-                response.status_code = status.HTTP_201_CREATED
-                return response
+    def get(self, request, pk):
+        snippet = self.get_object(pk)
+        serializer = ApplicationSerializer(snippet)
+        return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                            json_dumps_params={'indent': JSON_INDENT})
 
-            else:
-                response = JsonResponse(DraftSerializer(ValidateFormFields(draft_to_be_submitted)).data, safe=False)
-                response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-                return response
 
-        else:
-            response = JsonResponse(submit_id, safe=False)
-            response.status_code = status.HTTP_404_NOT_FOUND
-            return response
+@permission_classes((permissions.AllowAny,))
+class TestData(APIView):
+    """
+    Create test data
+    """
 
-    else:
-        applications = Application.objects.all()
-        serializer = ApplicationSerializer(applications, many=True)
-        return JsonResponse(serializer.data, safe=False)
+    def get(self, request):
+
+        application = Application(user_id='123',
+                                  name='Lemonworld')
+        application.save()
+
+        good = Good(name='Lemon',
+                    description='big slice of lemon',
+                    quantity=4,
+                    control_code='lem0n',
+                    application=application)
+        good.save()
+
+        destination = Destination(name='Ohio',
+                                  application=application)
+        destination.save()
+
+        snippets = Application.objects.all()
+        serializer = ApplicationSerializer(snippets, many=True)
+        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
+                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
