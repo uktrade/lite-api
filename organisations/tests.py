@@ -1,23 +1,25 @@
 from django.test import TestCase, Client
 from rest_framework import status
+from organisations.models import Organisation
+from users.models import User
 
-# Create your tests here.
 
 class OrganisationTests(TestCase):
 
-    def test_create_organisation(self):
-        organisation_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
-        new_organisation = Organisation(id=organisation_id,
-                                        name="Big Scary Guns ltd",
-                                        eori_number="GB123456789000",
-                                        sic_number="2765")
+    def test_create_organisation_with_first_user(self):
 
-        new_organisation.save()
+        name="Big Scary Guns ltd"
+        eori_number="GB123456789000"
+        sic_number="2765"
+        address="London"
+        admin_user_email="trinity@bsg.com"
 
         url = '/organisations/'
-        data = {'id': organisation_id}
-        respsonse = self.client.post(url, data, format='json')
+        data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'address': address, 'admin_user_email': admin_user_email}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Organisation.objects.get(id=organisation_id).name, "Big Scary Guns ltd")
-        self.assertEqual(Organisation.objects.get(id=organisation_id).eori_number, "GB123456789000")
-        self.assertEqual(Organisation.objects.get(id=organisation_id).sic_number, "2765")
+        self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
+        self.assertEqual(Organisation.objects.get().eori_number, "GB123456789000")
+        self.assertEqual(Organisation.objects.get().sic_number, "2765")
+        self.assertEqual(Organisation.objects.get().address, "London")
+        self.assertEqual(User.objects.get().email, "trinity@bsg.com")
