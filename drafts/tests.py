@@ -1,6 +1,6 @@
 from rest_framework import status
 from django.test import TestCase
-from drafts.models import Draft
+from applications.models import Application
 
 
 class DraftTests(TestCase):
@@ -12,11 +12,11 @@ class DraftTests(TestCase):
             Ensure we can create a new draft object.
             """
         url = '/drafts/'
-        data = {'user_id': '12345'}
+        data = {'user_id': '12345', 'name': 'Test'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Draft.objects.count(), 1)
-        self.assertEqual(Draft.objects.get().user_id, '12345')
+        self.assertEqual(Application.objects.count(), 1)
+        self.assertEqual(Application.objects.get().user_id, '12345')
 
     def test_create_draft_empty_user_id(self):
         """
@@ -26,16 +26,25 @@ class DraftTests(TestCase):
         data = {'user_id': ''}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        self.assertEqual(Draft.objects.count(), 0)
+        self.assertEqual(Application.objects.count(), 0)
 
     def test_create_draft_no_user_id(self):
         """
             Ensure we cannot create a draft without a user_id.
             """
         url = '/drafts/'
-        response = self.client.post(url, {}, format='json')
+        response = self.client.post(url, {'name': 'test'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        self.assertEqual(Draft.objects.count(), 0)
+        self.assertEqual(Application.objects.count(), 0)
+
+    def test_create_draft_no_name(self):
+        """
+            Ensure we cannot create a draft without a name.
+            """
+        url = '/drafts/'
+        response = self.client.post(url, {'user_id': '12345'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(Application.objects.count(), 0)
 
     # Editing
 
@@ -45,7 +54,7 @@ class DraftTests(TestCase):
             """
         control_code = 'ML1a'
 
-        draft = Draft(user_id="12345")
+        draft = Application(user_id='12345', name='Test')
         draft.save()
 
         url = '/drafts/' + str(draft.id) + '/'
@@ -53,9 +62,9 @@ class DraftTests(TestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(Draft.objects.count(), 1)
-        self.assertEqual(Draft.objects.get().id, draft.id)
-        self.assertEqual(Draft.objects.get().control_code, control_code)
+        self.assertEqual(Application.objects.count(), 1)
+        self.assertEqual(Application.objects.get().id, draft.id)
+        self.assertEqual(Application.objects.get().control_code, control_code)
 
     # Viewing
 
@@ -63,41 +72,83 @@ class DraftTests(TestCase):
         """
             Ensure we can get a list of drafts.
             """
-        complete_draft = Draft(user_id="12345",
-                               control_code="ML2",
-                               destination="Poland",
-                               activity="Trade",
-                               usage="Fun")
+        complete_draft = Application(user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     usage='Fun',
+                                     draft=True)
         complete_draft.save()
 
         url = '/drafts/'
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()['drafts']), 1)
+
+    def test_view_drafts_not_applications(self):
+        """
+            Ensure we can get a list of drafts (and not applications)
+            """
+        complete_draft = Application(user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     usage='Fun',
+                                     draft=False)
+        complete_draft.save()
+
+        url = '/drafts/'
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()['drafts']), 0)
 
     def test_view_draft(self):
         """
             Ensure we can get a draft.
             """
-        complete_draft = Draft(user_id="12345",
-                               control_code="ML2",
-                               destination="Poland",
-                               activity="Trade",
-                               usage="Fun")
+        complete_draft = Application(user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     usage='Fun',
+                                     draft=True)
         complete_draft.save()
 
         url = '/drafts/' + str(complete_draft.id) + '/'
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_view_draft_not_application(self):
+        """
+            Ensure we cannot get an application from the drafts endpoint.
+            """
+        complete_draft = Application(user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     usage='Fun',
+                                     draft=False)
+        complete_draft.save()
+
+        url = '/drafts/' + str(complete_draft.id) + '/'
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_view_incorrect_draft(self):
         """
             Ensure we cannot get a draft if the id is incorrect.
             """
-        complete_draft = Draft(user_id="12345",
-                               control_code="ML2",
-                               destination="Poland",
-                               activity="Trade",
-                               usage="Fun")
+        complete_draft = Application(user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     usage='Fun',
+                                     draft=True)
         complete_draft.save()
 
         url = '/drafts/invalid_id/'
