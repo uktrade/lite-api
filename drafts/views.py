@@ -27,9 +27,11 @@ class DraftList(APIView):
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
-                                json_dumps_params={'indent': JSON_INDENT}, status=status.HTTP_201_CREATED)
+                                json_dumps_params={'indent': JSON_INDENT},
+                                status=status.HTTP_201_CREATED)
 
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -52,46 +54,16 @@ class DraftDetail(APIView):
         return JsonResponse(data={'status': 'success', 'draft': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT})
 
-    def post(self, request, pk):
-        # Pull draft info from post
-        name = request.POST.get('name', None)
-        control_code = request.POST.get('control_code', None)
-        activity = request.POST.get('activity', None)
-        destination = request.POST.get('destination', None)
-        usage = request.POST.get('usage', None)
-
-        draft = self.get_object(pk)
-
-        # Update draft
-        if name:
-            if name.strip() is '':
-                return JsonResponse({
-                    "status": "error",
-                    "errors":
-                        {
-                            "name": "Invalid Application Name"
-                      }
-                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-            else:
-                draft.name = name
-
-        if control_code:
-            draft.control_code = control_code
-
-        if activity:
-            draft.activity = activity
-
-        if destination:
-            draft.destination = destination
-
-        if usage:
-            draft.usage = usage
-
-        draft.save()
-
-        # Return the updated object
-        serializer = ApplicationSerializer(draft)
-        return JsonResponse(serializer.data)
+    def put(self, request, pk):
+        data = JSONParser().parse(request)
+        serializer = ApplicationSerializer(self.get_object(pk), data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'status': 'success', 'draft': serializer.data},
+                                json_dumps_params={'indent': JSON_INDENT},
+                                status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                            status=400)
 
     def delete(self, request, pk):
         draft = self.get_object(pk)

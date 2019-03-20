@@ -36,3 +36,15 @@ class ApplicationSerializer(serializers.ModelSerializer):
                   'created_at',
                   'last_modified_at',
                   'submitted_at')
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Application` instance, given the validated data.
+        """
+        instance.name = validated_data.get('name', instance.name)
+        instance.control_code = validated_data.get('control_code', instance.control_code)
+        instance.activity = validated_data.get('activity', instance.activity)
+        instance.usage = validated_data.get('usage', instance.usage)
+        instance.destination = validated_data.get('destination', instance.destination)
+        instance.save()
+        return instance
