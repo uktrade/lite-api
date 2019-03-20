@@ -14,8 +14,7 @@ class GoodSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'quantity', 'control_code')
 
 
-class ApplicationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
+class ApplicationBaseSerializer(serializers.ModelSerializer):
     destinations = DestinationSerializer(many=True, read_only=True)
     goods = GoodSerializer(many=True, read_only=True)
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
@@ -37,6 +36,13 @@ class ApplicationSerializer(serializers.ModelSerializer):
                   'last_modified_at',
                   'submitted_at')
 
+
+class ApplicationCreateSerializer(ApplicationBaseSerializer):
+    user_id = serializers.CharField()
+    name = serializers.CharField()
+
+
+class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     def update(self, instance, validated_data):
         """
         Update and return an existing `Application` instance, given the validated data.

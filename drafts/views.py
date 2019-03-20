@@ -4,9 +4,9 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
 from conf.settings import JSON_INDENT
 from applications.models import Application
-from applications.serializers import ApplicationSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -16,13 +16,13 @@ class DraftList(APIView):
     """
     def get(self, request):
         drafts = Application.objects.filter(draft=True)
-        serializer = ApplicationSerializer(drafts, many=True)
+        serializer = ApplicationBaseSerializer(drafts, many=True)
         return JsonResponse(data={'status': 'success', 'drafts': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT}, safe=False)
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = ApplicationSerializer(data=data)
+        serializer = ApplicationCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -50,18 +50,18 @@ class DraftDetail(APIView):
 
     def get(self, request, pk):
         draft = self.get_object(pk)
-        serializer = ApplicationSerializer(draft)
+        serializer = ApplicationBaseSerializer(draft)
         return JsonResponse(data={'status': 'success', 'draft': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT})
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
-        serializer = ApplicationSerializer(self.get_object(pk), data=data)
+        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
                                 json_dumps_params={'indent': JSON_INDENT},
-                                status=status.HTTP_201_CREATED)
+                                status=status.HTTP_200_OK)
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                             status=400)
 

@@ -1,11 +1,10 @@
 from django.http import JsonResponse, Http404
-from django.shortcuts import redirect
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from applications.models import Application, Good, Destination
-from applications.serializers import ApplicationSerializer
+from applications.serializers import ApplicationBaseSerializer
 from conf.settings import JSON_INDENT
 
 
@@ -16,7 +15,7 @@ class ApplicationList(APIView):
     """
     def get(self, request):
         applications = Application.objects.filter(draft=False)
-        serializer = ApplicationSerializer(applications, many=True)
+        serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT}, safe=False)
 
@@ -36,7 +35,7 @@ class ApplicationList(APIView):
         draft.save()
 
         # Return application
-        serializer = ApplicationSerializer(draft)
+        serializer = ApplicationBaseSerializer(draft)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT}, status=status.HTTP_201_CREATED)
 
@@ -57,7 +56,7 @@ class ApplicationDetail(APIView):
 
     def get(self, request, pk):
         application = self.get_object(pk)
-        serializer = ApplicationSerializer(application)
+        serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT})
 
@@ -87,6 +86,6 @@ class TestData(APIView):
         destination.save()
 
         applications = Application.objects.filter(draft=False)
-        serializer = ApplicationSerializer(applications, many=True)
+        serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT}, safe=False)
