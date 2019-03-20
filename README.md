@@ -23,7 +23,7 @@ Service for handling backend calls in LITE.
 
 ### Applications
 
-Endpoint Group #1 description
+Endpoints for creating and retrieving applications.
 
 **GET** `/applications/` - Returns a list of applications.
 
@@ -33,7 +33,7 @@ Endpoint Group #1 description
 
 ### Drafts
 
-Endpoint Group #2 description
+Endpoints for creating, updating and retrieving drafts.
 
 **GET** `/drafts/` - Returns a list of drafts.
 
