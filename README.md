@@ -25,21 +25,23 @@ Service for handling backend calls in LITE.
 
 Endpoint Group #1 description
 
-**GET** `/applications/user/:id` - Returns a list of applications belonging to the specified user.
+**GET** `/applications/` - Returns a list of applications.
 
-**POST** `/applications/user/:id` - Creates a new application belonging to the specified user.
+**GET** `/applications/:id/` - Returns the specified application.
+
+**POST** `/applications/` - Creates a new application from the _id_ provided in post data.
 
 ### Drafts
 
 Endpoint Group #2 description
 
-**GET** `/drafts/:id` - Returns the specified draft.
+**GET** `/drafts/` - Returns a list of drafts.
 
-**POST** `/drafts/:id` - Updates the specified draft with the data sent.
+**GET** `/drafts/:id/` - Returns the specified draft.
 
-**GET** `/drafts/user/:id` - Returns a list of drafts belonging to the specified user.
+**PUT** `/drafts/:id/` - Updates the specified draft with the data sent.
 
-**POST** `/drafts/user/:id` - Creates a new draft belonging to the specified user.
+**DELETE** `/drafts/:id/` - Deletes the specified draft.
 
 ## Common Issues
 
