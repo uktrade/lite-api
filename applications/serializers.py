@@ -15,11 +15,12 @@ class GoodSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
     destinations = DestinationSerializer(many=True, read_only=True)
     goods = GoodSerializer(many=True, read_only=True)
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
-    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
-    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ")
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
 
     class Meta:
         model = Application

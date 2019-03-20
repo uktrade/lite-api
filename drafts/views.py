@@ -1,6 +1,7 @@
 from django.http import JsonResponse, Http404
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.settings import JSON_INDENT
@@ -20,23 +21,15 @@ class DraftList(APIView):
                             json_dumps_params={'indent': JSON_INDENT}, safe=False)
 
     def post(self, request):
-        name = request.POST.get('name', None)
-        control_code = request.POST.get('control_code', None)
-        user_id = request.POST.get('user_id', None)
+        data = JSONParser().parse(request)
+        serializer = ApplicationSerializer(data=data)
 
-        if not user_id or not name:
-            return JsonResponse({}, status=422)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'status': 'success', 'draft': serializer.data},
+                                json_dumps_params={'indent': JSON_INDENT}, status=status.HTTP_201_CREATED)
 
-        # Create a new draft
-        new_draft = Application(name=name,
-                                control_code=control_code,
-                                user_id=user_id)
-        new_draft.save()
-
-        # Return the new object
-        draft = Application.objects.get(id=new_draft.id)
-        serializer = ApplicationSerializer(draft)
-        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
