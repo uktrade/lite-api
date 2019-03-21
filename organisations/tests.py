@@ -1,10 +1,18 @@
-from django.test import TestCase, Client
 from rest_framework import status
 from organisations.models import Organisation
 from users.models import User
+from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.reverse import reverse
+from django.urls import path, include
 
 
-class OrganisationTests(TestCase):
+class OrganisationTests(APITestCase, URLPatternsTestCase):
+
+    urlpatterns = [
+        path('organisations/', include('organisations.urls'))
+    ]
+
+    client = APIClient
 
     def test_create_organisation_with_first_user(self):
 
@@ -14,7 +22,7 @@ class OrganisationTests(TestCase):
         address="London"
         admin_user_email="trinity@bsg.com"
 
-        url = '/organisations/'
+        url = reverse('organisations:organisations')
         data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'address': address, 'admin_user_email': admin_user_email}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

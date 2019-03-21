@@ -1,33 +1,32 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.parsers import JSONParser
 import json
 
-from organisations.libraries.ValidateOrganisationCreateRequest import ValidateOrganisationCreateRequest
 from organisations.models import Organisation
-from organisations.serializers import OrganisationSerializer
+from organisations.serializers import OrganisationSerializer, NewOrganisationRequestSerializer
 from users.libraries.CreateFirstAdminUser import CreateFirstAdminUser
 
 
 def organisations_list(request):
     if request.method == "POST":
-        if ValidateOrganisationCreateRequest(request).is_valid:
-            name = request.POST.get('name')
-            eori_number = request.POST.get('eori_number')
-            sic_number = request.POST.get('sic_number')
-            address = request.POST.get('address')
-            email = request.POST.get('admin_user_email')
 
-            new_organisation = Organisation(name=name,
-                                            eori_number=eori_number,
-                                            sic_number=sic_number,
-                                            address=address)
+        data = JSONParser().parse(request)
+        serializer = NewOrganisationRequestSerializer(data=data)
+
+        if serializer.is_valid():
+
+            new_organisation = Organisation(name=serializer['name'].value,
+                                            eori_number=serializer['eori_number'].value,
+                                            sic_number=serializer['sic_number'].value,
+                                            address=serializer['address'].value)
 
             new_organisation.save()
 
-            CreateFirstAdminUser(email, new_organisation)
+            CreateFirstAdminUser(serializer['admin_user_email'].value, new_organisation)
 
-            serializer = OrganisationSerializer(new_organisation)
+            organisation_serializer = OrganisationSerializer(new_organisation)
 
-            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+            return JsonResponse(organisation_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return JsonResponse("{'error': error}", status=status.HTTP_422_UNPROCESSABLE_ENTITY, safe=False)
