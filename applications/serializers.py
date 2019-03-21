@@ -43,6 +43,12 @@ class ApplicationCreateSerializer(ApplicationBaseSerializer):
 
 
 class ApplicationUpdateSerializer(ApplicationBaseSerializer):
+    name = serializers.CharField()
+    usage = serializers.CharField()
+    control_code = serializers.CharField()
+    activity = serializers.CharField()
+    destination = serializers.CharField()
+
     def update(self, instance, validated_data):
         """
         Update and return an existing `Application` instance, given the validated data.

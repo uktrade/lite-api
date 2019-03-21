@@ -56,7 +56,7 @@ class DraftDetail(APIView):
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
-        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data)
+        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
