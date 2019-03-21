@@ -17,7 +17,6 @@ def organisations_list(request):
                                             sic_number=serializer['sic_number'].value,
                                             vat_number=serializer['vat_number'].value,
                                             address=serializer['address'].value)
-
             new_organisation.save()
             CreateFirstAdminUser(serializer['admin_user_email'].value, new_organisation)
             organisation_serializer = OrganisationSerializer(new_organisation)
