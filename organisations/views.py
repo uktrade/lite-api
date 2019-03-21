@@ -19,6 +19,7 @@ def organisations_list(request):
             new_organisation = Organisation(name=serializer['name'].value,
                                             eori_number=serializer['eori_number'].value,
                                             sic_number=serializer['sic_number'].value,
+                                            vat_number=serializer['vat_number'].value,
                                             address=serializer['address'].value)
 
             new_organisation.save()
