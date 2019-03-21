@@ -15,7 +15,6 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
     client = APIClient
 
     def test_create_organisation_with_first_user(self):
-
         name="Big Scary Guns ltd"
         eori_number="GB123456789000"
         sic_number="2765"

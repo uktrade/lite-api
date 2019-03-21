@@ -1,8 +1,6 @@
 from django.db import models
-import uuid
-
-# Create your models here.
 from organisations.models import Organisation
+import uuid
 
 
 class User(models.Model):
