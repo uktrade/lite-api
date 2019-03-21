@@ -23,3 +23,10 @@ class OrganisationTests(TestCase):
         self.assertEqual(Organisation.objects.get().sic_number, "2765")
         self.assertEqual(Organisation.objects.get().address, "London")
         self.assertEqual(User.objects.get().email, "trinity@bsg.com")
+
+    def test_create_invalid_organisation(self):
+        url = '/organisations/'
+        data = {'name': None, 'eori_number': None, 'sic_number': None, 'address': None,
+                'admin_user_email': None}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
