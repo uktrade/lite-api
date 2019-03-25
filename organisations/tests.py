@@ -15,15 +15,16 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
     client = APIClient
 
     def test_create_organisation_with_first_user(self):
-        name="Big Scary Guns ltd"
-        eori_number="GB123456789000"
-        sic_number="2765"
-        vat_number="123456789"
-        address="London"
-        admin_user_email="trinity@bsg.com"
+        name = "Big Scary Guns ltd"
+        eori_number = "GB123456789000"
+        sic_number = "2765"
+        vat_number = "123456789"
+        address = "London"
+        admin_user_email = "trinity@bsg.com"
 
         url = reverse('organisations:organisations')
-        data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number, 'address': address, 'admin_user_email': admin_user_email}
+        data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number,
+                'address': address, 'admin_user_email': admin_user_email}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
