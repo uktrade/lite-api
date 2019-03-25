@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'applications.apps.ApplicationsConfig',
     'drafts.apps.DraftsConfig',
+    'organisations.apps.OrganisationsConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
