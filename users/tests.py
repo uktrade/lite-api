@@ -1,7 +1,7 @@
 from django.test import TestCase
-
 from organisations.models import Organisation
 from users.models import User
+
 
 class UserTests(TestCase):
 
