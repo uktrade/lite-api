@@ -3,6 +3,6 @@ from django.urls import path
 from drafts import views
 
 urlpatterns = [
-    path('', views.drafts_list),
-    path('<uuid:id>/', views.draft_detail)
+    path('', views.DraftList.as_view(), name='drafts'),
+    path('<uuid:pk>/', views.DraftDetail.as_view(), name='draft')
 ]
