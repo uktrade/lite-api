@@ -23,7 +23,6 @@ def organisations_list(request):
 
             return JsonResponse(organisation_serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print(serializer.data)
             return JsonResponse({'status': 'error', 'errors': serializer.errors, 'data': serializer.data},
                                  status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
