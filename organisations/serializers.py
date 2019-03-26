@@ -8,7 +8,7 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     address = serializers.CharField()
-    admin_user_email = serializers.CharField()
+    admin_user_email = serializers.EmailField()
 
     class Meta:
         model = Organisation
