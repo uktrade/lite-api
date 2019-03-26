@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 
 from applications.models import Application, Good, Destination
 from applications.serializers import ApplicationBaseSerializer
-from conf.settings import JSON_INDENT
 
 
 @permission_classes((permissions.AllowAny,))
@@ -17,7 +16,7 @@ class ApplicationList(APIView):
         applications = Application.objects.filter(draft=False)
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
+                            safe=False)
 
     def post(self, request):
         submit_id = request.POST.get('id', None)
@@ -37,7 +36,7 @@ class ApplicationList(APIView):
         # Return application
         serializer = ApplicationBaseSerializer(draft)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT}, status=status.HTTP_201_CREATED)
+                            status=status.HTTP_201_CREATED)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -57,5 +56,4 @@ class ApplicationDetail(APIView):
     def get(self, request, pk):
         application = self.get_object(pk)
         serializer = ApplicationBaseSerializer(application)
-        return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT})
+        return JsonResponse(data={'status': 'success', 'application': serializer.data})
