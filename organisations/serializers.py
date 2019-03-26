@@ -1,8 +1,29 @@
 from rest_framework import serializers
-from organisations.models import Organisation, NewOrganisationRequest
+from organisations.models import Organisation
 
 
-class OrganisationSerializer(serializers.ModelSerializer):
+class OrganisationInitialSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    eori_number = serializers.CharField()
+    sic_number = serializers.CharField()
+    vat_number = serializers.CharField()
+    address = serializers.CharField()
+    admin_user_email = serializers.CharField()
+
+    class Meta:
+        model = Organisation
+        fields = ('id',
+                  'name',
+                  'eori_number',
+                  'sic_number',
+                  'vat_number',
+                  'admin_user_email',
+                  'address',
+                  'created_at',
+                  'last_modified_at')
+
+
+class OrganisationViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
         fields = ('id',
@@ -13,21 +34,3 @@ class OrganisationSerializer(serializers.ModelSerializer):
                   'address',
                   'created_at',
                   'last_modified_at')
-
-
-class NewOrganisationRequestSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    eori_number = serializers.CharField()
-    sic_number= serializers.CharField()
-    vat_number = serializers.CharField()
-    address = serializers.CharField()
-    admin_user_email = serializers.EmailField()
-
-    class Meta:
-        model = NewOrganisationRequest
-        fields = ('name',
-                  'eori_number',
-                  'sic_number',
-                  'vat_number',
-                  'address',
-                  'admin_user_email')
