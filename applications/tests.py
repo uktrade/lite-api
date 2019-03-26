@@ -70,59 +70,65 @@ class ApplicationTests(TestCase):
         self.assertEqual(len(Application.objects.filter(id='90D6C724-0339-425A-99D2-9D2B8E864EC7')), 1)
 
     def test_reject_submit_if_usage_data_is_missing(self):
-        incomplete_draft = Application(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
-                                       user_id="12345",
-                                       control_code="ML2",
-                                       destination="Poland",
-                                       activity="Trade")
+        incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
+                                       user_id='12345',
+                                       control_code='ML2',
+                                       name='Test',
+                                       destination='Poland',
+                                       activity='Trade',
+                                       draft=True)
 
         self.assertEqual(ValidateFormFields(incomplete_draft).usage, "Usage cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_activity_data_is_missing(self):
-        incomplete_draft = Application(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
-                                       user_id="12345",
-                                       control_code="ML2",
-                                       destination="Poland",
-                                       usage="Fun")
+        incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
+                                       user_id='12345',
+                                       control_code='ML2',
+                                       name='Test',
+                                       destination='Poland',
+                                       draft=True)
 
         self.assertEqual(ValidateFormFields(incomplete_draft).activity, "Activity cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_destination_data_is_missing(self):
-        incomplete_draft = Application(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
-                                       user_id="12345",
-                                       control_code="ML2",
-                                       activity="Trade",
-                                       usage="Fun")
+        incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
+                                       user_id='12345',
+                                       control_code='ML2',
+                                       name='Test',
+                                       activity='Trade',
+                                       draft=True)
 
         self.assertEqual(ValidateFormFields(incomplete_draft).destination, "Destination cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
 
     def test_reject_submit_if_control_code_data_is_missing(self):
-        incomplete_draft = Application(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
-                                       user_id="12345",
-                                       destination="Poland",
-                                       activity="Trade",
-                                       usage="Fun")
+        incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
+                                       user_id='12345',
+                                       name='Test',
+                                       destination='Poland',
+                                       activity='Trade',
+                                       draft=True)
 
         self.assertEqual(ValidateFormFields(incomplete_draft).control_code, "Control code cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
 
     def test_accept_submit_if_form_is_ready_for_submission(self):
-        complete_draft = Application(id="90D6C724-0339-425A-99D2-9D2B8E864EC7",
-                                     user_id="12345",
-                                     control_code="ML2",
-                                     destination="Poland",
-                                     activity="Trade",
-                                     usage="Fun")
+        complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
+                                     user_id='12345',
+                                     control_code='ML2',
+                                     name='Test',
+                                     destination='Poland',
+                                     activity='Trade',
+                                     draft=True)
 
         self.assertEqual(ValidateFormFields(complete_draft).ready_for_submission, True)
 
     def test_reject_submit_if_all_fields_missing(self):
         empty_draft = Application()
-        self.assertEqual(ValidateFormFields(empty_draft).control_code, "Control code cannot be blank")
-        self.assertEqual(ValidateFormFields(empty_draft).destination, "Destination cannot be blank")
-        self.assertEqual(ValidateFormFields(empty_draft).activity, "Activity cannot be blank")
-        self.assertEqual(ValidateFormFields(empty_draft).usage, "Usage cannot be blank")
+        self.assertEqual(ValidateFormFields(empty_draft).control_code, 'Control code cannot be blank')
+        self.assertEqual(ValidateFormFields(empty_draft).destination, 'Destination cannot be blank')
+        self.assertEqual(ValidateFormFields(empty_draft).activity, 'Activity cannot be blank')
+        self.assertEqual(ValidateFormFields(empty_draft).usage, 'Usage cannot be blank')
         self.assertEqual(ValidateFormFields(empty_draft).ready_for_submission, False)
