@@ -59,33 +59,3 @@ class ApplicationDetail(APIView):
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
                             json_dumps_params={'indent': JSON_INDENT})
-
-
-@permission_classes((permissions.AllowAny,))
-class TestData(APIView):
-    """
-    Create test data
-    """
-
-    def get(self, request):
-
-        application = Application(user_id='123',
-                                  name='Lemonworld',
-                                  draft=False)
-        application.save()
-
-        good = Good(name='Lemon',
-                    description='big slice of lemon',
-                    quantity=4,
-                    control_code='lem0n',
-                    application=application)
-        good.save()
-
-        destination = Destination(name='Ohio',
-                                  application=application)
-        destination.save()
-
-        applications = Application.objects.filter(draft=False)
-        serializer = ApplicationBaseSerializer(applications, many=True)
-        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
