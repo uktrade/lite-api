@@ -65,19 +65,6 @@ class DraftDetail(APIView):
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                             status=400)
 
-    if request.method == "DELETE":
-        try:
-            draft = Draft.objects.get(id=id)
-        except Draft.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
+    def delete(self, request, pk):
+        draft = self.get_object(pk)
         draft.delete()
-
-    if request.method == "GET":
-        try:
-            draft = Draft.objects.get(id=id)
-        except Draft.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = DraftSerializer(draft)
-        return JsonResponse(serializer.data)

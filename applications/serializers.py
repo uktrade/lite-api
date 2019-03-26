@@ -1,5 +1,17 @@
 from rest_framework import serializers
-from applications.models import Application
+from applications.models import Application, Destination, Good
+
+
+class DestinationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Destination
+        fields = ('id', 'name')
+
+
+class GoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Good
+        fields = ('id', 'name', 'description', 'quantity', 'control_code')
 
 
 class ApplicationBaseSerializer(serializers.ModelSerializer):
