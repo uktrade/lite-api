@@ -2,7 +2,7 @@ from rest_framework import serializers
 from organisations.models import Organisation
 
 
-class OrganisationCreateSerializer(serializers.ModelSerializer):
+class OrganisationInitialSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()
