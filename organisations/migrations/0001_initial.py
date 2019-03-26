@@ -13,18 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='NewOrganisationRequest',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.TextField(blank=True, default=None)),
-                ('eori_number', models.TextField(blank=True, default=None)),
-                ('sic_number', models.TextField(blank=True, default=None)),
-                ('vat_number', models.TextField(blank=True, default=None)),
-                ('address', models.TextField(blank=True, default=None)),
-                ('admin_user_email', models.EmailField(blank=True, default=None, max_length=254)),
-            ],
-        ),
-        migrations.CreateModel(
             name='Organisation',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
