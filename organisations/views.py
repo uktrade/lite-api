@@ -11,7 +11,7 @@ def organisations_list(request):
     if request.method == "POST":
         data = JSONParser().parse(request)
         serializer = OrganisationSerializer(data=data)
-        admin_user_email = request.POST.get('admin_user_email', 'asd')
+        admin_user_email = request.POST.get('admin_user_email', 'placeholder')
 
         if not admin_user_email:
             return JsonResponse(data={'status': 'error', 'errors': {'admin_user_email': 'This field cannot be empty.'}},

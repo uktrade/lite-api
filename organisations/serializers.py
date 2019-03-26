@@ -3,6 +3,12 @@ from organisations.models import Organisation
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    eori_number = serializers.CharField()
+    sic_number = serializers.CharField()
+    vat_number = serializers.CharField()
+    address = serializers.CharField()
+
     class Meta:
         model = Organisation
         fields = ('id',
