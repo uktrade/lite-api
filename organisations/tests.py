@@ -19,18 +19,20 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         eori_number = "GB123456789000"
         sic_number = "2765"
         vat_number = "123456789"
+        registration_number = "987654321"
         address = "London"
         admin_user_email = "trinity@bsg.com"
 
         url = reverse('organisations:organisations')
         data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number,
-                'address': address, 'admin_user_email': admin_user_email}
+                'registration_number': registration_number, 'address': address, 'admin_user_email': admin_user_email}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
         self.assertEqual(Organisation.objects.get().eori_number, "GB123456789000")
         self.assertEqual(Organisation.objects.get().sic_number, "2765")
         self.assertEqual(Organisation.objects.get().vat_number, "123456789")
+        self.assertEqual(Organisation.objects.get().registration_number, "987654321")
         self.assertEqual(Organisation.objects.get().address, "London")
         self.assertEqual(User.objects.get().email, "trinity@bsg.com")
 

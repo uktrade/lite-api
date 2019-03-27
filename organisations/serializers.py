@@ -7,6 +7,7 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
+    registration_number = serializers.CharField()
     address = serializers.CharField()
     admin_user_email = serializers.EmailField()
 
@@ -17,6 +18,7 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
                   'eori_number',
                   'sic_number',
                   'vat_number',
+                  'registration_number',
                   'admin_user_email',
                   'address',
                   'created_at',
@@ -31,6 +33,7 @@ class OrganisationViewSerializer(serializers.ModelSerializer):
                   'eori_number',
                   'sic_number',
                   'vat_number',
+                  'registration_number',
                   'address',
                   'created_at',
                   'last_modified_at')

@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
                 ('eori_number', models.TextField(blank=True, default=None)),
                 ('sic_number', models.TextField(blank=True, default=None)),
                 ('vat_number', models.TextField(blank=True, default=None)),
+                ('registration_number', models.TextField(blank=True, default=None)),
                 ('address', models.TextField(blank=True, default=None)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_modified_at', models.DateTimeField(auto_now_add=True)),
