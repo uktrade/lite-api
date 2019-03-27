@@ -22,7 +22,7 @@ def organisations_list(request):
             # Create an admin for that company
             CreateFirstAdminUser(serializer['admin_user_email'].value, new_organisation)
 
-            return JsonResponse(data={'status': 'success', 'organisation': serializer.data},
+            return JsonResponse(data={'status': 'success', 'organisation': serializer2.data},
                                 status=status.HTTP_201_CREATED)
         else:
             return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
