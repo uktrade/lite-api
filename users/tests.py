@@ -10,6 +10,7 @@ class UserTests(TestCase):
                                         eori_number="GB123456789000",
                                         sic_number="2765",
                                         vat_number="123456789",
+                                        registration_number="987654321",
                                         address="London")
 
         new_user = User(email="trinity@bsg.com",
