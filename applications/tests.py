@@ -121,6 +121,7 @@ class ApplicationTests(TestCase):
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
+                                     usage='Trade',
                                      draft=True)
 
         self.assertEqual(ValidateFormFields(complete_draft).ready_for_submission, True)

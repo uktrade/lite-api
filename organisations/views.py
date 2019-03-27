@@ -22,8 +22,8 @@ def organisations_list(request):
             # Create an admin for that company
             CreateFirstAdminUser(serializer['admin_user_email'].value, new_organisation)
 
-            return redirect(reverse_lazy('organisations:organisation',
-                                         kwargs={'pk': new_organisation.id}))
+            return JsonResponse(data={'status': 'success', 'organisation': serializer.data},
+                                status=status.HTTP_201_CREATED)
         else:
             return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                                 status=status.HTTP_422_UNPROCESSABLE_ENTITY)
