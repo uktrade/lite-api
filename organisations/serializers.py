@@ -9,7 +9,8 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
     address = serializers.CharField()
-    admin_user_email = serializers.EmailField()
+    admin_user_email = serializers.EmailField(
+        error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'})
 
     class Meta:
         model = Organisation

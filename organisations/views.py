@@ -1,7 +1,5 @@
 from django.http import JsonResponse
 from django.http.response import Http404
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 
