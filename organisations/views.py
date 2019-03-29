@@ -27,7 +27,7 @@ def organisations_list(request):
                                 status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     if request.method == "GET":
-        organisations = Organisation.objects.all()
+        organisations = Organisation.objects.all().order_by('name')
         serializer = OrganisationViewSerializer(organisations, many=True)
         return JsonResponse(data={'status': 'success', 'organisations': serializer.data},
                             safe=False)

@@ -3,7 +3,7 @@ from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-from applications.models import Application, Good, Destination
+from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer
 
 
@@ -13,7 +13,7 @@ class ApplicationList(APIView):
     List all applications, or create a new application from a draft.
     """
     def get(self, request):
-        applications = Application.objects.filter(draft=False)
+        applications = Application.objects.filter(draft=False).order_by('name')
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             safe=False)
