@@ -4,6 +4,9 @@ class ValidateFormFields:
         if draft.user_id is None:
             self.user_id = "User id cannot be blank"
             self.ready_for_submission = False
+        if draft.name is None:
+            self.name = "Name cannot be blank"
+            self.ready_for_submission = False
         if draft.usage is None:
             self.usage = "Usage cannot be blank"
             self.ready_for_submission = False

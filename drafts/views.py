@@ -5,7 +5,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
-from conf.settings import JSON_INDENT
 from applications.models import Application
 
 
@@ -15,10 +14,10 @@ class DraftList(APIView):
     List all drafts, or create a new draft.
     """
     def get(self, request):
-        drafts = Application.objects.filter(draft=True)
+        drafts = Application.objects.filter(draft=True).order_by('-created_at')
         serializer = ApplicationBaseSerializer(drafts, many=True)
         return JsonResponse(data={'status': 'success', 'drafts': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT}, safe=False)
+                            safe=False)
 
     def post(self, request):
         data = JSONParser().parse(request)
@@ -27,7 +26,6 @@ class DraftList(APIView):
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
-                                json_dumps_params={'indent': JSON_INDENT},
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
@@ -51,8 +49,7 @@ class DraftDetail(APIView):
     def get(self, request, pk):
         draft = self.get_object(pk)
         serializer = ApplicationBaseSerializer(draft)
-        return JsonResponse(data={'status': 'success', 'draft': serializer.data},
-                            json_dumps_params={'indent': JSON_INDENT})
+        return JsonResponse(data={'status': 'success', 'draft': serializer.data})
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
@@ -60,7 +57,6 @@ class DraftDetail(APIView):
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
-                                json_dumps_params={'indent': JSON_INDENT},
                                 status=status.HTTP_200_OK)
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                             status=400)
