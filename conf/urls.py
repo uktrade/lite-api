@@ -6,4 +6,5 @@ urlpatterns = [
     path('drafts/', include('drafts.urls')),
     path('organisations/', include('organisations.urls')),
     path('users/', include('users.urls')),
+    path('queues/', include('queues.urls')),
 ]

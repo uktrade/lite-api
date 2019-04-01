@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
     'cases.apps.CasesConfig',
+    'queues.apps.QueuesConfig',
 ]
 
 MIDDLEWARE = [
