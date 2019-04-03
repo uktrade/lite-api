@@ -2,7 +2,6 @@ from rest_framework import status
 from django.test import TestCase
 from applications.models import Application
 from applications.libraries.ValidateFormFields import ValidateFormFields
-from applications.libraries.ApplicationStatuses import ApplicationStatuses
 
 
 class ApplicationTests(TestCase):
@@ -23,13 +22,13 @@ class ApplicationTests(TestCase):
                                      usage='Fun',
                                      draft=True)
         complete_draft.save()
-        self.assertEqual(complete_draft.status, ApplicationStatuses.DRAFT)
+        self.assertEqual(complete_draft.status, "Draft")
 
         url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Application.objects.get(pk=draft_id).status, ApplicationStatuses.SUBMITTED)
+        self.assertEqual(Application.objects.get(pk=draft_id).status, "Submitted")
         self.assertEqual(Application.objects.get(pk=draft_id).draft, False)
 
     def test_create_application_with_invalid_id(self):

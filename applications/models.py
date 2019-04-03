@@ -1,9 +1,19 @@
 from django.db import models
-from applications.libraries.ApplicationStatuses import ApplicationStatuses
 import uuid
 
 
 class Application(models.Model):
+    APPLICATION_STATUSES = [
+        ("Draft", "Draft"),
+        ("Submitted", "Submitted"),
+        ("More information required", "More information required"),
+        ("Under review", "Under review"),
+        ("Resubmitted", "Resubmitted"),
+        ("Approved", "Approved"),
+        ("Declined", "Declined"),
+        ("Withdrawn", "Withdrawn")
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.TextField(default=None)
     name = models.TextField(default=None, blank=True, null=True)
@@ -15,8 +25,7 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.TextField(default=ApplicationStatuses.DRAFT, blank=True,
-                              choices=ApplicationStatuses.choices())
+    status = models.TextField(default="Draft", choices=APPLICATION_STATUSES)
 
 
 class Good(models.Model):
