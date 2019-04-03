@@ -24,6 +24,9 @@ SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'
 
 DEBUG = env('DEBUG')
 
+# Please use this to Enable/Disable the Admin site
+ADMIN_ENABLED = True
+
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
 # Application definition
