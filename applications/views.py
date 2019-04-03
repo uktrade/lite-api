@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer
+from applications.libraries.ApplicationStatuses import ApplicationStatuses
 
 
 @permission_classes((permissions.AllowAny,))
@@ -28,6 +29,8 @@ class ApplicationList(APIView):
                 raise Http404
         except Application.DoesNotExist:
             raise Http404
+
+        draft.status = ApplicationStatuses.SUBMITTED
 
         # Remove draft tag
         draft.draft = False

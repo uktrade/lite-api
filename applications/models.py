@@ -1,4 +1,5 @@
 from django.db import models
+from applications.libraries.ApplicationStatuses import ApplicationStatuses
 import uuid
 
 
@@ -14,6 +15,8 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    status = models.TextField(default=ApplicationStatuses.DRAFT, blank=True,
+                              choices=ApplicationStatuses.choices())
 
 
 class Good(models.Model):
