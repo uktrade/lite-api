@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer
+from cases.models import Case
+from queues.models import Queue
 
 @permission_classes((permissions.AllowAny,))
 class ApplicationList(APIView):
@@ -33,6 +35,15 @@ class ApplicationList(APIView):
         # Remove draft tag
         draft.draft = False
         draft.save()
+
+        # Create a case
+        case = Case(application=draft)
+        case.save()
+
+        # Add said case to default queue
+        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000000')
+        queue.cases.add(case)
+        queue.save()
 
         # Return application
         serializer = ApplicationBaseSerializer(draft)

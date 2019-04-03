@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'drafts.apps.DraftsConfig',
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
+    'cases.apps.CasesConfig',
+    'queues.apps.QueuesConfig',
 ]
 
 MIDDLEWARE = [

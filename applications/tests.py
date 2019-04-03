@@ -2,13 +2,15 @@ from rest_framework import status
 from django.test import TestCase
 from applications.models import Application
 from applications.libraries.ValidateFormFields import ValidateFormFields
+from cases.models import Case
+from queues.models import Queue
 
 
 class ApplicationTests(TestCase):
 
     # Creation
 
-    def test_create_application(self):
+    def test_create_application_case_and_addition_to_queue(self):
         """
             Ensure we can create a new draft object.
             """
@@ -24,12 +26,16 @@ class ApplicationTests(TestCase):
         complete_draft.save()
         self.assertEqual(complete_draft.status, "Draft")
 
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 0)
         url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.get(pk=draft_id).status, "Submitted")
         self.assertEqual(Application.objects.get(pk=draft_id).draft, False)
+        self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
+                         Application.objects.get(pk=draft_id))
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 1)
 
     def test_create_application_with_invalid_id(self):
         """
