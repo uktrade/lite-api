@@ -9,8 +9,6 @@ class Application(models.Model):
         ("More information required", "More information required"),
         ("Under review", "Under review"),
         ("Resubmitted", "Resubmitted"),
-        ("Approved", "Approved"),
-        ("Declined", "Declined"),
         ("Withdrawn", "Withdrawn")
     ]
 
