@@ -34,7 +34,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'goods',
                   'created_at',
                   'last_modified_at',
-                  'submitted_at')
+                  'submitted_at',
+                  'status')
 
 
 class ApplicationCreateSerializer(ApplicationBaseSerializer):
