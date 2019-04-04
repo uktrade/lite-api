@@ -1,9 +1,13 @@
+import json
+import uuid
+
 from rest_framework import status
 from organisations.models import Organisation
 from users.models import User
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from rest_framework.reverse import reverse
 from django.urls import path, include
+from reversion.models import Version
 
 
 class OrganisationTests(APITestCase, URLPatternsTestCase):
@@ -27,6 +31,7 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number,
                 'registration_number': registration_number, 'address': address, 'admin_user_email': admin_user_email}
         response = self.client.post(url, data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
         self.assertEqual(Organisation.objects.get().eori_number, "GB123456789000")
@@ -35,6 +40,17 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Organisation.objects.get().registration_number, "987654321")
         self.assertEqual(Organisation.objects.get().address, "London")
         self.assertEqual(User.objects.get().email, "trinity@bsg.com")
+
+        # Test that the versioning/audit-trail mechanism works for the model
+        response_json = json.loads(response.content)
+        organisation_id = response_json['organisation']['id']
+        version_record = Version.objects.get(object_id=uuid.UUID(organisation_id))
+        self.assertEqual(version_record.object.name, "Big Scary Guns ltd")
+        self.assertEqual(version_record.object.eori_number, "GB123456789000")
+        self.assertEqual(version_record.object.sic_number, "2765")
+        self.assertEqual(version_record.object.vat_number, "123456789")
+        self.assertEqual(version_record.object.registration_number, "987654321")
+        self.assertEqual(version_record.object.address, "London")
 
     def test_create_invalid_organisation(self):
         url = '/organisations/'
