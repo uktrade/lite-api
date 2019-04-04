@@ -3,6 +3,7 @@ from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+import reversion
 
 from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
 from applications.models import Application
@@ -52,14 +53,19 @@ class DraftDetail(APIView):
         return JsonResponse(data={'status': 'success', 'draft': serializer.data})
 
     def put(self, request, pk):
-        data = JSONParser().parse(request)
-        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'status': 'success', 'draft': serializer.data},
-                                status=status.HTTP_200_OK)
-        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
-                            status=400)
+        with reversion.create_revision():
+            data = JSONParser().parse(request)
+            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                # Store some meta-information.
+                # reversion.set_user(request.user)              # No user information yet
+                reversion.set_comment("Created Draft Revision")
+                return JsonResponse(data={'status': 'success', 'draft': serializer.data},
+                                    status=status.HTTP_200_OK)
+
+            return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                                status=400)
 
     def delete(self, request, pk):
         draft = self.get_object(pk)
