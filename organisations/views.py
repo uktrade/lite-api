@@ -28,7 +28,7 @@ def organisations_list(request):
                 return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-            # Store some meta-information.
+            # Store some version meta-information.
             reversion.set_user(request.user)
             reversion.set_comment("Created Organization Revision")
 

@@ -1,7 +1,10 @@
+import json
+import uuid
+
 from rest_framework import status
 from django.test import TestCase
 from applications.models import Application
-from applications.libraries.ValidateFormFields import ValidateFormFields
+from reversion.models import Version
 
 
 class ApplicationTests(TestCase):

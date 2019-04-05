@@ -58,7 +58,7 @@ class DraftDetail(APIView):
             serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                # Store some meta-information.
+                # Store some version meta-information.
                 # reversion.set_user(request.user)              # No user information yet
                 reversion.set_comment("Created Draft Revision")
                 return JsonResponse(data={'status': 'success', 'draft': serializer.data},
