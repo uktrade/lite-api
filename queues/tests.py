@@ -22,7 +22,6 @@ class QueueModelTests(TestCase):
                                      usage='Fun',
                                      draft=False)
         new_application.save()
-        q_application = Application.objects.get(pk='90D6C724-0339-425A-99D2-9D2B8E864EC7')
         new_case = Case(application=new_application)
         new_case.save()
         new_queue = Queue(name='New_Queue')
