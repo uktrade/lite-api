@@ -13,7 +13,7 @@ class ApplicationTests(TestCase):
     def test_create_application_case_and_addition_to_queue(self):
         """
             Ensure we can create a new draft object.
-            """
+        """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Application(id=draft_id,
                                      user_id='12345',
@@ -38,7 +38,7 @@ class ApplicationTests(TestCase):
     def test_create_application_with_invalid_id(self):
         """
             Ensure we cannot create a new application object with an invalid draft id.
-            """
+        """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Application(id=draft_id,
                                      user_id='12345',
@@ -59,7 +59,7 @@ class ApplicationTests(TestCase):
     def test_create_application_without_id(self):
         """
             Ensure we cannot create a new application object without a draft id.
-            """
+        """
         complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                      user_id='12345',
                                      control_code='ML2',
