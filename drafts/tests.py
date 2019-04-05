@@ -32,16 +32,6 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Application.objects.get().user_id, '12345')
         self.assertEqual(Application.objects.get().name, 'test')
 
-        # # Test that the versioning/audit-trail mechanism works for the model
-        response_json = json.loads(response.content)
-        print(response_json)
-        draft_id = response_json['draft']['id']
-        version_record = Version.objects.all()
-        version_record_get = Version.objects.get()
-        #version_record = Version.objects.get(object_id=uuid.UUID(draft_id))
-        print(version_record)
-
-
     def test_create_draft_empty_user_id(self):
         """
             Ensure we cannot create a draft with an empty user_id.
