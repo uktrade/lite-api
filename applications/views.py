@@ -40,7 +40,7 @@ class ApplicationList(APIView):
         case.save()
 
         # Add said case to default queue
-        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000000')
+        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
         queue.cases.add(case)
         queue.save()
 

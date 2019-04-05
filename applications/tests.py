@@ -25,7 +25,7 @@ class ApplicationTests(TestCase):
                                      draft=True)
         complete_draft.save()
 
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 0)
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
@@ -33,7 +33,7 @@ class ApplicationTests(TestCase):
         self.assertEqual(Application.objects.get(pk=draft_id).draft, False)
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 1)
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
 
     def test_create_application_with_invalid_id(self):
         """
