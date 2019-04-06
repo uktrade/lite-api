@@ -1,7 +1,9 @@
+from django.db import transaction
 from django.http import JsonResponse, Http404
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
+
 
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer
@@ -20,6 +22,7 @@ class ApplicationList(APIView):
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             safe=False)
 
+    @transaction.atomic
     def post(self, request):
         submit_id = request.POST.get('id', None)
 
