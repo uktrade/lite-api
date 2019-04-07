@@ -1,3 +1,6 @@
+import json
+import uuid
+
 from rest_framework import status
 from django.test import TestCase
 from applications.models import Application
@@ -5,6 +8,7 @@ from applications.libraries.ValidateFormFields import ValidateFormFields
 from cases.models import Case
 from queues.models import Queue
 
+from reversion.models import Version
 
 class ApplicationTests(TestCase):
 
