@@ -9,7 +9,7 @@ def init(apps, schema_editor):
     # version than this migration expects. We use the historical version.
     Queue = apps.get_model('queues', 'Queue')
     if not Queue.objects.all():
-        queue = Queue(id='00000000-0000-0000-0000-000000000000',
+        queue = Queue(id='00000000-0000-0000-0000-000000000001',
                       name='New Cases')
         queue.save()
 

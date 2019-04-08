@@ -10,13 +10,16 @@ from applications.serializers import ApplicationBaseSerializer, ApplicationUpdat
 from cases.models import Case
 from queues.models import Queue
 
+import reversion
+
+
 @permission_classes((permissions.AllowAny,))
 class ApplicationList(APIView):
     """
     List all applications, or create a new application from a draft.
     """
     def get(self, request):
-        applications = Application.objects.filter(draft=False).order_by('name')
+        applications = Application.objects.filter(draft=False).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             safe=False)
@@ -24,33 +27,39 @@ class ApplicationList(APIView):
     def post(self, request):
         submit_id = json.loads(request.body).get('id')
 
-        # Get Draft
-        try:
-            draft = Application.objects.get(pk=submit_id)
-            if not draft.draft:
+        with reversion.create_revision():
+            submit_id = request.POST.get('id', None)
+
+            # Get Draft
+            try:
+                draft = Application.objects.get(pk=submit_id)
+                if not draft.draft:
+                    raise Http404
+            except Application.DoesNotExist:
                 raise Http404
-        except Application.DoesNotExist:
-            raise Http404
 
-        draft.status = "Submitted"
-
-        # Remove draft tag
-        draft.draft = False
-        draft.save()
+        
+            # Remove draft tag
+            draft.draft = False
+            draft.save()
+            draft.status = "Submitted"
+            # Return application
+            serializer = ApplicationBaseSerializer(draft)
+            # Store some meta-information.
+            # reversion.set_user(request.user)          # No user information yet
+            reversion.set_comment("Created Application Revision")
 
         # Create a case
         case = Case(application=draft)
         case.save()
 
         # Add said case to default queue
-        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000000')
+        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
         queue.cases.add(case)
         queue.save()
 
-        # Return application
-        serializer = ApplicationBaseSerializer(draft)
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                            status=status.HTTP_201_CREATED)
+                                status=status.HTTP_201_CREATED)
 
 
 @permission_classes((permissions.AllowAny,))

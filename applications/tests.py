@@ -1,3 +1,6 @@
+import json
+import uuid
+
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from django.urls import path, include
@@ -10,6 +13,9 @@ from queues.models import Queue
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
+from reversion.models import Version
+
+
     urlpatterns = [
         path('applications/', include('applications.urls')),
     ]
@@ -19,7 +25,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_create_application_case_and_addition_to_queue(self):
         """
             Ensure we can create a new draft object.
-            """
+        """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Application(id=draft_id,
                                      user_id='12345',
@@ -32,7 +38,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         complete_draft.save()
         self.assertEqual(complete_draft.status, "Draft")
 
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 0)
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
@@ -41,12 +47,13 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Application.objects.get(pk=draft_id).draft, False)
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000000').cases.count(), 1)
+        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
+
 
     def test_create_application_with_invalid_id(self):
         """
             Ensure we cannot create a new application object with an invalid draft id.
-            """
+        """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Application(id=draft_id,
                                      user_id='12345',
@@ -67,7 +74,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_create_application_without_id(self):
         """
             Ensure we cannot create a new application object without a draft id.
-            """
+        """
         complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                      user_id='12345',
                                      control_code='ML2',
