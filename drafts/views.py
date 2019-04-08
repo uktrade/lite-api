@@ -4,8 +4,8 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
-from applications.models import Application
+from drafts.models import Draft
+from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -14,14 +14,14 @@ class DraftList(APIView):
     List all drafts, or create a new draft.
     """
     def get(self, request):
-        drafts = Application.objects.filter(draft=True).order_by('-created_at')
-        serializer = ApplicationBaseSerializer(drafts, many=True)
+        drafts = Draft.objects.filter(draft=True).order_by('-created_at')
+        serializer = DraftBaseSerializer(drafts, many=True)
         return JsonResponse(data={'status': 'success', 'drafts': serializer.data},
                             safe=False)
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = ApplicationCreateSerializer(data=data)
+        serializer = DraftCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -39,21 +39,18 @@ class DraftDetail(APIView):
     """
     def get_object(self, pk):
         try:
-            draft = Application.objects.get(pk=pk)
-            if not draft.draft:
-                raise Http404
-            return draft
-        except Application.DoesNotExist:
+            draft = Draft.objects.get(pk=pk)
+        except Draft.DoesNotExist:
             raise Http404
 
     def get(self, request, pk):
         draft = self.get_object(pk)
-        serializer = ApplicationBaseSerializer(draft)
+        serializer = DraftBaseSerializer(draft)
         return JsonResponse(data={'status': 'success', 'draft': serializer.data})
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
-        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+        serializer = DraftUpdateSerializer(self.get_object(pk), data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},

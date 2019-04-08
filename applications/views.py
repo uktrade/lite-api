@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case
+from drafts.models import Draft
 from queues.models import Queue
 
 
@@ -28,18 +29,29 @@ class ApplicationList(APIView):
 
         # Get Draft
         try:
-            draft = Application.objects.get(pk=submit_id)
-            if not draft.draft:
-                raise Http404
-        except Application.DoesNotExist:
+            draft = Draft.objects.get(pk=submit_id)
+
+        except Draft.DoesNotExist:
             raise Http404
 
+        # Create an Application object corresponding to the draft
+
+        application = Application(id=draft.id,
+                                  user_id=draft.user_id,
+                                  name=draft.name,
+                                  control_code=draft.control_code,
+                                  activity=draft.activity,
+                                  destination=draft.destination,
+                                  usage=draft.usage,
+                                  created_at=draft.created_at,
+                                  last_modified_at=draft.last_modified_at,
+                                  submitted_at=draft.submitted_at
+        )
         # Remove draft tag
-        draft.draft = False
-        draft.save()
+        application.save()
 
         # Create a case
-        case = Case(application=draft)
+        case = Case(application=application)
         case.save()
 
         # Add said case to default queue
@@ -61,8 +73,6 @@ class ApplicationDetail(APIView):
     def get_object(self, pk):
         try:
             application = Application.objects.get(pk=pk)
-            if application.draft:
-                raise Http404
             return application
         except Application.DoesNotExist:
             raise Http404

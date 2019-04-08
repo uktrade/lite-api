@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from applications.models import Application
+from drafts.models import Draft
 
 
 class DraftTests(APITestCase, URLPatternsTestCase):
@@ -55,7 +56,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
             """
         control_code = 'ML1a'
 
-        draft = Application(user_id='12345', name='test', draft=True)
+        draft = Draft(user_id='12345', name='test')
         draft.save()
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
