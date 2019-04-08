@@ -1,17 +1,7 @@
 from rest_framework import serializers
-from applications.models import Application, Destination, Good
 
-
-class DestinationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Destination
-        fields = ('id', 'name')
-
-
-class GoodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Good
-        fields = ('id', 'name', 'description', 'quantity', 'control_code')
+from applications.serializers import GoodSerializer, DestinationSerializer
+from drafts.models import Draft
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -22,7 +12,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
 
     class Meta:
-        model = Application
+        model = Draft
         fields = ('id',
                   'user_id',
                   'name',
@@ -51,7 +41,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 
     def update(self, instance, validated_data):
         """
-        Update and return an existing `Application` instance, given the validated data.
+        Update and return an existing `Draft` instance, given the validated data.
         """
         instance.name = validated_data.get('name', instance.name)
         instance.control_code = validated_data.get('control_code', instance.control_code)

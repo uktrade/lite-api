@@ -23,10 +23,13 @@ class DraftList(APIView):
         data = JSONParser().parse(request)
         serializer = DraftCreateSerializer(data=data)
 
+        print(dir(request))
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
                                 status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
 
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -40,6 +43,7 @@ class DraftDetail(APIView):
     def get_object(self, pk):
         try:
             draft = Draft.objects.get(pk=pk)
+            return draft
         except Draft.DoesNotExist:
             raise Http404
 

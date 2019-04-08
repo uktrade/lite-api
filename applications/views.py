@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer
 from cases.models import Case
 from drafts.models import Draft
 from queues.models import Queue
@@ -46,8 +46,8 @@ class ApplicationList(APIView):
                                   created_at=draft.created_at,
                                   last_modified_at=draft.last_modified_at,
                                   submitted_at=draft.submitted_at
-        )
-        # Remove draft tag
+                                  )
+
         application.save()
 
         # Create a case
