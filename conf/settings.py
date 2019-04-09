@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'cases.apps.CasesConfig',
     'queues.apps.QueuesConfig',
     'reversion',
-]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
