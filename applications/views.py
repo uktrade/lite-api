@@ -40,8 +40,8 @@ class ApplicationList(APIView):
         
             # Remove draft tag
             draft.draft = False
-            draft.save()
             draft.status = "Submitted"
+            draft.save()
             # Return application
             serializer = ApplicationBaseSerializer(draft)
             # Store some meta-information.
