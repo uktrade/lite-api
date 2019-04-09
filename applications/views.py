@@ -28,7 +28,6 @@ class ApplicationList(APIView):
         submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
-            submit_id = request.POST.get('id', None)
 
             # Get Draft
             try:
