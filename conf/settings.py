@@ -40,11 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'applications.apps.ApplicationsConfig',
-    'drafts.apps.DraftsConfig',
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
     'cases.apps.CasesConfig',
     'queues.apps.QueuesConfig',
+    'drafts.apps.DraftsConfig',
     'reversion',
 ]
 
