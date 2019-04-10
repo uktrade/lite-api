@@ -1,4 +1,7 @@
+from django.contrib import admin
 from django.urls import path, include
+
+from .settings import ADMIN_ENABLED
 
 urlpatterns = [
     path('applications/', include('applications.urls')),
@@ -8,3 +11,7 @@ urlpatterns = [
     path('queues/', include('queues.urls')),
     path('users/', include('users.urls')),
 ]
+
+if ADMIN_ENABLED:
+    urlpatterns += path('admin/', admin.site.urls),
+

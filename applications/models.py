@@ -1,8 +1,19 @@
 from django.db import models
 import uuid
+import reversion
 
 
+@reversion.register()
 class Application(models.Model):
+    APPLICATION_STATUSES = [
+        ("Draft", "Draft"),
+        ("Submitted", "Submitted"),
+        ("More information required", "More information required"),
+        ("Under review", "Under review"),
+        ("Resubmitted", "Resubmitted"),
+        ("Withdrawn", "Withdrawn")
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.TextField(default=None)
     name = models.TextField(default=None, blank=True, null=True)
@@ -13,8 +24,10 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    status = models.TextField(default="Draft", choices=APPLICATION_STATUSES)
 
 
+@reversion.register()
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
@@ -24,6 +37,7 @@ class Good(models.Model):
     application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
 
 
+@reversion.register()
 class Destination(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)

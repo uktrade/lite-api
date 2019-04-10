@@ -1,8 +1,12 @@
+import json
+import uuid
+
 from django.urls import path, include
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse, reverse_lazy
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from reversion.models import Version
 
 from applications.models import Application
 from drafts.models import Draft
@@ -22,7 +26,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
     def test_create_draft(self):
         """
             Ensure we can create a new draft object.
-            """
+        """
         url = reverse('drafts:drafts')
         data = {'user_id': 12345, 'name': 'test'}
         response = self.client.post(url, data, format='json')
@@ -34,7 +38,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
     def test_create_draft_empty_user_id(self):
         """
             Ensure we cannot create a draft with an empty user_id.
-            """
+        """
         url = reverse('drafts:drafts')
         data = {'user_id': ''}
         response = self.client.post(url, data, format='json')
@@ -44,7 +48,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
     def test_create_draft_no_user_id(self):
         """
             Ensure we cannot create a draft without a user_id.
-            """
+        """
         url = reverse('drafts:drafts')
         response = self.client.post(url, {'name': 'test'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -55,7 +59,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
     def test_edit_draft(self):
         """
             Ensure we can edit a draft object.
-            """
+        """
         control_code = 'ML1a'
 
         draft = Draft(user_id='12345', name='test')
@@ -118,6 +122,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
                                destination='Poland',
                                activity='Trade',
                                usage='Fun')
+
         complete_draft.save()
 
         url = '/drafts/' + str(complete_draft.id) + '/'
@@ -134,6 +139,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
                                destination='Poland',
                                activity='Trade',
                                usage='Fun')
+
         complete_draft.save()
         invalid_id = '90D6C724-0339-425A-99D2-9D2B8E864EC6'
 
