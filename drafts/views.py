@@ -14,7 +14,7 @@ class DraftList(APIView):
     List all drafts, or create a new draft.
     """
     def get(self, request):
-        drafts = Draft.objects.filter(draft=True).order_by('-created_at')
+        drafts = Draft.objects.order_by('-created_at')
         serializer = DraftBaseSerializer(drafts, many=True)
         return JsonResponse(data={'status': 'success', 'drafts': serializer.data},
                             safe=False)
@@ -23,13 +23,10 @@ class DraftList(APIView):
         data = JSONParser().parse(request)
         serializer = DraftCreateSerializer(data=data)
 
-        print(dir(request))
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'status': 'success', 'draft': serializer.data},
                                 status=status.HTTP_201_CREATED)
-        else:
-            print(serializer.errors)
 
         return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)

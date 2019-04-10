@@ -18,7 +18,7 @@ class ApplicationList(APIView):
     List all applications, or create a new application from a draft.
     """
     def get(self, request):
-        applications = Application.objects.filter(draft=False).order_by('created_at')
+        applications = Application.objects.order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'status': 'success', 'applications': serializer.data},
                             safe=False)
