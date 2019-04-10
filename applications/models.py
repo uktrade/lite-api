@@ -21,11 +21,10 @@ class Application(models.Model):
     activity = models.TextField(default=None, blank=True, null=True)
     destination = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-    draft = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.TextField(default="Draft", choices=APPLICATION_STATUSES)
+    status = models.TextField(default="Submitted", choices=APPLICATION_STATUSES)
 
 
 @reversion.register()

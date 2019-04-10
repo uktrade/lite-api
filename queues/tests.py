@@ -19,8 +19,7 @@ class QueueModelTests(TestCase):
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Fun',
-                                     draft=False)
+                                     usage='Fun')
         new_application.save()
         new_case = Case(application=new_application)
         new_case.save()

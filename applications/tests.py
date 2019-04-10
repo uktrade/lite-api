@@ -5,16 +5,15 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from django.urls import path, include
 
+
 from applications.models import Application
 from applications.libraries.ValidateFormFields import ValidateFormFields
+from drafts.models import Draft
 from cases.models import Case
 from queues.models import Queue
 
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
-
-from reversion.models import Version
-
 
     urlpatterns = [
         path('applications/', include('applications.urls')),
@@ -24,27 +23,25 @@ from reversion.models import Version
 
     def test_create_application_case_and_addition_to_queue(self):
         """
-            Ensure we can create a new draft object.
+            Test whether we can create a draft first and then submit it as an application
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-        complete_draft = Application(id=draft_id,
-                                     user_id='12345',
-                                     control_code='ML2',
-                                     name='Test',
-                                     destination='Poland',
-                                     activity='Trade',
-                                     usage='Fun',
-                                     draft=True)
+        complete_draft = Draft(id=draft_id,
+                               user_id='12345',
+                               control_code='ML2',
+                               name='Test',
+                               destination='Poland',
+                               activity='Trade',
+                               usage='Fun')
         complete_draft.save()
-        self.assertEqual(complete_draft.status, "Draft")
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Application.objects.get(pk=draft_id))
         self.assertEqual(Application.objects.get(pk=draft_id).status, "Submitted")
-        self.assertEqual(Application.objects.get(pk=draft_id).draft, False)
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
@@ -61,15 +58,13 @@ from reversion.models import Version
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Fun',
-                                     draft=True)
+                                     usage='Fun')
         complete_draft.save()
 
         url = '/applications/'
         data = {'id': '90D6C724-0339-425A-99D2-9D2B8E864EC6'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(Application.objects.get(pk=draft_id).draft, True)
 
     def test_create_application_without_id(self):
         """
@@ -81,8 +76,7 @@ from reversion.models import Version
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Fun',
-                                     draft=True)
+                                     usage='Fun')
         complete_draft.save()
 
         url = '/applications/'
@@ -96,8 +90,7 @@ from reversion.models import Version
                                        control_code='ML2',
                                        name='Test',
                                        destination='Poland',
-                                       activity='Trade',
-                                       draft=True)
+                                       activity='Trade')
 
         self.assertEqual(ValidateFormFields(incomplete_draft).usage, "Usage cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
@@ -107,8 +100,7 @@ from reversion.models import Version
                                        user_id='12345',
                                        control_code='ML2',
                                        name='Test',
-                                       destination='Poland',
-                                       draft=True)
+                                       destination='Poland')
 
         self.assertEqual(ValidateFormFields(incomplete_draft).activity, "Activity cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
@@ -118,8 +110,7 @@ from reversion.models import Version
                                        user_id='12345',
                                        control_code='ML2',
                                        name='Test',
-                                       activity='Trade',
-                                       draft=True)
+                                       activity='Trade')
 
         self.assertEqual(ValidateFormFields(incomplete_draft).destination, "Destination cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
@@ -129,8 +120,7 @@ from reversion.models import Version
                                        user_id='12345',
                                        name='Test',
                                        destination='Poland',
-                                       activity='Trade',
-                                       draft=True)
+                                       activity='Trade')
 
         self.assertEqual(ValidateFormFields(incomplete_draft).control_code, "Control code cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
@@ -142,8 +132,7 @@ from reversion.models import Version
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Trade',
-                                     draft=True)
+                                     usage='Trade')
 
         self.assertEqual(ValidateFormFields(complete_draft).ready_for_submission, True)
 
@@ -162,8 +151,7 @@ from reversion.models import Version
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Trade',
-                                     draft=False)
+                                     usage='Trade')
 
         application.save()
         url = '/applications/' + str(application.id) + '/'
@@ -171,3 +159,4 @@ from reversion.models import Version
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Application.objects.get(pk=application.id).status, "Withdrawn")
+
