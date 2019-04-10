@@ -9,6 +9,7 @@ from rest_framework.parsers import JSONParser
 
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
+
 from cases.models import Case
 from drafts.models import Draft
 from queues.models import Queue
@@ -53,8 +54,8 @@ class ApplicationList(APIView):
                                       last_modified_at=draft.last_modified_at,
                                       submitted_at=draft.submitted_at
                                       )
-            serializer = ApplicationBaseSerializer(application)
-            serializer.save()
+
+            application.save()
             # Store some meta-information.
             # reversion.set_user(request.user)          # No user information yet
             reversion.set_comment("Created Application Revision")
@@ -68,6 +69,7 @@ class ApplicationList(APIView):
             queue.cases.add(case)
             queue.save()
 
+            serializer = ApplicationBaseSerializer(application)
             return JsonResponse(data={'status': 'success', 'application': serializer.data},
                                     status=status.HTTP_201_CREATED)
 

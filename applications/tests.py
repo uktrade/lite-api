@@ -34,7 +34,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                                activity='Trade',
                                usage='Fun')
         complete_draft.save()
-        self.assertEqual(complete_draft.status, "Draft")
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
@@ -152,8 +151,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
-                                     usage='Trade',
-                                     draft=False)
+                                     usage='Trade')
 
         application.save()
         url = '/applications/' + str(application.id) + '/'

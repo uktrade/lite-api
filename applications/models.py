@@ -24,7 +24,7 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.TextField(default="Draft", choices=APPLICATION_STATUSES)
+    status = models.TextField(default="Submitted", choices=APPLICATION_STATUSES)
 
 
 @reversion.register()
