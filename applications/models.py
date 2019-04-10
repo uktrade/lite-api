@@ -5,6 +5,15 @@ import reversion
 
 @reversion.register()
 class Application(models.Model):
+    APPLICATION_STATUSES = [
+        ("Draft", "Draft"),
+        ("Submitted", "Submitted"),
+        ("More information required", "More information required"),
+        ("Under review", "Under review"),
+        ("Resubmitted", "Resubmitted"),
+        ("Withdrawn", "Withdrawn")
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.TextField(default=None)
     name = models.TextField(default=None, blank=True, null=True)
@@ -16,6 +25,7 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    status = models.TextField(default="Draft", choices=APPLICATION_STATUSES)
 
 
 @reversion.register()

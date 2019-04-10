@@ -34,7 +34,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'goods',
                   'created_at',
                   'last_modified_at',
-                  'submitted_at')
+                  'submitted_at',
+                  'status')
 
 
 class ApplicationCreateSerializer(ApplicationBaseSerializer):
@@ -48,6 +49,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     control_code = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
+    status = serializers.CharField()
 
     def update(self, instance, validated_data):
         """
@@ -58,5 +60,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
         instance.destination = validated_data.get('destination', instance.destination)
+        instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance

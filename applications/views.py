@@ -1,13 +1,16 @@
 from django.http import JsonResponse, Http404
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
+import json
 from rest_framework.views import APIView
-import reversion
+from rest_framework.parsers import JSONParser
 
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from queues.models import Queue
+
+import reversion
 
 
 @permission_classes((permissions.AllowAny,))
@@ -22,9 +25,9 @@ class ApplicationList(APIView):
                             safe=False)
 
     def post(self, request):
+        submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
-            submit_id = request.POST.get('id', None)
 
             # Get Draft
             try:
@@ -34,10 +37,11 @@ class ApplicationList(APIView):
             except Application.DoesNotExist:
                 raise Http404
 
+        
             # Remove draft tag
             draft.draft = False
+            draft.status = "Submitted"
             draft.save()
-
             # Return application
             serializer = ApplicationBaseSerializer(draft)
             # Store some meta-information.
@@ -53,18 +57,6 @@ class ApplicationList(APIView):
         queue.cases.add(case)
         queue.save()
 
-        # Create a case
-        case = Case(application=draft)
-        case.save()
-
-        # Add said case to default queue
-        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-        queue.cases.add(case)
-        queue.save()
-
-        # Return application
-        serializer = ApplicationBaseSerializer(draft)
-
         return JsonResponse(data={'status': 'success', 'application': serializer.data},
                                 status=status.HTTP_201_CREATED)
 
@@ -77,8 +69,6 @@ class ApplicationDetail(APIView):
     def get_object(self, pk):
         try:
             application = Application.objects.get(pk=pk)
-            if application.draft:
-                raise Http404
             return application
         except Application.DoesNotExist:
             raise Http404
@@ -87,3 +77,13 @@ class ApplicationDetail(APIView):
         application = self.get_object(pk)
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'status': 'success', 'application': serializer.data})
+
+    def put(self, request, pk):
+        data = JSONParser().parse(request)
+        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                                status=status.HTTP_200_OK)
+        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                            status=400)
