@@ -36,7 +36,7 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = EnumChoiceField(enum_class=ApplicationStatuses, default=ApplicationStatuses.draft)
+    status = EnumChoiceField(enum_class=ApplicationStatuses, default=ApplicationStatuses.submitted)
 
 
 @reversion.register()
