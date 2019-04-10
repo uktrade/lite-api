@@ -5,7 +5,7 @@ import json
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 
-from applications.models import Application
+from applications.models import Application, ApplicationStatuses
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from queues.models import Queue
@@ -40,7 +40,7 @@ class ApplicationList(APIView):
         
             # Remove draft tag
             draft.draft = False
-            draft.status = "Submitted"
+            draft.status = ApplicationStatuses.submitted
             draft.save()
             # Return application
             serializer = ApplicationBaseSerializer(draft)

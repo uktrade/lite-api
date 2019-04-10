@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from applications.models import Application, Destination, Good
+from enumchoicefield import EnumChoiceField
+from applications.models import Application, Destination, Good, ApplicationStatuses
 
 
 class DestinationSerializer(serializers.ModelSerializer):
@@ -49,7 +50,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     control_code = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
-    status = serializers.CharField()
+    status = EnumChoiceField(enum_class=ApplicationStatuses)
 
     def update(self, instance, validated_data):
         """
