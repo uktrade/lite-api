@@ -1,9 +1,6 @@
-import json
-import uuid
-
+from django.urls import path, include
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from django.urls import path, include
 
 
 from applications.models import Application
@@ -45,7 +42,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
-
 
     def test_create_application_with_invalid_id(self):
         """
@@ -159,4 +155,3 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Application.objects.get(pk=application.id).status, "Withdrawn")
-
