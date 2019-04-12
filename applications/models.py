@@ -11,8 +11,8 @@ class ApplicationStatuses(ChoiceEnum):
     under_review = "Under review"
     resubmitted = "Resubmitted"
     withdrawn = "Withdrawn"
-    approved = "Approved"
-    declined = "Declined"
+    granted = "Granted"
+    denied = "Denied"
 
 
 @reversion.register()
