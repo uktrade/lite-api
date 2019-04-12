@@ -60,4 +60,3 @@ class UserTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response_data = json.loads(response.content)["errors"]
         self.assertEqual(response_data, "Can't find user")
-
