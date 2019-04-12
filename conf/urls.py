@@ -10,6 +10,7 @@ urlpatterns = [
     path('organisations/', include('organisations.urls')),
     path('queues/', include('queues.urls')),
     path('users/', include('users.urls')),
+    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
 
 if ADMIN_ENABLED:

@@ -1,16 +1,15 @@
-from django.http import JsonResponse, Http404
-from rest_framework import status, permissions
-from rest_framework.decorators import permission_classes
-from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
 import reversion
+from django.http import JsonResponse, Http404
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
 from drafts.models import Draft
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 
 
-@permission_classes((permissions.AllowAny,))
 class DraftList(APIView):
+    permission_classes = (AllowAny,)
     """
     List all drafts, or create a new draft.
     """
@@ -21,8 +20,7 @@ class DraftList(APIView):
                             safe=False)
 
     def post(self, request):
-        data = JSONParser().parse(request)
-        serializer = DraftCreateSerializer(data=data)
+        serializer = DraftCreateSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -33,8 +31,8 @@ class DraftList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
 class DraftDetail(APIView):
+    permission_classes = (AllowAny,)
     """
     Retrieve, update or delete a draft instance.
     """
@@ -52,8 +50,7 @@ class DraftDetail(APIView):
 
     def put(self, request, pk):
         with reversion.create_revision():
-            data = JSONParser().parse(request)
-            serializer = DraftUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            serializer = DraftUpdateSerializer(self.get_object(pk), data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 # Store some version meta-information.

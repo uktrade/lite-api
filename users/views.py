@@ -1,38 +1,53 @@
-from django.http import JsonResponse
-from rest_framework import status, permissions
+
+from django.http.response import JsonResponse, Http404
+from oauth2_provider.views import ProtectedResourceView
+from rest_framework import permissions
 from rest_framework.decorators import permission_classes
-
-from organisations.models import Organisation
 from rest_framework.views import APIView
+
 from users.models import User
-
-
-def users_list(request):
-    if request.method == "POST":
-        email = request.POST.get('email')
-        organisation_id = request.POST.get('organisation_id')
-        organisation = Organisation.objects.get(id=organisation_id)
-
-        if request.POST.get('password'):
-            password = request.POST.get('password')
-        else:
-            password = email
-
-        new_user = User(email=email,
-                        password=password,
-                        organisation=organisation)
-
-        new_user.save()
-
-        return JsonResponse(status=status.HTTP_201_CREATED)
+from .serializers import ViewUserSerializer
 
 
 @permission_classes((permissions.AllowAny,))
-class UserLogin(APIView):
+class UserList(APIView):
+    """
+    Get all users
+    """
     def get(self, request):
-        email = request.GET.get('email')
+        users = User.objects.all()
+        serializer = ViewUserSerializer(users, many=True)
+        return JsonResponse(data={'users': serializer.data},
+                            safe=False)
+
+
+class UserMeDetail(ProtectedResourceView):
+    """
+    Get user from token
+    """
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(username=request.user)
+
+        serializer = ViewUserSerializer(user)
+        return JsonResponse(data={'user': serializer.data},
+                            safe=False)
+
+
+@permission_classes((permissions.AllowAny,))
+class UserDetail(APIView):
+    """
+    Get user from pk
+    """
+    def get_object(self, pk):
         try:
-            User.objects.get(email=email)
-            return JsonResponse(status=status.HTTP_200_OK, data=email, safe=False)
+            user = User.objects.get(pk=pk)
+            return user
         except User.DoesNotExist:
-            return JsonResponse(status=status.HTTP_401_UNAUTHORIZED, data={'errors': 'Can\'t find user'}, safe=False)
+            raise Http404
+
+    def get(self, request, pk):
+        user = self.get_object(pk)
+
+        serializer = ViewUserSerializer(user)
+        return JsonResponse(data={'user': serializer.data},
+                            safe=False)
