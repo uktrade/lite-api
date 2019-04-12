@@ -5,26 +5,17 @@ import reversion
 
 
 class ApplicationStatuses(ChoiceEnum):
-    draft = "Draft"
     submitted = "Submitted"
     more_information_required = "More information required"
     under_review = "Under review"
     resubmitted = "Resubmitted"
     withdrawn = "Withdrawn"
-    granted = "Granted"
-    denied = "Denied"
+    approved = "Approved"
+    declined = "Declined"
 
 
 @reversion.register()
 class Application(models.Model):
-    APPLICATION_STATUSES = [
-        ("Draft", "Draft"),
-        ("Submitted", "Submitted"),
-        ("More information required", "More information required"),
-        ("Under review", "Under review"),
-        ("Resubmitted", "Resubmitted"),
-        ("Withdrawn", "Withdrawn")
-    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.TextField(default=None)
