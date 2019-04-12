@@ -89,11 +89,12 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'status': 'success', 'application': serializer.data})
 
     def put(self, request, pk):
-        data = JSONParser().parse(request)
-        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                                status=status.HTTP_200_OK)
-        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
-                            status=400)
+        with reversion.create_revision():
+            data = JSONParser().parse(request)
+            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                                    status=status.HTTP_200_OK)
+            return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                                status=400)
