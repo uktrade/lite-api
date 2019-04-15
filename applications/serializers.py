@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
-from applications.models import Application, Destination, Good, ApplicationStatuses
+
+from applications.models import Application, ApplicationStatuses, Destination, Good
 
 
 class DestinationSerializer(serializers.ModelSerializer):
