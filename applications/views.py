@@ -5,9 +5,7 @@ from rest_framework.decorators import permission_classes
 import json
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-
-
-from applications.models import Application
+from applications.models import Application, ApplicationStatuses
 from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
 
 from cases.models import Case
@@ -37,7 +35,6 @@ class ApplicationList(APIView):
             # Get Draft
             try:
                 draft = Draft.objects.get(pk=submit_id)
-
             except Draft.DoesNotExist:
                 raise Http404
 
@@ -92,11 +89,12 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'status': 'success', 'application': serializer.data})
 
     def put(self, request, pk):
-        data = JSONParser().parse(request)
-        serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                                status=status.HTTP_200_OK)
-        return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
-                            status=400)
+        with reversion.create_revision():
+            data = JSONParser().parse(request)
+            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                                    status=status.HTTP_200_OK)
+            return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                                status=400)
