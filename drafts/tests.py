@@ -60,19 +60,19 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         """
             Ensure we can edit a draft object.
         """
-        control_code = 'ML1a'
+        name = 'ML1a'
 
         draft = Draft(user_id='12345', name='test')
         draft.save()
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
-        data = {'control_code': control_code}
+        data = {'name': name}
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(Draft.objects.count(), 1)
         self.assertEqual(Draft.objects.get().id, draft.id)
-        self.assertEqual(Draft.objects.get().control_code, control_code)
+        self.assertEqual(Draft.objects.get().name, )
 
     # Viewing
 
