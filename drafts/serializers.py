@@ -16,7 +16,6 @@ class DraftBaseSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'user_id',
                   'name',
-                  'control_code',
                   'activity',
                   'destination',
                   'usage',
@@ -35,7 +34,6 @@ class DraftCreateSerializer(DraftBaseSerializer):
 class DraftUpdateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
-    control_code = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
 
@@ -44,7 +42,6 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         Update and return an existing `Draft` instance, given the validated data.
         """
         instance.name = validated_data.get('name', instance.name)
-        instance.control_code = validated_data.get('control_code', instance.control_code)
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
         instance.destination = validated_data.get('destination', instance.destination)
