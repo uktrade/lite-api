@@ -6,7 +6,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from users.models import User
-from .serializers import ViewUserSerializer
+from users.serializers import ViewUserSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -26,7 +26,7 @@ class UserMeDetail(ProtectedResourceView):
     Get user from token
     """
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(username=request.user)
+        user = User.objects.get(email=request.user)
 
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},
