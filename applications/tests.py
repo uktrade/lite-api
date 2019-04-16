@@ -2,12 +2,12 @@ from django.urls import path, include
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
-
 from applications.models import Application
 from applications.libraries.ValidateFormFields import ValidateFormFields
 from drafts.models import Draft
 from cases.models import Case
 from queues.models import Queue
+from reversion.models import Version
 
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
@@ -37,8 +37,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Application.objects.get(pk=draft_id))
-        self.assertEqual(Application.objects.get(pk=draft_id).status, "Submitted")
+        self.assertEqual(Application.objects.get(pk=draft_id).status.name, "submitted")
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
@@ -148,10 +147,9 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                                      destination='Poland',
                                      activity='Trade',
                                      usage='Trade')
-
         application.save()
         url = '/applications/' + str(application.id) + '/'
-        data = {'id': application.id, 'status': 'Withdrawn'}
+        data = {'id': application.id, 'status': 'withdrawn'}
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Application.objects.get(pk=application.id).status, "Withdrawn")
+        self.assertEqual(Application.objects.get(pk=application.id).status.name, "withdrawn")
