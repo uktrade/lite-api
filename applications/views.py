@@ -1,18 +1,18 @@
+import json
+
+import reversion
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
-import json
-from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from applications.models import Application, ApplicationStatuses
-from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
+from rest_framework.views import APIView
 
+from applications.models import Application
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from drafts.models import Draft
 from queues.models import Queue
-
-import reversion
 
 
 @permission_classes((permissions.AllowAny,))
@@ -39,11 +39,9 @@ class ApplicationList(APIView):
                 raise Http404
 
             # Create an Application object corresponding to the draft
-
             application = Application(id=draft.id,
                                       user_id=draft.user_id,
                                       name=draft.name,
-                                      control_code=draft.control_code,
                                       activity=draft.activity,
                                       destination=draft.destination,
                                       usage=draft.usage,
@@ -53,9 +51,13 @@ class ApplicationList(APIView):
                                       )
 
             application.save()
-            # Store some meta-information.
-            # reversion.set_user(request.user)          # No user information yet
+
+            # Store meta-information.
+            # reversion.set_user(request.user)  # No user information yet
             reversion.set_comment("Created Application Revision")
+
+            # Delete existing draft
+            draft.delete()
 
             # Create a case
             case = Case(application=application)
