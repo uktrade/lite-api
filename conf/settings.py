@@ -12,8 +12,9 @@ if os.path.exists(ENV_FILE):
     Env.read_env(ENV_FILE)
 
 env = Env(
+    ALLOWED_HOSTS=(str, ''),
     DEBUG=(bool, False),
-    ALLOWED_HOSTS=(str, '')
+    DEBUG_LEVEL=(str, 'INFO'),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -126,7 +127,7 @@ LOGGING = {
     'formatters': {
         'json': {
             'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
-            'format': '(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)(lineno)(asctime)(message)(filename)(levelname)',
+            'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)',
         },
     },
     'handlers': {
@@ -138,7 +139,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': env('DEBUG_LEVEL').upper(),
         },
     }
 }
