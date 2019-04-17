@@ -23,6 +23,6 @@ class GoodSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
-        # Only validate control code if the good is controlled
+        # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
             self.fields['control_code'] = serializers.CharField(required=True)
