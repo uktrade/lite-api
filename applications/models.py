@@ -40,14 +40,6 @@ class Goods_on_Application(models.Model):
     end_use_case = models.TextField(default=None)
     value = models.DecimalField(max_digits=256, decimal_places=2)
 
-# @reversion.register()
-# class Good(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     name = models.TextField(default=None, blank=True)
-#     description = models.TextField(default=None, blank=True)
-#     quantity = models.IntegerField()
-#     application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
-
 
 @reversion.register()
 class Destination(models.Model):
