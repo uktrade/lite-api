@@ -1,7 +1,6 @@
-from typing import Optional, Any
-
 from rest_framework import serializers
 
+from conf.helpers import str_to_bool
 from goods.models import Good
 
 
@@ -21,7 +20,8 @@ class GoodSerializer(serializers.ModelSerializer):
                   'part_number',
                   )
 
-    def __init__(self, instance: Optional[Any] = ..., data: Any = ..., **kwargs: Any):
-        super().__init__(instance, data, **kwargs)
-        if self.fields['is_good_controlled'] is True:
-            self.fields['control_code'].required = True
+    def __init__(self, *args, **kwargs):
+        super(GoodSerializer, self).__init__(*args, **kwargs)
+
+        if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
+            self.fields['control_code'] = serializers.CharField(required=True)
