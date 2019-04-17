@@ -7,7 +7,6 @@ from goods.models import Good
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.BooleanField()
-    control_code = serializers.CharField(required=False)
     is_good_end_product = serializers.BooleanField()
 
     class Meta:
