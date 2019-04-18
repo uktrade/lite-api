@@ -11,40 +11,10 @@ Service for handling backend calls in LITE.
 * Set up your local config file:
   * `cp local.env .env`
   * If you're not running Postgres with the default options, edit the `DATABASE_URL` sections of the `.env` file
-* Create and activate your Python virtual environment:
-  * `python -m venv venv`
-  * `source venv/bin/activate`
-* Run `pip install -r requirements.txt`
-* Run the application: `./manage.py migrate && ./manage.py runserver`
+* Setup pipenv environment:
+  * `pipenv sync`
+* Run the application: `pipenv run ./manage.py migrate && pipenv run ./manage.py runserver`
 * Go to the index page (e.g. `http://localhost:8000`)
-
-## Endpoints
-
-### Applications
-
-Endpoints for creating and retrieving applications.
-
-**GET** `/applications/` - Returns a list of applications.
-
-**GET** `/applications/:id/` - Returns the specified application.
-
-**POST** `/applications/` - Creates a new application from the _id_ provided in post data.
-
-### Drafts
-
-Endpoints for creating, updating and retrieving drafts.
-
-**GET** `/drafts/` - Returns a list of drafts.
-
-**GET** `/drafts/:id/` - Returns the specified draft.
-
-**PUT** `/drafts/:id/` - Updates the specified draft with the data sent.
-
-**DELETE** `/drafts/:id/` - Deletes the specified draft.
-
-## Common Issues
-
-`ModuleNotFoundError: No module named 'environ'` - Type `pip install -r requirements.txt`
 
 ## LITE Repositories
 
