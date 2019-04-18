@@ -1,12 +1,11 @@
 from rest_framework import serializers
 
 from applications.serializers import GoodSerializer, DestinationSerializer
-from drafts.models import Draft
+from drafts.models import Draft, GoodOnDraft
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
     destinations = DestinationSerializer(many=True, read_only=True)
-    goods = GoodSerializer(many=True, read_only=True)
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
@@ -19,8 +18,6 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'activity',
                   'destination',
                   'usage',
-                  'destinations',
-                  'goods',
                   'created_at',
                   'last_modified_at',
                   'submitted_at')
@@ -50,21 +47,18 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 
 
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
-    destinations = DestinationSerializer(many=True, read_only=True)
-    goods = GoodSerializer(many=True, read_only=True)
-    tracks = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
-    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
-    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    good = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    application = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
-        model = Draft
+        model = GoodOnDraft
         fields = ('id',
-                  'description',
-                  'is_good_controlled',
-                  'control_code',
-                  'is_good_end_product',
-                  'part_number')
+                  'good',
+                  'application',
+                  'quantity',
+                  'unit',
+                  'end_use_case',
+                  'value')
 
 
 
