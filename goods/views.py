@@ -2,22 +2,32 @@ from django.http import JsonResponse, Http404
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from goods.models import Good
 from goods.serializers import GoodSerializer
+from users.models import User
 
 
-@permission_classes((permissions.AllowAny,))
 class GoodList(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
-        goods = Good.objects.order_by('description')
+        user = User.objects.get(email=request.user)
+        organisation = user.organisation
+
+        goods = Good.objects.filter(organisation=organisation).order_by('description')
         serializer = GoodSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},
                             safe=False)
 
     def post(self, request):
+        user = User.objects.get(email=request.user)
+        organisation = user.organisation
+
         data = JSONParser().parse(request)
+        data.organisation = organisation.id
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
@@ -29,8 +39,9 @@ class GoodList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
 class GoodDetail(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get_object(self, pk):
         try:
             return Good.objects.get(pk=pk)
