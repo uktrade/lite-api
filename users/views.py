@@ -3,7 +3,6 @@ from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-
 from users.models import User
 from users.serializers import ViewUserSerializer
 
