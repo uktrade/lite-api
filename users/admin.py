@@ -1,7 +1,7 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 
-from .models import User
+from users.models import User
 
 
 @admin.register(User)

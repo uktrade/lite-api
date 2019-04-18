@@ -1,8 +1,7 @@
-
 from django.http.response import JsonResponse, Http404
-from oauth2_provider.views import ProtectedResourceView
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from users.models import User
@@ -21,7 +20,8 @@ class UserList(APIView):
                             safe=False)
 
 
-class UserMeDetail(ProtectedResourceView):
+class UserMeDetail(APIView):
+    permission_classes = (IsAuthenticated,)
     """
     Get user from token
     """
