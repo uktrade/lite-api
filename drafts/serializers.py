@@ -49,5 +49,23 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         return instance
 
 
+class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
+    destinations = DestinationSerializer(many=True, read_only=True)
+    goods = GoodSerializer(many=True, read_only=True)
+    tracks = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+
+    class Meta:
+        model = Draft
+        fields = ('id',
+                  'description',
+                  'is_good_controlled',
+                  'control_code',
+                  'is_good_end_product',
+                  'part_number')
+
+
 
 
