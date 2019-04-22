@@ -5,10 +5,11 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from django.urls import path, include
 
-from applications.models import Application
+from applications.models import Application, GoodOnApplication
 from applications.libraries.ValidateFormFields import ValidateFormFields
 from drafts.models import Draft
 from cases.models import Case
+from goods.models import Good
 from queues.models import Queue
 from reversion.models import Version
 
@@ -28,7 +29,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Draft(id=draft_id,
                                user_id='12345',
-                               control_code='ML2',
                                name='Test',
                                destination='Poland',
                                activity='Trade',
@@ -52,7 +52,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
         complete_draft = Application(id=draft_id,
                                      user_id='12345',
-                                     control_code='ML2',
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
@@ -70,7 +69,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         """
         complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                      user_id='12345',
-                                     control_code='ML2',
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
@@ -85,7 +83,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_reject_submit_if_usage_data_is_missing(self):
         incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                        user_id='12345',
-                                       control_code='ML2',
                                        name='Test',
                                        destination='Poland',
                                        activity='Trade')
@@ -96,7 +93,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_reject_submit_if_activity_data_is_missing(self):
         incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                        user_id='12345',
-                                       control_code='ML2',
                                        name='Test',
                                        destination='Poland')
 
@@ -106,7 +102,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_reject_submit_if_destination_data_is_missing(self):
         incomplete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                        user_id='12345',
-                                       control_code='ML2',
                                        name='Test',
                                        activity='Trade')
 
@@ -126,7 +121,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_accept_submit_if_form_is_ready_for_submission(self):
         complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
                                      user_id='12345',
-                                     control_code='ML2',
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
@@ -145,7 +139,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_update_status_of_an_application(self):
         application = Application(id='90d6c724-0339-425a-99d2-9d2b8e864ec7',
                                      user_id='12345',
-                                     control_code='ML2',
                                      name='Test',
                                      destination='Poland',
                                      activity='Trade',
@@ -157,3 +150,30 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Application.objects.get(pk=application.id).status.name, "withdrawn")
 
+    def test_attach_good_to_application(self):
+        application = Application(id='90d6c724-0339-425a-99d2-9d2b8e864ec7',
+                                  user_id='12345',
+                                  name='Test',
+                                  destination='Poland',
+                                  activity='Trade',
+                                  usage='Trade')
+        application.save()
+
+        good = Good(id='90d6c724-0339-425a-99d2-9d2b8e864ec8',
+                    description='This thing',
+                    is_good_controlled=True,
+                    control_code='Ml1',
+                    is_good_end_product=True)
+
+        good_on_application = GoodOnApplication(id='90d6c724-0339-425a-99d2-9d2b8e864ec9',
+                                                goog=good,
+                                                application=application,
+                                                quantity=1,
+                                                unit='m',
+                                                end_use_case='something',
+                                                value=100)
+
+        good_on_application.save()
+        self.assertEqual(GoodOnApplication.objects.get(application=application).count(), 1)
+        self.assertEqual(good_on_application.application, application)
+        self.assertEqual(good_on_application.good, good)
