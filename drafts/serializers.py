@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from applications.serializers import GoodSerializer, DestinationSerializer
 from drafts.models import Draft
+from organisations.models import Organisation
+from django.db import models
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -14,9 +16,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Draft
         fields = ('id',
-                  'user_id',
                   'name',
-                  'control_code',
                   'activity',
                   'destination',
                   'usage',
@@ -28,14 +28,13 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
-    user_id = serializers.CharField()
     name = serializers.CharField()
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
 
 
 class DraftUpdateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
-    control_code = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
 
@@ -44,7 +43,6 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         Update and return an existing `Draft` instance, given the validated data.
         """
         instance.name = validated_data.get('name', instance.name)
-        instance.control_code = validated_data.get('control_code', instance.control_code)
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
         instance.destination = validated_data.get('destination', instance.destination)
