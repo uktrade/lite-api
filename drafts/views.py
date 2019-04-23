@@ -1,5 +1,5 @@
 import reversion
-from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -20,14 +20,15 @@ class DraftList(APIView):
 
         drafts = Draft.objects.filter(organisation=organisation).order_by('-created_at')
         serializer = DraftBaseSerializer(drafts, many=True)
-        return JsonResponse(data={'status': 'success', 'drafts': serializer.data},
+        return JsonResponse(data={'drafts': serializer.data},
                             safe=False)
 
     def post(self, request):
         organisation = get_organisation_by_user(request.user)
-        request.data['organisation'] = organisation.id
+        data = request.data
+        data['organisation'] = str(organisation.id)
 
-        serializer = DraftCreateSerializer(data=request.data)
+        serializer = DraftCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -50,18 +51,25 @@ class DraftDetail(APIView):
         return JsonResponse(data={'draft': serializer.data})
 
     def put(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+
         with reversion.create_revision():
-            serializer = DraftUpdateSerializer(self.get_object(pk), data=request.data, partial=True)
+            serializer = DraftUpdateSerializer(get_draft_with_organisation(pk, organisation),
+                                               data=request.data,
+                                               partial=True)
             if serializer.is_valid():
                 serializer.save()
-                # Store some version meta-information.
-                # reversion.set_user(request.user)              # No user information yet
+
+                # Store version meta-information
+                reversion.set_user(request.user)
                 reversion.set_comment("Created Draft Revision")
+
                 return JsonResponse(data={'draft': serializer.data},
                                     status=status.HTTP_200_OK)
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
 
     def delete(self, request, pk):
-        draft = self.get_object(pk)
+        organisation = get_organisation_by_user(request.user)
+        draft = get_draft_with_organisation(pk, organisation)
         draft.delete()

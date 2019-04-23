@@ -1,14 +1,13 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from drafts.models import Draft
 from organisations.models import Organisation
-from django.db import models
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
-    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
-    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    last_modified_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
 
     class Meta:
         model = Draft
@@ -17,16 +16,19 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'activity',
                   'destination',
                   'usage',
-                  'destinations',
-                  'goods',
                   'created_at',
-                  'last_modified_at',
-                  'submitted_at')
+                  'last_modified_at',)
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
+    class Meta:
+        model = Draft
+        fields = ('id',
+                  'name',
+                  'organisation')
 
 
 class DraftUpdateSerializer(DraftBaseSerializer):
@@ -45,7 +47,3 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         instance.destination = validated_data.get('destination', instance.destination)
         instance.save()
         return instance
-
-
-
-
