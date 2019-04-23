@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  db:
+    image: "postgres"
+    environment:
+      - POSTGRES_PASSWORD=password
+    networks:
+      - lite-dev-network
+  api:
+    env_file:
+      - .env
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - db
+    networks:
+      - lite-dev-network
+    command: python3 manage.py runserver 0.0.0.0:${PORT}
+
+networks:
+  lite-dev-network:
+    external: false
