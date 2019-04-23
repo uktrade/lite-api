@@ -1,29 +1,33 @@
+import json
+
+import reversion
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
-import json
-from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from applications.models import Application, ApplicationStatuses
-from applications.serializers import ApplicationBaseSerializer, ApplicationCreateSerializer, ApplicationUpdateSerializer
+from rest_framework.views import APIView
 
+from applications.models import Application
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
+from conf.authentication import PkAuthentication
 from drafts.models import Draft
+from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
-import reversion
 
-
-@permission_classes((permissions.AllowAny,))
 class ApplicationList(APIView):
+    authentication_classes = (PkAuthentication,)
     """
     List all applications, or create a new application from a draft.
     """
     def get(self, request):
-        applications = Application.objects.order_by('created_at')
+        organisation = get_organisation_by_user(request.user)
+
+        applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
-        return JsonResponse(data={'status': 'success', 'applications': serializer.data},
+        return JsonResponse(data={'applications': serializer.data},
                             safe=False)
 
     @transaction.atomic
@@ -43,19 +47,21 @@ class ApplicationList(APIView):
             application = Application(id=draft.id,
                                       user_id=draft.user_id,
                                       name=draft.name,
-                                      control_code=draft.control_code,
                                       activity=draft.activity,
                                       destination=draft.destination,
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
-                                      submitted_at=draft.submitted_at
                                       )
 
             application.save()
-            # Store some meta-information.
-            # reversion.set_user(request.user)          # No user information yet
+
+            # Store meta-information.
+            reversion.set_user(request.user)
             reversion.set_comment("Created Application Revision")
+
+            # Delete draft
+            draft.delete()
 
             # Create a case
             case = Case(application=application)
