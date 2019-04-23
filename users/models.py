@@ -45,7 +45,7 @@ class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True, unique=True)
-    # organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

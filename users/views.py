@@ -1,9 +1,10 @@
-from django.http.response import JsonResponse, Http404, HttpResponseForbidden
+from django.http.response import JsonResponse, HttpResponseForbidden
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from users.models import User
+from conf.authentication import PkAuthentication
+from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.serializers import ViewUserSerializer
 
 
@@ -18,12 +19,7 @@ class AuthenticateUser(APIView):
         email = data.get('email')
         password = data.get('password')
 
-        user = None
-
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise Http404
+        user = get_user_by_email(email)
 
         if not user.check_password(password):
             return HttpResponseForbidden()
@@ -34,18 +30,12 @@ class AuthenticateUser(APIView):
 
 
 class UserDetail(APIView):
-    permission_classes = (AllowAny,)
+    authentication_classes = (PkAuthentication,)
     """
     Get user from pk
     """
-    def get_user_by_pk(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        user = self.get_user_by_pk(pk)
+        user = get_user_by_pk(pk)
 
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},
