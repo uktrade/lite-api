@@ -1,9 +1,6 @@
-import json
-import uuid
-
+from django.urls import path, include
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from django.urls import path, include
 
 from applications.models import Application
 from applications.libraries.ValidateFormFields import ValidateFormFields
@@ -156,4 +153,3 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Application.objects.get(pk=application.id).status.name, "withdrawn")
-

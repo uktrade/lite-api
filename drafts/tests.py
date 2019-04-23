@@ -1,12 +1,7 @@
-import json
-import uuid
-
 from django.urls import path, include
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.reverse import reverse, reverse_lazy
+from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from reversion.models import Version
 
 from applications.models import Application
 from drafts.models import Draft
