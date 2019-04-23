@@ -1,9 +1,10 @@
 import reversion
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
+from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import Draft
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -42,15 +43,9 @@ class DraftDetail(APIView):
     """
     Retrieve, update or delete a draft instance.
     """
-    def get_object(self, pk):
-        try:
-            draft = Draft.objects.get(pk=pk)
-            return draft
-        except Draft.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        draft = self.get_object(pk)
+        organisation = get_organisation_by_user(request.user)
+        draft = get_draft_with_organisation(pk, organisation)
         serializer = DraftBaseSerializer(draft)
         return JsonResponse(data={'draft': serializer.data})
 
