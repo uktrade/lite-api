@@ -73,3 +73,6 @@ class DraftDetail(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)
         draft.delete()
+
+        return JsonResponse(data={'status': 'Draft Deleted'},
+                            status=status.HTTP_200_OK)

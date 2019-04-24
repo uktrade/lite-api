@@ -12,6 +12,7 @@ from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
+from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import Draft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
@@ -37,21 +38,17 @@ class ApplicationList(APIView):
         with reversion.create_revision():
 
             # Get Draft
-            try:
-                draft = Draft.objects.get(pk=submit_id)
-            except Draft.DoesNotExist:
-                raise Http404
+            draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
 
             # Create an Application object corresponding to the draft
-
             application = Application(id=draft.id,
-                                      user_id=draft.user_id,
                                       name=draft.name,
                                       activity=draft.activity,
                                       destination=draft.destination,
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
+                                      organisation=draft.organisation,
                                       )
 
             application.save()
@@ -73,11 +70,10 @@ class ApplicationList(APIView):
             queue.save()
 
             serializer = ApplicationBaseSerializer(application)
-            return JsonResponse(data={'status': 'success', 'application': serializer.data},
-                                    status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'application': serializer.data},
+                                status=status.HTTP_201_CREATED)
 
 
-@permission_classes((permissions.AllowAny,))
 class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
@@ -100,7 +96,7 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(data={'status': 'success', 'application': serializer.data},
+                return JsonResponse(data={'application': serializer.data},
                                     status=status.HTTP_200_OK)
-            return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+            return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
