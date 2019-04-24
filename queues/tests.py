@@ -12,14 +12,10 @@ class QueueModelTests(TestCase):
             Tests the Queue model has been created correctly
 
         """
-        draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-        new_application = Application(id=draft_id,
-                                     user_id='12345',
-                                     control_code='ML2',
-                                     name='Test',
-                                     destination='Poland',
-                                     activity='Trade',
-                                     usage='Fun')
+        new_application = Application(name='Test',
+                                      destination='Poland',
+                                      activity='Trade',
+                                      usage='Fun')
         new_application.save()
         new_case = Case(application=new_application)
         new_case.save()
