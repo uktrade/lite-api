@@ -84,7 +84,6 @@ class DraftTests(APITestCase, URLPatternsTestCase):
             Ensure that when a draft is submitted it does not get submitted as an application
         """
         draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
-        draft.save()
 
         url = '/applications/' + str(draft.id) + '/'
         response = self.client.get(url, format='json', **self.headers)
@@ -95,10 +94,9 @@ class DraftTests(APITestCase, URLPatternsTestCase):
             Ensure we can get a draft.
         """
         draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
-        draft.save()
 
-        url = '/drafts/' + str(complete_draft.id) + '/'
-        response = self.client.get(url, format='json')
+        url = '/drafts/' + str(draft.id) + '/'
+        response = self.client.get(url, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
     #
     # def test_view_incorrect_draft(self):
@@ -218,11 +216,13 @@ class DraftTestHelpers:
 
     @staticmethod
     def complete_draft(name, org):
-        return Draft(name=name,
+        draft = Draft(name=name,
                      destination='Poland',
                      activity='Trade',
                      usage='Fun',
                      organisation=org)
+        draft.save()
+        return draft
 
 
 
