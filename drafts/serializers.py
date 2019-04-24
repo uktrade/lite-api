@@ -51,13 +51,11 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     good = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    application = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = GoodOnDraft
         fields = ('id',
                   'good',
-                  'draft',
                   'quantity',
                   'unit',
                   'end_use_case',
