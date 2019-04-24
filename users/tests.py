@@ -1,55 +1,45 @@
-import json
-
 from rest_framework import status
-from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient, force_authenticate
+from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from organisations.models import Organisation
-from users.models import User
-from django.urls import path, include
-
-
-class TestHelper:
-    @staticmethod
-    def create_user_and_organisation():
-        new_organisation = Organisation(name='Banana Stand ltd',
-                                        eori_number='GB123456789000',
-                                        sic_number='2765',
-                                        vat_number='123456789',
-                                        registration_number='987654321',
-                                        address='London')
-
-        new_user = User(email='trinity@bsg.com',
-                        username='trinity@bsg.com',
-                        organisation=new_organisation)
-        new_user.set_password('password')
-
-        new_organisation.save()
-        new_user.save()
-
-        return new_user, new_organisation
+from drafts.tests import DraftTestHelpers
+from django.urls import path, include, reverse
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
 
     urlpatterns = [
         path('users/', include('users.urls')),
+        path('organisations/', include('organisations.urls'))
     ]
 
     client = APIClient()
 
-    def test_user_model(self):
-        new_user, new_organisation = TestHelper.create_user_and_organisation()
+    def setUp(self):
+        self.test_helper = DraftTestHelpers(name='name')
 
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(User.objects.get().email, 'trinity@bsg.com')
-        self.assertEqual(User.objects.get().organisation, new_organisation)
-
-    def test_get_signed_in_user(self):
-        TestHelper.create_user_and_organisation()
-
-        url = '/users/me/'
-
-        user = User.objects.get(username='trinity@bsg.com')
-        self.client.force_authenticate(user=user, token=user.auth_token)
-        response = self.client.post(url)
+    def test_login_success(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': self.test_helper.user.email,
+            'password': 'password'
+        }
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_login_empty(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': None,
+            'password': None
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_login_incorrect_details(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': self.test_helper.user.email,
+            'password': 'This is not the password'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
