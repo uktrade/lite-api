@@ -19,79 +19,72 @@ class DraftTests(APITestCase, URLPatternsTestCase):
     ]
 
     client = APIClient
+
+    def setUp(self):
+        self.draft_test_helper = DraftTestHelpers(name='name')
+        self.headers = {'HTTP_USER_ID': str(self.draft_test_helper.user.id)}
+
     # Creation
 
-    # def test_create_draft(self):
-    #     """
-    #         Ensure we can create a new draft object.
-    #     """
-    #     url = reverse('drafts:drafts')
-    #     data = {'user_id': 12345, 'name': 'test'}
-    #     response = self.client.post(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(Draft.objects.count(), 1)
-    #     self.assertEqual(Draft.objects.get().user_id, '12345')
-    #     self.assertEqual(Draft.objects.get().name, 'test')
-    #
-    # def test_create_draft_empty_user_id(self):
-    #     """
-    #         Ensure we cannot create a draft with an empty user_id.
-    #     """
-    #     url = reverse('drafts:drafts')
-    #     data = {'user_id': ''}
-    #     response = self.client.post(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertEqual(Draft.objects.count(), 0)
-    #
-    # def test_create_draft_no_user_id(self):
-    #     """
-    #         Ensure we cannot create a draft without a user_id.
-    #     """
-    #     url = reverse('drafts:drafts')
-    #     response = self.client.post(url, {'name': 'test'}, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertEqual(Application.objects.count(), 0)
-    #
-    # # Editing
-    #
-    # def test_edit_draft(self):
-    #     """
-    #         Ensure we can edit a draft object.
-    #     """
-    #     control_code = 'ML1a'
-    #
-    #     draft = Draft(user_id='12345', name='test')
-    #     draft.save()
-    #
-    #     url = reverse('drafts:draft', kwargs={'pk': draft.id})
-    #     data = {'control_code': control_code}
-    #     response = self.client.put(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     self.assertEqual(Draft.objects.count(), 1)
-    #     self.assertEqual(Draft.objects.get().id, draft.id)
-    #     self.assertEqual(Draft.objects.get().control_code, control_code)
-    #
-    # # Viewing
-    #
-    # def test_view_drafts(self):
-    #     """
-    #         Ensure we can get a list of drafts.
-    #     """
-    #
-    #     complete_draft = Draft(user_id='12345',
-    #                            control_code='ML2',
-    #                            name='Test',
-    #                            destination='Poland',
-    #                            activity='Trade',
-    #                            usage='Fun')
-    #     complete_draft.save()
-    #
-    #     url = '/drafts/'
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response.json()['drafts']), 1)
-    #
+    def test_create_draft(self):
+        """
+            Ensure we can create a new draft object.
+        """
+        url = reverse('drafts:drafts')
+        data = {'name': 'test'}
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Draft.objects.count(), 1)
+        self.assertEqual(Draft.objects.get().name, 'test')
+
+    def test_create_draft_no_user_id(self):
+        """
+            Ensure we cannot create a draft without a name.
+        """
+        url = reverse('drafts:drafts')
+        response = self.client.post(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Application.objects.count(), 0)
+
+    # Editing
+
+    def test_edit_draft(self):
+        """
+            Ensure we can edit a draft object.
+        """
+        draft = Draft(name='test',
+                      organisation=self.draft_test_helper.organisation)
+        draft.save()
+
+        url = reverse('drafts:draft', kwargs={'pk': draft.id})
+        data = {'destination': 'France'}
+        response = self.client.put(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(Draft.objects.count(), 1)
+        self.assertEqual(Draft.objects.get().id, draft.id)
+        self.assertEqual(Draft.objects.get().destination, 'France')
+
+    # Viewing
+
+    def test_view_drafts(self):
+        """
+            Ensure we can get a list of drafts.
+        """
+
+        complete_draft = Draft(user_id='12345',
+                               control_code='ML2',
+                               name='Test',
+                               destination='Poland',
+                               activity='Trade',
+                               usage='Fun')
+        complete_draft.save()
+
+        url = '/drafts/'
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()['drafts']), 1)
+
     # def test_view_drafts_not_applications(self):
     #     """
     #         Ensure that when a draft is submitted it does not get submitted as an application
@@ -165,7 +158,6 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         draft2.save()
 
         url = '/drafts/'
-
         response = self.client.get(url, **{'HTTP_USER_ID': str(draft_test_helper_1.user.id)})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -211,6 +203,7 @@ class DraftTestHelpers:
     ]
 
     client = APIClient()
+
     def __init__(self, name):
         # new_organisation = Organisation(name=name,
         #                                 eori_number='GB123456789000',
@@ -241,5 +234,7 @@ class DraftTestHelpers:
 
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
-        print(dir(self.user))
+
+
+
 
