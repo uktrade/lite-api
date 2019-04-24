@@ -2,50 +2,38 @@
 
 Service for handling backend calls in LITE.
 
-## Running the service
+***
 
+## Running the service with docker
 * Download the repository:
   * `git clone https://github.com/uktrade/lite-api.git`
   * `cd lite-api`
+* First time setup
+  * Set up your local config file:
+    * `cp local.env .env`
+  * Ensure docker is running
+    * Build and start docker images:
+    * `docker-compose build`
+  * Run the migrations
+    * `./bin/migrate.sh`
+* Starting the service
+    * `docker-compose up`
+* Go to the index page (e.g. `http://localhost:8100`)
+
+***
+
+## Running without docker
 * Start a local Postgres: `docker run --name my-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres`
 * Set up your local config file:
   * `cp local.env .env`
   * If your local Postgres is not running with default options, edit the `DATABASE_URL` sections of `.env` file
-* Activate your Python virtual environment:
-  * `cd venv`
-  * `source bin/activate`
-  * `cd ..`
-* Run `pip install -r requirements.txt`
-* Run the application: `python manage.py migrate && ./manage.py runserver`
-* Go to the index page (e.g. `http://localhost:8000`)
+* Ensure you have installed pipenv on your environment:
+  * `pip install pipenv`
+* Setup pipenv environment:
+  * `pipenv sync`
+* Run the application: `pipenv run ./manage.py migrate && pipenv run ./manage.py runserver`
 
-## Endpoints
-
-### Applications
-
-Endpoints for creating and retrieving applications.
-
-**GET** `/applications/` - Returns a list of applications.
-
-**GET** `/applications/:id/` - Returns the specified application.
-
-**POST** `/applications/` - Creates a new application from the _id_ provided in post data.
-
-### Drafts
-
-Endpoints for creating, updating and retrieving drafts.
-
-**GET** `/drafts/` - Returns a list of drafts.
-
-**GET** `/drafts/:id/` - Returns the specified draft.
-
-**PUT** `/drafts/:id/` - Updates the specified draft with the data sent.
-
-**DELETE** `/drafts/:id/` - Deletes the specified draft.
-
-## Common Issues
-
-`ModuleNotFoundError: No module named 'environ'` - Type `pip install -r requirements.txt`
+***
 
 ## LITE Repositories
 

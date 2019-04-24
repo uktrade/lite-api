@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from .settings import ADMIN_ENABLED
+from conf.settings import ADMIN_ENABLED
 
 urlpatterns = [
     path('applications/', include('applications.urls')),

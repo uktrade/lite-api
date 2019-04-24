@@ -2,6 +2,8 @@ from django.db import models
 import uuid
 import reversion
 
+from organisations.models import Organisation
+
 
 @reversion.register()
 class Good(models.Model):
@@ -11,4 +13,4 @@ class Good(models.Model):
     control_code = models.TextField(default=None, blank=True, null=True)
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
     part_number = models.TextField(default=None, blank=True, null=True)
-    # organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)

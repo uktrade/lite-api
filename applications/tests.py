@@ -1,9 +1,6 @@
-import json
-import uuid
-
+from django.urls import path, include
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from django.urls import path, include
 
 from applications.models import Application, GoodOnApplication
 from applications.libraries.ValidateFormFields import ValidateFormFields
