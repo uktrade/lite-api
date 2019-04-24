@@ -3,24 +3,19 @@
 Service for handling backend calls in LITE.
 
 ## Running the service with docker
-
 * Download the repository:
   * `git clone https://github.com/uktrade/lite-api.git`
   * `cd lite-api`
-
 * First time setup
   * Set up your local config file:
     * `cp local.env .env`
   * Ensure docker is running
     * Build and start docker images:
     * `docker-compose build`
-    * `docker-compose up`
   * Run the migrations
     * `./bin/migrate.sh`
-
 * Starting the service
     * `docker-compose up`
-
 * Go to the index page (e.g. `http://localhost:8100`)
 
 ***
@@ -36,7 +31,7 @@ Service for handling backend calls in LITE.
   * `pipenv sync`
 * Run the application: `pipenv run ./manage.py migrate && pipenv run ./manage.py runserver`
 
-*** 
+***
 
 ## LITE Repositories
 
