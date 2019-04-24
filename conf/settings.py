@@ -31,9 +31,6 @@ ADMIN_ENABLED = True
  
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
-if DEBUG:
-    ALLOWED_HOSTS = ['*']
-
 # Application definition
 
 INSTALLED_APPS = [
