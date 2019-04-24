@@ -1,6 +1,7 @@
 import reversion
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
@@ -76,8 +77,9 @@ class DraftDetail(APIView):
         return JsonResponse(data={'status': 'Draft Deleted'},
                             status=status.HTTP_200_OK)
 
-@permission_classes((permissions.AllowAny,))
+
 class DraftAddGood(APIView):
+    authentication_classes = (PkAuthentication,)
     """
     Add a good to a draft
     """

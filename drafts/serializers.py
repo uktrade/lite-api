@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from drafts.models import Draft
+from drafts.models import Draft, GoodOnDraft
 from organisations.models import Organisation
 
 
