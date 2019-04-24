@@ -71,54 +71,35 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         """
             Ensure we can get a list of drafts.
         """
-
-        complete_draft = Draft(user_id='12345',
-                               control_code='ML2',
-                               name='Test',
-                               destination='Poland',
-                               activity='Trade',
-                               usage='Fun')
-        complete_draft.save()
+        DraftTestHelpers.complete_draft(name='test 1', org=self.draft_test_helper.organisation).save()
+        DraftTestHelpers.complete_draft(name='test 2', org=self.draft_test_helper.organisation).save()
 
         url = '/drafts/'
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()['drafts']), 2)
+
+    def test_view_drafts_not_applications(self):
+        """
+            Ensure that when a draft is submitted it does not get submitted as an application
+        """
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
+        draft.save()
+
+        url = '/applications/' + str(draft.id) + '/'
+        response = self.client.get(url, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_view_draft(self):
+        """
+            Ensure we can get a draft.
+        """
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
+        draft.save()
+
+        url = '/drafts/' + str(complete_draft.id) + '/'
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['drafts']), 1)
-
-    # def test_view_drafts_not_applications(self):
-    #     """
-    #         Ensure that when a draft is submitted it does not get submitted as an application
-    #     """
-    #     draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-    #     complete_draft = Draft(id=draft_id,
-    #                            user_id='12345',
-    #                            control_code='ML2',
-    #                            name='Test',
-    #                            destination='Poland',
-    #                            activity='Trade',
-    #                            usage='Fun')
-    #     complete_draft.save()
-    #
-    #     url = '/applications/' + str(draft_id) + '/'
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    #
-    # def test_view_draft(self):
-    #     """
-    #         Ensure we can get a draft.
-    #     """
-    #     complete_draft = Draft(user_id='12345',
-    #                            control_code='ML2',
-    #                            name='Test',
-    #                            destination='Poland',
-    #                            activity='Trade',
-    #                            usage='Fun')
-    #
-    #     complete_draft.save()
-    #
-    #     url = '/drafts/' + str(complete_draft.id) + '/'
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
     #
     # def test_view_incorrect_draft(self):
     #     """
@@ -234,6 +215,14 @@ class DraftTestHelpers:
 
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
+
+    @staticmethod
+    def complete_draft(name, org):
+        return Draft(name=name,
+                     destination='Poland',
+                     activity='Trade',
+                     usage='Fun',
+                     organisation=org)
 
 
 
