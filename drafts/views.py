@@ -90,12 +90,8 @@ class DraftGoods(APIView):
 
         goods = GoodOnDraft.objects.filter(draft=draft)
         serializer = GoodOnDraftBaseSerializer(goods, many=True)
-        return JsonResponse(data={'drafts': serializer.data},
+        return JsonResponse(data={'goods': serializer.data},
                             safe=False)
-
-    def post(self, request, pk):
-        data = JSONParser().parse(request)
-        draft = self.get_object(pk)
 
 
 class DraftGood(APIView):
