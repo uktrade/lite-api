@@ -2,6 +2,8 @@
 
 Service for handling backend calls in LITE.
 
+***
+
 ## Running the service with docker
 * Download the repository:
   * `git clone https://github.com/uktrade/lite-api.git`
