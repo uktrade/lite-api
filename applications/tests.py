@@ -50,23 +50,25 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                          Application.objects.get(pk=draft_id))
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
 
-    # def test_create_application_with_invalid_id(self):
-    #     """
-    #         Ensure we cannot create a new application object with an invalid draft id.
-    #     """
-    #     draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-    #     complete_draft = Application(id=draft_id,
-    #                                  user_id='12345',
-    #                                  name='Test',
-    #                                  destination='Poland',
-    #                                  activity='Trade',
-    #                                  usage='Fun')
-    #     complete_draft.save()
-    #
-    #     url = '/applications/'
-    #     data = {'id': '90D6C724-0339-425A-99D2-9D2B8E864EC6'}
-    #     response = self.client.post(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    def test_create_application_with_invalid_id(self):
+        """
+            Ensure we cannot create a new application object with an invalid draft id.
+        """
+        draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
+        # complete_draft = Application(id=draft_id,
+        #                              user_id='12345',
+        #                              name='Test',
+        #                              destination='Poland',
+        #                              activity='Trade',
+        #                              usage='Fun')
+        # complete_draft.save()
+
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
+
+        url = '/applications/'
+        data = {'id': draft_id}
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     #
     # def test_create_application_without_id(self):
     #     """
