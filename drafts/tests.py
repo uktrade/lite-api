@@ -8,7 +8,6 @@ from applications.models import Application
 from drafts.models import Draft
 from organisations.models import Organisation
 from users.models import User
-from conf.tests.client import TestClient
 
 
 class DraftTests(APITestCase, URLPatternsTestCase):
@@ -19,7 +18,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         path('organisations/', include('organisations.urls'))
     ]
 
-    client = TestClient()
+    client = APIClient
     # Creation
 
     # def test_create_draft(self):
