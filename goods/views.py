@@ -45,6 +45,11 @@ class GoodDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
         good = self.get_object(pk)
+
+        if good.organisation != organisation:
+            raise Http404
+
         serializer = GoodSerializer(good)
         return JsonResponse(data={'good': serializer.data})
