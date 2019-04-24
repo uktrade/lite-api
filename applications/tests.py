@@ -23,7 +23,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     client = APIClient()
 
     def setUp(self):
-        self.draft_test_helper = ApplicationTestHelpers(name='name')
+        self.draft_test_helper = DraftTestHelpers(name='name')
         self.headers = {'HTTP_USER_ID': str(self.draft_test_helper.user.id)}
 
     def test_create_application_case_and_addition_to_queue(self):
@@ -39,11 +39,11 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         # complete_draft.save()
 
         draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
-
+        draft_id = draft.id
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
         data = {'id': draft_id}
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Application.objects.get(pk=draft_id).status.name, "submitted")
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
@@ -166,6 +166,14 @@ class ApplicationTestHelpers:
     client = APIClient()
 
     def __init__(self, name):
+        self.name = name
+        self.eori_number = "GB123456789000"
+        self.sic_number = "2765"
+        self.vat_number = "123456789"
+        self.registration_number = "987654321"
+        self.address = "London"
+        self.admin_user_email = "trinity@" + name + ".com"
+
         url = reverse('organisations:organisations')
         data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
                 'vat_number': self.vat_number,
