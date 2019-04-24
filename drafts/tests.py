@@ -170,7 +170,3 @@ class DraftTestHelpers:
                      organisation=org)
         draft.save()
         return draft
-
-
-
-
