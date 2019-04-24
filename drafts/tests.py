@@ -98,80 +98,41 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         url = '/drafts/' + str(draft.id) + '/'
         response = self.client.get(url, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    # def test_view_incorrect_draft(self):
-    #     """
-    #         Ensure we cannot get a draft if the id is incorrect.
-    #     """
-    #     complete_draft = Draft(user_id='12345',
-    #                            control_code='ML2',
-    #                            name='Test',
-    #                            destination='Poland',
-    #                            activity='Trade',
-    #                            usage='Fun')
-    #
-    #     complete_draft.save()
-    #     invalid_id = '90D6C724-0339-425A-99D2-9D2B8E864EC6'
-    #
-    #     url = '/drafts/' + str(invalid_id) + '/'
-    #     response = self.client.get(url, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_view_incorrect_draft(self):
+        """
+            Ensure we cannot get a draft if the id is incorrect.
+        """
+        DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
+        invalid_id = '90D6C724-0339-425A-99D2-9D2B8E864EC6'
+
+        url = '/drafts/' + str(invalid_id) + '/'
+        response = self.client.put(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
-        draft_test_helper_1 = DraftTestHelpers(name='organisation1')
         draft_test_helper_2 = DraftTestHelpers(name='organisation2')
 
-        draft1 = Draft(name='test 1',
-                       destination='Poland',
-                       activity='fun',
-                       usage='banter',
-                       organisation=draft_test_helper_1.organisation)
-
-        draft2 = Draft(name='test 2',
-                       destination='France',
-                       activity='work',
-                       usage='play',
-                       organisation=draft_test_helper_2.organisation)
-
-        draft1.save()
-        draft2.save()
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
+        DraftTestHelpers.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
         url = '/drafts/'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(draft_test_helper_1.user.id)})
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Draft.objects.count(), 2)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["drafts"]), 1)
+        self.assertEqual(response_data["drafts"][0]["organisation"], str(draft.organisation.id))
 
+    def test_user_cannot_see_details_of_another_organisations_draft(self):
+        draft_test_helper_2 = DraftTestHelpers(name='organisation2')
+        draft = DraftTestHelpers.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
-    # def test_user_cannot_see_details_of_another_organisations_draft(self):
-    #     organisation1, user1 = DraftTestHelpers.create_organisation(name='organisation1')
-    #     organisation2, user2 = DraftTestHelpers.create_organisation(name='organisation2')
-    #
-    #     draft1 = Draft(name='test 1',
-    #                    destination='Poland',
-    #                    activity='fun',
-    #                    usage='banter',
-    #                    organisation=organisation1)
-    #
-    #     draft2 = Draft(name='test 2',
-    #                    destination='France',
-    #                    activity='work',
-    #                    usage='play',
-    #                    organisation=organisation2)
-    #
-    #     draft1.save()
-    #     draft2.save()
-    #
-    #     self.assertEqual(Draft.objects.count(), 2)
-    #
-    #     url = '/drafts/' + str(draft1.id)
-    #     data = {'id': user1.id}
-    #     # print(user1.id)
-    #     # print(draft1.id)
-    #     # print(url)
-    #     response = self.client.get(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        url = '/drafts/' + str(draft.id) + '/'
+
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class DraftTestHelpers:
@@ -184,20 +145,6 @@ class DraftTestHelpers:
     client = APIClient()
 
     def __init__(self, name):
-        # new_organisation = Organisation(name=name,
-        #                                 eori_number='GB123456789000',
-        #                                 sic_number='2765',
-        #                                 vat_number='123456789',
-        #                                 registration_number='987654321',
-        #                                 address='London')
-        #
-        # new_organisation.save()
-        #
-        # new_user = User(email='trinity@'+name+'.com',
-        #                 organisation=new_organisation)
-        # new_user.set_password('password')
-        # new_user.save()
-
         self.name = name
         self.eori_number = "GB123456789000"
         self.sic_number = "2765"
