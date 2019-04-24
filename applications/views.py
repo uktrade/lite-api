@@ -3,8 +3,7 @@ import json
 import reversion
 from django.db import transaction
 from django.http import JsonResponse, Http404
-from rest_framework import status, permissions
-from rest_framework.decorators import permission_classes
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -13,7 +12,6 @@ from applications.serializers import ApplicationBaseSerializer, ApplicationUpdat
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import Draft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
