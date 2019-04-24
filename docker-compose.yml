@@ -17,9 +17,11 @@ services:
       - ${PORT}:${PORT}
     depends_on:
       - db
+    expose:
+      - ${PORT}
     networks:
       - lite-dev-network
-    command: python3 manage.py runserver 0.0.0.0:${PORT}
+    command: pipenv run ./manage.py runserver 0.0.0.0:${PORT}
 
 networks:
   lite-dev-network:
