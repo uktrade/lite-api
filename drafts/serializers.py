@@ -54,7 +54,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
         model = GoodOnDraft
         fields = ('id',
                   'good',
-                  'application',
+                  'draft',
                   'quantity',
                   'unit',
                   'end_use_case',

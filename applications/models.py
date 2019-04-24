@@ -33,8 +33,8 @@ class Application(models.Model):
 @reversion.register()
 class GoodOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    good = models.ForeignKey(Good, related_name='goods', on_delete=models.CASCADE)
-    application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
+    good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='applications', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.TextField(default=None)
     end_use_case = models.TextField(default=None)

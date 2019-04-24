@@ -18,8 +18,8 @@ class Draft(models.Model):
 
 class GoodOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    good = models.ForeignKey(Good, related_name='goods', on_delete=models.CASCADE)
-    application = models.ForeignKey(Draft, related_name='goods', on_delete=models.CASCADE)
+    good = models.ForeignKey(Good, related_name='goods_on_draft', on_delete=models.CASCADE)
+    draft = models.ForeignKey(Draft, related_name='drafts', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.TextField(default=None)
     end_use_case = models.TextField(default=None)
