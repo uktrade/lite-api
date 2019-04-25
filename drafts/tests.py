@@ -168,7 +168,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
             'draft': draft.id,
             'good': good.id,
             'quantity': 1200,
-            'unit': 'discrete',
+            'unit': 'kg',
             'end_use_case': 'fun',
             'value': 50000
         }
