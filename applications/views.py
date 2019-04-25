@@ -27,7 +27,7 @@ class ApplicationList(APIView):
 
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
-        return JsonResponse(data={'applications': serializer.data},
+        return JsonResponse(data={'bana': 'banana', 'applications': serializer.data},
                             safe=False)
 
     @transaction.atomic
@@ -58,7 +58,6 @@ class ApplicationList(APIView):
                     application=application,
                     quantity=good_on_draft.quantity,
                     unit=good_on_draft.unit,
-                    end_use_case=good_on_draft.end_use_case,
                     value=good_on_draft.value)
                 good_on_application.save()
 
