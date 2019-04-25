@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from applications.models import Application
 from drafts.models import Draft
+from goods.models import Good
 from organisations.models import Organisation
 from users.models import User
 
@@ -117,7 +118,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         DraftTestHelpers.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
         url = '/drafts/'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Draft.objects.count(), 2)
@@ -134,6 +135,29 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_add_a_good_to_a_draft(self):
+        org = self.draft_test_helper.organisation
+        draft = DraftTestHelpers.complete_draft('Goods test', org)
+        good = DraftTestHelpers.create_controlled_good('A good', org)
+
+        data = {
+            'draft': draft.id,
+            'good': good.id,
+            'quantity': 1200,
+            'unit': 'discrete',
+            'end_use_case': 'fun',
+            'value': 50000
+        }
+
+        url = '/drafts/' + str(draft.id) + '/goods/' + str(good.id) + '/'
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        url = '/drafts/' + str(draft.id) + '/goods/'
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data["goods"][0]["good"], str(good.id))
+        self.assertEqual(response_data["goods"][0]["draft"], str(draft.id))
 
 class DraftTestHelpers:
     urlpatterns = [
@@ -170,3 +194,14 @@ class DraftTestHelpers:
                      organisation=org)
         draft.save()
         return draft
+
+    @staticmethod
+    def create_controlled_good(description, org):
+        good = Good(description=description,
+                    is_good_controlled=True,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org)
+        good.save()
+        return good

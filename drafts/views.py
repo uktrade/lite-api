@@ -1,14 +1,16 @@
 import reversion
 from django.http import JsonResponse
+from django.http.response import Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
-from drafts.libraries.get_draft import get_draft_with_organisation
+from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
 from drafts.models import Draft, GoodOnDraft
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer, \
     GoodOnDraftBaseSerializer
+from goods.models import Good
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -99,6 +101,29 @@ class DraftGood(APIView):
     """
     Add a good to a draft
     """
-    def get(self, request, pk, good_pk):
+
+    def get_good_object(self, pk):
+        try:
+            good = Good.objects.get(pk=pk)
+            return good
+        except Good.DoesNotExist:
+            raise Http404
+
+    def post(self, request, pk, good_pk):
         data = JSONParser().parse(request)
-        draft = self.get_object(pk)
+        organisation = get_organisation_by_user(request.user)
+        get_draft_with_organisation(pk, organisation)
+        get_good_with_organisation(good_pk, organisation)
+
+        with reversion.create_revision():
+            serializer = GoodOnDraftBaseSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                reversion.set_user(request.user)
+                reversion.set_comment("Created Good on Draft Revision")
+
+                return JsonResponse(data={'good_on_draft': serializer.data},
+                                    status=status.HTTP_200_OK)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=400)
