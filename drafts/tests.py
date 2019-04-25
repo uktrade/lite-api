@@ -159,6 +159,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response_data["goods"][0]["good"], str(good.id))
         self.assertEqual(response_data["goods"][0]["draft"], str(draft.id))
 
+
 class DraftTestHelpers:
     urlpatterns = [
         path('drafts/', include('drafts.urls')),
@@ -178,8 +179,9 @@ class DraftTestHelpers:
         self.admin_user_email = "trinity@"+name+".com"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number, 'vat_number': self.vat_number,
-                'registration_number': self.registration_number, 'address': self.address, 'admin_user_email': self.admin_user_email}
+        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
+                'vat_number': self.vat_number, 'registration_number': self.registration_number,
+                'address': self.address, 'admin_user_email': self.admin_user_email}
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
@@ -188,10 +190,10 @@ class DraftTestHelpers:
     @staticmethod
     def complete_draft(name, org):
         draft = Draft(name=name,
-                     destination='Poland',
-                     activity='Trade',
-                     usage='Fun',
-                     organisation=org)
+                      destination='Poland',
+                      activity='Trade',
+                      usage='Fun',
+                      organisation=org)
         draft.save()
         return draft
 
