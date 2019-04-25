@@ -1,4 +1,5 @@
-from django.http.response import JsonResponse, HttpResponseForbidden
+from django.http.response import JsonResponse
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -22,7 +23,9 @@ class AuthenticateUser(APIView):
         user = get_user_by_email(email)
 
         if not user.check_password(password):
-            return HttpResponseForbidden()
+            return JsonResponse(data={'errors': 'Incorrect password'},
+                                status=status.HTTP_401_UNAUTHORIZED,
+                                safe=False)
 
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},

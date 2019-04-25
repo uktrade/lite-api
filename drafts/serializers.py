@@ -16,6 +16,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'activity',
                   'destination',
                   'usage',
+                  'organisation',
                   'created_at',
                   'last_modified_at',)
 

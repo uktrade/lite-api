@@ -133,25 +133,26 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'json': {
-            'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
-            'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)',
+if 'test' not in sys.argv:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'json': {
+                'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+                'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)',
+            },
         },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'json',
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'json',
+            },
         },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['console'],
-            'level': env('DEBUG_LEVEL').upper(),
-        },
+        'loggers': {
+            '': {
+                'handlers': ['console'],
+                'level': env('DEBUG_LEVEL').upper(),
+            },
+        }
     }
-}
