@@ -3,6 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from drafts.models import Draft, GoodOnDraft
 from goods.models import Good
+from goods.serializers import GoodSerializer
 from organisations.models import Organisation
 
 
@@ -62,5 +63,17 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
                   'draft',
                   'quantity',
                   'unit',
-                  'end_use_case',
+                  'value')
+
+
+class GoodOnDraftViewSerializer(serializers.ModelSerializer):
+    good = GoodSerializer(read_only=True)
+
+    class Meta:
+        model = GoodOnDraft
+        fields = ('id',
+                  'good',
+                  'draft',
+                  'quantity',
+                  'unit',
                   'value')

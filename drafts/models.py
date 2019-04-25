@@ -22,5 +22,4 @@ class GoodOnDraft(models.Model):
     draft = models.ForeignKey(Draft, related_name='drafts', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.TextField(default=None)
-    end_use_case = models.TextField(default=None)
     value = models.DecimalField(max_digits=256, decimal_places=2)
