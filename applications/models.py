@@ -35,7 +35,7 @@ class Application(models.Model):
 class GoodOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)
-    application = models.ForeignKey(Application, related_name='applications', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.TextField(default=None)
     value = models.DecimalField(max_digits=256, decimal_places=2)
