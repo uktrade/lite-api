@@ -5,6 +5,8 @@ services:
     image: "postgres"
     environment:
       - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
     networks:
       - lite-dev-network
   api:
@@ -26,4 +28,3 @@ services:
 networks:
   lite-dev-network:
     external: false
-    

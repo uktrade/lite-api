@@ -1,25 +1,45 @@
-from django.test import TestCase
-from organisations.models import Organisation
-from users.models import User
+from rest_framework import status
+from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
+
+from drafts.tests import DraftTestHelpers
+from django.urls import path, include, reverse
 
 
-class UserTests(TestCase):
+class UserTests(APITestCase, URLPatternsTestCase):
 
-    def test_user_model(self):
-        new_organisation = Organisation(name="Big Scary Guns ltd",
-                                        eori_number="GB123456789000",
-                                        sic_number="2765",
-                                        vat_number="123456789",
-                                        registration_number="987654321",
-                                        address="London")
+    urlpatterns = [
+        path('users/', include('users.urls')),
+        path('organisations/', include('organisations.urls'))
+    ]
 
-        new_user = User(email="trinity@bsg.com",
-                        password="trinity@bsg.com",
-                        organisation=new_organisation)
+    client = APIClient()
 
-        new_organisation.save()
-        new_user.save()
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(User.objects.get().email, 'trinity@bsg.com')
-        self.assertEqual(User.objects.get().password, 'trinity@bsg.com')
-        self.assertEqual(User.objects.get().organisation, new_organisation)
+    def setUp(self):
+        self.test_helper = DraftTestHelpers(name='name')
+
+    def test_login_success(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': self.test_helper.user.email,
+            'password': 'password'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_login_empty(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': None,
+            'password': None
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_login_incorrect_details(self):
+        url = reverse('users:authenticate')
+        data = {
+            'email': self.test_helper.user.email,
+            'password': 'This is not the password'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

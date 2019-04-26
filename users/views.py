@@ -1,25 +1,45 @@
-from django.http import JsonResponse
+from django.http.response import JsonResponse
 from rest_framework import status
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
-from organisations.models import Organisation
-from users.models import User
+from conf.authentication import PkAuthentication
+from users.libraries.get_user import get_user_by_pk, get_user_by_email
+from users.serializers import ViewUserSerializer
 
 
-def users_list(request):
-    if request.method == "POST":
-        email = request.POST.get('email')
-        organisation_id = request.POST.get('organisation_id')
-        organisation = Organisation.objects.get(id=organisation_id)
+class AuthenticateUser(APIView):
+    permission_classes = (AllowAny,)
+    """
+    Authenticate user
+    """
+    def post(self, request, *args, **kwargs):
+        data = JSONParser().parse(request)
 
-        if request.POST.get('password'):
-            password = request.POST.get('password')
-        else:
-            password = email
+        email = data.get('email')
+        password = data.get('password')
 
-        new_user = User(email=email,
-                        password=password,
-                        organisation=organisation)
+        user = get_user_by_email(email)
 
-        new_user.save()
+        if not user.check_password(password):
+            return JsonResponse(data={'errors': 'Incorrect password'},
+                                status=status.HTTP_401_UNAUTHORIZED,
+                                safe=False)
 
-        return JsonResponse(status=status.HTTP_201_CREATED)
+        serializer = ViewUserSerializer(user)
+        return JsonResponse(data={'user': serializer.data},
+                            safe=False)
+
+
+class UserDetail(APIView):
+    authentication_classes = (PkAuthentication,)
+    """
+    Get user from pk
+    """
+    def get(self, request, pk):
+        user = get_user_by_pk(pk)
+
+        serializer = ViewUserSerializer(user)
+        return JsonResponse(data={'user': serializer.data},
+                            safe=False)

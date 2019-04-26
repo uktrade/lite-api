@@ -29,8 +29,8 @@ def organisations_list(request):
                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
             # Store some version meta-information.
-            reversion.set_user(request.user)
-            reversion.set_comment("Created Organization Revision")
+            # reversion.set_user(request.user)
+            # reversion.set_comment("Created Organization Revision")
 
     if request.method == "GET":
         organisations = Organisation.objects.all().order_by('name')
