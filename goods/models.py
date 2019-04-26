@@ -1,9 +1,11 @@
 from django.db import models
 import uuid
+import reversion
 
 from organisations.models import Organisation
 
 
+@reversion.register()
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)

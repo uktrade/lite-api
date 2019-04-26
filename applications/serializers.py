@@ -1,13 +1,27 @@
 from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
 
-from applications.models import Application, ApplicationStatuses
+from applications.models import Application, ApplicationStatuses, GoodOnApplication
+from goods.serializers import GoodSerializer
+
+
+class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
+    good = GoodSerializer(read_only=True)
+
+    class Meta:
+        model = GoodOnApplication
+        fields = ('id',
+                  'good',
+                  'quantity',
+                  'unit',
+                  'value')
 
 
 class ApplicationBaseSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Application
@@ -15,6 +29,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'name',
                   'activity',
                   'destination',
+                  'goods',
                   'usage',
                   'created_at',
                   'last_modified_at',

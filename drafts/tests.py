@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from applications.models import Application
 from drafts.models import Draft
+from goods.models import Good
 from organisations.models import Organisation
 from users.models import User
 
@@ -117,7 +118,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         DraftTestHelpers.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
         url = '/drafts/'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Draft.objects.count(), 2)
@@ -133,6 +134,48 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.draft_test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_add_a_good_to_a_draft(self):
+        org = self.draft_test_helper.organisation
+        draft = DraftTestHelpers.complete_draft('Goods test', org)
+        good = DraftTestHelpers.create_controlled_good('A good', org)
+
+        data = {
+            'good_id': good.id,
+            'quantity': 1200,
+            'unit': 'discrete',
+            'value': 50000
+        }
+
+        url = '/drafts/' + str(draft.id) + '/goods/'
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = '/drafts/' + str(draft.id) + '/goods/'
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data["goods"]), 1)
+
+    def test_user_cannot_add_another_organisations_good_to_a_draft(self):
+        draft_test_helper_2 = DraftTestHelpers(name='organisation2')
+        good = DraftTestHelpers.create_controlled_good('test', draft_test_helper_2.organisation)
+        draft = DraftTestHelpers.complete_draft('test', self.draft_test_helper.organisation)
+
+        data = {
+            'draft': draft.id,
+            'good_id': good.id,
+            'quantity': 1200,
+            'unit': 'kg',
+            'value': 50000
+        }
+
+        url = '/drafts/' + str(draft.id) + '/goods/'
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        url = '/drafts/' + str(draft.id) + '/goods/'
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data["goods"]), 0)
 
 
 class DraftTestHelpers:
@@ -154,8 +197,9 @@ class DraftTestHelpers:
         self.admin_user_email = "trinity@"+name+".com"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number, 'vat_number': self.vat_number,
-                'registration_number': self.registration_number, 'address': self.address, 'admin_user_email': self.admin_user_email}
+        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
+                'vat_number': self.vat_number, 'registration_number': self.registration_number,
+                'address': self.address, 'admin_user_email': self.admin_user_email}
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
@@ -164,9 +208,20 @@ class DraftTestHelpers:
     @staticmethod
     def complete_draft(name, org):
         draft = Draft(name=name,
-                     destination='Poland',
-                     activity='Trade',
-                     usage='Fun',
-                     organisation=org)
+                      destination='Poland',
+                      activity='Trade',
+                      usage='Fun',
+                      organisation=org)
         draft.save()
         return draft
+
+    @staticmethod
+    def create_controlled_good(description, org):
+        good = Good(description=description,
+                    is_good_controlled=True,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org)
+        good.save()
+        return good

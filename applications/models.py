@@ -3,6 +3,7 @@ from enumchoicefield import ChoiceEnum, EnumChoiceField
 import uuid
 import reversion
 
+from goods.models import Good
 from organisations.models import Organisation
 
 
@@ -28,3 +29,20 @@ class Application(models.Model):
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
     status = EnumChoiceField(enum_class=ApplicationStatuses, default=ApplicationStatuses.submitted)
+
+
+@reversion.register()
+class GoodOnApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
+    quantity = models.FloatField(null=True, blank=True, default=None)
+    unit = models.TextField(default=None)
+    value = models.DecimalField(max_digits=256, decimal_places=2)
+
+
+@reversion.register()
+class Destination(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.TextField(default=None, blank=True)
+    application = models.ForeignKey(Application, related_name='destinations', on_delete=models.CASCADE)
