@@ -28,4 +28,3 @@ services:
 networks:
   lite-dev-network:
     external: false
-    
