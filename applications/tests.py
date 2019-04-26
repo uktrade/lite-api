@@ -30,13 +30,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         """
             Test whether we can create a draft first and then submit it as an application
         """
-        # draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-        # complete_draft = Draft(id=draft_id,
-        #                        name='Test',
-        #                        destination='Poland',
-        #                        activity='Trade',
-        #                        usage='Fun')
-        # complete_draft.save()
 
         draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
         draft_id = draft.id
@@ -55,13 +48,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
             Ensure we cannot create a new application object with an invalid draft id.
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-        # complete_draft = Application(id=draft_id,
-        #                              user_id='12345',
-        #                              name='Test',
-        #                              destination='Poland',
-        #                              activity='Trade',
-        #                              usage='Fun')
-        # complete_draft.save()
 
         draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
 
@@ -170,11 +156,3 @@ class ApplicationTestHelpers:
 
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
-#
-#     @staticmethod
-#     def complete_draft(name, org):
-#         return Draft(name=name,
-#                      destination='Poland',
-#                      activity='Trade',
-#                      usage='Fun',
-#                      organisation=org)
