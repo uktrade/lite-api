@@ -141,23 +141,20 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         good = DraftTestHelpers.create_controlled_good('A good', org)
 
         data = {
-            'draft': draft.id,
-            'good': good.id,
+            'good_id': good.id,
             'quantity': 1200,
             'unit': 'discrete',
-            'end_use_case': 'fun',
             'value': 50000
         }
 
-        url = '/drafts/' + str(draft.id) + '/goods/' + str(good.id) + '/'
+        url = '/drafts/' + str(draft.id) + '/goods/'
         response = self.client.post(url, data, format='json', **self.headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         url = '/drafts/' + str(draft.id) + '/goods/'
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["goods"]), 1)
-        self.assertEqual(response_data["goods"][0]["good"], str(good.id))
-        self.assertEqual(response_data["goods"][0]["draft"], str(draft.id))
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         draft_test_helper_2 = DraftTestHelpers(name='organisation2')
@@ -166,14 +163,13 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
         data = {
             'draft': draft.id,
-            'good': good.id,
+            'good_id': good.id,
             'quantity': 1200,
             'unit': 'kg',
-            'end_use_case': 'fun',
             'value': 50000
         }
 
-        url = '/drafts/' + str(draft.id) + '/goods/' + str(good.id) + '/'
+        url = '/drafts/' + str(draft.id) + '/goods/'
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         url = '/drafts/' + str(draft.id) + '/goods/'

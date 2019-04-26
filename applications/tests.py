@@ -30,8 +30,8 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     def test_that_goods_are_added_to_application_when_submitted(self):
         draft = DraftTestHelpers.complete_draft('test', self.draft_test_helper.organisation)
         good = DraftTestHelpers.create_controlled_good('test good', self.draft_test_helper.organisation)
-        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit='kg', end_use_case='parties', value=400)
-        good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit='kg', end_use_case='parties', value=500)
+        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit='kg', value=400)
+        good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit='kg', value=500)
         good_on_draft_1.save()
         good_on_draft_2.save()
 
@@ -42,7 +42,6 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(GoodOnApplication.objects.count(), 2)
         application = Application.objects.get()
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 2)
-
 
     def test_create_application_case_and_addition_to_queue(self):
         """
