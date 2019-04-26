@@ -128,31 +128,3 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Application.objects.get(pk=application.id).status.name, "withdrawn")
 
-
-class ApplicationTestHelpers:
-    urlpatterns = [
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
-
-    def __init__(self, name):
-        self.name = name
-        self.eori_number = "GB123456789000"
-        self.sic_number = "2765"
-        self.vat_number = "123456789"
-        self.registration_number = "987654321"
-        self.address = "London"
-        self.admin_user_email = "trinity@" + name + ".com"
-
-        url = reverse('organisations:organisations')
-        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
-                'vat_number': self.vat_number,
-                'registration_number': self.registration_number, 'address': self.address,
-                'admin_user_email': self.admin_user_email}
-        self.client.post(url, data, format='json')
-
-        self.organisation = Organisation.objects.get(name=name)
-        self.user = User.objects.filter(organisation=self.organisation)[0]
