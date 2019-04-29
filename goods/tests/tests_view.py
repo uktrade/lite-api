@@ -7,7 +7,7 @@ from goods.models import Good
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class OrganisationTests(APITestCase, URLPatternsTestCase):
+class GoodTests(APITestCase, URLPatternsTestCase):
 
     urlpatterns = [
         path('goods/', include('goods.urls')),
