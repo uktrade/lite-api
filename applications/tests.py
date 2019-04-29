@@ -8,11 +8,9 @@ from applications.libraries.ValidateFormFields import ValidateFormFields
 from drafts.models import Draft, GoodOnDraft
 from cases.models import Case
 from goods.models import Good
-from organisations.models import Organisation
 from queues.models import Queue
 from reversion.models import Version
-from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import User
+from drafts.tests import DraftTestHelpers
 
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
@@ -26,12 +24,12 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
     client = APIClient()
 
     def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        self.draft_test_helper = DraftTestHelpers(name='name')
+        self.headers = {'HTTP_USER_ID': str(self.draft_test_helper.user.id)}
 
     def test_that_goods_are_added_to_application_when_submitted(self):
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
+        draft = DraftTestHelpers.complete_draft('test', self.draft_test_helper.organisation)
+        good = DraftTestHelpers.create_controlled_good('test good', self.draft_test_helper.organisation)
         good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit='kg', value=400)
         good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit='kg', value=500)
         good_on_draft_1.save()
@@ -50,7 +48,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
             Test whether we can create a draft first and then submit it as an application
         """
 
-        draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
         draft_id = draft.id
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = '/applications/'
@@ -68,7 +66,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
+        draft = DraftTestHelpers.complete_draft(name='test', org=self.draft_test_helper.organisation)
 
         url = '/applications/'
         data = {'id': draft_id}
@@ -115,6 +113,8 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
         self.assertEqual(ValidateFormFields(incomplete_draft).destination, "Destination cannot be blank")
         self.assertEqual(ValidateFormFields(incomplete_draft).ready_for_submission, False)
+
+
 
     def test_accept_submit_if_form_is_ready_for_submission(self):
         complete_draft = Application(id='90D6C724-0339-425A-99D2-9D2B8E864EC7',
