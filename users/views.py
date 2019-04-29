@@ -1,3 +1,4 @@
+import reversion
 from django.http.response import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -6,8 +7,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
-from users.models import User
-from users.serializers import ViewUserSerializer, UserSerializer, UserViewSerializer
+from users.models import User, UserStatuses
+from users.serializers import ViewUserSerializer, UserSerializer, UserViewSerializer, UserUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -23,11 +24,13 @@ class AuthenticateUser(APIView):
         password = data.get('password')
 
         user = get_user_by_email(email)
+        if user.status == UserStatuses.deactivated:
+            return JsonResponse(data={},
+                                status=status.HTTP_401_UNAUTHORIZED)
 
         if not user.check_password(password):
-            return JsonResponse(data={'errors': 'Incorrect password'},
-                                status=status.HTTP_401_UNAUTHORIZED,
-                                safe=False)
+            return JsonResponse(data={},
+                                status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},
@@ -69,3 +72,15 @@ class UserDetail(APIView):
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
+
+    def put(self, request, pk):
+        with reversion.create_revision():
+            user = get_user_by_pk(pk)
+            data = JSONParser().parse(request)
+            serializer = UserUpdateSerializer(user, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'user': serializer.data},
+                                    status=status.HTTP_200_OK)
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=400)

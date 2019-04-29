@@ -25,12 +25,15 @@ class OrgAndUserHelper:
         self.vat_number = "123456789"
         self.registration_number = "987654321"
         self.address = "London"
+        self.admin_user_first_name = "trinity"
+        self.admin_user_last_name = "trinity"
         self.admin_user_email = "trinity@"+name+".com"
 
         url = reverse('organisations:organisations')
         data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
                 'vat_number': self.vat_number, 'registration_number': self.registration_number,
-                'address': self.address, 'admin_user_email': self.admin_user_email}
+                'address': self.address, 'admin_user_email': self.admin_user_email,
+                'admin_user_first_name': self.admin_user_first_name, 'admin_user_last_name': self.admin_user_last_name}
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
@@ -69,7 +72,7 @@ class OrgAndUserHelper:
                         last_name=last_name,
                         email=email,
                         organisation=org)
-
+            user.set_password('password')
             user.save()
             if quantity == 1:
                 return user
