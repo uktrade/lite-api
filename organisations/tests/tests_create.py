@@ -25,11 +25,14 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         vat_number = "123456789"
         registration_number = "987654321"
         address = "London"
+        admin_user_first_name = "trin"
+        admin_user_last_name = "ity"
         admin_user_email = "trinity@bsg.com"
 
         url = reverse('organisations:organisations')
         data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number,
-                'registration_number': registration_number, 'address': address, 'admin_user_email': admin_user_email}
+                'registration_number': registration_number, 'address': address, 'admin_user_email': admin_user_email,
+                'admin_user_first_name': admin_user_first_name, 'admin_user_last_name': admin_user_last_name}
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -55,6 +58,6 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
     def test_create_invalid_organisation(self):
         url = reverse('organisations:organisations')
         data = {'name': None, 'eori_number': None, 'sic_number': None, 'vat_number': None, 'address': None,
-                'admin_user_email': None}
+                'admin_user_email': None, 'admin_user_first_name': None, 'admin_user_last_name': None}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)

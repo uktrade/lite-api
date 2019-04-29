@@ -20,7 +20,10 @@ def organisations_list(request):
                 new_organisation = view_serializer.save()
 
                 # Create an admin for that company
-                CreateFirstAdminUser(create_serializer['admin_user_email'].value, new_organisation)
+                CreateFirstAdminUser(first_name=create_serializer['admin_user_first_name'].value,
+                                     last_name=create_serializer['admin_user_last_name'].value,
+                                     email=create_serializer['admin_user_email'].value,
+                                     organisation=new_organisation)
 
                 return JsonResponse(data={'organisation': view_serializer.data},
                                     status=status.HTTP_201_CREATED)
