@@ -46,11 +46,11 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(test_helper_2.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_view_good__query_filter(self):
+    def test_view_good__query_filter_by_description(self):
         org = self.test_helper.organisation
 
         OrgAndUserHelper.create_controlled_good('thing1', org)
-        OrgAndUserHelper.create_controlled_good('thing2', org)
+        OrgAndUserHelper.create_controlled_good('Thing2', org)
         OrgAndUserHelper.create_controlled_good('item3', org)
 
         url = '/goods/?description=thing'
@@ -71,7 +71,63 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 3)
 
-        
+    def test_view_good__query_filter_by_part_number_and_combinations(self):
+        org = self.test_helper.organisation
+
+        # create a set of Goods for the test
+        Good.objects.create(description='car1',
+                            is_good_controlled=True,
+                            control_code='ML1',
+                            is_good_end_product=True,
+                            part_number='cl500',
+                            organisation=org)
+
+        Good.objects.create(description='Car2',
+                            is_good_controlled=True,
+                            control_code='ML1',
+                            is_good_end_product=True,
+                            part_number='CL300',
+                            organisation=org)
+
+        Good.objects.create(description='car3',
+                            is_good_controlled=True,
+                            control_code='ML1',
+                            is_good_end_product=True,
+                            part_number='ML500',
+                            organisation=org)
+
+        Good.objects.create(description='Truck',
+                            is_good_controlled=True,
+                            control_code='ML1',
+                            is_good_end_product=True,
+                            part_number='CL1000',
+                            organisation=org)
+
+        url = '/goods/?part_number=cl'
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 3)
+
+        url = '/goods/?part_number=100'
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]['description'], 'Truck')
+
+        url = '/goods/?part_number=cl&description=car'
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 2)
+
+
+
+
+
+
+
 
 
 
