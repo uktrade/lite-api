@@ -32,6 +32,6 @@ Service for handling backend calls in LITE.
 ## LITE Repositories
 Repository | Description
 -----------|-----
-[lite-api](https://github.com/uktrade/lite-api)|Application logic and data persistence service for LITE
+[**lite-api**](https://github.com/uktrade/lite-api)|Application logic and data persistence service for LITE
 [lite-exporter-frontend](https://github.com/uktrade/lite-exporter-frontend)|Application for handling exporter related activity in LITE
 [lite-internal-frontend](https://github.com/uktrade/lite-internal-frontend)|Application for handling internal information in LITE

@@ -13,19 +13,19 @@ def organisations_list(request):
     if request.method == "POST":
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            serializer = OrganisationInitialSerializer(data=data)
-            serializer2 = OrganisationViewSerializer(data=data)
+            create_serializer = OrganisationInitialSerializer(data=data)
+            view_serializer = OrganisationViewSerializer(data=data)
 
-            if serializer.is_valid() and serializer2.is_valid():
-                new_organisation = serializer2.save()
+            if create_serializer.is_valid() and view_serializer.is_valid():
+                new_organisation = view_serializer.save()
 
                 # Create an admin for that company
-                CreateFirstAdminUser(serializer['admin_user_email'].value, new_organisation)
+                CreateFirstAdminUser(create_serializer['admin_user_email'].value, new_organisation)
 
-                return JsonResponse(data={'status': 'success', 'organisation': serializer2.data},
+                return JsonResponse(data={'organisation': view_serializer.data},
                                     status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={'status': 'error', 'errors': serializer.errors},
+                return JsonResponse(data={'errors': create_serializer.errors},
                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
             # Store some version meta-information.
@@ -34,8 +34,8 @@ def organisations_list(request):
 
     if request.method == "GET":
         organisations = Organisation.objects.all().order_by('name')
-        serializer = OrganisationViewSerializer(organisations, many=True)
-        return JsonResponse(data={'status': 'success', 'organisations': serializer.data},
+        view_serializer = OrganisationViewSerializer(organisations, many=True)
+        return JsonResponse(data={'organisations': view_serializer.data},
                             safe=False)
 
 
@@ -43,7 +43,7 @@ def organisation_detail(request, pk):
     if request.method == "GET":
         try:
             organisation = Organisation.objects.get(pk=pk)
-            serializer = OrganisationViewSerializer(organisation)
-            return JsonResponse(data={'status': 'success', 'organisation': serializer.data})
+            view_serializer = OrganisationViewSerializer(organisation)
+            return JsonResponse(data={'organisation': view_serializer.data})
         except Organisation.DoesNotExist:
             raise Http404

@@ -53,7 +53,7 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(version_record.object.address, "London")
 
     def test_create_invalid_organisation(self):
-        url = '/organisations/'
+        url = reverse('organisations:organisations')
         data = {'name': None, 'eori_number': None, 'sic_number': None, 'vat_number': None, 'address': None,
                 'admin_user_email': None}
         response = self.client.post(url, data, format='json')
