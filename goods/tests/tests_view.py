@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from rest_framework.reverse import reverse
@@ -31,7 +33,6 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-
     def test_fail_view_other_organisations_goods_details(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
 
@@ -45,14 +46,8 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(test_helper_2.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-
     def test_view_good__query_filter(self):
         org = self.test_helper.organisation
-        # good = Good(description='thing',
-        #             is_good_controlled=False,
-        #             is_good_end_product=True,
-        #             organisation=self.test_helper.organisation)
-        # good.save()
 
         OrgAndUserHelper.create_controlled_good('thing1', org)
         OrgAndUserHelper.create_controlled_good('thing2', org)
@@ -61,3 +56,22 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         url = '/goods/?description=thing'
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 2)
+
+        url = '/goods/?description=item'
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 1)
+
+        url = '/goods/'
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)["goods"]
+        self.assertEqual(len(response_data), 3)
+
+        
+
+
+
