@@ -22,10 +22,10 @@ def organisations_list(request):
                 # Create an admin for that company
                 CreateFirstAdminUser(create_serializer['admin_user_email'].value, new_organisation)
 
-                return JsonResponse(data={'status': 'success', 'organisation': view_serializer.data},
+                return JsonResponse(data={'organisation': view_serializer.data},
                                     status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={'status': 'error', 'errors': create_serializer.errors},
+                return JsonResponse(data={'errors': create_serializer.errors},
                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
             # Store some version meta-information.
@@ -44,6 +44,6 @@ def organisation_detail(request, pk):
         try:
             organisation = Organisation.objects.get(pk=pk)
             view_serializer = OrganisationViewSerializer(organisation)
-            return JsonResponse(data={'status': 'success', 'organisation': view_serializer.data})
+            return JsonResponse(data={'organisation': view_serializer.data})
         except Organisation.DoesNotExist:
             raise Http404
