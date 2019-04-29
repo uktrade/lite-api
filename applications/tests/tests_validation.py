@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
@@ -32,7 +32,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                                      usage='Fun')
         complete_draft.save()
 
-        url = '/applications/'
+        url = reverse('applications:applications')
         response = self.client.post(url, {}, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(len(Application.objects.filter(id='90D6C724-0339-425A-99D2-9D2B8E864EC7')), 1)

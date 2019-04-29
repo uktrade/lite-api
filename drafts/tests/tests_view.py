@@ -1,6 +1,7 @@
 import json
+from uuid import UUID
 
-from django.urls import path, include
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from drafts.models import Draft
@@ -28,7 +29,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         OrgAndUserHelper.complete_draft(name='test 1', org=self.test_helper.organisation).save()
         OrgAndUserHelper.complete_draft(name='test 2', org=self.test_helper.organisation).save()
 
-        url = '/drafts/'
+        url = reverse('drafts:drafts')
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['drafts']), 2)
@@ -39,7 +40,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         """
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
-        url = '/applications/' + str(draft.id) + '/'
+        url = reverse('applications:application', kwargs={'pk': draft.id})
         response = self.client.get(url, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -49,7 +50,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         """
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
-        url = '/drafts/' + str(draft.id) + '/'
+        url = reverse('drafts:draft', kwargs={'pk': draft.id})
         response = self.client.get(url, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -58,9 +59,9 @@ class DraftTests(APITestCase, URLPatternsTestCase):
             Ensure we cannot get a draft if the id is incorrect.
         """
         OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
-        invalid_id = '90D6C724-0339-425A-99D2-9D2B8E864EC6'
+        invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
 
-        url = '/drafts/' + str(invalid_id) + '/'
+        url = reverse('drafts:draft', kwargs={'pk': invalid_id})
         response = self.client.put(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -70,7 +71,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
         OrgAndUserHelper.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
-        url = '/drafts/'
+        url = reverse('drafts:drafts')
         response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -83,7 +84,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         draft_test_helper_2 = OrgAndUserHelper(name='organisation2')
         draft = OrgAndUserHelper.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
-        url = '/drafts/' + str(draft.id) + '/'
+        url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

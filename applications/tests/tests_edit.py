@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
@@ -27,7 +27,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
                                   activity='Trade',
                                   usage='Trade')
         application.save()
-        url = '/applications/' + str(application.id) + '/'
+        url = reverse('applications:application', kwargs={'pk': application.id})
         data = {'id': application.id, 'status': 'withdrawn'}
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

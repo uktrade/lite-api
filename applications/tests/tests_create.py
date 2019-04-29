@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
@@ -30,7 +30,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
         draft_id = draft.id
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
-        url = '/applications/'
+        url = reverse('applications:applications')
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -45,9 +45,9 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
+        OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
-        url = '/applications/'
+        url = reverse('applications:applications')
         data = {'id': draft_id}
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

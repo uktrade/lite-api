@@ -1,18 +1,10 @@
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from django.urls import path, include
+from rest_framework.test import APITestCase
 
 from goods.serializers import GoodSerializer
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class OrganisationTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('goods/', include('goods.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
+class OrganisationTests(APITestCase):
 
     def setUp(self):
         self.test_helper = OrgAndUserHelper(name='name')

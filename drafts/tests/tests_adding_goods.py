@@ -1,4 +1,6 @@
-from django.urls import path, include
+import json
+
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -31,7 +33,7 @@ def test_add_a_good_to_a_draft(self):
         'value': 50000
     }
 
-    url = '/drafts/' + str(draft.id) + '/goods/'
+    url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
     response = self.client.post(url, data, format='json', **self.headers)
     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -54,10 +56,10 @@ def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         'value': 50000
     }
 
-    url = '/drafts/' + str(draft.id) + '/goods/'
+    url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
     response = self.client.post(url, data, format='json', **self.headers)
     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    url = '/drafts/' + str(draft.id) + '/goods/'
+    url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
     response = self.client.get(url, **self.headers)
     response_data = json.loads(response.content)
     self.assertEqual(len(response_data["goods"]), 0)

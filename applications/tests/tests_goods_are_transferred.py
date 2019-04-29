@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
@@ -29,7 +29,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         good_on_draft_1.save()
         good_on_draft_2.save()
 
-        url = '/applications/'
+        url = reverse('applications:applications')
         data = {'id': draft.id}
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
