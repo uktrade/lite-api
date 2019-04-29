@@ -35,7 +35,7 @@ def organisations_list(request):
     if request.method == "GET":
         organisations = Organisation.objects.all().order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
-        return JsonResponse(data={'status': 'success', 'organisations': view_serializer.data},
+        return JsonResponse(data={'organisations': view_serializer.data},
                             safe=False)
 
 
