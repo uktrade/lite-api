@@ -1,8 +1,9 @@
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from drafts.tests import DraftTestHelpers
 from django.urls import path, include, reverse
+
+from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
@@ -15,7 +16,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
     client = APIClient()
 
     def setUp(self):
-        self.test_helper = DraftTestHelpers(name='name')
+        self.test_helper = OrgAndUserHelper(name='name')
 
     def test_login_success(self):
         url = reverse('users:authenticate')
