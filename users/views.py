@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
-from users.serializers import ViewUserSerializer
+from users.models import User
+from users.serializers import ViewUserSerializer, UserSerializer, UserViewSerializer
+from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class AuthenticateUser(APIView):
@@ -30,6 +32,30 @@ class AuthenticateUser(APIView):
         serializer = ViewUserSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
+
+
+class UserList(APIView):
+    authentication_classes = (PkAuthentication,)
+
+    def get(self, request):
+        organisation = get_organisation_by_user(request.user)
+        serializer = UserViewSerializer(User.objects.filter(organisation=organisation), many=True)
+        return JsonResponse(data={'users': serializer.data}, safe=False)
+
+    def post(self, request):
+        organisation = get_organisation_by_user(request.user)
+
+        data = JSONParser().parse(request)
+        data['organisation'] = organisation.id
+        serializer = UserSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'good': serializer.data},
+                                status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetail(APIView):
