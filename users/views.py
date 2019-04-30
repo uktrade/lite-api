@@ -77,6 +77,11 @@ class UserDetail(APIView):
         with reversion.create_revision():
             user = get_user_by_pk(pk)
             data = JSONParser().parse(request)
+
+            for key in list(data.keys()):
+                if data[key] is '':
+                    del data[key]
+
             serializer = UserUpdateSerializer(user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()

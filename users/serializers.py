@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -32,6 +33,10 @@ class UserSerializer(serializers.ModelSerializer):
                   'password',
                   'status',
                   'organisation')
+
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data.get('password'))
+        return super(UserSerializer, self).create(validated_data)
 
 
 class UserViewSerializer(serializers.ModelSerializer):
