@@ -1,6 +1,5 @@
 import json
 
-from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from django.urls import path, include, reverse

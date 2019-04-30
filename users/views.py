@@ -66,7 +66,7 @@ class UserDetail(APIView):
     """
     Get user from pk
     """
-    def get(self, request, pk):
+    def get(self, pk):
         user = get_user_by_pk(pk)
 
         serializer = ViewUserSerializer(user)
