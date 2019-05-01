@@ -23,12 +23,40 @@ class OrgAndUserHelper:
         self.vat_number = "123456789"
         self.registration_number = "987654321"
         self.address = "London"
+
+        # Site name
+        self.site_name = "headquarters"
+
+        # Address details
+        self.country = "England"
+        self.address_line_1 = "42 Industrial Estate"
+        self.address_line_2 = "Queens Road"
+        self.state = "Hertfordshire"
+        self.zip_code = "AL1 4GT"
+        self.city = "St Albans"
+
+        # First admin user details
+        self.admin_user_first_name = "Trinity"
+        self.admin_user_last_name = "Fishburne"
         self.admin_user_email = "trinity@"+name+".com"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
-                'vat_number': self.vat_number, 'registration_number': self.registration_number,
-                'address': self.address, 'admin_user_email': self.admin_user_email}
+        data = {'name': self.name,
+                'eori_number': self.eori_number,
+                'sic_number': self.sic_number,
+                'vat_number': self.vat_number,
+                'registration_number': self.registration_number,
+                # Address details
+                'country': self.country,
+                'address_line_1': self.address_line_1,
+                'address_line_2': self.address_line_2,
+                'state': self.state,
+                'zip_code': self.zip_code,
+                'city': self.city,
+                # First admin user details
+                'admin_user_first_name': self.admin_user_first_name,
+                'admin_user_last_name': self.admin_user_last_name,
+                'admin_user_email': self.admin_user_email}
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
