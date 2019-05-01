@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 import reversion
 
+from addresses.libraries.CreateAddress import CreateAddress
+from organisations.libraries.CreateSite import CreateSite
 from organisations.models import Organisation
 from organisations.serializers import OrganisationInitialSerializer, OrganisationViewSerializer
 from users.libraries.CreateFirstAdminUser import CreateFirstAdminUser
@@ -17,10 +19,26 @@ def organisations_list(request):
             view_serializer = OrganisationViewSerializer(data=data)
 
             if create_serializer.is_valid() and view_serializer.is_valid():
+                address = CreateAddress(
+                    country=create_serializer['country'].value,
+                    address_line_1=create_serializer['address_line_1'].value,
+                    address_line_2=create_serializer['address_line_2'].value,
+                    state=create_serializer['state'].value,
+                    zip_code=create_serializer['zip_code'].value,
+                    city=create_serializer['city'].value,
+                )
+
+                site = CreateSite(name=create_serializer['site_name'],
+                                  address=address)
+                data['primary_site'] = str(site.id)
+
                 new_organisation = view_serializer.save()
 
                 # Create an admin for that company
-                CreateFirstAdminUser(create_serializer['admin_user_email'].value, new_organisation)
+                CreateFirstAdminUser(email=create_serializer['admin_user_email'].value,
+                                     first_name=create_serializer['admin_user_first_name'].value,
+                                     last_name=create_serializer['admin_user_last_name'].value,
+                                     organisation=new_organisation)
 
                 return JsonResponse(data={'organisation': view_serializer.data},
                                     status=status.HTTP_201_CREATED)

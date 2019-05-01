@@ -46,6 +46,8 @@ class OrgAndUserHelper:
                 'sic_number': self.sic_number,
                 'vat_number': self.vat_number,
                 'registration_number': self.registration_number,
+                # Site name
+                'site_name': self.site_name,
                 # Address details
                 'country': self.country,
                 'address_line_1': self.address_line_1,
