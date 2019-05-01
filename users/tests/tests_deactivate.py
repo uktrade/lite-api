@@ -30,8 +30,15 @@ class UserTests(APITestCase, URLPatternsTestCase):
         response = self.client.put(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-	def test_deactivate_and_reactivate_a_user(self):
+    def test_deactivate_and_reactivate_a_user(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation)
+        url = reverse('users:authenticate')
+        data = {
+            'email': user.email,
+            'password': 'password'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = {
             'status': 'deactivated'
         }
@@ -40,8 +47,8 @@ class UserTests(APITestCase, URLPatternsTestCase):
         data = {
             'status': 'active'
         }
-		self.client.put(url, data, format='json', **self.headers)
-		url = reverse('users:authenticate')
+        self.client.put(url, data, format='json', **self.headers)
+        url = reverse('users:authenticate')
         data = {
             'email': user.email,
             'password': 'password'
