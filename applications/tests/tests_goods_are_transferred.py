@@ -23,6 +23,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
     def test_that_goods_are_added_to_application_when_submitted(self):
         draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        unit =
         good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
         good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit='kg', value=400)
         good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit='kg', value=500)
