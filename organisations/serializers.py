@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
-
 
 
 """"
@@ -23,18 +23,14 @@ from organisations.models import Organisation, Site
 """
 
 
-
 class SiteSerializer(serializers.ModelSerializer):
+    address = AddressBaseSerializer(read_only=True)
+
     class Meta:
         model = Site
         fields = ('id',
                   'name',
-                  )
-
-
-
-
-
+                  'address')
 
 
 class OrganisationInitialSerializer(serializers.ModelSerializer):
