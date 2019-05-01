@@ -4,6 +4,33 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from organisations.models import Organisation, Site
 
 
+
+""""
+    # Example
+
+    class TrackSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Track
+            fields = ('order', 'title', 'duration')
+
+    class AlbumSerializer(serializers.ModelSerializer):
+        tracks = TrackSerializer(many=True, read_only=True)
+
+        class Meta:
+            model = Album
+            fields = ('album_name', 'artist', 'tracks')
+
+"""
+
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    class Meta:
+
+
+
+
+
 class OrganisationInitialSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     eori_number = serializers.CharField()
@@ -58,3 +85,4 @@ class OrganisationViewSerializer(serializers.ModelSerializer):
                   'primary_site',
                   'created_at',
                   'last_modified_at')
+
