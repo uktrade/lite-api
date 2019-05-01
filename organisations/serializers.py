@@ -26,6 +26,12 @@ from organisations.models import Organisation, Site
 
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Site
+        fields = ('id',
+                  'name',
+                  )
+
+
 
 
 
