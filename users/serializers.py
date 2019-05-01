@@ -60,7 +60,7 @@ class UserUpdateSerializer(UserSerializer):
 
     def update(self, instance, validated_data):
         """
-        Update and return an existing `Application` instance, given the validated data.
+        Update and return an existing `User` instance, given the validated data.
         """
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
