@@ -11,7 +11,6 @@ jobs:
       - image: circleci/python:3.6.8
       
     environment:
-      ALLOWED_HOSTS='["*"]'
       DEBUG: 'True'
       PIPENV_VENV_IN_PROJECT: 'enabled'
 
@@ -39,7 +38,4 @@ jobs:
       # https://nose.readthedocs.io
       - run:
           name: run tests
-          command: pipenv run python -m pytest -p no:sugar --cov api --junitxml=test-reports/junit.xml
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+          command: pipenv run ./manage.py test --parallel
