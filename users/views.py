@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
+
+from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses
 from users.serializers import ViewUserSerializer, UserSerializer, UserViewSerializer, UserUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -74,9 +76,13 @@ class UserDetail(APIView):
                             safe=False)
 
     def put(self, request, pk):
+        user = get_user_by_pk(pk)
+        data = JSONParser().parse(request)
+        if 'status' in data.keys():
+            if user_is_trying_to_change_own_status(user.id, request.user.id):
+                return JsonResponse(data={'errors': 'A user cannot change their own status'},
+                                    status=status.HTTP_400_BAD_REQUEST)
         with reversion.create_revision():
-            user = get_user_by_pk(pk)
-            data = JSONParser().parse(request)
 
             for key in list(data.keys()):
                 if data[key] is '':
