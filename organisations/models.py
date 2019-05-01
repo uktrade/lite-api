@@ -15,7 +15,7 @@ class Organisation(models.Model):
     sic_number = models.TextField(default=None, blank=True)
     vat_number = models.TextField(default=None, blank=True)
     registration_number = models.TextField(default=None, blank=True)
-    primary_site = models.ForeignKey('Site', related_name='organisation_site', on_delete=PROTECT,
+    primary_site = models.ForeignKey('Site', related_name='organisation_primary_site', on_delete=PROTECT,
                                      blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
