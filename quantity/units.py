@@ -19,5 +19,6 @@ Unit = namedtuple('Unit', ['acronym', 'label'])
 class Units(ChoiceEnum):
     KGM = "Kilogram"
     NAR = "Number of articles"
+    
     # KGM = ('KGM', 'Kilogram')
     # NAR = ('NAR', 'Number of articles')
