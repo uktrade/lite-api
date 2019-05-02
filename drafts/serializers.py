@@ -5,6 +5,7 @@ from drafts.models import Draft, GoodOnDraft
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
+from quantity.units import Units
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -68,6 +69,8 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
 
 class GoodOnDraftViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
+    # unit = EnumChoiceField(enum_class=Units)
+    unit = serializers.CharField(source='unit')
 
     class Meta:
         model = GoodOnDraft
