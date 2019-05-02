@@ -50,7 +50,9 @@ def organisations_list(request):
                 errors['site'] = site_serializer.errors
 
             organisation_update_data = {'primary_site': site.id}
-            organisation_serializer = OrganisationUpdateSerializer(organisation, data=organisation_update_data, partial=True)
+            organisation_serializer = OrganisationUpdateSerializer(organisation,
+                                                                   data=organisation_update_data,
+                                                                   partial=True)
             if organisation_serializer.is_valid():
                 organisation = organisation_serializer.save()
             else:
