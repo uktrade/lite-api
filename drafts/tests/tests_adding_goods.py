@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
+from quantity.units import Units
+
 
 class DraftTests(APITestCase, URLPatternsTestCase):
 
@@ -21,14 +23,14 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
 
     def test_add_a_good_to_a_draft(self):
-        org = self.draft_test_helper.organisation
+        org = self.test_helper.organisation
         draft = OrgAndUserHelper.complete_draft('Goods test', org)
         good = OrgAndUserHelper.create_controlled_good('A good', org)
 
         data = {
             'good_id': good.id,
             'quantity': 1200,
-            'unit': 'discrete',
+            'unit': 'NAR',
             'value': 50000
         }
 
@@ -42,9 +44,9 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(len(response_data["goods"]), 1)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
-        draft_test_helper_2 = OrgAndUserHelper(name='organisation2')
-        good = OrgAndUserHelper.create_controlled_good('test', draft_test_helper_2.organisation)
-        draft = OrgAndUserHelper.complete_draft('test', self.draft_test_helper.organisation)
+        test_helper_2 = OrgAndUserHelper(name='organisation2')
+        good = OrgAndUserHelper.create_controlled_good('test', test_helper_2.organisation)
+        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
 
         data = {
             'draft': draft.id,

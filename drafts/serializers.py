@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from enumchoicefield import ChoiceEnum, EnumChoiceField
 
 from drafts.models import Draft, GoodOnDraft
 from goods.models import Good
@@ -70,7 +71,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
 class GoodOnDraftViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     # unit = EnumChoiceField(enum_class=Units)
-    unit = serializers.CharField(source='unit')
+    unit = serializers.CharField()
 
     class Meta:
         model = GoodOnDraft
