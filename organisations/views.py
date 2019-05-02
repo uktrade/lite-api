@@ -67,7 +67,10 @@ def organisations_list(request):
                 errors['user'] = user_serializer.errors
 
             if errors == {}:
-                return JsonResponse(data={'organisation': organisation_serializer.data},
+                return JsonResponse(data={'organisation': organisation_serializer.data,
+                                          'user': user_serializer.data,
+                                          'address': address_serializer.data,
+                                          'site': site_serializer.data},
                                     status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data=errors, status=status.HTTP_400_BAD_REQUEST)

@@ -2,7 +2,9 @@ import json
 import uuid
 
 from rest_framework import status
-from organisations.models import Organisation
+
+from addresses.models import Address
+from organisations.models import Organisation, Site
 from users.models import User
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from rest_framework.reverse import reverse
@@ -27,7 +29,7 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.address = "London"
 
         # Site name
-        self.site_name = "headquarters"
+        self.site_name = "Headquarters"
 
         # Address details
         self.country = "England"
@@ -70,6 +72,10 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Organisation.objects.get().vat_number, "123456789")
         self.assertEqual(Organisation.objects.get().registration_number, "987654321")
         self.assertEqual(User.objects.get().email, "trinity@bsg.com")
+        self.assertEqual(User.objects.get().first_name, "Trinity")
+        self.assertEqual(Address.objects.get(address_line_1="42 Industrial Estate").address_line_1,
+                         "42 Industrial Estate")
+        self.assertEqual(Site.objects.get(name="Headquarters").name, "Headquarters")
 
         # Test that the versioning/audit-trail mechanism works for the model
         response_json = json.loads(response.content)
@@ -80,10 +86,9 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(version_record.object.sic_number, "2765")
         self.assertEqual(version_record.object.vat_number, "123456789")
         self.assertEqual(version_record.object.registration_number, "987654321")
-
-    def test_create_invalid_organisation(self):
-        url = reverse('organisations:organisations')
-        data = {'name': None, 'eori_number': None, 'sic_number': None, 'vat_number': None, 'address': None,
-                'admin_user_email': None}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(Version.objects.get(object_id=uuid.UUID(response_json['user']['id'])).object.email,
+                         "trinity@bsg.com")
+        self.assertEqual(Version.objects.get(object_id=uuid.UUID(response_json['address']['id'])).object.address_line_1,
+                         "42 Industrial Estate")
+        self.assertEqual(Version.objects.get(object_id=uuid.UUID(response_json['site']['id'])).object.name,
+                         "Headquarters")
