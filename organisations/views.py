@@ -1,3 +1,6 @@
+import uuid
+
+from django.db import transaction
 from django.http import JsonResponse
 from django.http.response import Http404
 from rest_framework import status
@@ -5,51 +8,69 @@ from rest_framework.parsers import JSONParser
 import reversion
 
 from addresses.libraries.CreateAddress import CreateAddress
+from addresses.serializers import AddressBaseSerializer
 from organisations.libraries.CreateSite import CreateSite
-from organisations.models import Organisation
-from organisations.serializers import OrganisationInitialSerializer, OrganisationViewSerializer
+from organisations.models import Organisation, Site
+from organisations.serializers import OrganisationInitialSerializer, OrganisationViewSerializer, SiteSerializer, \
+    OrganisationUpdateSerializer
 from users.libraries.CreateFirstAdminUser import CreateFirstAdminUser
+from users.serializers import ViewUserSerializer, UserBaseSerializer
 
 
+@transaction.atomic
 def organisations_list(request):
     if request.method == "POST":
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            create_serializer = OrganisationInitialSerializer(data=data)
-            view_serializer = OrganisationViewSerializer(data=data)
+            errors = {}
             address_data, site_data, organisation_data, user_data = split_data_into_entities(data)
+            # This dummy uuid references the dummy address, site and organisation to satisfy the not
+            # null constraints until the whole atomic transaction is complete
+            dummy_uuid = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
-            if create_serializer.is_valid() and create_user_serilizer.is_valid() and :
-                address = CreateAddress(
-                    country=create_serializer['country'].value,
-                    address_line_1=create_serializer['address_line_1'].value,
-                    address_line_2=create_serializer['address_line_2'].value,
-                    state=create_serializer['state'].value,
-                    zip_code=create_serializer['zip_code'].value,
-                    city=create_serializer['city'].value,
-                )
+            organisation_data['primary_site'] = dummy_uuid
+            organisation_serializer = OrganisationViewSerializer(data=organisation_data)
+            if organisation_serializer.is_valid():
+                organisation = organisation_serializer.save()
+            else:
+                errors['organisation'] = organisation_serializer.errors
 
-                site = CreateSite(name=create_serializer['site_name'],
-                                  address=address)
-                data['primary_site'] = str(site.id)
+            address_serializer = AddressBaseSerializer(data=address_data)
+            if address_serializer.is_valid():
+                address = address_serializer.save()
+            else:
+                errors['address'] = address_serializer.errors
 
-                new_organisation = view_serializer.save()
+            site_data['organisation'] = organisation.id
+            site_data['address'] = address.id
+            site_serializer = SiteSerializer(data=site_data)
+            if site_serializer.is_valid():
+                site = site_serializer.save()
+            else:
+                errors['site'] = site_serializer.errors
 
-                # Create an admin for that company
-                CreateFirstAdminUser(email=create_serializer['admin_user_email'].value,
-                                     first_name=create_serializer['admin_user_first_name'].value,
-                                     last_name=create_serializer['admin_user_last_name'].value,
-                                     organisation=new_organisation)
+            organisation_update_data = {'primary_site': site.id}
+            organisation_serializer = OrganisationUpdateSerializer(organisation, data=organisation_update_data, partial=True)
+            if organisation_serializer.is_valid():
+                organisation = organisation_serializer.save()
+            else:
+                errors['organisation'] = organisation_serializer.errors
 
-                return JsonResponse(data={'organisation': view_serializer.data},
+            user_data['organisation'] = organisation.id
+            user_serializer = UserBaseSerializer(data=user_data)
+            if user_serializer.is_valid():
+                user = user_serializer.save()
+                user.set_password('password')
+                user.save()
+
+            else:
+                errors['user'] = user_serializer.errors
+
+            if errors == {}:
+                return JsonResponse(data={'organisation': organisation_serializer.data},
                                     status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={'errors': create_serializer.errors},
-                                    status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-
-            # Store some version meta-information.
-            # reversion.set_user(request.user)
-            # reversion.set_comment("Created Organization Revision")
+                return JsonResponse(data=errors, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == "GET":
         organisations = Organisation.objects.all().order_by('name')
@@ -67,11 +88,11 @@ def organisation_detail(request, pk):
         except Organisation.DoesNotExist:
             raise Http404
 
+
 def split_data_into_entities(data):
     """
     Takes the resposne data from request and splits it into
     organisation, user, address and site information
-    :return:
     """
     address_data = {
                     'country': data['country'],
@@ -93,9 +114,9 @@ def split_data_into_entities(data):
                         }
 
     user_data = {
-                'admin_user_first_name': data['admin_user_first_name'],
-                'admin_user_last_name': data['admin_user_last_name'],
-                'admin_user_email': data['admin_user_email']
+                'first_name': data['admin_user_first_name'],
+                'last_name': data['admin_user_last_name'],
+                'email': data['admin_user_email']
                 }
 
     return address_data, site_data, organisation_data, user_data

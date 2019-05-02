@@ -4,6 +4,21 @@ from django.db import migrations, models
 import django.db.models.deletion
 import uuid
 
+from organisations.models import Organisation
+
+
+def init(apps, schema_editor):
+    # We can't import the Site model directly as it may be a newer
+    # version than this migration expects. We use the historical version.
+    Site = apps.get_model('organisations', 'Site')
+    Address = apps.get_model('addresses', 'Address')
+    if not Site.objects.all():
+        site = Site(id='00000000-0000-0000-0000-000000000000',
+                    name='NOT YET CREATED',
+                    address=Address.objects.get(id='00000000-0000-0000-0000-000000000000')
+                    )
+        site.save()
+
 
 class Migration(migrations.Migration):
 
@@ -21,12 +36,13 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.TextField(default=None)),
                 ('address', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site', to='addresses.Address')),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site', to='organisations.Organisation')),
+                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site', to='organisations.Organisation')),
             ],
         ),
         migrations.AddField(
             model_name='organisation',
             name='primary_site',
-            field=models.ForeignKey(blank=True, default=None, on_delete=django.db.models.deletion.PROTECT, related_name='organisation_primary_site', to='organisations.Site'),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, related_name='organisation_primary_site', to='organisations.Site'),
         ),
+        migrations.RunPython(init),
     ]

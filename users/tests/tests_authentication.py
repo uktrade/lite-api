@@ -15,7 +15,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
     client = APIClient()
 
     def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
+        self.test_helper = OrgAndUserHelper(name='banana')
 
     def test_login_success(self):
         url = reverse('users:authenticate')

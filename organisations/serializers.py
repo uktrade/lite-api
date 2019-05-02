@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from addresses.models import Address
 from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
 
@@ -23,23 +24,41 @@ from organisations.models import Organisation, Site
 """
 
 
+class OrganisationViewSerializer(serializers.ModelSerializer):
+    primary_site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = Organisation
+        fields = ('id',
+                  'name',
+                  'eori_number',
+                  'sic_number',
+                  'vat_number',
+                  'registration_number',
+                  'primary_site',
+                  'created_at',
+                  'last_modified_at')
+
+
 class SiteSerializer(serializers.ModelSerializer):
-    address = AddressBaseSerializer(read_only=True)
+    address = PrimaryKeyRelatedField(queryset=Address.objects.all())
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = Site
         fields = ('id',
                   'name',
-                  'address')
+                  'address',
+                  'organisation')
 
 
-class OrganisationSiteValidationSerializer(serializers.ModelSerializer):
+class OrganisationInitialSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    primary_site = SiteSerializer(read_only=True, blank=True)
+    primary_site = SiteSerializer(read_only=True)
     admin_user_first_name = serializers.CharField()
     admin_user_last_name = serializers.CharField()
     admin_user_email = serializers.EmailField(
@@ -61,18 +80,14 @@ class OrganisationSiteValidationSerializer(serializers.ModelSerializer):
                   'last_modified_at')
 
 
-class OrganisationViewSerializer(serializers.ModelSerializer):
+class OrganisationUpdateSerializer(OrganisationViewSerializer):
     primary_site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
-    class Meta:
-        model = Organisation
-        fields = ('id',
-                  'name',
-                  'eori_number',
-                  'sic_number',
-                  'vat_number',
-                  'registration_number',
-                  'primary_site',
-                  'created_at',
-                  'last_modified_at')
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Organisation` instance, given the validated data.
+        """
+        instance.primary_site = validated_data.get('primary_site', instance.primary_site)
 
+        instance.save()
+        return instance

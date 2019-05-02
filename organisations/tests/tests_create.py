@@ -19,17 +19,48 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
     client = APIClient
 
     def test_create_organisation_with_first_user(self):
-        name = "Big Scary Guns ltd"
-        eori_number = "GB123456789000"
-        sic_number = "2765"
-        vat_number = "123456789"
-        registration_number = "987654321"
-        address = "London"
-        admin_user_email = "trinity@bsg.com"
+        self.name = "Big Scary Guns ltd"
+        self.eori_number = "GB123456789000"
+        self.sic_number = "2765"
+        self.vat_number = "123456789"
+        self.registration_number = "987654321"
+        self.address = "London"
+
+        # Site name
+        self.site_name = "headquarters"
+
+        # Address details
+        self.country = "England"
+        self.address_line_1 = "42 Industrial Estate"
+        self.address_line_2 = "Queens Road"
+        self.state = "Hertfordshire"
+        self.zip_code = "AL1 4GT"
+        self.city = "St Albans"
+
+        # First admin user details
+        self.admin_user_first_name = "Trinity"
+        self.admin_user_last_name = "Fishburne"
+        self.admin_user_email = "trinity@bsg.com"
 
         url = reverse('organisations:organisations')
-        data = {'name': name, 'eori_number': eori_number, 'sic_number': sic_number, 'vat_number': vat_number,
-                'registration_number': registration_number, 'address': address, 'admin_user_email': admin_user_email}
+        data = {'name': self.name,
+                'eori_number': self.eori_number,
+                'sic_number': self.sic_number,
+                'vat_number': self.vat_number,
+                'registration_number': self.registration_number,
+                # Site name
+                'site_name': self.site_name,
+                # Address details
+                'country': self.country,
+                'address_line_1': self.address_line_1,
+                'address_line_2': self.address_line_2,
+                'state': self.state,
+                'zip_code': self.zip_code,
+                'city': self.city,
+                # First admin user details
+                'admin_user_first_name': self.admin_user_first_name,
+                'admin_user_last_name': self.admin_user_last_name,
+                'admin_user_email': self.admin_user_email}
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -38,7 +69,6 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Organisation.objects.get().sic_number, "2765")
         self.assertEqual(Organisation.objects.get().vat_number, "123456789")
         self.assertEqual(Organisation.objects.get().registration_number, "987654321")
-        self.assertEqual(Organisation.objects.get().address, "London")
         self.assertEqual(User.objects.get().email, "trinity@bsg.com")
 
         # Test that the versioning/audit-trail mechanism works for the model
@@ -50,7 +80,6 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(version_record.object.sic_number, "2765")
         self.assertEqual(version_record.object.vat_number, "123456789")
         self.assertEqual(version_record.object.registration_number, "987654321")
-        self.assertEqual(version_record.object.address, "London")
 
     def test_create_invalid_organisation(self):
         url = reverse('organisations:organisations')

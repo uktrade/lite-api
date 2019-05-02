@@ -30,6 +30,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'activity',
                   'destination',
                   'usage',
+                  'goods',
                   'created_at',
                   'last_modified_at',
                   'submitted_at',
