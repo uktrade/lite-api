@@ -33,13 +33,13 @@ class SiteSerializer(serializers.ModelSerializer):
                   'address')
 
 
-class OrganisationInitialSerializer(serializers.ModelSerializer):
+class OrganisationSiteValidationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    primary_site = SiteSerializer(read_only=True)
+    primary_site = SiteSerializer(read_only=True, blank=True)
     admin_user_first_name = serializers.CharField()
     admin_user_last_name = serializers.CharField()
     admin_user_email = serializers.EmailField(
@@ -54,6 +54,8 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
                   'vat_number',
                   'registration_number',
                   'primary_site',
+                  'admin_user_first_name',
+                  'admin_user_last_name',
                   'admin_user_email',
                   'created_at',
                   'last_modified_at')

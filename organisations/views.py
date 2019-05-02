@@ -17,8 +17,9 @@ def organisations_list(request):
             data = JSONParser().parse(request)
             create_serializer = OrganisationInitialSerializer(data=data)
             view_serializer = OrganisationViewSerializer(data=data)
+            address_data, site_data, organisation_data, user_data = split_data_into_entities(data)
 
-            if create_serializer.is_valid() and view_serializer.is_valid():
+            if create_serializer.is_valid() and create_user_serilizer.is_valid() and :
                 address = CreateAddress(
                     country=create_serializer['country'].value,
                     address_line_1=create_serializer['address_line_1'].value,
@@ -65,3 +66,36 @@ def organisation_detail(request, pk):
             return JsonResponse(data={'organisation': view_serializer.data})
         except Organisation.DoesNotExist:
             raise Http404
+
+def split_data_into_entities(data):
+    """
+    Takes the resposne data from request and splits it into
+    organisation, user, address and site information
+    :return:
+    """
+    address_data = {
+                    'country': data['country'],
+                    'address_line_1': data['address_line_1'],
+                    'address_line_2': data['address_line_2'],
+                    'state': data['state'],
+                    'zip_code': data['zip_code'],
+                    'city': data['city']
+                    }
+
+    site_data = {'name': data['site_name']}
+
+    organisation_data = {
+                        'name': data['name'],
+                        'eori_number': data['eori_number'],
+                        'sic_number': data['sic_number'],
+                        'vat_number': data['vat_number'],
+                        'registration_number': data['registration_number'],
+                        }
+
+    user_data = {
+                'admin_user_first_name': data['admin_user_first_name'],
+                'admin_user_last_name': data['admin_user_last_name'],
+                'admin_user_email': data['admin_user_email']
+                }
+
+    return address_data, site_data, organisation_data, user_data
