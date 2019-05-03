@@ -1,4 +1,7 @@
 # lite-api
+
+[![CircleCI](https://circleci.com/gh/uktrade/lite-api.svg?style=svg)](https://circleci.com/gh/uktrade/lite-api)
+
 Service for handling backend calls in LITE.
 
 ***
