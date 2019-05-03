@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
-from users.serializers import ViewUserSerializer
+from users.serializers import UserViewSerializer
 
 
 class AuthenticateUser(APIView):
@@ -27,7 +27,7 @@ class AuthenticateUser(APIView):
                                 status=status.HTTP_401_UNAUTHORIZED,
                                 safe=False)
 
-        serializer = ViewUserSerializer(user)
+        serializer = UserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
 
@@ -40,6 +40,6 @@ class UserDetail(APIView):
     def get(self, request, pk):
         user = get_user_by_pk(pk)
 
-        serializer = ViewUserSerializer(user)
+        serializer = UserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)

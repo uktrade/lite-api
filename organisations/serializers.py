@@ -5,7 +5,7 @@ from addresses.models import Address
 from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
 from users.models import User
-from users.serializers import UserBaseSerializer
+from users.serializers import UserCreateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    user = UserBaseSerializer(many=False, write_only=True)
+    user = UserCreateSerializer(many=False, write_only=True)
     site = SiteCreateSerializer(many=False, write_only=True)
 
     class Meta:
