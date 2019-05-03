@@ -62,9 +62,8 @@ def organisations_list(request):
             user_serializer = UserBaseSerializer(data=user_data)
             if user_serializer.is_valid():
                 user = user_serializer.save()
-                user.set_password('password')
+                user.set_password(user_data['password'])
                 user.save()
-
             else:
                 errors['user'] = user_serializer.errors
 
@@ -99,29 +98,33 @@ def split_data_into_entities(data):
     Takes the resposne data from request and splits it into
     organisation, user, address and site information
     """
-    address_data = {
-                    'country': data['country'],
-                    'address_line_1': data['address_line_1'],
-                    'address_line_2': data['address_line_2'],
-                    'state': data['state'],
-                    'zip_code': data['zip_code'],
-                    'city': data['city']
-                    }
+    # address_data = {
+    #                 'country': data['country'],
+    #                 'address_line_1': data['address_line_1'],
+    #                 'address_line_2': data['address_line_2'],
+    #                 'state': data['state'],
+    #                 'zip_code': data['zip_code'],
+    #                 'city': data['city']
+    #                 }
+    address_data = data.get('address')
 
-    site_data = {'name': data['site_name']}
+    # site_data = {'name': data['site_name']}
+    site_data = data.get('site')
 
-    organisation_data = {
-                        'name': data['name'],
-                        'eori_number': data['eori_number'],
-                        'sic_number': data['sic_number'],
-                        'vat_number': data['vat_number'],
-                        'registration_number': data['registration_number'],
-                        }
+    # organisation_data = {
+    #                     'name': data['name'],
+    #                     'eori_number': data['eori_number'],
+    #                     'sic_number': data['sic_number'],
+    #                     'vat_number': data['vat_number'],
+    #                     'registration_number': data['registration_number'],
+    #                     }
+    organisation_data = data.get('organisation')
 
-    user_data = {
-                'first_name': data['admin_user_first_name'],
-                'last_name': data['admin_user_last_name'],
-                'email': data['admin_user_email']
-                }
+    # user_data = {
+    #             'first_name': data['admin_user_first_name'],
+    #             'last_name': data['admin_user_last_name'],
+    #             'email': data['admin_user_email']
+    #             }
+    user_data = data.get('user')
 
     return address_data, site_data, organisation_data, user_data

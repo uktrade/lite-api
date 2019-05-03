@@ -1,3 +1,5 @@
+import json
+
 from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -39,26 +41,36 @@ class OrgAndUserHelper:
         self.admin_user_first_name = "Trinity"
         self.admin_user_last_name = "Fishburne"
         self.admin_user_email = "trinity@"+name+".com"
+        self.password = "password"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name,
-                'eori_number': self.eori_number,
-                'sic_number': self.sic_number,
-                'vat_number': self.vat_number,
-                'registration_number': self.registration_number,
+        data = {'organisation': {
+                    'name': self.name,
+                    'eori_number': self.eori_number,
+                    'sic_number': self.sic_number,
+                    'vat_number': self.vat_number,
+                    'registration_number': self.registration_number,
+                },
                 # Site name
-                'site_name': self.site_name,
+                'site': {
+                    'name': self.site_name,
+                },
                 # Address details
-                'country': self.country,
-                'address_line_1': self.address_line_1,
-                'address_line_2': self.address_line_2,
-                'state': self.state,
-                'zip_code': self.zip_code,
-                'city': self.city,
+                'address': {
+                    'country': self.country,
+                    'address_line_1': self.address_line_1,
+                    'address_line_2': self.address_line_2,
+                    'state': self.state,
+                    'zip_code': self.zip_code,
+                    'city': self.city,
+                },
                 # First admin user details
-                'admin_user_first_name': self.admin_user_first_name,
-                'admin_user_last_name': self.admin_user_last_name,
-                'admin_user_email': self.admin_user_email}
+                'user': {
+                    'first_name': self.admin_user_first_name,
+                    'last_name': self.admin_user_last_name,
+                    'email': self.admin_user_email,
+                    'password': self.password
+                }, }
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
