@@ -104,3 +104,37 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
                          "42 Industrial Estate")
         self.assertEqual(Version.objects.get(object_id=uuid.UUID(response_json['site']['id'])).object.name,
                          "Headquarters")
+
+    def tests_errors_are_send_from_failed_create(self):
+        url = reverse('organisations:organisations')
+        data = {
+            'organisation': {
+                'name': None,
+                'eori_number': None,
+                'sic_number': None,
+                'vat_number': None,
+                'registration_number': None,
+            },
+            # Site name
+            'site': {
+                'name': None,
+            },
+            # Address details
+            'address': {
+                'country': None,
+                'address_line_1': None,
+                'address_line_2': None,
+                'state': None,
+                'zip_code': None,
+                'city': None,
+            },
+            # First admin user details
+            'user': {
+                'first_name': None,
+                'last_name': None,
+                'email': None,
+                'password': None,
+            },
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
