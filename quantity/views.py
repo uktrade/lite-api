@@ -8,10 +8,8 @@ from quantity.units import Units
 
 
 class UnitsList(APIView):
-    # authentication_classes = (PkAuthentication,)
 
     def get(self, request):
-        # unit_choices = [u for u in Units]
 
         unit_choices = {key: str(value) for key, value in Units.__dict__.items()
                         if not key.startswith('_') and not callable(key)}
