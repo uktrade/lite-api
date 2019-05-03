@@ -15,20 +15,5 @@ class UnitsList(APIView):
 
         unit_choices = {key: str(value) for key, value in Units.__dict__.items()
                         if not key.startswith('_') and not callable(key)}
-        # for key, value in Units.__dict__.items():
-        #     if not key.startswith('_') and not callable(key):
-        #         # print(type(value))
-        #         print(key, value)
-        #         print(Units.__getattr__(key))
-
-        # print(unit_choices)
-        # print(Units.NAR)
-        #
-        # key = 'NAR'
-        # attrib_value = Units.__getattr__(key)
-        #
-        # print(attrib_value)
-
-        json_data = json.dumps(unit_choices)
         return JsonResponse(data=unit_choices,
                             status=status.HTTP_200_OK, safe=False)
