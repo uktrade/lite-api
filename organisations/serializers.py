@@ -49,7 +49,10 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
         Address.objects.create(**address_data)
         User.objects.create(organisation=organisation, **user_data)
-        Site.objects.create(organisation=organisation, address=address, **site_data)
+        site = Site.objects.create(organisation=organisation, address=address, **site_data)
+
+        organisation.primary_site = site
+        organisation.save()
 
         return organisation
 

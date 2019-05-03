@@ -1,8 +1,7 @@
 import uuid
 
-from django.db import models
-from django.db.models.deletion import PROTECT
 import reversion
+from django.db import models
 
 from addresses.models import Address
 
@@ -15,8 +14,8 @@ class Organisation(models.Model):
     sic_number = models.TextField(default=None, blank=True)
     vat_number = models.TextField(default=None, blank=True)
     registration_number = models.TextField(default=None, blank=True)
-    primary_site = models.ForeignKey('Site', related_name='organisation_primary_site', on_delete=PROTECT,
-                                     blank=True, default=None)
+    primary_site = models.ForeignKey('Site', related_name='organisation_primary_site', on_delete=models.CASCADE,
+                                     blank=True, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
 
