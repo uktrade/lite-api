@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.http import JsonResponse
 from django.http.response import Http404
 from rest_framework.parsers import JSONParser
@@ -10,7 +9,6 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
 
 
-@transaction.atomic
 def organisations_list(request):
     if request.method == "POST":
         with reversion.create_revision():

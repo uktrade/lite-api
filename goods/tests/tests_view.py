@@ -35,7 +35,7 @@ class GoodTests(APITestCase, URLPatternsTestCase):
 
     def test_fail_view_other_organisations_goods_details(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
-        headers2 = {'HTTP_USER_ID': str(self.test_helper_2.user.id)}
+        headers2 = {'HTTP_USER_ID': str(test_helper_2.user.id)}
 
         good = Good(description='thing',
                     is_good_controlled=False,

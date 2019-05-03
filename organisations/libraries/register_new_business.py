@@ -1,14 +1,18 @@
 import uuid
 
 from django.http import JsonResponse
+from django.db import transaction
 from rest_framework import status
+
 from addresses.serializers import AddressBaseSerializer
-from organisations.serializers import OrganisationUpdateSerializer, SiteSerializer, OrganisationViewSerializer, \
-    OrganisationValidateFormSection, SiteValidateFormSection, UserValidateFormSection
+from organisations.serializers import OrganisationUpdateSerializer, SiteSerializer, \
+    OrganisationViewSerializer, OrganisationValidateFormSection, \
+    SiteValidateFormSection, UserValidateFormSection
 from users.libraries.do_passwords_match import passwords_match
 from users.serializers import UserBaseSerializer
 
 
+@transaction.atomic
 def register_new_business(data):
     address_data, site_data, organisation_data, user_data = split_data_into_entities(data)
     # This dummy uuid references the dummy address, site and organisation to satisfy the not
