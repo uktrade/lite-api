@@ -2,26 +2,36 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
 from users.models import User
+from users.serializers import UserBaseSerializer
 
-""""
-    # Example
 
-    class TrackSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Track
-            fields = ('order', 'title', 'duration')
+class OrganisationCreateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    eori_number = serializers.CharField()
+    sic_number = serializers.CharField()
+    vat_number = serializers.CharField()
+    registration_number = serializers.CharField()
+    user = UserBaseSerializer(many=False, write_only=True)
 
-    class AlbumSerializer(serializers.ModelSerializer):
-        tracks = TrackSerializer(many=True, read_only=True)
+    class Meta:
+        model = Organisation
+        fields = ('id',
+                  'name',
+                  'eori_number',
+                  'sic_number',
+                  'vat_number',
+                  'registration_number',
+                  'created_at',
+                  'last_modified_at',
+                  'user')
 
-        class Meta:
-            model = Album
-            fields = ('album_name', 'artist', 'tracks')
-
-"""
+    def create(self, validated_data):
+        user_data = validated_data.get('user')
+        organisation = Organisation.objects.create(**validated_data)
+        User.objects.create(organisation=organisation, **user_data)
+        return organisation
 
 
 class OrganisationViewSerializer(serializers.ModelSerializer):

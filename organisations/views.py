@@ -1,13 +1,15 @@
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.register_new_business import register_new_business, validate_form_section
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer
+from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
+from users.models import User
 
 
 class OrganisationsList(APIView):
@@ -22,9 +24,20 @@ class OrganisationsList(APIView):
 
     @transaction.atomic
     def post(self, request):
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            return register_new_business(data)
+
+        Organisation.objects.all().delete()
+        User.objects.all().delete()
+
+        data = JSONParser().parse(request)
+        serializer = OrganisationCreateSerializer(data=data.get('organisation'))
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'organisation': serializer.data},
+                                status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OrganisationsDetail(APIView):
