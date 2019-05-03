@@ -85,33 +85,33 @@ def split_data_into_entities(data):
 
 def validate_form_section(data):
     errors = {}
-
+    return_data = {}
     for key in data:
-        if key == 'organisation':
-            serializer = OrganisationValidateFormSection(data=data['organisation'])
-            if serializer.is_valid():
-                data = serializer.data
-            else:
-                errors['organisation'] = serializer.errors
-
-        elif key == 'site':
-            serializer = SiteValidateFormSection(data=data['site'])
-            if serializer.is_valid():
-                data = serializer.data
-            else:
-                errors['site'] = serializer.errors
-
-        elif key == 'user':
-            serializer = UserValidateFormSection(data=data['user'])
-            if not passwords_match(data['user']['password'], data['user']['reenter_password']):
-                errors['reenter_password'] = 'Passwords do not match'
-            if serializer.is_valid():
-                data = serializer.data
-            else:
-                errors['user'] = serializer.errors
-
-        else:
+        if key not in ('organisation', 'site', 'user'):
             errors = {'errors': 'Invalid key'}
+        else:
+            if key == 'organisation':
+                serializer = OrganisationValidateFormSection(data=data['organisation'])
+                if serializer.is_valid():
+                    return_data['organisation'] = serializer.data
+                else:
+                    errors['organisation'] = serializer.errors
+
+            if key == 'site':
+                serializer = SiteValidateFormSection(data=data['site'])
+                if serializer.is_valid():
+                    return_data['site'] = serializer.data
+                else:
+                    errors['site'] = serializer.errors
+
+            if key == 'user':
+                serializer = UserValidateFormSection(data=data['user'])
+                if not passwords_match(data['user']['password'], data['user']['reenter_password']):
+                    errors['reenter_password'] = 'Passwords do not match'
+                if serializer.is_valid():
+                    return_data['user'] = serializer.data
+                else:
+                    errors['user'] = serializer.errors
 
         if errors == {}:
             return JsonResponse(data, status=status.HTTP_200_OK)
