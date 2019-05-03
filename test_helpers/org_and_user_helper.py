@@ -3,9 +3,11 @@ import json
 from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
+
+from addresses.models import Address
 from drafts.models import Draft
 from goods.models import Good
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from users.models import User
 
 
@@ -96,3 +98,18 @@ class OrgAndUserHelper:
                     organisation=org)
         good.save()
         return good
+
+    @staticmethod
+    def create_site(name, org):
+        address = Address(address_line_1='42 Road',
+                          address_line_2='',
+                          country='England',
+                          city='London',
+                          state='Buckinghamshire',
+                          zip_code='E14QW')
+        address.save()
+        site = Site(name=name,
+                    organisation=org,
+                    address=address)
+        site.save()
+        return site, address
