@@ -100,6 +100,18 @@ class RegisterBusinessValidationTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_validate_user(self):
+        # Site name
+        self.site_name = "headquarters"
+
+        # Address details
+        self.country = "England"
+        self.address_line_1 = "42 Industrial Estate"
+        self.address_line_2 = "Queens Road"
+        self.state = "Hertfordshire"
+        self.zip_code = "AL1 4GT"
+        self.city = "St Albans"
+
+        # User details
         self.admin_user_first_name = "Trinity"
         self.admin_user_last_name = "Fishburne"
         self.admin_user_email = "trinity@bsg.com"
@@ -114,6 +126,15 @@ class RegisterBusinessValidationTests(APITestCase, URLPatternsTestCase):
                 'email': self.admin_user_email,
                 'password': self.password,
                 'reenter_password': self.reenter_password
+            },
+            'site': {
+                'name': self.site_name,
+                'country': self.country,
+                'address_line_1': self.address_line_1,
+                'address_line_2': self.address_line_2,
+                'state': self.state,
+                'zip_code': self.zip_code,
+                'city': self.city,
             },
         }
         response = self.client.post(url, data, format='json')
