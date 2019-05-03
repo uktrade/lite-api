@@ -84,20 +84,26 @@ def split_data_into_entities(data):
 
 
 def validate_form_section(data):
+    return_data = {
+        'errors': {},
+    }
+
     for key in data:
         if key == 'organisation':
             serializer = OrganisationValidateFormSection(data=data['organisation'])
             if serializer.is_valid():
-                return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+                return_data['organisation'] = serializer.data
             else:
-                return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        elif key == 'site':
+                return_data['errors']['organisation'] = serializer.errors
+
+        if key == 'site':
             serializer = SiteValidateFormSection(data=data['site'])
             if serializer.is_valid():
-                return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+                return_data['site'] = serializer.data
             else:
-                return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        elif key == 'user':
+                return_data['errors']['site'] = serializer.errors
+
+        if key == 'user':
             serializer = UserValidateFormSection(data=data['user'])
             errors = {}
             if not passwords_match(data['user']['password'], data['user']['reenter_password']):
@@ -108,10 +114,12 @@ def validate_form_section(data):
                 errors['user'] = serializer.errors
 
             if errors == {}:
-                return JsonResponse(data, status=status.HTTP_200_OK)
+                return_data['users'] = serializer.data
             else:
                 return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return JsonResponse({'errors': 'Invalid key'}, status=status.HTTP_400_BAD_REQUEST)
 
-    return JsonResponse(data=data, status=status.HTTP_200_OK)
+    # If there aren't any errors, remove the 'errors' key
+    if len(return_data['errors'].keys()) is 0:
+        del return_data['errors']
+
+    return JsonResponse(data=return_data, status=status.HTTP_200_OK)

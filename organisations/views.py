@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.http.response import Http404
 from rest_framework.parsers import JSONParser
 import reversion
+from rest_framework.views import APIView
 
 from organisations.libraries.register_new_business import register_new_business, validate_form_section
 from organisations.models import Organisation
@@ -33,7 +34,10 @@ def organisation_detail(request, pk):
             raise Http404
 
 
-def validate(request):
-    if request.method == "POST":
+class Validate(APIView):
+    """
+    Validate organisation data
+    """
+    def post(self, request):
         data = JSONParser().parse(request)
         return validate_form_section(data)
