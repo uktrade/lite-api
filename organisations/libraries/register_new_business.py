@@ -84,28 +84,25 @@ def split_data_into_entities(data):
 
 
 def validate_form_section(data):
-    return_data = {
-        'errors': {},
-    }
+    errors = {}
 
     for key in data:
         if key == 'organisation':
             serializer = OrganisationValidateFormSection(data=data['organisation'])
             if serializer.is_valid():
-                return_data['organisation'] = serializer.data
+                data = serializer.data
             else:
-                return_data['errors']['organisation'] = serializer.errors
+                errors['organisation'] = serializer.errors
 
-        if key == 'site':
+        elif key == 'site':
             serializer = SiteValidateFormSection(data=data['site'])
             if serializer.is_valid():
-                return_data['site'] = serializer.data
+                data = serializer.data
             else:
-                return_data['errors']['site'] = serializer.errors
+                errors['site'] = serializer.errors
 
-        if key == 'user':
+        elif key == 'user':
             serializer = UserValidateFormSection(data=data['user'])
-            errors = {}
             if not passwords_match(data['user']['password'], data['user']['reenter_password']):
                 errors['reenter_password'] = 'Passwords do not match'
             if serializer.is_valid():
@@ -113,13 +110,10 @@ def validate_form_section(data):
             else:
                 errors['user'] = serializer.errors
 
-            if errors == {}:
-                return_data['users'] = serializer.data
-            else:
-                return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            errors = {'errors': 'Invalid key'}
 
-    # If there aren't any errors, remove the 'errors' key
-    if len(return_data['errors'].keys()) is 0:
-        del return_data['errors']
-
-    return JsonResponse(data=return_data, status=status.HTTP_200_OK)
+        if errors == {}:
+            return JsonResponse(data, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
