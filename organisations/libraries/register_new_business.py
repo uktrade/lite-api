@@ -89,31 +89,33 @@ def validate_form_section(data):
     for key in data:
         if key not in ('organisation', 'site', 'user'):
             errors = {'errors': 'Invalid key'}
-        else:
-            if key == 'organisation':
-                serializer = OrganisationValidateFormSection(data=data['organisation'])
-                if serializer.is_valid():
-                    return_data['organisation'] = serializer.data
-                else:
-                    errors['organisation'] = serializer.errors
-
-            if key == 'site':
-                serializer = SiteValidateFormSection(data=data['site'])
-                if serializer.is_valid():
-                    return_data['site'] = serializer.data
-                else:
-                    errors['site'] = serializer.errors
-
-            if key == 'user':
-                serializer = UserValidateFormSection(data=data['user'])
-                if not passwords_match(data['user']['password'], data['user']['reenter_password']):
-                    errors['reenter_password'] = 'Passwords do not match'
-                if serializer.is_valid():
-                    return_data['user'] = serializer.data
-                else:
-                    errors['user'] = serializer.errors
-
-        if errors == {}:
-            return JsonResponse(return_data, status=status.HTTP_200_OK)
-        else:
             return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
+
+    for key in data:
+        if key == 'organisation':
+            serializer = OrganisationValidateFormSection(data=data['organisation'])
+            if serializer.is_valid():
+                return_data['organisation'] = serializer.data
+            else:
+                errors['organisation'] = serializer.errors
+
+        if key == 'site':
+            serializer = SiteValidateFormSection(data=data['site'])
+            if serializer.is_valid():
+                return_data['site'] = serializer.data
+            else:
+                errors['site'] = serializer.errors
+
+        if key == 'user':
+            serializer = UserValidateFormSection(data=data['user'])
+            if not passwords_match(data['user']['password'], data['user']['reenter_password']):
+                errors['reenter_password'] = 'Passwords do not match'
+            if serializer.is_valid():
+                return_data['user'] = serializer.data
+            else:
+                errors['user'] = serializer.errors
+
+    if errors == {}:
+        return JsonResponse(return_data, status=status.HTTP_200_OK)
+    else:
+        return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
