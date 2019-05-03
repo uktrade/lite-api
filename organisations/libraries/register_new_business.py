@@ -86,6 +86,7 @@ def split_data_into_entities(data):
 def validate_form_section(data):
     errors = {}
     return_data = {}
+
     for key in data:
         if key not in ('organisation', 'site', 'user'):
             errors = {'errors': 'Invalid key'}
@@ -118,4 +119,6 @@ def validate_form_section(data):
     if errors == {}:
         return JsonResponse(return_data, status=status.HTTP_200_OK)
     else:
-        return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'errors': errors},
+                            safe=False,
+                            status=status.HTTP_400_BAD_REQUEST)
