@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'applications.apps.ApplicationsConfig',
     'organisations.apps.OrganisationsConfig',
@@ -116,9 +115,6 @@ else:
     DATABASES = {
         'default': env.db()
     }
-
-# Static files (CSS, JavaScript, Images) for Django-Admin
-STATIC_URL = '/static/'
 
 
 # Internationalization

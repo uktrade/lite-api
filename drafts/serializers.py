@@ -70,7 +70,6 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
 
 class GoodOnDraftViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
-    # unit = EnumChoiceField(enum_class=Units)
     unit = serializers.CharField()
 
     class Meta:

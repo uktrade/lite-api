@@ -1,12 +1,12 @@
-from enumchoicefield import ChoiceEnum, EnumChoiceField
+from enumchoicefield import ChoiceEnum
 
 
 class Units(ChoiceEnum):
-    GRM = "Gram"
-    KGM = "Kilogram"
+    GRM = "Gram(s)"
+    KGM = "Kilogram(s)"
     NAR = "Number of articles"
-    MTK = "Square metre"
-    MTR = "Metre"
-    LTR = "Litre"
-    MTQ = "Cubic metres"
+    MTK = "Square metre(s)"
+    MTR = "Metre(s)"
+    LTR = "Litre(s)"
+    MTQ = "Cubic metre(s)"
 
