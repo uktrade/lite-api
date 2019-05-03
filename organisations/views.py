@@ -22,7 +22,7 @@ class OrganisationsList(APIView):
     @transaction.atomic
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = OrganisationCreateSerializer(data=data.get('organisation'))
+        serializer = OrganisationCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
