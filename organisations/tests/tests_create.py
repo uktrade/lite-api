@@ -1,15 +1,15 @@
 import json
 import uuid
 
+from django.urls import path, include
+from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.reverse import reverse
 from rest_framework import status
+from reversion.models import Version
 
 from addresses.models import Address
 from organisations.models import Organisation, Site
 from users.models import User
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-from rest_framework.reverse import reverse
-from django.urls import path, include
-from reversion.models import Version
 
 
 class OrganisationCreateTests(APITestCase, URLPatternsTestCase):

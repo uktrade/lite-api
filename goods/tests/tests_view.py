@@ -30,7 +30,7 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_fail_view_other_organisations_goods_details(self):
@@ -54,19 +54,19 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         OrgAndUserHelper.create_controlled_good('item3', org)
 
         url = reverse('goods:goods') + '?description=thing'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 2)
 
         url = reverse('goods:goods') + '?description=item'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 1)
 
         url = reverse('goods:goods')
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 3)
@@ -104,20 +104,20 @@ class GoodTests(APITestCase, URLPatternsTestCase):
                             organisation=org)
 
         url = reverse('goods:goods') + '?part_number=cl'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 3)
 
         url = reverse('goods:goods') + '?part_number=100'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]['description'], 'Truck')
 
         url = reverse('goods:goods') + '?part_number=cl&description=car'
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 2)
