@@ -114,6 +114,6 @@ def validate_form_section(data):
                     errors['user'] = serializer.errors
 
         if errors == {}:
-            return JsonResponse(data, status=status.HTTP_200_OK)
+            return JsonResponse(return_data, status=status.HTTP_200_OK)
         else:
             return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
