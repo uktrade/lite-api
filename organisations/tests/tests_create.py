@@ -43,26 +43,38 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         self.admin_user_first_name = "Trinity"
         self.admin_user_last_name = "Fishburne"
         self.admin_user_email = "trinity@bsg.com"
+        self.password = "password123"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name,
+        data = {
+            'organisation': {
+                'name': self.name,
                 'eori_number': self.eori_number,
                 'sic_number': self.sic_number,
                 'vat_number': self.vat_number,
                 'registration_number': self.registration_number,
-                # Site name
-                'site_name': self.site_name,
-                # Address details
+            },
+            # Site name
+            'site': {
+                'name': self.site_name,
+            },
+            # Address details
+            'address': {
                 'country': self.country,
                 'address_line_1': self.address_line_1,
                 'address_line_2': self.address_line_2,
                 'state': self.state,
                 'zip_code': self.zip_code,
                 'city': self.city,
-                # First admin user details
-                'admin_user_first_name': self.admin_user_first_name,
-                'admin_user_last_name': self.admin_user_last_name,
-                'admin_user_email': self.admin_user_email}
+            },
+            # First admin user details
+            'user': {
+                'first_name': self.admin_user_first_name,
+                'last_name': self.admin_user_last_name,
+                'email': self.admin_user_email,
+                'password': self.password
+            },
+        }
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

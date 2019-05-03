@@ -41,7 +41,7 @@ class OrgAndUserHelper:
         self.admin_user_first_name = "Trinity"
         self.admin_user_last_name = "Fishburne"
         self.admin_user_email = "trinity@"+name+".com"
-        self.password = "password"
+        self.password = "password123"
 
         url = reverse('organisations:organisations')
         data = {'organisation': {

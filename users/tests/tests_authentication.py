@@ -21,7 +21,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         url = reverse('users:authenticate')
         data = {
             'email': self.test_helper.user.email,
-            'password': 'password'
+            'password': self.test_helper.password
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
