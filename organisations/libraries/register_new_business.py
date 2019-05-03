@@ -1,0 +1,77 @@
+import uuid
+
+from django.http import JsonResponse
+from rest_framework import status
+from addresses.serializers import AddressBaseSerializer
+from organisations.serializers import OrganisationUpdateSerializer, SiteSerializer, OrganisationViewSerializer
+from users.serializers import UserBaseSerializer
+
+
+def register_new_business(data):
+    address_data, site_data, organisation_data, user_data = split_data_into_entities(data)
+    # This dummy uuid references the dummy address, site and organisation to satisfy the not
+    # null constraints until the whole atomic transaction is complete
+    dummy_uuid = uuid.UUID('00000000-0000-0000-0000-000000000000')
+    errors = {}
+
+    organisation_data['primary_site'] = dummy_uuid
+    organisation_serializer = OrganisationViewSerializer(data=organisation_data)
+    if organisation_serializer.is_valid():
+        organisation = organisation_serializer.save()
+    else:
+        errors['organisation'] = organisation_serializer.errors
+
+    address_serializer = AddressBaseSerializer(data=address_data)
+    if address_serializer.is_valid():
+        address = address_serializer.save()
+    else:
+        errors['address'] = address_serializer.errors
+
+    site_data['organisation'] = organisation.id
+    site_data['address'] = address.id
+    site_serializer = SiteSerializer(data=site_data)
+    if site_serializer.is_valid():
+        site = site_serializer.save()
+    else:
+        errors['site'] = site_serializer.errors
+
+    organisation_update_data = {'primary_site': site.id}
+    organisation_serializer = OrganisationUpdateSerializer(organisation,
+                                                           data=organisation_update_data,
+                                                           partial=True)
+    if organisation_serializer.is_valid():
+        organisation = organisation_serializer.save()
+    else:
+        errors['organisation'] = organisation_serializer.errors
+
+    user_data['organisation'] = organisation.id
+    user_serializer = UserBaseSerializer(data=user_data)
+    if user_serializer.is_valid():
+        user = user_serializer.save()
+        user.set_password(user_data['password'])
+        user.save()
+    else:
+        errors['user'] = user_serializer.errors
+
+    if errors == {}:
+        return JsonResponse(data={'organisation': organisation_serializer.data,
+                                  'user': user_serializer.data,
+                                  'address': address_serializer.data,
+                                  'site': site_serializer.data},
+                            status=status.HTTP_201_CREATED)
+    else:
+        return JsonResponse(data=errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def split_data_into_entities(data):
+    """
+    Takes the response data from request and splits it into
+    organisation, user, address and site information. Details
+    of the field names are in the test_helper.
+    """
+    address_data = data.get('address')
+    site_data = data.get('site')
+    organisation_data = data.get('organisation')
+    user_data = data.get('user')
+
+    return address_data, site_data, organisation_data, user_data
