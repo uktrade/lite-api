@@ -4,13 +4,18 @@ from addresses.models import Address
 
 
 class AddressBaseSerializer(serializers.ModelSerializer):
+    address_line_1 = serializers.CharField()
+    zip_code = serializers.CharField()
+    city = serializers.CharField()
+    state = serializers.CharField()
+    country = serializers.CharField()
 
     class Meta:
         model = Address
         fields = ('id',
-                  'country',
                   'address_line_1',
                   'address_line_2',
-                  'state',
                   'zip_code',
-                  'city')
+                  'city',
+                  'state',
+                  'country')

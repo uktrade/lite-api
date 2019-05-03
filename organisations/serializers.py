@@ -2,9 +2,19 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
+from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 from users.serializers import UserBaseSerializer
+
+
+class SiteBaseSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    address = AddressBaseSerializer(many=False, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'name', 'address')
 
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
@@ -14,6 +24,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
     user = UserBaseSerializer(many=False, write_only=True)
+    site = SiteBaseSerializer(many=False, write_only=True)
 
     class Meta:
         model = Organisation
@@ -25,12 +36,21 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
                   'registration_number',
                   'created_at',
                   'last_modified_at',
-                  'user')
+                  'user',
+                  'site')
 
     def create(self, validated_data):
-        user_data = validated_data.get('user')
+        user_data = validated_data.pop('user')
+        site_data = validated_data.pop('site')
+        address_data = site_data.pop('address')
+
+        address = Address.objects.create(**address_data)
         organisation = Organisation.objects.create(**validated_data)
+
+        Address.objects.create(**address_data)
         User.objects.create(organisation=organisation, **user_data)
+        Site.objects.create(organisation=organisation, address=address, **site_data)
+
         return organisation
 
 
