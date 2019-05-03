@@ -11,7 +11,7 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 class QuantityUnitsTests(APITestCase, URLPatternsTestCase):
 
     urlpatterns = [
-        path('quantity/', include('quantity.urls')),
+        path('static/units', include('quantity.urls')),
         path('organisations/', include('organisations.urls'))
     ]
 
@@ -22,7 +22,7 @@ class QuantityUnitsTests(APITestCase, URLPatternsTestCase):
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
 
     def test_get_units(self):
-        url = reverse('quantity:quantity')
+        url = reverse('quantity:units')
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
