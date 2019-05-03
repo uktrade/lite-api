@@ -11,21 +11,27 @@ from organisations.serializers import OrganisationViewSerializer
 
 
 @transaction.atomic
-def organisations_list(request):
-    if request.method == "POST":
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            return register_new_business(data)
-
-    if request.method == "GET":
+class OrganisationsList(APIView):
+    """
+    Get all/create organisations
+    """
+    def get(self, request):
         organisations = Organisation.objects.all().order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
         return JsonResponse(data={'organisations': view_serializer.data},
                             safe=False)
 
+    def post(self, request):
+        with reversion.create_revision():
+            data = JSONParser().parse(request)
+            return register_new_business(data)
 
-def organisation_detail(request, pk):
-    if request.method == "GET":
+
+class OrganisationsDetail(APIView):
+    """
+    Get all/create organisations
+    """
+    def get(self, request):
         try:
             organisation = Organisation.objects.get(pk=pk)
             view_serializer = OrganisationViewSerializer(organisation)
