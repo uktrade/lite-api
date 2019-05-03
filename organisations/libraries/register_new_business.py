@@ -3,7 +3,9 @@ import uuid
 from django.http import JsonResponse
 from rest_framework import status
 from addresses.serializers import AddressBaseSerializer
-from organisations.serializers import OrganisationUpdateSerializer, SiteSerializer, OrganisationViewSerializer
+from organisations.serializers import OrganisationUpdateSerializer, SiteSerializer, OrganisationViewSerializer, \
+    OrganisationValidateFormSection, SiteValidateFormSection, UserValidateFormSection
+from users.libraries.do_passwords_match import passwords_match
 from users.serializers import UserBaseSerializer
 
 
@@ -79,3 +81,37 @@ def split_data_into_entities(data):
     user_data = data.get('user')
 
     return address_data, site_data, organisation_data, user_data
+
+
+def validate_form_section(data):
+    for key in data:
+        if key == 'organisation':
+            serializer = OrganisationValidateFormSection(data=data['organisation'])
+            if serializer.is_valid():
+                return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif key == 'site':
+            serializer = SiteValidateFormSection(data=data['site'])
+            if serializer.is_valid():
+                return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif key == 'user':
+            serializer = UserValidateFormSection(data=data['user'])
+            errors = {}
+            if not passwords_match(data['user']['password'], data['user']['reenter_password']):
+                errors['reenter_password'] = 'Passwords do not match'
+            if serializer.is_valid():
+                data = serializer.data
+            else:
+                errors['user'] = serializer.errors
+
+            if errors == {}:
+                return JsonResponse(data, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse(errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return JsonResponse({'errors': 'Invalid key'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse(data=data, status=status.HTTP_200_OK)

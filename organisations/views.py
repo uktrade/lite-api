@@ -4,7 +4,7 @@ from django.http.response import Http404
 from rest_framework.parsers import JSONParser
 import reversion
 
-from organisations.libraries.register_new_business import register_new_business
+from organisations.libraries.register_new_business import register_new_business, validate_form_section
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
 
@@ -31,3 +31,9 @@ def organisation_detail(request, pk):
             return JsonResponse(data={'organisation': view_serializer.data})
         except Organisation.DoesNotExist:
             raise Http404
+
+
+def validate(request):
+    if request.method == "POST":
+        data = JSONParser().parse(request)
+        return validate_form_section(data)

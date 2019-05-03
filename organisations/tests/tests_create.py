@@ -12,7 +12,7 @@ from django.urls import path, include
 from reversion.models import Version
 
 
-class OrganisationTests(APITestCase, URLPatternsTestCase):
+class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
 
     urlpatterns = [
         path('organisations/', include('organisations.urls'))

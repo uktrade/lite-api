@@ -4,7 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from addresses.models import Address
 from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
-
+from users.models import User
 
 """"
     # Example
@@ -91,3 +91,44 @@ class OrganisationUpdateSerializer(OrganisationViewSerializer):
 
         instance.save()
         return instance
+
+
+class OrganisationValidateFormSection(serializers.ModelSerializer):
+    name = serializers.CharField()
+    eori_number = serializers.CharField()
+    sic_number = serializers.CharField()
+    vat_number = serializers.CharField()
+    registration_number = serializers.CharField()
+
+    class Meta:
+        model = Organisation
+        fields = ('name',
+                  'eori_number',
+                  'sic_number',
+                  'vat_number',
+                  'registration_number')
+
+
+class SiteValidateFormSection(serializers.ModelSerializer):
+    name = serializers.CharField()
+
+    class Meta:
+        model = Address
+        fields = ('id',
+                  'name',
+                  'country',
+                  'address_line_1',
+                  'address_line_2',
+                  'state',
+                  'zip_code',
+                  'city')
+
+
+class UserValidateFormSection(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id',
+                  'first_name',
+                  'last_name',
+                  'email',
+                  'password')
