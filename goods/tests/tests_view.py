@@ -31,7 +31,6 @@ class OrganisationTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-
     def test_fail_view_other_organisations_goods_details(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
 

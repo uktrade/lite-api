@@ -1,5 +1,4 @@
 from enumchoicefield import ChoiceEnum, EnumChoiceField
-from collections import namedtuple
 
 
 class Units(ChoiceEnum):

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'queues.apps.QueuesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
+    'quantity.apps.QuantityConfig',
     'reversion',
 ]
 
