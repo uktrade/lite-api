@@ -26,5 +26,5 @@ class QuantityUnitsTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        self.assertEqual(response_data['NAR'], 'Number of articles')
+        self.assertEqual(response_data['units']['NAR'], 'Number of articles')
 
