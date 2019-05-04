@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressBaseSerializer
+from addresses.serializers import AddressBaseSerializer, AddressViewSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 from users.serializers import UserCreateSerializer
@@ -57,8 +57,18 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         return organisation
 
 
+class SiteViewSerializer(serializers.ModelSerializer):
+    address = AddressViewSerializer()
+
+    class Meta:
+        model = Site
+        fields = ('id',
+                  'name',
+                  'address')
+
+
 class OrganisationViewSerializer(serializers.ModelSerializer):
-    primary_site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+    primary_site = SiteViewSerializer()
 
     class Meta:
         model = Organisation
@@ -71,18 +81,6 @@ class OrganisationViewSerializer(serializers.ModelSerializer):
                   'primary_site',
                   'created_at',
                   'last_modified_at')
-
-
-class SiteViewSerializer(serializers.ModelSerializer):
-    address = PrimaryKeyRelatedField(queryset=Address.objects.all())
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-
-    class Meta:
-        model = Site
-        fields = ('id',
-                  'name',
-                  'address',
-                  'organisation')
 
 
 class OrganisationUpdateSerializer(OrganisationViewSerializer):
