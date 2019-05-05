@@ -11,10 +11,18 @@ from users.serializers import UserCreateSerializer
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = AddressBaseSerializer(many=False, write_only=True)
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
         model = User
-        fields = ('id', 'name', 'address')
+        fields = ('id', 'name', 'address', 'organisation')
+
+    def create(self, validated_data):
+        address_data = validated_data.pop('address')
+        address = Address.objects.create(**address_data)
+        Address.objects.create(**address_data)
+        site = Site.objects.create(address=address, **validated_data)
+        return site
 
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
@@ -42,14 +50,19 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         site_data = validated_data.pop('site')
-        address_data = site_data.pop('address')
 
-        address = Address.objects.create(**address_data)
         organisation = Organisation.objects.create(**validated_data)
 
-        Address.objects.create(**address_data)
-        User.objects.create(organisation=organisation, **user_data)
-        site = Site.objects.create(organisation=organisation, address=address, **site_data)
+        user_data['organisation'] = organisation.id
+
+        site_serializer = SiteCreateSerializer(data=site_data)
+        site = None
+        if site_serializer.is_valid():
+            site = site_serializer.save()
+
+        user_serializer = UserCreateSerializer(data=user_data)
+        if user_serializer.is_valid():
+            user_serializer.save()
 
         organisation.primary_site = site
         organisation.save()

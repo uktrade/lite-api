@@ -1,22 +1,41 @@
+from django.db import transaction
 from django.http import JsonResponse
+from rest_framework import status
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.models import Site
-from organisations.serializers import SiteBaseSerializer
+from organisations.serializers import SiteViewSerializer, SiteCreateSerializer
 
 
-class ApplicationList(APIView):
+class SiteList(APIView):
+    authentication_classes = (PkAuthentication,)
     """
-    View for listing all sites for an organisation,
-    adding sites and editing sites
+    List all sites for an organisation/create site
     """
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
-        sites = Site.Application.objects.filter(organisation=organisation)
+        sites = Site.objects.filter(organisation=organisation)
 
-        serializer = SiteBaseSerializer(sites, many=True)
+        serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)
+
+    @transaction.atomic
+    def post(self, request):
+        organisation = get_organisation_by_user(request.user)
+        data = JSONParser().parse(request)
+        data['organisation'] = organisation.id
+        serializer = SiteCreateSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'site': serializer.data},
+                                status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
