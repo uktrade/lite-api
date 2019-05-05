@@ -1,6 +1,7 @@
+from django.urls import path, include
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from rest_framework.reverse import reverse
-from django.urls import path, include
+
 
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 

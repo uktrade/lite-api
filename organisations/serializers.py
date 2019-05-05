@@ -52,6 +52,19 @@ class SiteSerializer(serializers.ModelSerializer):
                   'organisation')
 
 
+class SiteViewSerializer(serializers.ModelSerializer):
+    # address = PrimaryKeyRelatedField(queryset=Address.objects.all())
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    address = AddressBaseSerializer(read_only=True)
+
+    class Meta:
+        model = Site
+        fields = ('id',
+                  'name',
+                  'address',
+                  'organisation')
+
+
 class OrganisationInitialSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     eori_number = serializers.CharField()

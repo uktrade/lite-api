@@ -1,5 +1,7 @@
+import json
 
 from django.urls import path, include
+from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
@@ -14,13 +16,17 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
 
     client = APIClient
 
-    # def setUp(self):
-    #     self.test_helper = OrgAndUserHelper(name='name')
-    #     self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
-    #
-    # def test_site_list(self):
-    #     url = reverse('organisations:sites', )
-    #     response = self.client.get(url, **self.headers)
+    def setUp(self):
+        self.test_helper = OrgAndUserHelper(name='Org1')
+        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+
+    def test_site_list(self):
+
+        url = reverse('organisations:sites', kwargs={'pk': self.test_helper.organisation.id})
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
 
 
