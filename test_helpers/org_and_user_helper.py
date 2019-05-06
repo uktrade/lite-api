@@ -1,5 +1,3 @@
-import json
-
 from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -52,7 +50,7 @@ class OrgAndUserHelper:
             'sic_number': self.sic_number,
             'vat_number': self.vat_number,
             'registration_number': self.registration_number,
-            # Site name
+            # Site details
             'site': {
                 'name': self.site_name,
                 # Address details
