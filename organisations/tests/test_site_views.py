@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
+from organisations.models import Site
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -38,13 +39,16 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # more tests desirable
 
-    # FIXME: Needs to be completed
-    # def test_add_site(self):
-    #
-    #     url = reverse('organisations:site', kwargs={'org_pk': self.test_helper.organisation.id,
-    #                                                 'site_pk': self.test_helper.organisation.primary_site.id})
-    #     data = {'name': 'regional site'}
-    #
-    #     response = self.client.put(url, data, format='json', **self.headers)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # more tests desirable
+    def test_add_site(self):
+
+        url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
+        data = {'name': 'regional site',
+                'address_line_1': 'a street',
+                'city': 'london',
+                'zip': 'E14GH',
+                'state': 'Hertfordshire',
+                'country': 'England'}
+
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Site.objects.all().count(), 2)

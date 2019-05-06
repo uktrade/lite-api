@@ -29,7 +29,6 @@ class SiteViews(APIView):
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)
 
-    # FIXME: Needs to be completed
     def post(self, request, org_pk):
         """
         Endpoint for adding a site

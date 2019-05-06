@@ -47,7 +47,7 @@ class SiteViewSerializer(serializers.ModelSerializer):
                   'organisation')
 
 
-class SiteUpdateSerializer(OrganisationViewSerializer):
+class SiteUpdateSerializer(SiteViewSerializer):
     name = serializers.CharField()
     address = PrimaryKeyRelatedField(queryset=Address.objects.all())
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -58,7 +58,6 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
         """
         instance.name = validated_data.get('name', instance.name)
         instance.address = validated_data.get('address', instance.address)
-        instance.organisation = validated_data.get('organisation', instance.organisation)
         instance.save()
         return instance
 

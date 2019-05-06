@@ -11,13 +11,13 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
 
 
-def organisations_list(request):
-    if request.method == "POST":
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            return register_new_business(data)
-
-    if request.method == "GET":
+# def organisations_list(request):
+#     if request.method == "POST":
+#         with reversion.create_revision():
+#             data = JSONParser().parse(request)
+#             return register_new_business(data)
+#
+#     if request.method == "GET":
 
 class OrganisationsList(APIView):
     """
