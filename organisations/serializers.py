@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressBaseSerializer, AddressViewSerializer
+from addresses.serializers import AddressBaseSerializer, AddressViewSerializer, AddressUpdateSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 from users.serializers import UserCreateSerializer
@@ -110,18 +110,25 @@ class OrganisationUpdateSerializer(OrganisationViewSerializer):
 
 class SiteUpdateSerializer(OrganisationViewSerializer):
     name = serializers.CharField()
-    # address = AddressBaseSerializer(many=False, write_only=True)
+    address = AddressBaseSerializer(many=False, write_only=True)
 
     class Meta:
         model = Site
         fields = ('id',
-                  'name',)
+                  'name',
+                  'address')
 
     def update(self, instance, validated_data):
         """
         Update and return an existing `Site` instance, given the validated data.
         """
+        address_data = validated_data.pop('address')
         instance.name = validated_data.get('name', instance.name)
-        # instance.address = validated_data.get('address', instance.address)
+
+        address_serializer = AddressUpdateSerializer(Address.objects.get(pk=instance.address.id),
+                                                     data=address_data)
+        if address_serializer.is_valid():
+            address_serializer.save()
+
         instance.save()
         return instance

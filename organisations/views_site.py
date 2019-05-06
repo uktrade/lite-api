@@ -62,8 +62,7 @@ class SiteDetail(APIView):
 
         with reversion.create_revision():
             serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
-                                              data=request.data,
-                                              partial=True)
+                                              data=request.data)
             if serializer.is_valid():
                 serializer.save()
 
