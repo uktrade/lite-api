@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressBaseSerializer, AddressViewSerializer, AddressUpdateSerializer
+from addresses.serializers import AddressSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 from users.serializers import UserCreateSerializer
@@ -10,7 +10,7 @@ from users.serializers import UserCreateSerializer
 
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    address = AddressBaseSerializer(many=False, write_only=True)
+    address = AddressSerializer(many=False, write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
@@ -71,7 +71,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
 
 class SiteViewSerializer(serializers.ModelSerializer):
-    address = AddressViewSerializer()
+    address = AddressSerializer()
 
     class Meta:
         model = Site
@@ -110,7 +110,7 @@ class OrganisationUpdateSerializer(OrganisationViewSerializer):
 
 class SiteUpdateSerializer(OrganisationViewSerializer):
     name = serializers.CharField()
-    address = AddressBaseSerializer(many=False, write_only=True)
+    address = AddressSerializer(many=False, write_only=True)
 
     class Meta:
         model = Site
@@ -125,8 +125,8 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
         address_data = validated_data.pop('address')
         instance.name = validated_data.get('name', instance.name)
 
-        address_serializer = AddressUpdateSerializer(Address.objects.get(pk=instance.address.id),
-                                                     data=address_data)
+        address_serializer = AddressSerializer(Address.objects.get(pk=instance.address.id),
+                                               data=address_data)
         if address_serializer.is_valid():
             address_serializer.save()
 
