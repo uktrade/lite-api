@@ -110,13 +110,18 @@ class OrganisationUpdateSerializer(OrganisationViewSerializer):
 
 class SiteUpdateSerializer(OrganisationViewSerializer):
     name = serializers.CharField()
-    address = PrimaryKeyRelatedField(queryset=Address.objects.all())
+    # address = AddressBaseSerializer(many=False, write_only=True)
+
+    class Meta:
+        model = Site
+        fields = ('id',
+                  'name',)
 
     def update(self, instance, validated_data):
         """
         Update and return an existing `Site` instance, given the validated data.
         """
         instance.name = validated_data.get('name', instance.name)
-        instance.address = validated_data.get('address', instance.address)
+        # instance.address = validated_data.get('address', instance.address)
         instance.save()
         return instance
