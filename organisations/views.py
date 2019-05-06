@@ -30,7 +30,7 @@ class OrganisationsList(APIView):
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrganisationsDetail(APIView):
