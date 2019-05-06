@@ -136,6 +136,11 @@ class SiteValidateFormSection(serializers.ModelSerializer):
 
 
 class UserValidateFormSection(serializers.ModelSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField(
+        error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'})
+
     class Meta:
         model = User
         fields = ('id',
