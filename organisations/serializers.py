@@ -9,6 +9,8 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
     address = serializers.CharField()
+    admin_user_first_name = serializers.CharField()
+    admin_user_last_name = serializers.CharField()
     admin_user_email = serializers.EmailField(
         error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'})
 
@@ -20,6 +22,8 @@ class OrganisationInitialSerializer(serializers.ModelSerializer):
                   'sic_number',
                   'vat_number',
                   'registration_number',
+                  'admin_user_first_name',
+                  'admin_user_last_name',
                   'admin_user_email',
                   'address',
                   'created_at',

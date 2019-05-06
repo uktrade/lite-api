@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from django.urls import path, include, reverse
 from test_helpers.org_and_user_helper import OrgAndUserHelper
+from users.models import UserStatuses
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
@@ -41,5 +42,18 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': self.test_helper.user.email,
             'password': 'This is not the password'
         }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_a_deactivated_user_cannot_log_in(self):
+        user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation)
+
+        data = {
+            'email': user.email,
+            'password': 'password'
+        }
+        user.status = UserStatuses.deactivated
+        user.save()
+        url = reverse('users:authenticate')
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
