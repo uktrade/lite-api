@@ -1,3 +1,4 @@
+import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -8,7 +9,7 @@ from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
-from organisations.serializers import SiteViewSerializer, SiteCreateSerializer
+from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteUpdateSerializer
 
 
 class SiteList(APIView):
@@ -16,6 +17,7 @@ class SiteList(APIView):
     """
     List all sites for an organisation/create site
     """
+
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
         sites = Site.objects.filter(organisation=organisation)
@@ -45,6 +47,7 @@ class SiteDetail(APIView):
     """
     Show details for for a specific site/edit site
     """
+
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
         site = get_site_with_organisation(pk, organisation)
@@ -56,16 +59,19 @@ class SiteDetail(APIView):
     @transaction.atomic
     def put(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
-        serializer = SiteCreateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'site': serializer.data},
-                                status=status.HTTP_201_CREATED)
+        with reversion.create_revision():
+            serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
+                                              data=request.data,
+                                              partial=True)
+            if serializer.is_valid():
+                serializer.save()
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                reversion.set_user(request.user)
+                reversion.set_comment("Created Site Revision")
 
+                return JsonResponse(data={'site': serializer.data},
+                                    status=status.HTTP_201_CREATED)
 
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=400)
