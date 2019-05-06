@@ -53,26 +53,23 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                 'sic_number': self.sic_number,
                 'vat_number': self.vat_number,
                 'registration_number': self.registration_number,
-            },
-            # Site name
-            'site': {
-                'name': self.site_name,
-            },
-            # Address details
-            'address': {
-                'country': self.country,
-                'address_line_1': self.address_line_1,
-                'address_line_2': self.address_line_2,
-                'state': self.state,
-                'zip_code': self.zip_code,
-                'city': self.city,
-            },
-            # First admin user details
-            'user': {
-                'first_name': self.admin_user_first_name,
-                'last_name': self.admin_user_last_name,
-                'email': self.admin_user_email,
-                'password': self.password
+                'site': {
+                    'name': self.site_name,
+                    'address': {
+                        'country': self.country,
+                        'address_line_1': self.address_line_1,
+                        'address_line_2': self.address_line_2,
+                        'state': self.state,
+                        'zip_code': self.zip_code,
+                        'city': self.city,
+                    },
+                },
+                'user': {
+                    'first_name': self.admin_user_first_name,
+                    'last_name': self.admin_user_last_name,
+                    'email': self.admin_user_email,
+                    'password': self.password
+                },
             },
         }
         response = self.client.post(url, data, format='json')
