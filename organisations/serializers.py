@@ -6,23 +6,6 @@ from addresses.serializers import AddressBaseSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 
-""""
-    # Example
-
-    class TrackSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Track
-            fields = ('order', 'title', 'duration')
-
-    class AlbumSerializer(serializers.ModelSerializer):
-        tracks = TrackSerializer(many=True, read_only=True)
-
-        class Meta:
-            model = Album
-            fields = ('album_name', 'artist', 'tracks')
-
-"""
-
 
 class OrganisationViewSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedField(queryset=Site.objects.all())
@@ -53,7 +36,6 @@ class SiteSerializer(serializers.ModelSerializer):
 
 
 class SiteViewSerializer(serializers.ModelSerializer):
-    # address = PrimaryKeyRelatedField(queryset=Address.objects.all())
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     address = AddressBaseSerializer(read_only=True)
 
@@ -63,6 +45,22 @@ class SiteViewSerializer(serializers.ModelSerializer):
                   'name',
                   'address',
                   'organisation')
+
+
+class SiteUpdateSerializer(OrganisationViewSerializer):
+    name = serializers.CharField()
+    address = PrimaryKeyRelatedField(queryset=Address.objects.all())
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Site` instance, given the validated data.
+        """
+        instance.name = validated_data.get('name', instance.name)
+        instance.address = validated_data.get('address', instance.address)
+        instance.organisation = validated_data.get('organisation', instance.organisation)
+        instance.save()
+        return instance
 
 
 class OrganisationInitialSerializer(serializers.ModelSerializer):
