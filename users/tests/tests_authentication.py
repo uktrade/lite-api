@@ -16,13 +16,13 @@ class UserTests(APITestCase, URLPatternsTestCase):
     client = APIClient()
 
     def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
+        self.test_helper = OrgAndUserHelper(name='banana')
 
     def test_login_success(self):
         url = reverse('users:authenticate')
         data = {
             'email': self.test_helper.user.email,
-            'password': 'password'
+            'password': self.test_helper.password
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

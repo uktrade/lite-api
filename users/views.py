@@ -34,7 +34,7 @@ class AuthenticateUser(APIView):
             return JsonResponse(data={},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = ViewUserSerializer(user)
+        serializer = UserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
 
@@ -71,7 +71,7 @@ class UserDetail(APIView):
     def get(self, request, pk):
         user = get_user_by_pk(pk)
 
-        serializer = ViewUserSerializer(user)
+        serializer = UserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
 
