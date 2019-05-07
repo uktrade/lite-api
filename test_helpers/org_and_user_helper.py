@@ -24,7 +24,6 @@ class OrgAndUserHelper:
         self.sic_number = "2765"
         self.vat_number = "123456789"
         self.registration_number = "987654321"
-        self.address = "London"
 
         # Site name
         self.site_name = "headquarters"
@@ -75,6 +74,8 @@ class OrgAndUserHelper:
 
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
+        self.primary_site = self.organisation.primary_site
+        self.address = self.primary_site.address
 
     @staticmethod
     def complete_draft(name, org):
