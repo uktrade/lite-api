@@ -1,3 +1,4 @@
+import reversion
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -58,12 +59,14 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
         site_serializer = SiteCreateSerializer(data=site_data)
         site = None
-        if site_serializer.is_valid():
-            site = site_serializer.save()
+        with reversion.create_revision():
+            if site_serializer.is_valid():
+                site = site_serializer.save()
 
         user_serializer = UserCreateSerializer(data=user_data)
-        if user_serializer.is_valid():
-            user_serializer.save()
+        with reversion.create_revision():
+            if user_serializer.is_valid():
+                user_serializer.save()
 
         organisation.primary_site = site
         organisation.save()

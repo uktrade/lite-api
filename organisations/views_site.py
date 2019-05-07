@@ -28,18 +28,19 @@ class SiteList(APIView):
 
     @transaction.atomic
     def post(self, request):
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
-        serializer = SiteCreateSerializer(data=data)
+        with reversion.create_revision():
+            organisation = get_organisation_by_user(request.user)
+            data = JSONParser().parse(request)
+            data['organisation'] = organisation.id
+            serializer = SiteCreateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'site': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'site': serializer.data},
+                                    status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SiteDetail(APIView):
