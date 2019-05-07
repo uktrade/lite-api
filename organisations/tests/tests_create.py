@@ -1,6 +1,7 @@
 import json
-from reversion.models import Version
 import uuid
+
+from reversion.models import Version
 
 from django.urls import path, include
 from rest_framework import status
