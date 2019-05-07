@@ -21,7 +21,6 @@ class SiteCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         address_data = validated_data.pop('address')
         address = Address.objects.create(**address_data)
-        Address.objects.create(**address_data)
         site = Site.objects.create(address=address, **validated_data)
         return site
 
@@ -127,13 +126,13 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
         """
         Update and return an existing `Site` instance, given the validated data.
         """
-        address_data = validated_data.pop('address')
+        if hasattr(validated_data, 'address'):
+            address_data = validated_data.pop('address')
+            address_serializer = AddressSerializer(Address.objects.get(pk=instance.address.id),
+                                                   data=address_data)
+            if address_serializer.is_valid():
+                address_serializer.save()
+
         instance.name = validated_data.get('name', instance.name)
-
-        address_serializer = AddressSerializer(Address.objects.get(pk=instance.address.id),
-                                               data=address_data)
-        if address_serializer.is_valid():
-            address_serializer.save()
-
         instance.save()
         return instance
