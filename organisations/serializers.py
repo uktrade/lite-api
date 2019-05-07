@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -47,6 +48,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
                   'user',
                   'site')
 
+    @transaction.atomic
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         site_data = validated_data.pop('site')
@@ -66,6 +68,9 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
         organisation.primary_site = site
         organisation.save()
+        organisation.primary_site.organisation = organisation
+        organisation.primary_site.save()
+
 
         return organisation
 
