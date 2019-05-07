@@ -121,7 +121,7 @@ class OrgAndUserHelper:
 
         return users
 
-	@staticmethod
+    @staticmethod
     def create_site(name, org):
         address = Address(address_line_1='42 Road',
                           address_line_2='',

@@ -10,7 +10,7 @@ from users.libraries.get_user import get_user_by_pk, get_user_by_email
 
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses
-from users.serializers import ViewUserSerializer, UserSerializer, UserViewSerializer, UserUpdateSerializer
+from users.serializers import UserSerializer, UserViewSerializer, UserUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -93,5 +93,6 @@ class UserDetail(APIView):
                 serializer.save()
                 return JsonResponse(data={'user': serializer.data},
                                     status=status.HTTP_200_OK)
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
