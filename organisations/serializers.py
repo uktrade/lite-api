@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressSerializer
+from addresses.serializers import AddressSerializer, AddressUpdateSerializer
 from organisations.models import Organisation, Site
 from users.models import User
 from users.serializers import UserCreateSerializer
@@ -126,12 +126,12 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
         """
         Update and return an existing `Site` instance, given the validated data.
         """
-        if hasattr(validated_data, 'address'):
-            address_data = validated_data.pop('address')
-            address_serializer = AddressSerializer(Address.objects.get(pk=instance.address.id),
-                                                   data=address_data)
-            if address_serializer.is_valid():
-                address_serializer.save()
+        address_data = validated_data.pop('address')
+        address_serializer = AddressUpdateSerializer(Address.objects.get(pk=instance.address.id),
+                                                     data=address_data,
+                                                     partial=True)
+        if address_serializer.is_valid():
+            address_serializer.save()
 
         instance.name = validated_data.get('name', instance.name)
         instance.save()

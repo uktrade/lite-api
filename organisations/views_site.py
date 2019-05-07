@@ -37,8 +37,7 @@ class SiteList(APIView):
             serializer.save()
             return JsonResponse(data={'site': serializer.data},
                                 status=status.HTTP_201_CREATED)
-        else:
-            print(serializer.errors)
+
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -73,6 +72,5 @@ class SiteDetail(APIView):
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_200_OK)
 
-            print(serializer.errors)
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
