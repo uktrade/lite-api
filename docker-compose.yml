@@ -7,8 +7,6 @@ services:
       - POSTGRES_PASSWORD=password
     ports:
       - 5432:5432
-    networks:
-      - lite-dev-network
   api:
     env_file:
       - .env
@@ -21,10 +19,4 @@ services:
       - db
     expose:
       - ${PORT}
-    networks:
-      - lite-dev-network
     command: pipenv run ./manage.py runserver 0.0.0.0:${PORT}
-
-networks:
-  lite-dev-network:
-    external: false

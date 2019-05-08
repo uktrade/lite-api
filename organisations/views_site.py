@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_user
+from organisations.libraries.get_organisation import get_organisation_by_user, get_organisation_by_pk
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteUpdateSerializer
@@ -18,8 +18,8 @@ class SiteList(APIView):
     List all sites for an organisation/create site
     """
 
-    def get(self, request):
-        organisation = get_organisation_by_user(request.user)
+    def get(self, request, org_pk):
+        organisation = get_organisation_by_pk(org_pk)
         sites = Site.objects.filter(organisation=organisation)
 
         serializer = SiteViewSerializer(sites, many=True)
@@ -27,9 +27,9 @@ class SiteList(APIView):
                             safe=False)
 
     @transaction.atomic
-    def post(self, request):
+    def post(self, request, org_pk):
         with reversion.create_revision():
-            organisation = get_organisation_by_user(request.user)
+            organisation = get_organisation_by_pk(org_pk)
             data = JSONParser().parse(request)
             data['organisation'] = organisation.id
             serializer = SiteCreateSerializer(data=data)
@@ -101,8 +101,8 @@ class SiteDetail(APIView):
     Show details for for a specific site/edit site
     """
 
-    def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
+    def get(self, request, org_pk, pk):
+        organisation = get_organisation_by_pk(org_pk)
         site = get_site_with_organisation(pk, organisation)
 
         serializer = SiteViewSerializer(site)
@@ -110,8 +110,8 @@ class SiteDetail(APIView):
                             safe=False)
 
     @transaction.atomic
-    def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
+    def put(self, request, pk, org_pk):
+        organisation = get_organisation_by_pk(org_pk)
 
         with reversion.create_revision():
             serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
