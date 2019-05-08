@@ -16,7 +16,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
-        model = User
+        model = Site
         fields = ('id', 'name', 'address', 'organisation')
 
     def create(self, validated_data):

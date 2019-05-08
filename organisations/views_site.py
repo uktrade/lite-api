@@ -63,8 +63,8 @@ class OrgSiteList(APIView):
     @transaction.atomic
     def post(self, request, org_pk, site_pk=''):
         with reversion.create_revision():
-            # organisation = get_organisation_by_user(request.user)
-            organisation = Organisation.objects.get(pk=org_pk)
+            organisation = get_organisation_by_user(request.user)
+            # organisation = Organisation.objects.get(pk=org_pk)
             data = JSONParser().parse(request)
             data['organisation'] = organisation.id
             serializer = SiteCreateSerializer(data=data)
@@ -76,21 +76,6 @@ class OrgSiteList(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # def post(self, request, org_pk):
-    #     """
-    #     Endpoint for adding a site
-    #     """
-    #     data = JSONParser().parse(request)
-    #     serializer = SiteSerializer(data=data)
-    #
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return JsonResponse(data={'site': serializer.data},
-    #                             status=status.HTTP_201_CREATED)
-    #
-    #     return JsonResponse(data={'errors': serializer.errors},
-    #                         status=status.HTTP_400_BAD_REQUEST)
 
 
 class SiteDetail(APIView):
