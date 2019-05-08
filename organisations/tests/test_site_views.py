@@ -74,9 +74,17 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Site.objects.all().count(), 2)
 
     def test_add_site_via_helper(self):
-        OrgAndUserHelper.create_site('org2', self.test_helper.organisation)
+        OrgAndUserHelper.create_site('site 2', self.test_helper.organisation)
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
         self.assertEqual(Address.objects.all().count(), 3)
         self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
+
+    def test_user_can_only_see_their_own_sites(self):
+        test_helper_2 = OrgAndUserHelper('org2')
+        self.assertEqual(Site.objects.all().count(), 2)
+        url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data['sites'][0]['id'], str(self.test_helper.primary_site.id))
