@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user, get_organisation_by_pk
 from organisations.libraries.get_site import get_site_with_organisation
-from organisations.models import Site
+from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteUpdateSerializer
 
 
@@ -41,6 +41,58 @@ class SiteList(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OrgSiteList(APIView):
+    authentication_classes = (PkAuthentication,)
+    """
+    List all sites for an organisation/create site
+    """
+
+    def get(self, request, org_pk, site_pk=''):
+        """
+        Endpoint for listing the Sites of an organisation
+        An organisation must have at least one site
+        """
+
+        sites = Site.objects.filter(organisation=org_pk)
+        serializer = SiteViewSerializer(sites, many=True)
+        return JsonResponse(data={'sites': serializer.data},
+                            safe=False)
+
+    @transaction.atomic
+    def post(self, request, org_pk):
+        with reversion.create_revision():
+            # organisation = get_organisation_by_user(request.user)
+            organisation = Organisation.objects.get(pk=org_pk)
+            data = JSONParser().parse(request)
+            data['organisation'] = organisation.id
+            serializer = SiteCreateSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'site': serializer.data},
+                                    status=status.HTTP_201_CREATED)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # def post(self, request, org_pk):
+    #     """
+    #     Endpoint for adding a site
+    #     """
+    #     data = JSONParser().parse(request)
+    #     serializer = SiteSerializer(data=data)
+    #
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return JsonResponse(data={'site': serializer.data},
+    #                             status=status.HTTP_201_CREATED)
+    #
+    #     return JsonResponse(data={'errors': serializer.errors},
+    #                         status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class SiteDetail(APIView):
