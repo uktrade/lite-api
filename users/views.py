@@ -10,7 +10,7 @@ from users.libraries.get_user import get_user_by_pk, get_user_by_email
 
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses
-from users.serializers import UserSerializer, UserViewSerializer, UserUpdateSerializer
+from users.serializers import UserSerializer, UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -52,7 +52,7 @@ class UserList(APIView):
 
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
-        serializer = UserSerializer(data=data)
+        serializer = UserCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
