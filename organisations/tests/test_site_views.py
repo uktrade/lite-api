@@ -23,14 +23,15 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
 
     def test_site_list(self):
-        url = reverse('organisations:sites')
+        url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
     def test_site_name_update(self):
-        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.test_helper.primary_site.id,
+                                                    'org_pk': self.test_helper.organisation.id})
         data = {'name': 'regional site',
                 'address': {},
                 }
@@ -42,7 +43,8 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_address_and_name_of_site(self):
-        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.test_helper.primary_site.id,
+                                                    'org_pk': self.test_helper.organisation.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': '43 Commercial Road',
@@ -58,7 +60,7 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_add_site(self):
-        url = reverse('organisations:sites')
+        url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': 'a street',
@@ -77,3 +79,4 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
         self.assertEqual(Address.objects.all().count(), 3)
+        self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
