@@ -11,7 +11,7 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 class QuantityUnitsTests(APITestCase, URLPatternsTestCase):
 
     urlpatterns = [
-        path('static/units', include('quantity.urls')),
+        path('static/quantity', include('static.quantity.urls')),
         path('organisations/', include('organisations.urls'))
     ]
 

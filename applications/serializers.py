@@ -60,3 +60,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
+
+
+class ModelSerializer(object):
+    pass

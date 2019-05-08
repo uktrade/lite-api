@@ -1,0 +1,293 @@
+﻿Id,Country name offered to exporters,Country name used in reports (if different)
+1,Abu Dhabi,United Arab Emirates
+2,Afghanistan,
+3,Ajman,United Arab Emirates
+4,Aland Islands,
+5,Albania,
+6,Alderney,Channel Islands
+7,Algeria,
+8,American Samoa,
+9,Andorra,
+10,Angola,
+11,Anguilla,
+12,Antarctica,
+13,Antigua and Barbuda,
+14,Argentina,
+15,Armenia,
+16,Aruba,
+17,Ascension,St Helena
+18,Australia,
+19,Australian Antarctic Territory,
+20,Austria,
+21,Azerbaijan,
+22,Azores,
+23,Bahamas,
+24,Bahrain,
+25,Baker Island,
+26,Bangladesh,
+27,Barbados,
+28,Belarus,
+29,Belgium,
+30,Belize,
+31,Benin,
+32,Bermuda,
+33,Bhutan,
+34,Bolivia,
+35,Bonaire,Netherlands Antilles
+36,Bosnia and Herzegovina,
+37,Botswana,
+38,Bouvet Island,Norway
+39,Brazil,
+40,British Antarctic Territory,
+41,British Indian Ocean Territory,
+42,British Virgin Islands,
+43,Brunei,
+44,Bulgaria,
+45,Burkina Faso,
+46,Burma,
+47,Burundi,
+48,Cambodia,
+49,Cameroon,
+50,Canada,
+51,Cape Verde,
+52,Cayman Islands,
+53,Central African Republic,
+54,Ceuta,Ceuta and Melilla
+55,Chad,Cocos Islands (Keeling Islands)
+56,Chile,
+57,China,
+58,Christmas Island,
+59,Cocos Islands,
+60,Colombia,
+61,Comoros,
+62,Congo,Republic of Congo
+63,"Congo, Democratic Republic of",Democratic Republic of Congo
+64,Continental Shelf Belgian Sector,
+65,Continental Shelf Danish Sector,
+66,Continental Shelf French Sector,
+67,Continental Shelf German Sector,
+68,Continental Shelf Irish Sector,
+69,Continental Shelf Netherlands Sector,
+70,Continental Shelf Norwegian Sector,
+71,Continental Shelf United Kingdom Sector,Continental Shelf: United Kingdom Sector 
+72,Cook Islands,
+73,Corn Islands,
+74,Costa Rica,
+75,Croatia,
+76,Cuba,
+77,Curacao,Netherlands Antilles
+78,Cyprus,
+79,Czech Republic,
+80,Denmark,
+81,Djibouti,
+82,Dominica,
+83,Dominican Republic,
+84,Dubai,United Arab Emirates
+85,Ecuador,
+86,Egypt,
+87,El Salvador,
+88,Equatorial Guinea,
+89,Eritrea,
+90,Estonia,
+91,Eswatini,
+92,Ethiopia,
+93,Falkland Islands,
+94,Faroe Islands,
+95,Fiji,
+96,Finland France,
+97,French Antarctic Territory,French Overseas Territory 
+98,French Guiana,France
+99,French Polynesia,French Overseas Territory 
+100,French Southern Territories,French Overseas Territory 
+101,Fujairah,United Arab Emirates
+102,Gabon,
+103,Gambia,
+104,Georgia,
+105,Germany,
+106,Ghana,
+107,Gibraltar,
+108,Gough,St Helena
+109,Greece,
+110,Greenland,
+111,Grenada,
+112,Guadeloupe,France
+113,Guam,
+114,Guatemala,
+115,Guernsey,Channel Islands
+116,"Guinea, Republic of",Republic of Guinea
+117,Guinea-Bissau,
+118,Guyana,
+119,Haiti,
+120,Heard and McDonald Islands,
+121,Honduras,
+122,Hong Kong,Hong Kong Special Administrative Region
+123,Howland Island,Howland Islands
+124,Hungary,
+125,Iceland,
+126,India,
+127,Indonesia,
+128,Iran,
+129,Iraq,
+130,Ireland,
+131,Isle Of Man,
+132,Israel,
+133,Italy,
+134,Ivory Coast,
+135,Jamaica,
+136,Japan,
+137,Jarvis Island,Jarvis Islands
+138,Jersey,Channel Islands
+139,Johnston Atoll,Johnston Islands
+140,Jordan,
+141,Kazakhstan,
+142,Kenya,
+143,Kingman Reef,
+144,Kiribati,
+145,"Korea, North",North Korea
+146,"Korea, South",South Korea
+147,Kosovo,
+148,Kuwait,
+149,Kyrgyzstan,
+150,La Desirade,France
+151,Laos,
+152,Latvia,
+153,Lebanon,
+154,Les Saintes,France
+155,Lesotho,
+156,Liberia,
+157,Libya,
+158,Liechtenstein,
+159,Lithuania,
+160,Luxembourg,
+161,Macao,
+162,Madagascar,
+163,Madeira,Portugal
+164,Malawi,
+165,Malaysia Maldives,
+166,Mali,
+167,Malta,
+168,Maria-Galante,France
+169,Marshall Islands,
+170,Martinique,France
+171,Mauritania,
+172,Mauritius,
+173,Mayotte,Mayotte (Grand Terre and Pamanzi)
+174,Melilla,Spain
+175,Mexico,
+176,Micronesia,
+177,Midway Island,
+178,Moldova,Republic of Moldova
+179,Monaco,
+180,Mongolia,
+181,Montenegro,
+182,Montserrat,
+183,Morocco,
+184,Mozambique,
+185,Namibia,
+186,Nauru,
+187,Nepal,
+188,Netherlands,
+189,New Caledonia and Dependencies,French Overseas Territory 
+190,New Zealand,
+191,Nicaragua,
+192,Niger,
+193,Nigeria,
+194,Niue,
+195,Norfolk Island,
+196,North Macedonia,
+197,Northern Mariana Islands,Northern Marianas Islands
+198,Norway,
+199,Occupied Palestinian Territories,Israel
+200,Oman,
+201,Pakistan,
+202,Palau,
+203,Palmyra Atoll,United States Minor Outlying Islands
+204,Panama,
+205,Papua New Guinea,
+206,Paraguay,
+207,Peru,
+208,Philippines,
+209,Pitcairn Island,"Pitcairn Islands (Islands of: Pitcairn, Henderson)"
+210,Poland,
+211,Portugal,
+212,Puerto Rico,
+213,Qatar,
+214,Ras al Khaimah,United Arab Emirates
+215,Reunion,
+216,Romania,
+217,Ross Dependency,
+218,Russia,
+219,Rwanda,
+220,Saba,
+221,Samoa,
+222,San Marino,
+223,Sao Tome and Principe,
+224,Sarawak,
+225,Saudi Arabia,
+226,Senegal,
+227,Serbia,
+228,Seychelles,
+229,Sharjah,
+230,Sierra Leone,
+231,Singapore,
+232,Slovakia,
+233,Slovenia,
+234,Solomon Islands,
+235,Somalia,
+236,South Africa,
+237,South Georgia and South Sandwich Islands,
+238,Spain,
+239,Sri Lanka,
+240,St Barthelemy,France
+241,"St Christopher and Nevis, Federation of",St Christopher and Nevis
+242,St Eustatius,Netherlands Antilles
+243,St Helena,
+244,St Kitts And Nevis,
+245,St Lucia,
+246,"St Maarten, South",Netherlands Antilles
+247,"St Martin, North",France
+248,St Pierre and Miquelon,
+249,St Vincent and the Grenadines,St Vincent (including the Grenadines)
+250,Sudan,
+251,"Sudan, South",South Sudan
+252,Surinam,
+253,Svalbard Archipelago,Svelbard Archipelago 
+254,Swan Islands,
+255,Sweden,
+256,Switzerland,
+257,Syria,
+258,Taiwan,
+259,Tajikistan,
+260,Tanzania,
+261,Thailand,
+262,Timor-Leste,East Timor
+263,Togo,
+264,Tokelau,Tokelau Islands
+265,Tonga,
+266,Trinidad and Tobago,
+267,Tristan da Cunha,St Helena
+268,Tunisia,
+269,Turkey,
+270,Turkmenistan,
+271,Turks and Caicos Islands,
+272,Tuvalu,
+273,Uganda,
+274,Ukraine,
+275,Umm al Qaiwain,United Arab Emirates
+276,United Arab Emirates,
+277,United Kingdom,
+278,United States,United States of America
+279,United States Minor Outlying Islands,
+280,United States Virgin Islands,Virgin Islands of USA
+281,Uruguay,
+282,Uzbekistan,
+283,Vanuatu,
+284,Vatican City,
+285,Venezuela,
+286,"Vessel, Platform in International Waters ",Vessel and/or Platform in International Waters 
+287,Vietnam,
+288,Wake Island,
+289,Wallis and Futuna,Wallis and Futuna Islands
+290,Yemen,
+291,Zambia,
+292,Zimbabwe,

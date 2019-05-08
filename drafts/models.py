@@ -1,11 +1,11 @@
-from enumchoicefield import ChoiceEnum, EnumChoiceField
+from enumchoicefield import EnumChoiceField
 import uuid
 
 from django.db import models
 
 from goods.models import Good
 from organisations.models import Organisation
-from quantity.units import Units
+from static.quantity.units import Units
 
 
 class Draft(models.Model):

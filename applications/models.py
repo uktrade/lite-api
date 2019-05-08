@@ -5,7 +5,7 @@ import reversion
 
 from goods.models import Good
 from organisations.models import Organisation
-from quantity.units import Units
+from static.quantity.units import Units
 
 
 class ApplicationStatuses(ChoiceEnum):
