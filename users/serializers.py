@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.validators import UniqueValidator
 
 from organisations.models import Organisation
 from users.models import User, UserStatuses
@@ -35,9 +36,13 @@ class UserViewSerializer(serializers.ModelSerializer):
 
 
 class UserUpdateSerializer(UserSerializer):
-    email = serializers.CharField()
+    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())],
+                                   error_messages={
+                                       'invalid': 'Enter an email address in the correct format, like name@example.com'}
+                                   )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
+    password = serializers.CharField(write_only=True)
     status = EnumChoiceField(enum_class=UserStatuses)
 
     def update(self, instance, validated_data):
@@ -55,8 +60,9 @@ class UserUpdateSerializer(UserSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'})
+    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())],
+        error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'}
+    )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     password = serializers.CharField(write_only=True)
