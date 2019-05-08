@@ -82,9 +82,10 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
 
     def test_user_can_only_see_their_own_sites(self):
-        test_helper_2 = OrgAndUserHelper('org2')
+        OrgAndUserHelper('org2')
         self.assertEqual(Site.objects.all().count(), 2)
         url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['sites'][0]['id'], str(self.test_helper.primary_site.id))
+        self.assertEqual(len(response_data['sites']), 1)
