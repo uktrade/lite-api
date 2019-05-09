@@ -36,10 +36,11 @@ class UserViewSerializer(serializers.ModelSerializer):
 
 
 class UserUpdateSerializer(UserSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())],
-                                   error_messages={
-                                       'invalid': 'Enter an email address in the correct format, like name@example.com'}
-                                   )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+        error_messages={
+            'invalid': 'Enter an email address in the correct format, like name@example.com'}
+    )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -60,8 +61,10 @@ class UserUpdateSerializer(UserSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())],
-        error_messages={'invalid': 'Enter an email address in the correct format, like name@example.com'}
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())],
+        error_messages={
+            'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
