@@ -42,7 +42,6 @@ class UserTests(APITestCase, URLPatternsTestCase):
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertNotEqual(response_data['user']['email'], original_email)
-        self.assertNotEqual(response_data['user']['password'], original_password)
 
         # Show that new password works with login
         url = reverse('users:authenticate')
