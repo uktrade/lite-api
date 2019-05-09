@@ -78,6 +78,18 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
     #     # the create additional site and the one dummy one.
     #     self.assertEqual(Address.objects.all().count(), 3)
 
+    def test_site_name_update(self):
+        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        data = {'name': 'regional site',
+                'address': {},
+                }
+
+        id = self.test_helper.primary_site.id
+        response = self.client.put(url, data, format='json', **self.headers)
+        self.assertEqual(Site.objects.get(id=id).address.address_line_1, '42 Industrial Estate')
+        self.assertEqual(Site.objects.get(id=id).name, 'regional site')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
 
@@ -127,6 +139,24 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
 
         self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
 
+    def test_edit_address_and_name_of_site(self):
+        url = reverse('organisations:organisation_sites', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        data = {'name': 'regional site',
+                'address': {
+                    'address_line_1': '43 Commercial Road',
+                    'address_line_2': 'The place'
+                    },
+                }
+
+        id = self.test_helper.primary_site.id
+        response = self.client.put(url, data, format='json', **self.headers)
+        self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
+        self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
+        self.assertEqual(Site.objects.get(id=id).name, 'regional site')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # The Test below is not expected to work until the Users/Permissions framework
+    # is implemented
     # def test_user_can_only_see_their_own_sites(self):
     #     OrgAndUserHelper('org2')
     #     self.assertEqual(Site.objects.all().count(), 2)

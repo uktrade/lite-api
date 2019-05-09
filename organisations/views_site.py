@@ -71,6 +71,8 @@ class OrgSiteList(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                reversion.set_user(request.user)
+                reversion.set_comment("Created Site")
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
