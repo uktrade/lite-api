@@ -124,7 +124,8 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
 
     def test_add_site(self):
 
-        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
+        url = reverse('organisations:organisation_sites',
+                      kwargs={'org_pk': self.test_helper.organisation.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': 'a street',
@@ -139,22 +140,23 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
 
         self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
 
-    # def test_edit_address_and_name_of_site(self):
-    #     url = reverse('organisations:organisation_sites',
-    #                   kwargs={'pk': self.test_helper.organisation.primary_site.id})
-    #     data = {'name': 'regional site',
-    #             'address': {
-    #                 'address_line_1': '43 Commercial Road',
-    #                 'address_line_2': 'The place'
-    #                 },
-    #             }
-    #
-    #     id = self.test_helper.primary_site.id
-    #     response = self.client.put(url, data, format='json', **self.headers)
-    #     self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
-    #     self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
-    #     self.assertEqual(Site.objects.get(id=id).name, 'regional site')
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_edit_address_and_name_of_site(self):
+        url = reverse('organisations:organisation_site',
+                      kwargs={'org_pk': self.test_helper.organisation.id,
+                              'site_pk': self.test_helper.organisation.primary_site.id})
+        data = {'name': 'regional site',
+                'address': {
+                    'address_line_1': '43 Commercial Road',
+                    'address_line_2': 'The place'
+                    },
+                }
+
+        id = self.test_helper.primary_site.id
+        response = self.client.put(url, data, format='json', **self.headers)
+        self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
+        self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
+        self.assertEqual(Site.objects.get(id=id).name, 'regional site')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     # The Test below is not expected to work until the Users/Permissions framework
     # is implemented

@@ -85,20 +85,24 @@ class OrgSiteDetail(APIView):
     Show details for for a specific site/edit site
     """
 
-    def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        site = get_site_with_organisation(pk, organisation)
+    def get(self, request, org_pk, site_pk):
+        # organisation = get_organisation_by_user(request.user)
+        # site = get_site_with_organisation(pk, organisation)
+        organisation = Organisation.objects.get(pk=org_pk)
+        site = Site.objects.get(pk=site_pk)
 
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data},
                             safe=False)
 
     @transaction.atomic
-    def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
+    def put(self, request, org_pk, site_pk):
+        # organisation = get_organisation_by_user(request.user)
+        organisation = Organisation.objects.get(pk=org_pk)
+        site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():
-            serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
+            serializer = SiteUpdateSerializer(site,
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
@@ -111,6 +115,7 @@ class OrgSiteDetail(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
+
 
 class SiteDetail(APIView):
     authentication_classes = (PkAuthentication,)
