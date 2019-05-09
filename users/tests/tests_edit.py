@@ -42,6 +42,10 @@ class UserTests(APITestCase, URLPatternsTestCase):
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertNotEqual(response_data['user']['email'], original_email)
+<<<<<<< Updated upstream
+=======
+        self.assertNotEqual(User.objects.get(email='some@thing.com').password, original_password)
+>>>>>>> Stashed changes
 
         # Show that new password works with login
         url = reverse('users:authenticate')
@@ -51,3 +55,27 @@ class UserTests(APITestCase, URLPatternsTestCase):
         }
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+<<<<<<< Updated upstream
+=======
+
+    def test_edit_a_user(self):
+        user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 1)
+        original_first_name = user.first_name
+        original_last_name = user.last_name
+        original_email = user.email
+        original_password = user.password
+
+        data = {
+            'first_name': 'hamster',
+            'last_name': 'gerbal'
+        }
+
+        url = reverse('users:user', kwargs={'pk': user.id})
+        response = self.client.put(url, data, format='json', **self.headers)
+        response_data = json.loads(response.content)
+
+        self.assertNotEqual(response_data['user']['first_name'], original_first_name)
+        self.assertNotEqual(response_data['user']['last_name'], original_last_name)
+        self.assertEqual(response_data['user']['email'], original_email)
+        self.assertEqual(User.objects.get(email=user.email).password, original_password)
+>>>>>>> Stashed changes
