@@ -49,7 +49,7 @@ class OrgSiteList(APIView):
     List all sites for an organisation/create site
     """
 
-    def get(self, request, org_pk, site_pk=''):
+    def get(self, request, org_pk):
         """
         Endpoint for listing the Sites of an organisation
         An organisation must have at least one site
@@ -61,10 +61,9 @@ class OrgSiteList(APIView):
                             safe=False)
 
     @transaction.atomic
-    def post(self, request, org_pk, site_pk=''):
+    def post(self, request, org_pk):
         with reversion.create_revision():
-            organisation = get_organisation_by_user(request.user)
-            # organisation = Organisation.objects.get(pk=org_pk)
+            organisation = Organisation.objects.get(pk=org_pk)
             data = JSONParser().parse(request)
             data['organisation'] = organisation.id
             serializer = SiteCreateSerializer(data=data)
@@ -79,6 +78,39 @@ class OrgSiteList(APIView):
             return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class OrgSiteDetail(APIView):
+    authentication_classes = (PkAuthentication,)
+    """
+    Show details for for a specific site/edit site
+    """
+
+    def get(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+        site = get_site_with_organisation(pk, organisation)
+
+        serializer = SiteViewSerializer(site)
+        return JsonResponse(data={'site': serializer.data},
+                            safe=False)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+
+        with reversion.create_revision():
+            serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
+                                              data=request.data,
+                                              partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                reversion.set_user(request.user)
+                reversion.set_comment("Created Site Revision")
+
+                return JsonResponse(data={'site': serializer.data},
+                                    status=status.HTTP_200_OK)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=400)
 
 class SiteDetail(APIView):
     authentication_classes = (PkAuthentication,)
