@@ -5,7 +5,7 @@ from addresses.models import Address
 
 class AddressSerializer(serializers.ModelSerializer):
     address_line_1 = serializers.CharField()
-    postcode = serializers.CharField()
+    postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
     region = serializers.CharField()
     country = serializers.CharField()
@@ -23,7 +23,7 @@ class AddressSerializer(serializers.ModelSerializer):
 
 class AddressUpdateSerializer(serializers.ModelSerializer):
     address_line_1 = serializers.CharField()
-    postcode = serializers.CharField()
+    postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
     region = serializers.CharField()
     country = serializers.CharField()
