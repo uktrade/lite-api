@@ -34,8 +34,8 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
         self.country = "England"
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
-        self.state = "Hertfordshire"
-        self.zip_code = "AL1 4GT"
+        self.region = "Hertfordshire"
+        self.postcode = "AL1 4GT"
         self.city = "St Albans"
 
         # First admin user details
@@ -57,8 +57,8 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                     'country': self.country,
                     'address_line_1': self.address_line_1,
                     'address_line_2': self.address_line_2,
-                    'state': self.state,
-                    'zip_code': self.zip_code,
+                    'region': self.region,
+                    'postcode': self.postcode,
                     'city': self.city,
                 },
             },
@@ -116,8 +116,8 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                     'country': None,
                     'address_line_1': None,
                     'address_line_2': None,
-                    'state': None,
-                    'zip_code': None,
+                    'region': None,
+                    'postcode': None,
                     'city': None,
                 },
             },

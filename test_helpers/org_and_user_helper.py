@@ -34,8 +34,8 @@ class OrgAndUserHelper:
         self.country = "England"
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
-        self.state = "Hertfordshire"
-        self.zip_code = "AL1 4GT"
+        self.region = "Hertfordshire"
+        self.postcode = "AL1 4GT"
         self.city = "St Albans"
 
         # First admin user details
@@ -59,8 +59,8 @@ class OrgAndUserHelper:
                     'country': self.country,
                     'address_line_1': self.address_line_1,
                     'address_line_2': self.address_line_2,
-                    'state': self.state,
-                    'zip_code': self.zip_code,
+                    'region': self.region,
+                    'postcode': self.postcode,
                     'city': self.city,
                 },
             },
@@ -127,8 +127,8 @@ class OrgAndUserHelper:
                           address_line_2='',
                           country='England',
                           city='London',
-                          state='Buckinghamshire',
-                          zip_code='E14QW')
+                          region='Buckinghamshire',
+                          postcode='E14QW')
         address.save()
         site = Site(name=name,
                     organisation=org,

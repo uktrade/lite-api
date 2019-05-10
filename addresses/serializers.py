@@ -5,9 +5,9 @@ from addresses.models import Address
 
 class AddressSerializer(serializers.ModelSerializer):
     address_line_1 = serializers.CharField()
-    zip_code = serializers.CharField()
+    postcode = serializers.CharField()
     city = serializers.CharField()
-    state = serializers.CharField()
+    region = serializers.CharField()
     country = serializers.CharField()
 
     class Meta:
@@ -15,17 +15,17 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'address_line_1',
                   'address_line_2',
-                  'zip_code',
+                  'postcode',
                   'city',
-                  'state',
+                  'region',
                   'country')
 
 
 class AddressUpdateSerializer(serializers.ModelSerializer):
     address_line_1 = serializers.CharField()
-    zip_code = serializers.CharField()
+    postcode = serializers.CharField()
     city = serializers.CharField()
-    state = serializers.CharField()
+    region = serializers.CharField()
     country = serializers.CharField()
 
     class Meta:
@@ -33,17 +33,17 @@ class AddressUpdateSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'address_line_1',
                   'address_line_2',
-                  'zip_code',
+                  'postcode',
                   'city',
-                  'state',
+                  'region',
                   'country')
 
     def update(self, instance, validated_data):
         instance.address_line_1 = validated_data.get('address_line_1', instance.address_line_1)
         instance.address_line_2 = validated_data.get('address_line_2', instance.address_line_2)
-        instance.zip_code = validated_data.get('zip_code', instance.zip_code)
+        instance.postcode = validated_data.get('postcode', instance.postcode)
         instance.city = validated_data.get('city', instance.city)
-        instance.state = validated_data.get('state', instance.state)
+        instance.region = validated_data.get('region', instance.region)
         instance.country = validated_data.get('country', instance.country)
         instance.save()
         return instance

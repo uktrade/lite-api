@@ -63,8 +63,8 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
                 'address': {
                     'address_line_1': 'a street',
                     'city': 'london',
-                    'zip_code': 'E14GH',
-                    'state': 'Hertfordshire',
+                    'postcode': 'E14GH',
+                    'region': 'Hertfordshire',
                     'country': 'England'},}
 
         response = self.client.post(url, data, format='json', **self.headers)

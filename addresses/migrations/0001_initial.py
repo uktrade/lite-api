@@ -11,8 +11,8 @@ def init(apps, schema_editor):
         address = Address(id='00000000-0000-0000-0000-000000000000',
                           country='ENG',
                           address_line_1='DOES NOT EXIST',
-                          state='none',
-                          zip_code='AA11AA',
+                          region='none',
+                          postcode='AA11AA',
                           city='none')
         address.save()
 
@@ -32,8 +32,8 @@ class Migration(migrations.Migration):
                 ('country', models.TextField(default=None)),
                 ('address_line_1', models.TextField(default=None)),
                 ('address_line_2', models.TextField(blank=True, null=True, default=None)),
-                ('state', models.TextField(default=None)),
-                ('zip_code', models.CharField(max_length=10)),
+                ('region', models.TextField(default=None)),
+                ('postcode', models.CharField(max_length=10)),
                 ('city', models.TextField(default=None)),
             ],
         ),
