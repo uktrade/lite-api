@@ -10,3 +10,10 @@ class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ('id', 'application')
+
+
+class CaseNoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Case
+        fields = ('id', 'application')
