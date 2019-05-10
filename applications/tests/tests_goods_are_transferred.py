@@ -5,6 +5,7 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from applications.models import Application, GoodOnApplication
 from drafts.models import GoodOnDraft
 from test_helpers.org_and_user_helper import OrgAndUserHelper
+from quantity.units import Units
 
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
@@ -23,9 +24,11 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
     def test_that_goods_are_added_to_application_when_submitted(self):
         draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        unit1 = Units.NAR
+        unit2 = Units.KGM
         good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
-        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit='kg', value=400)
-        good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit='kg', value=500)
+        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400)
+        good_on_draft_2 = GoodOnDraft(draft=draft, good=good, quantity=90, unit=unit2, value=500)
         good_on_draft_1.save()
         good_on_draft_2.save()
 

@@ -1,9 +1,13 @@
+import random
+
 from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
+
+from addresses.models import Address
 from drafts.models import Draft
 from goods.models import Good
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from users.models import User
 
 
@@ -22,17 +26,58 @@ class OrgAndUserHelper:
         self.sic_number = "2765"
         self.vat_number = "123456789"
         self.registration_number = "987654321"
-        self.address = "London"
-        self.admin_user_email = "trinity@"+name+".com"
+
+        # Site name
+        self.site_name = "headquarters"
+
+        # Address details
+        self.country = "England"
+        self.address_line_1 = "42 Industrial Estate"
+        self.address_line_2 = "Queens Road"
+        self.region = "Hertfordshire"
+        self.postcode = "AL1 4GT"
+        self.city = "St Albans"
+
+        # First admin user details
+        self.admin_user_first_name = "Trinity"
+        self.admin_user_last_name = "Fishburne"
+        self.admin_user_email = "trinity@" + name + ".com"
+        self.password = "password123"
 
         url = reverse('organisations:organisations')
-        data = {'name': self.name, 'eori_number': self.eori_number, 'sic_number': self.sic_number,
-                'vat_number': self.vat_number, 'registration_number': self.registration_number,
-                'address': self.address, 'admin_user_email': self.admin_user_email}
+        data = {
+            'name': self.name,
+            'eori_number': self.eori_number,
+            'sic_number': self.sic_number,
+            'vat_number': self.vat_number,
+            'registration_number': self.registration_number,
+            # Site details
+            'site': {
+                'name': self.site_name,
+                # Address details
+                'address': {
+                    'country': self.country,
+                    'address_line_1': self.address_line_1,
+                    'address_line_2': self.address_line_2,
+                    'region': self.region,
+                    'postcode': self.postcode,
+                    'city': self.city,
+                },
+            },
+            # First admin user details
+            'user': {
+                'first_name': self.admin_user_first_name,
+                'last_name': self.admin_user_last_name,
+                'email': self.admin_user_email,
+                'password': self.password
+            },
+        }
         self.client.post(url, data, format='json')
 
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
+        self.primary_site = self.organisation.primary_site
+        self.address = self.primary_site.address
 
     @staticmethod
     def complete_draft(name, org):
@@ -54,3 +99,49 @@ class OrgAndUserHelper:
                     organisation=org)
         good.save()
         return good
+
+    @staticmethod
+    def create_additional_users(org, quantity=1):
+        users = []
+        for i in range(quantity):
+            first_name, last_name = random_name()
+            email = first_name+'.'+last_name+'@'+org.name+'.com'
+            if User.objects.filter(email=email).count() == 1:
+                email = first_name+'.'+last_name+str(i)+'@'+org.name+'.com'
+            user = User(first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        organisation=org)
+            user.set_password('password')
+            user.save()
+            if quantity == 1:
+                return user
+
+            users.append(user)
+
+        return users
+
+    @staticmethod
+    def create_site(name, org):
+        address = Address(address_line_1='42 Road',
+                          address_line_2='',
+                          country='England',
+                          city='London',
+                          region='Buckinghamshire',
+                          postcode='E14QW')
+        address.save()
+        site = Site(name=name,
+                    organisation=org,
+                    address=address)
+        site.save()
+        return site, address
+
+
+def random_name():
+    first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
+    last_names = ('Johnson', 'Smith', 'Williams', 'Hargreaves', 'Montague', 'Jenkins')
+
+    first_name = random.choice(first_names)
+    last_name = random.choice(last_names)
+
+    return first_name, last_name

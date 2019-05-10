@@ -121,13 +121,3 @@ class GoodTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)["goods"]
         self.assertEqual(len(response_data), 2)
-
-
-
-
-
-
-
-
-
-

@@ -1,49 +1,46 @@
-from django.http import JsonResponse
-from django.http.response import Http404
-from rest_framework import status
-from rest_framework.parsers import JSONParser
 import reversion
 
+from django.db import transaction
+from django.http import JsonResponse
+from rest_framework import status
+from rest_framework.parsers import JSONParser
+from rest_framework.views import APIView
+
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from organisations.serializers import OrganisationInitialSerializer, OrganisationViewSerializer
-from users.libraries.CreateFirstAdminUser import CreateFirstAdminUser
+from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
 
 
-def organisations_list(request):
-    if request.method == "POST":
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            create_serializer = OrganisationInitialSerializer(data=data)
-            view_serializer = OrganisationViewSerializer(data=data)
-
-            if create_serializer.is_valid() and view_serializer.is_valid():
-                new_organisation = view_serializer.save()
-
-                # Create an admin for that company
-                CreateFirstAdminUser(create_serializer['admin_user_email'].value, new_organisation)
-
-                return JsonResponse(data={'organisation': view_serializer.data},
-                                    status=status.HTTP_201_CREATED)
-            else:
-                return JsonResponse(data={'errors': create_serializer.errors},
-                                    status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-
-            # Store some version meta-information.
-            # reversion.set_user(request.user)
-            # reversion.set_comment("Created Organization Revision")
-
-    if request.method == "GET":
+class OrganisationsList(APIView):
+    """
+    Get all/create organisations
+    """
+    def get(self, request):
         organisations = Organisation.objects.all().order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
         return JsonResponse(data={'organisations': view_serializer.data},
                             safe=False)
 
+    @transaction.atomic
+    def post(self, request):
+        with reversion.create_revision():
+            data = JSONParser().parse(request)
+            serializer = OrganisationCreateSerializer(data=data)
 
-def organisation_detail(request, pk):
-    if request.method == "GET":
-        try:
-            organisation = Organisation.objects.get(pk=pk)
-            view_serializer = OrganisationViewSerializer(organisation)
-            return JsonResponse(data={'organisation': view_serializer.data})
-        except Organisation.DoesNotExist:
-            raise Http404
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'organisation': serializer.data},
+                                    status=status.HTTP_201_CREATED)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrganisationsDetail(APIView):
+    """
+    Get an organisation by its primary key
+    """
+    def get(self, request, pk):
+        organisation = get_organisation_by_pk(pk)
+        view_serializer = OrganisationViewSerializer(organisation)
+        return JsonResponse(data={'organisation': view_serializer.data})
