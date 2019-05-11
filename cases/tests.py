@@ -1,4 +1,7 @@
+import json
+
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import Case, CaseNote
@@ -13,7 +16,7 @@ class CaseNotesTests(BaseTestClient):
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.case = Case.objects.get(application=self.application)
 
-    def test_create_case_note(self):
+    def test_create_case_note_successful(self):
         data = {
             'text': 'I Am Easy to Find',
         }
@@ -23,28 +26,13 @@ class CaseNotesTests(BaseTestClient):
         self.assertEqual(CaseNote.objects.count(), 1)
         self.assertEqual(CaseNote.objects.get().text, data.get('text'))
 
-    def test_cannot_create_empty_case_note(self):
-        data = {}
-
-        response = self.client.post(reverse('cases:case_notes', kwargs={'pk': self.case.id}), data=data)
+    @parameterized.expand([
+        '{}',  # Empty data
+        '{"text": ""}',  # Empty text field
+        '{"text": "🙂"}',  # Less than two character minimum
+        '{"text": "' + '🙂' * 2001 + '"}',  # More than two thousand character maximum
+    ])
+    def test_create_case_note_failure(self, data):
+        response = self.client.post(reverse('cases:case_notes', kwargs={'pk': self.case.id}), data=json.loads(data))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
-
-    def test_cannot_create_case_note_less_than_2_characters(self):
-        data = {
-            'text': '🙂'
-        }
-
-        response = self.client.post(reverse('cases:case_notes', kwargs={'pk': self.case.id}), data=data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(CaseNote.objects.count(), 0)
-
-    def test_cannot_create_case_note_more_than_2000_characters(self):
-        data = {
-            'text': '🙂' * 2001,
-        }
-
-        response = self.client.post(reverse('cases:case_notes', kwargs={'pk': self.case.id}), data=data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(CaseNote.objects.count(), 0)
-
