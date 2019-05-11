@@ -52,7 +52,6 @@ class CaseNotesViewTests(BaseTestClient):
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_create_case_note_successful(self):
-        # Create initial case notes for both cases
         CaseNote(text='Hairpin Turns',
                  case=self.case).save()
         CaseNote(text='I Am Easy to Find',
