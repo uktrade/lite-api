@@ -8,7 +8,7 @@ from cases.models import Case, CaseNote
 from test_helpers.clients import BaseTestClient
 
 
-class CaseNotesTests(BaseTestClient):
+class CaseNotesCreateTests(BaseTestClient):
 
     def setUp(self):
         super().setUp()
@@ -37,3 +37,31 @@ class CaseNotesTests(BaseTestClient):
         response = self.client.post(self.url, data=json.loads(data))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
+
+
+class CaseNotesViewTests(BaseTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.draft = self.test_helper.complete_draft('Example Application', self.test_helper.organisation)
+        self.draft2 = self.test_helper.complete_draft('Example Application 2', self.test_helper.organisation)
+        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.application2 = self.test_helper.submit_draft(self, self.draft2)
+        self.case = Case.objects.get(application=self.application)
+        self.case2 = Case.objects.get(application=self.application2)
+        self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
+
+    def test_create_case_note_successful(self):
+        # Create initial case notes for both cases
+        CaseNote(text='Hairpin Turns',
+                 case=self.case).save()
+        CaseNote(text='I Am Easy to Find',
+                 case=self.case).save()
+        CaseNote(text='Dust Swirls In Strange Light',
+                 case=self.case).save()
+        CaseNote(text='Rylan',
+                 case=self.case2).save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json().get('case_notes')), 3)
