@@ -1,22 +1,14 @@
 from django.http import Http404
 
-from drafts.models import Draft
+from cases.models import CaseNote
 
 
-def get_draft(pk):
+def get_case_note(pk):
     try:
-        return Draft.objects.get(pk=pk)
-    except Draft.DoesNotExist:
+        return CaseNote.objects.get(pk=pk)
+    except CaseNote.DoesNotExist:
         raise Http404
 
 
-def get_draft_with_organisation(pk, organisation):
-    try:
-        draft = Draft.objects.get(pk=pk)
-
-        if draft.organisation.pk != organisation.pk:
-            raise Http404
-
-        return draft
-    except Draft.DoesNotExist:
-        raise Http404
+def get_case_notes_from_case(case):
+    return CaseNote.objects.filter(case=case).order_by('-created_at')
