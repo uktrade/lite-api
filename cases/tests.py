@@ -54,7 +54,7 @@ class CaseNotesViewTests(BaseTestClient):
     def test_create_case_note_successful(self):
         CaseNote(text='Hairpin Turns',
                  case=self.case).save()
-        CaseNote(text='I Am Easy to Find',
+        CaseNote(text='Not in Kansas',
                  case=self.case).save()
         CaseNote(text='Dust Swirls In Strange Light',
                  case=self.case).save()
