@@ -14,4 +14,3 @@ class QuantityUnitsTests(BaseTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(units['NAR'], 'Number of articles')
-
