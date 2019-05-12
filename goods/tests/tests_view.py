@@ -4,11 +4,11 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from goods.models import Good
-from test_helpers.clients import BaseTestClient
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class GoodViewTests(BaseTestClient):
+class GoodViewTests(DataTestClient):
 
     def test_view_good_details(self):
         good = Good(description='thing',

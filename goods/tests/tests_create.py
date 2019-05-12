@@ -2,10 +2,11 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from test_helpers.clients import BaseTestClient
+from test_helpers.clients import DataTestClient
 
 
-class GoodsCreateTests(BaseTestClient):
+class GoodsCreateTests(DataTestClient):
+
     url = reverse('goods:goods')
 
     @parameterized.expand([

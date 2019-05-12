@@ -1,21 +1,17 @@
-import json
-
-from django.urls import include, path
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+
+from test_helpers.clients import BaseTestClient
 
 
-class CountriesTests(APITestCase, URLPatternsTestCase):
+class CountriesTests(BaseTestClient):
 
-    urlpatterns = [
-        path('static/countries', include('static.countries.urls')),
-    ]
-    client = APIClient
+    url = reverse('static:countries:countries')
 
     def test_get_countries(self):
-        url = reverse('countries:countries')
-        response = self.client.get(url)
+        response = self.client.get(self.url)
+        countries = response.json()['countries']
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['countries'][0]['name'], 'Abu Dhabi')
+        self.assertEqual(countries[0]['name'], 'Abu Dhabi')
+        self.assertEqual(countries[-1]['name'], 'Zimbabwe')

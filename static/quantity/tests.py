@@ -1,30 +1,17 @@
-import json
-
-from django.urls import path, include
-from rest_framework.reverse import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.reverse import reverse
 
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.clients import BaseTestClient
 
 
-class QuantityUnitsTests(APITestCase, URLPatternsTestCase):
+class QuantityUnitsTests(BaseTestClient):
 
-    urlpatterns = [
-        path('static/quantity', include('static.quantity.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+    url = reverse('static:quantity:units')
 
     def test_get_units(self):
-        url = reverse('quantity:units')
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(self.url)
+        units = response.json()['units']
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
-        self.assertEqual(response_data['units']['NAR'], 'Number of articles')
+        self.assertEqual(units['NAR'], 'Number of articles')
 

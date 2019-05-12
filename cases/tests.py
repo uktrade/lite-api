@@ -5,10 +5,10 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import Case, CaseNote
-from test_helpers.clients import BaseTestClient
+from test_helpers.clients import DataTestClient
 
 
-class CaseNotesCreateTests(BaseTestClient):
+class CaseNotesCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
@@ -39,7 +39,7 @@ class CaseNotesCreateTests(BaseTestClient):
         self.assertEqual(CaseNote.objects.count(), 0)
 
 
-class CaseNotesViewTests(BaseTestClient):
+class CaseNotesViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
