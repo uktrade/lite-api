@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from enumchoicefield import ChoiceEnum, EnumChoiceField
 
 from drafts.models import Draft, GoodOnDraft
 from goods.models import Good

@@ -4,6 +4,7 @@ import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from enumchoicefield import ChoiceEnum, EnumChoiceField
 
 from organisations.models import Organisation
 
@@ -40,12 +41,18 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+class UserStatuses(ChoiceEnum):
+    deactivated = "Deactivated"
+    active = "Active"
+
+
 @reversion.register()
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True, unique=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
+    status = EnumChoiceField(enum_class=UserStatuses, default=UserStatuses.active)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

@@ -28,7 +28,7 @@ DEBUG = env('DEBUG')
 
 # Please use this to Enable/Disable the Admin site
 ADMIN_ENABLED = True
- 
+
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'rest_framework',
+    'addresses.apps.AddressesConfig',
     'applications.apps.ApplicationsConfig',
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
