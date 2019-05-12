@@ -9,7 +9,7 @@ def init(apps, schema_editor):
     # version than this migration expects. We use the historical version.
     Country = apps.get_model('countries', 'Country')
     if not Country.objects.all():
-        with open('static/countries/countries.csv', newline='') as csvfile:
+        with open('lite-content/lite-api/countries.csv', newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',', quotechar='"')
             next(reader, None)  # skip the headers
             for row in reader:
