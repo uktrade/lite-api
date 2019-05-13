@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'addresses.apps.AddressesConfig',
     'applications.apps.ApplicationsConfig',
@@ -49,6 +48,7 @@ INSTALLED_APPS = [
     'queues.apps.QueuesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
+    'quantity.apps.QuantityConfig',
     'reversion',
 ]
 
@@ -116,9 +116,6 @@ else:
     DATABASES = {
         'default': env.db()
     }
-
-# Static files (CSS, JavaScript, Images) for Django-Admin
-STATIC_URL = '/static/'
 
 
 # Internationalization
