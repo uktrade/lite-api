@@ -136,7 +136,7 @@ Endpoints for retrieving, creating and updating drafts.
     </tr>
 </table>
 
-### Organisations & Sites
+### Organisations
 Endpoints for retrieving, creating and updating organisations.
 <table>
     <tr>
@@ -168,13 +168,13 @@ Endpoints for retrieving, creating and updating organisations.
         <td>
         <pre>
 { <br> 
-  "name":[free text] <br>
-  "eori_number":[free text], <br>
-  "sic_number":[free text] <br>
-  "vat_number":[free text] <br>
-  "registration_number":[free text] <br>
-  "address":[free text] <br>
-  "admin_user_email":[valid email address] <br>               
+  "name":[free text]
+  "eori_number":[free text], 
+  "sic_number":[free text],
+  "vat_number":[free text],
+  "registration_number":[free text],
+  "address":[free text],
+  "admin_user_email":[valid email address]            
 }
         </pre>
         </td>
