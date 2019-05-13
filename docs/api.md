@@ -211,7 +211,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>POST</td>
         <td>/organisations/</td>
         <td>?</td>
-        <td>{ <br> 
+        <td>{ <br> <pre>
                 "name":[free text] <br>
                 "address":{ <br>
                   &ensp 'address_line_1':[free text], <br>
@@ -221,7 +221,7 @@ Endpoints for retrieving, creating and updating organisations.
                   &ensp 'region':[free text], <br>
                   &ensp 'country':[free text] <br>
                   &ensp }  <br>              
-            }
+            }</pre>
         </td>
         <td>200 <br> 422 </td>
         <td>Creates a organisation </td>
