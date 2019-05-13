@@ -31,7 +31,7 @@ class CaseNotesCreateTests(BaseTestClient):
         '{}',  # Empty data
         '{"text": ""}',  # Empty text field
         '{"text": "🙂"}',  # Less than two character minimum
-        '{"text": "' + '🙂' * 2001 + '"}',  # More than two thousand character maximum
+        '{"text": "' + '🙂' * 2201 + '"}',  # More than two thousand, two hundred character maximum
     ])
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=json.loads(data))

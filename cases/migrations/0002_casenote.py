@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='CaseNote',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('text', models.TextField(blank=True, default=None, max_length=2000, null=True)),
+                ('text', models.TextField(blank=True, default=None, max_length=2200, null=True)),
                 ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_note', to='cases.Case')),
                 # ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_note', to=settings.AUTH_USER_MODEL)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
