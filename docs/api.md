@@ -193,7 +193,9 @@ Endpoints for retrieving, creating and updating organisations.
         <td>?</td>
         <td>None</td>
         <td>200</td>
-        <td>Returns all sites belonging to the users organisation</td>
+        <td>Returns all sites belonging  <br>
+        <td>Returns all sites belonging  <br>
+         to the users organisation</td>
     </tr>
     <tr>
         <td>GET</td>
@@ -202,8 +204,9 @@ Endpoints for retrieving, creating and updating organisations.
         <td>None</td>
         <td>200   <br>
             404
-        <td>Returns details of a   <br>
-        specific site</td>
+        </td>
+        <td>Returns details of <br>
+        a specific site</td>
     </tr>
     <tr>
         <td>POST</td>
