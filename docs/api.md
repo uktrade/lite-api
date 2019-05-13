@@ -194,7 +194,6 @@ Endpoints for retrieving, creating and updating organisations.
         <td>None</td>
         <td>200</td>
         <td>Returns all sites belonging  <br>
-        <td>Returns all sites belonging  <br>
          to the users organisation</td>
     </tr>
     <tr>
