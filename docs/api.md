@@ -167,15 +167,15 @@ Endpoints for retrieving, creating and updating organisations.
         <td>?</td>
         <td>
         <pre>
-  { <br> 
-    "name":[free text] <br>
-    "eori_number":[free text], <br>
-    "sic_number":[free text] <br>
-    "vat_number":[free text] <br>
-    "registration_number":[free text] <br>
-    "address":[free text] <br>
-    "admin_user_email":[valid email address] <br>               
-  }
+{ <br> 
+  "name":[free text] <br>
+  "eori_number":[free text], <br>
+  "sic_number":[free text] <br>
+  "vat_number":[free text] <br>
+  "registration_number":[free text] <br>
+  "address":[free text] <br>
+  "admin_user_email":[valid email address] <br>               
+}
         </pre>
         </td>
         <td>200 <br> 422 </td>
