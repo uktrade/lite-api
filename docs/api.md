@@ -136,7 +136,7 @@ Endpoints for retrieving, creating and updating drafts.
     </tr>
 </table>
 
-### Organisations
+### Organisations & Sites
 Endpoints for retrieving, creating and updating organisations.
 <table>
     <tr>
@@ -167,7 +167,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>?</td>
         <td>{ <br> 
                 "name":[free text] <br>
-                "eori_number":[free text] <br>
+                "eori_number":[free text], <br>
                 "sic_number":[free text] <br>
                 "vat_number":[free text] <br>
                 "registration_number":[free text] <br>
@@ -176,7 +176,7 @@ Endpoints for retrieving, creating and updating organisations.
             }
         </td>
         <td>200 <br> 422 </td>
-        <td>Creates a draft </td>
+        <td>Creates a organisation </td>
     </tr>
 </table>
 
@@ -204,6 +204,25 @@ Endpoints for retrieving, creating and updating organisations.
             404
         <td>Returns details of a   <br>
         specific site</td>
+    </tr>
+    <tr>
+        <td>POST</td>
+        <td>/organisations/</td>
+        <td>?</td>
+        <td>{ <br> 
+                "name":[free text] <br>
+                "address":{ <br>
+                  &ensp 'address_line_1':[free text], <br>
+                  &ensp 'address_line_2':[free text], <br>
+                  &ensp 'postcode':[free text], <br>
+                  &ensp 'city':[free text], <br>
+                  &ensp 'region':[free text], <br>
+                  &ensp 'country':[free text] <br>
+                  &ensp }  <br>              
+            }
+        </td>
+        <td>200 <br> 422 </td>
+        <td>Creates a organisation </td>
     </tr>
 
 </table>
