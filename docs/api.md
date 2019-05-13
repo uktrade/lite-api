@@ -136,7 +136,7 @@ Endpoints for retrieving, creating and updating drafts.
     </tr>
 </table>
 
-### Organisations & Sites
+### Organisations
 Endpoints for retrieving, creating and updating organisations.
 <table>
     <tr>
