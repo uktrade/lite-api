@@ -47,7 +47,6 @@ class SiteList(APIView):
 
 
 class OrgSiteList(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     List all sites for an organisation/create site
     """
@@ -83,7 +82,6 @@ class OrgSiteList(APIView):
 
 
 class OrgSiteDetail(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     Show details for for a specific site/edit site
     """
