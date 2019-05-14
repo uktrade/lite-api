@@ -3,7 +3,7 @@
 ### Applications
 
 **Application DTO Structure**
-Needs Updating
+<br> Needs Updating
 <pre>
 {
     "id": [UUID]
@@ -36,7 +36,7 @@ Endpoints for retrieving, creating and updating applications:
         <td>GET</td>
         <td>/applications/{id}/</td>
         <td>?</td>
-        <td>Request:  None <br> Response: List of DTOs </td>
+        <td>Request:  None <br> Response: Single DTO </td>
         <td>200 <br> 404 </td>
         <td>returns application with given id</td>
     </tr>
@@ -45,6 +45,7 @@ Endpoints for retrieving, creating and updating applications:
         <td>/applications/</td>
         <td>?</td>
         <td>Request:  DTO Structure <br>
+        (with valid draft id)
         </td>
         <td>200 <br> 422 </td>
         <td>Requires valid draft id <br>
@@ -70,6 +71,7 @@ Endpoints for retrieving, creating and updating applications:
 
 ### Drafts
 **Draft DTO Structure**
+<br> Needs Updating
 <pre>
 {
     "id":[UUID]
@@ -93,7 +95,7 @@ Endpoints for retrieving, creating and updating drafts.
         <td>GET</td>
         <td>/drafts/</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: List of DTOs </td>
         <td>200</td>
         <td>Returns all drafts</td>
     </tr>
@@ -101,7 +103,7 @@ Endpoints for retrieving, creating and updating drafts.
         <td>GET</td>
         <td>drafts/{id}/</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: Single DTO </td>
         <td>200   <br>
             404
         </td>
@@ -111,10 +113,8 @@ Endpoints for retrieving, creating and updating drafts.
         <td>POST</td>
         <td>/drafts/</td>
         <td>?</td>
-        <td>{ <br> 
-              "user_id":[UUID of user] <br> 
-              "name":[free text] <br>  
-            }
+        <td>Request:  DTO Structure <br>
+        (without ID)
         </td>
         <td>200 <br> 422 </td>
         <td>Creates a draft </td>
@@ -123,14 +123,8 @@ Endpoints for retrieving, creating and updating drafts.
         <td>PUT</td>
         <td>/drafts/{id}</td>
         <td>?</td>
-        <td>all optional <br>
-            { <br>
-                "name":[free text]  <br>
-                "control_code":[free text]  <br>
-                "activity":[free text] <br>
-                "usage":[free text] <br>
-                "destination":[free text] <br>
-            }
+        <td>Request:  DTO Structure <br>
+        (all elements optional except ID )
         </td>
         <td>200 <br> 404 </td>
         <td> updates the draft(ref. draft_id)  <br>
