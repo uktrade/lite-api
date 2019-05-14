@@ -2,7 +2,20 @@
 
 ### Applications
 
-Endpoints for retrieving, creating and updating applications.
+**Application DTO Structure**
+<pre>
+{
+    "id": [UUID]
+    "name":[free text] 
+    "control_code":[free text] 
+    "activity":[free text]
+    "usage":[free text]
+    "destination":[free text]
+    "status":[enum of statuses]
+}
+</pre>
+
+Endpoints for retrieving, creating and updating applications:
 
 <table>
     <tr>
@@ -14,7 +27,7 @@ Endpoints for retrieving, creating and updating applications.
         <td>GET</td>
         <td>/applications/</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: List of DTOs </td>
         <td>200</td>
         <td>Returns all applications</td>
     </tr>
@@ -22,10 +35,7 @@ Endpoints for retrieving, creating and updating applications.
         <td>GET</td>
         <td>/applications/{id}/</td>
         <td>?</td>
-        <td>{ <br> 
-                'id': '12345' <br>  
-            }
-        </td>
+        <td>Request:  None <br> Response: List of DTOs </td>
         <td>200 <br> 404 </td>
         <td>returns application with given id</td>
     </tr>
@@ -33,9 +43,7 @@ Endpoints for retrieving, creating and updating applications.
         <td>POST</td>
         <td>/applications/</td>
         <td>?</td>
-        <td>{ <br> 
-                'id': '12345' <br>  
-            }
+        <td>Request:  DTO Structure (without ID) <br>
         </td>
         <td>200 <br> 422 </td>
         <td>Requires valid draft id <br>
@@ -64,18 +72,6 @@ Endpoints for retrieving, creating and updating applications.
             control_code, activity, usage,  <br>
             destination, status.</td>
 </table>
-
-**Application DTO Structure**
-<pre>
-{
-    "name":[free text] 
-    "control_code":[free text] 
-    "activity":[free text]
-    "usage":[free text]
-    "destination":[free text]
-    "status":[enum of statuses]
-}
-<pre>
 
 
 ### Drafts
