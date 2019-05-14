@@ -65,6 +65,19 @@ Endpoints for retrieving, creating and updating applications.
             destination, status.</td>
 </table>
 
+**Application DTO Structure**
+<pre>
+{
+    "name":[free text] 
+    "control_code":[free text] 
+    "activity":[free text]
+    "usage":[free text]
+    "destination":[free text]
+    "status":[enum of statuses]
+}
+<pre>
+
+
 ### Drafts
 Endpoints for retrieving, creating and updating drafts.
 
@@ -167,7 +180,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>?</td>
         <td>
         <pre>
-{ <br> 
+{
   "name":[free text]
   "eori_number":[free text], 
   "sic_number":[free text],
