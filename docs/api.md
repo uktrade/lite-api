@@ -257,6 +257,20 @@ Endpoints for retrieving, creating and updating organisations.
 </table>
 
 ### Queues
+**Queues DTO Structure**
+<br> Needs Updating
+<pre>
+{
+    "id":[UUID]
+    "name":[free text] 
+    "cases":{
+        "id":[UUID]
+        "application" : {
+               ...
+        }
+     }   
+}
+</pre>
 Endpoints for retrieving, creating and updating queues.
 <table>
     <tr>
