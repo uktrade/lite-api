@@ -147,6 +147,22 @@ Endpoints for retrieving, creating and updating drafts.
 </table>
 
 ### Organisations
+**Organisation DTO Structure**
+<br> Needs Updating
+<pre>
+{
+    "id":[UUID]
+    "name":[free text]
+    "eori_number":[free text], 
+    "sic_number":[free text],
+    "vat_number":[free text],
+    "registration_number":[free text],
+    "address":[free text],
+    "admin_user_email":[valid email address]            
+}
+</pre>
+
+
 Endpoints for retrieving, creating and updating organisations.
 <table>
     <tr>
@@ -157,7 +173,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>GET</td>
         <td>/organisations/</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: List of DTOs </td>
         <td>200</td>
         <td>Returns all organisations</td>
     </tr>
@@ -165,7 +181,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>GET</td>
         <td>/organisations/{id}</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: Single DTO</td>
         <td>200   <br>
             404
         <td>Returns details of a   <br>
@@ -175,18 +191,8 @@ Endpoints for retrieving, creating and updating organisations.
         <td>POST</td>
         <td>/organisations/</td>
         <td>?</td>
-        <td>
-        <pre>
-{
-  "name":[free text]
-  "eori_number":[free text], 
-  "sic_number":[free text],
-  "vat_number":[free text],
-  "registration_number":[free text],
-  "address":[free text],
-  "admin_user_email":[valid email address]            
-}
-        </pre>
+        <td> Request:  DTO Structure <br>
+        (without ID)
         </td>
         <td>200 <br> 422 </td>
         <td>Creates a organisation </td>
@@ -194,6 +200,23 @@ Endpoints for retrieving, creating and updating organisations.
 </table>
 
 ### Sites
+**Sites DTO Structure**
+<br> Needs Updating
+<pre>
+{
+    "name":[free text]
+        "address":{
+           'address_line_1':[free text],
+           'address_line_2':[free text],
+           'postcode':[free text],
+           'city':[free text],
+           'region':[free text],
+           'country':[free text]
+           }               
+}
+</pre>
+
+
 Endpoints for retrieving, creating and updating organisations.
 <table>
     <tr>
@@ -204,7 +227,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>GET</td>
         <td>/sites/</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: List of DTOs </td>
         <td>200</td>
         <td>Returns all sites belonging  <br>
          to the users organisation</td>
@@ -213,7 +236,7 @@ Endpoints for retrieving, creating and updating organisations.
         <td>GET</td>
         <td>/sites/{id}</td>
         <td>?</td>
-        <td>None</td>
+        <td>Request:  None <br> Response: Single DTO</td>
         <td>200   <br>
             404
         </td>
@@ -224,17 +247,8 @@ Endpoints for retrieving, creating and updating organisations.
         <td>POST</td>
         <td>/organisations/</td>
         <td>?</td>
-        <td><pre>{ <br> 
-                "name":[free text] <br>
-                "address":{ <br>
-                  &ensp 'address_line_1':[free text], <br>
-                  &ensp 'address_line_2':[free text], <br>
-                  &ensp 'postcode':[free text], <br>
-                  &ensp 'city':[free text], <br>
-                  &ensp 'region':[free text], <br>
-                  &ensp 'country':[free text] <br>
-                  &ensp }  <br>              
-            }</pre>
+        <td>Request:  DTO Structure <br>
+        (without ID)
         </td>
         <td>200 <br> 422 </td>
         <td>Creates a organisation </td>
