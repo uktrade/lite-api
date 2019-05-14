@@ -3,7 +3,7 @@
 ### Applications
 
 **Application DTO Structure**
-<br> Needs Updating
+<br> Last Updated 14/5/2019
 <pre>
 {
     "id": [UUID]
@@ -71,7 +71,7 @@ Endpoints for retrieving, creating and updating applications:
 
 ### Drafts
 **Draft DTO Structure**
-<br> Needs Updating
+<br> Last Updated 14/5/2019
 <pre>
 {
     "id":[UUID]
@@ -148,7 +148,7 @@ Endpoints for retrieving, creating and updating drafts.
 
 ### Organisations
 **Organisation DTO Structure**
-<br> Needs Updating
+<br> (Might Need Updating)
 <pre>
 {
     "id":[UUID]
@@ -201,7 +201,7 @@ Endpoints for retrieving, creating and updating organisations.
 
 ### Sites
 **Sites DTO Structure**
-<br> Needs Updating
+<br> Last Updated 14/5/2019
 <pre>
 {
     "name":[free text]
@@ -258,7 +258,7 @@ Endpoints for retrieving, creating and updating organisations.
 
 ### Queues
 **Queues DTO Structure**
-<br> Needs Updating
+<br> Last Updated 14/5/2019
 <pre>
 {
     "id":[UUID]
@@ -296,6 +296,15 @@ Endpoints for retrieving, creating and updating queues.
 </table>
 
 ### Users
+**Queues DTO Structure**
+<br> Last Updated 14/5/2019
+<pre>
+{             
+    "email":[valid email address] 
+    "password":[free text] 
+    "organisation":[foreign key]           
+}
+</pre>
 Endpoints for retrieving, creating and updating users.
 <table>
     <tr>
@@ -306,11 +315,7 @@ Endpoints for retrieving, creating and updating users.
         <td>POST</td>
         <td>/users/</td>
         <td>?</td>
-        <td>{ <br>            
-                "email":[valid email address] <br>
-                "password":[free text] <br>
-                "organisation":[foreign key] <br>          
-            }
+        <td>Request:  DTO Structure
         </td>
         <td>200 <br> 422 </td>
         <td>Creates a user </td>
