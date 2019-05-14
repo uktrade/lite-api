@@ -3,6 +3,7 @@
 ### Applications
 
 **Application DTO Structure**
+Needs Updating
 <pre>
 {
     "id": [UUID]
@@ -43,7 +44,7 @@ Endpoints for retrieving, creating and updating applications:
         <td>POST</td>
         <td>/applications/</td>
         <td>?</td>
-        <td>Request:  DTO Structure (without ID) <br>
+        <td>Request:  DTO Structure <br>
         </td>
         <td>200 <br> 422 </td>
         <td>Requires valid draft id <br>
@@ -52,17 +53,10 @@ Endpoints for retrieving, creating and updating applications:
     </tr>
     <tr>
         <td>PUT</td>
-        <td>/applications/</td>
+        <td>/applications/{id}</td>
         <td>?</td>
-        <td>all optional <br>
-            { <br>
-                "name":[free text]  <br>
-                "control_code":[free text]  <br>
-                "activity":[free text] <br>
-                "usage":[free text] <br>
-                "destination":[free text] <br>
-                "status":[enum of statuses] <br>
-            }
+        <td>Request:  DTO Structure <br>
+        (all elements optional except ID )       
         </td>
         <td>200 <br> 404 </td>
         <td>Updates the application <br>
@@ -75,6 +69,19 @@ Endpoints for retrieving, creating and updating applications:
 
 
 ### Drafts
+**Draft DTO Structure**
+<pre>
+{
+    "id":[UUID]
+    "name":[free text]
+    "control_code":[free text]
+    "activity":[free text]
+    "usage":[free text]
+    "destination":[free text]
+}
+</pre>
+
+
 Endpoints for retrieving, creating and updating drafts.
 
 <table>
