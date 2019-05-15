@@ -49,8 +49,8 @@ class Destination(models.Model):
     application = models.ForeignKey(Application, related_name='destinations', on_delete=models.CASCADE)
 
 
-# @reversion.register()
-# class SitesOnApplication(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     site = models.ForeignKey(Site, related_name='sites_on_application', on_delete=models.CASCADE)
-#     application = models.ForeignKey(Application, related_name='application_sites', on_delete=models.CASCADE)
+@reversion.register()
+class SitesOnApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    site = models.ForeignKey(Site, related_name='sites_on_application', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='application_sites', on_delete=models.CASCADE)
