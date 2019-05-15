@@ -65,17 +65,14 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
 
 class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
-    application = PrimaryKeyRelatedField(queryset=Site.objects.all())
+    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
         model = SitesOnApplication
         fields = ('id',
-                  'good',
-                  'draft',
-                  'quantity',
-                  'unit',
-                  'value')
+                  'site',
+                  'application')
 
 
 class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -83,7 +80,7 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
     application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
-        model = GoodOnApplication
+        model = SitesOnApplication
         fields = ('id',
                   'site',
                   'application')
