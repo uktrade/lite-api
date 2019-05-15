@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
+from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.models import Application, ApplicationStatuses, GoodOnApplication
+from applications.models import Application, ApplicationStatuses, GoodOnApplication, Site, SitesOnApplication
 from goods.serializers import GoodSerializer
+from organisations.serializers import SiteViewSerializer
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -60,3 +62,29 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
+
+
+class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
+    application = PrimaryKeyRelatedField(queryset=Site.objects.all())
+    site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = SitesOnApplication
+        fields = ('id',
+                  'good',
+                  'draft',
+                  'quantity',
+                  'unit',
+                  'value')
+
+
+class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
+    site = SiteViewSerializer(read_only=True)
+
+    class Meta:
+        model = GoodOnApplication
+        fields = ('id',
+                  'good',
+                  'quantity',
+                  'unit',
+                  'value')
