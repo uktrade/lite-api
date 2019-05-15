@@ -5,7 +5,7 @@ from enumchoicefield import ChoiceEnum, EnumChoiceField
 from drafts.models import Draft, GoodOnDraft, SitesOnDraft
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer
 from quantity.units import Units
 
