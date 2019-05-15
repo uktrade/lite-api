@@ -151,14 +151,56 @@ Endpoints for retrieving, creating and updating drafts.
 <br> (Might Need Updating)
 <pre>
 {
-    "id":[UUID]
-    "name":[free text]
+    "id":[UUID],
+    "name":[free text],
     "eori_number":[free text], 
     "sic_number":[free text],
     "vat_number":[free text],
     "registration_number":[free text],
     "address":[free text],
-    "admin_user_email":[valid email address]            
+    "admin_user_email":[valid email address],
+    "user": {             
+        "first_name":[free text], 
+        "last_name":[free text],
+        "email":[valid email address],
+        "password":[free text]
+	},
+    "site": {
+        "name":[free text],
+        "address":{
+            "address_line_1":[free text],
+            "postcode":[free text],
+            "city":[free text],
+            "region":[free text],
+            "country":[free text]   
+}
+</pre>
+<pre>
+{
+    "id":"UUID-24234",
+    "name":"Test Organisation",
+    "eori_number":"4646", 
+    "sic_number":"43636",
+    "vat_number":"43616",
+    "registration_number":"4536",
+    "address":"Random address string",
+    "admin_user_email":"admin@admin.admin",
+	"user":	{             
+        "first_name":"First", 
+        "last_name":"Last",
+        "email":"first@last.com",
+        "password":"secret32="
+    },
+    "site": {
+        "name":"Test Site",
+        "address":{
+            "address_line_1": "addresLine1",
+            "postcode":"AA1 2DD",
+            "city":"Cty",
+            "region":"reg",
+            "country":"UK"
+        }
+	}
 }
 </pre>
 
@@ -204,15 +246,15 @@ Endpoints for retrieving, creating and updating organisations.
 <br> Last Updated 14/5/2019
 <pre>
 {
-    "name":[free text]
-        "address":{
-           'address_line_1':[free text],
-           'address_line_2':[free text],
-           'postcode':[free text],
-           'city':[free text],
-           'region':[free text],
-           'country':[free text]
-           }               
+    "name":[free text],
+    "address":{
+        "address_line_1":[free text],
+        "address_line_2":[free text],
+        "postcode":[free text],
+        "city":[free text],
+        "region":[free text],
+        "country":[free text]
+    }               
 }
 </pre>
 
@@ -265,7 +307,7 @@ Endpoints for retrieving, creating and updating organisations.
     "name":[free text] 
     "cases":{
         "id":[UUID]
-        "application" : {
+        "application": {
                ...
         }
      }   
