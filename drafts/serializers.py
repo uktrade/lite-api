@@ -2,10 +2,11 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from enumchoicefield import ChoiceEnum, EnumChoiceField
 
-from drafts.models import Draft, GoodOnDraft
+from drafts.models import Draft, GoodOnDraft, SitesOnDraft
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
+from organisations.serializers import SiteViewSerializer
 from quantity.units import Units
 
 
@@ -80,3 +81,25 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'quantity',
                   'unit',
                   'value')
+
+
+class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
+    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = SitesOnDraft
+        fields = ('id',
+                  'site',
+                  'draft')
+
+
+class SiteOnDraftViewSerializer(serializers.ModelSerializer):
+    site = SiteViewSerializer(read_only=True, many=True)
+    draft = DraftBaseSerializer(read_only=True)
+
+    class Meta:
+        model = SitesOnDraft
+        fields = ('id',
+                  'site',
+                  'draft')

@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
-from applications.models import SitesOnApplication
+from drafts.libraries.get_draft import get_draft
+from drafts.models import SitesOnDraft
 from applications.libraries.get_application import get_application_by_pk
 from applications.serializers import SiteOnApplicationViewSerializer
 from conf.authentication import PkAuthentication
@@ -13,17 +13,17 @@ from organisations.libraries.get_site import get_site_by_pk
 from organisations.serializers import SiteViewSerializer
 
 
-class ApplicationSites(APIView):
+class DraftSites(APIView):
     """
     View sites belonging to an Application or add one
     """
     authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
-        application = get_application_by_pk(pk)
+        draft = get_draft(pk)
 
-        sites_on_application = SitesOnApplication.objects.filter(application=application)
-        serializer = SiteViewSerializer(sites_on_application, many=True)
+        sites_on_draft = SitesOnDraft.objects.filter(application=application)
+        serializer = SiteViewSerializer(sites_on_draft, many=True)
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)
 
@@ -31,9 +31,9 @@ class ApplicationSites(APIView):
         data = JSONParser().parse(request)
 
         data['site'] = data['site_id']
-        data['application'] = str(pk)
+        data['draft'] = str(pk)
 
-        get_application_by_pk(pk)                       # validate application object
+        get_draft(pk)                       # validate application object
         get_site_by_pk(pk)                              # validate site object
 
         with reversion.create_revision():
@@ -42,7 +42,7 @@ class ApplicationSites(APIView):
                 serializer.save()
 
                 reversion.set_user(request.user)
-                reversion.set_comment("Created Site on Application Revision")
+                reversion.set_comment("Created Site on Draft Revision")
 
                 return JsonResponse(data={'sites': serializer.data},
                                     status=status.HTTP_201_CREATED)

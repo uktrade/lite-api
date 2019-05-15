@@ -4,7 +4,7 @@ import uuid
 from django.db import models
 
 from goods.models import Good
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from quantity.units import Units
 
 
@@ -26,3 +26,9 @@ class GoodOnDraft(models.Model):
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = EnumChoiceField(enum_class=Units, default=Units.NAR)
     value = models.DecimalField(max_digits=256, decimal_places=2)
+
+
+class SitesOnDraft(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    site = models.ForeignKey(Site, related_name='sites_on_draft', on_delete=models.CASCADE)
+    draft = models.ForeignKey(Draft, related_name='draft_sites', on_delete=models.CASCADE)
