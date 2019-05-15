@@ -4,7 +4,7 @@
 ### Drafts
 **Draft DTO Structure**
 <br> Last Updated 15/5/2019
-requires USER-ID header
+<br> requires USER-ID header
 <pre>
 {
     "id":[UUID]
@@ -13,27 +13,6 @@ requires USER-ID header
     "activity":[free text]
     "usage":[free text]
     "destination":[free text]
-}
-</pre>
-example POST request:
-<pre>
-{
-    "id":"UUID-1111",
-    "name":"First sample draft",
-    "control_code":"test1",
-    "activity":"test2",
-    "usage":"test3",
-    "destination":"test4"
-}
-</pre>
-sample POST response:
-<pre>
-{
-  "draft": {
-    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
-    "name": "First sample draft",
-    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331"
-  }
 }
 </pre>
 
@@ -99,10 +78,97 @@ Endpoints for retrieving, creating and updating drafts.
     </tr>
 </table>
 
+example POST /drafts/:
+<pre>
+{
+    "name":"First sample draft",
+    "control_code":"test1",
+    "activity":"test2",
+    "usage":"test3",
+    "destination":"test4"
+}
+</pre>
+sample POST /drafts/ response:
+<pre>
+{
+  "draft": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First sample draft",
+    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331"
+  }
+}
+</pre>
+sample GET /drafts/ response:
+<pre>
+{
+  "drafts": [
+    {
+      "id": "e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4",
+      "name": "Second sample draft",
+      "activity": null,
+      "destination": null,
+      "usage": null,
+      "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+      "created_at": "2019-05-15T14:43:59Z",
+      "last_modified_at": "2019-05-15T14:43:59Z"
+    }
+  ]
+}
+</pre>
+sample GET /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4 response:
+<pre>
+{
+  "draft": {
+    "id": "e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4",
+    "name": "Second sample draft",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+    "created_at": "2019-05-15T14:43:59Z",
+    "last_modified_at": "2019-05-15T14:43:59Z"
+  }
+}
+</pre>
+sample PUT /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4/ request:
+<pre>
+{
+	"name": "Renamed name"
+}
+</pre>
+sample PUT /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4/ response:
+<pre>
+{
+  "draft": {
+    "id": "e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4",
+    "name": "Renamed name",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+    "created_at": "2019-05-15T14:43:59Z",
+    "last_modified_at": "2019-05-15T14:43:59Z"
+  }
+}
+</pre>
+sample DELETE /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4/ response:
+<pre>
+{
+  "status": "Draft Deleted"
+}
+</pre>
+sample GET /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4 response:
+<pre>
+{
+  "detail": "Not found."
+}
+</pre>
+
 ### Applications
 
 **Application DTO Structure**
-<br> Last Updated 14/5/2019
+<br> Last Updated 15/5/2019
+<br> requires USER-ID header
 <pre>
 {
     "id": [UUID]
@@ -112,29 +178,6 @@ Endpoints for retrieving, creating and updating drafts.
     "usage":[free text]
     "destination":[free text]
     "status":[enum of statuses]
-}
-</pre>
-example POST request:
-<pre>
-{
-	"id":"7ece1b1d-453c-440b-b877-1e337c66839a"
-}
-</pre>
-sample POST response:
-<pre>
-{
-  "application": {
-    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
-    "name": "First sample draft",
-    "activity": null,
-    "destination": null,
-    "usage": null,
-    "goods": [],
-    "created_at": "2019-05-15T14:34:55Z",
-    "last_modified_at": "2019-05-15T14:34:55Z",
-    "submitted_at": "2019-05-15T14:34:55Z",
-    "status": "submitted"
-  }
 }
 </pre>
 
@@ -190,6 +233,90 @@ Endpoints for retrieving, creating and updating applications:
             destination, status.</td>
 </table>
 
+sample GET /applications/ response:
+<pre>
+{
+  "applications": [
+    {
+      "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+      "name": "First sample draft",
+      "activity": null,
+      "destination": null,
+      "usage": null,
+      "goods": [],
+      "created_at": "2019-05-15T14:34:55Z",
+      "last_modified_at": "2019-05-15T14:34:55Z",
+      "submitted_at": "2019-05-15T14:34:55Z",
+      "status": "submitted"
+    }
+  ]
+}
+</pre>
+sample GET /applications/7ece1b1d-453c-440b-b877-1e337c66839a response:
+<pre>
+{
+  "status": "success",
+  "application": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First sample draft",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "goods": [],
+    "created_at": "2019-05-15T14:34:55Z",
+    "last_modified_at": "2019-05-15T14:34:55Z",
+    "submitted_at": "2019-05-15T14:34:55Z",
+    "status": "submitted"
+  }
+}
+</pre>
+example POST /applications/ request:
+<pre>
+{
+	"id":"7ece1b1d-453c-440b-b877-1e337c66839a"
+}
+</pre>
+sample POST /applications/ response:
+<pre>
+{
+  "application": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First sample draft",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "goods": [],
+    "created_at": "2019-05-15T14:34:55Z",
+    "last_modified_at": "2019-05-15T14:34:55Z",
+    "submitted_at": "2019-05-15T14:34:55Z",
+    "status": "submitted"
+  }
+}
+</pre>
+example PUT /applications/7ece1b1d-453c-440b-b877-1e337c66839a/ request:
+<pre>
+{
+	"name":"First renamed"
+}
+</pre>
+example PUT /applications/7ece1b1d-453c-440b-b877-1e337c66839a/ response:
+<pre>
+{
+  "application": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First renamed",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "goods": [],
+    "created_at": "2019-05-15T14:34:55Z",
+    "last_modified_at": "2019-05-15T14:34:55Z",
+    "submitted_at": "2019-05-15T14:34:55Z",
+    "status": "submitted"
+  }
+}
+</pre>
+
 ### Organisations
 **Organisation DTO Structure**
 <pre>
@@ -200,7 +327,6 @@ Endpoints for retrieving, creating and updating applications:
     "sic_number":[free text],
     "vat_number":[free text],
     "registration_number":[free text],
-    "address":[free text],
     "admin_user_email":[valid email address],
     "user": {             
         "first_name":[free text], 
@@ -220,7 +346,7 @@ Endpoints for retrieving, creating and updating applications:
     }
 }
 </pre>
-example POST request:
+example POST /organisations/ request:
 <pre>
 {
     "id":"UUID-24234",
@@ -229,7 +355,6 @@ example POST request:
     "sic_number":"43636",
     "vat_number":"43616",
     "registration_number":"4536",
-    "address":"Random address string",
     "admin_user_email":"admin@admin.admin",
 	"user":	{             
         "first_name":"First", 
@@ -247,21 +372,6 @@ example POST request:
             "country":"UK"
         }
     }
-}
-</pre>
-sample POST response:
-<pre>
-{
-  "organisation": {
-    "id": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
-    "name": "Luke's test",
-    "eori_number": "4646",
-    "sic_number": "43636",
-    "vat_number": "43636",
-    "registration_number": "4536",
-    "created_at": "2019-05-15T12:50:35.140974Z",
-    "last_modified_at": "2019-05-15T12:50:35.141005Z"
-  }
 }
 </pre>
 
@@ -300,6 +410,80 @@ Endpoints for retrieving, creating and updating organisations.
         <td>Creates a organisation </td>
     </tr>
 </table>
+
+sample POST /organisations/ response:
+<pre>
+{
+  "organisation": {
+    "id": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+    "name": "Luke's test",
+    "eori_number": "4646",
+    "sic_number": "43636",
+    "vat_number": "43636",
+    "registration_number": "4536",
+    "created_at": "2019-05-15T12:50:35.140974Z",
+    "last_modified_at": "2019-05-15T12:50:35.141005Z"
+  }
+}
+</pre>
+sample GET /organisations/ response:
+<pre>
+{
+  "organisations": [
+    {
+      "id": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+      "name": "Luke's test",
+      "eori_number": "4646",
+      "sic_number": "43636",
+      "vat_number": "43636",
+      "registration_number": "4536",
+      "primary_site": {
+        "id": "921104c6-cca9-4e3e-8e3c-b9d49528ab77",
+        "name": "Test Site",
+        "address": {
+          "id": "d15ab319-9147-42ed-be5c-3a373ca78852",
+          "address_line_1": "addresLine1",
+          "address_line_2": null,
+          "postcode": "AA1 2DD",
+          "city": "Cty",
+          "region": "reg",
+          "country": "UK"
+        }
+      },
+      "created_at": "2019-05-15T12:50:35.140974Z",
+      "last_modified_at": "2019-05-15T12:50:35.141005Z"
+    }
+  ]
+}
+</pre>
+sample GET /organisations/71f3da6b-7b89-4ffc-9d60-a17f8036f331 response:
+<pre>
+{
+  "organisation": {
+    "id": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+    "name": "Luke's test",
+    "eori_number": "4646",
+    "sic_number": "43636",
+    "vat_number": "43636",
+    "registration_number": "4536",
+    "primary_site": {
+      "id": "921104c6-cca9-4e3e-8e3c-b9d49528ab77",
+      "name": "Test Site",
+      "address": {
+        "id": "d15ab319-9147-42ed-be5c-3a373ca78852",
+        "address_line_1": "addresLine1",
+        "address_line_2": null,
+        "postcode": "AA1 2DD",
+        "city": "Cty",
+        "region": "reg",
+        "country": "UK"
+      }
+    },
+    "created_at": "2019-05-15T12:50:35.140974Z",
+    "last_modified_at": "2019-05-15T12:50:35.141005Z"
+  }
+}
+</pre>
 
 ### Sites
 **Sites DTO Structure**
@@ -373,6 +557,31 @@ Endpoints for retrieving, creating and updating organisations.
      }   
 }
 </pre>
+
+Endpoints for retrieving, creating and updating queues.
+<table>
+    <tr>
+        <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th><th>Details</th>
+    </tr>
+    <!–– Queues ––>
+    <tr>
+        <td>GET</td>
+        <td>/queues/</td>
+        <td>?</td>
+        <td>None</td>
+        <td>200</td>
+        <td>Returns all queues</td>
+    </tr>
+    <tr>
+        <td>GET</td>
+        <td>/queues/{id}</td>
+        <td>?</td>
+        <td>None</td>
+        <td>200 <br> 422 </td>
+        <td>Returns a specific queue</td>
+    </tr>
+</table>
+
 sample GET /queues/ response
 <pre>
 {
@@ -429,29 +638,6 @@ sample GET /queues/00000000-0000-0000-0000-000000000001 response
   }
 }
 </pre>
-Endpoints for retrieving, creating and updating queues.
-<table>
-    <tr>
-        <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th><th>Details</th>
-    </tr>
-    <!–– Queues ––>
-    <tr>
-        <td>GET</td>
-        <td>/queues/</td>
-        <td>?</td>
-        <td>None</td>
-        <td>200</td>
-        <td>Returns all queues</td>
-    </tr>
-    <tr>
-        <td>GET</td>
-        <td>/queues/{id}</td>
-        <td>?</td>
-        <td>None</td>
-        <td>200 <br> 422 </td>
-        <td>Returns a specific queue</td>
-    </tr>
-</table>
 
 ### Users
 **Queues DTO Structure**
