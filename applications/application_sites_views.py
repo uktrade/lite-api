@@ -43,9 +43,9 @@ class ApplicationSites(APIView):
                 serializer.save()
 
                 reversion.set_user(request.user)
-                reversion.set_comment("Created Good on Draft Revision")
+                reversion.set_comment("Created Site on Application Revision")
 
-                return JsonResponse(data={'good': serializer.data},
+                return JsonResponse(data={'site_on_application': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},

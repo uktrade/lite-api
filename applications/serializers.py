@@ -79,12 +79,11 @@ class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
 
 
 class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
-    site = SiteViewSerializer(read_only=True)
+    site = SiteViewSerializer(read_only=True, many=True)
+    application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
         model = GoodOnApplication
         fields = ('id',
-                  'good',
-                  'quantity',
-                  'unit',
-                  'value')
+                  'site',
+                  'application')
