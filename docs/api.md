@@ -1,77 +1,10 @@
 ## API Reference
 
-### Applications
-
-**Application DTO Structure**
-<br> Last Updated 14/5/2019
-<pre>
-{
-    "id": [UUID]
-    "name":[free text] 
-    "control_code":[free text] 
-    "activity":[free text]
-    "usage":[free text]
-    "destination":[free text]
-    "status":[enum of statuses]
-}
-</pre>
-
-Endpoints for retrieving, creating and updating applications:
-
-<table>
-    <tr>
-        <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th>
-        <th max-width: 30px >Details</th>
-    </tr>
-    <!–– Applications ––>
-    <tr>
-        <td>GET</td>
-        <td>/applications/</td>
-        <td>?</td>
-        <td>Request:  None <br> Response: List of DTOs </td>
-        <td>200</td>
-        <td>Returns all applications</td>
-    </tr>
-    <tr>
-        <td>GET</td>
-        <td>/applications/{id}/</td>
-        <td>?</td>
-        <td>Request:  None <br> Response: Single DTO </td>
-        <td>200 <br> 404 </td>
-        <td>returns application with given id</td>
-    </tr>
-    <tr>
-        <td>POST</td>
-        <td>/applications/</td>
-        <td>?</td>
-        <td>Request:  DTO Structure <br>
-        (with valid draft id)
-        </td>
-        <td>200 <br> 422 </td>
-        <td>Requires valid draft id <br>
-            Submits application with aforementioned id <br>
-        </td>
-    </tr>
-    <tr>
-        <td>PUT</td>
-        <td>/applications/{id}</td>
-        <td>?</td>
-        <td>Request:  DTO Structure <br>
-        (all elements optional except ID )       
-        </td>
-        <td>200 <br> 404 </td>
-        <td>Updates the application <br>
-            with application_id <br>
-            with any combination of <br>
-            the updatable fields: name, <br>
-            control_code, activity, usage,  <br>
-            destination, status.</td>
-</table>
-
 
 ### Drafts
 **Draft DTO Structure**
-<br> Last Updated 14/5/2019
+<br> Last Updated 15/5/2019
+requires USER-ID header
 <pre>
 {
     "id":[UUID]
@@ -82,7 +15,27 @@ Endpoints for retrieving, creating and updating applications:
     "destination":[free text]
 }
 </pre>
-
+example POST request:
+<pre>
+{
+    "id":"UUID-1111",
+    "name":"First sample draft",
+    "control_code":"test1",
+    "activity":"test2",
+    "usage":"test3",
+    "destination":"test4"
+}
+</pre>
+sample POST response:
+<pre>
+{
+  "draft": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First sample draft",
+    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331"
+  }
+}
+</pre>
 
 Endpoints for retrieving, creating and updating drafts.
 
@@ -146,9 +99,99 @@ Endpoints for retrieving, creating and updating drafts.
     </tr>
 </table>
 
+### Applications
+
+**Application DTO Structure**
+<br> Last Updated 14/5/2019
+<pre>
+{
+    "id": [UUID]
+    "name":[free text] 
+    "control_code":[free text] 
+    "activity":[free text]
+    "usage":[free text]
+    "destination":[free text]
+    "status":[enum of statuses]
+}
+</pre>
+example POST request:
+<pre>
+{
+	"id":"7ece1b1d-453c-440b-b877-1e337c66839a"
+}
+</pre>
+sample POST response:
+<pre>
+{
+  "application": {
+    "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+    "name": "First sample draft",
+    "activity": null,
+    "destination": null,
+    "usage": null,
+    "goods": [],
+    "created_at": "2019-05-15T14:34:55Z",
+    "last_modified_at": "2019-05-15T14:34:55Z",
+    "submitted_at": "2019-05-15T14:34:55Z",
+    "status": "submitted"
+  }
+}
+</pre>
+
+Endpoints for retrieving, creating and updating applications:
+
+<table>
+    <tr>
+        <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th>
+        <th max-width: 30px >Details</th>
+    </tr>
+    <!–– Applications ––>
+    <tr>
+        <td>GET</td>
+        <td>/applications/</td>
+        <td>?</td>
+        <td>Request:  None <br> Response: List of DTOs </td>
+        <td>200</td>
+        <td>Returns all applications</td>
+    </tr>
+    <tr>
+        <td>GET</td>
+        <td>/applications/{id}/</td>
+        <td>?</td>
+        <td>Request:  None <br> Response: Single DTO </td>
+        <td>200 <br> 404 </td>
+        <td>returns application with given id</td>
+    </tr>
+    <tr>
+        <td>POST *parse exception*</td>
+        <td>/applications/</td>
+        <td>?</td>
+        <td>Request:  DTO Structure <br>
+        (with valid draft id)
+        </td>
+        <td>200 <br> 422 </td>
+        <td>Requires valid draft id <br>
+            Submits application with aforementioned id <br>
+        </td>
+    </tr>
+    <tr>
+        <td>PUT</td>
+        <td>/applications/{id}</td>
+        <td>?</td>
+        <td>Request:  DTO Structure <br>
+        (all elements optional except ID )       
+        </td>
+        <td>200 <br> 404 </td>
+        <td>Updates the application <br>
+            with application_id <br>
+            with any combination of <br>
+            the updatable fields: name, <br>
+            control_code, activity, usage,  <br>
+            destination, status.</td>
+</table>
+
 ### Organisations
 **Organisation DTO Structure**
-<br> (Might Need Updating)
 <pre>
 {
     "id":[UUID],
@@ -172,9 +215,12 @@ Endpoints for retrieving, creating and updating drafts.
             "postcode":[free text],
             "city":[free text],
             "region":[free text],
-            "country":[free text]   
+            "country":[free text]
+        }
+    }
 }
 </pre>
+example POST request:
 <pre>
 {
     "id":"UUID-24234",
@@ -200,10 +246,24 @@ Endpoints for retrieving, creating and updating drafts.
             "region":"reg",
             "country":"UK"
         }
-	}
+    }
 }
 </pre>
-
+sample POST response:
+<pre>
+{
+  "organisation": {
+    "id": "71f3da6b-7b89-4ffc-9d60-a17f8036f331",
+    "name": "Luke's test",
+    "eori_number": "4646",
+    "sic_number": "43636",
+    "vat_number": "43636",
+    "registration_number": "4536",
+    "created_at": "2019-05-15T12:50:35.140974Z",
+    "last_modified_at": "2019-05-15T12:50:35.141005Z"
+  }
+}
+</pre>
 
 Endpoints for retrieving, creating and updating organisations.
 <table>
@@ -311,6 +371,62 @@ Endpoints for retrieving, creating and updating organisations.
                ...
         }
      }   
+}
+</pre>
+sample GET /queues/ response
+<pre>
+{
+  "status": "success",
+  "queues": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "New Cases",
+      "cases": [
+        {
+          "id": "eb183b02-71ad-47db-a9ef-0bbf6ffcc665",
+          "application": {
+            "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+            "name": "First sample draft",
+            "activity": null,
+            "destination": null,
+            "usage": null,
+            "goods": [],
+            "created_at": "2019-05-15T14:34:55Z",
+            "last_modified_at": "2019-05-15T14:34:55Z",
+            "submitted_at": "2019-05-15T14:34:55Z",
+            "status": "submitted"
+          }
+        }
+      ]
+    }
+  ]
+}
+</pre>
+sample GET /queues/00000000-0000-0000-0000-000000000001 response
+<pre>
+{
+  "status": "success",
+  "queue": {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "name": "New Cases",
+    "cases": [
+      {
+        "id": "eb183b02-71ad-47db-a9ef-0bbf6ffcc665",
+        "application": {
+          "id": "7ece1b1d-453c-440b-b877-1e337c66839a",
+          "name": "First sample draft",
+          "activity": null,
+          "destination": null,
+          "usage": null,
+          "goods": [],
+          "created_at": "2019-05-15T14:34:55Z",
+          "last_modified_at": "2019-05-15T14:34:55Z",
+          "submitted_at": "2019-05-15T14:34:55Z",
+          "status": "submitted"
+        }
+      }
+    ]
+  }
 }
 </pre>
 Endpoints for retrieving, creating and updating queues.
