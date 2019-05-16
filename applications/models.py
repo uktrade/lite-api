@@ -8,7 +8,7 @@ from organisations.models import Organisation
 from quantity.units import Units
 
 
-class ApplicationStatuses(ChoiceEnum):
+class ApplicationStatus(ChoiceEnum):
     submitted = "Submitted"
     more_information_required = "More information required"
     under_review = "Under review"
@@ -16,6 +16,17 @@ class ApplicationStatuses(ChoiceEnum):
     withdrawn = "Withdrawn"
     approved = "Approved"
     declined = "Declined"
+
+
+class LicenseType(ChoiceEnum):
+    standard = "Standard"
+    open = "Open"
+    dont_know = "Don't know"
+
+
+class ExportType(ChoiceEnum):
+    permanent = "Permanent"
+    temporary = "Temporary"
 
 
 @reversion.register()
@@ -29,7 +40,10 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = EnumChoiceField(enum_class=ApplicationStatuses, default=ApplicationStatuses.submitted)
+    status = EnumChoiceField(enum_class=ApplicationStatus, default=ApplicationStatus.submitted)
+    license_type = EnumChoiceField(enum_class=LicenseType, default=LicenseType.dont_know)
+    export_type = EnumChoiceField(enum_class=ExportType, blank=True, null=True)
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
 
 
 @reversion.register()
