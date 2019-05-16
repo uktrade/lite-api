@@ -5,8 +5,6 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
-from quantity.units import Units
-
 
 class DraftTests(APITestCase, URLPatternsTestCase):
 

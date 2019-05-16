@@ -55,4 +55,4 @@ class SitesOnDraftTests(APITestCase, URLPatternsTestCase):
         url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)
-        self.assertEqual(len(response_data["sites"]), 1)
+        self.assertEqual(len(response_data["sites"]), 2)

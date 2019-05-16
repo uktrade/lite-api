@@ -35,6 +35,7 @@ class DraftSites(APIView):
         data['draft'] = str(pk)
 
         get_draft(pk)                                   # validate draft object
+        response_data = []
 
         for site in sites:
             get_site_by_pk(site)                        # validate site object
@@ -44,12 +45,12 @@ class DraftSites(APIView):
                 serializer = SiteOnDraftBaseSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-
                     reversion.set_user(request.user)
                     reversion.set_comment("Created Site on Draft Revision")
+                    response_data.append(serializer.data)
+                else:
+                    return JsonResponse(data={'errors': serializer.errors},
+                                        status=400)
 
-                    return JsonResponse(data={'sites': serializer.data},
-                                        status=status.HTTP_201_CREATED)
-
-                return JsonResponse(data={'errors': serializer.errors},
-                                    status=400)
+        return JsonResponse(data={'sites': response_data},
+                            status=status.HTTP_201_CREATED)
