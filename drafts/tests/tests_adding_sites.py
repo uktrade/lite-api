@@ -34,3 +34,28 @@ class SitesOnDraftTests(APITestCase, URLPatternsTestCase):
         url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data["sites"]), 1)
+
+    def test_multiple_sites_to_a_draft(self):
+        org = self.test_helper.organisation
+        draft = OrgAndUserHelper.complete_draft('Goods test', org)
+        # good = OrgAndUserHelper.create_controlled_good('A good', org)
+        site, address = OrgAndUserHelper.create_site('site2', org)
+
+        data = {
+            'draft_id': draft.id,
+            'site_id': site.id,
+        }
+
+        url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data["sites"]), 1)

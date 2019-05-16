@@ -23,8 +23,8 @@ class DraftSites(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_on_draft = SitesOnDraft.objects.filter(application=application)
-        serializer = SiteViewSerializer(sites_on_draft, many=True)
+        sites_on_draft = SitesOnDraft.objects.filter(draft=draft)
+        serializer = SiteOnDraftViewSerializer(sites_on_draft, many=True)
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)
 

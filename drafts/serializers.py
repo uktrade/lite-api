@@ -95,7 +95,7 @@ class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
 
 
 class SiteOnDraftViewSerializer(serializers.ModelSerializer):
-    site = SiteViewSerializer(read_only=True, many=True)
+    site = SiteViewSerializer(read_only=True)
     draft = DraftBaseSerializer(read_only=True)
 
     class Meta:
