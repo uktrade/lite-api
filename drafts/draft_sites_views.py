@@ -9,6 +9,7 @@ from drafts.models import SitesOnDraft
 from applications.libraries.get_application import get_application_by_pk
 from applications.serializers import SiteOnApplicationViewSerializer
 from conf.authentication import PkAuthentication
+from drafts.serializers import SiteOnDraftViewSerializer, SiteOnDraftBaseSerializer
 from organisations.libraries.get_site import get_site_by_pk
 from organisations.serializers import SiteViewSerializer
 
@@ -33,11 +34,11 @@ class DraftSites(APIView):
         data['site'] = data['site_id']
         data['draft'] = str(pk)
 
-        get_draft(pk)                       # validate application object
-        get_site_by_pk(pk)                              # validate site object
+        get_draft(pk)                                   # validate draft object
+        get_site_by_pk(data['site'])                    # validate site object
 
         with reversion.create_revision():
-            serializer = SiteOnApplicationViewSerializer(data=data)
+            serializer = SiteOnDraftBaseSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
 
