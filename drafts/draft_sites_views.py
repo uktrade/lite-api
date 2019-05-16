@@ -31,22 +31,25 @@ class DraftSites(APIView):
     def post(self, request, pk):
         data = JSONParser().parse(request)
 
-        data['site'] = data['site_id']
+        sites = data['sites']
         data['draft'] = str(pk)
 
         get_draft(pk)                                   # validate draft object
-        get_site_by_pk(data['site'])                    # validate site object
 
-        with reversion.create_revision():
-            serializer = SiteOnDraftBaseSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
+        for site in sites:
+            get_site_by_pk(site)                        # validate site object
+            data['site'] = site
 
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Site on Draft Revision")
+            with reversion.create_revision():
+                serializer = SiteOnDraftBaseSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
 
-                return JsonResponse(data={'sites': serializer.data},
-                                    status=status.HTTP_201_CREATED)
+                    reversion.set_user(request.user)
+                    reversion.set_comment("Created Site on Draft Revision")
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+                    return JsonResponse(data={'sites': serializer.data},
+                                        status=status.HTTP_201_CREATED)
+
+                return JsonResponse(data={'errors': serializer.errors},
+                                    status=400)

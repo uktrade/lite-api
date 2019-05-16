@@ -23,12 +23,10 @@ class SitesOnDraftTests(APITestCase, URLPatternsTestCase):
     def test_add_a_site_to_a_draft(self):
         org = self.test_helper.organisation
         draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        # good = OrgAndUserHelper.create_controlled_good('A good', org)
         site, address = OrgAndUserHelper.create_site('site2', org)
 
         data = {
-            'draft_id': draft.id,
-            'site_id': site.id,
+            'sites': [site.id],
         }
 
         url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
@@ -42,13 +40,12 @@ class SitesOnDraftTests(APITestCase, URLPatternsTestCase):
 
     def test_multiple_sites_to_a_draft(self):
         org = self.test_helper.organisation
+        primary_site = org.primary_site
         draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        # good = OrgAndUserHelper.create_controlled_good('A good', org)
-        site, address = OrgAndUserHelper.create_site('site2', org)
+        site2, address = OrgAndUserHelper.create_site('site2', org)
 
         data = {
-            'draft_id': draft.id,
-            'site_id': site.id,
+            'sites': [primary_site.id, site2.id]
         }
 
         url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
