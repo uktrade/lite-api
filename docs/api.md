@@ -345,35 +345,6 @@ example PUT /applications/7ece1b1d-453c-440b-b877-1e337c66839a/ response:
         }
     }
 }
-</pre>
-example POST /organisations/ request:
-<pre>
-{
-    "id":"UUID-24234",
-    "name":"Test Organisation",
-    "eori_number":"4646", 
-    "sic_number":"43636",
-    "vat_number":"43616",
-    "registration_number":"4536",
-    "admin_user_email":"admin@admin.admin",
-	"user":	{             
-        "first_name":"First", 
-        "last_name":"Last",
-        "email":"first@last.com",
-        "password":"secret32="
-    },
-    "site": {
-        "name":"Test Site",
-        "address":{
-            "address_line_1": "addresLine1",
-            "postcode":"AA1 2DD",
-            "city":"Cty",
-            "region":"reg",
-            "country":"UK"
-        }
-    }
-}
-</pre>
 
 Endpoints for retrieving, creating and updating organisations.
 <table>
@@ -411,6 +382,35 @@ Endpoints for retrieving, creating and updating organisations.
     </tr>
 </table>
 
+</pre>
+example POST /organisations/ request:
+<pre>
+{
+    "id":"UUID-24234",
+    "name":"Test Organisation",
+    "eori_number":"4646", 
+    "sic_number":"43636",
+    "vat_number":"43616",
+    "registration_number":"4536",
+    "admin_user_email":"admin@admin.admin",
+	"user":	{             
+        "first_name":"First", 
+        "last_name":"Last",
+        "email":"first@last.com",
+        "password":"secret32="
+    },
+    "site": {
+        "name":"Test Site",
+        "address":{
+            "address_line_1": "addresLine1",
+            "postcode":"AA1 2DD",
+            "city":"Cty",
+            "region":"reg",
+            "country":"UK"
+        }
+    }
+}
+</pre>
 sample POST /organisations/ response:
 <pre>
 {
@@ -511,7 +511,7 @@ Endpoints for retrieving, creating and updating organisations.
     <!–– Sites ––>
     <tr>
         <td>GET</td>
-        <td>/sites/</td>
+        <td>/organisations/sites/</td>
         <td>?</td>
         <td>Request:  None <br> Response: List of DTOs </td>
         <td>200</td>
@@ -520,7 +520,7 @@ Endpoints for retrieving, creating and updating organisations.
     </tr>
     <tr>
         <td>GET</td>
-        <td>/sites/{id}</td>
+        <td>/organisations/sites/{id}</td>
         <td>?</td>
         <td>Request:  None <br> Response: Single DTO</td>
         <td>200   <br>
@@ -539,8 +539,71 @@ Endpoints for retrieving, creating and updating organisations.
         <td>200 <br> 422 </td>
         <td>Creates a organisation </td>
     </tr>
-
 </table>
+error 500 on PUT /organisations/sites/921104c6-cca9-4e3e-8e3c-b9d49528ab77/<br />
+sample GET /organisations/sites/ response
+<pre>
+{
+  "sites": [
+    {
+      "id": "921104c6-cca9-4e3e-8e3c-b9d49528ab77",
+      "name": "Test Site",
+      "address": {
+        "id": "d15ab319-9147-42ed-be5c-3a373ca78852",
+        "address_line_1": "addresLine1",
+        "address_line_2": null,
+        "postcode": "AA1 2DD",
+        "city": "Cty",
+        "region": "reg",
+        "country": "UK"
+      }
+    }
+  ]
+}
+</pre>
+sample GET /organisations/sites/921104c6-cca9-4e3e-8e3c-b9d49528ab77/ response
+<pre>
+{
+  "site": {
+    "id": "921104c6-cca9-4e3e-8e3c-b9d49528ab77",
+    "name": "Test Site",
+    "address": {
+      "id": "d15ab319-9147-42ed-be5c-3a373ca78852",
+      "address_line_1": "addresLine1",
+      "address_line_2": null,
+      "postcode": "AA1 2DD",
+      "city": "Cty",
+      "region": "reg",
+      "country": "UK"
+    }
+  }
+}
+</pre>
+sample POST /organisations/sites/ request:
+<pre>
+{
+	"name": "Test Site 2",
+	"address": {
+		"id": "d15ab319-9147-42ed-be5c-3a373ca78852",
+		"address_line_1": "addresLine1",
+		"address_line_2": null,
+		"postcode": "AA1 2DD",
+		"city": "Cty",
+		"region": "reg",
+		"country": "UK"
+	}
+}
+</pre>
+sample POST /organisations/sites/ response:
+<pre>
+{
+  "site": {
+    "id": "433b8cd8-b1c9-4eb1-a4df-9b5099061950",
+    "name": "Test Site 2",
+    "organisation": "71f3da6b-7b89-4ffc-9d60-a17f8036f331"
+  }
+}
+</pre>
 
 ### Queues
 **Queues DTO Structure**
