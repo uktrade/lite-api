@@ -18,8 +18,8 @@ class Draft(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
-    licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType])
-    export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType])
+    licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType], default=None)
+    export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType], default=None)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
 
 
