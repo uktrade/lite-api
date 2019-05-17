@@ -56,3 +56,23 @@ class SitesOnDraftTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["sites"]), 2)
+
+    def test_user_cannot_add_another_organisations_site_to_a_draft(self):
+        org2 = OrgAndUserHelper(name='organisation2')
+        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        site_org2 = org2.primary_site
+
+        data = {
+            'sites': [site_org2.id],
+        }
+
+        url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
+        response = self.client.post(url, data, format='json', **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        url = reverse('drafts:draft_sites', kwargs={'pk': draft.id})
+        response = self.client.get(url, **self.headers)
+        response_data = json.loads(response.content)
+        self.assertEqual(len(response_data["sites"]), 0)
+
+
