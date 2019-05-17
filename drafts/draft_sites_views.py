@@ -17,7 +17,7 @@ from organisations.serializers import SiteViewSerializer
 
 class DraftSites(APIView):
     """
-    View sites belonging to a draft or add one
+    View sites belonging to a draft or add them
     """
     authentication_classes = (PkAuthentication,)
 
@@ -27,8 +27,7 @@ class DraftSites(APIView):
         sites_ids = SitesOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)
-        return JsonResponse(data={'sites': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'sites': serializer.data})
 
     @transaction.atomic
     def post(self, request, pk):
