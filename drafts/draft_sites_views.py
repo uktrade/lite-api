@@ -5,28 +5,28 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
 from drafts.models import SitesOnDraft
-from applications.libraries.get_application import get_application_by_pk
-from applications.serializers import SiteOnApplicationViewSerializer
-from conf.authentication import PkAuthentication
 from drafts.serializers import SiteOnDraftViewSerializer, SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
-from organisations.libraries.get_site import get_site_by_pk, get_site_with_organisation
+from organisations.libraries.get_site import get_site_with_organisation
+from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 
 
 class DraftSites(APIView):
     """
-    View sites belonging to an Application or add one
+    View sites belonging to a draft or add one
     """
     authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_on_draft = SitesOnDraft.objects.filter(draft=draft)
-        serializer = SiteOnDraftViewSerializer(sites_on_draft, many=True)
+        sites_ids = SitesOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
+        sites = Site.objects.filter(id__in=sites_ids)
+        serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)
 
@@ -37,12 +37,12 @@ class DraftSites(APIView):
         sites = data['sites']
         data['draft'] = str(pk)
 
-        get_draft(pk)                                            # validate draft object
+        get_draft(pk)  # validate draft object
         response_data = []
 
         for site in sites:
             organisation = get_organisation_by_user(request.user)
-            get_site_with_organisation(site, organisation)       # validate site belongs to user/organisation
+            get_site_with_organisation(site, organisation)   # validate site belongs to user/organisation
             data['site'] = site
 
             with reversion.create_revision():
