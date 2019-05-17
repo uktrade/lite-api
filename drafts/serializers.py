@@ -1,13 +1,12 @@
+from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from enumchoicefield import ChoiceEnum, EnumChoiceField
 
-from applications.models import LicenseType, ExportType
+from applications.models import ExportType, LicenceType
 from drafts.models import Draft, GoodOnDraft
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
-from quantity.units import Units
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -24,19 +23,23 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'organisation',
                   'created_at',
                   'last_modified_at',
-                  'license_type',
+                  'licence_type',
                   'export_type',
                   'reference_number_on_information_form',)
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
-    name = serializers.CharField()
+    licence_type = EnumChoiceField(enum_class=LicenceType)
+    export_type = EnumChoiceField(enum_class=ExportType)
+    reference_number_on_information_form = serializers.CharField(required=False)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = Draft
         fields = ('id',
-                  'name',
+                  'licence_type',
+                  'export_type',
+                  'reference_number_on_information_form',
                   'organisation')
 
 
@@ -45,7 +48,6 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     usage = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
-    license_type = EnumChoiceField(enum_class=LicenseType)
     export_type = EnumChoiceField(enum_class=ExportType)
     reference_number_on_information_form = serializers.CharField()
 
@@ -57,7 +59,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
         instance.destination = validated_data.get('destination', instance.destination)
-        instance.license_type = validated_data.get('license_type', instance.license_type)
+        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
         instance.export_type = validated_data.get('export_type', instance.export_type)
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)

@@ -3,7 +3,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import LicenseType, ExportType
+from applications.models import ExportType, LicenceType
 from goods.models import Good
 from organisations.models import Organisation
 from quantity.units import Units
@@ -18,7 +18,7 @@ class Draft(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
-    license_type = EnumChoiceField(enum_class=LicenseType, blank=True, null=True)
+    licence_type = EnumChoiceField(enum_class=LicenceType, blank=True, null=True)
     export_type = EnumChoiceField(enum_class=ExportType, blank=True, null=True)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
 

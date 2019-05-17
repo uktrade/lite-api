@@ -18,10 +18,9 @@ class ApplicationStatus(ChoiceEnum):
     declined = "Declined"
 
 
-class LicenseType(ChoiceEnum):
-    standard = "Standard"
-    open = "Open"
-    dont_know = "Don't know"
+class LicenceType(ChoiceEnum):
+    standard_licence = 'Standard Individual Export Licence (SIEL)'
+    open_licence = 'Open Individual Export Licence (OIEL)'
 
 
 class ExportType(ChoiceEnum):
@@ -41,7 +40,7 @@ class Application(models.Model):
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
     status = EnumChoiceField(enum_class=ApplicationStatus, default=ApplicationStatus.submitted)
-    license_type = EnumChoiceField(enum_class=LicenseType, default=LicenseType.dont_know)
+    licence_type = EnumChoiceField(enum_class=LicenceType, default=None)
     export_type = EnumChoiceField(enum_class=ExportType, blank=True, null=True)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
 
