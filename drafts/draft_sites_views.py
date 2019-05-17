@@ -36,10 +36,6 @@ class DraftSites(APIView):
         sites = data.get('sites')
         draft = get_draft(pk)
 
-        # Update draft activity
-        draft.activity = 'Trading'
-        draft.save()
-
         # Validate that there are actually sites
         if len(data.get('sites')) == 0:
             return JsonResponse(data={'errors': {
@@ -52,6 +48,10 @@ class DraftSites(APIView):
         # Validate each site belongs to the organisation
         for site in sites:
             get_site_with_organisation(site, organisation)
+
+        # Update draft activity
+        draft.activity = 'Trading'
+        draft.save()
 
         # Delete existing SitesOnDrafts
         SitesOnDraft.objects.filter(draft=draft).delete()

@@ -3,7 +3,7 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import SitesOnDraft
+from drafts.models import SitesOnDraft, Draft
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -28,6 +28,9 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        self.draft = Draft.objects.get(pk=self.draft.id)
+        self.assertEqual(self.draft.activity, 'Trading')
+
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.headers).json()
         self.assertEqual(len(response["sites"]), 1)
@@ -44,6 +47,9 @@ class SitesOnDraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        self.draft = Draft.objects.get(pk=self.draft.id)
+        self.assertEqual(self.draft.activity, 'Trading')
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.headers)
