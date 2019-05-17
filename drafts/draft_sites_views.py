@@ -36,6 +36,10 @@ class DraftSites(APIView):
         sites = data.get('sites')
         draft = get_draft(pk)
 
+        # Update draft activity
+        draft.activity = 'Trading'
+        draft.save()
+
         # Validate that there are actually sites
         if len(data.get('sites')) == 0:
             return JsonResponse(data={'errors': {
