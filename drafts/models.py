@@ -1,7 +1,7 @@
-from enumchoicefield import ChoiceEnum, EnumChoiceField
 import uuid
 
 from django.db import models
+from enumchoicefield import EnumChoiceField
 
 from goods.models import Good
 from organisations.models import Organisation, Site

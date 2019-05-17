@@ -31,25 +31,30 @@ class DraftSites(APIView):
 
     @transaction.atomic
     def post(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
+        draft = get_draft(pk)
 
         sites = data['sites']
         data['draft'] = str(pk)
 
-        get_draft(pk)  # validate draft object
-        response_data = []
+        with reversion.create_revision():
+            response_data = []
 
-        for site in sites:
-            organisation = get_organisation_by_user(request.user)
-            get_site_with_organisation(site, organisation)   # validate site belongs to user/organisation
-            data['site'] = site
+            # Delete existing SitesOnDrafts
+            SitesOnDraft.objects.filter(draft=draft).delete()
 
-            with reversion.create_revision():
+            # Append new SitesOnDrafts
+            for site in sites:
+                # Validate site belongs to the organisation
+                get_site_with_organisation(site, organisation)
+
+                # If so, add it to the data
+                data['site'] = site
+
                 serializer = SiteOnDraftBaseSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    reversion.set_user(request.user)
-                    reversion.set_comment("Created Site on Draft Revision")
                     response_data.append(serializer.data)
                 else:
                     return JsonResponse(data={'errors': serializer.errors},
