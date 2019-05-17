@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
 from drafts.models import SitesOnDraft
-from drafts.serializers import SiteOnDraftViewSerializer, SiteOnDraftBaseSerializer
+from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
@@ -36,28 +36,26 @@ class DraftSites(APIView):
         draft = get_draft(pk)
 
         data['draft'] = str(pk)
+        response_data = []
 
-        with reversion.create_revision():
-            response_data = []
+        # Delete existing SitesOnDrafts
+        SitesOnDraft.objects.filter(draft=draft).delete()
 
-            # Delete existing SitesOnDrafts
-            SitesOnDraft.objects.filter(draft=draft).delete()
+        # Append new SitesOnDrafts
+        for site in data.get('sites'):
+            # Validate site belongs to the organisation
+            get_site_with_organisation(site, organisation)
 
-            # Append new SitesOnDrafts
-            for site in data.get('sites'):
-                # Validate site belongs to the organisation
-                get_site_with_organisation(site, organisation)
+            # If so, add it to the data
+            data['site'] = site
 
-                # If so, add it to the data
-                data['site'] = site
-
-                serializer = SiteOnDraftBaseSerializer(data=data)
-                if serializer.is_valid():
-                    serializer.save()
-                    response_data.append(serializer.data)
-                else:
-                    return JsonResponse(data={'errors': serializer.errors},
-                                        status=400)
+            serializer = SiteOnDraftBaseSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                response_data.append(serializer.data)
+            else:
+                return JsonResponse(data={'errors': serializer.errors},
+                                    status=400)
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)
