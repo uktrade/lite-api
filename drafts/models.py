@@ -1,9 +1,9 @@
-from enumchoicefield import ChoiceEnum, EnumChoiceField
 import uuid
 
 from django.db import models
+from enumchoicefield import EnumChoiceField
 
-from applications.models import ExportType, LicenceType
+from applications.models import LicenceType, ExportType
 from goods.models import Good
 from organisations.models import Organisation
 from quantity.units import Units
@@ -18,8 +18,8 @@ class Draft(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
-    licence_type = EnumChoiceField(enum_class=LicenceType, blank=True, null=True)
-    export_type = EnumChoiceField(enum_class=ExportType, blank=True, null=True)
+    licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType])
+    export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType])
     reference_number_on_information_form = models.TextField(blank=True, null=True)
 
 

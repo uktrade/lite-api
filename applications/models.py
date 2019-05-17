@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.db import models
 from enumchoicefield import ChoiceEnum, EnumChoiceField
 import uuid
@@ -18,14 +20,14 @@ class ApplicationStatus(ChoiceEnum):
     declined = "Declined"
 
 
-class LicenceType(ChoiceEnum):
+class LicenceType(Enum):
     standard_licence = 'Standard Individual Export Licence (SIEL)'
     open_licence = 'Open Individual Export Licence (OIEL)'
 
 
-class ExportType(ChoiceEnum):
-    permanent = "Permanent"
-    temporary = "Temporary"
+class ExportType(Enum):
+    permanent = 'Permanent'
+    temporary = 'Temporary'
 
 
 @reversion.register()
@@ -40,8 +42,8 @@ class Application(models.Model):
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
     status = EnumChoiceField(enum_class=ApplicationStatus, default=ApplicationStatus.submitted)
-    licence_type = EnumChoiceField(enum_class=LicenceType, default=None)
-    export_type = EnumChoiceField(enum_class=ExportType, blank=True, null=True)
+    licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType])
+    export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType])
     reference_number_on_information_form = models.TextField(blank=True, null=True)
 
 

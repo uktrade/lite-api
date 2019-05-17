@@ -22,7 +22,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
     def test_edit_draft(self):
         """
-            Ensure we can edit a draft object.
+        Ensure we can edit a draft object.
         """
         draft = Draft(name='test',
                       organisation=self.test_helper.organisation)

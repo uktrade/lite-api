@@ -2,8 +2,7 @@ from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.models import ExportType, LicenceType
-from drafts.models import Draft, GoodOnDraft
+from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
@@ -29,9 +28,9 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
-    licence_type = EnumChoiceField(enum_class=LicenceType)
-    export_type = EnumChoiceField(enum_class=ExportType)
-    reference_number_on_information_form = serializers.CharField(required=False)
+    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType])
+    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType])
+    reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
