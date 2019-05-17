@@ -79,6 +79,7 @@ class SitesOnDraftTests(DataTestClient):
         # Ensure it's there
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.headers).json()
+        site_id = response["sites"][0]['id']
         self.assertEqual(len(response["sites"]), 1)
 
         # Post a new site to the draft, with the expectation that the existing site is deleted
@@ -92,8 +93,8 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Check that the new site has been added
+        # Check that the new site has been added, and the old one deleted
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.headers).json()
         self.assertEqual(len(response['sites']), 1)
-        self.assertNotEqual(response['sites'][0]['id'], existing_site_on_draft.id)
+        self.assertNotEqual(response['sites'][0]['id'], site_id)
