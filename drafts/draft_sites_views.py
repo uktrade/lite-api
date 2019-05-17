@@ -35,7 +35,6 @@ class DraftSites(APIView):
         data = JSONParser().parse(request)
         draft = get_draft(pk)
 
-        sites = data['sites']
         data['draft'] = str(pk)
 
         with reversion.create_revision():
@@ -45,7 +44,7 @@ class DraftSites(APIView):
             SitesOnDraft.objects.filter(draft=draft).delete()
 
             # Append new SitesOnDrafts
-            for site in sites:
+            for site in data.get('sites'):
                 # Validate site belongs to the organisation
                 get_site_with_organisation(site, organisation)
 
