@@ -33,23 +33,29 @@ class DraftSites(APIView):
     def post(self, request, pk):
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
+        sites = data.get('sites')
         draft = get_draft(pk)
 
-        data['draft'] = str(pk)
-        response_data = []
+        # Validate that there are actually sites
+        if len(data.get('sites')) == 0:
+            return JsonResponse(data={'errors': {
+                'sites': [
+                        'You have to pick at least one site.'
+                    ]
+                }},
+                status=400)
+
+        # Validate each site belongs to the organisation
+        for site in sites:
+            get_site_with_organisation(site, organisation)
 
         # Delete existing SitesOnDrafts
         SitesOnDraft.objects.filter(draft=draft).delete()
 
         # Append new SitesOnDrafts
-        for site in data.get('sites'):
-            # Validate site belongs to the organisation
-            get_site_with_organisation(site, organisation)
-
-            # If so, add it to the data
-            data['site'] = site
-
-            serializer = SiteOnDraftBaseSerializer(data=data)
+        response_data = []
+        for site in sites:
+            serializer = SiteOnDraftBaseSerializer(data={'site': site, 'draft': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
