@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_modified_at', models.DateTimeField(auto_now_add=True)),
                 ('submitted_at', models.DateTimeField(auto_now_add=True)),
-                ('status', enumchoicefield.fields.EnumChoiceField(default=applications.models.ApplicationStatuses(1), enum_class=applications.models.ApplicationStatuses, max_length=25)),
+                ('status', enumchoicefield.fields.EnumChoiceField(default=applications.models.ApplicationStatus(1), enum_class=applications.models.ApplicationStatus, max_length=25)),
                 ('organisation', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='organisations.Organisation')),
             ],
         ),

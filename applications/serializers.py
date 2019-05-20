@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
 
-from applications.models import Application, ApplicationStatuses, GoodOnApplication
+from applications.models import Application, ApplicationStatus, \
+  GoodOnApplication, LicenceType, ExportType
 from goods.serializers import GoodSerializer
 
 
@@ -34,7 +35,10 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'created_at',
                   'last_modified_at',
                   'submitted_at',
-                  'status')
+                  'status',
+                  'licence_type',
+                  'export_type',
+                  'reference_number_on_information_form',)
 
 
 class ApplicationCreateSerializer(ApplicationBaseSerializer):
@@ -47,7 +51,10 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     usage = serializers.CharField()
     activity = serializers.CharField()
     destination = serializers.CharField()
-    status = EnumChoiceField(enum_class=ApplicationStatuses)
+    status = EnumChoiceField(enum_class=ApplicationStatus)
+    licence_type = EnumChoiceField(enum_class=LicenceType)
+    export_type = EnumChoiceField(enum_class=ExportType)
+    reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):
         """
@@ -58,5 +65,9 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.usage = validated_data.get('usage', instance.usage)
         instance.destination = validated_data.get('destination', instance.destination)
         instance.status = validated_data.get('status', instance.status)
+        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
+        instance.export_type = validated_data.get('export_type', instance.export_type)
+        instance.reference_number_on_information_form = validated_data.get(
+            'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.save()
         return instance

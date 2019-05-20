@@ -13,6 +13,7 @@ django-reversion = "==3.0.3"
 djangorestframework = "==3.9.2"
 psycopg2 = "==2.7.7"
 python-json-logger = "==0.1.11"
+parameterized = "*"
 
 [requires]
 python_version = "3.7"

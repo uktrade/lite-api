@@ -1,30 +1,19 @@
 import json
 from uuid import UUID
 
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+
 from drafts.models import Draft
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class DraftTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class DraftTests(DataTestClient):
 
     def test_view_drafts(self):
         """
-            Ensure we can get a list of drafts.
+        Ensure we can get a list of drafts.
         """
         OrgAndUserHelper.complete_draft(name='test 1', org=self.test_helper.organisation).save()
         OrgAndUserHelper.complete_draft(name='test 2', org=self.test_helper.organisation).save()
@@ -36,7 +25,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
     def test_view_drafts_not_applications(self):
         """
-            Ensure that when a draft is submitted it does not get submitted as an application
+        Ensure that when a draft is submitted it does not get submitted as an application
         """
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
@@ -46,7 +35,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
     def test_view_draft(self):
         """
-            Ensure we can get a draft.
+        Ensure we can get a draft.
         """
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
@@ -56,7 +45,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
 
     def test_view_incorrect_draft(self):
         """
-            Ensure we cannot get a draft if the id is incorrect.
+        Ensure we cannot get a draft if the id is incorrect.
         """
         OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
         invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
