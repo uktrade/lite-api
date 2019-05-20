@@ -28,7 +28,7 @@ class CaseNotesCreateTests(BaseTestClient):
         self.assertEqual(CaseNote.objects.get().text, data.get('text'))
 
     @parameterized.expand([
-        [{}],
+        [{}],  # Empty data
         [{'text': ''}],  # Empty text field
         [{'text': '🙂'}],  # Less than two character minimum
         [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
