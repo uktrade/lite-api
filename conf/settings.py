@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
     'quantity.apps.QuantityConfig',
+    'end_user.apps.EndUserConfig',
     'reversion',
 ]
 

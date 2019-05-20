@@ -4,6 +4,7 @@ from django.db import models
 from enumchoicefield import EnumChoiceField
 
 from applications.models import LicenceType, ExportType
+from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation
 from quantity.units import Units
@@ -30,3 +31,9 @@ class GoodOnDraft(models.Model):
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = EnumChoiceField(enum_class=Units, default=Units.NAR)
     value = models.DecimalField(max_digits=256, decimal_places=2)
+
+
+class EndUserOnDraft(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    site = models.ForeignKey(EndUser, related_name='end_user_on_draft', on_delete=models.CASCADE)
+    draft = models.ForeignKey(Draft, related_name='draft_end_users', on_delete=models.CASCADE)
