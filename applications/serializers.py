@@ -29,7 +29,6 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'activity',
-                  'destination',
                   'usage',
                   'goods',
                   'created_at',
@@ -50,7 +49,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    destination = serializers.CharField()
     status = EnumChoiceField(enum_class=ApplicationStatus)
     licence_type = EnumChoiceField(enum_class=LicenceType)
     export_type = EnumChoiceField(enum_class=ExportType)
@@ -63,7 +61,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
-        instance.destination = validated_data.get('destination', instance.destination)
         instance.status = validated_data.get('status', instance.status)
         instance.licence_type = validated_data.get('licence_type', instance.licence_type)
         instance.export_type = validated_data.get('export_type', instance.export_type)

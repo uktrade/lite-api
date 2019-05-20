@@ -1,32 +1,23 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
-from applications.models import Application
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from applications.models import Application, LicenceType, ExportType
+from test_helpers.clients import DataTestClient
 
 
-class ApplicationsTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class ApplicationsTests(DataTestClient):
 
     def test_update_status_of_an_application(self):
         application = Application(id='90d6c724-0339-425a-99d2-9d2b8e864ec7',
                                   name='Test',
+                                  licence_type=LicenceType.open_licence,
+                                  export_type=ExportType.permanent,
+                                  reference_number_on_information_form='',
                                   destination='Poland',
                                   activity='Trade',
                                   usage='Trade')
         application.save()
+
         url = reverse('applications:application', kwargs={'pk': application.id})
         data = {'id': application.id, 'status': 'withdrawn'}
         response = self.client.put(url, data, format='json')

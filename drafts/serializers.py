@@ -17,7 +17,6 @@ class DraftBaseSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'activity',
-                  'destination',
                   'usage',
                   'organisation',
                   'created_at',
@@ -48,7 +47,6 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    destination = serializers.CharField()
     export_type = EnumChoiceField(enum_class=ExportType)
     reference_number_on_information_form = serializers.CharField()
 
@@ -59,7 +57,6 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
-        instance.destination = validated_data.get('destination', instance.destination)
         instance.licence_type = validated_data.get('licence_type', instance.licence_type)
         instance.export_type = validated_data.get('export_type', instance.export_type)
         instance.reference_number_on_information_form = validated_data.get(
