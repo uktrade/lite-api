@@ -487,7 +487,8 @@ sample GET /organisations/71f3da6b-7b89-4ffc-9d60-a17f8036f331 response:
 
 ### Sites
 **Sites DTO Structure**
-<br> Last Updated 14/5/2019
+<br> Last Updated 16/5/2019
+<br> requires USER-ID header
 <pre>
 {
     "name":[free text],
@@ -531,13 +532,13 @@ Endpoints for retrieving, creating and updating organisations.
     </tr>
     <tr>
         <td>POST</td>
-        <td>/organisations/</td>
+        <td>/organisations/sites/</td>
         <td>?</td>
         <td>Request:  DTO Structure <br>
         (without ID)
         </td>
         <td>200 <br> 422 </td>
-        <td>Creates a organisation </td>
+        <td>Creates a site </td>
     </tr>
 </table>
 error 500 on PUT /organisations/sites/921104c6-cca9-4e3e-8e3c-b9d49528ab77/<br />
