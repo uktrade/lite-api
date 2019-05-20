@@ -13,7 +13,6 @@ class ApplicationsTests(DataTestClient):
                                   licence_type=LicenceType.open_licence,
                                   export_type=ExportType.permanent,
                                   reference_number_on_information_form='',
-                                  destination='Poland',
                                   activity='Trade',
                                   usage='Trade')
         application.save()
@@ -22,4 +21,4 @@ class ApplicationsTests(DataTestClient):
         data = {'id': application.id, 'status': 'withdrawn'}
         response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Application.objects.get(pk=application.id).status.name, "withdrawn")
+        self.assertEqual(Application.objects.get(pk=application.id).status.name, 'withdrawn')
