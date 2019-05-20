@@ -47,6 +47,7 @@ class ApplicationList(APIView):
                                       export_type=draft.export_type,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
+                                      status='',
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,

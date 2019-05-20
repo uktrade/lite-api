@@ -24,7 +24,6 @@ class ApplicationsTests(DataTestClient):
         data = {'id': draft_id}
         response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Application.objects.get(pk=draft_id).status.name, "submitted")
         self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft_id)).application,
                          Application.objects.get(pk=draft_id))
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
