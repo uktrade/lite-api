@@ -28,13 +28,14 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField(max_length=100,
-                                 error_messages={'blank': 'Reference name may not be blank.'})
+                                 error_messages={'blank': 'Enter a reference name for your application.'})
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
                                            error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
     export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
                                           error_messages={
-                                              'required': 'Select if you want a temporary or permanent licence.'})
+                                              'required': 'Select if you want to apply for a temporary or permanent '
+                                                          'licence.'})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
