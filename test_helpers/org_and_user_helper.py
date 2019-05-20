@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
+from applications.models import LicenceType, ExportType
 from drafts.models import Draft
 from goods.models import Good
 from organisations.models import Organisation, Site
@@ -82,6 +83,9 @@ class OrgAndUserHelper:
     @staticmethod
     def complete_draft(name, org):
         draft = Draft(name=name,
+                      licence_type=LicenceType.open_licence,
+                      export_type=ExportType.permanent,
+                      reference_number_on_information_form='',
                       destination='Poland',
                       activity='Trade',
                       usage='Fun',

@@ -28,6 +28,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
+    name = serializers.CharField()
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType])
     export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType])
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
@@ -36,6 +37,7 @@ class DraftCreateSerializer(DraftBaseSerializer):
     class Meta:
         model = Draft
         fields = ('id',
+                  'name',
                   'licence_type',
                   'export_type',
                   'reference_number_on_information_form',

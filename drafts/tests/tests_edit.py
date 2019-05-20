@@ -1,32 +1,17 @@
-from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+
 from drafts.models import Draft
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.clients import DataTestClient
 
 
-class DraftTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class DraftTests(DataTestClient):
 
     def test_edit_draft(self):
         """
         Ensure we can edit a draft object.
         """
-        draft = Draft(name='test',
-                      organisation=self.test_helper.organisation)
-        draft.save()
+        draft = self.test_helper.complete_draft('Draft', self.test_helper.organisation)
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
         data = {'destination': 'France'}

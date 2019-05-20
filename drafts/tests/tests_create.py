@@ -14,6 +14,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new draft object
         """
         data = {
+            'name': 'Test',
             'licence_type': 'standard_licence',
             'export_type': 'temporary',
             'reference_number_on_information_form': '123'
