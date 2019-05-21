@@ -25,7 +25,7 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        response = self.client.post(self.url, data, format='json', **self.headers)
+        response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.draft = Draft.objects.get(pk=self.draft.id)
@@ -45,7 +45,7 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        response = self.client.post(self.url, data, format='json', **self.headers)
+        response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
         self.draft = Draft.objects.get(pk=self.draft.id)
@@ -67,7 +67,7 @@ class SitesOnDraftTests(DataTestClient):
         }
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
@@ -96,7 +96,7 @@ class SitesOnDraftTests(DataTestClient):
         }
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check that the new site has been added, and the old one deleted
