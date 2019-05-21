@@ -3,7 +3,7 @@ from django.http import Http404
 from organisations.models import Site
 
 
-def get_site_by_ok(pk):
+def get_site_by_pk(pk):
     try:
         return Site.objects.get(pk=pk)
     except Site.DoesNotExist:

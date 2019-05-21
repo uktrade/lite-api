@@ -2,12 +2,21 @@ from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+<<<<<<< HEAD
 from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft
 from end_user.models import EndUser
 from end_user.serializers import EndUserViewSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
+=======
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from goods.models import Good
+from goods.serializers import GoodSerializer
+from organisations.models import Organisation, Site
+from organisations.serializers import SiteViewSerializer
+from quantity.units import Units
+>>>>>>> LT-1038_indicate_where_goods_located
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -101,12 +110,24 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'value')
 
 
+
 class EndUserOnDraftBaseSerializer(serializers.ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
     end_user = PrimaryKeyRelatedField(queryset=EndUser.objects.all())
 
     class Meta:
         model = EndUserOnDraft
+        fields = ('id',
+                  'end_user',
+                  'draft')
+
+
+class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
+    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = SiteOnDraft
         fields = ('id',
                   'site',
                   'draft')
@@ -118,6 +139,16 @@ class EndUserOnDraftViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EndUserOnDraft
+        fields = ('id',
+                  'end_user',
+                  'draft')
+
+class SiteOnDraftViewSerializer(serializers.ModelSerializer):
+    site = SiteViewSerializer(read_only=True)
+    draft = DraftBaseSerializer(read_only=True)
+
+    class Meta:
+        model = SiteOnDraft
         fields = ('id',
                   'site',
                   'draft')

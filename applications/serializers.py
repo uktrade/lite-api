@@ -1,9 +1,15 @@
 from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
+from rest_framework.relations import PrimaryKeyRelatedField
 
+<<<<<<< HEAD
 from applications.models import Application, ApplicationStatus, \
   GoodOnApplication, LicenceType, ExportType
+=======
+from applications.models import Application, ApplicationStatuses, GoodOnApplication, Site, SiteOnApplication
+>>>>>>> LT-1038_indicate_where_goods_located
 from goods.serializers import GoodSerializer
+from organisations.serializers import SiteViewSerializer
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -68,3 +74,25 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
             'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.save()
         return instance
+
+
+class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
+    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
+    site = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = SiteOnApplication
+        fields = ('id',
+                  'site',
+                  'application')
+
+
+class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
+    site = SiteViewSerializer(read_only=True, many=True)
+    application = ApplicationBaseSerializer(read_only=True)
+
+    class Meta:
+        model = SiteOnApplication
+        fields = ('id',
+                  'site',
+                  'application')
