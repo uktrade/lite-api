@@ -1,5 +1,3 @@
-import json
-
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -23,7 +21,7 @@ class DraftTests(DataTestClient):
             'reference_number_on_information_form': '123',
         }
 
-        response = self.client.post(self.url, data, format='json', **self.headers)
+        response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Draft.objects.count(), 1)
 

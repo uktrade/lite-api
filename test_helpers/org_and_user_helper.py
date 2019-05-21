@@ -86,7 +86,6 @@ class OrgAndUserHelper:
                       licence_type=LicenceType.open_licence,
                       export_type=ExportType.permanent,
                       reference_number_on_information_form='',
-                      destination='Poland',
                       activity='Trade',
                       usage='Fun',
                       organisation=org)
