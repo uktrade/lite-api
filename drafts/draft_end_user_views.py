@@ -45,21 +45,17 @@ class DraftEndUser(APIView):
                 }},
                 status=400)
 
-        # Validate each site belongs to the organisation
+        # Validate each end_user belongs to the organisation
         for end_user in end_users:
             get_site_with_organisation(end_user, organisation)
-
-        # Update draft activity
-        draft.activity = 'Trading'
-        draft.save()
 
         # Delete existing SitesOnDrafts
         SitesOnDraft.objects.filter(draft=draft).delete()
 
-        # Append new SitesOnDrafts
+        # Append new EndUsers
         response_data = []
         for end_user in end_users:
-            serializer = SiteOnDraftBaseSerializer(data={'end_user': end_user, 'draft': str(pk)})
+            serializer = EndUserDraftBaseSerializer(data={'end_user': end_user, 'draft': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

@@ -24,3 +24,14 @@ class EndUserCreateSerializer(serializers.ModelSerializer):
         site = EndUser.objects.create(**validated_data)
         return site
 
+
+class EndUserViewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EndUser
+        fields = ('id',
+                  'name',
+                  'address',
+                  'website',
+                  'type'
+                  'organisation')
