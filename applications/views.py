@@ -7,20 +7,13 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-<<<<<<< HEAD
-from applications.models import Application, GoodOnApplication, EndUserOnApplication
-=======
-from applications.models import Application, GoodOnApplication, SiteOnApplication
->>>>>>> LT-1038_indicate_where_goods_located
+
+from applications.models import Application, GoodOnApplication, EndUserOnApplication, SiteOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-<<<<<<< HEAD
-from drafts.models import GoodOnDraft, EndUserOnDraft
-=======
-from drafts.models import GoodOnDraft, SiteOnDraft
->>>>>>> LT-1038_indicate_where_goods_located
+from drafts.models import GoodOnDraft, EndUserOnDraft, SiteOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 

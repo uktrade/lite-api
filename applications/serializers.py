@@ -2,12 +2,9 @@ from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-<<<<<<< HEAD
-from applications.models import Application, ApplicationStatus, \
-  GoodOnApplication, LicenceType, ExportType
-=======
-from applications.models import Application, ApplicationStatuses, GoodOnApplication, Site, SiteOnApplication
->>>>>>> LT-1038_indicate_where_goods_located
+
+from applications.models import Application, ApplicationStatus, GoodOnApplication, Site, SiteOnApplication, \
+    LicenceType, ExportType
 from goods.serializers import GoodSerializer
 from organisations.serializers import SiteViewSerializer
 

@@ -2,21 +2,14 @@ from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-<<<<<<< HEAD
-from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft
+from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft, SiteOnDraft
 from end_user.models import EndUser
 from end_user.serializers import EndUserViewSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation
-=======
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft
-from goods.models import Good
-from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer
-from quantity.units import Units
->>>>>>> LT-1038_indicate_where_goods_located
+
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
