@@ -4,6 +4,8 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from applications.models import Application
 from cases.models import Case
+from drafts.models import SiteOnDraft, GoodOnDraft
+from quantity.units import Units
 from queues.models import Queue
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -29,6 +31,11 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
         draft_id = draft.id
+        site_on_draft_1 = SiteOnDraft(site=self.test_helper.primary_site, draft=draft)
+        site_on_draft_1.save()
+        good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
+        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400)
+        good_on_draft_1.save()
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
         url = reverse('applications:applications')
         data = {'id': draft_id}
