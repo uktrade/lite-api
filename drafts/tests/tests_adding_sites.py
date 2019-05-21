@@ -3,7 +3,7 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import SitesOnDraft, Draft
+from drafts.models import SiteOnDraft, Draft
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -79,7 +79,7 @@ class SitesOnDraftTests(DataTestClient):
         site2, address = OrgAndUserHelper.create_site('site2', self.org)
 
         # Add an initial site to the draft
-        existing_site_on_draft = SitesOnDraft(site=site2, draft=self.draft)
+        existing_site_on_draft = SiteOnDraft(site=site2, draft=self.draft)
         existing_site_on_draft.save()
 
         # Ensure it's there

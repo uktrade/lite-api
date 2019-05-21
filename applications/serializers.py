@@ -2,7 +2,7 @@ from rest_framework import serializers
 from enumchoicefield import EnumChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.models import Application, ApplicationStatuses, GoodOnApplication, Site, SitesOnApplication
+from applications.models import Application, ApplicationStatuses, GoodOnApplication, Site, SiteOnApplication
 from goods.serializers import GoodSerializer
 from organisations.serializers import SiteViewSerializer
 
@@ -69,7 +69,7 @@ class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
-        model = SitesOnApplication
+        model = SiteOnApplication
         fields = ('id',
                   'site',
                   'application')
@@ -80,7 +80,7 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
     application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
-        model = SitesOnApplication
+        model = SiteOnApplication
         fields = ('id',
                   'site',
                   'application')

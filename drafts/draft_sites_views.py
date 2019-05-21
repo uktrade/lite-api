@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
-from drafts.models import SitesOnDraft
+from drafts.models import SiteOnDraft
 from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
@@ -24,7 +24,7 @@ class DraftSites(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_ids = SitesOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
+        sites_ids = SiteOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data})
@@ -54,7 +54,7 @@ class DraftSites(APIView):
         draft.save()
 
         # Delete existing SitesOnDrafts
-        SitesOnDraft.objects.filter(draft=draft).delete()
+        SiteOnDraft.objects.filter(draft=draft).delete()
 
         # Append new SitesOnDrafts
         response_data = []
