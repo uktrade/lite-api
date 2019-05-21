@@ -141,7 +141,7 @@ class OrgAndUserHelper:
         return site, address
 
     @staticmethod
-    def create_end_user(**kwargs):
+    def create_end_user(name,org):
         enduser = EndUser(name=name,
                           organisation=org,
                           address='42 Road, London, Buckinghamshire, E14QW')
