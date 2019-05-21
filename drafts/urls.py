@@ -10,5 +10,5 @@ urlpatterns = [
     path('<uuid:pk>/', views.DraftDetail.as_view(), name='draft'),
     path('<uuid:pk>/goods/', views.DraftGoods.as_view(), name='draft_goods'),
     path('<uuid:pk>/goods/<uuid:good_pk>/', views.DraftGood.as_view(), name='draft_good'),
-    path('<uuid:pk>/endusers/', draft_end_user_views.DraftEndUser.as_view(), name='endusers'),
+    path('<uuid:pk>/endusers/', draft_end_user_views.DraftEndUser.as_view(), name='end_users'),
 ]

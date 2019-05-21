@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
-from drafts.models import SitesOnDraft, EndUserOnDraft
-from drafts.serializers import SiteOnDraftBaseSerializer
+from drafts.models import EndUserOnDraft
+from drafts.serializers import EndUserOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
@@ -50,12 +50,12 @@ class DraftEndUser(APIView):
             get_site_with_organisation(end_user, organisation)
 
         # Delete existing SitesOnDrafts
-        SitesOnDraft.objects.filter(draft=draft).delete()
+        EndUserOnDraft.objects.filter(draft=draft).delete()
 
         # Append new EndUsers
         response_data = []
         for end_user in end_users:
-            serializer = EndUserDraftBaseSerializer(data={'end_user': end_user, 'draft': str(pk)})
+            serializer = EndUserOnDraftBaseSerializer(data={'end_user': end_user, 'draft': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

@@ -3,6 +3,8 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft
+from end_user.models import EndUser
+from end_user.serializers import EndUserViewSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
@@ -98,7 +100,7 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
 
 class EndUserOnDraftBaseSerializer(serializers.ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    end_user = PrimaryKeyRelatedField(queryset=Site.objects.all())
+    end_user = PrimaryKeyRelatedField(queryset=EndUser.objects.all())
 
     class Meta:
         model = EndUserOnDraft

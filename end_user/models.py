@@ -21,5 +21,5 @@ class EndUser(models.Model):
     website = models.TextField(default=None, blank=True)
     type = EnumChoiceField(enum_class=EndUserType, default=EndUserType.other)
     organisation = models.ForeignKey(Organisation, blank=True,
-                                     null=True, related_name='site', on_delete=models.CASCADE)
+                                     null=True, related_name='enduser', on_delete=models.CASCADE)
 
