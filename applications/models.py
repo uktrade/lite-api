@@ -5,6 +5,7 @@ from enumchoicefield import ChoiceEnum, EnumChoiceField
 import uuid
 import reversion
 
+from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation
 from quantity.units import Units
@@ -62,3 +63,10 @@ class Destination(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
     application = models.ForeignKey(Application, related_name='destinations', on_delete=models.CASCADE)
+
+
+@reversion.register()
+class EndUserOnApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    end_user = models.ForeignKey(EndUser, related_name='end_user_on_application', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='application_end_users', on_delete=models.CASCADE)

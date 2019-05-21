@@ -7,12 +7,12 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import Application, GoodOnApplication
+from applications.models import Application, GoodOnApplication, EndUserOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft
+from drafts.models import GoodOnDraft, EndUserOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -60,6 +60,12 @@ class ApplicationList(APIView):
                     unit=good_on_draft.unit,
                     value=good_on_draft.value)
                 good_on_application.save()
+
+            for enduser_on_draft in EndUserOnDraft.objects.filter(draft=draft):
+                site_on_application = EndUserOnApplication(
+                    enduser=enduser_on_draft.site,
+                    application=application)
+                site_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)
