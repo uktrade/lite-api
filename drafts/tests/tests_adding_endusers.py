@@ -5,7 +5,7 @@ from rest_framework import status
 
 from drafts.models import Draft
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.org_and_user_helper import OrgAndUserHelper, create_end_user
 
 
 class EndUserOnDraftTests(DataTestClient):
@@ -17,6 +17,14 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
 
         self.url = reverse('drafts:end_users', kwargs={'pk': self.draft.id})
+        self.enduser = create_end_user(
+            name="Client 1",
+            address="",
+            country="",
+            website="",
+            type="",
+            organisation="",
+        )
 
     def test_add_site_to_a_draft(self):
         data = {
