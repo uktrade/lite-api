@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from enumchoicefield import EnumChoiceField
 
 from applications.models import Application, ApplicationStatus, \
-  GoodOnApplication, LicenceType, ExportType
+    GoodOnApplication, LicenceType, ExportType
 from goods.serializers import GoodSerializer
 
 
@@ -23,6 +22,15 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
+    status = serializers.ChoiceField([(tag.name, tag.value) for tag in ApplicationStatus])
+    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
+                                           error_messages={
+                                               'required': 'Select which type of licence you want to apply for.'})
+    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
+                                          error_messages={
+                                              'required': 'Select if you want to apply for a temporary or permanent '
+                                                          'licence.'})
+    reference_number_on_information_form = serializers.CharField()
 
     class Meta:
         model = Application
@@ -40,18 +48,18 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'reference_number_on_information_form',)
 
 
-class ApplicationCreateSerializer(ApplicationBaseSerializer):
-    user_id = serializers.CharField()
-    name = serializers.CharField()
-
-
 class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    status = EnumChoiceField(enum_class=ApplicationStatus)
-    licence_type = EnumChoiceField(enum_class=LicenceType)
-    export_type = EnumChoiceField(enum_class=ExportType)
+    status = serializers.ChoiceField([(tag.name, tag.value) for tag in ApplicationStatus])
+    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
+                                           error_messages={
+                                               'required': 'Select which type of licence you want to apply for.'})
+    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
+                                          error_messages={
+                                              'required': 'Select if you want to apply for a temporary or permanent '
+                                                          'licence.'})
     reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):

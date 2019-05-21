@@ -35,7 +35,6 @@ class ApplicationList(APIView):
         submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
-
             # Get Draft
             draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
 
@@ -47,12 +46,10 @@ class ApplicationList(APIView):
                                       export_type=draft.export_type,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
-                                      status='',
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
                                       )
-
             application.save()
 
             for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
@@ -99,7 +96,7 @@ class ApplicationDetail(APIView):
     def get(self, request, pk):
         application = self.get_object(pk)
         serializer = ApplicationBaseSerializer(application)
-        return JsonResponse(data={'status': 'success', 'application': serializer.data})
+        return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
         with reversion.create_revision():
@@ -107,7 +104,6 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(data={'application': serializer.data},
-                                    status=status.HTTP_200_OK)
+                return JsonResponse(data={'application': serializer.data})
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
