@@ -35,5 +35,5 @@ class GoodOnDraft(models.Model):
 
 class EndUserOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    site = models.ForeignKey(EndUser, related_name='end_user_on_draft', on_delete=models.CASCADE)
+    end_user = models.ForeignKey(EndUser, related_name='end_user_on_draft', on_delete=models.CASCADE)
     draft = models.ForeignKey(Draft, related_name='draft_end_users', on_delete=models.CASCADE)

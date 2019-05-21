@@ -2,7 +2,7 @@ from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType
+from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation
@@ -94,3 +94,25 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'quantity',
                   'unit',
                   'value')
+
+
+class EndUserOnDraftBaseSerializer(serializers.ModelSerializer):
+    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    end_user = PrimaryKeyRelatedField(queryset=Site.objects.all())
+
+    class Meta:
+        model = EndUserOnDraft
+        fields = ('id',
+                  'site',
+                  'draft')
+
+
+class EndUserOnDraftViewSerializer(serializers.ModelSerializer):
+    end_user = EndUserViewSerializer(read_only=True)
+    draft = DraftBaseSerializer(read_only=True)
+
+    class Meta:
+        model = EndUserOnDraft
+        fields = ('id',
+                  'site',
+                  'draft')
