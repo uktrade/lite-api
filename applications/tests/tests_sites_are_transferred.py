@@ -2,7 +2,7 @@ from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
-from applications.models import Application, GoodOnApplication, SiteOnApplication
+from applications.models import Application, SiteOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from quantity.units import Units
