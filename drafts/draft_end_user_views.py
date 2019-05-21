@@ -9,6 +9,9 @@ from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
 from drafts.models import EndUserOnDraft
 from drafts.serializers import EndUserOnDraftBaseSerializer
+from end_user.libraries.get_end_user import get_end_user_with_organisation
+from end_user.models import EndUser
+from end_user.serializers import EndUserViewSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
@@ -24,10 +27,10 @@ class DraftEndUser(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        end_user_ids = EndUserOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
-        end_users = Site.objects.filter(id__in=end_user_ids)
-        serializer = SiteViewSerializer(end_users, many=True)
-        return JsonResponse(data={'sites': serializer.data})
+        end_user_ids = EndUserOnDraft.objects.filter(draft=draft).values_list('end_user', flat=True)
+        end_users = EndUser.objects.filter(id__in=end_user_ids)
+        serializer = EndUserViewSerializer(end_users, many=True)
+        return JsonResponse(data={'end_users': serializer.data})
 
     @transaction.atomic
     def post(self, request, pk):
@@ -35,7 +38,6 @@ class DraftEndUser(APIView):
         data = JSONParser().parse(request)
         end_users = data.get('endusers')
         draft = get_draft(pk)
-
         if end_users is None:
             return JsonResponse(data={'errors': {
                 'sites': [
@@ -54,7 +56,7 @@ class DraftEndUser(APIView):
 
         # Validate each end_user belongs to the organisation
         for end_user in end_users:
-            get_site_with_organisation(end_user, organisation)
+            get_end_user_with_organisation(end_user, organisation)
 
         # Delete existing SitesOnDrafts
         EndUserOnDraft.objects.filter(draft=draft).delete()

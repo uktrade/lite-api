@@ -116,4 +116,3 @@ class DraftGoods(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
-

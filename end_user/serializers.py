@@ -21,8 +21,8 @@ class EndUserCreateSerializer(serializers.ModelSerializer):
                   'organisation')
 
     def create(self, validated_data):
-        site = EndUser.objects.create(**validated_data)
-        return site
+        end_user = EndUser.objects.create(**validated_data)
+        return end_user
 
 
 class EndUserViewSerializer(serializers.ModelSerializer):
@@ -33,5 +33,5 @@ class EndUserViewSerializer(serializers.ModelSerializer):
                   'name',
                   'address',
                   'website',
-                  'type'
+                  'type',
                   'organisation')

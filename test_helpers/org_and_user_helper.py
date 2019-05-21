@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.models import LicenceType, ExportType
 from drafts.models import Draft
+from end_user.models import EndUser, EndUserType
 from goods.models import Good
 from organisations.models import Organisation, Site
 from users.models import User
@@ -138,6 +139,17 @@ class OrgAndUserHelper:
                     address=address)
         site.save()
         return site, address
+
+    @staticmethod
+    def create_end_user(name, organisation):
+        end_user = EndUser(name=name,
+                           organisation=organisation,
+                           address='this is a terrible design choice',
+                           website='www.'+name+'.com',
+                           type=EndUserType.commercial,
+                           country='another choice')
+        end_user.save()
+        return end_user
 
 
 def random_name():
