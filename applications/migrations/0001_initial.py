@@ -3,7 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import enumchoicefield.fields
-import static.quantity.units
+import static.units.units
 import uuid
 
 
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('quantity', models.FloatField(blank=True, default=None, null=True)),
-                ('unit', enumchoicefield.fields.EnumChoiceField(default=static.quantity.units.Units(3), enum_class=static.quantity.units.Units, max_length=3)),
+                ('unit', enumchoicefield.fields.EnumChoiceField(default=static.units.units.Units(3), enum_class=static.units.units.Units, max_length=3)),
                 ('value', models.DecimalField(decimal_places=2, max_digits=256)),
                 ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='goods', to='applications.Application')),
                 ('good', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='goods_on_application', to='goods.Good')),

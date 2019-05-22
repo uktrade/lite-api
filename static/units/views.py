@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from static.quantity.units import Units
+from static.units.units import Units
 
 
 class UnitsList(APIView):

@@ -8,7 +8,7 @@ from applications.models import LicenceType, ExportType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site
-from static.quantity.units import Units
+from static.units.units import Units
 
 
 class Draft(models.Model):

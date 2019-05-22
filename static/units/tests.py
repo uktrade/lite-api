@@ -4,9 +4,9 @@ from rest_framework.reverse import reverse
 from test_helpers.clients import BaseTestClient
 
 
-class QuantityUnitsTests(BaseTestClient):
+class UnitsTests(BaseTestClient):
 
-    url = reverse('static:quantity:units')
+    url = reverse('static:units:units')
 
     def test_get_units(self):
         response = self.client.get(self.url)

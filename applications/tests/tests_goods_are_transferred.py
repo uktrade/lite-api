@@ -5,7 +5,7 @@ from applications.models import Application, GoodOnApplication
 from drafts.models import GoodOnDraft
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from static.quantity.units import Units
+from static.units.units import Units
 
 
 class ApplicationsTests(DataTestClient):
