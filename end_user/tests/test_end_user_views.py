@@ -22,13 +22,13 @@ class EndUserViewTests(APITestCase, URLPatternsTestCase):
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
 
-    # def test_site_list(self):
-    #     url = reverse('organisations:sites')
-    #     response = self.client.get(url, **self.headers)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     response_data = json.loads(response.content)
-    #     self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
-    #
+    def test_enduser_list(self):
+        url = reverse('organisations:sites')
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
+
     # def test_site_name_update(self):
     #     url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
     #     data = {'name': 'regional site',
