@@ -4,5 +4,5 @@ app_name = 'static'
 
 urlpatterns = [
     path('countries/', include('static.countries.urls')),
-    path('quantity/', include('static.quantity.urls')),
+    path('units/', include('static.units.urls')),
 ]

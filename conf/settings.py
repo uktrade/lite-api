@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'end_user.apps.EndUserConfig',
     'static',
     'static.countries',
-    'static.quantity',
+    'static.units',
     'reversion',
 ]
 

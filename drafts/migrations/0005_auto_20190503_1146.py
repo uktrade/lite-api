@@ -2,7 +2,7 @@
 
 from django.db import migrations
 import enumchoicefield.fields
-import static.quantity.units
+import static.units.units
 
 
 class Migration(migrations.Migration):
@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='goodondraft',
             name='unit',
-            field=enumchoicefield.fields.EnumChoiceField(default=static.quantity.units.Units(3), enum_class=static.quantity.units.Units, max_length=3),
+            field=enumchoicefield.fields.EnumChoiceField(default=static.units.units.Units(3), enum_class=static.units.units.Units, max_length=3),
         ),
     ]
