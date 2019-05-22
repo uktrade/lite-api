@@ -112,9 +112,7 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
     def test_add_site(self):
-
-        url = reverse('organisations:organisation_sites',
-                      kwargs={'org_pk': self.test_helper.organisation.id})
+        url = reverse('organisations:sites')
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': 'a street',
