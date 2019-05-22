@@ -8,7 +8,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 
-from applications.models import Application, GoodOnApplication, EndUserOnApplication, SiteOnApplication
+from applications.models import Application, GoodOnApplication, EndUserOnApplication, SiteOnApplication, \
+    ApplicationStatus
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
@@ -45,6 +46,7 @@ class ApplicationList(APIView):
                                       activity=draft.activity,
                                       licence_type=draft.licence_type,
                                       export_type=draft.export_type,
+                                      status=ApplicationStatus.submitted,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
                                       created_at=draft.created_at,

@@ -96,7 +96,7 @@ class OrgAndUserHelper:
         return draft
 
     @staticmethod
-    def complete_draft_with_good_end_user_and_site(name, org):
+    def create_draft_with_good_end_user_and_site(name, org):
         draft = OrgAndUserHelper.complete_draft(name, org)
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()

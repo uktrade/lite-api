@@ -1,10 +1,22 @@
 from rest_framework import serializers
+
+from enumchoicefield import EnumChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
+
+from applications.models import Application, ApplicationStatus, GoodOnApplication, Site, SiteOnApplication, \
+    LicenceType, ExportType
+
 from applications.models import Application, ApplicationStatus, \
-    GoodOnApplication, LicenceType, ExportType, Site, SiteOnApplication
+    GoodOnApplication, LicenceType, ExportType
 from goods.serializers import GoodSerializer
 from organisations.serializers import SiteViewSerializer
+
+
+class ChoiceField(serializers.ChoiceField):
+
+    def to_representation(self, obj):
+        return self._choices[obj]
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -24,7 +36,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    status = serializers.ChoiceField([(tag.name, tag.value) for tag in ApplicationStatus])
+    status = serializers.CharField() # Doesnt validate yet
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
                                            error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
@@ -54,7 +66,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    status = serializers.ChoiceField([(tag.name, tag.value) for tag in ApplicationStatus])
+    status = serializers.CharField() # Doesnt validate yet
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
                                            error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
