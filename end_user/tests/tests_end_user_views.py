@@ -7,10 +7,11 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from addresses.models import Address
 from organisations.models import Site
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
+class OrgEndUserViewTests(DataTestClient):
 
     urlpatterns = [
         path('organisations/', include('organisations.urls'))
@@ -18,18 +19,30 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
 
     client = APIClient
 
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='Org1')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+    # def setUp(self):
+    #     self.test_helper = OrgAndUserHelper(name='Org1')
+    #     self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+    #     self.end_user = OrgAndUserHelper.create_end_user('test', self.org)
 
-    # def test_site_list(self):
-    #
-    #     url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
-    #     response = self.client.get(url, **self.headers)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     response_data = json.loads(response.content)
-    #     self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
-    #
+    def setUp(self):
+        super().setUp()
+        self.org = self.test_helper.organisation
+        self.primary_site = self.org.primary_site
+        self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
+        self.end_user = OrgAndUserHelper.create_end_user('test', self.org)
+
+        # self.url = reverse('drafts:end_users', kwargs={'pk': self.draft.id})
+        self.url = reverse('organisations:organisation_endusers',
+                           kwargs={'org_pk': self.test_helper.organisation.id})
+
+    def test_site_list(self):
+
+        url = reverse('organisations:organisation_endusers', kwargs={'org_pk': self.test_helper.organisation.id})
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # response_data = json.loads(response.content)
+        # self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
+
     # def test_add_site(self):
     #
     #     url = reverse('organisations:organisation_sites',
