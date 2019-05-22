@@ -67,7 +67,7 @@ class ApplicationList(APIView):
 
             for enduser_on_draft in EndUserOnDraft.objects.filter(draft=draft):
                 site_on_application = EndUserOnApplication(
-                    enduser=enduser_on_draft.site,
+                    end_user=enduser_on_draft.end_user,
                     application=application)
                 site_on_application.save()
 
