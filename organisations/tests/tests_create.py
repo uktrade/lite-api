@@ -1,11 +1,11 @@
 import json
 import uuid
 
-from reversion.models import Version
-
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
+
+from reversion.models import Version
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from organisations.models import Organisation, Site

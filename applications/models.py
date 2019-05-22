@@ -8,7 +8,7 @@ from enumchoicefield import EnumChoiceField
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site
-from quantity.units import Units
+from static.quantity.units import Units
 
 
 class ApplicationStatus(Enum):
@@ -76,4 +76,3 @@ class SiteOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     site = models.ForeignKey(Site, related_name='sites_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='application_sites', on_delete=models.CASCADE)
-

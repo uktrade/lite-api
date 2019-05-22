@@ -1,35 +1,42 @@
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from parameterized import parameterized
+from rest_framework import status
 from rest_framework.reverse import reverse
-from django.urls import path, include
 
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.clients import DataTestClient
 
 
-class OrganisationTests(APITestCase, URLPatternsTestCase):
+class GoodsCreateTests(DataTestClient):
 
-    urlpatterns = [
-        path('goods/', include('goods.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
+    url = reverse('goods:goods')
 
-    client = APIClient
+    @parameterized.expand([
+        ('Widget', True, 'ML1a', True, '1337', status.HTTP_201_CREATED),  # Create a new good successfully
+        ('Widget', False, '', True, '1337', status.HTTP_201_CREATED),  # Control Code shouldn't be set
+        ('Widget', True, '', True, '1337', status.HTTP_400_BAD_REQUEST),  # Controlled but is missing control code
+        ('', '', '', '', '', status.HTTP_400_BAD_REQUEST),  # Request is empty
+    ])
+    def test_create_good(self,
+                         description,
+                         is_good_controlled,
+                         control_code,
+                         is_good_end_product,
+                         part_number,
+                         expected_status):
+        data = {
+            'description': description,
+            'is_good_controlled': is_good_controlled,
+            'control_code': control_code,
+            'is_good_end_product': is_good_end_product,
+            'part_number': part_number,
+        }
 
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        response = self.client.post(self.url, data, **self.headers)
+        self.assertEquals(response.status_code, expected_status)
 
-    def test_create_new_good(self):
-        data = {'description': 'a good',
-                'control_code': 'ML1a',
-                'is_good_controlled': 'True',
-                'is_good_end_product': 'True'}
-
-        url = reverse('goods:goods')
-        response = self.client.post(url, data, format='json', **self.headers)
-        self.assertEquals(response.status_code, 201)
-
-    def test_fail_create_new_good(self):
-        data = {'description': '', 'control_code': '', 'is_good_controlled': '', 'is_good_end_product': ''}
-        url = reverse('goods:goods')
-        response = self.client.post(url, data, format='json', **self.headers)
-        self.assertEquals(response.status_code, 400)
+        if response.status_code == status.HTTP_201_CREATED:
+            response_data = response.json()['good']
+            self.assertEquals(response_data['description'], description)
+            self.assertEquals(response_data['is_good_controlled'], is_good_controlled)
+            self.assertEquals(response_data['control_code'], control_code)
+            self.assertEquals(response_data['is_good_end_product'], is_good_end_product)
+            self.assertEquals(response_data['part_number'], part_number)

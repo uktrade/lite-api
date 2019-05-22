@@ -3,9 +3,9 @@ from rest_framework import status
 
 from applications.models import Application, GoodOnApplication
 from drafts.models import GoodOnDraft
-from quantity.units import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
+from static.quantity.units import Units
 
 
 class ApplicationsTests(DataTestClient):

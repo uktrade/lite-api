@@ -1,5 +1,6 @@
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 from conf.urls import urlpatterns
+from static.urls import urlpatterns as static_urlpatterns
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -7,7 +8,7 @@ class BaseTestClient(APITestCase, URLPatternsTestCase):
     """
     Base test client which provides only URL patterns and client
     """
-    urlpatterns = urlpatterns
+    urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
 

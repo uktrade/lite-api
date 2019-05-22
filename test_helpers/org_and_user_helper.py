@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
-from applications.models import LicenceType, ExportType
+from applications.models import LicenceType, ExportType, Application
 from drafts.models import Draft
 from end_user.models import EndUser, EndUserType
 from goods.models import Good
@@ -92,6 +92,14 @@ class OrgAndUserHelper:
                       organisation=org)
         draft.save()
         return draft
+
+    @staticmethod
+    def submit_draft(self, draft):
+        draft_id = draft.id
+        url = reverse('applications:applications')
+        data = {'id': draft_id}
+        self.client.post(url, data, format='json', **self.headers)
+        return Application.objects.get(pk=draft_id)
 
     @staticmethod
     def create_controlled_good(description, org):

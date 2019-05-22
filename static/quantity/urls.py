@@ -1,6 +1,6 @@
 from django.urls import path
 
-from quantity import views
+from static.quantity import views
 
 app_name = 'quantity'
 

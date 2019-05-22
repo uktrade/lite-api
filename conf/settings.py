@@ -28,7 +28,7 @@ DEBUG = env('DEBUG')
 
 # Please use this to Enable/Disable the Admin site
 ADMIN_ENABLED = True
- 
+
 ALLOWED_HOSTS = json.loads(env('ALLOWED_HOSTS')) if env('ALLOWED_HOSTS') else []
 
 # Application definition
@@ -48,8 +48,10 @@ INSTALLED_APPS = [
     'queues.apps.QueuesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
-    'quantity.apps.QuantityConfig',
     'end_user.apps.EndUserConfig',
+    'static',
+    'static.countries',
+    'static.quantity',
     'reversion',
 ]
 
