@@ -71,9 +71,9 @@ class OrgSiteList(APIView):
             serializer = SiteCreateSerializer(data=data)
 
             if serializer.is_valid():
-                serializer.save()
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Site")
+                # user information for gov users does not exist yet
+                # reversion.set_user(request.user)
+                # reversion.set_comment("Created Site")
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
@@ -108,8 +108,9 @@ class OrgSiteDetail(APIView):
                                               partial=True)
             if serializer.is_valid():
                 serializer.save()
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Site Revision")
+                # user information for gov users does not exist yet
+                # reversion.set_user(request.user)
+                # reversion.set_comment("Created Site Revision")
 
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_200_OK)
