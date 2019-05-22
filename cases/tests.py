@@ -43,8 +43,8 @@ class CaseNotesViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.complete_draft('Example Application', self.test_helper.organisation)
-        self.draft2 = self.test_helper.complete_draft('Example Application 2', self.test_helper.organisation)
+        self.draft = self.test_helper.complete_draft_with_good_end_user_and_site('Example Application', self.test_helper.organisation)
+        self.draft2 = self.test_helper.complete_draft_with_good_end_user_and_site('Example Application 2', self.test_helper.organisation)
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.application2 = self.test_helper.submit_draft(self, self.draft2)
         self.case = Case.objects.get(application=self.application)
