@@ -38,6 +38,8 @@ class DraftEndUser(APIView):
         data = JSONParser().parse(request)
         end_users = data.get('endusers')
         draft = get_draft(pk)
+
+        # Validate that there are actually end-users
         if end_users is None:
             return JsonResponse(data={'errors': {
                 'sites': [
@@ -45,7 +47,6 @@ class DraftEndUser(APIView):
                 ]
             }}, status=400)
 
-        # Validate that there are actually sites
         if len(end_users) == 0:
             return JsonResponse(data={'errors': {
                 'sites': [
@@ -58,7 +59,7 @@ class DraftEndUser(APIView):
         for end_user in end_users:
             get_end_user_with_organisation(end_user, organisation)
 
-        # Delete existing SitesOnDrafts
+        # Delete existing EndUserOnDraft
         EndUserOnDraft.objects.filter(draft=draft).delete()
 
         # Append new EndUsers

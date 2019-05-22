@@ -37,7 +37,14 @@ class DraftSites(APIView):
         draft = get_draft(pk)
 
         # Validate that there are actually sites
-        if len(data.get('sites')) == 0:
+        if sites is None:
+            return JsonResponse(data={'errors': {
+                'sites': [
+                    'You have to pick at least one site.'
+                ]
+            }}, status=400)
+
+        if len(sites) == 0:
             return JsonResponse(data={'errors': {
                 'sites': [
                         'You have to pick at least one site.'
