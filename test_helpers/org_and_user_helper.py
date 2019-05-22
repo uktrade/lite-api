@@ -61,6 +61,7 @@ class OrgAndUserHelper:
                     'country': self.country,
                     'address_line_1': self.address_line_1,
                     'address_line_2': self.address_line_2,
+
                     'region': self.region,
                     'postcode': self.postcode,
                     'city': self.city,
@@ -168,3 +169,4 @@ def random_name():
     last_name = random.choice(last_names)
 
     return first_name, last_name
+

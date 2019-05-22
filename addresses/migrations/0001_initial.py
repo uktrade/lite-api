@@ -3,6 +3,7 @@
 from django.db import migrations, models
 import uuid
 
+
 def init(apps, schema_editor):
     # We can't import the Address model directly as it may be a newer
     # version than this migration expects. We use the historical version.
