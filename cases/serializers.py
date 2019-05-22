@@ -22,7 +22,7 @@ class CaseNoteViewSerializer(serializers.ModelSerializer):
 
 
 class CaseNoteCreateSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(min_length=2, max_length=2000)
+    text = serializers.CharField(min_length=2, max_length=2200)
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
 

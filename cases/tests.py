@@ -28,13 +28,13 @@ class CaseNotesCreateTests(DataTestClient):
         self.assertEqual(CaseNote.objects.get().text, data.get('text'))
 
     @parameterized.expand([
-        '{}',  # Empty data
-        '{"text": ""}',  # Empty text field
-        '{"text": "🙂"}',  # Less than two character minimum
-        '{"text": "' + '🙂' * 2001 + '"}',  # More than two thousand character maximum
+        [{}],  # Empty data
+        [{'text': ''}],  # Empty text field
+        [{'text': '🙂'}],  # Less than two character minimum
+        [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
     ])
     def test_create_case_note_failure(self, data):
-        response = self.client.post(self.url, data=json.loads(data))
+        response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
