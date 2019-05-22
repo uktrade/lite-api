@@ -144,10 +144,10 @@ class OrgAndUserHelper:
     def create_end_user(name, organisation):
         end_user = EndUser(name=name,
                            organisation=organisation,
-                           address='this is a terrible design choice',
+                           address='42 Road, London, Buckinghamshire',
                            website='www.'+name+'.com',
                            type=EndUserType.commercial,
-                           country='another choice')
+                           country='England')
         end_user.save()
         return end_user
 
