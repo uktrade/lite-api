@@ -22,4 +22,3 @@ class EndUser(models.Model):
     type = EnumChoiceField(enum_class=EndUserType, default=EndUserType.other)
     organisation = models.ForeignKey(Organisation, blank=True,
                                      null=True, related_name='enduser', on_delete=models.CASCADE)
-

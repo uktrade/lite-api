@@ -4,8 +4,8 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from applications.models import Application, SiteOnApplication, EndUserOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft, EndUserOnDraft
+from static.quantity.units import Units
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from quantity.units import Units
 
 
 class ApplicationsTests(APITestCase, URLPatternsTestCase):
