@@ -78,6 +78,8 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    quantity = serializers.IntegerField(error_messages={'invalid': 'Enter a valid quantity'})
+    value = serializers.IntegerField(error_messages={'invalid': 'Enter a valid value'})
 
     class Meta:
         model = GoodOnDraft
