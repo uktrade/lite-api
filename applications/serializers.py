@@ -10,7 +10,8 @@ from applications.models import Application, ApplicationStatus, GoodOnApplicatio
 from applications.models import Application, ApplicationStatus, \
     GoodOnApplication, LicenceType, ExportType
 from goods.serializers import GoodSerializer
-from organisations.serializers import SiteViewSerializer
+from organisations.models import Organisation
+from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer
 
 
 class ChoiceField(serializers.ChoiceField):
@@ -33,10 +34,11 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
 class ApplicationBaseSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    organisation = OrganisationViewSerializer()
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    status = serializers.CharField() # Doesnt validate yet
+    status = serializers.CharField()  # Doesnt validate yet
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
                                            error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
@@ -50,6 +52,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         model = Application
         fields = ('id',
                   'name',
+                  'organisation',
                   'activity',
                   'usage',
                   'goods',

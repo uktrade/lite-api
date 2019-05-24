@@ -40,6 +40,22 @@ class ApplicationList(APIView):
             # Get Draft
             draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
 
+            # Errors
+            errors = {}
+
+            # if len(EndUserOnDraft.objects.filter(draft=draft)) == 0:
+            #     errors['end_users'] = 'Cannot create an application with no end users attached'
+
+            if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
+                errors['goods'] = 'Cannot create an application with no goods attached'
+
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0:
+                errors['sites'] = 'Cannot create an application with no sites attached'
+
+            if len(errors):
+                return JsonResponse(data={'errors': errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
             # Create an Application object corresponding to the draft
             application = Application(id=draft.id,
                                       name=draft.name,
@@ -55,34 +71,27 @@ class ApplicationList(APIView):
                                       )
             application.save()
 
+            # Save associated end users, goods and sites
             for enduser_on_draft in EndUserOnDraft.objects.filter(draft=draft):
                 site_on_application = EndUserOnApplication(
                     end_user=enduser_on_draft.end_user,
                     application=application)
                 site_on_application.save()
 
-            if len(GoodOnDraft.objects.filter(draft=draft)) > 0:
-                for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-                    good_on_application = GoodOnApplication(
-                        good=good_on_draft.good,
-                        application=application,
-                        quantity=good_on_draft.quantity,
-                        unit=good_on_draft.unit,
-                        value=good_on_draft.value)
-                    good_on_application.save()
-            else:
-                return JsonResponse(data={'errors': 'Cannot create an application with no goods attached'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
+                good_on_application = GoodOnApplication(
+                    good=good_on_draft.good,
+                    application=application,
+                    quantity=good_on_draft.quantity,
+                    unit=good_on_draft.unit,
+                    value=good_on_draft.value)
+                good_on_application.save()
 
-            if len(SiteOnDraft.objects.filter(draft=draft)) > 0:
-                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                    site_on_application = SiteOnApplication(
-                        site=site_on_draft.site,
-                        application=application)
-                    site_on_application.save()
-            else:
-                return JsonResponse(data={'errors': 'Cannot create an application with no sites attached'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                site_on_application = SiteOnApplication(
+                    site=site_on_draft.site,
+                    application=application)
+                site_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)
