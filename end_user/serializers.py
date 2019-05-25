@@ -1,16 +1,16 @@
-from rest_framework import serializers
+from rest_framework import serializers, relations
 
 from end_user.models import EndUser
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer
 
 
 class EndUserCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = serializers.CharField()
-    website = serializers.CharField()
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
+    website = serializers.URLField(required=False, allow_blank=True)
+    type = serializers.ChoiceField(choices=EndUser.END_USER_TYPE)
+    organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = EndUser
@@ -19,12 +19,8 @@ class EndUserCreateSerializer(serializers.ModelSerializer):
                   'address',
                   'country',
                   'website',
-                  'type'
+                  'type',
                   'organisation')
-
-    def create(self, validated_data):
-        end_user = EndUser.objects.create(**validated_data)
-        return end_user
 
 
 class EndUserViewSerializer(serializers.ModelSerializer):
@@ -40,7 +36,7 @@ class EndUserViewSerializer(serializers.ModelSerializer):
                   'organisation')
 
 
-class EndUserUpdateSerializer(OrganisationViewSerializer):
+class EndUserUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
 
     class Meta:

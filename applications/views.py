@@ -14,7 +14,7 @@ from applications.serializers import ApplicationBaseSerializer, ApplicationUpdat
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, EndUserOnDraft, SiteOnDraft
+from drafts.models import GoodOnDraft, SiteOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -43,8 +43,8 @@ class ApplicationList(APIView):
             # Errors
             errors = {}
 
-            # if len(EndUserOnDraft.objects.filter(draft=draft)) == 0:
-            #     errors['end_users'] = 'Cannot create an application with no end users attached'
+            if not draft.end_user:
+                errors['end_user'] = 'Cannot create an application without an end user'
 
             if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
                 errors['goods'] = 'Cannot create an application with no goods attached'
@@ -72,11 +72,7 @@ class ApplicationList(APIView):
             application.save()
 
             # Save associated end users, goods and sites
-            for enduser_on_draft in EndUserOnDraft.objects.filter(draft=draft):
-                site_on_application = EndUserOnApplication(
-                    end_user=enduser_on_draft.end_user,
-                    application=application)
-                site_on_application.save()
+            # application.end_user = draft.end_user
 
             for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
                 good_on_application = GoodOnApplication(

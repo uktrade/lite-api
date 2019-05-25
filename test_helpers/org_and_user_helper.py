@@ -6,8 +6,8 @@ from rest_framework.test import APIClient
 
 from addresses.models import Address
 from applications.models import LicenceType, ExportType, Application
-from drafts.models import Draft, GoodOnDraft, EndUserOnDraft, SiteOnDraft
-from end_user.models import EndUser, EndUserType
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site
 from static.units.units import Units
@@ -101,9 +101,9 @@ class OrgAndUserHelper:
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()
         GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
-        end_user = OrgAndUserHelper.create_end_user('test end user', org)
-        end_user.save()
-        EndUserOnDraft(end_user=end_user, draft=draft).save()
+        # end_user = OrgAndUserHelper.create_end_user('test end user', org)
+        # end_user.save()
+        # EndUserOnDraft(end_user=end_user, draft=draft).save()
         SiteOnDraft(site=org.primary_site, draft=draft).save()
         return draft
 
