@@ -101,10 +101,9 @@ class OrgAndUserHelper:
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()
         GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
-        # end_user = OrgAndUserHelper.create_end_user('test end user', org)
-        # end_user.save()
-        # EndUserOnDraft(end_user=end_user, draft=draft).save()
+        draft.end_user = OrgAndUserHelper.create_end_user('test', org)
         SiteOnDraft(site=org.primary_site, draft=draft).save()
+        draft.save()
         return draft
 
     @staticmethod
@@ -168,7 +167,7 @@ class OrgAndUserHelper:
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.'+name+'.com',
-                           type=EndUserType.commercial,
+                           type='Government',
                            country='England')
         end_user.save()
         return end_user
