@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('address', models.TextField(blank=True, default=None)),
                 ('country', models.TextField(blank=True, default=None)),
                 ('website', models.URLField(blank=True, default=None)),
-                ('type', models.CharField(choices=[('government', 'Government'), ('commercial', 'Commercial Organisation'), ('other', 'Other')], default='other', max_length=20)),
+                ('type', models.CharField(choices=[('government', 'Government'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual'), ('other', 'Other')], default='other', max_length=20)),
                 ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='enduser', to='organisations.Organisation')),
             ],
         ),

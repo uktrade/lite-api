@@ -8,10 +8,12 @@ from organisations.models import Organisation
 class EndUser(models.Model):
     GOVERNMENT = 'government'
     COMMERCIAL = 'commercial'
+    INDIVIDUAL = 'individual'
     OTHER = 'other'
     END_USER_TYPE = [
         (GOVERNMENT, 'Government'),
         (COMMERCIAL, 'Commercial Organisation'),
+        (INDIVIDUAL, 'Individual'),
         (OTHER, 'Other'),
     ]
 
