@@ -5,9 +5,12 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
-from drafts.models import Draft
+from applications.models import LicenceType, ExportType, Application
+from drafts.models import Draft, GoodOnDraft, EndUserOnDraft, SiteOnDraft
+from end_user.models import EndUser, EndUserType
 from goods.models import Good
 from organisations.models import Organisation, Site
+from static.units.units import Units
 from users.models import User
 
 
@@ -59,6 +62,7 @@ class OrgAndUserHelper:
                     'country': self.country,
                     'address_line_1': self.address_line_1,
                     'address_line_2': self.address_line_2,
+
                     'region': self.region,
                     'postcode': self.postcode,
                     'city': self.city,
@@ -82,12 +86,34 @@ class OrgAndUserHelper:
     @staticmethod
     def complete_draft(name, org):
         draft = Draft(name=name,
-                      destination='Poland',
+                      licence_type=LicenceType.open_licence,
+                      export_type=ExportType.permanent,
+                      reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
                       organisation=org)
         draft.save()
         return draft
+
+    @staticmethod
+    def create_draft_with_good_end_user_and_site(name, org):
+        draft = OrgAndUserHelper.complete_draft(name, org)
+        good = OrgAndUserHelper.create_controlled_good('a thing', org)
+        good.save()
+        GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
+        end_user = OrgAndUserHelper.create_end_user('test end user', org)
+        end_user.save()
+        EndUserOnDraft(end_user=end_user, draft=draft).save()
+        SiteOnDraft(site=org.primary_site, draft=draft).save()
+        return draft
+
+    @staticmethod
+    def submit_draft(self, draft):
+        draft_id = draft.id
+        url = reverse('applications:applications')
+        data = {'id': draft_id}
+        self.client.post(url, data, format='json', **self.headers)
+        return Application.objects.get(pk=draft_id)
 
     @staticmethod
     def create_controlled_good(description, org):
@@ -136,6 +162,17 @@ class OrgAndUserHelper:
         site.save()
         return site, address
 
+    @staticmethod
+    def create_end_user(name, organisation):
+        end_user = EndUser(name=name,
+                           organisation=organisation,
+                           address='42 Road, London, Buckinghamshire',
+                           website='www.'+name+'.com',
+                           type=EndUserType.commercial,
+                           country='England')
+        end_user.save()
+        return end_user
+
 
 def random_name():
     first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
@@ -145,3 +182,4 @@ def random_name():
     last_name = random.choice(last_names)
 
     return first_name, last_name
+

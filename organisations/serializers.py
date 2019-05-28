@@ -72,7 +72,6 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         organisation.save()
         organisation.primary_site.organisation = organisation
         organisation.primary_site.save()
-
         return organisation
 
 

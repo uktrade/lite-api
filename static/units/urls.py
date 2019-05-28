@@ -1,8 +1,8 @@
 from django.urls import path
 
-from quantity import views
+from static.units import views
 
-app_name = 'quantity'
+app_name = 'units'
 
 urlpatterns = [
     path('', views.UnitsList.as_view(), name='units')

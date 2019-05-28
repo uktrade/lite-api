@@ -116,7 +116,3 @@ class DraftGoods(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
-
-
-class DraftGood(APIView):
-    authentication_classes = (PkAuthentication,)

@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from applications.models import Application
+from applications.models import Application, ExportType, LicenceType
 from cases.models import Case
 from queues.models import Queue
 
@@ -9,12 +9,14 @@ class QueueModelTests(TestCase):
 
     def test_queue_model(self):
         """
-            Tests the Queue model has been created correctly
-
+        Tests the Queue model has been created correctly
         """
         new_application = Application(name='Test',
-                                      destination='Poland',
                                       activity='Trade',
+                                      status='',
+                                      licence_type=LicenceType.open_licence,
+                                      export_type=ExportType.permanent,
+                                      reference_number_on_information_form='',
                                       usage='Fun')
         new_application.save()
         new_case = Case(application=new_application)

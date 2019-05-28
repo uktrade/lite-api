@@ -7,4 +7,7 @@
   * `pip install pipenv`
 * Setup pipenv environment:
   * `pipenv sync`
+* Initialise submodules
+    * `git submodule init`
+    * `git submodule update`
 * Run the application: `pipenv run ./manage.py migrate && pipenv run ./manage.py runserver`

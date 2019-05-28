@@ -9,4 +9,3 @@ class Units(ChoiceEnum):
     MTR = "Metre(s)"
     LTR = "Litre(s)"
     MTQ = "Cubic metre(s)"
-
