@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 
 
