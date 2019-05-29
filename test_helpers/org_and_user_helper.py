@@ -9,7 +9,7 @@ from applications.models import LicenceType, ExportType, Application
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalSite
 from static.units.units import Units
 from users.models import User
 
@@ -160,6 +160,15 @@ class OrgAndUserHelper:
                     address=address)
         site.save()
         return site, address
+
+    @staticmethod
+    def create_external_site(name, org):
+        external_site = ExternalSite(name=name,
+                                     address='20 Questions Road, Enigma',
+                                     country='Canada',
+                                     organisation=org)
+        external_site.save()
+        return external_site
 
     @staticmethod
     def create_end_user(name, organisation):
