@@ -25,10 +25,10 @@ class DraftExternalSites(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_ids = ExternalSiteOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
-        sites = ExternalSite.objects.filter(id__in=sites_ids)
-        serializer = ExternalSiteSerializer(sites, many=True)
-        return JsonResponse(data={'sites': serializer.data})
+        external_sites_ids = ExternalSiteOnDraft.objects.filter(draft=draft).values_list('external_site', flat=True)
+        external_sites = ExternalSite.objects.filter(id__in=external_sites_ids)
+        serializer = ExternalSiteSerializer(external_sites, many=True)
+        return JsonResponse(data={'external_sites': serializer.data})
 
     @transaction.atomic
     def post(self, request, pk):
@@ -68,7 +68,6 @@ class DraftExternalSites(APIView):
         response_data = []
         for external_site in external_sites:
             serializer = ExternalSiteOnDraftSerializer(data={'external_site': external_site, 'draft': str(pk)})
-            print(serializer.initial_data)
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
