@@ -3,18 +3,24 @@ import csv
 
 from django.db import migrations, models
 
+from conf.helpers import str_to_bool
+
 
 def init(apps, schema_editor):
     # We can't import the Queue model directly as it may be a newer
     # version than this migration expects. We use the historical version.
     DenialReason = apps.get_model('denial_reasons', 'DenialReason')
-    if not DenialReason.objects.all():
-        with open('lite-content/lite-api/denial_reasons.csv', newline='') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            next(reader, None)  # skip the headers
-            for row in reader:
-                denial_reason = DenialReason(id=row[0], deprecated=bool(row[1]))
-                denial_reason.save()
+
+    with open('lite-content/lite-api/denial_reasons.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        next(reader, None)  # skip the headers
+        for row in reader:
+            item_id = row[0]
+            item_is_deprecated = str_to_bool(row[1])
+
+            denial_reason, created = DenialReason.objects.get_or_create(id=item_id)
+            denial_reason.deprecated = item_is_deprecated
+            denial_reason.save()
 
 
 class Migration(migrations.Migration):
