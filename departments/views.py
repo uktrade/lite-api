@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 
+from departments.libraries.get_department import get_department_by_pk
 from departments.models import Department
 from departments.serializers import DepartmentSerializer
 
@@ -38,6 +39,13 @@ class DepartmentDetail(APIView):
             return department
         except Department.DoesNotExist:
             raise Http404
+
+    def get(self, request, pk):
+        department = get_department_by_pk(pk)
+
+        serializer = DepartmentSerializer(department)
+        return JsonResponse(data={'department': serializer.data},
+                            safe=False)
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
