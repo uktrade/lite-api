@@ -24,9 +24,11 @@ class ApplicationsTests(DataTestClient):
         data = {'id': draft.id}
         response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Case.objects.get(application=Application.objects.get(pk=draft.id)).application,
-                        Application.objects.get(pk=draft.id))
+
+        application = Application.objects.get(pk=draft.id)
+
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
+        self.assertEqual(application.end_user, draft.end_user)
 
     def test_create_application_with_invalid_id(self):
         """

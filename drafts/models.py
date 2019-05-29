@@ -21,7 +21,7 @@ class Draft(models.Model):
     licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType], default=None)
     export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType], default=None)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
-    end_user = models.ForeignKey(EndUser, related_name='end_user', on_delete=models.CASCADE,
+    end_user = models.ForeignKey(EndUser, related_name='draft_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
 
 

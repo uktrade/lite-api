@@ -46,6 +46,8 @@ class Application(models.Model):
     licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType], default=None)
     export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType], default=None)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
+    end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
+                                 default=None, blank=True, null=True)
 
 
 @reversion.register()
@@ -63,13 +65,6 @@ class Destination(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
     application = models.ForeignKey(Application, related_name='destinations', on_delete=models.CASCADE)
-
-
-@reversion.register()
-class EndUserOnApplication(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    end_user = models.ForeignKey(EndUser, related_name='end_user_on_application', on_delete=models.CASCADE)
-    application = models.ForeignKey(Application, related_name='application_end_users', on_delete=models.CASCADE)
 
 
 @reversion.register()
