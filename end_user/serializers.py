@@ -60,4 +60,3 @@ class EndUserUpdateSerializer(serializers.ModelSerializer):
         instance.type = validated_data.get('type', instance.type)
         instance.save()
         return instance
-

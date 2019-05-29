@@ -181,4 +181,3 @@ def random_name():
     last_name = random.choice(last_names)
 
     return first_name, last_name
-

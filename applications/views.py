@@ -72,7 +72,7 @@ class ApplicationList(APIView):
             application.save()
 
             # Save associated end users, goods and sites
-            # application.end_user = draft.end_user
+            application.end_user = draft.end_user
 
             for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
                 good_on_application = GoodOnApplication(
