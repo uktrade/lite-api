@@ -6,9 +6,10 @@ from rest_framework.validators import UniqueValidator
 
 class DepartmentSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        validators=[UniqueValidator(queryset=Department.objects.all(), lookup='iexact')],
-        error_messages={'blank': 'Department name may not be blank',
-                        'unique': 'Enter a name which is not already in use by another department'})
+        max_length=50,
+        validators=[UniqueValidator(queryset=Department.objects.all(), lookup='iexact',
+                                    message='Enter a name which is not already in use by another department')],
+        error_messages={'blank': 'Department name may not be blank'})
 
     class Meta:
         model = Department
