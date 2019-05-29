@@ -6,7 +6,7 @@ from enumchoicefield import EnumChoiceField
 from applications.models import LicenceType, ExportType
 from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalSite
 from static.units.units import Units
 
 
@@ -43,8 +43,4 @@ class SiteOnDraft(models.Model):
 class ExternalSiteOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     draft = models.ForeignKey(Draft, related_name='draft_external_sites', on_delete=models.CASCADE)
-    name = models.TextField(default=None, blank=True)
-    address = models.TextField(default=None, blank=True)
-    country = models.TextField(default=None, blank=True)
-    organisation = models.ForeignKey(Organisation, blank=True,
-                                     null=True, related_name='organisation_end_user', on_delete=models.CASCADE)
+    external_site = models.ForeignKey(ExternalSite, related_name='external_sites_on_draft', on_delete=models.CASCADE)
