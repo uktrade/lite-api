@@ -17,9 +17,6 @@ class DepartmentSerializer(serializers.ModelSerializer):
                   'name')
 
     def update(self, instance, validated_data):
-        """
-        Update and return an existing `Application` instance, given the validated data.
-        """
         instance.name = validated_data.get('name', instance.name)
         instance.save()
         return instance
