@@ -8,7 +8,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 
-from applications.models import Application, GoodOnApplication, EndUserOnApplication, SiteOnApplication, \
+from applications.models import Application, GoodOnApplication, SiteOnApplication, \
     ApplicationStatus
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
@@ -69,10 +69,10 @@ class ApplicationList(APIView):
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
                                       )
-            application.save()
 
             # Save associated end users, goods and sites
             application.end_user = draft.end_user
+            application.save()
 
             for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
                 good_on_application = GoodOnApplication(

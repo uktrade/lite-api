@@ -24,4 +24,4 @@ class EndUser(models.Model):
     website = models.URLField(default=None, blank=True)
     type = models.CharField(choices=END_USER_TYPE, default='other', max_length=20)
     organisation = models.ForeignKey(Organisation, blank=True,
-                                     null=True, related_name='enduser', on_delete=models.CASCADE)
+                                     null=True, related_name='organisation_end_user', on_delete=models.CASCADE)
