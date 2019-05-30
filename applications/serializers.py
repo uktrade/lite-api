@@ -22,6 +22,24 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
                   'value')
 
 
+class DenialReasonSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
+
+    class Meta:
+        model = DenialReason
+        fields = ('id',)
+
+
+class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
+    reasons = DenialReasonSerializer(read_only=False, many=True)
+
+    class Meta:
+        model = ApplicationDenialReason
+        fields = ('id',
+                  'reasoning',
+                  'reasons')
+
+
 class ApplicationBaseSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     organisation = OrganisationViewSerializer()
@@ -35,6 +53,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         'required': 'Select if you want to apply for a temporary or permanent '
                     'licence.'})
     reference_number_on_information_form = serializers.CharField()
+    application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
 
     class Meta:
         model = Application
@@ -50,7 +69,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'status',
                   'licence_type',
                   'export_type',
-                  'reference_number_on_information_form',)
+                  'reference_number_on_information_form',
+                  'application_denial_reason',)
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
@@ -89,6 +109,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reasoning = serializers.CharField(required=False, allow_blank=True)
 
+
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
             raise serializers.ValidationError('Select at least one denial reason')
@@ -125,8 +146,8 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
-        # If the status has been set to declined, create the stuff?
-        if validated_data.get('status') == ApplicationStatus.DECLINED:
+        # If the status has been set to under final review, add reasoning to application
+        if validated_data.get('status') == ApplicationStatus.UNDER_FINAL_REVIEW:
             data = {'application': instance.id,
                     'reasoning': validated_data.get('reasoning'),
                     'reasons': validated_data.get('reasons')}
