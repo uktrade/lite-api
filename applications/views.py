@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
+from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, SiteOnApplication, \
     ApplicationStatus
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
@@ -113,22 +113,15 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
-    def get_object(self, pk):
-        try:
-            application = Application.objects.get(pk=pk)
-            return application
-        except Application.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        application = self.get_object(pk)
+        application = get_application_by_pk(pk)
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
