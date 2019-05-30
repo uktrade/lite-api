@@ -19,7 +19,8 @@ class ApplicationsTests(DataTestClient):
 
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
-
+        draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        draft.save()
         data = {'id': draft.id}
         response = self.client.post(self.url, data,**self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

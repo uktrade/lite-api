@@ -10,6 +10,6 @@ urlpatterns = [
     path('<uuid:pk>/', views.DraftDetail.as_view(), name='draft'),
     path('<uuid:pk>/goods/', views.DraftGoods.as_view(), name='draft_goods'),
     path('<uuid:pk>/goods/<uuid:good_pk>/', views.DraftGoods.as_view(), name='draft_good'),
-    path('<uuid:pk>/endusers/', draft_end_user_views.DraftEndUser.as_view(), name='end_users'),
+    path('<uuid:pk>/end-user/', draft_end_user_views.DraftEndUser.as_view(), name='end_user'),
     path('<uuid:pk>/sites/', draft_sites_views.DraftSites.as_view(), name='draft_sites'),
 ]
