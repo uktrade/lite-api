@@ -54,7 +54,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
-    reasoning = serializers.CharField(max_length=2200)
+    reasoning = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
     application = serializers.PrimaryKeyRelatedField(queryset=Application.objects.all())
 
     class Meta:
@@ -65,8 +65,11 @@ class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         application_denial_reason = ApplicationDenialReason.objects.create(**validated_data)
 
-        for reason in self.initial_data['reasons']:
-            application_denial_reason.reasons.add(reason)
+        if self.initial_data['reasons']:
+            for reason in self.initial_data['reasons']:
+                application_denial_reason.reasons.add(reason)
+        else:
+            raise serializers.ValidationError('Select at least one denial reason')
 
         application_denial_reason.save()
         return application_denial_reason
@@ -85,6 +88,11 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     reference_number_on_information_form = serializers.CharField()
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reasoning = serializers.CharField(required=False)
+
+    def validate_reasons(self, attrs):
+        if not attrs or len(attrs) == 0:
+            raise serializers.ValidationError('Select at least one denial reason')
+        return attrs
 
     class Meta:
         model = Application
@@ -126,13 +134,12 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
             application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
-                # ApplicationDenialReason.objects.all(application=get_application_by_pk(instance.id)).delete()
+                ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
 
                 # Create a new ApplicationDenialReasons
                 application_denial_reason_serializer.save()
             else:
-                print(application_denial_reason_serializer.errors)
-                return instance
+                raise serializers.ValidationError('An error occurred')
 
         instance.save()
         return instance

@@ -16,13 +16,20 @@ class ApplicationDenialTests(DataTestClient):
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.url = reverse('applications:application', kwargs={'pk': self.application.id})
 
-    def test_set_application_status_successful(self):
-        data = {
+    @parameterized.expand([
+        # Valid reasons and valid reasoning
+        [{
             'status': ApplicationStatus.DECLINED,
             'reasons': ['1a', '1b', '1c'],
             'reasoning': 'I liked the old way',
-        }
-
+        }],
+        # Valid reasons and valid missing reasoning
+        [{
+            'status': ApplicationStatus.DECLINED,
+            'reasons': ['1a', '1b', '1c'],
+        }],
+    ])
+    def test_set_application_status_successful(self, data):
         response = self.client.put(self.url, data=data)
 
         self.application.refresh_from_db()
@@ -31,21 +38,35 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.status, ApplicationStatus.DECLINED)
         self.assertEqual(application_denial_reason.reasoning,
-                         data['reasoning'])
+                         data.get('reasoning'))
         self.assertEqual(application_denial_reason.reasons.all().count(),
                          len(data['reasons']))
 
     @parameterized.expand([
+        # Invalid reasons
         [{
             'status': ApplicationStatus.DECLINED,
             'reasons': ['1234', '5678', '8910!'],
             'reasoning': 'I liked the old way',
         }],
+        # Empty reasons
+        [{
+            'status': ApplicationStatus.DECLINED,
+            'reasons': [],
+            'reasoning': 'I liked the old way',
+        }],
+        # No reasons
+        [{
+            'status': ApplicationStatus.DECLINED,
+            'reasoning': 'I liked the old way',
+        }],
+        # Valid reasons except one
         [{
             'status': ApplicationStatus.DECLINED,
             'reasons': ['1a', '1b', '8910!'],
             'reasoning': 'I liked the old way',
         }],
+        # Valid reasons but reasoning is too long
         [{
             'status': ApplicationStatus.DECLINED,
             'reasons': ['1a', '1b'],
