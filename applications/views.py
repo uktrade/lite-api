@@ -2,14 +2,13 @@ import json
 
 import reversion
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication, \
-    ApplicationStatus
+from applications.models import Application, GoodOnApplication, SiteOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
@@ -119,11 +118,13 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
+
         with reversion.create_revision():
-            data = JSONParser().parse(request)
-            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=data, partial=True)
+            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
+
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)

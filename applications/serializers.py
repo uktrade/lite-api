@@ -87,7 +87,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                     'licence.'})
     reference_number_on_information_form = serializers.CharField()
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
-    reasoning = serializers.CharField(required=False)
+    reasoning = serializers.CharField(required=False, allow_blank=True)
 
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
