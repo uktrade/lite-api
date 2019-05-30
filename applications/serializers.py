@@ -1,23 +1,11 @@
 from rest_framework import serializers
-
-from enumchoicefield import EnumChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-
-from applications.models import Application, ApplicationStatus, GoodOnApplication, Site, SiteOnApplication, \
-    LicenceType, ExportType
-
-from applications.models import Application, ApplicationStatus, \
-    GoodOnApplication, LicenceType, ExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
+from applications.models import Application, GoodOnApplication
+from applications.models import Site, SiteOnApplication
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer
-
-
-class ChoiceField(serializers.ChoiceField):
-
-    def to_representation(self, obj):
-        return self._choices[obj]
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -38,12 +26,10 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    status = serializers.CharField()  # Doesnt validate yet
-    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
-                                           error_messages={
+    status = serializers.ChoiceField(choices=ApplicationStatus.choices)
+    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
-                                          error_messages={
+    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': 'Select if you want to apply for a temporary or permanent '
                                                           'licence.'})
     reference_number_on_information_form = serializers.CharField()
@@ -69,12 +55,10 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    status = serializers.CharField() # Doesnt validate yet
-    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
-                                           error_messages={
+    status = serializers.ChoiceField(choices=ApplicationStatus.choices)
+    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
-                                          error_messages={
+    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': 'Select if you want to apply for a temporary or permanent '
                                                           'licence.'})
     reference_number_on_information_form = serializers.CharField()

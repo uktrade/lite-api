@@ -62,7 +62,6 @@ class ApplicationList(APIView):
                                       activity=draft.activity,
                                       licence_type=draft.licence_type,
                                       export_type=draft.export_type,
-                                      status=ApplicationStatus.submitted,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
                                       created_at=draft.created_at,
