@@ -1,7 +1,7 @@
 from django.urls import path
 
 from drafts import views
-from drafts.views import draft_sites_views, draft_end_user_views, views, draft_external_sites_views
+from drafts.views import draft_sites_views, draft_end_user_views, views, draft_external_locations_views
 
 app_name = 'drafts'
 
@@ -12,5 +12,5 @@ urlpatterns = [
     path('<uuid:pk>/goods/<uuid:good_pk>/', views.DraftGoods.as_view(), name='draft_good'),
     path('<uuid:pk>/end-user/', draft_end_user_views.DraftEndUser.as_view(), name='end_user'),
     path('<uuid:pk>/sites/', draft_sites_views.DraftSites.as_view(), name='draft_sites'),
-    path('<uuid:pk>/external_sites', draft_external_sites_views.DraftExternalSites.as_view(), name='draft_external_sites')
+    path('<uuid:pk>/external_locations', draft_external_locations_views.DraftExternalLocations.as_view(), name='draft_external_locations')
 ]

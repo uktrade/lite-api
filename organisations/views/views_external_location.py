@@ -8,15 +8,15 @@ from rest_framework.views import APIView
 from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user, get_organisation_by_pk
 from organisations.libraries.get_site import get_site_with_organisation
-from organisations.models import Organisation, Site, ExternalSite
+from organisations.models import Organisation, Site, ExternalLocation
 
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteUpdateSerializer, \
-    ExternalSiteSerializer
+    ExternalLocationSerializer
 
 
-class ExternalSiteList(APIView):
+class ExternalLocationList(APIView):
     authentication_classes = (PkAuthentication,)
     """
     List all sites for an organisation/create site
@@ -24,10 +24,10 @@ class ExternalSiteList(APIView):
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
-        external_sites = ExternalSite.objects.filter(organisation=organisation)
+        external_locations = ExternalLocation.objects.filter(organisation=organisation)
 
-        serializer = ExternalSiteSerializer(external_sites, many=True)
-        return JsonResponse(data={'external_sites': serializer.data})
+        serializer = ExternalLocationSerializer(external_locations, many=True)
+        return JsonResponse(data={'external_locations': serializer.data})
 
     @transaction.atomic
     def post(self, request):
@@ -35,10 +35,10 @@ class ExternalSiteList(APIView):
             organisation = get_organisation_by_user(request.user)
             data = JSONParser().parse(request)
             data['organisation'] = organisation.id
-            serializer = ExternalSiteSerializer(data=data)
+            serializer = ExternalLocationSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(data={'external_site': serializer.data},
+                return JsonResponse(data={'external_location': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},

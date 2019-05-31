@@ -13,13 +13,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ExternalSite',
+            name='ExternalLocation',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.TextField(default=None)),
                 ('address', models.TextField(default=None)),
                 ('country', models.TextField(default=None)),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='external_site', to='organisations.Organisation')),
+                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='external_location', to='organisations.Organisation')),
             ],
         ),
     ]

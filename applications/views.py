@@ -8,12 +8,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalSiteOnApplication
+from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, SiteOnDraft, ExternalSiteOnDraft
+from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -49,7 +49,7 @@ class ApplicationList(APIView):
                 errors['goods'] = 'Cannot create an application with no goods attached'
 
             if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalSiteOnDraft.objects.filter(draft=draft)) == 0:
+                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
                 errors['location'] = 'Cannot create an application with no sites or external sites attached'
 
             if len(errors):
@@ -88,11 +88,11 @@ class ApplicationList(APIView):
                     application=application)
                 site_on_application.save()
 
-            for external_site_on_draft in ExternalSiteOnDraft.objects.filter(draft=draft):
-                external_site_on_application = ExternalSiteOnApplication(
-                    external_site=external_site_on_draft.external_site,
+            for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                external_location_on_application = ExternalLocationOnApplication(
+                    external_location=external_location_on_draft.external_location,
                     application=application)
-                external_site_on_application.save()
+                external_location_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)

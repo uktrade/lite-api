@@ -6,7 +6,7 @@ from enumchoicefield import EnumChoiceField
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site, ExternalSite
+from organisations.models import Organisation, Site, ExternalLocation
 from static.units.units import Units
 
 
@@ -40,7 +40,7 @@ class SiteOnDraft(models.Model):
     draft = models.ForeignKey(Draft, related_name='draft_sites', on_delete=models.CASCADE)
 
 
-class ExternalSiteOnDraft(models.Model):
+class ExternalLocationOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    draft = models.ForeignKey(Draft, related_name='draft_external_sites', on_delete=models.CASCADE)
-    external_site = models.ForeignKey(ExternalSite, related_name='external_sites_on_draft', on_delete=models.CASCADE)
+    draft = models.ForeignKey(Draft, related_name='draft_external_locations', on_delete=models.CASCADE)
+    external_location = models.ForeignKey(ExternalLocation, related_name='external_locations_on_draft', on_delete=models.CASCADE)

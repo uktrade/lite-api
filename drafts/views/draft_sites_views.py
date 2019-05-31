@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
-from drafts.models import SiteOnDraft, ExternalSiteOnDraft
+from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
@@ -75,7 +75,7 @@ class DraftSites(APIView):
                                     status=400)
 
         # Deletes any external sites on the draft if a site is being added
-        ExternalSiteOnDraft.objects.filter(draft=draft).delete()
+        ExternalLocationOnDraft.objects.filter(draft=draft).delete()
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)

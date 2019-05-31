@@ -2,7 +2,7 @@ from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
-from applications.models import Application, SiteOnApplication, ExternalSiteOnApplication
+from applications.models import Application, SiteOnApplication, ExternalLocationOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
 from static.units.units import Units
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -40,4 +40,4 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(SiteOnApplication.objects.count(), 2)
         application = Application.objects.get()
         self.assertEqual(SiteOnApplication.objects.filter(application=application).count(), 2)
-        self.assertEqual(ExternalSiteOnApplication.objects.filter(application=application).count(), 0)
+        self.assertEqual(ExternalLocationOnApplication.objects.filter(application=application).count(), 0)

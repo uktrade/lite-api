@@ -8,7 +8,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0004_externalsite'),
+        ('organisations', '0004_externallocation'),
         ('applications', '0001_initial'),
     ]
 
@@ -19,11 +19,11 @@ class Migration(migrations.Migration):
             field=models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('approved', 'Approved'), ('declined', 'Declined')], default='submitted', max_length=50),
         ),
         migrations.CreateModel(
-            name='ExternalSiteOnApplication',
+            name='ExternalLocationOnApplication',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_application_sites', to='applications.Application')),
-                ('external_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_sites_on_application', to='organisations.ExternalSite')),
+                ('external_location', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_locations_on_application', to='organisations.ExternalLocation')),
             ],
         ),
     ]

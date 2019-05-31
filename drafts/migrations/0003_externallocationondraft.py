@@ -8,17 +8,17 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0004_externalsite'),
+        ('organisations', '0004_externallocation'),
         ('drafts', '0002_auto_20190530_1112'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExternalSiteOnDraft',
+            name='ExternalLocationOnDraft',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('draft', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='draft_external_sites', to='drafts.Draft')),
-                ('external_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_sites_on_draft', to='organisations.ExternalSite')),
+                ('draft', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='draft_external_locations', to='drafts.Draft')),
+                ('external_location', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_locations_on_draft', to='organisations.ExternalLocation')),
             ],
         ),
     ]

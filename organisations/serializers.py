@@ -5,7 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer, AddressUpdateSerializer
-from organisations.models import Organisation, Site, ExternalSite
+from organisations.models import Organisation, Site, ExternalLocation
 from users.models import User
 from users.serializers import UserCreateSerializer
 
@@ -139,14 +139,14 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
         return instance
 
 
-class ExternalSiteSerializer(serializers.ModelSerializer):
+class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = serializers.CharField()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        model = ExternalSite
+        model = ExternalLocation
         fields = ('id',
                   'name',
                   'address',

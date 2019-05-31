@@ -29,9 +29,9 @@ class Site(models.Model):
 
 
 @reversion.register()
-class ExternalSite(models.Model):
+class ExternalLocation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     address = models.TextField(default=None, blank=False)
     country = models.TextField(default=None, blank=False)
-    organisation = models.ForeignKey(Organisation, blank=True, null=True, related_name='external_site', on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, blank=True, null=True, related_name='external_location', on_delete=models.CASCADE)

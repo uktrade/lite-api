@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalSiteOnDraft
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from end_user.serializers import EndUserSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation, Site, ExternalSite
+from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 
 
@@ -126,12 +126,12 @@ class SiteOnDraftViewSerializer(serializers.ModelSerializer):
                   'draft')
 
 
-class ExternalSiteOnDraftSerializer(serializers.ModelSerializer):
+class ExternalLocationOnDraftSerializer(serializers.ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    external_site = PrimaryKeyRelatedField(queryset=ExternalSite.objects.all())
+    external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
 
     class Meta:
-        model = ExternalSiteOnDraft
+        model = ExternalLocationOnDraft
         fields = ('id',
-                  'external_site',
+                  'external_location',
                   'draft')
