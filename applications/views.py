@@ -8,12 +8,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication
+from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalSiteOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, SiteOnDraft
+from drafts.models import GoodOnDraft, SiteOnDraft, ExternalSiteOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -48,8 +48,9 @@ class ApplicationList(APIView):
             if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
                 errors['goods'] = 'Cannot create an application with no goods attached'
 
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0:
-                errors['sites'] = 'Cannot create an application with no sites attached'
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalSiteOnDraft.objects.filter(draft=draft)) == 0:
+                errors['location'] = 'Cannot create an application with no sites or external sites attached'
 
             if len(errors):
                 return JsonResponse(data={'errors': errors},
@@ -86,6 +87,12 @@ class ApplicationList(APIView):
                     site=site_on_draft.site,
                     application=application)
                 site_on_application.save()
+
+            for external_site_on_draft in ExternalSiteOnDraft.objects.filter(draft=draft):
+                external_site_on_application = ExternalSiteOnApplication(
+                    external_site=external_site_on_draft.external_site,
+                    application=application)
+                external_site_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)

@@ -7,7 +7,7 @@ from enumchoicefield import EnumChoiceField
 from applications.enums import ApplicationStatus, ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalSite
 from static.denial_reasons.models import DenialReason
 from static.units.units import Units
 
@@ -60,3 +60,9 @@ class ApplicationDenialReason(models.Model):
     application = models.ForeignKey(Application, related_name='application_denial_reason', on_delete=models.CASCADE)
     reasons = models.ManyToManyField(DenialReason)
     reasoning = models.TextField(default=None, blank=True, null=True, max_length=2200)
+
+@reversion.register()
+class ExternalSiteOnApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    external_site = models.ForeignKey(ExternalSite, related_name='external_sites_on_application', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='external_application_sites', on_delete=models.CASCADE)
