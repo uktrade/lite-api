@@ -2,14 +2,13 @@ import json
 
 import reversion
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
-from applications.models import Application, GoodOnApplication, SiteOnApplication, \
-    ApplicationStatus
+from applications.libraries.get_application import get_application_by_pk
+from applications.models import Application, GoodOnApplication, SiteOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
@@ -62,7 +61,6 @@ class ApplicationList(APIView):
                                       activity=draft.activity,
                                       licence_type=draft.licence_type,
                                       export_type=draft.export_type,
-                                      status=ApplicationStatus.submitted,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
                                       created_at=draft.created_at,
@@ -114,24 +112,19 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
-    def get_object(self, pk):
-        try:
-            application = Application.objects.get(pk=pk)
-            return application
-        except Application.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        application = self.get_object(pk)
+        application = get_application_by_pk(pk)
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
+
         with reversion.create_revision():
-            data = JSONParser().parse(request)
-            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
+
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
