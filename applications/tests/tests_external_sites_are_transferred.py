@@ -43,3 +43,4 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         application = Application.objects.get()
         self.assertEqual(ExternalSiteOnApplication.objects.filter(application=application).count(), 2)
         self.assertEqual(SiteOnApplication.objects.filter(application=application).count(), 0)
+        self.assertEqual(application.activity, 'Brokering')
