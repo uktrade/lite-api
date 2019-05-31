@@ -1,4 +1,3 @@
-from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -106,17 +105,6 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'value')
 
 
-# class EndUserOnDraftBaseSerializer(serializers.ModelSerializer):
-#     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-#     end_user = PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-#
-#     class Meta:
-#         model = EndUserOnDraft
-#         fields = ('id',
-#                   'end_user',
-#                   'draft')
-#
-#
 class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
@@ -126,17 +114,6 @@ class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'site',
                   'draft')
-#
-#
-# class EndUserOnDraftViewSerializer(serializers.ModelSerializer):
-#     end_user = EndUserViewSerializer(read_only=True)
-#     draft = DraftBaseSerializer(read_only=True)
-#
-#     class Meta:
-#         model = EndUserOnDraft
-#         fields = ('id',
-#                   'end_user',
-#                   'draft')
 
 
 class SiteOnDraftViewSerializer(serializers.ModelSerializer):

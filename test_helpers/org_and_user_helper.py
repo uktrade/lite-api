@@ -8,6 +8,7 @@ from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from applications.models import Application
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site
@@ -168,7 +169,7 @@ class OrgAndUserHelper:
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.'+name+'.com',
-                           type='Government',
+                           type=EndUserType.GOVERNMENT,
                            country='England')
         end_user.save()
         return end_user
