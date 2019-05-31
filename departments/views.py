@@ -13,10 +13,9 @@ class DepartmentList(APIView):
     List all departments, or create a new department.
     """
     def get(self, request):
-        departments = Department.objects.all()
+        departments = Department.objects.all().order_by('name')
         serializer = DepartmentSerializer(departments, many=True)
-        return JsonResponse(data={'departments': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'departments': serializer.data})
 
     def post(self, request):
         data = JSONParser().parse(request)
@@ -44,8 +43,7 @@ class DepartmentDetail(APIView):
         department = get_department_by_pk(pk)
 
         serializer = DepartmentSerializer(department)
-        return JsonResponse(data={'department': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'department': serializer.data})
 
     def put(self, request, pk):
         data = JSONParser().parse(request)
