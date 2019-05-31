@@ -75,5 +75,8 @@ class DraftExternalSites(APIView):
                 return JsonResponse(data={'errors': serializer.errors},
                                     status=400)
 
+        # Deletes any sites on the draft if an external site is being added
+        SiteOnDraft.objects.filter(draft=draft).delete()
+
         return JsonResponse(data={'external_sites': response_data},
                             status=status.HTTP_201_CREATED)

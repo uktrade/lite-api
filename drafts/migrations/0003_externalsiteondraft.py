@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('organisations', '0004_externalsite'),
-        ('drafts', '0002_auto_20190529_1238'),
+        ('drafts', '0002_auto_20190530_1112'),
     ]
 
     operations = [

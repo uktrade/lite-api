@@ -1,7 +1,6 @@
 from django.urls import path
 
 from organisations.views import views, views_site, views_external_site
-from end_user import views_endusers
 
 app_name = 'organisations'
 

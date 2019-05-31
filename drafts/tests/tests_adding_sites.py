@@ -3,7 +3,7 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import SiteOnDraft, Draft
+from drafts.models import SiteOnDraft, Draft, ExternalSiteOnDraft
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -104,3 +104,22 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.get(url, **self.headers).json()
         self.assertEqual(len(response['sites']), 1)
         self.assertNotEqual(response['sites'][0]['id'], site_id)
+
+    def test_adding_site_to_draft_deletes_external_sites(self):
+        draft = self.draft
+        external_site = self.test_helper.create_external_site('test', self.org)
+        url = reverse('drafts:draft_external_sites', kwargs={'pk': self.draft.id})
+        data = {
+            'external_sites': [
+                external_site.id
+            ]
+        }
+        self.client.post(url, data, **self.headers)
+        data = {
+            'sites': [
+                self.primary_site.id
+            ]
+        }
+        self.client.post(self.url, data, **self.headers)
+        self.assertEqual(SiteOnDraft.objects.filter(draft=draft).count(), 1)
+        self.assertEqual(ExternalSiteOnDraft.objects.filter(draft=draft).count(), 0)
