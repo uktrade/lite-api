@@ -206,7 +206,7 @@ Endpoints for retrieving, creating and updating applications:
         <td>returns application with given id</td>
     </tr>
     <tr>
-        <td>POST *parse exception*</td>
+        <td>POST</td>
         <td>/applications/</td>
         <td>?</td>
         <td>Request:  DTO Structure <br>
@@ -729,3 +729,37 @@ Endpoints for retrieving, creating and updating users.
         <td>Creates a user </td>
     </tr>
 </table>
+
+### Departments
+<br> Last Updated 31/5/2019
+<br> requires USER-ID header
+<pre>
+{
+    "id": [UUID]
+    "name":[free text] 
+}
+</pre>
+
+Endpoints for retrieving, creating and updating departments:
+
+<table>
+    <tr>
+        <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th>
+        <th max-width: 30px >Details</th>
+    </tr>
+    <!–– Departments ––>
+    <tr>
+        <td>POST</td>
+        <td>/departments/</td>
+        <td></td>
+        <td></td>
+        <td>200</td>
+        <td>Create department</td>
+    </tr>
+
+example POST /departments/ request:
+<pre>
+{
+	"name":"TestDepartment"
+}
+</pre>
