@@ -59,4 +59,4 @@ class ApplicationDenialReason(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, related_name='application_denial_reason', on_delete=models.CASCADE)
     reasons = models.ManyToManyField(DenialReason)
-    reasoning = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
