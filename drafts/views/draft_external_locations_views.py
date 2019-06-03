@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -38,20 +37,12 @@ class DraftExternalLocations(APIView):
         draft = get_draft(pk)
 
         # Validate that there are actually sites
-        if external_locations is None:
+        if external_locations is None or len(external_locations) == 0:
             return JsonResponse(data={'errors': {
                 'external_locations': [
-                    'You have to pick at least one site.'
+                    'You have to pick at least one location'
                 ]
             }}, status=400)
-
-        if len(external_locations) == 0:
-            return JsonResponse(data={'errors': {
-                'external_locations': [
-                        'You have to pick at least one site.'
-                    ]
-                }},
-                status=400)
 
         # Validate each site belongs to the organisation
         for external_location in external_locations:
@@ -61,11 +52,11 @@ class DraftExternalLocations(APIView):
         draft.activity = 'Brokering'
         draft.save()
 
-        # Delete existing SitesOnDrafts
+        # Delete existing ExternalLocationsOnDrafts
         if data.get('method') != 'append_location':
             ExternalLocationOnDraft.objects.filter(draft=draft).delete()
 
-        # Append new SitesOnDrafts
+        # Append new ExternalLocationOnDrafts
         response_data = []
         for external_location in external_locations:
             serializer = ExternalLocationOnDraftSerializer(data={'external_location': external_location, 'draft': str(pk)})
@@ -76,7 +67,7 @@ class DraftExternalLocations(APIView):
                 return JsonResponse(data={'errors': serializer.errors},
                                     status=400)
 
-        # Deletes any sites on the draft if an external site is being added
+        # Deletes any sites on the draft if an external location is being added
         SiteOnDraft.objects.filter(draft=draft).delete()
 
         return JsonResponse(data={'external_locations': response_data},
