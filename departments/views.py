@@ -33,14 +33,10 @@ class DepartmentList(APIView):
 class DepartmentDetail(APIView):
 
     def get_object(self, pk):
-        try:
-            department = Department.objects.get(pk=pk)
-            return department
-        except Department.DoesNotExist:
-            raise Http404
+        return get_department_by_pk(pk)
 
     def get(self, request, pk):
-        department = get_department_by_pk(pk)
+        department = self.get_object(self, pk)
 
         serializer = DepartmentSerializer(department)
         return JsonResponse(data={'department': serializer.data})
