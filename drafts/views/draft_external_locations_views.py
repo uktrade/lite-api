@@ -62,7 +62,8 @@ class DraftExternalLocations(APIView):
         draft.save()
 
         # Delete existing SitesOnDrafts
-        ExternalLocationOnDraft.objects.filter(draft=draft).delete()
+        if data.get('method') != 'append_location':
+            ExternalLocationOnDraft.objects.filter(draft=draft).delete()
 
         # Append new SitesOnDrafts
         response_data = []
