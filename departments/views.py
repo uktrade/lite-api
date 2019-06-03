@@ -36,7 +36,7 @@ class DepartmentDetail(APIView):
         return get_department_by_pk(pk)
 
     def get(self, request, pk):
-        department = self.get_object(self, pk)
+        department = get_department_by_pk(pk)
 
         serializer = DepartmentSerializer(department)
         return JsonResponse(data={'department': serializer.data})
