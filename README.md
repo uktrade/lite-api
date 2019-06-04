@@ -13,7 +13,7 @@ Service for handling backend calls in LITE.
   * `cd lite-api`
 * First time setup
   * Set up your local config file:
-    * `cp local.env .env`
+    * `cp docker.env .env`
   * Ensure docker is running
     * Build and start docker images:
     * `docker-compose build` - build the container image

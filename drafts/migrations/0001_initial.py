@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 ('last_modified_at', models.DateTimeField(auto_now_add=True)),
                 ('licence_type', models.CharField(choices=[('standard_licence', 'Standard Individual Export Licence (SIEL)'), ('open_licence', 'Open Individual Export Licence (OIEL)')], default=None, max_length=50)),
                 ('export_type', models.CharField(choices=[('permanent', 'Permanent'), ('temporary', 'Temporary')], default=None, max_length=50)),
+
                 ('reference_number_on_information_form', models.TextField(blank=True, null=True)),
             ],
         ),
