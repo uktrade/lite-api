@@ -7,12 +7,11 @@ from rest_framework.views import APIView
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
-from drafts.serializers import SiteOnDraftBaseSerializer, ExternalLocationOnDraftSerializer
+from drafts.serializers import ExternalLocationOnDraftSerializer
 from organisations.libraries.get_external_location import get_external_location_with_organisation
 from organisations.libraries.get_organisation import get_organisation_by_user
-from organisations.libraries.get_site import get_site_with_organisation
-from organisations.models import Site, ExternalLocation
-from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
+from organisations.models import ExternalLocation
+from organisations.serializers import ExternalLocationSerializer
 
 
 class DraftExternalLocations(APIView):
