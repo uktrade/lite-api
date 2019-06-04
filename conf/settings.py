@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = Env(
     ALLOWED_HOSTS=(str, ''),
     DEBUG=(bool, False),
-    DEBUG_LEVEL=(str, 'INFO'),
+    LOG_LEVEL=(str, 'INFO'),
 )
 
 ENV_FILE = os.path.join(BASE_DIR, '.env')
@@ -154,7 +154,7 @@ if 'test' not in sys.argv:
         'loggers': {
             '': {
                 'handlers': ['console'],
-                'level': env('DEBUG_LEVEL').upper(),
+                'level': env('LOG_LEVEL').upper(),
             },
         }
     }

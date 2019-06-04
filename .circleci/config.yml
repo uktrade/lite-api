@@ -3,6 +3,10 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
 version: 2
+
+orbs:
+  jq: circleci/jq@1.8.0
+
 jobs:
   build:
     docker:
@@ -17,9 +21,34 @@ jobs:
     working_directory: ~/lite-api
 
     steps:
+      - jq/install
+
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
+      - run:
+          name: Git submodule checkout
+          command: |
+            git submodule sync
+            git submodule update --init
+
+      - run:
+          name: repository vulnerability check
+          command: |
+            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:771a3c9d165fc2e0e7787db2c3995e2ca848beb3" \
+              -X POST -H "Content-Type: application/json" \
+              -H "Accept: application/vnd.github.vixen-preview+json" \
+              -d '{"query": "query { repository(owner:\"uktrade\" name:\"lite-api\") { vulnerabilityAlerts(first: 100) { totalCount } } }"' https://api.github.com/graphql \
+              | jq ".data.repository.vulnerabilityAlerts.totalCount"`
+            if [ $VULNERABILITY_COUNT -eq 0 ]; then
+              echo "No vulnerabilities found."
+            else
+              echo "Vulnerabilities found: $VULNERABILITY_COUNT. Check GitHub security tab for details (only visible to admin users)"
+            fi
+            exit $$VULNERABILITY_COUNT
+
+
+      - run:
+          name: setting environment file
+          command: cp local.env .env
 
       # Download and cache dependencies
       - restore_cache:  # ensure this step occurs *before* installing dependencies
@@ -28,6 +57,7 @@ jobs:
       - run:
           name: install dependencies
           command: pipenv sync --dev
+
       - save_cache:
           paths:
             - ./venv
