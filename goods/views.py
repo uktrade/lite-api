@@ -4,6 +4,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
+from goods.enums import GoodStatus
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -28,6 +29,7 @@ class GoodList(APIView):
 
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
+        data['status'] = GoodStatus.DRAFT
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
@@ -57,3 +59,38 @@ class GoodDetail(APIView):
 
         serializer = GoodSerializer(good)
         return JsonResponse(data={'good': serializer.data})
+
+    def put(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+        good = self.get_object(pk)
+
+        if good.organisation != organisation:
+            raise Http404
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
+                                      status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data.copy()
+        data['organisation'] = organisation.id
+        serializer = GoodSerializer(instance=good, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'good': serializer.data})
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+        good = self.get_object(pk)
+
+        if good.organisation != organisation:
+            raise Http404
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(data={'errors': 'Good is already on a '
+                                                'submitted application'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        good.delete()
+        return JsonResponse(data={'status': 'Good Deleted'},
+                                status=status.HTTP_200_OK)
