@@ -109,7 +109,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
 
-
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
             raise serializers.ValidationError('Select at least one denial reason')
@@ -146,6 +145,10 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
+        # Remove any previous denial reasons
+        if validated_data.get('status') == ApplicationStatus.APPROVED:
+            ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
+
         # If the status has been set to under final review, add reason_details to application
         if validated_data.get('status') == ApplicationStatus.UNDER_FINAL_REVIEW:
             data = {'application': instance.id,
@@ -161,6 +164,8 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                 application_denial_reason_serializer.save()
             else:
                 raise serializers.ValidationError('An error occurred')
+
+
 
         instance.save()
         return instance
