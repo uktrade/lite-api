@@ -29,7 +29,7 @@ jobs:
       - run:
           name: repository vulnerability check
           command: |
-            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
+            echo `curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
               -X POST -H "Content-Type: application/json" \
               -H "Accept: application/vnd.github.vixen-preview+json" \
               -d "{\"query\": \"query { repository(owner:\\\"uktrade\\\" name:\\\"lite-api\\\") { vulnerabilityAlerts(first: 100) { totalCount } } }\"}" \
