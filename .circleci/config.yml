@@ -29,11 +29,11 @@ jobs:
       - run:
           name: repository vulnerability check
           command: |
-            echo `curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
+            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
               -X POST -H "Content-Type: application/json" \
               -H "Accept: application/vnd.github.vixen-preview+json" \
-              -d '{"query": "query { repository(owner:\"${CIRCLE_PROJECT_USERNAME}\" name:\"${CIRCLE_PROJECT_REPONAME}\") { vulnerabilityAlerts(first: 100) { totalCount } } }"}' \
-              https://api.github.com/graphql`
+              -d '{"query": "query { repository(owner:\"uktrade\" name:\"lite-api\") { vulnerabilityAlerts(first: 100) { totalCount } } }"}' \
+              https://api.github.com/graphql | jq ".data.repository.vulnerabilityAlerts.totalCount"`
             if [ "$VULNERABILITY_COUNT" = "0" ]; then
               echo "No vulnerabilities found"
             elif [ "$VULNERABILITY_COUNT" = "null" ]; then
