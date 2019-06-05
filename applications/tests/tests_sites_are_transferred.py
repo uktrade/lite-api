@@ -27,12 +27,11 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
         site2, address = OrgAndUserHelper.create_site('site2', self.test_helper.organisation)
         unit1 = Units.NAR
         good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
-        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400)
-        good_on_draft_1.save()
-        site_on_draft_1 = SiteOnDraft(site=self.test_helper.primary_site, draft=draft)
-        site_on_draft_2 = SiteOnDraft(site=site2, draft=draft)
-        site_on_draft_1.save()
-        site_on_draft_2.save()
+        GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400).save()
+        SiteOnDraft(site=self.test_helper.primary_site, draft=draft).save()
+        SiteOnDraft(site=site2, draft=draft).save()
+        draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        draft.save()
 
         url = reverse('applications:applications')
         data = {'id': draft.id}

@@ -47,7 +47,7 @@ class SitesOnDraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         self.draft = Draft.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Trading')
 

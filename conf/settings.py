@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
     'end_user.apps.EndUserConfig',
+    'departments.apps.DepartmentsConfig',
     'static',
     'static.countries',
     'static.units',
