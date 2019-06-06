@@ -69,7 +69,7 @@ class GoodDetail(APIView):
 
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
-                                      status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
         data['organisation'] = organisation.id
@@ -87,10 +87,9 @@ class GoodDetail(APIView):
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(data={'errors': 'Good is already on a '
-                                                'submitted application'},
+            return JsonResponse(data={'errors': 'Good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         good.delete()
         return JsonResponse(data={'status': 'Good Deleted'},
-                                status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
