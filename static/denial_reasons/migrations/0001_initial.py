@@ -17,7 +17,6 @@ def init(apps, schema_editor):
         for row in reader:
             item_id = row[0]
             item_is_deprecated = str_to_bool(row[1])
-
             denial_reason, created = DenialReason.objects.get_or_create(id=item_id)
             denial_reason.deprecated = item_is_deprecated
             denial_reason.save()
