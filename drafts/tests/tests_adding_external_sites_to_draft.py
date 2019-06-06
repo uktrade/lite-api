@@ -35,7 +35,7 @@ class ExternalLocationsOnDraftTests(DataTestClient):
         response = self.client.get(url, **self.headers).json()
         self.assertEqual(len(response["external_locations"]), 1)
 
-    def test_adding_site_to_draft_deletes_external_locations(self):
+    def test_adding_external_location_to_draft_removes_sites(self):
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         data = {
             'sites': [
