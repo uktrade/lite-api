@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status

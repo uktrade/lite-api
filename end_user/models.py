@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 
+from end_user.enums import EndUserType
 from organisations.models import Organisation
 
 
@@ -22,6 +23,6 @@ class EndUser(models.Model):
     address = models.TextField(default=None, blank=True)
     country = models.TextField(default=None, blank=True)
     website = models.URLField(default=None, blank=True)
-    type = models.CharField(choices=END_USER_TYPE, default='other', max_length=20)
+    type = models.CharField(choices=EndUserType.choices, default=EndUserType.OTHER, max_length=20)
     organisation = models.ForeignKey(Organisation, blank=True,
                                      null=True, related_name='organisation_end_user', on_delete=models.CASCADE)

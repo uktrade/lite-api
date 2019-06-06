@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'static',
     'static.countries',
     'static.units',
+    'static.denial_reasons',
     'reversion',
 ]
 

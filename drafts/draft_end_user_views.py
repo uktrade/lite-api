@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.serializers import EndUserCreateSerializer
+
+from end_user.serializers import EndUserSerializer
+
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -25,7 +27,7 @@ class DraftEndUser(APIView):
         data['organisation'] = str(organisation.id)
 
         with reversion.create_revision():
-            serializer = EndUserCreateSerializer(data=data)
+            serializer = EndUserSerializer(data=data)
             if serializer.is_valid():
                 end_user = serializer.save()
 

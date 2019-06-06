@@ -1,34 +1,15 @@
 import uuid
-from enum import Enum
 
 import reversion
 from django.db import models
 from enumchoicefield import EnumChoiceField
 
+from applications.enums import ApplicationStatus, ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site
+from static.denial_reasons.models import DenialReason
 from static.units.units import Units
-
-
-class ApplicationStatus(Enum):
-    submitted = 'Submitted'
-    more_information_required = 'More information required'
-    under_review = 'Under review'
-    resubmitted = 'Resubmitted'
-    withdrawn = 'Withdrawn'
-    approved = 'Approved'
-    declined = 'Declined'
-
-
-class LicenceType(Enum):
-    standard_licence = 'Standard Individual Export Licence (SIEL)'
-    open_licence = 'Open Individual Export Licence (OIEL)'
-
-
-class ExportType(Enum):
-    permanent = 'Permanent'
-    temporary = 'Temporary'
 
 
 @reversion.register()
@@ -41,10 +22,9 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ApplicationStatus],
-                              default=ApplicationStatus.submitted)
-    licence_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in LicenceType], default=None)
-    export_type = models.CharField(max_length=255, choices=[(tag.name, tag.value) for tag in ExportType], default=None)
+    status = models.CharField(choices=ApplicationStatus.choices, default=ApplicationStatus.SUBMITTED, max_length=50)
+    licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50)
+    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
@@ -72,3 +52,11 @@ class SiteOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     site = models.ForeignKey(Site, related_name='sites_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='application_sites', on_delete=models.CASCADE)
+
+
+@reversion.register()
+class ApplicationDenialReason(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(Application, related_name='application_denial_reason', on_delete=models.CASCADE)
+    reasons = models.ManyToManyField(DenialReason)
+    reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)

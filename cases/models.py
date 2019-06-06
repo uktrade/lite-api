@@ -1,7 +1,9 @@
 import uuid
-from django.db import models
-from applications.models import Application
+
 import reversion
+from django.db import models
+
+from applications.models import Application
 
 
 @reversion.register()
