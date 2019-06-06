@@ -42,8 +42,9 @@ class ExternalLocationViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
 
     def test_add_external_location_via_helper(self):
-        OrgAndUserHelper.create_external_location('org2', self.test_helper.organisation)
+        external_location = OrgAndUserHelper.create_external_location('org2', self.test_helper.organisation)
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
+        self.assertEqual(ExternalLocation.objects.filter(id=external_location.id).count(), 1)
 
     def test_failed_create_external_location(self):
         data = {'name': '',
