@@ -38,8 +38,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
                                 error_messages={'required': 'Select which type of licence you want to apply for.'})
 
-    export_type = serializers.ChoiceField( [(tag.name, tag.value) for tag in ExportType], error_messages={
-        'required': 'Select if you want to apply for a temporary or permanent licence.'})
+    export_type = serializers.ChoiceField( [(tag.name, tag.value) for tag in ExportType],
+        error_messages={'required': 'Select if you want to apply for a temporary or permanent licence.'})
 
     reference_number_on_information_form = serializers.CharField()
 
@@ -65,15 +65,10 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     usage = serializers.CharField()
     activity = serializers.CharField()
     status = serializers.CharField()  # Doesnt validate yet
-    licence_type = serializers.ChoiceField(
-        [(tag.name, tag.value) for tag in LicenceType],
-        error_messages={
-            'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField(
-        [(tag.name, tag.value) for tag in ExportType],
-        error_messages={
-            'required': 'Select if you want to apply for a '
-                        'temporary or permanent licence.'})
+    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
+        error_messages={'required': 'Select which type of licence you want to apply for.'})
+    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
+        error_messages={'required': 'Select if you want to apply for a temporary or permanent licence.'})
     reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):
@@ -85,13 +80,10 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
         instance.status = validated_data.get('status', instance.status)
-        instance.licence_type = validated_data.get('licence_type',
-                                                   instance.licence_type)
-        instance.export_type = validated_data.get('export_type',
-                                                  instance.export_type)
+        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
+        instance.export_type = validated_data.get('export_type', instance.export_type)
         instance.reference_number_on_information_form = validated_data.get(
-            'reference_number_on_information_form',
-            instance.reference_number_on_information_form)
+            'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.save()
         return instance
 

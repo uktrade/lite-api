@@ -77,7 +77,8 @@ class GoodDetail(APIView):
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'good': serializer.data})
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)
