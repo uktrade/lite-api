@@ -35,7 +35,7 @@ class DraftExternalLocations(APIView):
         external_locations = data.get('external_locations')
         draft = get_draft(pk)
 
-        # Validate that there are actually sites
+        # Validate that there are actually external locations
         if external_locations is None or len(external_locations) == 0:
             return JsonResponse(data={'errors': {
                 'external_locations': [
@@ -43,7 +43,7 @@ class DraftExternalLocations(APIView):
                 ]
             }}, status=400)
 
-        # Validate each site belongs to the organisation
+        # Validate each external location belongs to the organisation
         for external_location in external_locations:
             get_external_location_with_organisation(external_location, organisation)
 
