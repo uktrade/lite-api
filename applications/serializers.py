@@ -36,7 +36,7 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDenialReason
         fields = ('id',
-                  'reasoning',
+                  'reason_details',
                   'reasons')
 
 
@@ -74,12 +74,12 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
-    reasoning = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
+    reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
     application = serializers.PrimaryKeyRelatedField(queryset=Application.objects.all())
 
     class Meta:
         model = ApplicationDenialReason
-        fields = ('reasoning',
+        fields = ('reason_details',
                   'application')
 
     def create(self, validated_data):
@@ -107,8 +107,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                     'licence.'})
     reference_number_on_information_form = serializers.CharField()
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
-    reasoning = serializers.CharField(required=False, allow_blank=True)
-
+    reason_details = serializers.CharField(required=False, allow_blank=True)
 
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
@@ -130,7 +129,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                   'licence_type',
                   'export_type',
                   'reasons',
-                  'reasoning',
+                  'reason_details',
                   'reference_number_on_information_form',)
 
     def update(self, instance, validated_data):
@@ -146,10 +145,14 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
-        # If the status has been set to under final review, add reasoning to application
+        # Remove any previous denial reasons
+        if validated_data.get('status') == ApplicationStatus.APPROVED:
+            ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
+
+        # If the status has been set to under final review, add reason_details to application
         if validated_data.get('status') == ApplicationStatus.UNDER_FINAL_REVIEW:
             data = {'application': instance.id,
-                    'reasoning': validated_data.get('reasoning'),
+                    'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}
 
             application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
@@ -161,6 +164,8 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                 application_denial_reason_serializer.save()
             else:
                 raise serializers.ValidationError('An error occurred')
+
+
 
         instance.save()
         return instance
