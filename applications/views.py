@@ -13,6 +13,7 @@ from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+from goods.enums import GoodStatus
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -80,6 +81,8 @@ class ApplicationList(APIView):
                     unit=good_on_draft.unit,
                     value=good_on_draft.value)
                 good_on_application.save()
+                good_on_application.good.status = GoodStatus.SUBMITTED
+                good_on_application.good.save()
 
             for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
                 site_on_application = SiteOnApplication(

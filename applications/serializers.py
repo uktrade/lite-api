@@ -99,13 +99,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    status = serializers.ChoiceField(choices=ApplicationStatus.choices)
-    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-        'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-        'required': 'Select if you want to apply for a temporary or permanent '
-                    'licence.'})
-    reference_number_on_information_form = serializers.CharField()
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
 
@@ -134,7 +127,8 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
     def update(self, instance, validated_data):
         """
-        Update and return an existing `Application` instance, given the validated data.
+        Update and return an existing `Application` instance, given the
+        validated data.
         """
         instance.name = validated_data.get('name', instance.name)
         instance.activity = validated_data.get('activity', instance.activity)

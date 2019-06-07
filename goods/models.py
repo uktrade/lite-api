@@ -3,6 +3,7 @@ import uuid
 import reversion
 from django.db import models
 
+from goods.enums import GoodStatus
 from organisations.models import Organisation
 
 
@@ -15,4 +16,4 @@ class Good(models.Model):
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
     part_number = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)
-
+    status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
