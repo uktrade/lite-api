@@ -1,14 +1,12 @@
 import reversion
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
-from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
-from drafts.models import Draft, GoodOnDraft
-from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer, \
-    GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
+from drafts.libraries.get_draft import get_draft_with_organisation
+from drafts.models import Draft
+from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 

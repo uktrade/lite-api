@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import SiteOnApplication
 from applications.serializers import SiteOnApplicationViewSerializer

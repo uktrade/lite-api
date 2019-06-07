@@ -1,9 +1,9 @@
 import json
 
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from django.urls import path, include, reverse
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import User
 

@@ -6,9 +6,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
-from organisations.models import ExternalLocation
-
 from organisations.libraries.get_organisation import get_organisation_by_user
+from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 
 

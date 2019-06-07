@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+
 from applications.enums import ApplicationLicenceType, ApplicationExportType
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer

@@ -1,6 +1,7 @@
-from django.db import models
 import uuid
+
 import reversion
+from django.db import models
 
 from organisations.models import Organisation
 

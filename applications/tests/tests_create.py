@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import Application
-from cases.models import Case
 from drafts.models import GoodOnDraft
 from queues.models import Queue
 from static.units.units import Units

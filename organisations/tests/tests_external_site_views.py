@@ -5,8 +5,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
-from addresses.models import Address
-from organisations.models import Site, ExternalLocation
+from organisations.models import ExternalLocation
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
