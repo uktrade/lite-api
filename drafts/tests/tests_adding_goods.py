@@ -30,7 +30,6 @@ class DraftTests(DataTestClient):
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["goods"]), 1)
 
-
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
         good = OrgAndUserHelper.create_controlled_good('test', test_helper_2.organisation)

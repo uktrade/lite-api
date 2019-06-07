@@ -1,29 +1,17 @@
-import json
-
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from drafts.models import GoodOnDraft
 from goods.models import Good
 from static.units.units import Units
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class GoodTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('goods/', include('goods.urls')),
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
+class GoodTests(DataTestClient):
 
     def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        super().setUp()
         self.org = self.test_helper.organisation
         self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
 
