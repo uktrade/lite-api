@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from goods.enums import GoodStatus
+from goods.libraries.get_good import get_good
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -44,15 +45,9 @@ class GoodList(APIView):
 class GoodDetail(APIView):
     authentication_classes = (PkAuthentication,)
 
-    def get_object(self, pk):
-        try:
-            return Good.objects.get(pk=pk)
-        except Good.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        good = self.get_object(pk)
+        good = get_good(pk)
 
         if good.organisation != organisation:
             raise Http404
@@ -62,7 +57,7 @@ class GoodDetail(APIView):
 
     def put(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        good = self.get_object(pk)
+        good = get_good(pk)
 
         if good.organisation != organisation:
             raise Http404
@@ -82,7 +77,7 @@ class GoodDetail(APIView):
 
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        good = self.get_object(pk)
+        good = get_good(pk)
 
         if good.organisation != organisation:
             raise Http404
