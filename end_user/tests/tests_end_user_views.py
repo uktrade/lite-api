@@ -3,10 +3,8 @@ import json
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.test import APIClient
 
-from addresses.models import Address
-from organisations.models import Site
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 

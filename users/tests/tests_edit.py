@@ -1,9 +1,9 @@
 import json
 
+from django.urls import path, include, reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from django.urls import path, include, reverse
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import User
 
@@ -53,7 +53,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_edit_a_user(self):
+    def test_edit_a_user_some_fields(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 1)
         original_first_name = user.first_name
         original_last_name = user.last_name

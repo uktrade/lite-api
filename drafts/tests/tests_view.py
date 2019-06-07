@@ -10,7 +10,6 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class DraftTests(DataTestClient):
-
     def test_view_drafts(self):
         """
         Ensure we can get a list of drafts.

@@ -1,7 +1,7 @@
-from django.db import models
 import uuid
+
 import reversion
-from enumchoicefield import EnumChoiceField
+from django.db import models
 
 from goods.enums import GoodStatus
 from organisations.models import Organisation

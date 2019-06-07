@@ -20,24 +20,6 @@ class AddressSerializer(serializers.ModelSerializer):
                   'region',
                   'country')
 
-
-class AddressUpdateSerializer(serializers.ModelSerializer):
-    address_line_1 = serializers.CharField()
-    postcode = serializers.CharField(max_length=10)
-    city = serializers.CharField()
-    region = serializers.CharField()
-    country = serializers.CharField()
-
-    class Meta:
-        model = Address
-        fields = ('id',
-                  'address_line_1',
-                  'address_line_2',
-                  'postcode',
-                  'city',
-                  'region',
-                  'country')
-
     def update(self, instance, validated_data):
         instance.address_line_1 = validated_data.get('address_line_1',
                                                      instance.address_line_1)

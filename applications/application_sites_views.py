@@ -4,9 +4,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
-from applications.models import SitesOnApplication
 from applications.libraries.get_application import get_application_by_pk
+from applications.models import SiteOnApplication
 from applications.serializers import SiteOnApplicationViewSerializer
 from conf.authentication import PkAuthentication
 from organisations.libraries.get_site import get_site_by_pk
@@ -22,7 +21,7 @@ class ApplicationSites(APIView):
     def get(self, request, pk):
         application = get_application_by_pk(pk)
 
-        sites_on_application = SitesOnApplication.objects.filter(application=application)
+        sites_on_application = SiteOnApplication.objects.filter(application=application)
         serializer = SiteViewSerializer(sites_on_application, many=True)
         return JsonResponse(data={'sites': serializer.data},
                             safe=False)

@@ -5,11 +5,13 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
-from applications.models import LicenceType, ExportType, Application
-from drafts.models import Draft, GoodOnDraft, EndUserOnDraft, SiteOnDraft
-from end_user.models import EndUser, EndUserType
+from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.models import Application
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from end_user.enums import EndUserType
+from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalLocation
 from static.units.units import Units
 from users.models import User
 
@@ -86,8 +88,8 @@ class OrgAndUserHelper:
     @staticmethod
     def complete_draft(name, org):
         draft = Draft(name=name,
-                      licence_type=LicenceType.open_licence,
-                      export_type=ExportType.permanent,
+                      licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                      export_type=ApplicationExportType.PERMANENT,
                       reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
@@ -101,10 +103,9 @@ class OrgAndUserHelper:
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()
         GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
-        end_user = OrgAndUserHelper.create_end_user('test end user', org)
-        end_user.save()
-        EndUserOnDraft(end_user=end_user, draft=draft).save()
+        draft.end_user = OrgAndUserHelper.create_end_user('test', org)
         SiteOnDraft(site=org.primary_site, draft=draft).save()
+        draft.save()
         return draft
 
     @staticmethod
@@ -163,12 +164,21 @@ class OrgAndUserHelper:
         return site, address
 
     @staticmethod
+    def create_external_location(name, org):
+        external_location = ExternalLocation(name=name,
+                                     address='20 Questions Road, Enigma',
+                                     country='Canada',
+                                     organisation=org)
+        external_location.save()
+        return external_location
+
+    @staticmethod
     def create_end_user(name, organisation):
         end_user = EndUser(name=name,
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.'+name+'.com',
-                           type=EndUserType.commercial,
+                           type=EndUserType.GOVERNMENT,
                            country='England')
         end_user.save()
         return end_user
@@ -182,4 +192,3 @@ def random_name():
     last_name = random.choice(last_names)
 
     return first_name, last_name
-

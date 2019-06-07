@@ -1,20 +1,19 @@
-from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from drafts.models import Draft, GoodOnDraft, LicenceType, ExportType, EndUserOnDraft, SiteOnDraft
-from end_user.models import EndUser
-from end_user.serializers import EndUserViewSerializer
+from applications.enums import ApplicationLicenceType, ApplicationExportType
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+from end_user.serializers import EndUserSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
-
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
     last_modified_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    end_user = EndUserSerializer()
 
     class Meta:
         model = Draft
@@ -27,17 +26,16 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'last_modified_at',
                   'licence_type',
                   'export_type',
-                  'reference_number_on_information_form',)
+                  'reference_number_on_information_form',
+                  'end_user')
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField(max_length=100,
                                  error_messages={'blank': 'Enter a reference name for your application.'})
-    licence_type = serializers.ChoiceField([(tag.name, tag.value) for tag in LicenceType],
-                                           error_messages={
+    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                                'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField([(tag.name, tag.value) for tag in ExportType],
-                                          error_messages={
+    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': 'Select if you want to apply for a temporary or permanent '
                                                           'licence.'})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
@@ -57,13 +55,15 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    export_type = EnumChoiceField(enum_class=ExportType)
+    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
+                                              'required': 'Select if you want to apply for a temporary or permanent '
+                                                          'licence.'})
     reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):
-        '''
+        """
         Update and return an existing `Draft` instance, given the validated data.
-        '''
+        """
         instance.name = validated_data.get('name', instance.name)
         instance.activity = validated_data.get('activity', instance.activity)
         instance.usage = validated_data.get('usage', instance.usage)
@@ -105,18 +105,6 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'value')
 
 
-
-class EndUserOnDraftBaseSerializer(serializers.ModelSerializer):
-    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    end_user = PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-
-    class Meta:
-        model = EndUserOnDraft
-        fields = ('id',
-                  'end_user',
-                  'draft')
-
-
 class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
@@ -128,16 +116,6 @@ class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
                   'draft')
 
 
-class EndUserOnDraftViewSerializer(serializers.ModelSerializer):
-    end_user = EndUserViewSerializer(read_only=True)
-    draft = DraftBaseSerializer(read_only=True)
-
-    class Meta:
-        model = EndUserOnDraft
-        fields = ('id',
-                  'end_user',
-                  'draft')
-
 class SiteOnDraftViewSerializer(serializers.ModelSerializer):
     site = SiteViewSerializer(read_only=True)
     draft = DraftBaseSerializer(read_only=True)
@@ -146,4 +124,15 @@ class SiteOnDraftViewSerializer(serializers.ModelSerializer):
         model = SiteOnDraft
         fields = ('id',
                   'site',
+                  'draft')
+
+
+class ExternalLocationOnDraftSerializer(serializers.ModelSerializer):
+    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
+
+    class Meta:
+        model = ExternalLocationOnDraft
+        fields = ('id',
+                  'external_location',
                   'draft')

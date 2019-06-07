@@ -2,19 +2,17 @@ import json
 
 import reversion
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-
-from applications.models import Application, GoodOnApplication, EndUserOnApplication, SiteOnApplication, \
-    ApplicationStatus
+from applications.libraries.get_application import get_application_by_pk
+from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, EndUserOnDraft, SiteOnDraft
+from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from goods.enums import GoodStatus
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
@@ -44,14 +42,15 @@ class ApplicationList(APIView):
             # Errors
             errors = {}
 
-            # if len(EndUserOnDraft.objects.filter(draft=draft)) == 0:
-            #     errors['end_users'] = 'Cannot create an application with no end users attached'
+            if not draft.end_user:
+                errors['end_user'] = 'Cannot create an application without an end user'
 
             if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
                 errors['goods'] = 'Cannot create an application with no goods attached'
 
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0:
-                errors['sites'] = 'Cannot create an application with no sites attached'
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+                errors['location'] = 'Cannot create an application with no sites or external sites attached'
 
             if len(errors):
                 return JsonResponse(data={'errors': errors},
@@ -63,21 +62,16 @@ class ApplicationList(APIView):
                                       activity=draft.activity,
                                       licence_type=draft.licence_type,
                                       export_type=draft.export_type,
-                                      status=ApplicationStatus.submitted,
                                       reference_number_on_information_form=draft.reference_number_on_information_form,
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
                                       )
-            application.save()
 
             # Save associated end users, goods and sites
-            for enduser_on_draft in EndUserOnDraft.objects.filter(draft=draft):
-                site_on_application = EndUserOnApplication(
-                    end_user=enduser_on_draft.end_user,
-                    application=application)
-                site_on_application.save()
+            application.end_user = draft.end_user
+            application.save()
 
             for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
                 good_on_application = GoodOnApplication(
@@ -95,6 +89,12 @@ class ApplicationList(APIView):
                     site=site_on_draft.site,
                     application=application)
                 site_on_application.save()
+
+            for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                external_location_on_application = ExternalLocationOnApplication(
+                    external_location=external_location_on_draft.external_location,
+                    application=application)
+                external_location_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)
@@ -121,24 +121,19 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
-    def get_object(self, pk):
-        try:
-            application = Application.objects.get(pk=pk)
-            return application
-        except Application.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        application = self.get_object(pk)
+        application = get_application_by_pk(pk)
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
+
         with reversion.create_revision():
-            data = JSONParser().parse(request)
-            serializer = ApplicationUpdateSerializer(self.get_object(pk), data=data, partial=True)
+            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
+
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
