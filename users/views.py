@@ -6,11 +6,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
+from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses
-from users.serializers import UserSerializer, UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
+from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
 
 
 class AuthenticateUser(APIView):
