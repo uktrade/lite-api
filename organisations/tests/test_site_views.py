@@ -31,14 +31,16 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
 
     def test_site_name_update(self):
         url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
-        data = {'name': 'regional site',
-                'address': {},
-                }
 
-        id = self.test_helper.primary_site.id
+        data = {
+            'name': 'regional site',
+            'address': {},
+        }
+
+        pk = self.test_helper.primary_site.id
         response = self.client.put(url, data, format='json', **self.headers)
-        self.assertEqual(Site.objects.get(id=id).address.address_line_1, '42 Industrial Estate')
-        self.assertEqual(Site.objects.get(id=id).name, 'regional site')
+        self.assertEqual(Site.objects.get(pk=pk).address.address_line_1, '42 Industrial Estate')
+        self.assertEqual(Site.objects.get(pk=pk).name, 'regional site')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_address_and_name_of_site(self):
@@ -77,18 +79,6 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
         self.assertEqual(Address.objects.all().count(), 3)
-
-    def test_site_name_update(self):
-        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
-        data = {'name': 'regional site',
-                'address': {},
-                }
-
-        id = self.test_helper.primary_site.id
-        response = self.client.put(url, data, format='json', **self.headers)
-        self.assertEqual(Site.objects.get(id=id).address.address_line_1, '42 Industrial Estate')
-        self.assertEqual(Site.objects.get(id=id).name, 'regional site')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class OrgSiteViewTests(APITestCase, URLPatternsTestCase):

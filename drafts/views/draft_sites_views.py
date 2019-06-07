@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -7,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft
-from drafts.models import SiteOnDraft
+from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
@@ -73,6 +72,9 @@ class DraftSites(APIView):
             else:
                 return JsonResponse(data={'errors': serializer.errors},
                                     status=400)
+
+        # Deletes any external sites on the draft if a site is being added
+        ExternalLocationOnDraft.objects.filter(draft=draft).delete()
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)

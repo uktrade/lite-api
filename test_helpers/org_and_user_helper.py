@@ -11,7 +11,7 @@ from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.models import Good
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalLocation
 from static.units.units import Units
 from users.models import User
 
@@ -162,6 +162,15 @@ class OrgAndUserHelper:
                     address=address)
         site.save()
         return site, address
+
+    @staticmethod
+    def create_external_location(name, org):
+        external_location = ExternalLocation(name=name,
+                                     address='20 Questions Road, Enigma',
+                                     country='Canada',
+                                     organisation=org)
+        external_location.save()
+        return external_location
 
     @staticmethod
     def create_end_user(name, organisation):

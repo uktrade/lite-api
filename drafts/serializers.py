@@ -2,11 +2,11 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 
 
@@ -124,4 +124,15 @@ class SiteOnDraftViewSerializer(serializers.ModelSerializer):
         model = SiteOnDraft
         fields = ('id',
                   'site',
+                  'draft')
+
+
+class ExternalLocationOnDraftSerializer(serializers.ModelSerializer):
+    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
+
+    class Meta:
+        model = ExternalLocationOnDraft
+        fields = ('id',
+                  'external_location',
                   'draft')

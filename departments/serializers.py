@@ -1,7 +1,7 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from departments.models import Department
-from rest_framework.validators import UniqueValidator
 
 
 class DepartmentSerializer(serializers.ModelSerializer):

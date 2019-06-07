@@ -1,26 +1,13 @@
 import json
 
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
-from static.units.units import Units
 
-
-class DraftTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('drafts/', include('drafts.urls')),
-        path('applications/', include('applications.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class DraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
         org = self.test_helper.organisation
@@ -35,7 +22,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         url = '/drafts/' + str(draft.id) + '/goods/'
@@ -57,7 +44,7 @@ class DraftTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.headers)
