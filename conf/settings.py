@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'static.units',
     'static.denial_reasons',
     'reversion',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
