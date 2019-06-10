@@ -4,6 +4,9 @@ from addresses.models import Address
 
 
 class AddressSerializer(serializers.ModelSerializer):
+    """
+    Used for serializing addresses
+    """
     address_line_1 = serializers.CharField()
     postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
