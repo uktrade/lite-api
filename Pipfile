@@ -18,7 +18,6 @@ parameterized = "*"
 drf-yasg = "*"
 pylint = "*"
 pylint-django = "*"
-pylint-fail-under = "*"
 
 [requires]
 python_version = "3.7"
