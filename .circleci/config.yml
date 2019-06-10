@@ -9,7 +9,7 @@ jobs:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.7
-      
+
     environment:
       DEBUG: 'True'
       PIPENV_VENV_IN_PROJECT: 'enabled'
@@ -51,7 +51,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:  # ensure this step occurs *before* installing dependencies
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-          
+
       - run:
           name: install dependencies
           command: pipenv sync --dev
@@ -60,7 +60,7 @@ jobs:
           paths:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-        
+
       # run tests!
       # this example uses Django's built-in test-runner
       # other common Python testing frameworks include pytest and nose
@@ -69,3 +69,8 @@ jobs:
       - run:
           name: run tests
           command: pipenv run ./manage.py test --parallel
+
+      # Pylint!
+      - run:
+          name: run linting
+          command: pipenv run pylint --load-plugins pylint_django *
