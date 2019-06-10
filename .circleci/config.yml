@@ -73,4 +73,4 @@ jobs:
       # Pylint!
       - run:
           name: Run Linting
-          command: pipenv run pylint-fail-under --fail_under 8.0 --load-plugins pylint_django *
+          command: pipenv run pylint-fail-under --fail_under 8.0 --load-plugins pylint_django cases --max-line-length=120

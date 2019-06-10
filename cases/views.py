@@ -5,15 +5,15 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteCreateSerializer, CaseNoteViewSerializer
+from cases.serializers import CaseSerializer, CaseNoteSerializer
 
 
 @permission_classes((permissions.AllowAny,))
 class CaseDetail(APIView):
-    """
-    Retrieve a case instance.
-    """
     def get(self, request, pk):
+        """
+        Retrieve a case instance.
+        """
         case = get_case(pk)
         serializer = CaseSerializer(case)
         return JsonResponse(data={'case': serializer.data})
@@ -21,19 +21,22 @@ class CaseDetail(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class CaseNoteList(APIView):
-    """
-    Retrieve/create case notes.
-    """
     def get(self, request, pk):
+        """
+        Gets all case notes
+        """
         case = get_case(pk)
-        serializer = CaseNoteViewSerializer(get_case_notes_from_case(case), many=True)
+        serializer = CaseNoteSerializer(get_case_notes_from_case(case), many=True)
         return JsonResponse(data={'case_notes': serializer.data})
 
     def post(self, request, pk):
+        """
+        Creates a case note
+        """
         case = get_case(pk)
         data = request.data
         data['case'] = str(case.id)
-        serializer = CaseNoteCreateSerializer(data=data)
+        serializer = CaseNoteSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -42,4 +45,3 @@ class CaseNoteList(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-

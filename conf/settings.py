@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'applications.apps.ApplicationsConfig',
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
-    'cases.apps.CasesConfig',
+    'cases',
     'queues.apps.QueuesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',

@@ -6,6 +6,9 @@ from cases.models import Case, CaseNote
 
 
 class CaseSerializer(serializers.ModelSerializer):
+    """
+    Serializes cases
+    """
     application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
@@ -13,15 +16,10 @@ class CaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'application')
 
 
-class CaseNoteViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
-
-    class Meta:
-        model = CaseNote
-        fields = ('id', 'text', 'created_at')
-
-
-class CaseNoteCreateSerializer(serializers.ModelSerializer):
+class CaseNoteSerializer(serializers.ModelSerializer):
+    """
+    Serializes case notes
+    """
     text = serializers.CharField(min_length=2, max_length=2200)
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
