@@ -61,16 +61,12 @@ jobs:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
+      # Run tests
       - run:
           name: Run Unit Tests
           command: pipenv run ./manage.py test --parallel
 
-      # Pylint!
+      # Pylint
       - run:
           name: Run Linting
-          command: pipenv run pylint-fail-under --fail_under 8.0 --load-plugins pylint_django cases --max-line-length=120
+          command: pipenv run pylint *
