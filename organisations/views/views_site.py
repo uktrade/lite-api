@@ -86,7 +86,7 @@ class OrgSiteDetail(APIView):
     def get(self, request, org_pk, site_pk):
         # organisation = get_organisation_by_user(request.user)
         # site = get_site_with_organisation(pk, organisation)
-        organisation = Organisation.objects.get(pk=org_pk)
+        Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
         serializer = SiteViewSerializer(site)
@@ -96,7 +96,7 @@ class OrgSiteDetail(APIView):
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
         # organisation = get_organisation_by_user(request.user)
-        organisation = Organisation.objects.get(pk=org_pk)
+        Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():

@@ -24,7 +24,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
     def test_that_sites_are_added_to_application_when_submitted(self):
         draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        site2, address = OrgAndUserHelper.create_site('site2', self.test_helper.organisation)
+        site2 = OrgAndUserHelper.create_site('site2', self.test_helper.organisation)
         unit1 = Units.NAR
         good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400).save()

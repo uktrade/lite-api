@@ -161,7 +161,7 @@ class OrgAndUserHelper:
                     organisation=org,
                     address=address)
         site.save()
-        return site, address
+        return site
 
     @staticmethod
     def create_external_location(name, org):
