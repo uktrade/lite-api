@@ -12,7 +12,7 @@ urlpatterns = [
     path('queues/', include('queues.urls')),
     path('static/', include('static.urls')),
     path('users/', include('users.urls')),
-    path('departments/', include('departments.urls')),
+    path('teams/', include('teams.urls')),
 ]
 
 if ADMIN_ENABLED:

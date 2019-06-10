@@ -730,7 +730,7 @@ Endpoints for retrieving, creating and updating users.
     </tr>
 </table>
 
-### Departments
+### Teams
 <br> Last Updated 31/5/2019
 <br> requires USER-ID header
 <pre>
@@ -740,26 +740,26 @@ Endpoints for retrieving, creating and updating users.
 }
 </pre>
 
-Endpoints for retrieving, creating and updating departments:
+Endpoints for retrieving, creating and updating teams:
 
 <table>
     <tr>
         <th>Method</th><th>URL</th><th>Header</th><th>Body</th><th>Response <br> Codes</th>
         <th max-width: 30px >Details</th>
     </tr>
-    <!–– Departments ––>
+    <!–– Teams ––>
     <tr>
         <td>POST</td>
-        <td>/departments/</td>
+        <td>/teams/</td>
         <td></td>
         <td></td>
         <td>200</td>
-        <td>Create department</td>
+        <td>Create team</td>
     </tr>
 
-example POST /departments/ request:
+example POST /teams/ request:
 <pre>
 {
-	"name":"TestDepartment"
+	"name":"TestTeam"
 }
 </pre>
