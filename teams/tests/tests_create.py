@@ -2,22 +2,22 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from departments.models import Department
+from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 
-class DepartmentCreateTests(DataTestClient):
+class TeamCreateTests(DataTestClient):
 
-    url = reverse('departments:departments')
+    url = reverse('teams:teams')
 
-    def tests_create_department(self):
+    def tests_create_team(self):
         data = {
-            'name': 'new department'
+            'name': 'new team'
         }
         response = self.client.post(self.url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Department.objects.get().name, 'new department')
+        self.assertEqual(Team.objects.get().name, 'new team')
 
     @parameterized.expand([
         [{
@@ -30,9 +30,9 @@ class DepartmentCreateTests(DataTestClient):
             'name': ' this is a name    '
         }],
     ])
-    def tests_department_name_must_be_unique(self, data):
-        Department(name='this is a name').save()
+    def tests_team_name_must_be_unique(self, data):
+        Team(name='this is a name').save()
         response = self.client.post(self.url, data)
-        self.assertEqual(Department.objects.all().count(), 1)
+        self.assertEqual(Team.objects.all().count(), 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
