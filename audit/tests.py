@@ -11,7 +11,7 @@ class AuditTests(DataTestClient):
         super().setUp()
         self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
                                                                                self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.application = self.submit_draft(self.draft)
         self.url = reverse('audit:audit_detail', kwargs={'type': 'applications', 'pk': self.application.id})
 
     def test_view_audit_history(self):
