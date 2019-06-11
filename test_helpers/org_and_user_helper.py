@@ -113,7 +113,7 @@ class OrgAndUserHelper:
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, format='json', **self.headers)
+        self.client.post(url, data, **self.headers)
         return Application.objects.get(pk=draft_id)
 
     @staticmethod
