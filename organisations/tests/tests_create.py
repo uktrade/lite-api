@@ -68,7 +68,7 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                 'password': self.password
             },
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")

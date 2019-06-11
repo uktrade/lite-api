@@ -132,9 +132,9 @@ class OrgAndUserHelper:
         users = []
         for i in range(quantity):
             first_name, last_name = random_name()
-            email = first_name+'.'+last_name+'@'+org.name+'.com'
+            email = first_name + '.' + last_name + '@' + org.name + '.com'
             if User.objects.filter(email=email).count() == 1:
-                email = first_name+'.'+last_name+str(i)+'@'+org.name+'.com'
+                email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
             user = User(first_name=first_name,
                         last_name=last_name,
                         email=email,
@@ -166,9 +166,9 @@ class OrgAndUserHelper:
     @staticmethod
     def create_external_location(name, org):
         external_location = ExternalLocation(name=name,
-                                     address='20 Questions Road, Enigma',
-                                     country='Canada',
-                                     organisation=org)
+                                             address='20 Questions Road, Enigma',
+                                             country='Canada',
+                                             organisation=org)
         external_location.save()
         return external_location
 
@@ -177,7 +177,7 @@ class OrgAndUserHelper:
         end_user = EndUser(name=name,
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
-                           website='www.'+name+'.com',
+                           website='www.' + name + '.com',
                            type=EndUserType.GOVERNMENT,
                            country='England')
         end_user.save()
