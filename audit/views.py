@@ -17,9 +17,10 @@ class AuditDetail(APIView):
             _revision_object = Revision.objects.get(id=version.revision_id)
             data = {
                 'date_updated': _revision_object.date_created,
+                'updated_by': _revision_object.user_id,
                 'data': json.loads(version.serialized_data)[0]['fields']
             }
 
             versions.append(data)
 
-        return JsonResponse(data={'changes': versions})
+        return JsonResponse(data={'audit': versions})

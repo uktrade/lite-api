@@ -22,7 +22,7 @@ class AuditTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['changes']), 1)
+        self.assertEqual(len(response_data['audit']), 1)
 
         # Update the status and and check that the audit trail is updated
         data = {
@@ -36,4 +36,4 @@ class AuditTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['changes']), 2)
+        self.assertEqual(len(response_data['audit']), 2)
