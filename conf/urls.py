@@ -32,6 +32,7 @@ urlpatterns = [
     path('static/', include('static.urls')),
     path('users/', include('users.urls')),
     path('teams/', include('teams.urls')),
+    path('gov-users/', include('gov_users.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 

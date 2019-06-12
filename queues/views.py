@@ -3,12 +3,14 @@ from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
+from conf.authentication import EmailAuthentication
 from queues.models import Queue
 from queues.serializers import QueueSerializer
 
 
 @permission_classes((permissions.AllowAny,))
 class QueuesList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     List all queues
     """
@@ -21,6 +23,7 @@ class QueuesList(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve a queue instance
     """

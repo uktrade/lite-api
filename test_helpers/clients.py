@@ -5,7 +5,9 @@ from applications.models import Application
 from cases.models import Case, CaseNote
 from conf.urls import urlpatterns
 from drafts.models import Draft
+from gov_users.models import GovUser
 from static.urls import urlpatterns as static_urlpatterns
+from teams.models import Team
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -38,3 +40,18 @@ class DataTestClient(BaseTestClient):
         data = {'id': draft_id}
         self.client.post(url, data, **self.headers)
         return Application.objects.get(pk=draft_id)
+
+class GovTestClient(DataTestClient):
+    """
+    Test client which creates an initial organisation and user
+    """
+    def setUp(self):
+        super().setUp()
+        self.team = Team(name='Admin')
+        self.team.save()
+        self.user = GovUser(email='test@mail.com',
+                            first_name='John',
+                            last_name='Smith',
+                            team=self.team)
+        self.user.save()
+        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
