@@ -61,14 +61,23 @@ class ActivityList(APIView):
         version_records = Version.objects.filter(object_id=case.application.pk).order_by('-revision_id')
         activity = []
 
+        # Split fields into request fields
+        fields = request.GET.get('fields', None)
+        if fields:
+            fields = fields.split(',')
+
         for version in version_records:
             activity.append(convert_audit_to_activity(version))
+
+            if fields:
+                for item in activity:
+                    item['data'] = {your_key: item['data'][your_key] for your_key in fields}
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
 
         # Sort the activity based on date (newest first)
-        activity.sort(key=lambda item: item['date'], reverse=True)
+        activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
 
