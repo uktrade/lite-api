@@ -1,4 +1,4 @@
-class GovUserStatus:
+class GovUserStatuses:
     ACTIVE = 'active'
     DEACTIVATED = 'deactivated'
 

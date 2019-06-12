@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.serializers import CaseSerializer, CaseNoteCreateSerializer, CaseNoteViewSerializer
+from conf.authentication import EmailAuthentication
 
 
 @permission_classes((permissions.AllowAny,))

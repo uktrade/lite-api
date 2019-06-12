@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'goods.apps.GoodsConfig',
     'end_user.apps.EndUserConfig',
     'teams.apps.TeamsConfig',
+    'gov_users',
     'static',
     'static.countries',
     'static.units',
