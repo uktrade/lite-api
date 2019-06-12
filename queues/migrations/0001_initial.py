@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('cases', '0001_initial'),
+        ('teams', '0001_initial'),
     ]
 
     operations = [
