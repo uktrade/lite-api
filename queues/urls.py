@@ -5,6 +5,6 @@ from queues import views
 app_name = 'queues'
 
 urlpatterns = [
-    path('', views.QueuesList.as_view()),
-    path('<uuid:pk>/', views.QueueDetail.as_view()),
+    path('', views.QueuesList.as_view(), name='queues'),
+    path('<uuid:pk>/', views.QueueDetail.as_view(), name='queue'),
 ]
