@@ -23,14 +23,6 @@ class DataTestClient(BaseTestClient):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
-
-
-class GovTestClient(DataTestClient):
-    """
-    Test client which creates an initial organisation and user
-    """
-    def setUp(self):
-        super().setUp()
         self.team = Team(name='Admin')
         self.team.save()
         self.user = GovUser(email='test@mail.com',
@@ -38,4 +30,4 @@ class GovTestClient(DataTestClient):
                             last_name='Smith',
                             team=self.team)
         self.user.save()
-        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.gov_headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}

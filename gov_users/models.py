@@ -9,12 +9,6 @@ from teams.models import Team
 
 @reversion.register()
 class GovUser(models.Model):
-    ACTIVE = 'active'
-    DEACTIVATED = 'deactivated'
-    GOV_USER_STATUSES = [
-        (ACTIVE, 'Active'),
-        (DEACTIVATED, 'Deactivated'),
-    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     status = models.CharField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE, max_length=20)

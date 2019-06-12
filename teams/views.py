@@ -3,12 +3,14 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf.authentication import EmailAuthentication
 from teams.libraries.get_team import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
 class TeamList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     List all teams, or create a new team.
     """
@@ -31,7 +33,7 @@ class TeamList(APIView):
 
 
 class TeamDetail(APIView):
-
+    authentication_classes = (EmailAuthentication,)
     def get_object(self, pk):
         return get_team_by_pk(pk)
 

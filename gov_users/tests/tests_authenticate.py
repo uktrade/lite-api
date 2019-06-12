@@ -2,10 +2,10 @@ from django.urls import path, include, reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
-from test_helpers.clients import GovTestClient
+from test_helpers.clients import DataTestClient
 
 
-class GovUserAuthenticateTests(GovTestClient):
+class GovUserAuthenticateTests(DataTestClient):
 
     urlpatterns = [
         path('gov-users/', include('gov_users.urls')),

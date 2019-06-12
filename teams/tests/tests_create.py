@@ -14,10 +14,10 @@ class TeamCreateTests(DataTestClient):
         data = {
             'name': 'new team'
         }
-        response = self.client.post(self.url, data)
+        response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Team.objects.get().name, 'new team')
+        self.assertEqual(Team.objects.get(name='new team').name, 'new team')
 
     @parameterized.expand([
         [{
@@ -32,7 +32,7 @@ class TeamCreateTests(DataTestClient):
     ])
     def tests_team_name_must_be_unique(self, data):
         Team(name='this is a name').save()
-        response = self.client.post(self.url, data)
-        self.assertEqual(Team.objects.all().count(), 1)
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(Team.objects.all().count(), 2)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

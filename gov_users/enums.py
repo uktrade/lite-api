@@ -1,6 +1,6 @@
 class GovUserStatuses:
-    ACTIVE = 'active'
-    DEACTIVATED = 'deactivated'
+    ACTIVE = 'Active'
+    DEACTIVATED = 'Deactivated'
 
     choices = [
         (ACTIVE, 'Active'),

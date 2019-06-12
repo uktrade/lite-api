@@ -20,7 +20,7 @@ class CaseNotesCreateTests(DataTestClient):
             'text': 'I Am Easy to Find',
         }
 
-        response = self.client.post(self.url, data=data)
+        response = self.client.post(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaseNote.objects.count(), 1)
         self.assertEqual(CaseNote.objects.get().text, data.get('text'))
@@ -32,7 +32,7 @@ class CaseNotesCreateTests(DataTestClient):
         [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
     ])
     def test_create_case_note_failure(self, data):
-        response = self.client.post(self.url, data=data)
+        response = self.client.post(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
@@ -59,6 +59,6 @@ class CaseNotesViewTests(DataTestClient):
         CaseNote(text='Rylan',
                  case=self.case2).save()
 
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json().get('case_notes')), 3)

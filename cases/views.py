@@ -11,6 +11,7 @@ from conf.authentication import EmailAuthentication
 
 @permission_classes((permissions.AllowAny,))
 class CaseDetail(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve a case instance.
     """
@@ -22,6 +23,7 @@ class CaseDetail(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class CaseNoteList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve/create case notes.
     """

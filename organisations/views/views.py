@@ -5,12 +5,14 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf.authentication import EmailAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
 
 
 class OrganisationsList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Get all/create organisations
     """
@@ -36,6 +38,7 @@ class OrganisationsList(APIView):
 
 
 class OrganisationsDetail(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Get an organisation by its primary key
     """
