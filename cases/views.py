@@ -17,6 +17,7 @@ class CaseDetail(APIView):
     """
     Retrieve a case instance.
     """
+
     def get(self, request, pk):
         case = get_case(pk)
         serializer = CaseSerializer(case)
@@ -28,6 +29,7 @@ class CaseNoteList(APIView):
     """
     Retrieve/create case notes.
     """
+
     def get(self, request, pk):
         case = get_case(pk)
         serializer = CaseNoteViewSerializer(get_case_notes_from_case(case), many=True)
@@ -55,6 +57,7 @@ class ActivityList(APIView):
     * Case Notes
     * Case Updates
     """
+
     def get(self, request, pk):
         case = get_case(pk)
         case_notes = get_case_notes_from_case(case)
@@ -69,9 +72,20 @@ class ActivityList(APIView):
         for version in version_records:
             activity.append(convert_audit_to_activity(version))
 
-            if fields:
-                for item in activity:
-                    item['data'] = {your_key: item['data'][your_key] for your_key in fields}
+        if fields:
+            for item in activity:
+                item['data'] = {your_key: item['data'][your_key] for your_key in fields}
+
+            # Only show unique dictionaries
+            for i in range(len(activity)):
+                if i < len(activity) - 1:
+                    activity[i]['data'] = dict(set(activity[i]['data'].items()) - set(activity[i + 1]['data'].items()))
+
+                    if not activity[i]['data']:
+                        del activity[i]
+
+        # Remove the last update as it is the application creation
+        del activity[-1]
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
@@ -80,4 +94,3 @@ class ActivityList(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
-
