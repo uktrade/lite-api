@@ -1,15 +1,13 @@
-import json
-
 from django.http.response import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
-from reversion.models import Version, Revision
+from reversion.models import Version
 
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteCreateSerializer, CaseNoteViewSerializer
+from cases.serializers import CaseSerializer, CaseNoteSerializer
 from conf.authentication import EmailAuthentication
 
 
@@ -25,22 +23,24 @@ class CaseDetail(APIView):
         return JsonResponse(data={'case': serializer.data})
 
 
-@permission_classes((permissions.AllowAny,))
 class CaseNoteList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve/create case notes.
     """
 
     def get(self, request, pk):
         case = get_case(pk)
-        serializer = CaseNoteViewSerializer(get_case_notes_from_case(case), many=True)
+        serializer = CaseNoteSerializer(get_case_notes_from_case(case), many=True)
         return JsonResponse(data={'case_notes': serializer.data})
 
     def post(self, request, pk):
         case = get_case(pk)
         data = request.data
         data['case'] = str(case.id)
-        serializer = CaseNoteCreateSerializer(data=data)
+        data['user'] = str(request.user.id)
+
+        serializer = CaseNoteSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -51,8 +51,8 @@ class CaseNoteList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
 class ActivityList(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieves all activity related to a case:
     * Case Notes
@@ -86,7 +86,8 @@ class ActivityList(APIView):
                         del activity[i]
 
         # Remove the last update as it is the application creation
-        del activity[-1]
+        if len(activity):
+            del activity[-1]
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))

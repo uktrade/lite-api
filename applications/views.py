@@ -10,10 +10,11 @@ from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
-from conf.authentication import PkAuthentication
+from conf.authentication import PkAuthentication, EmailAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from goods.enums import GoodStatus
+from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -118,6 +119,7 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve, update or delete a application instance.
     """
@@ -127,11 +129,13 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
-
         with reversion.create_revision():
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+                reversion.set_comment("Updated application details")
+                reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 

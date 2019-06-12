@@ -3,6 +3,8 @@ import json
 from reversion.models import Revision, Version
 
 from cases.models import CaseNote
+from gov_users.libraries.get_gov_user import get_gov_user_by_pk
+from gov_users.models import GovUser, GovUserRevisionMeta
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
@@ -30,12 +32,11 @@ def convert_case_note_to_activity(case_note: CaseNote):
     """
     return _activity_item(CASE_NOTE,
                           case_note.created_at,
-                          # TODO: Case Note doesn't have a user field yet (User object doesn't exist, see LT-936)
                           {
-                              'id': '1234',
-                              'email': 'test@mail.com',
-                              'first_name': 'Matthew',
-                              'last_name': 'Berninger',
+                              'id': case_note.user.id,
+                              'email': case_note.user.email,
+                              'first_name': case_note.user.first_name,
+                              'last_name': case_note.user.last_name,
                           },
                           case_note.text)
 
@@ -45,12 +46,14 @@ def convert_audit_to_activity(version: Version):
     Converts an audit item to a dict suitable for the case activity list
     """
     _revision_object = Revision.objects.get(id=version.revision_id)
+    gov_user = GovUserRevisionMeta.objects.get(revision_id=version.revision_id).gov_user
+
     return _activity_item(CHANGE,
                           _revision_object.date_created,
                           {
-                              'id': _revision_object.user_id,
-                              'email': 'test@mail.com',
-                              'first_name': 'Matthew',
-                              'last_name': 'Berninger',
+                              'id': gov_user.id,
+                              'email': gov_user.email,
+                              'first_name': gov_user.first_name,
+                              'last_name': gov_user.last_name,
                           },
                           json.loads(version.serialized_data)[0]['fields'])
