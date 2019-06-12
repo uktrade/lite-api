@@ -10,7 +10,7 @@ from queues.serializers import QueueSerializer
 
 @permission_classes((permissions.AllowAny,))
 class QueuesList(APIView):
-    # authentication_classes = (EmailAuthentication,)
+    authentication_classes = (EmailAuthentication,)
     """
     List all queues
     """
@@ -23,7 +23,7 @@ class QueuesList(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
-    # authentication_classes = (EmailAuthentication,)
+    authentication_classes = (EmailAuthentication,)
     """
     Retrieve a queue instance
     """
