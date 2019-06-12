@@ -8,15 +8,15 @@ from rest_framework import permissions
 from conf.settings import ADMIN_ENABLED
 
 
-schema_view = get_schema_view(
-   openapi.Info(
+api_info = openapi.Info(
       title="Lite-API",
       default_version='v0.3',
       description="Service for handling backend calls in LITE.",
       terms_of_service="https://github.com/uktrade/lite-api/blob/master/LICENSE",
       contact=openapi.Contact(email="tbd@local"),
       license=openapi.License(name="MIT License"),
-   ),
+   )
+schema_view = get_schema_view(
    public=True,
    permission_classes=(permissions.AllowAny,),
 )
