@@ -9,8 +9,7 @@ class TeamEditTests(DataTestClient):
 
     def tests_edit_team(self):
         Team(name='name 1').save()
-        id = Team.objects.get().id
-        self.assertEqual(Team.objects.get().name, 'name 1')
+        id = Team.objects.filter(name='name 1')[0].id
         data = {
             'name': 'edited team'
         }
@@ -18,7 +17,7 @@ class TeamEditTests(DataTestClient):
         response = self.client.put(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Team.objects.get().name, 'edited team')
+        self.assertEqual(Team.objects.filter(id=id)[0].name, 'edited team')
 
     def tests_cannot_rename_to_an_already_used_name_case_insensitive(self):
         Team(name='name').save()
