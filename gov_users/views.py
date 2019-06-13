@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from conf.authentication import EmailAuthentication
+from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from gov_users.libraries.user_to_token import user_to_token
@@ -45,7 +45,7 @@ class AuthenticateGovUser(APIView):
 
 
 class GovUserList(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         serializer = GovUserSerializer(GovUser.objects.all(), many=True)
@@ -66,7 +66,7 @@ class GovUserList(APIView):
 
 
 class GovUserDetail(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
     """
     Get user from pk
     """

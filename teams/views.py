@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import EmailAuthentication
+from conf.authentication import GovAuthentication
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSerializer
 from teams.libraries.get_team import get_team_by_pk
@@ -12,7 +12,7 @@ from teams.serializers import TeamSerializer
 
 
 class TeamList(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
     """
     List all teams, or create a new team.
     """
@@ -35,7 +35,7 @@ class TeamList(APIView):
 
 
 class TeamDetail(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get_object(self, pk):
         return get_team_by_pk(pk)
@@ -57,7 +57,7 @@ class TeamDetail(APIView):
 
 
 class UsersByTeamsList(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         team = get_team_by_pk(pk)
