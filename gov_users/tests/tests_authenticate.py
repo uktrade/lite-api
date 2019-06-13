@@ -1,4 +1,5 @@
 from django.urls import path, include, reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
@@ -54,19 +55,14 @@ class GovUserAuthenticateTests(DataTestClient):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_authenticated_with_email_in_header(self):
+    @parameterized.expand([
+        [{'headers': {'HTTP_GOV_USER_EMAIL': str('test@mail.com')}, 'response': status.HTTP_200_OK}],
+        [{'headers': {'HTTP_GOV_USER_TOKEN': str('43a88949-5db9-4334-b0cc-044e91827451')}, 'response': status.HTTP_200_OK}],
+        [{'headers': {}, 'response': status.HTTP_403_FORBIDDEN}],
+        [{'headers': {'HTTP_GOV_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}, 'response': status.HTTP_403_FORBIDDEN}],
+    ])
+    def test_authorised_valid_email_in_header(self, data):
         url = reverse('gov_users:gov_users')
-        headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        headers = data['headers']
         response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_authenticated_with_token_in_header(self):
-        url = reverse('gov_users:gov_users')
-        headers = {'HTTP_GOV_USER_TOKEN': str(user_to_token(self.user))}
-        response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_no_headers_permission_denied(self):
-        url = reverse('gov_users:gov_users')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, data['response'])

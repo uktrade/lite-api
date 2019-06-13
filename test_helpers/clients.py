@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from conf.urls import urlpatterns
@@ -25,7 +27,8 @@ class DataTestClient(BaseTestClient):
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
         self.team = Team(name='Admin')
         self.team.save()
-        self.user = GovUser(email='test@mail.com',
+        self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
+                            email='test@mail.com',
                             first_name='John',
                             last_name='Smith',
                             team=self.team)
