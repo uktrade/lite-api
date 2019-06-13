@@ -15,6 +15,10 @@ class GovUserSerializer(serializers.ModelSerializer):
         error_messages={
             'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
+    team_name = serializers.SerializerMethodField()
+
+    def get_team_name(self, instance):
+        return instance.team.name
 
     class Meta:
         model = GovUser
@@ -23,7 +27,8 @@ class GovUserSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'status',
-                  'team')
+                  'team',
+                  'team_name')
 
     def update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)

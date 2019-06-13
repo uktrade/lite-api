@@ -33,3 +33,5 @@ class EmailAuthentication(authentication.BaseAuthentication):
             raise exceptions.PermissionDenied('User has been deactivated')
 
         return user, None
+
+    # def authenticate_against_email
