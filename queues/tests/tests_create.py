@@ -22,7 +22,6 @@ class QueueCreateTests(DataTestClient):
         # Note: A queue "New Cases" is created by default
         self.assertEqual(Queue.objects.all().count(), 2)
         self.assertEqual(Queue.objects.filter(name='new_queue').count(), 1)
-        all_queue_records = Queue.objects.all()
-        queue_record = Queue.objects.filter(name='new_queue')[0]
         self.assertEqual(str(Queue.objects.filter(name='new_queue')[0].team.id),
                          str(Team.objects.filter(name="Reception")[0].id))
+
