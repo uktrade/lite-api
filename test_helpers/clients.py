@@ -30,4 +30,4 @@ class DataTestClient(BaseTestClient):
                             last_name='Smith',
                             team=self.team)
         self.user.save()
-        self.gov_headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.user.id)}

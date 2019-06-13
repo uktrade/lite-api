@@ -2,6 +2,7 @@ from django.urls import path, include, reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
+from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 
 
@@ -52,3 +53,15 @@ class GovUserAuthenticateTests(DataTestClient):
         url = reverse('gov_users:authenticate')
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_authenticated_with_email_in_header(self):
+        url = reverse('gov_users:gov_users')
+        headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        response = self.client.get(url, **headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_authenticated_with_token_in_header(self):
+        url = reverse('gov_users:gov_users')
+        headers = {'HTTP_GOV_USER_TOKEN': str(user_to_token(self.user))}
+        response = self.client.get(url, **headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
