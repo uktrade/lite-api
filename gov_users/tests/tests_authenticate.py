@@ -65,3 +65,8 @@ class GovUserAuthenticateTests(DataTestClient):
         headers = {'HTTP_GOV_USER_TOKEN': str(user_to_token(self.user))}
         response = self.client.get(url, **headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_no_headers_permission_denied(self):
+        url = reverse('gov_users:gov_users')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
