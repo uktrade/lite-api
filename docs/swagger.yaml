@@ -1,0 +1,673 @@
+swagger: '2.0'
+info:
+  title: Lite-API
+  description: Service for handling backend calls in LITE.
+  termsOfService: https://github.com/uktrade/lite-api/blob/master/LICENSE
+  contact:
+    email: tbd@local
+  license:
+    name: MIT License
+  version: v0.3
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+  - Basic: []
+paths:
+  /applications/:
+    get:
+      operationId: applications_list
+      description: List all applications
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_create
+      description: Create a new application from a draft
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters: []
+  /applications/{id}/:
+    get:
+      operationId: applications_read
+      description: Retrieve an application instance.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    put:
+      operationId: applications_update
+      description: Update an application instance.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/:
+    get:
+      operationId: cases_read
+      description: Retrieve a case instance.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/case_notes/:
+    get:
+      operationId: cases_case_notes_list
+      description: Retrieve/create case notes.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_case_notes_create
+      description: Retrieve/create case notes.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/:
+    get:
+      operationId: drafts_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters: []
+  /drafts/{id}/:
+    get:
+      operationId: drafts_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    put:
+      operationId: drafts_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/end-user/:
+    post:
+      operationId: drafts_end-user_create
+      description: Set the end user of a draft application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/external_locations:
+    get:
+      operationId: drafts_external_locations_list
+      description: View sites belonging to a draft or add them
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_external_locations_create
+      description: View sites belonging to a draft or add them
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/goods/:
+    get:
+      operationId: drafts_goods_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_goods_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/goods/{good_pk}/:
+    get:
+      operationId: drafts_goods_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_goods_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: good_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/sites/:
+    get:
+      operationId: drafts_sites_list
+      description: View sites belonging to a draft or add them
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_sites_create
+      description: View sites belonging to a draft or add them
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /goods/:
+    get:
+      operationId: goods_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - goods
+    post:
+      operationId: goods_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - goods
+    parameters: []
+  /goods/{id}/:
+    get:
+      operationId: goods_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - goods
+    put:
+      operationId: goods_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - goods
+    delete:
+      operationId: goods_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - goods
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /organisations/:
+    get:
+      operationId: organisations_list
+      description: Get all/create organisations
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    post:
+      operationId: organisations_create
+      description: Get all/create organisations
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - organisations
+    parameters: []
+  /organisations/external_locations/:
+    get:
+      operationId: organisations_external_locations_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    post:
+      operationId: organisations_external_locations_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - organisations
+    parameters: []
+  /organisations/sites/:
+    get:
+      operationId: organisations_sites_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    post:
+      operationId: organisations_sites_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - organisations
+    parameters: []
+  /organisations/sites/{id}/:
+    get:
+      operationId: organisations_sites_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    put:
+      operationId: organisations_sites_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /organisations/{id}/:
+    get:
+      operationId: organisations_read
+      description: Get an organisation by its primary key
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/sites/:
+    get:
+      operationId: organisations_sites_list
+      description: "Endpoint for listing the Sites of an organisation\nAn organisation\
+        \ must have at least one site"
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    post:
+      operationId: organisations_sites_create
+      description: List all sites for an organisation/create site
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/sites/{site_pk}/:
+    get:
+      operationId: organisations_sites_read
+      description: Show details for for a specific site/edit site
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    put:
+      operationId: organisations_sites_update
+      description: Show details for for a specific site/edit site
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+      - name: site_pk
+        in: path
+        required: true
+        type: string
+  /queues/:
+    get:
+      operationId: queues_list
+      description: List all queues
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queues
+    parameters: []
+  /queues/{id}/:
+    get:
+      operationId: queues_read
+      description: Retrieve a queue instance
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queues
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /static/countries/:
+    get:
+      operationId: static_countries_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /static/denial-reasons/:
+    get:
+      operationId: static_denial-reasons_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /static/units/:
+    get:
+      operationId: static_units_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /teams/:
+    get:
+      operationId: teams_list
+      description: List all teams
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Team'
+      tags:
+        - teams
+    post:
+      operationId: teams_create
+      description: Create a new team
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Team'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Team'
+        '400':
+          description: JSON parse error
+      tags:
+        - teams
+    parameters: []
+  /teams/{id}/:
+    get:
+      operationId: teams_read
+      description: Retrieve a team instance
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Team'
+      tags:
+        - teams
+    put:
+      operationId: teams_update
+      description: Update a team instance
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Team'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Team'
+        '400':
+          description: JSON parse error
+      tags:
+        - teams
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /users/:
+    get:
+      operationId: users_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - users
+    post:
+      operationId: users_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - users
+    parameters: []
+  /users/authenticate/:
+    post:
+      operationId: users_authenticate_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - users
+    parameters: []
+  /users/{id}/:
+    get:
+      operationId: users_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - users
+    put:
+      operationId: users_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - users
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+definitions:
+  Team:
+    required:
+      - name
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 50
+        minLength: 1
