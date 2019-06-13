@@ -4,7 +4,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from cases.serializers import CaseSerializer
 from queues.models import Queue
 from teams.models import Team
-from teams.serializers import TeamSerializer
 
 
 class QueueSerializer(serializers.ModelSerializer):
@@ -17,3 +16,9 @@ class QueueSerializer(serializers.ModelSerializer):
                   'name',
                   'team',
                   'cases')
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+
+        instance.save()
+        return instance
