@@ -19,11 +19,13 @@ from queues.models import Queue
 
 
 class ApplicationList(APIView):
+
     authentication_classes = (PkAuthentication,)
-    """
-    List all applications, or create a new application from a draft.
-    """
+
     def get(self, request):
+        """
+        List all applications
+        """
         organisation = get_organisation_by_user(request.user)
 
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
@@ -33,6 +35,9 @@ class ApplicationList(APIView):
 
     @transaction.atomic
     def post(self, request):
+        """
+        Create a new application from a draft
+        """
         submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
@@ -118,16 +123,19 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
-    """
-    Retrieve, update or delete a application instance.
-    """
+
     def get(self, request, pk):
+        """
+        Retrieve an application instance.
+        """
         application = get_application_by_pk(pk)
         serializer = ApplicationBaseSerializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
-
+        """
+        Update an application instance.
+        """
         with reversion.create_revision():
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
