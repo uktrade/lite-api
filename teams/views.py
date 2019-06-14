@@ -15,10 +15,11 @@ from teams.serializers import TeamSerializer
 
 
 class TeamList(APIView):
-	authentication_classes = (GovAuthentication,)
+    authentication_classes = (GovAuthentication,)
+
     @swagger_auto_schema(responses={
         200: openapi.Response('OK', TeamSerializer),
-    })
+        })
     def get(self, request):
         """
         List all teams
