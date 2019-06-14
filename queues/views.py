@@ -21,7 +21,7 @@ class QueuesList(APIView):
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = QueueSerializer(data=data)
+        serializer = QueueSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()

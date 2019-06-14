@@ -8,8 +8,9 @@ from test_helpers.clients import DataTestClient
 class TeamEditTests(DataTestClient):
 
     def tests_edit_team(self):
-        Team(name='name 1').save()
-        id = Team.objects.filter(name='name 1')[0].id
+        team_name = 'Team1'
+        Team(name=team_name).save()
+        id = Team.objects.filter(name=team_name)[0].id
         data = {
             'name': 'edited team'
         }

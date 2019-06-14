@@ -7,7 +7,7 @@ from teams.models import Team
 
 
 class QueueSerializer(serializers.ModelSerializer):
-    cases = CaseSerializer(many=True, read_only=True)
+    cases = CaseSerializer(many=True, read_only=True, required=False)
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
 
     class Meta:
