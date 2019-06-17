@@ -3,8 +3,7 @@ import json
 from reversion.models import Revision, Version
 
 from cases.models import CaseNote
-from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from gov_users.models import GovUser, GovUserRevisionMeta
+from gov_users.models import GovUserRevisionMeta
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
