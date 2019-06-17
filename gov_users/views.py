@@ -20,10 +20,19 @@ class AuthenticateGovUser(APIView):
     """
     permission_classes = (AllowAny,)
 
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error',
+            403: 'Forbidden'
+        })
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
+        :param request:
+        :param email, first_name, last_name:
+        :param kwargs:
+        :return token:
         """
         try:
             data = JSONParser().parse(request)
@@ -66,6 +75,11 @@ class GovUserList(APIView):
         serializer = GovUserSerializer(GovUser.objects.all(), many=True)
         return JsonResponse(data={'gov_users': serializer.data}, safe=False)
 
+    @swagger_auto_schema(
+        request_body=GovUserSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request):
         """
         Add a new gov user
@@ -98,6 +112,11 @@ class GovUserDetail(APIView):
         return JsonResponse(data={'user': serializer.data},
                             safe=False)
 
+    @swagger_auto_schema(
+        request_body=GovUserSerializer,
+        responses={
+            400: 'Bad Request'
+        })
     def put(self, request, pk):
         """
         Edit user from pk
