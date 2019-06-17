@@ -14,7 +14,7 @@ class TeamListTests(DataTestClient):
         Team(name='name 2').save()
         Team(name='name 3').save()
 
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()["teams"]), 3)
+        self.assertEqual(len(response.json()["teams"]), 4)

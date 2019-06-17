@@ -9,16 +9,16 @@ class TeamEditTests(DataTestClient):
 
     def tests_edit_team(self):
         Team(name='name 1').save()
-        id = Team.objects.get().id
-        self.assertEqual(Team.objects.get().name, 'name 1')
+        id = Team.objects.get(name='name 1').id
+        self.assertEqual(Team.objects.get(id=id).name, 'name 1')
         data = {
             'name': 'edited team'
         }
         url = reverse('teams:team', kwargs={'pk': id})
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Team.objects.get().name, 'edited team')
+        self.assertEqual(Team.objects.get(name='edited team').name, 'edited team')
 
     def tests_cannot_rename_to_an_already_used_name_case_insensitive(self):
         Team(name='name').save()
@@ -29,6 +29,6 @@ class TeamEditTests(DataTestClient):
             'name': 'TEST'
         }
         url = reverse('teams:team', kwargs={'pk': id})
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

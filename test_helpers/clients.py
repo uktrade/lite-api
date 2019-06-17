@@ -1,7 +1,11 @@
+from uuid import UUID
+
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from conf.urls import urlpatterns
+from gov_users.models import GovUser
 from static.urls import urlpatterns as static_urlpatterns
+from teams.models import Team
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -21,3 +25,11 @@ class DataTestClient(BaseTestClient):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        self.team = Team.objects.get(name='Admin')
+        self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
+                            email='test@mail.com',
+                            first_name='John',
+                            last_name='Smith',
+                            team=self.team)
+        self.user.save()
+        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.user.id)}

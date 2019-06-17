@@ -6,16 +6,23 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf.authentication import GovAuthentication
+from gov_users.models import GovUser
+from gov_users.serializers import GovUserSerializer
 from teams.libraries.get_team import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
 class TeamList(APIView):
+    """
+    Gets a list of teams or add a new one
+    """
+    authentication_classes = (GovAuthentication,)
 
     @swagger_auto_schema(responses={
         200: openapi.Response('OK', TeamSerializer),
-    })
+        })
     def get(self, request):
         """
         List all teams
@@ -47,6 +54,10 @@ class TeamList(APIView):
 
 
 class TeamDetail(APIView):
+    """
+    Perform action on a single team
+    """
+    authentication_classes = (GovAuthentication,)
 
     def get_object(self, pk):
         return get_team_by_pk(pk)
@@ -79,3 +90,16 @@ class TeamDetail(APIView):
             return JsonResponse(data={'team': serializer.data})
         return JsonResponse(data={'errors': serializer.errors},
                             status=400)
+
+
+class UsersByTeamsList(APIView):
+    """
+    Return a list of users by a specific team
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        team = get_team_by_pk(pk)
+        users = GovUser.objects.filter(team=team)
+        serializer = GovUserSerializer(users, many=True)
+        return JsonResponse(data={'users': serializer.data})
