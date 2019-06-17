@@ -15,12 +15,21 @@ from users.libraries.user_is_trying_to_change_own_status import user_is_trying_t
 
 
 class AuthenticateGovUser(APIView):
-    permission_classes = (AllowAny,)
     """
     Authenticate user
     """
+    permission_classes = (AllowAny,)
+
     def post(self, request, *args, **kwargs):
-        data = JSONParser().parse(request)
+        """
+        Takes user details from sso and checks them against our whitelisted users
+        Returns a token which is just our ID for the user
+        """
+        try:
+            data = JSONParser().parse(request)
+        except:
+            return JsonResponse(data={'errors': 'Invalid Json'},
+                                status=status.HTTP_400_BAD_REQUEST)
         email = data.get('email')
         first_name = data.get('first_name')
         last_name = data.get('last_name')
@@ -45,14 +54,22 @@ class AuthenticateGovUser(APIView):
 
 
 class GovUserList(APIView):
+    """
+    Fetch all users or add a new one
+    """
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
+        """
+        Gets all gov users
+        """
         serializer = GovUserSerializer(GovUser.objects.all(), many=True)
         return JsonResponse(data={'gov_users': serializer.data}, safe=False)
 
     def post(self, request):
-
+        """
+        Add a new gov user
+        """
         data = JSONParser().parse(request)
         serializer = GovUserSerializer(data=data)
 
@@ -66,11 +83,15 @@ class GovUserList(APIView):
 
 
 class GovUserDetail(APIView):
+    """
+    Actions on a specific user
+    """
     authentication_classes = (GovAuthentication,)
-    """
-    Get user from pk
-    """
+
     def get(self, request, pk):
+        """
+        Get user from pk
+        """
         gov_user = get_gov_user_by_pk(pk)
 
         serializer = GovUserSerializer(gov_user)
@@ -78,6 +99,9 @@ class GovUserDetail(APIView):
                             safe=False)
 
     def put(self, request, pk):
+        """
+        Edit user from pk
+        """
         gov_user = get_gov_user_by_pk(pk)
         data = JSONParser().parse(request)
         if 'status' in data.keys():

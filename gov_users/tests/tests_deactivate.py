@@ -15,10 +15,10 @@ class GovUserDeactivateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        self.valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team)
+        self.valid_user.save()
 
     def test_deactivate_a_user(self):
-        user_2 = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team)
-        user_2.save()
         data = {
             'status': 'Deactivated'
         }
@@ -36,8 +36,6 @@ class GovUserDeactivateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_deactivate_and_reactivate_a_user(self):
-        user_2 = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team)
-        user_2.save()
         url = reverse('gov_users:gov_users')
         response = self.client.get(url, **{'HTTP_GOV_USER_EMAIL': str(user_2.email)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
