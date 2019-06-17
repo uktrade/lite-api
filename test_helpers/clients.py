@@ -25,8 +25,7 @@ class DataTestClient(BaseTestClient):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
-        self.team = Team(name='Admin')
-        self.team.save()
+        self.team = Team.objects.get(name='Admin')
         self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
                             email='test@mail.com',
                             first_name='John',
