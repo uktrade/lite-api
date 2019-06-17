@@ -111,6 +111,10 @@ AUTHENTICATION_BACKENDS = [
 
 WSGI_APPLICATION = 'conf.wsgi.application'
 
+SWAGGER_SETTINGS = {
+    'DEFAULT_INFO': 'conf.urls.api_info',
+}
+
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
