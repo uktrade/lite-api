@@ -74,33 +74,60 @@ class ApplicationList(APIView):
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
                                       )
+            if application.licence_type == 'open_licence':
+                # Save associated end users, goods and sites
+                print('THERE')
+                application.end_user = draft.end_user
+                application.save()
 
-            # Save associated end users, goods and sites
-            application.end_user = draft.end_user
-            application.save()
+                for goodstypes_on_draft in GoodOnDraft.objects.filter(draft=draft):
+                    good_on_application = GoodOnApplication(
+                        good=goodstypes_on_draft.good,
+                        application=application,
+                        )
+                    good_on_application.save()
+                    good_on_application.good.status = GoodStatus.SUBMITTED
+                    good_on_application.good.save()
 
-            for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-                good_on_application = GoodOnApplication(
-                    good=good_on_draft.good,
-                    application=application,
-                    quantity=good_on_draft.quantity,
-                    unit=good_on_draft.unit,
-                    value=good_on_draft.value)
-                good_on_application.save()
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
+                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                    site_on_application = SiteOnApplication(
+                        site=site_on_draft.site,
+                        application=application)
+                    site_on_application.save()
 
-            for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                site_on_application = SiteOnApplication(
-                    site=site_on_draft.site,
-                    application=application)
-                site_on_application.save()
+                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                    external_location_on_application = ExternalLocationOnApplication(
+                        external_location=external_location_on_draft.external_location,
+                        application=application)
+                    external_location_on_application.save()
 
-            for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-                external_location_on_application = ExternalLocationOnApplication(
-                    external_location=external_location_on_draft.external_location,
-                    application=application)
-                external_location_on_application.save()
+            if application.licence_type == 'standard_licence':
+                # Save associated end users, goods and sites
+                application.end_user = draft.end_user
+                application.save()
+
+                for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
+                    good_on_application = GoodOnApplication(
+                        good=good_on_draft.good,
+                        application=application,
+                        quantity=good_on_draft.quantity,
+                        unit=good_on_draft.unit,
+                        value=good_on_draft.value)
+                    good_on_application.save()
+                    good_on_application.good.status = GoodStatus.SUBMITTED
+                    good_on_application.good.save()
+
+                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                    site_on_application = SiteOnApplication(
+                        site=site_on_draft.site,
+                        application=application)
+                    site_on_application.save()
+
+                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                    external_location_on_application = ExternalLocationOnApplication(
+                        external_location=external_location_on_draft.external_location,
+                        application=application)
+                    external_location_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)
