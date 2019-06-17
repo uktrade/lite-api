@@ -30,7 +30,7 @@ class ApplicationDenialTests(DataTestClient):
         }],
     ])
     def test_set_application_status_successful(self, data):
-        response = self.client.put(self.url, data=data)
+        response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.application.refresh_from_db()
         application_denial_reason = ApplicationDenialReason.objects.get(application=self.application)
@@ -76,7 +76,7 @@ class ApplicationDenialTests(DataTestClient):
     def test_set_application_status_failure(self, data):
         current_status = self.application.status
 
-        response = self.client.put(self.url, data=data)
+        response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

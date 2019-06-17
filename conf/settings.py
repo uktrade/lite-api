@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'addresses',
     'applications.apps.ApplicationsConfig',
+    'audit',
     'organisations.apps.OrganisationsConfig',
     'users.apps.UsersConfig',
     'cases.apps.CasesConfig',

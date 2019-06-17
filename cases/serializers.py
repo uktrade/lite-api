@@ -3,6 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote
+from gov_users.models import GovUser
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -13,19 +14,12 @@ class CaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'application')
 
 
-class CaseNoteViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
-
-    class Meta:
-        model = CaseNote
-        fields = ('id', 'text', 'created_at')
-
-
-class CaseNoteCreateSerializer(serializers.ModelSerializer):
+class CaseNoteSerializer(serializers.ModelSerializer):
     text = serializers.CharField(min_length=2, max_length=2200)
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
-    created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    user = PrimaryKeyRelatedField(queryset=GovUser.objects.all())
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = CaseNote
-        fields = ('id', 'case', 'text', 'created_at')
+        fields = ('id', 'text', 'case', 'user', 'created_at')

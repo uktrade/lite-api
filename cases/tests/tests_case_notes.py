@@ -43,22 +43,18 @@ class CaseNotesViewTests(DataTestClient):
         super().setUp()
         self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application', self.test_helper.organisation)
         self.draft2 = self.test_helper.create_draft_with_good_end_user_and_site('Example Application 2', self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
-        self.application2 = self.test_helper.submit_draft(self, self.draft2)
+        self.application = self.submit_draft(self.draft)
+        self.application2 = self.submit_draft(self.draft2)
         self.case = Case.objects.get(application=self.application)
         self.case2 = Case.objects.get(application=self.application2)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
-    def test_create_case_note_successful(self):
-        CaseNote(text='Hairpin Turns',
-                 case=self.case).save()
-        CaseNote(text='Not in Kansas',
-                 case=self.case).save()
-        CaseNote(text='Dust Swirls In Strange Light',
-                 case=self.case).save()
-        CaseNote(text='Rylan',
-                 case=self.case2).save()
+    def test_view_case_notes_successful(self):
+        self.create_case_note(self.case, 'Hairpin Turns')
+        self.create_case_note(self.case, 'Not in Kansas')
+        self.create_case_note(self.case, 'Dust Swirls In Strange Light')
+        self.create_case_note(self.case, 'Rylan')
 
         response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json().get('case_notes')), 3)
+        self.assertEqual(len(response.json().get('case_notes')), 4)
