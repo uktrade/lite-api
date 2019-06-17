@@ -1,6 +1,7 @@
 from django.urls import path, include, reverse
 from parameterized import parameterized
 from rest_framework import status
+from rest_framework.utils import json
 
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.user_to_token import user_to_token
@@ -18,6 +19,9 @@ class GovUserAuthenticateTests(DataTestClient):
         super().setUp()
 
     def test_authentication_success(self):
+        """
+        Authorises user then checks the token which is sent is valid upon another request
+        """
         url = reverse('gov_users:authenticate')
         data = {
             'email': self.user.email,
@@ -25,6 +29,11 @@ class GovUserAuthenticateTests(DataTestClient):
             'last_name': self.user.last_name
         }
         response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        headers = {'HTTP_GOV_USER_TOKEN': response_data['token']}
+        url = reverse('gov_users:gov_users')
+        response = self.client.get(url, **headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_empty(self):
