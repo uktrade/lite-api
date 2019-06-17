@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
 from goods.models import Good
@@ -26,6 +26,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
                   'last_modified_at',
                   'licence_type',
                   'export_type',
+                  'have_you_been_informed',
                   'reference_number_on_information_form',
                   'end_user')
 
@@ -38,6 +39,9 @@ class DraftCreateSerializer(DraftBaseSerializer):
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': 'Select if you want to apply for a temporary or permanent '
                                                           'licence.'})
+    have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
+                                                     error_messages={'required': 'Select if you you been told that you '
+                                                                     'need an export licence by an official.'})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
@@ -47,6 +51,7 @@ class DraftCreateSerializer(DraftBaseSerializer):
                   'name',
                   'licence_type',
                   'export_type',
+                  'have_you_been_informed',
                   'reference_number_on_information_form',
                   'organisation')
 
@@ -58,6 +63,9 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': 'Select if you want to apply for a temporary or permanent '
                                                           'licence.'})
+    have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
+                                                     error_messages={'required': 'Select if you you been told that you '
+                                                                     'need an export licence by an official.'})
     reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):
@@ -69,6 +77,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         instance.usage = validated_data.get('usage', instance.usage)
         instance.licence_type = validated_data.get('licence_type', instance.licence_type)
         instance.export_type = validated_data.get('export_type', instance.export_type)
+        instance.have_you_been_informed = validated_data.get('have_you_been_informed', instance.have_you_been_informed)
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.save()
