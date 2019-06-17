@@ -30,7 +30,7 @@ class GovUserAuthenticateTests(DataTestClient):
         response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 1)
-        new_user = GovUser.objects.get(first_name='Jane')
+        new_user = GovUser.objects.get(email='jsmith@name.com')
         self.assertEqual(new_user.status, GovUserStatuses.ACTIVE)
         self.assertEqual(new_user.email, 'jsmith@name.com')
         response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': str(new_user.email)})
