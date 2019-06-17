@@ -7,10 +7,11 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from addresses.models import Address
 from organisations.models import Site
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class SiteViewTests(APITestCase, URLPatternsTestCase):
+class SiteViewTests(DataTestClient):
 
     urlpatterns = [
         path('organisations/', include('organisations.urls'))
@@ -81,28 +82,25 @@ class SiteViewTests(APITestCase, URLPatternsTestCase):
         self.assertEqual(Address.objects.all().count(), 3)
 
 
-class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
+class OrgSiteViewTests(DataTestClient):
 
     urlpatterns = [
         path('organisations/', include('organisations.urls'))
     ]
 
-    client = APIClient
-
     def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='Org1')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        super().setUp()
 
     def test_site_list(self):
 
         url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
     def test_add_site(self):
-        url = reverse('organisations:sites')
+        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': 'a street',
@@ -111,7 +109,7 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
                     'region': 'Hertfordshire',
                     'country': 'England'}, }
 
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
 
@@ -129,7 +127,7 @@ class OrgSiteViewTests(APITestCase, URLPatternsTestCase):
                 }
 
         id = self.test_helper.primary_site.id
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, format='json', **self.gov_headers)
         self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
         self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
         self.assertEqual(Site.objects.get(id=id).name, 'regional site')

@@ -4,19 +4,19 @@ import uuid
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.test import APIClient
 from reversion.models import Version
 
 from organisations.models import Organisation, Site
+from test_helpers.clients import DataTestClient
 from users.models import User
 
 
-class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
+class OrganisationCreateTests(DataTestClient):
+
     urlpatterns = [
         path('organisations/', include('organisations.urls'))
     ]
-
-    client = APIClient
 
     def test_create_organisation_with_first_user(self):
         self.name = "Big Scary Guns ltd"
@@ -68,8 +68,8 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                 'password': self.password
             },
         }
-        response = self.client.post(url, data)
-
+        response = self.client.post(url, data, format='json', **self.gov_headers)
+        Organisation.objects.get(name='Org1').delete()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
         self.assertEqual(Organisation.objects.get().eori_number, "GB123456789000")
@@ -127,5 +127,5 @@ class OrganisationCreateTests(APITestCase, URLPatternsTestCase):
                 'password': None,
             },
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import PkAuthentication, GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
@@ -44,6 +44,7 @@ class SiteList(APIView):
 
 
 class OrgSiteList(APIView):
+    authentication_classes = (GovAuthentication,)
     """
     List all sites for an organisation/create site
     """
@@ -71,6 +72,7 @@ class OrgSiteList(APIView):
                 # user information for gov users does not exist yet
                 # reversion.set_user(request.user)
                 # reversion.set_comment("Created Site")
+                serializer.save()
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
@@ -79,6 +81,7 @@ class OrgSiteList(APIView):
 
 
 class OrgSiteDetail(APIView):
+    authentication_classes = (GovAuthentication,)
     """
     Show details for for a specific site/edit site
     """

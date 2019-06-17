@@ -11,8 +11,10 @@ from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.models import Good
+from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
 from static.units.units import Units
+from teams.models import Team
 from users.models import User
 
 
@@ -78,8 +80,17 @@ class OrgAndUserHelper:
                 'password': self.password
             },
         }
-        self.client.post(url, data, format='json')
-
+        self.team = Team(name='1234567890qwertyuiopasdfghjkl')
+        self.team.save()
+        self.user = GovUser(email='1234567890qwertyuiopasdfghjkl@mail.com',
+                            first_name='John',
+                            last_name='Smith',
+                            team=self.team)
+        self.user.save()
+        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.client.post(url, data, format='json', **self.headers)
+        self.user.delete()
+        self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site

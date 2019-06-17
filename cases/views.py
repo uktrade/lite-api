@@ -7,12 +7,13 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteSerializer
-from conf.authentication import EmailAuthentication
+from cases.serializers import CaseSerializer, CaseNoteCreateSerializer, CaseNoteViewSerializer
+from conf.authentication import GovAuthentication
 
 
 @permission_classes((permissions.AllowAny,))
 class CaseDetail(APIView):
+    authentication_classes = (GovAuthentication,)
     """
     Retrieve a case instance.
     """
@@ -24,7 +25,7 @@ class CaseDetail(APIView):
 
 
 class CaseNoteList(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
     """
     Retrieve/create case notes.
     """
