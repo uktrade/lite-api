@@ -13,10 +13,10 @@ from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, 
 
 
 class SiteList(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     List all sites for an organisation/create site
     """
+    authentication_classes = (PkAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -44,10 +44,10 @@ class SiteList(APIView):
 
 
 class OrgSiteList(APIView):
-    authentication_classes = (GovAuthentication,)
     """
     List all sites for an organisation/create site
     """
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, org_pk):
         """
@@ -81,10 +81,10 @@ class OrgSiteList(APIView):
 
 
 class OrgSiteDetail(APIView):
-    authentication_classes = (GovAuthentication,)
     """
     Show details for for a specific site/edit site
     """
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, org_pk, site_pk):
         # organisation = get_organisation_by_user(request.user)
@@ -120,10 +120,10 @@ class OrgSiteDetail(APIView):
 
 
 class SiteDetail(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     Show details for for a specific site/edit site
     """
+    authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)

@@ -12,6 +12,7 @@ class UserByTeamListTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        self.gov_user_preexisting_count = GovUser.objects.all().count()
 
     def tests_user_by_team_list(self):
         team = Team.objects.get(name='Admin')
@@ -25,6 +26,6 @@ class UserByTeamListTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['users']), 2)
+        self.assertEqual(len(response_data['users']), self.gov_user_preexisting_count + 1)
         self.assertContains(response, 'test2@mail.com')
         self.assertNotContains(response, 'test3@mail.com')

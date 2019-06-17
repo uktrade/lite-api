@@ -15,6 +15,7 @@ class GovUserAuthenticateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        self.gov_user_preexisting_count = GovUser.objects.all().count()
 
     def test_user_registers_new_user(self):
         response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': 'jsmith@name.com'})
@@ -28,7 +29,7 @@ class GovUserAuthenticateTests(DataTestClient):
         url = reverse('gov_users:gov_users')
         response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(GovUser.objects.all().count(), 2)
+        self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 1)
         new_user = GovUser.objects.get(first_name='Jane')
         self.assertEqual(new_user.status, GovUserStatuses.ACTIVE)
         self.assertEqual(new_user.email, 'jsmith@name.com')
@@ -40,4 +41,4 @@ class GovUserAuthenticateTests(DataTestClient):
         url = reverse('gov_users:gov_users')
         response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(GovUser.objects.all().count(), 1)
+        self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 0)

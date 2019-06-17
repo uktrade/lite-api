@@ -15,6 +15,9 @@ from teams.serializers import TeamSerializer
 
 
 class TeamList(APIView):
+    """
+    Gets a list of teams or add a new one
+    """
     authentication_classes = (GovAuthentication,)
 
     @swagger_auto_schema(responses={
@@ -51,6 +54,9 @@ class TeamList(APIView):
 
 
 class TeamDetail(APIView):
+    """
+    Perform action on a single team
+    """
     authentication_classes = (GovAuthentication,)
 
     def get_object(self, pk):
@@ -87,6 +93,9 @@ class TeamDetail(APIView):
 
 
 class UsersByTeamsList(APIView):
+    """
+    Return a list of users by a specific team
+    """
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):

@@ -14,9 +14,10 @@ class GovUserViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        self.gov_user_preexisting_count = GovUser.objects.all().count()
 
     def tests_get(self):
         GovUser(email='test2@mail.com',first_name='John',last_name='Smith',team=self.team).save()
         response = self.client.get(reverse('gov_users:gov_users'), **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(GovUser.objects.all().count(), 2)
+        self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 1)

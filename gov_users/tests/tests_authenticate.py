@@ -17,18 +17,18 @@ class GovUserAuthenticateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        self.url = reverse('gov_users:authenticate')
 
     def test_authentication_success(self):
         """
         Authorises user then checks the token which is sent is valid upon another request
         """
-        url = reverse('gov_users:authenticate')
         data = {
             'email': self.user.email,
             'first_name': self.user.first_name,
             'last_name': self.user.last_name
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         headers = {'HTTP_GOV_USER_TOKEN': response_data['token']}
@@ -37,19 +37,17 @@ class GovUserAuthenticateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_empty(self):
-        url = reverse('gov_users:authenticate')
         data = {
             'email': None,
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_login_incorrect_details(self):
-        url = reverse('gov_users:authenticate')
         data = {
             'email': 'something@random.com',
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_a_deactivated_user_cannot_log_in(self):
@@ -60,8 +58,7 @@ class GovUserAuthenticateTests(DataTestClient):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name
         }
-        url = reverse('gov_users:authenticate')
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @parameterized.expand([

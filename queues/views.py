@@ -10,10 +10,11 @@ from queues.serializers import QueueSerializer
 
 @permission_classes((permissions.AllowAny,))
 class QueuesList(APIView):
-    authentication_classes = (GovAuthentication,)
     """
     List all queues
     """
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request):
         queues = Queue.objects.filter().order_by('name')
         serializer = QueueSerializer(queues, many=True)
@@ -23,10 +24,11 @@ class QueuesList(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
-    authentication_classes = (GovAuthentication,)
     """
     Retrieve a queue instance
     """
+    authentication_classes = (GovAuthentication,)
+
     def get_object(self, pk):
         try:
             queue = Queue.objects.get(pk=pk)
