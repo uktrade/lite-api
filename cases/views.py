@@ -7,7 +7,7 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteCreateSerializer, CaseNoteViewSerializer
+from cases.serializers import CaseSerializer, CaseNoteSerializer
 from conf.authentication import GovAuthentication
 
 
@@ -53,7 +53,7 @@ class CaseNoteList(APIView):
 
 
 class ActivityList(APIView):
-    authentication_classes = (EmailAuthentication,)
+    authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case:
     * Case Notes
@@ -66,15 +66,16 @@ class ActivityList(APIView):
         version_records = Version.objects.filter(object_id=case.application.pk).order_by('-revision_id')
         activity = []
 
+        for version in version_records:
+            activity_item = convert_audit_to_activity(version)
+            if activity_item:
+                activity.append(activity_item)
+
         # Split fields into request fields
         fields = request.GET.get('fields', None)
         if fields:
             fields = fields.split(',')
 
-        for version in version_records:
-            activity.append(convert_audit_to_activity(version))
-
-        if fields:
             for item in activity:
                 item['data'] = {your_key: item['data'][your_key] for your_key in fields}
 
@@ -85,10 +86,6 @@ class ActivityList(APIView):
 
                     if not activity[i]['data']:
                         del activity[i]
-
-        # Remove the last update as it is the application creation
-        if len(activity):
-            del activity[-1]
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))

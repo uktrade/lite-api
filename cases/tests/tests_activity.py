@@ -16,32 +16,32 @@ class CaseActivityTests(DataTestClient):
         self.url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
     def test_view_case_activity(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['activity']), 1)
+        self.assertEqual(len(response_data['activity']), 0)
 
         # Add a case note
         self.create_case_note(self.case, 'Example Note')
 
         # Validate that there are now two objects in activity
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['activity']), 2)
+        self.assertEqual(len(response_data['activity']), 1)
 
         # Update the application status
         data = {
             'status': ApplicationStatus.APPROVED,
         }
 
-        self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data)
+        self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)
 
         # Validate that there are now three objects in activity
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['activity']), 3)
+        self.assertEqual(len(response_data['activity']), 2)

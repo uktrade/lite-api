@@ -22,16 +22,6 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['drafts']), 2)
 
-    def test_view_drafts_not_applications(self):
-        """
-        Ensure that when a draft is submitted it does not get submitted as an application
-        """
-        draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
-
-        url = reverse('applications:application', kwargs={'pk': draft.id})
-        response = self.client.get(url, format='json', **self.headers)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
     def test_view_draft(self):
         """
         Ensure we can get a draft.

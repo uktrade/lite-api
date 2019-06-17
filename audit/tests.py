@@ -29,7 +29,7 @@ class AuditTests(DataTestClient):
             'status': ApplicationStatus.APPROVED,
         }
 
-        self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data)
+        self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)
 
         # Validate that there are now two objects in changes
         response = self.client.get(self.url)
