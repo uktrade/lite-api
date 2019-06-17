@@ -32,8 +32,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('first_name', models.CharField(blank=True, default="Internal", max_length=30, null=True)),
-                ('last_name', models.CharField(blank=True, default="User", max_length=30, null=True)),
+                ('first_name', models.CharField(blank=True, default="Pending", max_length=30, null=True)),
+                ('last_name', models.CharField(blank=True, default="...", max_length=30, null=True)),
                 ('email', models.EmailField(default=None, max_length=254, unique=True)),
                 ('team', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='team', to='teams.Team')),
             ],

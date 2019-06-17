@@ -86,6 +86,8 @@ class GovUserList(APIView):
         Add a new gov user
         """
         data = JSONParser().parse(request)
+        data['first_name'] = "Pending"
+        data['last_name'] = "..."
         serializer = GovUserSerializer(data=data)
 
         if serializer.is_valid():
