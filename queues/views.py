@@ -4,6 +4,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from queues.libraries.get_queue import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer
 
@@ -18,8 +19,7 @@ class QueuesList(APIView):
     def get(self, request):
         queues = Queue.objects.filter().order_by('name')
         serializer = QueueSerializer(queues, many=True)
-        return JsonResponse(data={'status': 'success', 'queues': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'queues': serializer.data})
 
 
 @permission_classes((permissions.AllowAny,))
@@ -29,14 +29,7 @@ class QueueDetail(APIView):
     """
     authentication_classes = (GovAuthentication,)
 
-    def get_object(self, pk):
-        try:
-            queue = Queue.objects.get(pk=pk)
-            return queue
-        except Queue.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        queue = self.get_object(pk)
+        queue = get_queue(pk)
         serializer = QueueSerializer(queue)
-        return JsonResponse(data={'status': 'success', 'queue': serializer.data})
+        return JsonResponse(data={'queue': serializer.data})

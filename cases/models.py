@@ -12,7 +12,7 @@ from queues.models import Queue
 class Case(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE)
-    cases = models.ManyToManyField(Queue)
+    queues = models.ManyToManyField(Queue, related_name='cases')
 
 
 @reversion.register()

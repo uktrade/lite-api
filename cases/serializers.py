@@ -8,10 +8,11 @@ from gov_users.models import GovUser
 
 class CaseSerializer(serializers.ModelSerializer):
     application = ApplicationBaseSerializer(read_only=True)
+    queues = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application')
+        fields = ('id', 'application', 'queues')
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
