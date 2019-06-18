@@ -15,7 +15,7 @@ class TeamEditTests(DataTestClient):
             'name': 'edited team'
         }
         url = reverse('teams:team', kwargs={'pk': id})
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Team.objects.filter(id=id)[0].name, 'edited team')
@@ -29,6 +29,6 @@ class TeamEditTests(DataTestClient):
             'name': 'TEST'
         }
         url = reverse('teams:team', kwargs={'pk': id})
-        response = self.client.put(url, data)
+        response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

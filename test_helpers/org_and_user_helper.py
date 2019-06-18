@@ -11,8 +11,10 @@ from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.models import Good
+from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
 from static.units.units import Units
+from teams.models import Team
 from users.models import User
 
 
@@ -78,8 +80,17 @@ class OrgAndUserHelper:
                 'password': self.password
             },
         }
-        self.client.post(url, data, format='json')
-
+        self.team = Team(name='1234567890qwertyuiopasdfghjkl')
+        self.team.save()
+        self.user = GovUser(email='1234567890qwertyuiopasdfghjkl@mail.com',
+                            first_name='John',
+                            last_name='Smith',
+                            team=self.team)
+        self.user.save()
+        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.client.post(url, data, format='json', **self.headers)
+        self.user.delete()
+        self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
         self.user = User.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site
@@ -132,9 +143,9 @@ class OrgAndUserHelper:
         users = []
         for i in range(quantity):
             first_name, last_name = random_name()
-            email = first_name+'.'+last_name+'@'+org.name+'.com'
+            email = first_name + '.' + last_name + '@' + org.name + '.com'
             if User.objects.filter(email=email).count() == 1:
-                email = first_name+'.'+last_name+str(i)+'@'+org.name+'.com'
+                email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
             user = User(first_name=first_name,
                         last_name=last_name,
                         email=email,
@@ -166,9 +177,9 @@ class OrgAndUserHelper:
     @staticmethod
     def create_external_location(name, org):
         external_location = ExternalLocation(name=name,
-                                     address='20 Questions Road, Enigma',
-                                     country='Canada',
-                                     organisation=org)
+                                             address='20 Questions Road, Enigma',
+                                             country='Canada',
+                                             organisation=org)
         external_location.save()
         return external_location
 
@@ -177,7 +188,7 @@ class OrgAndUserHelper:
         end_user = EndUser(name=name,
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
-                           website='www.'+name+'.com',
+                           website='www.' + name + '.com',
                            type=EndUserType.GOVERNMENT,
                            country='England')
         end_user.save()

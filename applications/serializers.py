@@ -41,10 +41,10 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
 
 
 class ApplicationBaseSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
     organisation = OrganisationViewSerializer()
-    last_modified_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
-    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+    last_modified_at = serializers.DateTimeField(read_only=True)
+    submitted_at = serializers.DateTimeField(read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     status = serializers.ChoiceField(choices=ApplicationStatus.choices)
     licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={

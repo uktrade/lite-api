@@ -10,14 +10,19 @@ class TeamCreateTests(DataTestClient):
 
     url = reverse('teams:teams')
 
+    def setUp(self):
+        super().setUp()
+        self.team_preexisting_count = Team.objects.all().count()
+
     def tests_create_team(self):
         data = {
             'name': 'new team'
         }
-        response = self.client.post(self.url, data)
+        response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Team.objects.filter(name='new team').count(), 1)
+        self.assertEqual(Team.objects.get(name='new team').name, 'new team')
 
     @parameterized.expand([
         [{
@@ -34,7 +39,6 @@ class TeamCreateTests(DataTestClient):
         # Note: there already exists a team (Reception) which is created by default
         existing_teams_count = Team.objects.all().count()
         Team(name='this is a name').save()
-        response = self.client.post(self.url, data)
-        self.assertEqual(Team.objects.all().count(), existing_teams_count + 1)
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(Team.objects.all().count(), self.team_preexisting_count + 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-

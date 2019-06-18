@@ -11,7 +11,7 @@ def init(apps, schema_editor):
     Team = apps.get_model('teams', 'Team')
     if not Team.objects.all():
         team = Team(id='00000000-0000-0000-0000-000000000001',
-                    name='Reception')
+                    name='Admin')
         team.save()
 
 
