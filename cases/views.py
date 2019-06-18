@@ -1,4 +1,5 @@
 from django.http.response import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
@@ -9,6 +10,7 @@ from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.serializers import CaseSerializer, CaseNoteSerializer
 from conf.authentication import GovAuthentication
+from queues.models import Queue
 
 
 @permission_classes((permissions.AllowAny,))
@@ -22,6 +24,32 @@ class CaseDetail(APIView):
         case = get_case(pk)
         serializer = CaseSerializer(case)
         return JsonResponse(data={'case': serializer.data})
+
+    @swagger_auto_schema(
+        responses={
+            400: 'wrong input'
+        })
+    def put(self, request, pk):
+        """
+        Change the list of queues case belongs to (minimum one queue)
+        """
+        case = get_case(pk)
+        data = request.data
+        new_queues = data.get('queues')
+
+        if new_queues is None or not isinstance(new_queues, (list, tuple)) or len(new_queues)==0:
+            return JsonResponse(data={'errors: queues parameter required (array)'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if all provided queues exist
+        existing_queues = Queue.objects.values_list('id', flat=True)
+        if not new_queues.issubset(existing_queues):
+            return JsonResponse(data={'errors: provided queues don\'t exist'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        case.queues.set(new_queues)
+        case.save()
+        return JsonResponse(data={'queues': case.queues})
 
 
 class CaseNoteList(APIView):
@@ -94,3 +122,4 @@ class ActivityList(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
+
