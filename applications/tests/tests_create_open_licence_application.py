@@ -32,7 +32,7 @@ class ApplicationsTests(DataTestClient):
         draft = OrgAndUserHelper.complete_draft('bloggs', self.test_helper.organisation)
 
         # create a goodstype that points to this draft
-        # goods_type =
+        # goodstype =
 
 
         draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)

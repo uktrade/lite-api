@@ -14,11 +14,15 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class DraftGoodsType(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     View goods belonging to a draft, or add one
     """
+    authentication_classes = (PkAuthentication,)
+
     def get(self, request, pk):
+        """
+        Gets draft Goods Types
+        """
         goods_types = GoodsType.objects.filter(object_id=pk, content_type__model='draft')
         serializer = GoodsTypeSerializer(goods_types, many=True)
         return JsonResponse(data={'goods': serializer.data})
@@ -39,7 +43,6 @@ class DraftGoods(APIView):
 
     def post(self, request, pk):
         data = JSONParser().parse(request)
-
         data['good'] = data['good_id']
         data['draft'] = str(pk)
 

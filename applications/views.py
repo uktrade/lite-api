@@ -76,13 +76,12 @@ class ApplicationList(APIView):
                                       )
             if application.licence_type == 'open_licence':
                 # Save associated end users, goods and sites
-                print('THERE')
                 application.end_user = draft.end_user
                 application.save()
 
-                for goodstypes_on_draft in GoodOnDraft.objects.filter(draft=draft):
+                for goods_types_on_draft in GoodOnDraft.objects.filter(draft=draft):
                     good_on_application = GoodOnApplication(
-                        good=goodstypes_on_draft.good,
+                        good=goods_types_on_draft.good,
                         application=application,
                         )
                     good_on_application.save()
@@ -101,7 +100,7 @@ class ApplicationList(APIView):
                         application=application)
                     external_location_on_application.save()
 
-            if application.licence_type == 'standard_licence':
+            elif application.licence_type == 'standard_licence':
                 # Save associated end users, goods and sites
                 application.end_user = draft.end_user
                 application.save()

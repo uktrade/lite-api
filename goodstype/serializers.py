@@ -15,7 +15,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField(read_only=True)
 
     def get_content_object(self, obj):
-
+        """
+        Gets the content object of draft or application
+        """
         if type(obj) == Application:
             return ApplicationBaseSerializer(obj.content_object).data
         return DraftBaseSerializer(obj.content_object).data
@@ -34,6 +36,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   )
 
     def __init__(self, *args, **kwargs):
+        """
+        Initializes serializer for Goods Type
+        """
         super(GoodsTypeSerializer, self).__init__(*args, **kwargs)
 
         # Only validate the control code if the good is controlled
@@ -41,6 +46,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             self.fields['control_code'] = serializers.CharField(required=True)
 
     def update(self, instance, validated_data):
+        """
+        Update Goods Type Serializer
+        """
         instance.description = validated_data.get('description', instance.description)
         instance.is_good_controlled = validated_data.get('is_good_controlled', instance.is_good_controlled)
         instance.control_code = validated_data.get('control_code', instance.control_code)

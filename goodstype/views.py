@@ -12,16 +12,19 @@ class GoodsTypeList(APIView):
     authentication_classes = (PkAuthentication,)
 
     def get(self, request):
-        description = request.GET.get('description', '')
+        """
+        Gets list of all Goods Types
+        """
         goods = GoodsType.objects.filter()
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},
                             safe=False)
 
     def post(self, request):
+        """
+        Posts Goods Types
+        """
         data = JSONParser().parse(request)
-
-
         serializer = GoodsTypeSerializer(data=data)
 
         if serializer.is_valid():
@@ -37,7 +40,9 @@ class GoodsTypeDetail(APIView):
     authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
+        """
+        Gets a single Goods Type
+        """
         good = GoodsType.objects.get(pk=pk)
-
         serializer = GoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
