@@ -35,21 +35,27 @@ class CaseDetail(APIView):
         """
         case = get_case(pk)
         data = request.data
-        new_queues = data.get('queues')
+        new_queues = data['queues']
 
-        if new_queues is None or not isinstance(new_queues, (list, tuple)) or len(new_queues) == 0:
-            return JsonResponse(data={'errors: queues parameter required (array)'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        if not new_queues:
+            return JsonResponse(data={'errors': {
+                'queues': ['Select at least one queue']
+            }}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if all provided queues exist
-        existing_queues = Queue.objects.values_list('id', flat=True)
-        if not new_queues.issubset(existing_queues):
-            return JsonResponse(data={'errors: provided queues don\'t exist'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        # # Check if all provided queues exist
+        existing_queues = [str(i) for i in Queue.objects.values_list('id', flat=True)]
 
+        if all(elem in new_queues for elem in existing_queues):
+            return JsonResponse(data={
+                'errors': {
+                    'queues': ['Select valid queues']
+                }}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the queues on the case
         case.queues.set(new_queues)
         case.save()
-        return JsonResponse(data={'queues': case.queues})
+
+        return JsonResponse(data={'queues': 'success!'}, safe=False)
 
 
 class CaseNoteList(APIView):
