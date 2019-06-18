@@ -8,7 +8,7 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteSerializer
+from cases.serializers import CaseSerializer, CaseNoteSerializer, CaseDetailSerializer
 from conf.authentication import GovAuthentication
 from queues.models import Queue
 
@@ -22,7 +22,7 @@ class CaseDetail(APIView):
 
     def get(self, request, pk):
         case = get_case(pk)
-        serializer = CaseSerializer(case)
+        serializer = CaseDetailSerializer(case)
         return JsonResponse(data={'case': serializer.data})
 
     @swagger_auto_schema(
@@ -37,7 +37,7 @@ class CaseDetail(APIView):
         data = request.data
         new_queues = data.get('queues')
 
-        if new_queues is None or not isinstance(new_queues, (list, tuple)) or len(new_queues)==0:
+        if new_queues is None or not isinstance(new_queues, (list, tuple)) or len(new_queues) == 0:
             return JsonResponse(data={'errors: queues parameter required (array)'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -122,4 +122,3 @@ class ActivityList(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
-
