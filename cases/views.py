@@ -45,11 +45,12 @@ class CaseDetail(APIView):
         # # Check if all provided queues exist
         existing_queues = [str(i) for i in Queue.objects.values_list('id', flat=True)]
 
-        if all(elem in new_queues for elem in existing_queues):
-            return JsonResponse(data={
-                'errors': {
-                    'queues': ['Select valid queues']
-                }}, status=status.HTTP_400_BAD_REQUEST)
+        for queue in new_queues:
+            if queue not in existing_queues:
+                return JsonResponse(data={
+                    'errors': {
+                        'queues': ['Select valid queues']
+                    }}, status=status.HTTP_400_BAD_REQUEST)
 
         # Set the queues on the case
         case.queues.set(new_queues)

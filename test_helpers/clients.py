@@ -8,6 +8,7 @@ from cases.models import CaseNote, Case
 from conf.urls import urlpatterns
 from drafts.models import Draft
 from gov_users.models import GovUser
+from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -44,6 +45,11 @@ class DataTestClient(BaseTestClient):
                              user=self.user)
         case_note.save()
         return case_note
+
+    def create_queue(self, name: str):
+        queue = Queue(name=name)
+        queue.save()
+        return queue
 
     def submit_draft(self, draft: Draft):
         draft_id = draft.id
