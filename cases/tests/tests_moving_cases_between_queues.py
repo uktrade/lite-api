@@ -3,7 +3,6 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import Case
-from queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 
@@ -19,7 +18,6 @@ class MoveCasesTests(DataTestClient):
             self.create_queue('Queue 1'),
             self.create_queue('Queue 2'),
             self.create_queue('Queue 3'),
-            self.create_queue('Queue 4'),
         ]
 
     def test_move_case_successful(self):
