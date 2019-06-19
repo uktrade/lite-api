@@ -45,23 +45,6 @@ class ApplicationList(APIView):
             # Get Draft
             draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
 
-            # Errors
-            errors = {}
-
-            if not draft.end_user:
-                errors['end_user'] = 'Cannot create an application without an end user'
-
-            if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
-                errors['goods'] = 'Cannot create an application with no goods attached'
-
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-                errors['location'] = 'Cannot create an application with no sites or external sites attached'
-
-            if len(errors):
-                return JsonResponse(data={'errors': errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
             # Create an Application object corresponding to the draft
             application = Application(id=draft.id,
                                       name=draft.name,
@@ -74,6 +57,27 @@ class ApplicationList(APIView):
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
                                       )
+
+            # Reset Errors
+            errors = {}
+
+            if not draft.end_user:
+                errors['end_user'] = 'Cannot create an application without an end user'
+
+            if application.licence_type == 'standard_licence' and not GoodOnDraft.objects.filter(draft=draft):
+                errors['goods'] = 'Cannot create an application with no goods attached'
+
+            if application.licence_type == 'open_licence' and not GoodOnDraft.objects.filter(draft=draft):
+                errors['goods'] = 'Cannot create an application with no good types attached'
+
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+                errors['location'] = 'Cannot create an application with no sites or external sites attached'
+
+            if len(errors):
+                return JsonResponse(data={'errors': errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
             if application.licence_type == 'open_licence':
                 # Save associated end users, goods and sites
                 application.end_user = draft.end_user
