@@ -33,22 +33,21 @@ class MoveCasesTests(DataTestClient):
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Check that the queues have been added
-        for queue in self.case.queues.all():
-            self.assertTrue(queue.id in data['queues'])
+        self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(data['queues']))
 
     @parameterized.expand([
         # None/Empty Queues
+        [{}],
         [{'queues': None}],
         [{'queues': []}],
         # Invalid Queues
+        [{'queues': 'Not an array'}],
         [{'queues': ['00000000-0000-0000-0000-000000000002']}],
         [{'queues': ['00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002']}],
     ])
     def test_move_case_failure(self, data):
-        existing_queues = self.case.queues
+        existing_queues = set(self.case.queues.values_list('id', flat=True))
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.case.queues, existing_queues)
+        self.assertEqual(set(self.case.queues.values_list('id', flat=True)), existing_queues)

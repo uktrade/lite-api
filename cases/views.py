@@ -35,9 +35,9 @@ class CaseDetail(APIView):
         """
         case = get_case(pk)
         data = request.data
-        new_queues = data['queues']
+        new_queues = data.get('queues')
 
-        if not new_queues:
+        if not new_queues or not isinstance(new_queues, (list, tuple)):
             return JsonResponse(data={'errors': {
                 'queues': ['Select at least one queue']
             }}, status=status.HTTP_400_BAD_REQUEST)
@@ -56,7 +56,7 @@ class CaseDetail(APIView):
         case.queues.set(new_queues)
         case.save()
 
-        return JsonResponse(data={'queues': 'success!'}, safe=False)
+        return JsonResponse(data={'queues': 'success'}, safe=False)
 
 
 class CaseNoteList(APIView):
