@@ -36,7 +36,7 @@ class TeamCreateTests(DataTestClient):
         }],
     ])
     def tests_team_name_must_be_unique(self, data):
-        # Note: there already exists a team (Reception) which is created by default
+        # Note: there already exists a team (Admin) which is created by default
         existing_teams_count = Team.objects.all().count()
         Team(name='this is a name').save()
         response = self.client.post(self.url, data, **self.gov_headers)

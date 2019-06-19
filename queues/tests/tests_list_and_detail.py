@@ -11,7 +11,7 @@ class QueueEditTests(DataTestClient):
     url = reverse('queues:queues')
 
     def tests_list_queue(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data['queues'][0]['id'],
@@ -19,11 +19,11 @@ class QueueEditTests(DataTestClient):
 
         data = {
             'name': 'new_queue',
-            'team': str(Team.objects.filter(name="Reception")[0].id),
+            'team': str(Team.objects.filter(name="Admin")[0].id),
             'cases': {}
         }
-        response = self.client.post(self.url, data)
-        response = self.client.get(self.url)
+        response = self.client.post(self.url, data, **self.gov_headers)
+        response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['queues']), 2)
 
@@ -31,7 +31,7 @@ class QueueEditTests(DataTestClient):
         id = EXISTING_QUEUE_ID
         url = reverse('queues:queue', kwargs={'pk': id})
 
-        response = self.client.get(url, kwargs={'pk': id})
+        response = self.client.get(url, kwargs={'pk': id}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data['queue']['name'], 'New Cases')

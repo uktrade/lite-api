@@ -14,6 +14,6 @@ class QueueEditTests(DataTestClient):
             'name': 'Modified queue',
         }
         url = reverse('queues:queue', kwargs={'pk': data['id']})
-        response = self.client.put(url, data, format='json')
+        response = self.client.put(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Queue.objects.filter(name='Modified queue').count(), 1)
