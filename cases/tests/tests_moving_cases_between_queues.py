@@ -22,11 +22,7 @@ class MoveCasesTests(DataTestClient):
 
     def test_move_case_successful(self):
         data = {
-            'queues': [
-                self.queues[0].id,
-                self.queues[1].id,
-                self.queues[2].id
-            ],
+            'queues': [queue.id for queue in self.queues]
         }
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
