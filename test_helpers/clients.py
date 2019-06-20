@@ -46,8 +46,9 @@ class DataTestClient(BaseTestClient):
         case_note.save()
         return case_note
 
-    def create_queue(self, name: str):
-        queue = Queue(name=name)
+    def create_queue(self, name: str, team: Team):
+        queue = Queue(name=name,
+                      team=team)
         queue.save()
         return queue
 

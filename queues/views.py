@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from queues.libraries.get_queue import get_queue
 from queues.models import Queue
-from queues.serializers import QueueSerializer
+from queues.serializers import QueueSerializer, QueueViewSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -19,7 +19,7 @@ class QueuesList(APIView):
 
     def get(self, request):
         queues = Queue.objects.filter().order_by('name')
-        serializer = QueueSerializer(queues, many=True)
+        serializer = QueueViewSerializer(queues, many=True)
         return JsonResponse(data={'queues': serializer.data})
 
     def post(self, request):
@@ -44,7 +44,7 @@ class QueueDetail(APIView):
 
     def get(self, request, pk):
         queue = get_queue(pk)
-        serializer = QueueSerializer(queue)
+        serializer = QueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
     def put(self, request, pk):
