@@ -14,6 +14,14 @@ class CaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'application')
 
 
+class CaseDetailSerializer(CaseSerializer):
+    queues = PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Case
+        fields = ('id', 'application', 'queues')
+
+
 class CaseNoteSerializer(serializers.ModelSerializer):
     text = serializers.CharField(min_length=2, max_length=2200)
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())

@@ -64,16 +64,14 @@ class AuthenticateGovUser(APIView):
 
 
 class GovUserList(APIView):
-    """
-    Fetch all users or add a new one
-    """
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
-        Gets all gov users
+        Fetches all government users
         """
-        serializer = GovUserSerializer(GovUser.objects.all(), many=True)
+        gov_users = GovUser.objects.all().order_by('email')
+        serializer = GovUserSerializer(gov_users, many=True)
         return JsonResponse(data={'gov_users': serializer.data}, safe=False)
 
     @swagger_auto_schema(

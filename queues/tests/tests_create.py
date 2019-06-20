@@ -8,23 +8,22 @@ from test_helpers.clients import DataTestClient
 
 class QueueCreateTests(DataTestClient):
 
-    def setUp(self):
-        super().setUp()
-        self.url = reverse('queues:queues')
+    url = reverse('queues:queues')
 
     def tests_create_queue(self):
-
         existing_queues_count = Queue.objects.all().count()
+        team = Team.objects.get()
+
         data = {
             'name': 'new_queue',
-            'team': str(Team.objects.filter(name="Admin")[0].id),
-            'cases': {}
+            'team': team.id,
         }
+
         response = self.client.post(self.url, data, **self.gov_headers)
+        queue_json = response.json().get('queue')
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Note: A queue "New Cases" is created by default
         self.assertEqual(Queue.objects.all().count(), existing_queues_count + 1)
-        self.assertEqual(Queue.objects.filter(name='new_queue').count(), 1)
-        self.assertEqual(str(Queue.objects.filter(name='new_queue')[0].team.id),
-                         str(Team.objects.filter(name="Admin")[0].id))
+        self.assertEqual(queue_json.get('name'), data['name'])
+        self.assertEqual(queue_json.get('team'), str(team.id))
 
