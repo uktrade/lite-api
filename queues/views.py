@@ -48,7 +48,7 @@ class QueueDetail(APIView):
         return JsonResponse(data={'queue': serializer.data})
 
     def put(self, request, pk):
-        queue = self.get_object(pk)
+        queue = get_queue(pk)
         data = request.data.copy()
         serializer = QueueSerializer(instance=queue, data=data, partial=True)
         if serializer.is_valid():
