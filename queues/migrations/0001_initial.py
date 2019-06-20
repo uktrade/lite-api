@@ -5,14 +5,17 @@ import uuid
 from django.db import migrations, models
 
 
-def init(apps, schema_editor):
+def initialize(apps, schema_editor):
     # We can't import the Queue model directly as it may be a newer
     # version than this migration expects. We use the historical version.
-    Queue = apps.get_model('queues', 'Queue')
+    Queue = apps.get_app_config('queues').get_model('Queue')
+    Team = apps.get_model('teams', 'Team')
+    default_team = Team.objects.get(pk=uuid.UUID('00000000-0000-0000-0000-000000000001'))
     if not Queue.objects.all():
-        queue = Queue(id='00000000-0000-0000-0000-000000000001',
-                      name='New Cases')
-        queue.save()
+        Queue.objects.create(id='00000000-0000-0000-0000-000000000001',
+                             name='New Cases',
+                             team=default_team,
+                             )
 
 
 class Migration(migrations.Migration):
@@ -21,6 +24,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('cases', '0001_initial'),
+        ('teams', '0001_initial'),
     ]
 
     operations = [
@@ -29,8 +33,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.TextField(default='Untitled Queue')),
+                ('team', models.ForeignKey(on_delete=models.deletion.CASCADE,
+                                           to='teams.Team')),
                 ('cases', models.ManyToManyField(to='cases.Case')),
             ],
         ),
-        migrations.RunPython(init),
+        migrations.RunPython(initialize),
     ]
