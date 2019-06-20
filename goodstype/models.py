@@ -15,7 +15,6 @@ class GoodsType(models.Model):
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     control_code = models.TextField(default=None, blank=True, null=True)
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
-
     limit = models.Q(app_label='applications', model='application') | \
             models.Q(app_label='drafts', model='draft')
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)

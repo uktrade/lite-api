@@ -14,6 +14,7 @@ from conf.authentication import PkAuthentication, GovAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from goods.enums import GoodStatus
+from goodstype.models import GoodsType
 from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
@@ -39,6 +40,7 @@ class ApplicationList(APIView):
         """
         Create a new application from a draft
         """
+
         submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
@@ -67,7 +69,8 @@ class ApplicationList(APIView):
             if application.licence_type == 'standard_licence' and not GoodOnDraft.objects.filter(draft=draft):
                 errors['goods'] = 'Cannot create an application with no goods attached'
 
-            if application.licence_type == 'open_licence' and not GoodOnDraft.objects.filter(draft=draft):
+            results = GoodsType.objects.filter(object_id=draft.id)
+            if application.licence_type == 'open_licence' and not results:
                 errors['goods'] = 'Cannot create an application with no good types attached'
 
             if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
@@ -83,14 +86,16 @@ class ApplicationList(APIView):
                 application.end_user = draft.end_user
                 application.save()
 
-                for goods_types_on_draft in GoodOnDraft.objects.filter(draft=draft):
-                    good_on_application = GoodOnApplication(
-                        good=goods_types_on_draft.good,
-                        application=application,
-                        )
-                    good_on_application.save()
-                    good_on_application.good.status = GoodStatus.SUBMITTED
-                    good_on_application.good.save()
+                for goods_types_on_draft in results:
+                    goods_types_on_draft.object_id = application.id
+
+                    # good_on_application = GoodOnApplication(
+                    #     good=goods_types_on_draft.good,
+                    #     application=application,
+                    #     )
+                    # good_on_application.save()
+                    # good_on_application.good.status = GoodStatus.SUBMITTED
+                    # good_on_application.good.save()
 
                 for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
                     site_on_application = SiteOnApplication(
