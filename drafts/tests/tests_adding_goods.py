@@ -1,5 +1,6 @@
 import json
 
+from parameterized import parameterized
 from django.urls import reverse
 from rest_framework import status
 
@@ -16,9 +17,9 @@ class DraftTests(DataTestClient):
 
         data = {
             'good_id': good.id,
-            'quantity': 1200,
+            'quantity': 1200.098896,
             'unit': 'NAR',
-            'value': 50000
+            'value': 50000.45
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
@@ -50,3 +51,25 @@ class DraftTests(DataTestClient):
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["goods"]), 0)
+
+    @parameterized.expand([
+        [{'value': '123.45', 'quantity': '1123423.901234', 'response': status.HTTP_201_CREATED}],
+        [{'value': '123.45', 'quantity': '1234.12341341', 'response': status.HTTP_400_BAD_REQUEST}],
+        [{'value': '2123.45', 'quantity': '1234', 'response': status.HTTP_201_CREATED}],
+        [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
+    ])
+    def test_adding_goods_with_different_number_formats(self, data):
+        org = self.test_helper.organisation
+        draft = OrgAndUserHelper.complete_draft('Goods test', org)
+        good = OrgAndUserHelper.create_controlled_good('A good', org)
+
+        post_data = {
+            'good_id': good.id,
+            'quantity': data['quantity'],
+            'unit': 'NAR',
+            'value': data['value']
+        }
+
+        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        response = self.client.post(url, post_data, **self.headers)
+        self.assertEqual(response.status_code, data['response'])
