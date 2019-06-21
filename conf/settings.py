@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'static.denial_reasons',
     'reversion',
     'drf_yasg',
+    'content_strings.apps.ContentStringsConfig',
     'goodstype',
     'content_strings.apps.ContentStringsConfig',
 ]
