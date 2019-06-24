@@ -1,6 +1,7 @@
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -13,17 +14,27 @@ from organisations.serializers import OrganisationViewSerializer, OrganisationCr
 
 class OrganisationsList(APIView):
     authentication_classes = (GovAuthentication,)
-    """
-    Get all/create organisations
-    """
+
     def get(self, request):
+        """
+        List all organisations
+        """
         organisations = Organisation.objects.all().order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
         return JsonResponse(data={'organisations': view_serializer.data},
                             safe=False)
 
     @transaction.atomic
+    @swagger_auto_schema(
+        request_body=OrganisationCreateSerializer,
+        responses={
+            400: 'JSON parse error'
+        },
+        manual_parameters={'banana': 'boo'})
     def post(self, request):
+        """
+        Create a new organisation
+        """
         with reversion.create_revision():
             data = JSONParser().parse(request)
             serializer = OrganisationCreateSerializer(data=data)

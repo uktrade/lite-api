@@ -27,6 +27,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
 
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()

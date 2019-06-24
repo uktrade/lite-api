@@ -9,7 +9,7 @@ from conf.settings import ADMIN_ENABLED
 
 
 api_info = openapi.Info(
-      title="Lite-API",
+      title="LITE API",
       default_version='v0.3',
       description="Service for handling backend calls in LITE.",
       terms_of_service="https://github.com/uktrade/lite-api/blob/master/LICENSE",

@@ -7,6 +7,7 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.models import Country
 from static.units.units import Units
 
 
@@ -44,3 +45,12 @@ class ExternalLocationOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     draft = models.ForeignKey(Draft, related_name='draft_external_locations', on_delete=models.CASCADE)
     external_location = models.ForeignKey(ExternalLocation, related_name='external_locations_on_draft', on_delete=models.CASCADE)
+
+
+class CountryOnDraft(models.Model):
+    """
+    Open licence applications export to countries, instead of an end user
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draft = models.ForeignKey(Draft, related_name='draft_countries', on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, related_name='countries_on_draft', on_delete=models.CASCADE)

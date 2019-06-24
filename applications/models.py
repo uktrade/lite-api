@@ -8,6 +8,7 @@ from applications.enums import ApplicationStatus, ApplicationLicenceType, Applic
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.units.units import Units
 
@@ -54,8 +55,19 @@ class ApplicationDenialReason(models.Model):
     reasons = models.ManyToManyField(DenialReason)
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
+
 @reversion.register()
 class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(ExternalLocation, related_name='external_locations_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='external_application_sites', on_delete=models.CASCADE)
+
+
+@reversion.register()
+class CountryOnApplication(models.Model):
+    """
+    Open licence applications export to countries, instead of an end user
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    draft = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, related_name='countries_on_application', on_delete=models.CASCADE)
