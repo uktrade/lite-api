@@ -7,6 +7,6 @@ from static.countries.serializers import CountrySerializer
 
 class CountriesList(APIView):
     def get(self, request):
-        countries = Country.objects.all()
+        countries = Country.objects.all().order_by('name')
         serializer = CountrySerializer(countries, many=True)
         return JsonResponse(data={'countries': serializer.data})
