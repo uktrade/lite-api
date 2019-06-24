@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from conf.helpers import str_to_bool
@@ -13,6 +14,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     is_good_end_product = serializers.BooleanField()
     content_type_name = serializers.CharField(source='content_type.model', read_only=True)
     content_object = serializers.SerializerMethodField(read_only=True)
+    content_type = serializers.CharField()
+
+    def validate_content_type(self, value):
+        return ContentType.objects.get(model=value)
 
     def get_content_object(self, obj):
         """

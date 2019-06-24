@@ -1,5 +1,4 @@
 import uuid
-
 import reversion
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -20,6 +19,3 @@ class GoodsType(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
-
-
-#  type_of_licence = models.CharField() --with this with could split the list of goods and the open license high level description of goods
