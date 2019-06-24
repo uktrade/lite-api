@@ -23,6 +23,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('applications/', include('applications.urls')),
+    path('audit/', include('audit.urls')),
     path('cases/', include('cases.urls')),
     path('drafts/', include('drafts.urls')),
     path('goods/', include('goods.urls')),
@@ -31,6 +32,7 @@ urlpatterns = [
     path('static/', include('static.urls')),
     path('users/', include('users.urls')),
     path('teams/', include('teams.urls')),
+    path('gov-users/', include('gov_users.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 

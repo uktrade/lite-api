@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import PkAuthentication, GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
@@ -13,10 +13,10 @@ from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, 
 
 
 class SiteList(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     List all sites for an organisation/create site
     """
+    authentication_classes = (PkAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -47,6 +47,7 @@ class OrgSiteList(APIView):
     """
     List all sites for an organisation/create site
     """
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, org_pk):
         """
@@ -71,6 +72,7 @@ class OrgSiteList(APIView):
                 # user information for gov users does not exist yet
                 # reversion.set_user(request.user)
                 # reversion.set_comment("Created Site")
+                serializer.save()
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
@@ -82,6 +84,7 @@ class OrgSiteDetail(APIView):
     """
     Show details for for a specific site/edit site
     """
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, org_pk, site_pk):
         # organisation = get_organisation_by_user(request.user)
@@ -117,10 +120,10 @@ class OrgSiteDetail(APIView):
 
 
 class SiteDetail(APIView):
-    authentication_classes = (PkAuthentication,)
     """
     Show details for for a specific site/edit site
     """
+    authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)

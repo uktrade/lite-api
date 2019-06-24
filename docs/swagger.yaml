@@ -63,10 +63,56 @@ paths:
         in: path
         required: true
         type: string
+  /audit/{type}/{id}/:
+    get:
+      operationId: audit_read
+      description: Retrieve a model's history.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - audit
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: type
+        in: path
+        required: true
+        type: string
   /cases/{id}/:
     get:
       operationId: cases_read
       description: Retrieve a case instance.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    put:
+      operationId: cases_update
+      description: Change the list of queues case belongs to (minimum one queue)
+      parameters: []
+      responses:
+        '200':
+          description: ''
+        '400':
+          description: Input error, "queues" should be an array with at least one
+            existing queue
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/activity/:
+    get:
+      operationId: cases_activity_list
+      description: ''
       parameters: []
       responses:
         '200':
@@ -81,7 +127,7 @@ paths:
   /cases/{id}/case_notes/:
     get:
       operationId: cases_case_notes_list
-      description: Retrieve/create case notes.
+      description: ''
       parameters: []
       responses:
         '200':
@@ -90,7 +136,7 @@ paths:
         - cases
     post:
       operationId: cases_case_notes_create
-      description: Retrieve/create case notes.
+      description: ''
       parameters: []
       responses:
         '201':
@@ -323,10 +369,89 @@ paths:
         in: path
         required: true
         type: string
+  /gov-users/:
+    get:
+      operationId: gov-users_list
+      description: Fetches all government users
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - gov-users
+    post:
+      operationId: gov-users_create
+      description: Add a new gov user
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GovUser'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/GovUser'
+        '400':
+          description: JSON parse error
+      tags:
+        - gov-users
+    parameters: []
+  /gov-users/authenticate/:
+    post:
+      operationId: gov-users_authenticate_create
+      description: "Takes user details from sso and checks them against our whitelisted\
+        \ users\nReturns a token which is just our ID for the user\n:param request:\n\
+        :param email, first_name, last_name:\n:param kwargs:\n:return token:"
+      parameters: []
+      responses:
+        '201':
+          description: ''
+        '400':
+          description: JSON parse error
+        '403':
+          description: Forbidden
+      tags:
+        - gov-users
+    parameters: []
+  /gov-users/{id}/:
+    get:
+      operationId: gov-users_read
+      description: Get user from pk
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - gov-users
+    put:
+      operationId: gov-users_update
+      description: Edit user from pk
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GovUser'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/GovUser'
+        '400':
+          description: Bad Request
+      tags:
+        - gov-users
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /organisations/:
     get:
       operationId: organisations_list
-      description: Get all/create organisations
+      description: ''
       parameters: []
       responses:
         '200':
@@ -335,7 +460,7 @@ paths:
         - organisations
     post:
       operationId: organisations_create
-      description: Get all/create organisations
+      description: ''
       parameters: []
       responses:
         '201':
@@ -366,7 +491,7 @@ paths:
   /organisations/sites/:
     get:
       operationId: organisations_sites_list
-      description: ''
+      description: List all sites for an organisation/create site
       parameters: []
       responses:
         '200':
@@ -375,7 +500,7 @@ paths:
         - organisations
     post:
       operationId: organisations_sites_create
-      description: ''
+      description: List all sites for an organisation/create site
       parameters: []
       responses:
         '201':
@@ -386,7 +511,7 @@ paths:
   /organisations/sites/{id}/:
     get:
       operationId: organisations_sites_read
-      description: ''
+      description: Show details for for a specific site/edit site
       parameters: []
       responses:
         '200':
@@ -395,7 +520,7 @@ paths:
         - organisations
     put:
       operationId: organisations_sites_update
-      description: ''
+      description: Show details for for a specific site/edit site
       parameters: []
       responses:
         '200':
@@ -410,7 +535,7 @@ paths:
   /organisations/{id}/:
     get:
       operationId: organisations_read
-      description: Get an organisation by its primary key
+      description: ''
       parameters: []
       responses:
         '200':
@@ -485,10 +610,28 @@ paths:
           description: ''
       tags:
         - queues
+    post:
+      operationId: queues_create
+      description: List all queues
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - queues
     parameters: []
   /queues/{id}/:
     get:
       operationId: queues_read
+      description: Retrieve a queue instance
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queues
+    put:
+      operationId: queues_update
       description: Retrieve a queue instance
       parameters: []
       responses:
@@ -600,6 +743,21 @@ paths:
         in: path
         required: true
         type: string
+  /teams/{id}/users/:
+    get:
+      operationId: teams_users_list
+      description: Return a list of users by a specific team
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - teams
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /users/:
     get:
       operationId: users_list
@@ -656,6 +814,47 @@ paths:
         required: true
         type: string
 definitions:
+  GovUser:
+    required:
+      - email
+      - team
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
+      first_name:
+        title: First name
+        type: string
+        maxLength: 30
+        x-nullable: true
+      last_name:
+        title: Last name
+        type: string
+        maxLength: 30
+        x-nullable: true
+      status:
+        title: Status
+        type: string
+        enum:
+          - Active
+          - Deactivated
+        default: Active
+      team:
+        title: Team
+        type: string
+        format: uuid
+      team_name:
+        title: Team name
+        type: string
+        readOnly: true
   Team:
     required:
       - name

@@ -11,8 +11,8 @@ from organisations.serializers import SiteViewSerializer
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
-    last_modified_at = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    last_modified_at = serializers.DateTimeField(read_only=True)
     end_user = EndUserSerializer()
 
     class Meta:
@@ -87,8 +87,8 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    quantity = serializers.IntegerField(error_messages={'invalid': 'Enter a valid quantity'})
-    value = serializers.IntegerField(error_messages={'invalid': 'Enter a valid value'})
+    quantity = serializers.DecimalField(max_digits=256, decimal_places=6, error_messages={'invalid': 'Enter a valid quantity'})
+    value = serializers.DecimalField(max_digits=256, decimal_places=2, error_messages={'invalid': 'Enter a valid value'})
 
     class Meta:
         model = GoodOnDraft
