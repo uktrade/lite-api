@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',
     'goodstype',
-    'content_strings.apps.ContentStringsConfig',
 ]
 
 MIDDLEWARE = [
