@@ -28,7 +28,6 @@ class GoodsTypeCreateApplicationTests(DataTestClient):
             'is_good_controlled': is_good_controlled,
             'control_code': control_code,
             'is_good_end_product': is_good_end_product,
-            #'content_type': ContentType.objects.get(model='application').id,
             'object_id': application.pk
         }
 
