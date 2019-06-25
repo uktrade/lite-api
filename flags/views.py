@@ -32,7 +32,6 @@ class FlagsList(APIView):
         """
         data = JSONParser().parse(request)
         data['team'] = request.user.team.id
-        data['name'] = data['name'].strip()
         serializer = FlagSerializer(data=data, partial=True)
 
         if serializer.is_valid():
@@ -64,13 +63,17 @@ class FlagDetail(APIView):
         Edit details of a specific flag
         """
         flag = get_flag(pk)
-        data = request.data.copy()
+
+        # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(data={'errors': get_string('flags.error_messages.forbidden')},
                                 status=status.HTTP_403_FORBIDDEN)
-        serializer = FlagSerializer(instance=flag, data=data, partial=True)
+
+        serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'flag': serializer.data})
+
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)

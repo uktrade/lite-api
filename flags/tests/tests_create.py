@@ -31,7 +31,7 @@ class FlagsCreateTest(DataTestClient):
         [{'data': {'name': 'test'}}],  # Case insensitive duplicate names
         [{'data': {'name': ' TesT '}}],
         [{'data': {'name': 'TEST'}}],
-        [{'data': {'name': 'aaaaaaaaaaaaaaaaaaaaaaaaa'}}]  # Too long a name
+        [{'data': {'name': 'a' * 21}}]  # Too long a name
     ])
     def test_fail_create_flag(self, data):
         flag = Flag(name='Test', level='Case', team=self.team)

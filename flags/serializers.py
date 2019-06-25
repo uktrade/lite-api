@@ -15,6 +15,7 @@ class FlagSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
         max_length=20,
+        trim_whitespace=True,
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup='iexact',
                                     message=get_string('flags.error_messages.non_unique'))],
         error_messages={'blank': get_string('flags.error_messages.blank_name')})

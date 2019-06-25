@@ -5,6 +5,8 @@ from flags import views
 app_name = 'flags'
 
 urlpatterns = [
+    # /flags/
     path('', views.FlagsList.as_view(), name='flags'),
+    # /flags/<uuid:pk>
     path('<uuid:pk>/', views.FlagDetail.as_view(), name='flag'),
 ]

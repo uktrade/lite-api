@@ -14,9 +14,11 @@ class FlagsUpdateTest(DataTestClient):
     def test_flag_can_be_deactivated(self):
         flag = Flag(name='New Flag', level='Case', team=self.team)
         flag.save()
+
         data = {
             'status': 'Deactivated',
         }
+
         url = reverse('flags:flag', kwargs={'pk': flag.id})
         response = self.client.put(url, data, **self.gov_headers)
         response_data = json.loads(response.content)
@@ -29,9 +31,11 @@ class FlagsUpdateTest(DataTestClient):
         team.save()
         flag = Flag(name='New Flag', level='Case', team=team)
         flag.save()
+
         data = {
             'status': 'Deactivated',
         }
+
         url = reverse('flags:flag', kwargs={'pk': flag.id})
         response = self.client.put(url, data, **self.gov_headers)
 
