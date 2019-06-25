@@ -10,7 +10,8 @@ from teams.models import Team
 
 class FlagSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
-    level = serializers.ChoiceField(choices=FlagLevels.choices)
+    level = serializers.ChoiceField(choices=FlagLevels.choices,
+                                    error_messages={'invalid_choice': get_string('flags.error_messages.blank_level')})
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
         max_length=20,
