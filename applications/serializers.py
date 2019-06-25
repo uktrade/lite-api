@@ -3,10 +3,12 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, ApplicationDenialReason
+from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication
 from applications.models import Site, SiteOnApplication
 from goods.serializers import GoodSerializer
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer
+from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 
 
@@ -54,6 +56,13 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                     'licence.'})
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
+    countries = serializers.SerializerMethodField()
+
+    def get_countries(self, obj):
+        countries_ids = CountryOnApplication.objects.filter(application=obj).values_list('country', flat=True)
+        countries = Country.objects.filter(id__in=countries_ids)
+        serializer = CountrySerializer(countries, many=True)
+        return serializer.data
 
     class Meta:
         model = Application
@@ -70,7 +79,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'licence_type',
                   'export_type',
                   'reference_number_on_information_form',
-                  'application_denial_reason',)
+                  'application_denial_reason',
+                  'countries',)
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):

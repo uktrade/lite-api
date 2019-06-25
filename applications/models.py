@@ -69,5 +69,5 @@ class CountryOnApplication(models.Model):
     Open licence applications export to countries, instead of an end user
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    draft = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name='countries_on_application', on_delete=models.CASCADE)

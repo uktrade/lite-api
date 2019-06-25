@@ -6,13 +6,15 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication, \
+    CountryOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, CountryOnDraft
 from goods.enums import GoodStatus
 from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -48,8 +50,12 @@ class ApplicationList(APIView):
             # Errors
             errors = {}
 
-            if not draft.end_user:
-                errors['end_user'] = 'Cannot create an application without an end user'
+            if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+                if not draft.end_user:
+                    errors['end_user'] = 'Cannot create an application without an end user'
+            else:
+                if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
+                    errors['countries'] = 'Cannot create an application without countries being set'
 
             if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
                 errors['goods'] = 'Cannot create an application with no goods attached'
@@ -91,10 +97,14 @@ class ApplicationList(APIView):
                 good_on_application.good.save()
 
             for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                site_on_application = SiteOnApplication(
+                SiteOnApplication(
                     site=site_on_draft.site,
-                    application=application)
-                site_on_application.save()
+                    application=application).save()
+
+            for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
+                CountryOnApplication(
+                    country=country_on_draft.country,
+                    application=application).save()
 
             for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
                 external_location_on_application = ExternalLocationOnApplication(
