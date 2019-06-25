@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
+from content_strings.strings import get_string
 from flags.enums import FlagLevels, FlagStatuses
 from flags.models import Flag
 from teams.models import Team
@@ -14,8 +15,8 @@ class FlagSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=20,
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup='iexact',
-                                    message='Enter a name which is not already in use by another flag')],
-        error_messages={'blank': 'Flag name may not be blank'})
+                                    message=get_string('flags.error_messages.non_unique'))],
+        error_messages={'blank': get_string('flags.error_messages.blank_name')})
 
     team_name = serializers.SerializerMethodField()
 
