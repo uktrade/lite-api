@@ -33,5 +33,7 @@ class FlagSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get('status', instance.status)
+        instance.name = validated_data.get('name', instance.name)
+        instance.level = validated_data.get('level', instance.level)
         instance.save()
         return instance
