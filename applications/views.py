@@ -16,6 +16,7 @@ from conf.authentication import PkAuthentication, GovAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, CountryOnDraft
 from goods.enums import GoodStatus
+from goodstype.models import GoodsType
 from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
@@ -41,32 +42,12 @@ class ApplicationList(APIView):
         """
         Create a new application from a draft
         """
+
         submit_id = json.loads(request.body).get('id')
 
         with reversion.create_revision():
             # Get Draft
             draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
-
-            # Errors
-            errors = {}
-
-            if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-                if not draft.end_user:
-                    errors['end_user'] = 'Cannot create an application without an end user'
-            else:
-                if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
-                    errors['countries'] = 'Cannot create an application without countries being set'
-
-            if len(GoodOnDraft.objects.filter(draft=draft)) == 0:
-                errors['goods'] = 'Cannot create an application with no goods attached'
-
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-                errors['location'] = 'Cannot create an application with no sites or external sites attached'
-
-            if len(errors):
-                return JsonResponse(data={'errors': errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
 
             # Create an Application object corresponding to the draft
             application = Application(id=draft.id,
@@ -81,36 +62,91 @@ class ApplicationList(APIView):
                                       organisation=draft.organisation,
                                       )
 
-            # Save associated end users, goods and sites
-            application.end_user = draft.end_user
-            application.save()
+            # Reset Errors
+            errors = {}
 
-            for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-                good_on_application = GoodOnApplication(
-                    good=good_on_draft.good,
-                    application=application,
-                    quantity=good_on_draft.quantity,
-                    unit=good_on_draft.unit,
-                    value=good_on_draft.value)
-                good_on_application.save()
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
+            if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+                if not draft.end_user:
+                    errors['end_user'] = 'Cannot create an application without an end user'
+            else:
+                if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
+                    errors['countries'] = 'Cannot create an application without countries being set'
 
-            for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                SiteOnApplication(
-                    site=site_on_draft.site,
-                    application=application).save()
+            if application.licence_type == 'standard_licence' and not GoodOnDraft.objects.filter(draft=draft):
+                errors['goods'] = 'Cannot create an application with no goods attached'
 
-            for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
-                CountryOnApplication(
-                    country=country_on_draft.country,
-                    application=application).save()
+            results = GoodsType.objects.filter(object_id=draft.id)
+            if application.licence_type == 'open_licence' and not results:
+                errors['goods'] = 'Cannot create an application with no good types attached'
 
-            for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-                external_location_on_application = ExternalLocationOnApplication(
-                    external_location=external_location_on_draft.external_location,
-                    application=application)
-                external_location_on_application.save()
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+                errors['location'] = 'Cannot create an application with no sites or external sites attached'
+
+            if len(errors):
+                return JsonResponse(data={'errors': errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            if application.licence_type == 'open_licence':
+                # Save associated end users, goods and sites
+                application.end_user = draft.end_user
+                application.save()
+
+                for goods_types_on_draft in results:
+                    goods_types_on_draft.object_id = application.id
+
+                    # good_on_application = GoodOnApplication(
+                    #     good=goods_types_on_draft.good,
+                    #     application=application,
+                    #     )
+                    # good_on_application.save()
+                    # good_on_application.good.status = GoodStatus.SUBMITTED
+                    # good_on_application.good.save()
+
+	            for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
+	                CountryOnApplication(
+	                    country=country_on_draft.country,
+	                    application=application).save()
+
+                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                    site_on_application = SiteOnApplication(
+                        site=site_on_draft.site,
+                        application=application)
+                    site_on_application.save()
+
+                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                    external_location_on_application = ExternalLocationOnApplication(
+                        external_location=external_location_on_draft.external_location,
+                        application=application)
+                    external_location_on_application.save()
+
+            elif application.licence_type == 'standard_licence':
+                # Save associated end users, goods and sites
+                application.end_user = draft.end_user
+                application.save()
+
+                for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
+                    good_on_application = GoodOnApplication(
+                        good=good_on_draft.good,
+                        application=application,
+                        quantity=good_on_draft.quantity,
+                        unit=good_on_draft.unit,
+                        value=good_on_draft.value)
+                    good_on_application.save()
+                    good_on_application.good.status = GoodStatus.SUBMITTED
+                    good_on_application.good.save()
+
+                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                    site_on_application = SiteOnApplication(
+                        site=site_on_draft.site,
+                        application=application)
+                    site_on_application.save()
+
+                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                    external_location_on_application = ExternalLocationOnApplication(
+                        external_location=external_location_on_draft.external_location,
+                        application=application)
+                    external_location_on_application.save()
 
             # Store meta-information.
             reversion.set_user(request.user)
