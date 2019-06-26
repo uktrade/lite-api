@@ -72,7 +72,7 @@ class GovUserList(APIView):
         """
         gov_users = GovUser.objects.all().order_by('email')
         serializer = GovUserSerializer(gov_users, many=True)
-        return JsonResponse(data={'gov_users': serializer.data}, safe=False)
+        return JsonResponse(data={'gov_users': serializer.data})
 
     @swagger_auto_schema(
         request_body=GovUserSerializer,

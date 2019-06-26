@@ -21,8 +21,7 @@ class OrganisationsList(APIView):
         """
         organisations = Organisation.objects.all().order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
-        return JsonResponse(data={'organisations': view_serializer.data},
-                            safe=False)
+        return JsonResponse(data={'organisations': view_serializer.data})
 
     @transaction.atomic
     @swagger_auto_schema(
