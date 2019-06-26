@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'reversion',
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',
+    'flags.apps.FlagsConfig',
 ]
 
 MIDDLEWARE = [
