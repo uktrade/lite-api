@@ -32,7 +32,6 @@ class AuthenticateGovUser(APIView):
         Returns a token which is just our ID for the user
         :param request:
         :param email, first_name, last_name:
-        :param kwargs:
         :return token:
         """
         try:
@@ -122,12 +121,13 @@ class GovUserDetail(APIView):
         """
         gov_user = get_gov_user_by_pk(pk)
         data = JSONParser().parse(request)
+
         if 'status' in data.keys():
             if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
-        with reversion.create_revision():
 
+        with reversion.create_revision():
             for key in list(data.keys()):
                 if data[key] is '':
                     del data[key]
