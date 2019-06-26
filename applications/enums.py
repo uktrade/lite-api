@@ -38,3 +38,13 @@ class ApplicationLicenceType:
         (STANDARD_LICENCE, 'Standard Individual Export Licence (SIEL)'),
         (OPEN_LICENCE, 'Open Individual Export Licence (OIEL)'),
     ]
+
+
+class ApplicationExportLicenceOfficialType:
+    YES = 'yes'
+    NO = 'no'
+
+    choices = [
+        (YES, 'Yes'),
+        (NO, 'No'),
+    ]
