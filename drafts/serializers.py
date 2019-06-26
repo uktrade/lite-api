@@ -8,6 +8,7 @@ from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
+from content_strings.strings import get_string
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -33,15 +34,13 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField(max_length=100,
-                                 error_messages={'blank': 'Enter a reference name for your application.'})
+                                 error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-                                               'required': 'Select which type of licence you want to apply for.'})
+                                               'required': get_string('goods.error_messages.licence_type')})
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-                                              'required': 'Select if you want to apply for a temporary or permanent '
-                                                          'licence.'})
+                                              'required': get_string('goods.error_messages.export_type')})
     have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
-                                                     error_messages={'required': 'Select if you you been told that you '
-                                                                     'need an export licence by an official.'})
+                                                     error_messages={'required': get_string('goods.error_messages.informed')})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
@@ -61,11 +60,9 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     usage = serializers.CharField()
     activity = serializers.CharField()
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-                                              'required': 'Select if you want to apply for a temporary or permanent '
-                                                          'licence.'})
+                                              'required': get_string('goods.error_messages.export_type')})
     have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
-                                                     error_messages={'required': 'Select if you you been told that you '
-                                                                     'need an export licence by an official.'})
+                                                     error_messages={'required': get_string('goods.error_messages.informed')})
     reference_number_on_information_form = serializers.CharField()
 
     def update(self, instance, validated_data):
@@ -87,8 +84,8 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    quantity = serializers.DecimalField(max_digits=256, decimal_places=6, error_messages={'invalid': 'Enter a valid quantity'})
-    value = serializers.DecimalField(max_digits=256, decimal_places=2, error_messages={'invalid': 'Enter a valid value'})
+    quantity = serializers.DecimalField(max_digits=256, decimal_places=6, error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
+    value = serializers.DecimalField(max_digits=256, decimal_places=2, error_messages={'invalid': get_string('goods.error_messages.invalid_value')})
 
     class Meta:
         model = GoodOnDraft
