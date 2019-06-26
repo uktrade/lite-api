@@ -23,7 +23,6 @@ from queues.models import Queue
 
 
 class ApplicationList(APIView):
-
     authentication_classes = (PkAuthentication,)
 
     def get(self, request):
@@ -103,10 +102,10 @@ class ApplicationList(APIView):
                     # good_on_application.good.status = GoodStatus.SUBMITTED
                     # good_on_application.good.save()
 
-	            for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
-	                CountryOnApplication(
-	                    country=country_on_draft.country,
-	                    application=application).save()
+                for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
+                    CountryOnApplication(
+                        country=country_on_draft.country,
+                        application=application).save()
 
                 for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
                     site_on_application = SiteOnApplication(
@@ -174,6 +173,7 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
+
     def get(self, request, pk):
         """
         Retrieve an application instance.
