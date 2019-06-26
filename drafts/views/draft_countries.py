@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
-from drafts.libraries.get_draft import get_draft
+from drafts.libraries.get_draft import get_draft, get_draft_with_organisation
 from drafts.models import CountryOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers.get_country import get_country
@@ -29,10 +29,10 @@ class DraftCountries(APIView):
 
     @transaction.atomic
     def post(self, request, pk):
-        get_organisation_by_user(request.user)
+        organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         countries = data.get('countries')
-        draft = get_draft(pk)
+        draft = get_draft_with_organisation(pk, organisation)
 
         # Validate that there are actually countries
         if not countries:
