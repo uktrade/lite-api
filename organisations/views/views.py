@@ -29,8 +29,7 @@ class OrganisationsList(APIView):
         request_body=OrganisationCreateSerializer,
         responses={
             400: 'JSON parse error'
-        },
-        manual_parameters={'banana': 'boo'})
+        })
     def post(self, request):
         """
         Create a new organisation
