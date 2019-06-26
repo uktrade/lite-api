@@ -73,6 +73,5 @@ jobs:
             pipenv run pylint test_helpers
             #PYLINT_EXIT_CODE=$?
             #EC=[ $PYLINT_EXIT_CODE -eq 0 -o $PYLINT_EXIT_CODE -ge 4 ]
-            EC=4
-            echo "EC is $EC"
+            echo "Debug"
             exit 0
