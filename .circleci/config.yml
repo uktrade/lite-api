@@ -69,4 +69,4 @@ jobs:
       # Pylint
       - run:
           name: Run Linting
-          command: pipenv run pylint * && exit 0
+          command: pipenv run pylint -E *
