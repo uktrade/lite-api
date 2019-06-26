@@ -83,13 +83,15 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
             return {'type': 'countries', 'data': serializer.data}
 
     def get_goods_locations(self, obj):
-        sites_on_application = SiteOnApplication.objects.filter(application=obj)
+        sites_on_application_ids = SiteOnApplication.objects.filter(application=obj)\
+            .values_list('site', flat=True)
+        sites = Site.objects.filter(id__in=sites_on_application_ids)
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=obj)\
             .values_list('external_location', flat=True)
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
 
-        if sites_on_application:
-            serializer = SiteViewSerializer(sites_on_application, many=True)
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
             return {'type': 'sites', 'data': serializer.data}
         else:
             serializer = ExternalLocationSerializer(external_locations, many=True)
