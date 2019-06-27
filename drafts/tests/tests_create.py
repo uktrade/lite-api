@@ -19,6 +19,7 @@ class DraftTests(DataTestClient):
             'licence_type': 'standard_licence',
             'export_type': 'temporary',
             'reference_number_on_information_form': '123',
+            'have_you_been_informed': 'yes',
         }
 
         response = self.client.post(self.url, data, **self.headers)

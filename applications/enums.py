@@ -38,3 +38,13 @@ class ApplicationLicenceType:
         (STANDARD_LICENCE, 'Standard Licence'),
         (OPEN_LICENCE, 'Open Licence'),
     ]
+
+
+class ApplicationExportLicenceOfficialType:
+    YES = 'yes'
+    NO = 'no'
+
+    choices = [
+        (YES, 'Yes'),
+        (NO, 'No'),
+    ]

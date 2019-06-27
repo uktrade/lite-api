@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
-from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
@@ -101,6 +101,7 @@ class OrgAndUserHelper:
         draft = Draft(name=name,
                       licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                       export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.choices,
                       reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
