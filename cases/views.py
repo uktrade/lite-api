@@ -8,10 +8,8 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteSerializer, CaseDetailSerializer
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
 from conf.authentication import GovAuthentication
-from content_strings.strings import get_string
-from queues.models import Queue
 
 
 @permission_classes((permissions.AllowAny,))
@@ -26,50 +24,21 @@ class CaseDetail(APIView):
         serializer = CaseDetailSerializer(case)
         return JsonResponse(data={'case': serializer.data})
 
-    @swagger_auto_schema(
-        responses={
-            400: 'Input error, "queues" should be an array with at least one existing queue'
-        })
     def put(self, request, pk):
         """
-        Change the list of queues case belongs to (minimum one queue)
+        Change the queues a case belongs to, and set the users who are working on that case
         """
         case = get_case(pk)
-        # data = request.data
 
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+
             return JsonResponse(data={'case': serializer.data},
                                 status=status.HTTP_200_OK)
 
-
-
-
-
-
-        # new_queues = data.get('queues')
-
-        # if not new_queues or not isinstance(new_queues, (list, tuple)):
-        #     return JsonResponse(data={'errors': {
-        #         'queues': [get_string('cases.assign_queues.select_at_least_one_queue')]
-        #     }}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # # # Check if all provided queues exist
-        # existing_queues = [str(i) for i in Queue.objects.values_list('id', flat=True)]
-        #
-        # for queue in new_queues:
-        #     if queue not in existing_queues:
-        #         return JsonResponse(data={
-        #             'errors': {
-        #                 'queues': [get_string('cases.assign_queues.select_valid_queue')]
-        #             }}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # # Set the queues on the case
-        # case.queues.set(new_queues)
-        # case.save()
-
-        return JsonResponse(data={'queues': 'success'}, safe=False)
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class CaseNoteList(APIView):
