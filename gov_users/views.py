@@ -69,7 +69,13 @@ class GovUserList(APIView):
         """
         Fetches all government users
         """
-        gov_users = GovUser.objects.all().order_by('email')
+        teams = request.GET.get('teams', None)
+
+        if teams:
+            gov_users = GovUser.objects.filter(team__id__in=teams.split(',')).order_by('email')
+        else:
+            gov_users = GovUser.objects.all().order_by('email')
+
         serializer = GovUserSerializer(gov_users, many=True)
         return JsonResponse(data={'gov_users': serializer.data})
 

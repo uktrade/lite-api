@@ -10,7 +10,6 @@ from teams.models import Team
 
 @reversion.register()
 class GovUser(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     status = models.CharField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE, max_length=20)
     first_name = models.CharField(default=None, blank=True, null=True, max_length=30)

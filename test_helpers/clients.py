@@ -58,6 +58,11 @@ class DataTestClient(BaseTestClient):
         gov_user.save()
         return gov_user
 
+    def create_team(self, name: str):
+        team = Team(name=name)
+        team.save()
+        return team
+
     def submit_draft(self, draft: Draft):
         draft_id = draft.id
         url = reverse('applications:applications')
