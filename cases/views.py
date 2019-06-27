@@ -35,27 +35,35 @@ class CaseDetail(APIView):
         Change the list of queues case belongs to (minimum one queue)
         """
         case = get_case(pk)
-        data = request.data
-        new_queues = data.get('queues')
+        # data = request.data
 
-        if not new_queues or not isinstance(new_queues, (list, tuple)):
-            return JsonResponse(data={'errors': {
-                'queues': [get_string('cases.assign_queues.select_at_least_one_queue')]
-            }}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-        # # Check if all provided queues exist
-        existing_queues = [str(i) for i in Queue.objects.values_list('id', flat=True)]
 
-        for queue in new_queues:
-            if queue not in existing_queues:
-                return JsonResponse(data={
-                    'errors': {
-                        'queues': [get_string('cases.assign_queues.select_valid_queue')]
-                    }}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Set the queues on the case
-        case.queues.set(new_queues)
-        case.save()
+
+
+
+        # new_queues = data.get('queues')
+
+        # if not new_queues or not isinstance(new_queues, (list, tuple)):
+        #     return JsonResponse(data={'errors': {
+        #         'queues': [get_string('cases.assign_queues.select_at_least_one_queue')]
+        #     }}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # # # Check if all provided queues exist
+        # existing_queues = [str(i) for i in Queue.objects.values_list('id', flat=True)]
+        #
+        # for queue in new_queues:
+        #     if queue not in existing_queues:
+        #         return JsonResponse(data={
+        #             'errors': {
+        #                 'queues': [get_string('cases.assign_queues.select_valid_queue')]
+        #             }}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # # Set the queues on the case
+        # case.queues.set(new_queues)
+        # case.save()
 
         return JsonResponse(data={'queues': 'success'}, safe=False)
 
