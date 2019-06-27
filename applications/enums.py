@@ -35,8 +35,8 @@ class ApplicationLicenceType:
     OPEN_LICENCE = 'open_licence'
 
     choices = [
-        (STANDARD_LICENCE, 'Standard Individual Export Licence (SIEL)'),
-        (OPEN_LICENCE, 'Open Individual Export Licence (OIEL)'),
+        (STANDARD_LICENCE, 'Standard Licence'),
+        (OPEN_LICENCE, 'Open Licence'),
     ]
 
 

@@ -1,20 +1,21 @@
 import uuid
-
 import reversion
 from django.db import models
-
-from goods.enums import GoodStatus
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from organisations.models import Organisation
+from applications.models import Application
 
 
 @reversion.register()
-class Good(models.Model):
+class GoodsType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     control_code = models.TextField(default=None, blank=True, null=True)
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
-    part_number = models.TextField(default=None, blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)
-    status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
-    # type_of_licence = models.CharField() --with this with could split the list of goods and the open license high level description of goods
+    limit = models.Q(app_label='applications', model='application') | \
+            models.Q(app_label='drafts', model='draft')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
