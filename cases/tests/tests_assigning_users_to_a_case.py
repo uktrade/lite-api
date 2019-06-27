@@ -31,6 +31,21 @@ class AssigningUsers(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(set(self.case.users.values_list('id', flat=True)), set(data['users']))
 
+    def test_assigning_new_users_overwrites_existing_ones(self):
+        data = {
+            'users': [self.create_gov_user('email4@gov.uk', self.team).id]
+        }
+        self.client.put(self.url, data=data, **self.gov_headers)
+        existing_users = self.case.users.values_list('id', flat=True)
+
+        data = {
+            'users': [gov_user.id for gov_user in self.users]
+        }
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(set(self.case.users.values_list('id', flat=True)), existing_users)
+
     @parameterized.expand([
         # None/Empty Gov Users
         [{'users': None}],
