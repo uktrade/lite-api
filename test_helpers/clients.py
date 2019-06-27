@@ -52,6 +52,12 @@ class DataTestClient(BaseTestClient):
         queue.save()
         return queue
 
+    def create_gov_user(self, email: str, team: Team):
+        gov_user = GovUser(email=email,
+                           team=team)
+        gov_user.save()
+        return gov_user
+
     def submit_draft(self, draft: Draft):
         draft_id = draft.id
         url = reverse('applications:applications')
