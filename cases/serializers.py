@@ -3,6 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote
+from content_strings.strings import get_string
 from gov_users.models import GovUser
 from queues.models import Queue
 
@@ -22,6 +23,11 @@ class CaseDetailSerializer(CaseSerializer):
     class Meta:
         model = Case
         fields = ('id', 'application', 'queues', 'users')
+
+    def validate_queues(self, attrs):
+        if len(attrs) == 0:
+            raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
+        return attrs
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
