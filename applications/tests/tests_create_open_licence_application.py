@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from drafts.models import GoodOnDraft, Draft, SiteOnDraft
 from queues.models import Queue
@@ -23,6 +23,7 @@ class ApplicationsTests(DataTestClient):
         draft = Draft(name='bloggs',
                       licence_type=ApplicationLicenceType.OPEN_LICENCE,
                       export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.NO,
                       reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
