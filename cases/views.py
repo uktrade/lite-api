@@ -26,7 +26,7 @@ class CaseDetail(APIView):
 
     def put(self, request, pk):
         """
-        Change the queues a case belongs to, and set the users who are working on that case
+        Change the queues a case belongs to, and set the users who are working on that case.
         """
         case = get_case(pk)
 
