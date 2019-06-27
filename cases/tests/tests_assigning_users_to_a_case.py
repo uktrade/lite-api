@@ -22,7 +22,7 @@ class AssigningUsers(DataTestClient):
             self.create_gov_user('email3@gov.uk', self.team),
         ]
 
-    def test_move_case_successful(self):
+    def test_assign_user_successful(self):
         data = {
             'users': [gov_user.id for gov_user in self.users]
         }
@@ -39,7 +39,7 @@ class AssigningUsers(DataTestClient):
         [{'users': ['00000000-0000-0000-0000-000000000002']}],
         [{'users': ['00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002']}],
     ])
-    def test_move_case_failure(self, data):
+    def test_assign_user_failure(self, data):
         existing_users = set(self.case.users.values_list('id', flat=True))
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
