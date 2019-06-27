@@ -16,10 +16,11 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = PrimaryKeyRelatedField(many=True, read_only=True)
+    users = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues')
+        fields = ('id', 'application', 'queues', 'users')
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
