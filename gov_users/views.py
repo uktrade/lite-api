@@ -137,6 +137,6 @@ class GovUserDetail(APIView):
                 serializer.save()
                 return JsonResponse(data={'gov_user': serializer.data},
                                     status=status.HTTP_200_OK)
-            print(serializer.errors)
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)

@@ -22,6 +22,26 @@ class CaseDetailSerializer(CaseSerializer):
         model = Case
         fields = ('id', 'application', 'queues', 'users')
 
+    def create(self, validated_data):
+        queues = validated_data.pop('queues')
+        # users = validated_data.pop('users')
+
+        case = Case.objects.create(**validated_data)
+
+        case.queues.set(*queues)
+        # case.users.set(*users)
+        return case
+
+    def update(self, instance, validated_data):
+        # queues = validated_data.pop('queues')
+        # users = validated_data.pop('users')
+
+        instance.queues.set(validated_data.get('queues'))
+        # instance.users.set(validated_data.get('users'))
+
+        instance.save()
+        return instance
+
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     text = serializers.CharField(min_length=2, max_length=2200)

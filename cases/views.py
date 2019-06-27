@@ -37,7 +37,11 @@ class CaseDetail(APIView):
         case = get_case(pk)
         # data = request.data
 
-        
+        serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'case': serializer.data},
+                                status=status.HTTP_200_OK)
 
 
 
