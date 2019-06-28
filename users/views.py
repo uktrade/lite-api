@@ -25,7 +25,7 @@ class AuthenticateUser(APIView):
         password = data.get('password')
 
         user = get_user_by_email(email)
-        if user.status == UserStatuses.deactivated:
+        if user.status == UserStatuses.DEACTIVATED:
             return JsonResponse(data={},
                                 status=status.HTTP_401_UNAUTHORIZED)
 

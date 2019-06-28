@@ -10,6 +10,7 @@ from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
+from static.units.enums import Units
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -84,7 +85,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
                                         error_messages={'invalid': 'Enter a valid quantity'})
     value = serializers.DecimalField(max_digits=256, decimal_places=2,
                                      error_messages={'invalid': 'Enter a valid value'})
-    unit = serializers.ChoiceField(choices=GoodStatus.choices, error_messages={
+    unit = serializers.ChoiceField(choices=Units.choices, error_messages={
         'required': get_string('goods.error_messages.required_unit'),
         'invalid_choice': get_string('goods.error_messages.required_unit')})
 
