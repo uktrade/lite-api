@@ -57,7 +57,7 @@ class CaseDetail(APIView):
         case.queues.set(new_queues)
         case.save()
 
-        return JsonResponse(data={'queues': 'success'}, safe=False)
+        return JsonResponse(data={'queues': 'success'}, )
 
 
 class CaseNoteList(APIView):
