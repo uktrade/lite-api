@@ -10,6 +10,7 @@ from conf.authentication import GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
+from static.countries.models import Country
 
 
 class OrganisationsList(APIView):
@@ -33,6 +34,9 @@ class OrganisationsList(APIView):
         """
         Create a new organisation
         """
+        for country in Country.objects.all():
+            print(country.id)
+
         with reversion.create_revision():
             data = JSONParser().parse(request)
             serializer = OrganisationCreateSerializer(data=data)

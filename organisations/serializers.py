@@ -21,7 +21,14 @@ class SiteCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         address_data = validated_data.pop('address')
-        address = Address.objects.create(**address_data)
+
+        address_serializer = AddressSerializer(data=address_data)
+        with reversion.create_revision():
+            if address_serializer.is_valid():
+                address = address_serializer.save()
+            else:
+                raise serializers.ValidationError(address_serializer.errors)
+
         site = Site.objects.create(address=address, **validated_data)
         return site
 
@@ -55,24 +62,28 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         site_data = validated_data.pop('site')
 
         organisation = Organisation.objects.create(**validated_data)
-
         user_data['organisation'] = organisation.id
 
         site_serializer = SiteCreateSerializer(data=site_data)
-        site = None
         with reversion.create_revision():
             if site_serializer.is_valid():
                 site = site_serializer.save()
+            else:
+                raise serializers.ValidationError(site_serializer.errors)
 
         user_serializer = UserCreateSerializer(data=user_data)
         with reversion.create_revision():
             if user_serializer.is_valid():
                 user_serializer.save()
+            else:
+                raise serializers.ValidationError(user_serializer.errors)
 
         organisation.primary_site = site
         organisation.save()
+
         organisation.primary_site.organisation = organisation
         organisation.primary_site.save()
+
         return organisation
 
 

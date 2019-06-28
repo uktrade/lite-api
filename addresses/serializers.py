@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from addresses.models import Address
+from static.countries.models import Country
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -8,7 +9,7 @@ class AddressSerializer(serializers.ModelSerializer):
     postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
     region = serializers.CharField()
-    country = serializers.CharField()
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
 
     class Meta:
         model = Address
