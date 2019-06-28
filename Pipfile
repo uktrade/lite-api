@@ -12,11 +12,11 @@ django-enumchoicefield = "==1.1.0"
 django-environ = "==0.4.5"
 django-reversion = "==3.0.3"
 djangorestframework = "==3.9.2"
-psycopg2 = "==2.8.2"
 python-json-logger = "==0.1.11"
 parameterized = "*"
 drf-yasg = "*"
 prospector = "==1.1.6.2"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.7"
