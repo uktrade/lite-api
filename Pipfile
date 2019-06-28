@@ -16,8 +16,7 @@ psycopg2 = "==2.8.2"
 python-json-logger = "==0.1.11"
 parameterized = "*"
 drf-yasg = "*"
-prospector = "*"
-pylint = "*"
+prospector = "==1.1.6.2"
 
 [requires]
 python_version = "3.7"
