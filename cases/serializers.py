@@ -7,6 +7,9 @@ from gov_users.models import GovUser
 
 
 class CaseSerializer(serializers.ModelSerializer):
+    """
+    Serializes cases
+    """
     application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
@@ -23,6 +26,9 @@ class CaseDetailSerializer(CaseSerializer):
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
+    """
+    Serializes case notes
+    """
     text = serializers.CharField(min_length=2, max_length=2200)
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.all())

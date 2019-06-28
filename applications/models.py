@@ -26,10 +26,11 @@ class Application(models.Model):
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50) # this is open or standard lincences
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
-    end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE, # the guy whos buying + they'll be ultimate users too who this end user is selling too
+    # the person whos buying + they'll be ultimate users too who this end user is selling too
+    end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
-  #  destination = models to be a list of countries
-  # plus there maybe a consignee too - the person moving the cargo
+    #  destination = models to be a list of countries
+    # plus there maybe a consignee too - the person moving the cargo
 
 
 
