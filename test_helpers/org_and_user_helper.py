@@ -14,7 +14,7 @@ from goods.models import Good
 from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
-from static.units.units import Units
+from static.units.enums import Units
 from teams.models import Team
 from users.models import User
 

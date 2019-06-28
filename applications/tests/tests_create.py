@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.models import Application
 from drafts.models import GoodOnDraft
 from queues.models import Queue
-from static.units.units import Units
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
