@@ -34,9 +34,6 @@ class OrganisationsList(APIView):
         """
         Create a new organisation
         """
-        for country in Country.objects.all():
-            print(country.id)
-
         with reversion.create_revision():
             data = JSONParser().parse(request)
             serializer = OrganisationCreateSerializer(data=data)

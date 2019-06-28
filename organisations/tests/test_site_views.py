@@ -3,7 +3,7 @@ import json
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.test import APIClient
 
 from addresses.models import Address
 from organisations.models import Site
@@ -68,7 +68,7 @@ class SiteViewTests(DataTestClient):
                     'city': 'london',
                     'postcode': 'E14GH',
                     'region': 'Hertfordshire',
-                    'country': 'England'},}
+                    'country': 'GB'},}
 
         response = self.client.post(url, data, format='json', **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -79,7 +79,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
-        self.assertEqual(Address.objects.all().count(), 3)
+        self.assertEqual(Address.objects.all().count(), 2)
 
 
 class OrgSiteViewTests(DataTestClient):
@@ -107,7 +107,7 @@ class OrgSiteViewTests(DataTestClient):
                     'city': 'london',
                     'postcode': 'E14GH',
                     'region': 'Hertfordshire',
-                    'country': 'England'}, }
+                    'country': 'GB'}, }
 
         response = self.client.post(url, data, format='json', **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -149,5 +149,5 @@ class OrgSiteViewTests(DataTestClient):
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
-        self.assertEqual(Address.objects.all().count(), 3)
+        self.assertEqual(Address.objects.all().count(), 2)
 

@@ -4,28 +4,32 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressSerializer
+from addresses.serializers import AddressWorkaroundSerializer, AddressSerializer
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import User
+from static.countries.helpers import get_country
+from static.countries.models import Country
 from users.serializers import UserCreateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    address = AddressSerializer(many=False, write_only=True)
+    address = AddressWorkaroundSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
-        model = User
+        model = Site
         fields = ('id', 'name', 'address', 'organisation')
 
+    @transaction.atomic
     def create(self, validated_data):
         address_data = validated_data.pop('address')
 
-        address_serializer = AddressSerializer(data=address_data)
+        address_serializer = AddressWorkaroundSerializer(data=address_data)
         with reversion.create_revision():
             if address_serializer.is_valid():
-                address = address_serializer.save()
+                # TODO: Change country from GB to country from data
+                address = Address(**address_serializer.data, country=get_country('GB'))
+                address.save()
             else:
                 raise serializers.ValidationError(address_serializer.errors)
 
@@ -40,8 +44,8 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    user = UserCreateSerializer(many=False, write_only=True)
-    site = SiteCreateSerializer(many=False, write_only=True)
+    user = UserCreateSerializer(write_only=True)
+    site = SiteCreateSerializer(write_only=True)
 
     class Meta:
         model = Organisation
@@ -154,7 +158,7 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.CharField()
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:

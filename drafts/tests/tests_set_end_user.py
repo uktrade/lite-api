@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from drafts.models import Draft
+from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -25,7 +26,7 @@ class EndUserOnDraftTests(DataTestClient):
         data = {
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
-            'country': 'United Kingdom',
+            'country': 'GB',
             'type': data_type,
             'website': 'https://www.gov.uk'
         }
@@ -37,7 +38,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.draft.end_user.name, data['name'])
         self.assertEqual(self.draft.end_user.address, data['address'])
-        self.assertEqual(self.draft.end_user.country, data['country'])
+        self.assertEqual(self.draft.end_user.country, get_country(data['country']))
         self.assertEqual(self.draft.end_user.type, data_type)
         self.assertEqual(self.draft.end_user.website, data['website'])
 
@@ -46,13 +47,13 @@ class EndUserOnDraftTests(DataTestClient):
         [{
             'name': 'Lemonworld Org',
             'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'United States of America',
+            'country': 'US',
             'website': 'https://www.americanmary.com'
         }],
         [{
             'name': 'Lemonworld Org',
             'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'United States of America',
+            'country': 'US',
             'type': 'business',
             'website': 'https://www.americanmary.com'
         }],

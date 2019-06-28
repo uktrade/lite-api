@@ -13,6 +13,7 @@ from end_user.models import EndUser
 from goods.models import Good
 from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.helpers import get_country
 from static.units.units import Units
 from teams.models import Team
 from users.models import User
@@ -28,58 +29,58 @@ class OrgAndUserHelper:
     client = APIClient()
 
     def __init__(self, name):
-        # self.name = name
-        # self.eori_number = "GB123456789000"
-        # self.sic_number = "2765"
-        # self.vat_number = "123456789"
-        # self.registration_number = "987654321"
-        #
-        # # Site name
-        # self.site_name = "headquarters"
-        #
-        # # Address details
-        # self.country = 'GB'
-        # self.address_line_1 = "42 Industrial Estate"
-        # self.address_line_2 = "Queens Road"
-        # self.region = "Hertfordshire"
-        # self.postcode = "AL1 4GT"
-        # self.city = "St Albans"
-        #
-        # # First admin user details
-        # self.admin_user_first_name = "Trinity"
-        # self.admin_user_last_name = "Fishburne"
-        # self.admin_user_email = "trinity@" + name + ".com"
-        # self.password = "password123"
-        #
-        # url = reverse('organisations:organisations')
-        # data = {
-        #     'name': self.name,
-        #     'eori_number': self.eori_number,
-        #     'sic_number': self.sic_number,
-        #     'vat_number': self.vat_number,
-        #     'registration_number': self.registration_number,
-        #     # Site details
-        #     'site': {
-        #         'name': self.site_name,
-        #         # Address details
-        #         'address': {
-        #             'country': self.country,
-        #             'address_line_1': self.address_line_1,
-        #             'address_line_2': self.address_line_2,
-        #
-        #             'region': self.region,
-        #             'postcode': self.postcode,
-        #             'city': self.city,
-        #         },
-        #     },
-        #     # First admin user details
-        #     'user': {
-        #         'first_name': self.admin_user_first_name,
-        #         'last_name': self.admin_user_last_name,
-        #         'email': self.admin_user_email,
-        #         'password': self.password
-        #     },
-        # }
+        self.name = name
+        self.eori_number = "GB123456789000"
+        self.sic_number = "2765"
+        self.vat_number = "123456789"
+        self.registration_number = "987654321"
+
+        # Site name
+        self.site_name = "headquarters"
+
+        # Address details
+        self.country = 'GB'
+        self.address_line_1 = "42 Industrial Estate"
+        self.address_line_2 = "Queens Road"
+        self.region = "Hertfordshire"
+        self.postcode = "AL1 4GT"
+        self.city = "St Albans"
+
+        # First admin user details
+        self.admin_user_first_name = "Trinity"
+        self.admin_user_last_name = "Fishburne"
+        self.admin_user_email = "trinity@" + name + ".com"
+        self.password = "password123"
+
+        url = reverse('organisations:organisations')
+        data = {
+            'name': self.name,
+            'eori_number': self.eori_number,
+            'sic_number': self.sic_number,
+            'vat_number': self.vat_number,
+            'registration_number': self.registration_number,
+            # Site details
+            'site': {
+                'name': self.site_name,
+                # Address details
+                'address': {
+                    'country': self.country,
+                    'address_line_1': self.address_line_1,
+                    'address_line_2': self.address_line_2,
+
+                    'region': self.region,
+                    'postcode': self.postcode,
+                    'city': self.city,
+                },
+            },
+            # First admin user details
+            'user': {
+                'first_name': self.admin_user_first_name,
+                'last_name': self.admin_user_last_name,
+                'email': self.admin_user_email,
+                'password': self.password
+            },
+        }
         self.team = Team(name='1234567890qwertyuiopasdfghjkl')
         self.team.save()
 
@@ -90,7 +91,7 @@ class OrgAndUserHelper:
         self.user.save()
 
         self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
-        # self.client.post(url, data, format='json', **self.headers)
+        self.client.post(url, data, format='json', **self.headers)
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
@@ -165,7 +166,7 @@ class OrgAndUserHelper:
     def create_site(name, org):
         address = Address(address_line_1='42 Road',
                           address_line_2='',
-                          country='England',
+                          country=get_country('GB'),
                           city='London',
                           region='Buckinghamshire',
                           postcode='E14QW')
@@ -180,7 +181,7 @@ class OrgAndUserHelper:
     def create_external_location(name, org):
         external_location = ExternalLocation(name=name,
                                              address='20 Questions Road, Enigma',
-                                             country='Canada',
+                                             country=get_country('GB'),
                                              organisation=org)
         external_location.save()
         return external_location
@@ -192,7 +193,7 @@ class OrgAndUserHelper:
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
                            type=EndUserType.GOVERNMENT,
-                           country='England')
+                           country=get_country('GB'))
         end_user.save()
         return end_user
 

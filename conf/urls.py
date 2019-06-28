@@ -22,6 +22,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # TODO: REMOVE ADDRESSES
+    path('addresses/', include('addresses.urls')),
     path('applications/', include('applications.urls')),
     path('audit/', include('audit.urls')),
     path('cases/', include('cases.urls')),

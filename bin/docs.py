@@ -39,7 +39,7 @@ def generate_example_data(key: str, values: dict, depth: int):
     if key == 'region':
         return '"Greater London"'
     if key == 'country':
-        return '"United Kingdom"'
+        return '"GB"'
 
     return '"' + key + '"'
 
