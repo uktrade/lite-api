@@ -18,6 +18,7 @@ parameterized = "*"
 drf-yasg = "*"
 pylint = "*"
 pylint-django = "*"
+prospector = "*"
 
 [requires]
 python_version = "3.7"
