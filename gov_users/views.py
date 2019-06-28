@@ -1,6 +1,7 @@
 import reversion
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -37,7 +38,7 @@ class AuthenticateGovUser(APIView):
         """
         try:
             data = JSONParser().parse(request)
-        except:
+        except ParseError:
             return JsonResponse(data={'errors': 'Invalid Json'},
                                 status=status.HTTP_400_BAD_REQUEST)
         email = data.get('email')

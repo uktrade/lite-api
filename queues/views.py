@@ -1,4 +1,4 @@
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
