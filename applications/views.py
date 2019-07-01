@@ -13,6 +13,7 @@ from applications.models import Application, GoodOnApplication, SiteOnApplicatio
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
+from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, CountryOnDraft
 from goods.enums import GoodStatus
@@ -66,25 +67,25 @@ class ApplicationList(APIView):
 
             if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
                 if not draft.end_user:
-                    errors['end_user'] = 'Cannot create an application without an end user'
-            else:
+                    errors['end_user'] = get_string('applications.standard.no_end_user_set')
+
+                if not GoodOnDraft.objects.filter(draft=draft):
+                    errors['goods'] = get_string('applications.standard.no_goods_set')
+
+            elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
                 if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
-                    errors['countries'] = 'Cannot create an application without countries being set'
+                    errors['countries'] = get_string('applications.standard.no_countries_set')
 
-            if application.licence_type == 'standard_licence' and not GoodOnDraft.objects.filter(draft=draft):
-                errors['goods'] = 'Cannot create an application with no goods attached'
-
-            results = GoodsType.objects.filter(object_id=draft.id)
-            if application.licence_type == 'open_licence' and not results:
-                errors['goods'] = 'Cannot create an application with no good descriptions attached'
+                results = GoodsType.objects.filter(object_id=draft.id)
+                if not results:
+                    errors['goods'] = get_string('applications.standard.no_goods_set')
 
             if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
                     and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-                errors['location'] = 'Cannot create an application with no sites or external sites attached'
+                errors['location'] = get_string('applications.generic.no_location_set')
 
             if len(errors):
-                return JsonResponse(data={'errors': errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
             if application.licence_type == ApplicationLicenceType.OPEN_LICENCE:
                 # Save associated end users, goods and sites
@@ -93,14 +94,6 @@ class ApplicationList(APIView):
 
                 for goods_types_on_draft in results:
                     goods_types_on_draft.object_id = application.id
-
-                    # good_on_application = GoodOnApplication(
-                    #     good=goods_types_on_draft.good,
-                    #     application=application,
-                    #     )
-                    # good_on_application.save()
-                    # good_on_application.good.status = GoodStatus.SUBMITTED
-                    # good_on_application.good.save()
 
                 for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
                     CountryOnApplication(

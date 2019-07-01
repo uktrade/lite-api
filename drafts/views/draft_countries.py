@@ -14,12 +14,12 @@ from static.countries.serializers import CountrySerializer
 
 
 class DraftCountries(APIView):
-    """
-    View countries belonging to an open licence draft or add them
-    """
     authentication_classes = (PkAuthentication,)
 
     def get(self, request, pk):
+        """
+        View countries belonging to an open licence draft
+        """
         draft = get_draft(pk)
 
         countries_ids = CountryOnDraft.objects.filter(draft=draft).values_list('country', flat=True)
@@ -29,6 +29,9 @@ class DraftCountries(APIView):
 
     @transaction.atomic
     def post(self, request, pk):
+        """
+        Add countries to an open licence draft
+        """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         countries = data.get('countries')

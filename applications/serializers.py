@@ -6,6 +6,7 @@ from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
+from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
 from organisations.models import ExternalLocation
@@ -73,7 +74,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
             try:
                 serializer = EndUserSerializer(obj.end_user)
                 return {'type': 'end_user', 'data': serializer.data}
-            except:
+            except EndUser.DoesNotExist:
                 return {'type': 'end_user', 'data': ''}
         else:
             countries = Country.objects.filter(id__in=countries_ids)
