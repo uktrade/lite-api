@@ -57,11 +57,11 @@ def create_open_licence(draft, application, errors):
     Create an open licence application
     """
     if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
-        errors['countries'] = get_string('applications.standard.no_countries_set')
+        errors['countries'] = get_string('applications.open.no_countries_set')
 
     results = GoodsType.objects.filter(object_id=draft.id)
     if not results:
-        errors['goods'] = get_string('applications.standard.no_goods_set')
+        errors['goods'] = get_string('applications.open.no_goods_set')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
