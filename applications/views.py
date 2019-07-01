@@ -59,11 +59,15 @@ class ApplicationList(APIView):
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
-                                      organisation=draft.organisation,
-                                      )
+                                      organisation=draft.organisation)
 
             # Reset Errors
             errors = {}
+
+            # Generic errors
+            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+                errors['location'] = get_string('applications.generic.no_location_set')
 
             if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
                 if not draft.end_user:
@@ -72,47 +76,9 @@ class ApplicationList(APIView):
                 if not GoodOnDraft.objects.filter(draft=draft):
                     errors['goods'] = get_string('applications.standard.no_goods_set')
 
-            elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-                if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
-                    errors['countries'] = get_string('applications.standard.no_countries_set')
+                if len(errors):
+                    return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-                results = GoodsType.objects.filter(object_id=draft.id)
-                if not results:
-                    errors['goods'] = get_string('applications.standard.no_goods_set')
-
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-                errors['location'] = get_string('applications.generic.no_location_set')
-
-            if len(errors):
-                return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            if application.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-                # Save associated end users, goods and sites
-                application.end_user = draft.end_user
-                application.save()
-
-                for goods_types_on_draft in results:
-                    goods_types_on_draft.object_id = application.id
-
-                for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
-                    CountryOnApplication(
-                        country=country_on_draft.country,
-                        application=application).save()
-
-                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                    site_on_application = SiteOnApplication(
-                        site=site_on_draft.site,
-                        application=application)
-                    site_on_application.save()
-
-                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-                    external_location_on_application = ExternalLocationOnApplication(
-                        external_location=external_location_on_draft.external_location,
-                        application=application)
-                    external_location_on_application.save()
-
-            elif application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
                 # Save associated end users, goods and sites
                 application.end_user = draft.end_user
                 application.save()
@@ -127,6 +93,41 @@ class ApplicationList(APIView):
                     good_on_application.save()
                     good_on_application.good.status = GoodStatus.SUBMITTED
                     good_on_application.good.save()
+
+                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+                    site_on_application = SiteOnApplication(
+                        site=site_on_draft.site,
+                        application=application)
+                    site_on_application.save()
+
+                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+                    external_location_on_application = ExternalLocationOnApplication(
+                        external_location=external_location_on_draft.external_location,
+                        application=application)
+                    external_location_on_application.save()
+
+            elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
+                if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
+                    errors['countries'] = get_string('applications.standard.no_countries_set')
+
+                results = GoodsType.objects.filter(object_id=draft.id)
+                if not results:
+                    errors['goods'] = get_string('applications.standard.no_goods_set')
+
+                if len(errors):
+                    return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Save associated end users, goods and sites
+                application.end_user = draft.end_user
+                application.save()
+
+                for goods_types_on_draft in results:
+                    goods_types_on_draft.object_id = application.id
+
+                for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
+                    CountryOnApplication(
+                        country=country_on_draft.country,
+                        application=application).save()
 
                 for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
                     site_on_application = SiteOnApplication(
