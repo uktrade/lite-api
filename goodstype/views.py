@@ -18,7 +18,7 @@ class GoodsTypeList(APIView):
         goods = GoodsType.objects.filter()
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},
-                            safe=False)
+                            )
 
     def post(self, request):
         """

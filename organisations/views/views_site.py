@@ -24,7 +24,7 @@ class SiteList(APIView):
 
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def post(self, request):
@@ -58,7 +58,7 @@ class OrgSiteList(APIView):
         sites = Site.objects.filter(organisation=org_pk)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def post(self, request, org_pk):
@@ -94,7 +94,7 @@ class OrgSiteDetail(APIView):
 
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
@@ -131,7 +131,7 @@ class SiteDetail(APIView):
 
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def put(self, request, pk):

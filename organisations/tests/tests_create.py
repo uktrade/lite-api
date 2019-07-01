@@ -30,7 +30,7 @@ class OrganisationCreateTests(DataTestClient):
         self.site_name = "Headquarters"
 
         # Address details
-        self.country = "England"
+        self.country = 'GB'
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
         self.region = "Hertfordshire"

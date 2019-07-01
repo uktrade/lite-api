@@ -8,7 +8,6 @@ parameterized = "==0.7.0"
 
 [packages]
 Django = "==2.2.2"
-django-enumchoicefield = "==1.1.0"
 django-environ = "==0.4.5"
 django-reversion = "==3.0.3"
 djangorestframework = "==3.9.2"

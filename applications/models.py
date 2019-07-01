@@ -2,7 +2,6 @@ import uuid
 
 import reversion
 from django.db import models
-from enumchoicefield import EnumChoiceField
 
 from applications.enums import ApplicationStatus, ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
@@ -10,7 +9,7 @@ from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from static.units.units import Units
+from static.units.enums import Units
 
 
 @reversion.register()
@@ -40,7 +39,7 @@ class GoodOnApplication(models.Model):
     good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
-    unit = EnumChoiceField(enum_class=Units, default=Units.NAR)
+    unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
 
 

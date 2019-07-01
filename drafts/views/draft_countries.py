@@ -8,7 +8,7 @@ from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft, get_draft_with_organisation
 from drafts.models import CountryOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
-from static.countries.helpers.get_country import get_country
+from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 

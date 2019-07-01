@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -7,7 +6,6 @@ from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
-from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
 from organisations.models import ExternalLocation
@@ -202,8 +200,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                 application_denial_reason_serializer.save()
             else:
                 raise serializers.ValidationError('An error occurred')
-
-
 
         instance.save()
         return instance

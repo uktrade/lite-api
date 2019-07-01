@@ -4,6 +4,7 @@ from parameterized import parameterized
 from django.urls import reverse
 from rest_framework import status
 
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -18,7 +19,7 @@ class DraftTests(DataTestClient):
         data = {
             'good_id': good.id,
             'quantity': 1200.098896,
-            'unit': 'NAR',
+            'unit': Units.NAR,
             'value': 50000.45
         }
 
@@ -40,7 +41,7 @@ class DraftTests(DataTestClient):
             'draft': draft.id,
             'good_id': good.id,
             'quantity': 1200,
-            'unit': 'kg',
+            'unit': Units.KGM,
             'value': 50000
         }
 
@@ -66,7 +67,7 @@ class DraftTests(DataTestClient):
         post_data = {
             'good_id': good.id,
             'quantity': data['quantity'],
-            'unit': 'NAR',
+            'unit': Units.NAR,
             'value': data['value']
         }
 

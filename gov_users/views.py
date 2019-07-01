@@ -114,7 +114,7 @@ class GovUserDetail(APIView):
 
         serializer = GovUserSerializer(gov_user)
         return JsonResponse(data={'user': serializer.data},
-                            safe=False)
+                            )
 
     @swagger_auto_schema(
         request_body=GovUserSerializer,

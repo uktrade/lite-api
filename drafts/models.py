@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from enumchoicefield import EnumChoiceField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
@@ -9,7 +8,7 @@ from goods.models import Good
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
-from static.units.units import Units
+from static.units.enums import Units
 
 
 class Draft(models.Model):
@@ -32,7 +31,7 @@ class GoodOnDraft(models.Model):
     good = models.ForeignKey(Good, related_name='goods_on_draft', on_delete=models.CASCADE)
     draft = models.ForeignKey(Draft, related_name='drafts', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
-    unit = EnumChoiceField(enum_class=Units, default=Units.NAR)
+    unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
 
 
