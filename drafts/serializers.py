@@ -5,13 +5,11 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
-from goods.enums import GoodStatus
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 from static.units.enums import Units
-from content_strings.strings import get_string
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):

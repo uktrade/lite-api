@@ -1,12 +1,12 @@
 import reversion
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from drf_yasg.utils import swagger_auto_schema
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk

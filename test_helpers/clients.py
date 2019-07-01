@@ -8,7 +8,6 @@ from cases.models import CaseNote, Case
 from conf.urls import urlpatterns
 from drafts.models import Draft
 from gov_users.models import GovUser
-from organisations.models import Organisation
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team

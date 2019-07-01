@@ -1,7 +1,7 @@
 import json
 
-from parameterized import parameterized
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from static.units.enums import Units

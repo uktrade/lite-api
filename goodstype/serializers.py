@@ -1,11 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
-from conf.helpers import str_to_bool
-from goodstype.models import GoodsType
 from applications.models import Application
-from applications.serializers import  ApplicationBaseSerializer
+from applications.serializers import ApplicationBaseSerializer
+from conf.helpers import str_to_bool
 from drafts.serializers import DraftBaseSerializer
+from goodstype.models import GoodsType
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
