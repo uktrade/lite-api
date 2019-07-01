@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
-from drafts.models import GoodOnDraft, Draft, SiteOnDraft
+from drafts.models import Draft, SiteOnDraft
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
-from drafts.models import GoodOnDraft, Draft
+from drafts.models import GoodOnDraft
 from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer

@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.utils import json
 
 from gov_users.enums import GovUserStatuses
-from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 
 

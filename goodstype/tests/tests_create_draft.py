@@ -1,8 +1,8 @@
 from parameterized import parameterized
 from rest_framework import status
-from django.contrib.contenttypes.models import ContentType
-from drafts.models import Draft
 from rest_framework.reverse import reverse
+
+from drafts.models import Draft
 from test_helpers.clients import DataTestClient
 
 

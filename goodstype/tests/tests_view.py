@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -7,7 +5,6 @@ from rest_framework.reverse import reverse
 from applications.models import Application
 from goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class GoodViewTests(DataTestClient):
