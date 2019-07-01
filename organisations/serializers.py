@@ -5,6 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
 from addresses.serializers import AddressCountrylessSerializer, AddressSerializer
+from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -162,7 +163,8 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(),
+                                                 error_messages={'null': get_string('address.null_country')})
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
