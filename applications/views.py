@@ -76,7 +76,7 @@ class ApplicationList(APIView):
 
             results = GoodsType.objects.filter(object_id=draft.id)
             if application.licence_type == 'open_licence' and not results:
-                errors['goods'] = 'Cannot create an application with no good types attached'
+                errors['goods'] = 'Cannot create an application with no good descriptions attached'
 
             if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
                     and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:

@@ -8,7 +8,7 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseSerializer, CaseNoteSerializer, CaseDetailSerializer
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
 from queues.models import Queue
@@ -67,6 +67,9 @@ class CaseNoteList(APIView):
     """
 
     def get(self, request, pk):
+        """
+        Gets all case notes
+        """
         case = get_case(pk)
         serializer = CaseNoteSerializer(get_case_notes_from_case(case), many=True)
         return JsonResponse(data={'case_notes': serializer.data})

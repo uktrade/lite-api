@@ -21,13 +21,13 @@ jobs:
 
       - checkout
       - run:
-          name: Git submodule checkout
+          name: Git Submodule Checkout
           command: |
             git submodule sync
             git submodule update --init
 
       - run:
-          name: repository vulnerability check
+          name: Repository Vulnerability Check
           command: |
             VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
               -X POST -H "Content-Type: application/json" \
@@ -45,7 +45,7 @@ jobs:
 
 
       - run:
-          name: setting environment file
+          name: Set Environment File
           command: cp local.env .env
 
       # Download and cache dependencies
@@ -53,7 +53,7 @@ jobs:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
           
       - run:
-          name: install dependencies
+          name: Install Dependencies
           command: pipenv sync --dev
 
       - save_cache:
@@ -67,5 +67,10 @@ jobs:
       # https://pytest.org
       # https://nose.readthedocs.io
       - run:
-          name: run tests
+          name: Run Unit Tests
           command: pipenv run ./manage.py test --parallel
+
+      # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
+      - run:
+          name: Run Linting
+          command: pipenv run prospector

@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 ('last_modified_at', models.DateTimeField(auto_now_add=True)),
                 ('licence_type', models.CharField(choices=[('standard_licence', 'Standard Licence'), ('open_licence', 'Open Licence')], default=None, max_length=50)),
                 ('export_type', models.CharField(choices=[('permanent', 'Permanent'), ('temporary', 'Temporary')], default=None, max_length=50)),
+                ('have_you_been_informed', models.CharField(choices=[('yes', 'Yes'), ('no', 'No')], default=None, max_length=50)),
                 ('reference_number_on_information_form', models.TextField(blank=True, null=True)),
                 ('end_user', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='draft_end_user', to='end_user.EndUser')),
                 ('organisation', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='organisations.Organisation')),
