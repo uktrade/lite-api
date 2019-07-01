@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 
 from cases.models import Case, CaseAssignment
 from cases.serializers import CaseSerializer
@@ -39,10 +40,10 @@ class QueueViewSerializer(QueueSerializer):
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
-    cases = PrimaryKeyRelatedField(many=True, queryset=Case.objects.all())
-    users = PrimaryKeyRelatedField(many=True, queryset=GovUser.objects.all())
+    case = PrimaryKeyRelatedField(many=False, queryset=Case.objects.all())
+    user = PrimaryKeyRelatedField(many=False, queryset=GovUser.objects.all())
     queue = PrimaryKeyRelatedField(many=False, queryset=Queue.objects.all())
 
     class Meta:
         model = CaseAssignment
-        fields = ('id', 'cases', 'queue', 'users')
+        fields = ('id', 'case', 'queue', 'user')

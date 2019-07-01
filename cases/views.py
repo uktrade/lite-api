@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -8,6 +9,7 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
+from cases.models import CaseAssignment
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
 from conf.authentication import GovAuthentication
 
@@ -24,14 +26,20 @@ class CaseDetail(APIView):
         serializer = CaseDetailSerializer(case)
         return JsonResponse(data={'case': serializer.data})
 
+    @transaction.atomic
     def put(self, request, pk):
         """
-        Change the queues a case belongs to, and set the users who are working on that case.
+        Change the queues a case belongs to.
         """
         case = get_case(pk)
+        initial_queues = case.queues.values_list('id', flat=True)
 
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
         if serializer.is_valid():
+            for initial_queue in initial_queues:
+                if str(initial_queue) not in request.data['queues']:
+                    CaseAssignment.objects.filter(queue=initial_queue).delete()
+
             serializer.save()
 
             return JsonResponse(data={'case': serializer.data},

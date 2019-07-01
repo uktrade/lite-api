@@ -18,11 +18,10 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    user = PrimaryKeyRelatedField(many=False, queryset=GovUser.objects.all())
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues', 'user')
+        fields = ('id', 'application', 'queues')
 
     def validate_queues(self, attrs):
         if len(attrs) == 0:
