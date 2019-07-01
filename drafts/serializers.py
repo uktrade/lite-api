@@ -90,7 +90,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     quantity = serializers.DecimalField(max_digits=256, decimal_places=6,
                                         error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
     value = serializers.DecimalField(max_digits=256, decimal_places=2,
-                                     error_messages={'invalid': get_string('goods.error_messages.invalid_value'})
+                                     error_messages={'invalid': get_string('goods.error_messages.invalid_value')}),
     unit = serializers.ChoiceField(choices=Units.choices, error_messages={
         'required': get_string('goods.error_messages.required_unit'),
         'invalid_choice': get_string('goods.error_messages.required_unit')})
