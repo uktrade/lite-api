@@ -86,7 +86,7 @@ class ApplicationList(APIView):
                 return JsonResponse(data={'errors': errors},
                                     status=status.HTTP_400_BAD_REQUEST)
 
-            if application.licence_type == 'open_licence':
+            if application.licence_type == ApplicationLicenceType.OPEN_LICENCE:
                 # Save associated end users, goods and sites
                 application.end_user = draft.end_user
                 application.save()
@@ -119,7 +119,7 @@ class ApplicationList(APIView):
                         application=application)
                     external_location_on_application.save()
 
-            elif application.licence_type == 'standard_licence':
+            elif application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
                 # Save associated end users, goods and sites
                 application.end_user = draft.end_user
                 application.save()
