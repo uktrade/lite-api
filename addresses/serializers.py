@@ -9,8 +9,7 @@ class AddressSerializer(serializers.ModelSerializer):
     postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
     region = serializers.CharField()
-    # TODO: Add country back
-    # country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
 
     class Meta:
         model = Address
@@ -19,7 +18,8 @@ class AddressSerializer(serializers.ModelSerializer):
                   'address_line_2',
                   'postcode',
                   'city',
-                  'region')
+                  'region',
+                  'country')
 
     def update(self, instance, validated_data):
         instance.address_line_1 = validated_data.get('address_line_1',
@@ -29,18 +29,19 @@ class AddressSerializer(serializers.ModelSerializer):
         instance.postcode = validated_data.get('postcode', instance.postcode)
         instance.city = validated_data.get('city', instance.city)
         instance.region = validated_data.get('region', instance.region)
-        # instance.country = validated_data.get('country', instance.country)
+        instance.country = validated_data.get('country', instance.country)
         instance.save()
         return instance
 
 
-class AddressWorkaroundSerializer(serializers.ModelSerializer):
+class AddressCountrylessSerializer(serializers.ModelSerializer):
     address_line_1 = serializers.CharField()
     postcode = serializers.CharField(max_length=10)
     city = serializers.CharField()
     region = serializers.CharField()
-    # TODO: Add country back
+    # TODO: Add country primary key back
     # country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country = serializers.CharField(allow_blank=False, allow_null=False)
 
     class Meta:
         model = Address
@@ -49,7 +50,8 @@ class AddressWorkaroundSerializer(serializers.ModelSerializer):
                   'address_line_2',
                   'postcode',
                   'city',
-                  'region')
+                  'region',
+                  'country')
 
     def update(self, instance, validated_data):
         instance.address_line_1 = validated_data.get('address_line_1',
