@@ -4,7 +4,8 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressWorkaroundSerializer, AddressSerializer
+from addresses.serializers import AddressCountrylessSerializer, AddressSerializer
+from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -13,7 +14,8 @@ from users.serializers import UserCreateSerializer
 
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    address = AddressWorkaroundSerializer(write_only=True)
+    # TODO: Simplify country process
+    address = AddressCountrylessSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
@@ -24,11 +26,14 @@ class SiteCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         address_data = validated_data.pop('address')
 
-        address_serializer = AddressWorkaroundSerializer(data=address_data)
+        address_serializer = AddressCountrylessSerializer(data=address_data)
         with reversion.create_revision():
             if address_serializer.is_valid():
-                # TODO: Change country from GB to country from data
-                address = Address(**address_serializer.data, country=get_country('GB'))
+                # TODO: Simplify country process
+                data = address_serializer.data
+                country = get_country(data['country'])
+                del data['country']
+                address = Address(**data, country=country)
                 address.save()
             else:
                 raise serializers.ValidationError(address_serializer.errors)
@@ -158,7 +163,8 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(),
+                                                 error_messages={'null': get_string('address.null_country')})
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:

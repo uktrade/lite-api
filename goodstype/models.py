@@ -1,10 +1,9 @@
 import uuid
+
 import reversion
-from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from organisations.models import Organisation
-from applications.models import Application
+from django.db import models
 
 
 @reversion.register()

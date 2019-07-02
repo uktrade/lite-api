@@ -56,6 +56,9 @@ class CaseNoteList(APIView):
     """
 
     def get(self, request, pk):
+        """
+        Gets all case notes
+        """
         case = get_case(pk)
         serializer = CaseNoteSerializer(get_case_notes_from_case(case), many=True)
         return JsonResponse(data={'case_notes': serializer.data})

@@ -4,7 +4,6 @@ import uuid
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient
 from reversion.models import Version
 
 from organisations.models import Organisation, Site

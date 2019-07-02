@@ -6,6 +6,8 @@ import django.utils.timezone
 import users.models
 import uuid
 
+import users.models
+
 
 class Migration(migrations.Migration):
 

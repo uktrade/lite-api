@@ -1,8 +1,8 @@
 from parameterized import parameterized
 from rest_framework import status
-from django.contrib.contenttypes.models import ContentType
-from drafts.models import Draft
 from rest_framework.reverse import reverse
+
+from drafts.models import Draft
 from test_helpers.clients import DataTestClient
 
 
@@ -18,15 +18,17 @@ class GoodsTypeCreateDraftTests(DataTestClient):
                               is_good_controlled,
                               control_code,
                               is_good_end_product,
+                              #have_you_been_informed,
                               draft=False):
         if not draft:
-            draft = Draft.objects.create(name='test', licence_type='open_licence', export_type='temporary')
+            draft = Draft.objects.create(name='test', licence_type='open_licence', export_type='temporary', have_you_been_informed='No',)
 
         data = {
             'description': description,
             'is_good_controlled': is_good_controlled,
             'control_code': control_code,
             'is_good_end_product': is_good_end_product,
+            #'have_you_been_informed': have_you_been_informed,
             'object_id': draft.pk
         }
 
@@ -40,3 +42,4 @@ class GoodsTypeCreateDraftTests(DataTestClient):
             self.assertEquals(response_data['is_good_controlled'], is_good_controlled)
             self.assertEquals(response_data['control_code'], control_code)
             self.assertEquals(response_data['is_good_end_product'], is_good_end_product)
+            #self.assertEquals(response_data['have_you_been_informed'], have_you_been_informed)
