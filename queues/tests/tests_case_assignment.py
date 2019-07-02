@@ -184,14 +184,8 @@ class CaseAssignmentTests(DataTestClient):
         self.assertEqual(len(CaseAssignment.objects.filter(case=case1, user=user2)), 0)
 
     def test_empty_set_clears_assignments(self):
-        data = {
-            'assignments':
-                [
-                    {'user': self.gov_user.id, 'case': self.case.id}
-                ]
-        }
+        CaseAssignment(user=self.gov_user, queue=self.default_queue, case=self.case)
         url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
-        self.client.post(url, data, **self.gov_headers)
 
         data = {
             'assignments':
