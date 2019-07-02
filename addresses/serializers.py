@@ -23,7 +23,8 @@ class AddressSerializer(serializers.ModelSerializer):
                   'address_line_2',
                   'postcode',
                   'city',
-                  'region')
+                  'region',
+                  'country')
 
     def update(self, instance, validated_data):
         instance.address_line_1 = validated_data.get('address_line_1',
