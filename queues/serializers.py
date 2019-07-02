@@ -1,12 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 
 from cases.models import Case, CaseAssignment
 from cases.serializers import CaseSerializer
 from gov_users.models import GovUser
 from queues.models import Queue
-
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
