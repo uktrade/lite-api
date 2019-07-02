@@ -52,7 +52,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': user.email,
             'password': 'password'
         }
-        user.status = UserStatuses.deactivated
+        user.status = UserStatuses.DEACTIVATED
         user.save()
         url = reverse('users:authenticate')
         response = self.client.post(url, data, format='json')

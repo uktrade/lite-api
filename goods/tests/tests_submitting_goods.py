@@ -3,7 +3,7 @@ from rest_framework import status
 
 from drafts.models import GoodOnDraft
 from goods.models import Good
-from static.units.units import Units
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 

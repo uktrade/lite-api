@@ -59,14 +59,6 @@
             "index": "pypi",
             "version": "==2.2.2"
         },
-        "django-enumchoicefield": {
-            "hashes": [
-                "sha256:6df41949a774296859fbe2a55be0caf7ef08500d1a5d2e73621e4283a7204036",
-                "sha256:a94c2ceb26ea0eb4bdf35b524fbd2335d27c44a43d25e7e3518943f23b2752f0"
-            ],
-            "index": "pypi",
-            "version": "==1.1.0"
-        },
         "django-environ": {
             "hashes": [
                 "sha256:6c9d87660142608f63ec7d5ce5564c49b603ea8ff25da595fd6098f6dc82afde",

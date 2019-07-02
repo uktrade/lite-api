@@ -4,7 +4,6 @@ import uuid
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient
 from reversion.models import Version
 
 from organisations.models import Organisation, Site
@@ -30,7 +29,7 @@ class OrganisationCreateTests(DataTestClient):
         self.site_name = "Headquarters"
 
         # Address details
-        self.country = "England"
+        self.country = 'GB'
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
         self.region = "Hertfordshire"

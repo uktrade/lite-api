@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from conf.authentication import PkAuthentication
 
+from conf.authentication import PkAuthentication
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 
@@ -18,7 +18,7 @@ class GoodsTypeList(APIView):
         goods = GoodsType.objects.filter()
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},
-                            safe=False)
+                            )
 
     def post(self, request):
         """

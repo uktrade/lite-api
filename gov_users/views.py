@@ -1,12 +1,12 @@
 import reversion
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from drf_yasg.utils import swagger_auto_schema
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
@@ -33,7 +33,6 @@ class AuthenticateGovUser(APIView):
         Returns a token which is just our ID for the user
         :param request:
         :param email, first_name, last_name:
-        :param kwargs:
         :return token:
         """
         try:
@@ -73,7 +72,7 @@ class GovUserList(APIView):
         """
         gov_users = GovUser.objects.all().order_by('email')
         serializer = GovUserSerializer(gov_users, many=True)
-        return JsonResponse(data={'gov_users': serializer.data}, safe=False)
+        return JsonResponse(data={'gov_users': serializer.data})
 
     @swagger_auto_schema(
         request_body=GovUserSerializer,
@@ -110,7 +109,7 @@ class GovUserDetail(APIView):
 
         serializer = GovUserSerializer(gov_user)
         return JsonResponse(data={'user': serializer.data},
-                            safe=False)
+                            )
 
     @swagger_auto_schema(
         request_body=GovUserSerializer,
@@ -123,12 +122,13 @@ class GovUserDetail(APIView):
         """
         gov_user = get_gov_user_by_pk(pk)
         data = JSONParser().parse(request)
+
         if 'status' in data.keys():
             if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
-        with reversion.create_revision():
 
+        with reversion.create_revision():
             for key in list(data.keys()):
                 if data[key] is '':
                     del data[key]

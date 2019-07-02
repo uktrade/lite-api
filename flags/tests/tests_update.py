@@ -16,7 +16,7 @@ class FlagsUpdateTest(DataTestClient):
         flag.save()
 
         data = {
-            'status': 'Deactivated',
+            'status': FlagStatuses.DEACTIVATED,
         }
 
         url = reverse('flags:flag', kwargs={'pk': flag.id})
@@ -33,7 +33,7 @@ class FlagsUpdateTest(DataTestClient):
         flag.save()
 
         data = {
-            'status': 'Deactivated',
+            'status': FlagStatuses.DEACTIVATED,
         }
 
         url = reverse('flags:flag', kwargs={'pk': flag.id})

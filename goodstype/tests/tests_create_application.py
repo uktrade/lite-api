@@ -1,9 +1,8 @@
 from parameterized import parameterized
 from rest_framework import status
-from django.contrib.contenttypes.models import ContentType
-from applications.models import Application
 from rest_framework.reverse import reverse
 
+from applications.models import Application
 from test_helpers.clients import DataTestClient
 
 

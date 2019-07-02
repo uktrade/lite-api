@@ -2,14 +2,14 @@ import uuid
 
 import reversion
 from django.db import models
-from enumchoicefield import EnumChoiceField
 
 from applications.enums import ApplicationStatus, ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from static.units.units import Units
+from static.units.enums import Units
 
 
 @reversion.register()
@@ -33,14 +33,13 @@ class Application(models.Model):
     # plus there maybe a consignee too - the person moving the cargo
 
 
-
 @reversion.register()
 class GoodOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='goods', on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
-    unit = EnumChoiceField(enum_class=Units, default=Units.NAR)
+    unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
 
 
@@ -58,8 +57,19 @@ class ApplicationDenialReason(models.Model):
     reasons = models.ManyToManyField(DenialReason)
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
+
 @reversion.register()
 class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(ExternalLocation, related_name='external_locations_on_application', on_delete=models.CASCADE)
     application = models.ForeignKey(Application, related_name='external_application_sites', on_delete=models.CASCADE)
+
+
+@reversion.register()
+class CountryOnApplication(models.Model):
+    """
+    Open licence applications export to countries, instead of an end user
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, related_name='countries_on_application', on_delete=models.CASCADE)

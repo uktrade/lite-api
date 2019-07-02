@@ -6,22 +6,22 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.creators import create_open_licence, create_standard_licence
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
+from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
-from goods.enums import GoodStatus
-from goodstype.models import GoodsType
+from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
 
 class ApplicationList(APIView):
-
     authentication_classes = (PkAuthentication,)
 
     def get(self, request):
@@ -33,7 +33,7 @@ class ApplicationList(APIView):
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'applications': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def post(self, request):
@@ -57,85 +57,23 @@ class ApplicationList(APIView):
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
-                                      organisation=draft.organisation,
-                                      )
+                                      organisation=draft.organisation)
 
-            # Reset Errors
             errors = {}
 
-            if not draft.end_user:
-                errors['end_user'] = 'Cannot create an application without an end user'
-
-            if application.licence_type == 'standard_licence' and not GoodOnDraft.objects.filter(draft=draft):
-                errors['goods'] = 'Cannot create an application with no goods attached'
-
-            results = GoodsType.objects.filter(object_id=draft.id)
-            if application.licence_type == 'open_licence' and not results:
-                errors['goods'] = 'Cannot create an application with no good descriptions attached'
-
+            # Generic errors
             if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
                     and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-                errors['location'] = 'Cannot create an application with no sites or external sites attached'
+                errors['location'] = get_string('applications.generic.no_location_set')
 
-            if len(errors):
-                return JsonResponse(data={'errors': errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            # Create the application depending on type
+            if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+                application = create_standard_licence(draft, application, errors)
+            elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
+                application = create_open_licence(draft, application, errors)
 
-            if application.licence_type == 'open_licence':
-                # Save associated end users, goods and sites
-                application.end_user = draft.end_user
-                application.save()
-
-                for goods_types_on_draft in results:
-                    goods_types_on_draft.object_id = application.id
-
-                    # good_on_application = GoodOnApplication(
-                    #     good=goods_types_on_draft.good,
-                    #     application=application,
-                    #     )
-                    # good_on_application.save()
-                    # good_on_application.good.status = GoodStatus.SUBMITTED
-                    # good_on_application.good.save()
-
-                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                    site_on_application = SiteOnApplication(
-                        site=site_on_draft.site,
-                        application=application)
-                    site_on_application.save()
-
-                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-                    external_location_on_application = ExternalLocationOnApplication(
-                        external_location=external_location_on_draft.external_location,
-                        application=application)
-                    external_location_on_application.save()
-
-            elif application.licence_type == 'standard_licence':
-                # Save associated end users, goods and sites
-                application.end_user = draft.end_user
-                application.save()
-
-                for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-                    good_on_application = GoodOnApplication(
-                        good=good_on_draft.good,
-                        application=application,
-                        quantity=good_on_draft.quantity,
-                        unit=good_on_draft.unit,
-                        value=good_on_draft.value)
-                    good_on_application.save()
-                    good_on_application.good.status = GoodStatus.SUBMITTED
-                    good_on_application.good.save()
-
-                for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-                    site_on_application = SiteOnApplication(
-                        site=site_on_draft.site,
-                        application=application)
-                    site_on_application.save()
-
-                for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-                    external_location_on_application = ExternalLocationOnApplication(
-                        external_location=external_location_on_draft.external_location,
-                        application=application)
-                    external_location_on_application.save()
+            if not isinstance(application, Application):
+                return application
 
             # Store meta-information.
             reversion.set_user(request.user)
@@ -163,6 +101,7 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
+
     def get(self, request, pk):
         """
         Retrieve an application instance.

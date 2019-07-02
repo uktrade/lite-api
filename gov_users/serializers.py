@@ -2,18 +2,24 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
+from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
 from gov_users.models import GovUser
 from teams.models import Team
 
 
 class GovUserSerializer(serializers.ModelSerializer):
-    team = PrimaryKeyRelatedField(queryset=Team.objects.all())
+    team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
+                                  error_messages={
+                                      'null': get_string('users.null_team'),
+                                  })
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
         error_messages={
-            'invalid': 'Enter an email address in the correct format, like name@example.com'}
+            'blank': get_string('users.invalid_email'),
+            'invalid': get_string('users.invalid_email'),
+        }
     )
     team_name = serializers.SerializerMethodField()
 
