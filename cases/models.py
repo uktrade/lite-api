@@ -32,6 +32,6 @@ class CaseNote(models.Model):
 
 class CaseAssignment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
