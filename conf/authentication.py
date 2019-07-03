@@ -15,7 +15,7 @@ class PkAuthentication(authentication.BaseAuthentication):
         except User.DoesNotExist:
             raise exceptions.AuthenticationFailed('No such user with that ID')
 
-        if user.status == UserStatuses.deactivated:
+        if user.status == UserStatuses.DEACTIVATED:
             raise exceptions.PermissionDenied('User has been deactivated')
 
         return user, None

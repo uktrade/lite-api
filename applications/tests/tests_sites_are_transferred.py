@@ -4,7 +4,7 @@ from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
 
 from applications.models import Application, SiteOnApplication, ExternalLocationOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
-from static.units.units import Units
+from static.units.enums import Units
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -35,7 +35,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
         url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SiteOnApplication.objects.count(), 2)
         application = Application.objects.get()

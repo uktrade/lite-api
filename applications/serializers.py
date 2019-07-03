@@ -3,10 +3,16 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, ApplicationDenialReason
+from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
+    ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
+from end_user.models import EndUser
+from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
-from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer
+from organisations.models import ExternalLocation
+from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
+from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 
 
@@ -55,6 +61,41 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
 
+    # End User, Countries
+    destinations = serializers.SerializerMethodField()
+
+    # Sites, External Locations
+    goods_locations = serializers.SerializerMethodField()
+
+    def get_destinations(self, obj):
+        countries_ids = CountryOnApplication.objects.filter(application=obj).values_list('country', flat=True)
+
+        if obj.end_user:
+            try:
+                serializer = EndUserSerializer(obj.end_user)
+                return {'type': 'end_user', 'data': serializer.data}
+            except EndUser.DoesNotExist:
+                return {'type': 'end_user', 'data': ''}
+        else:
+            countries = Country.objects.filter(id__in=countries_ids)
+            serializer = CountrySerializer(countries, many=True)
+            return {'type': 'countries', 'data': serializer.data}
+
+    def get_goods_locations(self, obj):
+        sites_on_application_ids = SiteOnApplication.objects.filter(application=obj)\
+            .values_list('site', flat=True)
+        sites = Site.objects.filter(id__in=sites_on_application_ids)
+        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=obj)\
+            .values_list('external_location', flat=True)
+        external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
+
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
+            return {'type': 'sites', 'data': serializer.data}
+        else:
+            serializer = ExternalLocationSerializer(external_locations, many=True)
+            return {'type': 'external_locations', 'data': serializer.data}
+
     class Meta:
         model = Application
         fields = ('id',
@@ -70,7 +111,9 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'licence_type',
                   'export_type',
                   'reference_number_on_information_form',
-                  'application_denial_reason',)
+                  'application_denial_reason',
+                  'destinations',
+                  'goods_locations',)
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
@@ -158,8 +201,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
                 application_denial_reason_serializer.save()
             else:
                 raise serializers.ValidationError('An error occurred')
-
-
 
         instance.save()
         return instance

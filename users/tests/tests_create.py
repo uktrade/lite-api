@@ -27,13 +27,13 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'password': 'password123'
         }
         url = reverse('users:users')
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.filter(organisation=self.test_helper.organisation).count(), 2)
 
     def test_fail_create_new_user(self):
         data = {}
         url = reverse('users:users')
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.filter(organisation=self.test_helper.organisation).count(), 1)

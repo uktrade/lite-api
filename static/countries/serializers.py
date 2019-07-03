@@ -8,5 +8,5 @@ class CountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = ('id',
                   'name',
-                  'report_name',
+                  'type',
                   )

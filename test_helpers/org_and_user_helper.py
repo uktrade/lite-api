@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from addresses.models import Address
-from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
@@ -13,7 +13,8 @@ from end_user.models import EndUser
 from goods.models import Good
 from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
-from static.units.units import Units
+from static.countries.helpers import get_country
+from static.units.enums import Units
 from teams.models import Team
 from users.models import User
 
@@ -38,7 +39,7 @@ class OrgAndUserHelper:
         self.site_name = "headquarters"
 
         # Address details
-        self.country = "England"
+        self.country = 'GB'
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
         self.region = "Hertfordshire"
@@ -82,13 +83,15 @@ class OrgAndUserHelper:
         }
         self.team = Team(name='1234567890qwertyuiopasdfghjkl')
         self.team.save()
+
         self.user = GovUser(email='1234567890qwertyuiopasdfghjkl@mail.com',
                             first_name='John',
                             last_name='Smith',
                             team=self.team)
         self.user.save()
+
         self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
-        self.client.post(url, data, format='json', **self.headers)
+        self.client.post(url, data, **self.headers)
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
@@ -101,6 +104,7 @@ class OrgAndUserHelper:
         draft = Draft(name=name,
                       licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                       export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.choices,
                       reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
@@ -124,7 +128,7 @@ class OrgAndUserHelper:
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, format='json', **self.headers)
+        self.client.post(url, data, **self.headers)
         return Application.objects.get(pk=draft_id)
 
     @staticmethod
@@ -163,7 +167,7 @@ class OrgAndUserHelper:
     def create_site(name, org):
         address = Address(address_line_1='42 Road',
                           address_line_2='',
-                          country='England',
+                          country=get_country('GB'),
                           city='London',
                           region='Buckinghamshire',
                           postcode='E14QW')
@@ -178,7 +182,7 @@ class OrgAndUserHelper:
     def create_external_location(name, org):
         external_location = ExternalLocation(name=name,
                                              address='20 Questions Road, Enigma',
-                                             country='Canada',
+                                             country=get_country('GB'),
                                              organisation=org)
         external_location.save()
         return external_location
@@ -190,7 +194,7 @@ class OrgAndUserHelper:
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
                            type=EndUserType.GOVERNMENT,
-                           country='England')
+                           country=get_country('GB'))
         end_user.save()
         return end_user
 

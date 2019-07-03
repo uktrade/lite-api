@@ -27,7 +27,7 @@ class GovUserAuthenticateTests(DataTestClient):
             'team': self.team.id
         }
         url = reverse('gov_users:gov_users')
-        response = self.client.post(url, data, format='json', **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 1)
         new_user = GovUser.objects.get(email='jsmith@name.com')
@@ -39,6 +39,6 @@ class GovUserAuthenticateTests(DataTestClient):
     def test_fail_create_new_user(self):
         data = {}
         url = reverse('gov_users:gov_users')
-        response = self.client.post(url, data, format='json', **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count + 0)
