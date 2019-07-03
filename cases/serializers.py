@@ -5,6 +5,7 @@ from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment
 from content_strings.strings import get_string
 from gov_users.models import GovUser
+from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 
 
@@ -47,6 +48,8 @@ class CaseNoteSerializer(serializers.ModelSerializer):
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
+    users = GovUserSimpleSerializer(many=True)
+
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')

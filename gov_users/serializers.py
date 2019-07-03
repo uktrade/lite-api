@@ -44,3 +44,12 @@ class GovUserSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
+
+
+class GovUserSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GovUser
+        fields = ('id',
+                  'first_name',
+                  'last_name',
+                  'email')
