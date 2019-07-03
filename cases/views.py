@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http.response import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
@@ -19,16 +20,20 @@ class CaseDetail(APIView):
 
     def get(self, request, pk):
         """
-        Retrieve a case instance.
+        Retrieve a case instance
         """
         case = get_case(pk)
         serializer = CaseDetailSerializer(case)
         return JsonResponse(data={'case': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            400: 'Input error, "queues" should be an array with at least one existing queue'
+        })
     @transaction.atomic
     def put(self, request, pk):
         """
-        Change the queues a case belongs to.
+        Change the queues a case belongs to
         """
         case = get_case(pk)
         initial_queues = case.queues.values_list('id', flat=True)
