@@ -23,16 +23,8 @@ class CaseAssignmentTests(DataTestClient):
 
         # Cases
         self.case = Case.objects.get(application=self.application)
-        self.case2 = Case.objects.get(
-            application=self.test_helper.submit_draft(
-                self, self.test_helper.create_draft_with_good_end_user_and_site(
-                    'Example Application',
-                    self.test_helper.organisation)))
-        self.case3 = Case.objects.get(
-            application=self.test_helper.submit_draft(
-                self, self.test_helper.create_draft_with_good_end_user_and_site(
-                    'Example Application',
-                    self.test_helper.organisation)))
+        self.case2 = self.create_case('Example')
+        self.case3 = self.create_case('Example 2')
 
         # Users
         self.gov_user = self.create_gov_user('gov1@email.com', team=self.default_team)

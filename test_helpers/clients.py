@@ -95,6 +95,13 @@ class DataTestClient(BaseTestClient):
         }
         self.client.post(url, data, **self.headers)
 
+    def create_case(self, name):
+        return Case.objects.get(
+            application=self.test_helper.submit_draft(
+                self, self.test_helper.create_draft_with_good_end_user_and_site(
+                    name,
+                    self.test_helper.organisation)))
+
     def create_case_note(self, case: Case, text: str):
         case_note = CaseNote(case=case,
                              text=text,
