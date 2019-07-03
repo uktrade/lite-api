@@ -1,9 +1,6 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case, CaseAssignment
 from cases.serializers import CaseSerializer
-from gov_users.models import GovUser
 from content_strings.strings import get_string
 from queues.models import Queue
 from teams.models import Team
