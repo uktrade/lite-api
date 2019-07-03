@@ -35,7 +35,7 @@ class ApplicationsTests(APITestCase, URLPatternsTestCase):
 
         url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SiteOnApplication.objects.count(), 2)
         application = Application.objects.get()

@@ -24,7 +24,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': self.test_helper.user.email,
             'password': self.test_helper.password
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_empty(self):
@@ -33,7 +33,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': None,
             'password': None
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_login_incorrect_details(self):
@@ -42,7 +42,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': self.test_helper.user.email,
             'password': 'This is not the password'
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_a_deactivated_user_cannot_log_in(self):
@@ -55,5 +55,5 @@ class UserTests(APITestCase, URLPatternsTestCase):
         user.status = UserStatuses.DEACTIVATED
         user.save()
         url = reverse('users:authenticate')
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
