@@ -5,14 +5,13 @@ from conf.helpers import str_to_bool
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer
 
 
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     is_good_end_product = serializers.BooleanField()
-    organisation = OrganisationViewSerializer()
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = serializers.ChoiceField(choices=GoodStatus.choices)
 
     class Meta:
