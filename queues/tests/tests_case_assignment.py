@@ -119,59 +119,6 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(len(CaseAssignment.objects.all()), 1)
 
-    # def test_updating_set_of_assignments(self):
-    #     url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
-    #     user1 = self.create_gov_user(email='1@1.1', team=self.default_team)
-    #     user2 = self.create_gov_user(email='2@2.2', team=self.default_team)
-    #     user3 = self.gov_user
-    #
-    #     case1 = self.case
-    #     case2 = Case.objects.get(
-    #         application=self.test_helper.submit_draft(
-    #             self, self.test_helper.create_draft_with_good_end_user_and_site(
-    #                 'Example Application',
-    #                 self.test_helper.organisation)))
-    #
-    #     data = {
-    #         'case_assignments': [
-    #             {
-    #                 'case_id': self.case.id,
-    #                 'users': [
-    #                     self.gov_user.id,
-    #                     self.gov_user2.id,
-    #                     self.gov_user3.id
-    #                 ]
-    #             }
-    #         ]
-    #     }
-    #
-    #     self.client.post(url, data, **self.gov_headers)
-    #
-    #     data = {
-    #         'case_assignments': [
-    #             {
-    #                 'case_id': self.case.id,
-    #                 'users': [
-    #                     self.gov_user.id
-    #                 ]
-    #             },
-    #             {
-    #                 'case_id': self.case2.id,
-    #                 'users': [
-    #                     self.gov_user.id,
-    #                     self.gov_user2.id,
-    #                     self.gov_user3.id
-    #                 ]
-    #             }
-    #         ]
-    #     }
-    #
-    #     response = self.client.put(url, data, **self.gov_headers)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(CaseAssignment.objects.filter(user=user1)), 2)
-    #     self.assertEqual(len(CaseAssignment.objects.filter(case=case2)), 3)
-    #     self.assertEqual(len(CaseAssignment.objects.filter(case=case1, user=user2)), 0)
-
     def test_empty_set_clears_assignments(self):
         case_assignment = CaseAssignment(queue=self.default_queue, case=self.case)
         case_assignment.users.set([self.gov_user])
@@ -187,3 +134,41 @@ class CaseAssignmentTests(DataTestClient):
         }
         self.client.put(self.url, data, **self.gov_headers)
         self.assertEqual(len(CaseAssignment.objects.get().users.values_list('id')), 0)
+
+    def test_can_see_lists_of_users_assigned_to_each_case(self):
+        data = {
+            'case_assignments': [
+                {
+                    'case_id': self.case.id,
+                    'users': [
+                        self.gov_user.id,
+                        self.gov_user2.id,
+                        self.gov_user3.id
+                    ]
+                },
+                {
+                    'case_id': self.case2.id,
+                    'users': [
+                        self.gov_user.id,
+                        self.gov_user2.id
+                    ]
+                }
+            ]
+        }
+
+        url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
+        self.client.put(url, data, **self.gov_headers)
+        response = self.client.get(url, **self.gov_headers)
+        case_assignments_response_data = json.loads(response.content)['case_assignments']
+        i = 0
+        for case_assignment in case_assignments_response_data:
+            print(case_assignment['case'])
+            if case_assignment['case'] == str(self.case.id):
+                i += 1
+                self.assertEqual(len(case_assignment['users']), 3)
+            if case_assignment['case'] == str(self.case2.id):
+                i += 1
+                self.assertEqual(len(case_assignment['users']), 2)
+
+        # Checks both cases have been checked
+        self.assertEqual(i, 2)
