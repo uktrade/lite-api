@@ -17,6 +17,12 @@ class GovUser(models.Model):
     email = models.EmailField(default=None, blank=False, unique=True)
     team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
 
+    def unassign_from_cases(self):
+        """
+        Remove user from all cases
+        """
+        self.case_assignments.clear()
+
 
 class GovUserRevisionMeta(models.Model):
     revision = models.OneToOneField(Revision, on_delete=models.CASCADE)

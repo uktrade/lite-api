@@ -25,7 +25,7 @@ class GovUserDeactivateTests(DataTestClient):
         url = reverse('gov_users:gov_user', kwargs={'pk': self.valid_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual((GovUser.objects.get(id=self.valid_user.id).status), GovUserStatuses.DEACTIVATED)
+        self.assertEqual(GovUser.objects.get(id=self.valid_user.id).status, GovUserStatuses.DEACTIVATED)
 
     def test_cannot_deactivate_self(self):
         data = {

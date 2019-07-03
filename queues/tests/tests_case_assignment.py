@@ -4,7 +4,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case, CaseAssignment
-from queues.callbacks import Callbacks
 from queues.models import Queue
 from teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -181,9 +180,28 @@ class CaseAssignmentTests(DataTestClient):
         case_assignment = CaseAssignment(queue=self.default_queue, case=self.case)
         case_assignment.users.set([self.gov_user])
         case_assignment.save()
-        case_assignment = CaseAssignment(queue=self.default_queue, case=self.case2)
-        case_assignment.users.set([self.gov_user, self.gov_user2])
-        case_assignment.save()
-        case_assignment = CaseAssignment(queue=self.default_queue, case=self.case3)
-        case_assignment.users.set([self.gov_user2])
-        
+
+        case_assignment2 = CaseAssignment(queue=self.default_queue, case=self.case2)
+        case_assignment2.users.set([self.gov_user, self.gov_user2])
+        case_assignment2.save()
+
+        case_assignment3 = CaseAssignment(queue=self.default_queue, case=self.case3)
+        case_assignment3.users.set([self.gov_user2])
+        case_assignment3.save()
+
+        self.assertEqual(len(case_assignment.users.values_list()), 1)
+        self.assertEqual(len(case_assignment2.users.values_list()), 2)
+        self.assertEqual(len(case_assignment3.users.values_list()), 1)
+
+        # Deactivate initial gov user
+        data = {
+            'status': 'Deactivated'
+        }
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
+        self.client.put(url, data, **self.gov_headers)
+
+        # Ensure that the deactivated user has been removed from all cases
+        self.assertEqual(len(self.gov_user.case_assignments.values_list()), 0)
+        self.assertEqual(len(case_assignment.users.values_list()), 0)
+        self.assertEqual(len(case_assignment2.users.values_list()), 1)
+        self.assertEqual(len(case_assignment3.users.values_list()), 1)
