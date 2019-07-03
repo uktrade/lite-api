@@ -45,6 +45,7 @@ class AddressCountrylessSerializer(serializers.ModelSerializer):
     city = serializers.CharField()
     region = serializers.CharField()
     # TODO: Add country primary key back
+    # This was removed as Django seemingly has issues deserializing it
     country = serializers.CharField(allow_blank=False, allow_null=False)
 
     class Meta:
