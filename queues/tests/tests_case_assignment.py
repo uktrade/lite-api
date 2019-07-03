@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case, CaseAssignment
+from queues.callbacks import Callbacks
 from queues.models import Queue
 from teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -24,6 +25,11 @@ class CaseAssignmentTests(DataTestClient):
         # Cases
         self.case = Case.objects.get(application=self.application)
         self.case2 = Case.objects.get(
+            application=self.test_helper.submit_draft(
+                self, self.test_helper.create_draft_with_good_end_user_and_site(
+                    'Example Application',
+                    self.test_helper.organisation)))
+        self.case3 = Case.objects.get(
             application=self.test_helper.submit_draft(
                 self, self.test_helper.create_draft_with_good_end_user_and_site(
                     'Example Application',
@@ -161,7 +167,6 @@ class CaseAssignmentTests(DataTestClient):
         case_assignments_response_data = json.loads(response.content)['case_assignments']
         i = 0
         for case_assignment in case_assignments_response_data:
-            print(case_assignment['case'])
             if case_assignment['case'] == str(self.case.id):
                 i += 1
                 self.assertEqual(len(case_assignment['users']), 3)
@@ -171,3 +176,14 @@ class CaseAssignmentTests(DataTestClient):
 
         # Checks both cases have been checked
         self.assertEqual(i, 2)
+
+    def test_deactivated_user_is_removed_from_assignments(self):
+        case_assignment = CaseAssignment(queue=self.default_queue, case=self.case)
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        case_assignment = CaseAssignment(queue=self.default_queue, case=self.case2)
+        case_assignment.users.set([self.gov_user, self.gov_user2])
+        case_assignment.save()
+        case_assignment = CaseAssignment(queue=self.default_queue, case=self.case3)
+        case_assignment.users.set([self.gov_user2])
+        
