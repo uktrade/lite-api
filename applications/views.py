@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
+from case_types.models import CaseType
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
@@ -145,7 +146,8 @@ class ApplicationList(APIView):
             draft.delete()
 
             # Create a case
-            case = Case(application=application)
+            application_case_type = CaseType.objects.get(pk='0ec51727-2acf-4459-b568-93a906d84008')
+            case = Case(application=application, case_type=application_case_type)
             case.save()
 
             # Add said case to default queue

@@ -3,12 +3,15 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.models import Case
 from conf.authentication import PkAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from goods.models import Good
 from goods.serializers import GoodSerializer
+from clc_queries.models import ClcQuery
 from organisations.libraries.get_organisation import get_organisation_by_user
+from queues.models import Queue
 
 
 class GoodList(APIView):
@@ -35,6 +38,20 @@ class GoodList(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            if data['is_good_controlled'] == 'unsure':
+                # automatically raise a CLC query case
+                clc_query = ClcQuery(details=data['description'], good=good)
+                clc_query.save()
+
+                # Create a case
+                case = Case(clc_query=clc_query, case_type='clc query')
+                case.save()
+
+                # Add said case to default queue
+                queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
+                queue.cases.add(case)
+                queue.save()
+
             return JsonResponse(data={'good': serializer.data},
                                 status=status.HTTP_201_CREATED)
 

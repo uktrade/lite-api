@@ -3,7 +3,9 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote
+from clc_queries.serializers import ClcQuerySerializer
 from gov_users.models import GovUser
+from case_types.serializers import CaseTypeSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -11,10 +13,16 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     application = ApplicationBaseSerializer(read_only=True)
+    is_clc = serializers.SerializerMethodField()
+    clc_query = ClcQuerySerializer(read_only=True)
+    case_type = CaseTypeSerializer(read_only=True)
+
+    def get_is_clc(self, obj):
+        return obj.case_type.name == 'CLC query'
 
     class Meta:
         model = Case
-        fields = ('id', 'application')
+        fields = ('id', 'application', 'is_clc', 'clc_query', 'case_type')
 
 
 class CaseDetailSerializer(CaseSerializer):

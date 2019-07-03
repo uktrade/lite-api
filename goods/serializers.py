@@ -2,16 +2,17 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.helpers import str_to_bool
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
+from organisations.serializers import OrganisationViewSerializer
 
 
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
-    is_good_controlled = serializers.BooleanField()
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     is_good_end_product = serializers.BooleanField()
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    organisation = OrganisationViewSerializer()
     status = serializers.ChoiceField(choices=GoodStatus.choices)
 
     class Meta:
@@ -29,6 +30,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
+        # import pdb; pdb.set_trace()
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
             self.fields['control_code'] = serializers.CharField(required=True)
