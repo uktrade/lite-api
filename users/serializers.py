@@ -1,5 +1,4 @@
 from django.contrib.auth.hashers import make_password
-from enumchoicefield import EnumChoiceField
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
@@ -44,7 +43,7 @@ class UserUpdateSerializer(UserSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     password = serializers.CharField(write_only=True)
-    status = EnumChoiceField(enum_class=UserStatuses)
+    status = serializers.ChoiceField(choices=UserStatuses.choices)
 
     def update(self, instance, validated_data):
         """

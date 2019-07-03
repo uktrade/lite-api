@@ -1,12 +1,16 @@
 from rest_framework import serializers
 
 from cases.serializers import CaseSerializer
+from content_strings.strings import get_string
 from queues.models import Queue
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
 class QueueSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(error_messages={
+        'blank': get_string('queues.blank_name'),
+    })
     cases = CaseSerializer(many=True, read_only=True, required=False)
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 
@@ -16,11 +20,6 @@ class QueueSerializer(serializers.ModelSerializer):
                   'name',
                   'team',
                   'cases',)
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.save()
-        return instance
 
 
 class QueueViewSerializer(QueueSerializer):

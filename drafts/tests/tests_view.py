@@ -29,7 +29,7 @@ class DraftTests(DataTestClient):
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
-        response = self.client.get(url, format='json', **self.headers)
+        response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_view_incorrect_draft(self):

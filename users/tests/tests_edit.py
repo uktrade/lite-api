@@ -36,7 +36,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         response_data = json.loads(response.content)
 
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
@@ -50,7 +50,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': 'some@thing.com',
             'password': '1234'
         }
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_a_user_some_fields(self):
@@ -66,7 +66,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         response_data = json.loads(response.content)
 
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)

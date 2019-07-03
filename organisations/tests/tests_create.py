@@ -4,7 +4,6 @@ import uuid
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient
 from reversion.models import Version
 
 from organisations.models import Organisation, Site
@@ -30,7 +29,7 @@ class OrganisationCreateTests(DataTestClient):
         self.site_name = "Headquarters"
 
         # Address details
-        self.country = "England"
+        self.country = 'GB'
         self.address_line_1 = "42 Industrial Estate"
         self.address_line_2 = "Queens Road"
         self.region = "Hertfordshire"
@@ -68,7 +67,7 @@ class OrganisationCreateTests(DataTestClient):
                 'password': self.password
             },
         }
-        response = self.client.post(url, data, format='json', **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         Organisation.objects.get(name='Org1').delete()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
@@ -127,5 +126,5 @@ class OrganisationCreateTests(DataTestClient):
                 'password': None,
             },
         }
-        response = self.client.post(url, data, format='json', **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

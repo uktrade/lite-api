@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.models import Application, GoodOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
-from static.units.units import Units
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -35,5 +35,5 @@ class ApplicationsTests(DataTestClient):
 
         url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -3,7 +3,7 @@ import json
 from reversion.models import Revision, Version
 
 from cases.models import CaseNote
-from gov_users.models import GovUserRevisionMeta, GovUser
+from gov_users.models import GovUserRevisionMeta
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
