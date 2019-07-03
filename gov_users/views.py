@@ -70,7 +70,13 @@ class GovUserList(APIView):
         """
         Fetches all government users
         """
-        gov_users = GovUser.objects.all().order_by('email')
+        teams = request.GET.get('teams', None)
+
+        if teams:
+            gov_users = GovUser.objects.filter(team__id__in=teams.split(',')).order_by('email')
+        else:
+            gov_users = GovUser.objects.all().order_by('email')
+
         serializer = GovUserSerializer(gov_users, many=True)
         return JsonResponse(data={'gov_users': serializer.data})
 
@@ -136,8 +142,13 @@ class GovUserDetail(APIView):
             serializer = GovUserSerializer(gov_user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+
+                # Remove user from assigned cases
+                if gov_user.status == GovUserStatuses.DEACTIVATED:
+                    gov_user.unassign_from_cases()
+
                 return JsonResponse(data={'gov_user': serializer.data},
                                     status=status.HTTP_200_OK)
-            print(serializer.errors)
+
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)

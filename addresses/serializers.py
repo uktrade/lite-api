@@ -34,7 +34,7 @@ class AddressSerializer(serializers.ModelSerializer):
         instance.postcode = validated_data.get('postcode', instance.postcode)
         instance.city = validated_data.get('city', instance.city)
         instance.region = validated_data.get('region', instance.region)
-        instance.country = validated_data.get('country', instance.country)
+        # instance.country = validated_data.get('country', instance.country)
         instance.save()
         return instance
 
@@ -45,7 +45,7 @@ class AddressCountrylessSerializer(serializers.ModelSerializer):
     city = serializers.CharField()
     region = serializers.CharField()
     # TODO: Add country primary key back
-    # country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    # This was removed as Django seemingly has issues deserializing it
     country = serializers.CharField(allow_blank=False, allow_null=False)
 
     class Meta:

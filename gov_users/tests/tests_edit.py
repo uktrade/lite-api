@@ -28,7 +28,7 @@ class GovUserEditTests(DataTestClient):
         }
 
         url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
-        response = self.client.put(url, data, format='json', **self.gov_headers)
+        response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
 
@@ -44,6 +44,6 @@ class GovUserEditTests(DataTestClient):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 

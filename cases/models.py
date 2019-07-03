@@ -28,3 +28,10 @@ class CaseNote(models.Model):
     user = models.ForeignKey(GovUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
+
+
+class CaseAssignment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    users = models.ManyToManyField(GovUser, related_name='case_assignments')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)

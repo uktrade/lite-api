@@ -95,6 +95,13 @@ class DataTestClient(BaseTestClient):
         }
         self.client.post(url, data, **self.headers)
 
+    def create_case(self, name):
+        return Case.objects.get(
+            application=self.test_helper.submit_draft(
+                self, self.test_helper.create_draft_with_good_end_user_and_site(
+                    name,
+                    self.test_helper.organisation)))
+
     def create_case_note(self, case: Case, text: str):
         case_note = CaseNote(case=case,
                              text=text,
@@ -107,6 +114,17 @@ class DataTestClient(BaseTestClient):
                       team=team)
         queue.save()
         return queue
+
+    def create_gov_user(self, email: str, team: Team):
+        gov_user = GovUser(email=email,
+                           team=team)
+        gov_user.save()
+        return gov_user
+
+    def create_team(self, name: str):
+        team = Team(name=name)
+        team.save()
+        return team
 
     def submit_draft(self, draft: Draft):
         draft_id = draft.id

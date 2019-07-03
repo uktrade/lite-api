@@ -19,7 +19,7 @@ class UserTests(DataTestClient):
             'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_deactivate_self(self):
@@ -27,7 +27,7 @@ class UserTests(DataTestClient):
             'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': self.test_helper.user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_deactivate_and_reactivate_a_user(self):
@@ -37,21 +37,21 @@ class UserTests(DataTestClient):
             'email': user.email,
             'password': 'password'
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = {
             'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': user.id})
-        self.client.put(url, data, format='json', **self.headers)
+        self.client.put(url, data, **self.headers)
         data = {
             'status': UserStatuses.ACTIVE
         }
-        self.client.put(url, data, format='json', **self.headers)
+        self.client.put(url, data, **self.headers)
         url = reverse('users:authenticate')
         data = {
             'email': user.email,
             'password': 'password'
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

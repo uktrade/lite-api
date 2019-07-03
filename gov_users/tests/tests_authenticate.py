@@ -27,7 +27,7 @@ class GovUserAuthenticateTests(DataTestClient):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name
         }
-        response = self.client.post(self.url, data, format='json')
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         headers = {'HTTP_GOV_USER_TOKEN': response_data['token']}
@@ -39,14 +39,14 @@ class GovUserAuthenticateTests(DataTestClient):
         data = {
             'email': None,
         }
-        response = self.client.post(self.url, data, format='json')
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_login_incorrect_details(self):
         data = {
             'email': 'something@random.com',
         }
-        response = self.client.post(self.url, data, format='json')
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_a_deactivated_user_cannot_log_in(self):
@@ -57,7 +57,7 @@ class GovUserAuthenticateTests(DataTestClient):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name
         }
-        response = self.client.post(self.url, data, format='json')
+        response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @parameterized.expand([

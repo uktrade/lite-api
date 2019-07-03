@@ -39,7 +39,7 @@ class SiteViewTests(DataTestClient):
         }
 
         pk = self.test_helper.primary_site.id
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(Site.objects.get(pk=pk).address.address_line_1, '42 Industrial Estate')
         self.assertEqual(Site.objects.get(pk=pk).name, 'regional site')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -54,7 +54,7 @@ class SiteViewTests(DataTestClient):
                 }
 
         id = self.test_helper.primary_site.id
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
         self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
         self.assertEqual(Site.objects.get(id=id).name, 'regional site')
@@ -70,7 +70,7 @@ class SiteViewTests(DataTestClient):
                     'region': 'Hertfordshire',
                     'country': 'GB'},}
 
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
 
@@ -109,7 +109,7 @@ class OrgSiteViewTests(DataTestClient):
                     'region': 'Hertfordshire',
                     'country': 'GB'}, }
 
-        response = self.client.post(url, data, format='json', **self.gov_headers)
+        response = self.client.post(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
 
@@ -127,7 +127,7 @@ class OrgSiteViewTests(DataTestClient):
                 }
 
         id = self.test_helper.primary_site.id
-        response = self.client.put(url, data, format='json', **self.gov_headers)
+        response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
         self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
         self.assertEqual(Site.objects.get(id=id).name, 'regional site')
