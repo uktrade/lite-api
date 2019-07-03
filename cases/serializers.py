@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
-from cases.models import Case, CaseNote
+from cases.models import Case, CaseNote, CaseAssignment
 from content_strings.strings import get_string
 from gov_users.models import GovUser
 from queues.models import Queue
@@ -44,3 +44,9 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
         fields = ('id', 'text', 'case', 'user', 'created_at')
+
+
+class CaseAssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseAssignment
+        fields = ('case', 'users')

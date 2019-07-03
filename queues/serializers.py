@@ -34,13 +34,3 @@ class QueueViewSerializer(QueueSerializer):
                   'name',
                   'team',
                   'cases',)
-
-
-class CaseAssignmentSerializer(serializers.ModelSerializer):
-    case = PrimaryKeyRelatedField(many=False, queryset=Case.objects.all())
-    user = PrimaryKeyRelatedField(many=False, queryset=GovUser.objects.all())
-    queue = PrimaryKeyRelatedField(many=False, queryset=Queue.objects.all())
-
-    class Meta:
-        model = CaseAssignment
-        fields = ('id', 'case', 'queue', 'user')

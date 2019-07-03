@@ -7,9 +7,10 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
+from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.libraries.get_queue import get_queue
+from queues.helpers import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
 
@@ -63,12 +64,23 @@ class QueueDetail(APIView):
 
 
 class CaseAssignments(APIView):
-    """
-    Update users to case assignments on a queue
-    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get all case assignments for that queue
+        """
+        queue = get_queue(pk)
+
+        case_assignments = CaseAssignment.objects.filter(queue=queue)
+        serializer = CaseAssignmentSerializer(case_assignments, many=True)
+        return JsonResponse(data={'case_assignments': serializer.data})
 
     @transaction.atomic
     def put(self, request, pk):
+        """
+        Assign users to cases on that queue
+        """
         queue = get_queue(pk)
         data = request.data
 
@@ -79,9 +91,10 @@ class CaseAssignments(APIView):
             # Delete existing case assignments
             CaseAssignment.objects.filter(case=case, queue=queue).delete()
 
-            case_assignment = CaseAssignment(case=case,
-                                             queue=queue)
+            # Create a new case assignment object between that case and those users
+            case_assignment = CaseAssignment(case=case, queue=queue)
             case_assignment.users.set(users)
             case_assignment.save()
 
-        return JsonResponse(data={'case_assignments': 'empty for now :)'}, status=status.HTTP_200_OK, safe=False)
+        # Return the newly set case assignments
+        return self.get(request, pk)
