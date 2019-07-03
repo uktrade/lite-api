@@ -7,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from cases.models import CaseAssignment
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
