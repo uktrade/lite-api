@@ -7,6 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
+from cases.models import CaseAssignment
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
@@ -142,6 +143,11 @@ class GovUserDetail(APIView):
             serializer = GovUserSerializer(gov_user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+
+                # Remove user from assigned cases
+                if gov_user.status == GovUserStatuses.DEACTIVATED:
+                    gov_user.unassign_from_cases()
+
                 return JsonResponse(data={'gov_user': serializer.data},
                                     status=status.HTTP_200_OK)
 
