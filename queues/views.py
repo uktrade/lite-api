@@ -53,6 +53,7 @@ class QueueDetail(APIView):
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
+    @swagger_auto_schema(request_body=QueueSerializer)
     def put(self, request, pk):
         queue = get_queue(pk)
         data = request.data.copy()
