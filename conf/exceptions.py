@@ -36,6 +36,7 @@ class NotFoundError(APIException):
     default_code = 'invalid'
 
     def __init__(self, detail=None, code=None):
+        super(NotFoundError, self).__init__()
         if detail is None:
             detail = self.default_detail
         if code is None:
