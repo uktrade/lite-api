@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.models import Application
+from documents.models import Document
 from gov_users.models import GovUser
 from queues.models import Queue
 
@@ -35,3 +36,8 @@ class CaseAssignment(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+
+
+class CaseDocument(Document):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

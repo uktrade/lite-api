@@ -1,6 +1,5 @@
-from django.http import Http404
-
 from cases.models import Case
+from conf.exceptions import NotFoundError
 
 
 def get_case(pk):
@@ -10,4 +9,4 @@ def get_case(pk):
     try:
         return Case.objects.get(pk=pk)
     except Case.DoesNotExist:
-        raise Http404
+        raise NotFoundError({'case': 'Queue not found'})
