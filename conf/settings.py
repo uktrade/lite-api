@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'content_strings.apps.ContentStringsConfig',
     'goodstype',
     'flags.apps.FlagsConfig',
+    'documents.apps.DocumentsConfig'
 ]
 
 MIDDLEWARE = [
