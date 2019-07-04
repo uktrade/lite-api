@@ -9,8 +9,8 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.models import CaseAssignment
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
+from cases.models import CaseAssignment, CaseDocument
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentSerializer
 from conf.authentication import GovAuthentication
 
 
@@ -84,7 +84,7 @@ class CaseNoteList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class ActivityList(APIView):
+class CaseActivity(APIView):
     authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case:
@@ -126,3 +126,31 @@ class ActivityList(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
+
+
+class CaseDocuments(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns a list of documents on the specified case
+        """
+        case = get_case(pk)
+        case_documents = CaseDocument.objects.filter(case=case)
+        serializer = CaseDocumentSerializer(case_documents, many=True)
+
+        return JsonResponse({'documents': serializer.data})
+
+    def post(self, request, pk):
+        """
+        Adds a document to the specified case
+        """
+        case = get_case(pk)
+        data = request.POST.copy()
+        data['case'] = str(case.id)
+
+        serializer = CaseDocumentSerializer(data=data)
+        if serializer.is_valid():
+            return JsonResponse({'document': serializer.data})
+
+        return JsonResponse({'errors': serializer.errors})
