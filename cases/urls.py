@@ -12,4 +12,6 @@ urlpatterns = [
     path('<uuid:pk>/activity/', views.CaseActivity.as_view(), name='activity'),
     # ex: /cases/<uuid:pk>/documents/
     path('<uuid:pk>/documents/', views.CaseDocuments.as_view(), name='documents'),
+    # ex: /cases/<uuid:pk>/documents/<uuid:file_pk>/
+    path('<uuid:pk>/documents/<uuid:file_pk>/', views.CaseDocumentDetail.as_view(), name='document'),
 ]

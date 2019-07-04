@@ -17,12 +17,11 @@ env = Env(
     LOG_LEVEL=(str, 'INFO'),
 )
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9' # noqa
+SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'  # noqa
 
 DEBUG = env('DEBUG')
 
@@ -134,6 +133,7 @@ else:
         'default': env.db()
     }
 
+S3_DOWNLOAD_LINK_EXPIREY_SECONDS = 180
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -155,7 +155,8 @@ if 'test' not in sys.argv:
         'formatters': {
             'json': {
                 'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
-                'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)', # noqa
+                'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)',
+                # noqa
             },
         },
         'handlers': {
