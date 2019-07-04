@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.helpers import str_to_bool
+from clc_queries.models import ClcQuery
+from clc_queries.enums import ClcQueryStatus
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
@@ -10,9 +11,12 @@ from organisations.models import Organisation
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
+    control_code = serializers.CharField(required=False, default="", allow_blank=True)
     is_good_end_product = serializers.BooleanField()
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = serializers.ChoiceField(choices=GoodStatus.choices)
+    not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
+
 
     class Meta:
         model = Good
@@ -24,15 +28,27 @@ class GoodSerializer(serializers.ModelSerializer):
                   'part_number',
                   'organisation',
                   'status',
+                  'not_sure_details_details',
                   )
 
-    def __init__(self, *args, **kwargs):
-        super(GoodSerializer, self).__init__(*args, **kwargs)
+    def validate(self, cleaned_data):
+        is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES
+        if is_controlled_good and not cleaned_data.get('control_code'):
+            raise serializers.ValidationError('Control Code must be set when good is controlled')
 
-        # import pdb; pdb.set_trace()
-        # Only validate the control code if the good is controlled
-        if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
-            self.fields['control_code'] = serializers.CharField(required=True)
+        is_controlled_unsure = cleaned_data.get('is_good_controlled') == GoodControlled.UNSURE
+        if is_controlled_unsure and not cleaned_data.get('not_sure_details_details'):
+            raise serializers.ValidationError('If you are unsure whether your good is controlled you must'
+                                              ' enter a description of your goods')
+        return cleaned_data
+
+    def create(self, validated_data):
+        not_sure_details_details = validated_data.pop('not_sure_details_details')
+
+        good = super(GoodSerializer, self).create(validated_data)
+        if not not_sure_details_details:
+            ClcQuery.objects.create(good=good, details=not_sure_details_details, status=ClcQueryStatus.SUBMITTED)
+        return good
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get('description', instance.description)

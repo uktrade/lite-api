@@ -31,13 +31,13 @@ class GoodList(APIView):
 
     def post(self, request):
         organisation = get_organisation_by_user(request.user)
-
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
         data['status'] = GoodStatus.DRAFT
-        if data['not_sure_details_control_code'] is not None:
-            data['control_code'] = data['not_sure_details_control_code']
+        # if data['not_sure_details_control_code'] is not None:
+        #     data['control_code'] = data['not_sure_details_control_code']
         serializer = GoodSerializer(data=data)
+
         if serializer.is_valid():
             good = serializer.save()
             if data['is_good_controlled'] == 'unsure':

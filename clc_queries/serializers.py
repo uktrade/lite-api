@@ -7,6 +7,7 @@ from goods.serializers import GoodSerializer
 
 class ClcQuerySerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
+    organisation_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ClcQuery
@@ -14,4 +15,8 @@ class ClcQuerySerializer(serializers.ModelSerializer):
             'id',
             'details',
             'good',
-            'status')
+            'status',
+            'organisation_name')
+
+    def get_organisation_name(self, instance):
+        return instance.good.organisation.name
