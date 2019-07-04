@@ -59,4 +59,4 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
 class CaseDocumentSerializer(DocumentSerializer):
     class Meta:
         model = CaseDocument
-        fields = 'case'
+        fields = ('name', 'case')

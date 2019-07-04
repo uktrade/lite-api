@@ -16,6 +16,7 @@ python-json-logger = "==0.1.11"
 parameterized = "*"
 drf-yasg = "*"
 prospector = "==1.1.6.2"
+boto3 = "*"
 
 [requires]
 python_version = "3.7"

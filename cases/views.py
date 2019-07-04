@@ -146,11 +146,26 @@ class CaseDocuments(APIView):
         Adds a document to the specified case
         """
         case = get_case(pk)
-        data = request.POST.copy()
+        data = request.data
         data['case'] = str(case.id)
+
+        print(data)
 
         serializer = CaseDocumentSerializer(data=data)
         if serializer.is_valid():
             return JsonResponse({'document': serializer.data})
 
         return JsonResponse({'errors': serializer.errors})
+
+
+class CaseDocumentDetail(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk, file_pk):
+        """
+        Returns a list of documents on the specified case
+        """
+        case = get_case(pk)
+        case_document = CaseDocument.objects.filter(case=case, name=file_pk)
+
+        return JsonResponse({'document': case_document.download_url()})
