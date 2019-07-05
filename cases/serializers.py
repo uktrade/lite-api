@@ -1,10 +1,9 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from content_strings.strings import get_string
-from documents.serializers import DocumentSerializer
+# from documents.serializers import DocumentSerializer
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
@@ -22,7 +21,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
 
 class CaseDetailSerializer(CaseSerializer):
-    queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
 
     class Meta:
         model = Case
@@ -39,8 +38,8 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     Serializes case notes
     """
     text = serializers.CharField(min_length=2, max_length=2200)
-    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedField(queryset=GovUser.objects.all())
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
@@ -56,7 +55,24 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         fields = ('case', 'users')
 
 
-class CaseDocumentSerializer(DocumentSerializer):
+class CaseDocumentCreateSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
+
     class Meta:
         model = CaseDocument
-        fields = ('name', 'case')
+        fields = ('name', 'user', 'size', 'case')
+
+
+class CaseDocumentViewSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(read_only=True)
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = GovUserSimpleSerializer()
+    # download_url = serializers.SerializerMethodField()
+    #
+    # def get_download_url(self, instance):
+    #     return instance.download_url()
+
+    class Meta:
+        model = CaseDocument
+        fields = ('name', 'user', 'size', 'case', 'created_at', 'download_url')

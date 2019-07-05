@@ -10,7 +10,8 @@ from cases.libraries.activity_helpers import convert_audit_to_activity, convert_
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentSerializer
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
+    CaseDocumentViewSerializer
 from conf.authentication import GovAuthentication
 
 
@@ -137,23 +138,27 @@ class CaseDocuments(APIView):
         """
         case = get_case(pk)
         case_documents = CaseDocument.objects.filter(case=case)
-        serializer = CaseDocumentSerializer(case_documents, many=True)
+        serializer = CaseDocumentViewSerializer(case_documents, many=True)
 
         return JsonResponse({'documents': serializer.data})
 
+    @transaction.atomic()
     def post(self, request, pk):
         """
         Adds a document to the specified case
         """
         case = get_case(pk)
+        case_id = str(case.id)
         data = request.data
-        data['case'] = str(case.id)
 
-        print(data)
+        for document in data:
+            document['case'] = case_id
+            document['user'] = request.user.id
 
-        serializer = CaseDocumentSerializer(data=data)
+        serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
-            return JsonResponse({'document': serializer.data})
+            serializer.save()
+            return JsonResponse({'documents': serializer.data})
 
         return JsonResponse({'errors': serializer.errors})
 
