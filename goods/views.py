@@ -44,7 +44,8 @@ class GoodList(APIView):
                 good = serializer.save()
                 if data['is_good_controlled'] == 'unsure':
                     # automatically raise a CLC query case
-                    clc_query = ClcQuery(details=data['description'], good=good)
+                    print(data)
+                    clc_query = ClcQuery(details=data['not_sure_details_details'], good=good)
                     clc_query.save()
 
                     # Create a case

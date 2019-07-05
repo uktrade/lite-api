@@ -40,8 +40,7 @@ class GoodSerializer(serializers.ModelSerializer):
 
         is_controlled_unsure = cleaned_data.get('is_good_controlled') == GoodControlled.UNSURE
         if is_controlled_unsure and not cleaned_data.get('not_sure_details_details'):
-            raise serializers.ValidationError('If you are unsure whether your good is controlled you must'
-                                              ' enter a description of your goods')
+            raise serializers.ValidationError('Please enter details of why you don\'t know if your good is controlled')
         return cleaned_data
 
     def create(self, validated_data):
