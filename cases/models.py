@@ -40,6 +40,7 @@ class CaseAssignment(models.Model):
 class CaseDocument(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False, blank=False, default=None)
+    s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
     size = models.IntegerField(null=True, blank=True)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

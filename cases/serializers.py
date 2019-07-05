@@ -61,18 +61,14 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 'user', 'size', 'case')
+        fields = ('name', 's3_key', 'user', 'size', 'case')
 
 
 class CaseDocumentViewSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
-    # download_url = serializers.SerializerMethodField()
-    #
-    # def get_download_url(self, instance):
-    #     return instance.download_url()
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 'user', 'size', 'case', 'created_at')
+        fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at')

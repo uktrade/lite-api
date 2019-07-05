@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from reversion.models import Version
 
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
-from cases.libraries.get_case import get_case
+from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
@@ -166,11 +166,11 @@ class CaseDocuments(APIView):
 class CaseDocumentDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
-    def get(self, request, pk, file_pk):
+    def get(self, request, pk, s3_key):
         """
         Returns a list of documents on the specified case
         """
         case = get_case(pk)
-        case_document = CaseDocument.objects.filter(case=case, name=file_pk)
-
-        return JsonResponse({'document': case_document})
+        case_document = get_case_document(case, s3_key)
+        serializer = CaseDocumentViewSerializer(case_document)
+        return JsonResponse({'document': serializer.data})
