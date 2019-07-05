@@ -3,7 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from clc_queries.models import ClcQuery
 from clc_queries.enums import ClcQueryStatus
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus, GoodControlled, GoodAreYouSure
 from goods.models import Good
 from organisations.models import Organisation
 
@@ -30,6 +30,18 @@ class GoodSerializer(serializers.ModelSerializer):
                   'status',
                   'not_sure_details_details',
                   )
+
+    def __init__(self, *args, **kwargs):
+        super(GoodSerializer, self).__init__(*args, **kwargs)
+
+        # Only validate the are you sure if the good is a CLC
+        # if self.get_initial().get('is_good_controlled') == GoodControlled.UNSURE:
+        #     print("HEREREERE")
+        #     self.fields['are_you_sure'] = serializers.ChoiceField(choices=GoodAreYouSure.choices,
+        #                                                           write_only=True,
+        #                                                           required=True,
+        #                                                           allow_blank=False,
+        #                                                           allow_null=False)
 
     def validate(self, cleaned_data):
         is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES

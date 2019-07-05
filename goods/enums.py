@@ -20,3 +20,13 @@ class GoodControlled:
         (NO, 'No'),
         (UNSURE, 'I don\'t know')
     ]
+
+
+class GoodAreYouSure:
+    YES = 'yes'
+    NO = 'no'
+
+    choices = [
+        (YES, 'Yes'),
+        (NO, 'No')
+    ]

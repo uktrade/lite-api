@@ -27,10 +27,13 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = PrimaryKeyRelatedField(many=True, read_only=True)
+    is_clc = serializers.SerializerMethodField()
+    clc_query = ClcQuerySerializer(read_only=True)
+    case_type = CaseTypeSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues')
+        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
