@@ -24,6 +24,7 @@ class Document(models.Model):
         super().delete()
 
     def scan_for_viruses(self):
+        print('BANANA!')
         from documents.av_scan import virus_scan_document
         virus_scan_document(self.id)
         self.refresh_from_db()
