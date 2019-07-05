@@ -75,4 +75,4 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 'user', 'size', 'case', 'created_at', 'download_url')
+        fields = ('name', 'user', 'size', 'case', 'created_at')
