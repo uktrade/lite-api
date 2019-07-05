@@ -173,4 +173,4 @@ class CaseDocumentDetail(APIView):
         case = get_case(pk)
         case_document = CaseDocument.objects.filter(case=case, name=file_pk)
 
-        return JsonResponse({'document': case_document.download_url()})
+        return JsonResponse({'document': case_document})
