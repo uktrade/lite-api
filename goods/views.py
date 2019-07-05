@@ -27,7 +27,7 @@ class GoodList(APIView):
                                     part_number__icontains=part_number).order_by('description')
         serializer = GoodSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},
-                            safe=False)
+                            )
 
     def post(self, request):
         organisation = get_organisation_by_user(request.user)

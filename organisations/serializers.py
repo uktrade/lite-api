@@ -4,36 +4,53 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressSerializer
+from addresses.serializers import AddressCountrylessSerializer, AddressSerializer
+from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import User
+from static.countries.helpers import get_country
+from static.countries.models import Country
 from users.serializers import UserCreateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    address = AddressSerializer(many=False, write_only=True)
+    # TODO: Simplify country process
+    address = AddressCountrylessSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
-        model = User
+        model = Site
         fields = ('id', 'name', 'address', 'organisation')
 
+    @transaction.atomic
     def create(self, validated_data):
         address_data = validated_data.pop('address')
-        address = Address.objects.create(**address_data)
+
+        address_serializer = AddressCountrylessSerializer(data=address_data)
+        with reversion.create_revision():
+            if address_serializer.is_valid():
+                # TODO: Simplify country process
+                data = address_serializer.data
+                country = get_country(data['country'])
+                del data['country']
+                address = Address(**data, country=country)
+                address.save()
+            else:
+                raise serializers.ValidationError(address_serializer.errors)
+
         site = Site.objects.create(address=address, **validated_data)
         return site
 
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
     eori_number = serializers.CharField()
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    user = UserCreateSerializer(many=False, write_only=True)
-    site = SiteCreateSerializer(many=False, write_only=True)
+    user = UserCreateSerializer(write_only=True)
+    site = SiteCreateSerializer(write_only=True)
 
     class Meta:
         model = Organisation
@@ -54,24 +71,28 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         site_data = validated_data.pop('site')
 
         organisation = Organisation.objects.create(**validated_data)
-
         user_data['organisation'] = organisation.id
 
         site_serializer = SiteCreateSerializer(data=site_data)
-        site = None
         with reversion.create_revision():
             if site_serializer.is_valid():
                 site = site_serializer.save()
+            else:
+                raise serializers.ValidationError(site_serializer.errors)
 
         user_serializer = UserCreateSerializer(data=user_data)
         with reversion.create_revision():
             if user_serializer.is_valid():
                 user_serializer.save()
+            else:
+                raise serializers.ValidationError(user_serializer.errors)
 
         organisation.primary_site = site
         organisation.save()
+
         organisation.primary_site.organisation = organisation
         organisation.primary_site.save()
+
         return organisation
 
 
@@ -142,7 +163,8 @@ class SiteUpdateSerializer(OrganisationViewSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.CharField()
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(),
+                                                 error_messages={'null': get_string('address.null_country')})
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:

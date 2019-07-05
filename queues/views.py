@@ -4,8 +4,12 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.get_case import get_case
+from cases.models import CaseAssignment
+from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
-from queues.libraries.get_queue import get_queue
+from gov_users.libraries.get_gov_user import get_gov_user_by_pk
+from queues.helpers import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
 
@@ -47,6 +51,7 @@ class QueueDetail(APIView):
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
+    @swagger_auto_schema(request_body=QueueSerializer)
     def put(self, request, pk):
         queue = get_queue(pk)
         data = request.data.copy()
@@ -56,3 +61,41 @@ class QueueDetail(APIView):
             return JsonResponse(data={'queue': serializer.data})
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class CaseAssignments(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get all case assignments for that queue
+        """
+        queue = get_queue(pk)
+
+        case_assignments = CaseAssignment.objects.filter(queue=queue)
+        serializer = CaseAssignmentSerializer(case_assignments, many=True)
+        return JsonResponse(data={'case_assignments': serializer.data})
+
+    @swagger_auto_schema(request_body=CaseAssignmentSerializer)
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Assign users to cases on that queue
+        """
+        queue = get_queue(pk)
+        data = request.data
+
+        for assignment in data.get('case_assignments'):
+            case = get_case(assignment['case_id'])
+            users = [get_gov_user_by_pk(i) for i in assignment['users']]
+
+            # Delete existing case assignments
+            CaseAssignment.objects.filter(case=case, queue=queue).delete()
+
+            # Create a new case assignment object between that case and those users
+            case_assignment = CaseAssignment(case=case, queue=queue)
+            case_assignment.users.set(users)
+            case_assignment.save()
+
+        # Return the newly set case assignments
+        return self.get(request, pk)

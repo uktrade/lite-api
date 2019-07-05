@@ -1,0 +1,741 @@
+
+<html>
+    <head>
+        <title>LITE API Documentation</title>
+    </head>
+    
+<style media="screen">
+    :root {
+        --background-color: rgb(255, 255, 255);
+        --foreground-color: rgb(20, 20, 20);
+        --accent-color: #0b0c0c;
+        --code-background-color: rgb(240, 240, 240);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --background-color: rgb(20, 20, 30);
+            --foreground-color: rgb(250, 250, 255);
+            --accent-color: #0b0c0c;
+            --code-background-color: rgb(40, 40, 50);
+        }
+    }
+    body {
+        background-color: var(--background-color);
+    }
+    .code {
+        font-family: Menlo, monospaced;
+        background: var(--code-background-color);
+        font-weight: normal;
+        padding: 20px;
+        font-size 0.8rem;
+    }
+    .code-header {
+        font-size: 0.6rem;
+        letter-spacing: 0.4px;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        font-weight: 700;
+        opacity: 0.4;
+    }
+    .highlight {
+        color: rgb(10, 132, 255);
+        font-family: Menlo, monospaced;
+        font-size 0.8rem;
+        font-weight: normal;
+    }
+    .highlight-2 {
+        color: rgb(255, 55, 95);
+    }
+    .highlight-4 {
+        color: rgb(191, 90, 242);
+    }
+    .highlight-3 {
+        color: rgb(255, 204, 0);
+    }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+        -webkit-overflow-scrolling: touch;
+        -webkit-appearance: none;
+        -webkit-font-smoothing: antialiased;
+        color: var(--foreground-color);
+        margin-bottom: 20px;
+        font-size: 19px;
+        line-height: 1.2;
+        font-weight: 600;
+    }
+    h1 {
+        font-weight: 800;
+        font-size: 2rem;
+        max-width: 400px;
+    }
+    h2 {
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 30px;
+    }
+    h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .description {
+        opacity: .7;
+        margin-bottom: 30px;
+    }
+    a {
+        color: #005ea5;
+    }
+    .request {
+    
+    }
+    header {
+        width: 100vw;
+        height: 55px;
+        background-color: #0b0c0c;
+        margin: 0;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 50px 0;
+    }
+    .path {
+        margin-bottom: 60px;
+    }
+    #filter-box {
+        display: block;
+        width: 100%;
+        margin: 40px 0;
+        outline: 0;
+        border: 0;
+        padding: 0;
+        font-size: 1.2rem;
+        background-color: transparent;
+        text-indent: 0px;
+    }
+    ::placeholder {
+        color: var(--foreground-color);
+        opacity: .5;
+    }
+    input[type="search"] {
+        -webkit-appearance: textfield;
+    }
+    input[type="search"]::-webkit-search-decoration {
+        -webkit-appearance: none;
+    }
+</style>
+
+    <body>
+        <div class="container">
+            <h1>LITE API Documentation</h1>
+            <p class='description'>Service for handling backend calls in LITE.</p>
+            <!--<a href="https://github.com/uktrade/lite-api/blob/master/LICENSE" style="display: block;">Terms of service</a>
+            <p>v0.3</p>-->
+
+            <!--<input type="search" name="search" class="govuk-input" name="filter-box" id="filter-box" placeholder="Filter..." autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">-->
+
+            <br>
+            <br>
+
+            
+            <div class="path">
+                <h3>/applications/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/applications/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/audit/{type}/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/cases/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/cases/{id}/activity/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/cases/{id}/case_notes/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>delete</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/end-user/</h3>
+                
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/external_locations</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/goods/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/goods/{good_pk}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/drafts/{id}/sites/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/goods/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/goods/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>delete</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/gov-users/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+        <div class="code">
+        <p class='code-header'>Example</p>
+        {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"email"</span>: "john.smith@mail.com",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"first_name"</span>: "John",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"last_name"</span>: "Smith",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"status"</span>: "status",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"team"</span>: "b3589eeb-0f87-4e99-b942-aa9534911a10"<br> }
+        </div>
+        
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/gov-users/authenticate/</h3>
+                
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/gov-users/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+        <div class="code">
+        <p class='code-header'>Example</p>
+        {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"email"</span>: "john.smith@mail.com",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"first_name"</span>: "John",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"last_name"</span>: "Smith",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"status"</span>: "status",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"team"</span>: "b3589eeb-0f87-4e99-b942-aa9534911a10"<br> }
+        </div>
+        
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+        <div class="code">
+        <p class='code-header'>Example</p>
+        {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"name"</span>: "Lemonworld",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"eori_number"</span>: "eori_number",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"sic_number"</span>: "sic_number",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"vat_number"</span>: "vat_number",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"registration_number"</span>: "registration_number",<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"user"</span>: {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"email"</span>: "john.smith@mail.com",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"first_name"</span>: "John",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"last_name"</span>: "Smith",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"password"</span>: "password",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"organisation"</span>: "b3589eeb-0f87-4e99-b942-aa9534911a10"<br> &nbsp;&nbsp;&nbsp;&nbsp;},<br> &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"site"</span>: {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"name"</span>: "Lemonworld",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"address"</span>: {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"address_line_1"</span>: "22 Holly Mount",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"address_line_2"</span>: "",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"postcode"</span>: "London",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"city"</span>: "NW3 6SG",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"region"</span>: "Greater London",<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-3">"country"</span>: "United Kingdom"<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-2">"organisation"</span>: "b3589eeb-0f87-4e99-b942-aa9534911a10"<br> &nbsp;&nbsp;&nbsp;&nbsp;}<br> }
+        </div>
+        
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/external_locations/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/sites/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/sites/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/{org_pk}/sites/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/organisations/{org_pk}/sites/{site_pk}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/queues/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/queues/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/static/countries/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/static/denial-reasons/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/static/units/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/teams/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+        <div class="code">
+        <p class='code-header'>Example</p>
+        {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"name"</span>: "Lemonworld"<br> }
+        </div>
+        
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/teams/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+        <div class="code">
+        <p class='code-header'>Example</p>
+        {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight highlight-1">"name"</span>: "Lemonworld"<br> }
+        </div>
+        
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/teams/{id}/users/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/users/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/users/authenticate/</h3>
+                
+            <div class="request">
+                <h4>post</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+            <div class="path">
+                <h3>/users/{id}/</h3>
+                
+            <div class="request">
+                <h4>get</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            <div class="request">
+                <h4>put</h4>
+                <p class="description">Service for handling backend calls in LITE.</p>
+                
+            </div>
+        
+            </div>
+            
+        </div>
+    </body>
+</html>

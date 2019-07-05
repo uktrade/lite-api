@@ -34,9 +34,9 @@ class ExternalLocationViewTests(APITestCase, URLPatternsTestCase):
         url = reverse('organisations:external_locations')
         data = {'name': 'regional site',
                 'address': 'A location',
-                'country': 'England'}
+                'country': 'GB'}
 
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
 
@@ -50,6 +50,6 @@ class ExternalLocationViewTests(APITestCase, URLPatternsTestCase):
                 'address': '',
                 'country': ''}
         url = reverse('organisations:external_locations')
-        response = self.client.post(url, data, format='json', **self.headers)
+        response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ExternalLocation.objects.all().count(), 1)

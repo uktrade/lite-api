@@ -3,7 +3,7 @@ from rest_framework import status
 
 from drafts.models import GoodOnDraft
 from goods.models import Good
-from static.units.units import Units
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -33,7 +33,7 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {}
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unsubmitted_good_can_be_edited(self):
@@ -44,7 +44,7 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {'description': 'some great good'}
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.get().description, 'some great good')
 

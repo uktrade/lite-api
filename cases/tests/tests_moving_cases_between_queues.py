@@ -33,7 +33,6 @@ class MoveCasesTests(DataTestClient):
 
     @parameterized.expand([
         # None/Empty Queues
-        [{}],
         [{'queues': None}],
         [{'queues': []}],
         # Invalid Queues

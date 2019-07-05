@@ -35,6 +35,11 @@ class CaseDetailSerializer(CaseSerializer):
         model = Case
         fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
 
+    def validate_queues(self, attrs):
+        if len(attrs) == 0:
+            raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
+        return attrs
+
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
@@ -48,3 +53,11 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
         fields = ('id', 'text', 'case', 'user', 'created_at')
+
+
+class CaseAssignmentSerializer(serializers.ModelSerializer):
+    users = GovUserSimpleSerializer(many=True)
+
+    class Meta:
+        model = CaseAssignment
+        fields = ('case', 'users')

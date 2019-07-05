@@ -25,7 +25,7 @@ class AuthenticateUser(APIView):
         password = data.get('password')
 
         user = get_user_by_email(email)
-        if user.status == UserStatuses.deactivated:
+        if user.status == UserStatuses.DEACTIVATED:
             return JsonResponse(data={},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
@@ -34,8 +34,7 @@ class AuthenticateUser(APIView):
                                 status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = UserViewSerializer(user)
-        return JsonResponse(data={'user': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'user': serializer.data})
 
 
 class UserList(APIView):
@@ -44,7 +43,7 @@ class UserList(APIView):
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
         serializer = UserViewSerializer(User.objects.filter(organisation=organisation), many=True)
-        return JsonResponse(data={'users': serializer.data}, safe=False)
+        return JsonResponse(data={'users': serializer.data})
 
     def post(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -71,8 +70,7 @@ class UserDetail(APIView):
         user = get_user_by_pk(pk)
 
         serializer = UserViewSerializer(user)
-        return JsonResponse(data={'user': serializer.data},
-                            safe=False)
+        return JsonResponse(data={'user': serializer.data})
 
     def put(self, request, pk):
         user = get_user_by_pk(pk)

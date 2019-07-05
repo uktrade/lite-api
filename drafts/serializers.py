@@ -2,13 +2,14 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
-from content_strings.strings import get_string
+from static.units.enums import Units
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
@@ -84,8 +85,13 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    quantity = serializers.DecimalField(max_digits=256, decimal_places=6, error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
-    value = serializers.DecimalField(max_digits=256, decimal_places=2, error_messages={'invalid': get_string('goods.error_messages.invalid_value')})
+    quantity = serializers.DecimalField(max_digits=256, decimal_places=6,
+                                        error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
+    value = serializers.DecimalField(max_digits=256, decimal_places=2,
+                                     error_messages={'invalid': get_string('goods.error_messages.invalid_value')}),
+    unit = serializers.ChoiceField(choices=Units.choices, error_messages={
+        'required': get_string('goods.error_messages.required_unit'),
+        'invalid_choice': get_string('goods.error_messages.required_unit')})
 
     class Meta:
         model = GoodOnDraft

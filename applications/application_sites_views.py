@@ -24,7 +24,7 @@ class ApplicationSites(APIView):
         sites_on_application = SiteOnApplication.objects.filter(application=application)
         serializer = SiteViewSerializer(sites_on_application, many=True)
         return JsonResponse(data={'sites': serializer.data},
-                            safe=False)
+                            )
 
     def post(self, request, pk):
         data = JSONParser().parse(request)

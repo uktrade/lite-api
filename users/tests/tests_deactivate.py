@@ -1,38 +1,33 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
+from users.enums import UserStatuses
 
 
-class UserTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('users/', include('users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
+class UserTests(DataTestClient):
 
     def setUp(self):
+        super().setUp()
         self.test_helper = OrgAndUserHelper(name='name')
         self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
 
     def test_deactivate_a_user(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation)
         data = {
-            'status': 'deactivated'
+            'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_deactivate_self(self):
         data = {
-            'status': 'deactivated'
+            'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': self.test_helper.user.id})
-        response = self.client.put(url, data, format='json', **self.headers)
+        response = self.client.put(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_deactivate_and_reactivate_a_user(self):
@@ -42,21 +37,21 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': user.email,
             'password': 'password'
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = {
-            'status': 'deactivated'
+            'status': UserStatuses.DEACTIVATED
         }
         url = reverse('users:user', kwargs={'pk': user.id})
-        self.client.put(url, data, format='json', **self.headers)
+        self.client.put(url, data, **self.headers)
         data = {
-            'status': 'active'
+            'status': UserStatuses.ACTIVE
         }
-        self.client.put(url, data, format='json', **self.headers)
+        self.client.put(url, data, **self.headers)
         url = reverse('users:authenticate')
         data = {
             'email': user.email,
             'password': 'password'
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

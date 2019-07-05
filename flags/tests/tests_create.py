@@ -1,8 +1,8 @@
 import json
 
 from django.urls import reverse
-from rest_framework import status
 from parameterized import parameterized
+from rest_framework import status
 
 from flags.models import Flag
 from teams.models import Team

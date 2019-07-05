@@ -1,5 +1,6 @@
 constants = []
 
+
 def get_string(value):
     def get(d, keys):
         if "." in keys:

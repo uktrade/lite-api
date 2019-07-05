@@ -6,12 +6,15 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.creators import create_open_licence, create_standard_licence
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from case_types.models import CaseType
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
+from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from goods.enums import GoodStatus
@@ -22,7 +25,6 @@ from queues.models import Queue
 
 
 class ApplicationList(APIView):
-
     authentication_classes = (PkAuthentication,)
 
     def get(self, request):
@@ -34,7 +36,7 @@ class ApplicationList(APIView):
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
         return JsonResponse(data={'applications': serializer.data},
-                            safe=False)
+                            )
 
     @transaction.atomic
     def post(self, request):
@@ -165,6 +167,7 @@ class ApplicationDetail(APIView):
     """
     Retrieve, update or delete a application instance.
     """
+
     def get(self, request, pk):
         """
         Retrieve an application instance.
