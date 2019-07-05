@@ -17,7 +17,6 @@ class GoodSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
 
-
     class Meta:
         model = Good
         fields = ('id',
@@ -33,15 +32,6 @@ class GoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
-
-        # Only validate the are you sure if the good is a CLC
-        # if self.get_initial().get('is_good_controlled') == GoodControlled.UNSURE:
-        #     print("HEREREERE")
-        #     self.fields['are_you_sure'] = serializers.ChoiceField(choices=GoodAreYouSure.choices,
-        #                                                           write_only=True,
-        #                                                           required=True,
-        #                                                           allow_blank=False,
-        #                                                           allow_null=False)
 
     def validate(self, cleaned_data):
         is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES
