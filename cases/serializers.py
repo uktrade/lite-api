@@ -2,9 +2,11 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
-from cases.models import Case, CaseNote
+from cases.models import Case, CaseNote, CaseAssignment
+from content_strings.strings import get_string
 from clc_queries.serializers import ClcQuerySerializer
 from gov_users.models import GovUser
+from gov_users.serializers import GovUserSimpleSerializer
 from case_types.serializers import CaseTypeSerializer
 
 

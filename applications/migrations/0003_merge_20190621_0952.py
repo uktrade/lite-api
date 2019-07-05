@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0002_delete_destination'),
         ('applications', '0002_auto_20190614_1332'),
     ]
 
