@@ -2,11 +2,13 @@ from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
+from conf.settings import ASYNC_DOC_PREPARE
 from content_strings.strings import get_string
 # from documents.serializers import DocumentSerializer
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
+from documents.tasks import prepare_document
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -62,6 +64,13 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseDocument
         fields = ('name', 's3_key', 'user', 'size', 'case')
+
+    def create(self, validated_data):
+        super(CaseDocumentCreateSerializer, self).create(validated_data)
+        # if ASYNC_DOC_PREPARE:
+        prepare_document(validated_data['id'])
+        # elif not ASYNC_DOC_PREPARE and document.safe is None:
+        #     prepare_document.run(document.id, case.id if case else None)
 
 
 class CaseDocumentViewSerializer(serializers.ModelSerializer):

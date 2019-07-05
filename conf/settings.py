@@ -144,6 +144,8 @@ AV_SERVICE_URL = env('AV_SERVICE_URL')
 AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
+ASYNC_DOC_PREPARE = False
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
