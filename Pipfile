@@ -17,6 +17,8 @@ parameterized = "*"
 drf-yasg = "*"
 prospector = "==1.1.6.2"
 boto3 = "*"
+django-pglocks = "*"
+requests-toolbelt = "*"
 
 [requires]
 python_version = "3.7"
