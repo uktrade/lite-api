@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.models import Application
+from documents.models import Document
 from gov_users.models import GovUser
 from queues.models import Queue
 
@@ -37,11 +38,6 @@ class CaseAssignment(models.Model):
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
 
 
-class CaseDocument(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1000, null=False, blank=False, default=None)
-    s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
-    size = models.IntegerField(null=True, blank=True)
+class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
