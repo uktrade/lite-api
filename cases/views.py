@@ -137,7 +137,7 @@ class CaseDocuments(APIView):
         Returns a list of documents on the specified case
         """
         case = get_case(pk)
-        case_documents = CaseDocument.objects.filter(case=case)
+        case_documents = CaseDocument.objects.filter(case=case).order_by('-created_at')
         serializer = CaseDocumentViewSerializer(case_documents, many=True)
 
         return JsonResponse({'documents': serializer.data})
