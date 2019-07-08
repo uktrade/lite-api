@@ -37,7 +37,7 @@ class GoodList(APIView):
         # if data['not_sure_details_control_code'] is not None:
         #     data['control_code'] = data['not_sure_details_control_code']
         serializer = GoodSerializer(data=data)
-        print(data['validate_only'])
+        #print(data['validate_only'])
 
         if serializer.is_valid():
             if not data['validate_only']:
