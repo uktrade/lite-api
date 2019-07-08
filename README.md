@@ -12,6 +12,9 @@ Service for handling backend calls in LITE.
 * First time setup
   * Set up your local config file:
     * `cp docker.env .env`
+  * Initialise submodules
+    * `git submodule init`
+    * `git submodule update`
   * Ensure docker is running
     * Build and start docker images:
     * `docker-compose build` - build the container image
