@@ -34,17 +34,14 @@ class GoodList(APIView):
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
         data['status'] = GoodStatus.DRAFT
-        # if data['not_sure_details_control_code'] is not None:
-        #     data['control_code'] = data['not_sure_details_control_code']
         serializer = GoodSerializer(data=data)
-        print(data['validate_only'])
 
         if serializer.is_valid():
             if not data['validate_only']:
                 good = serializer.save()
+
+                # automatically raise a CLC query case
                 if data['is_good_controlled'] == 'unsure':
-                    # automatically raise a CLC query case
-                    print(data)
                     clc_query = ClcQuery(details=data['not_sure_details_details'], good=good)
                     clc_query.save()
 
