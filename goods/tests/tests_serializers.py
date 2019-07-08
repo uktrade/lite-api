@@ -3,6 +3,8 @@ from rest_framework.test import APITestCase
 from goods.serializers import GoodSerializer
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
+from goods.enums import GoodControlled
+
 
 class OrganisationTests(APITestCase):
 
@@ -19,17 +21,26 @@ class OrganisationTests(APITestCase):
         self.assertIsNotNone(serializer.errors['is_good_end_product'])
 
     def test_serializer_validation_with_controlled(self):
-        data = {'description': '', 'control_code': '', 'is_good_controlled': 'True', 'is_good_end_product': ''}
+        data = {'description': '', 'control_code': '', 'is_good_controlled': GoodControlled.YES, 'is_good_end_product': ''}
         serializer = GoodSerializer(data=data)
         serializer.is_valid()
+
         self.assertIsNotNone(serializer.errors['description'])
         self.assertIsNotNone(serializer.errors['control_code'])
         self.assertIsNotNone(serializer.errors['is_good_end_product'])
 
     def test_serializer_validation_with_decontrolled(self):
-        data = {'description': '', 'control_code': '', 'is_good_controlled': 'False', 'is_good_end_product': ''}
+        data = {'description': '', 'control_code': '', 'is_good_controlled': GoodControlled.NO, 'is_good_end_product': ''}
         serializer = GoodSerializer(data=data)
         serializer.is_valid()
         self.assertIsNotNone(serializer.errors['description'])
         self.assertNotIn('control_code', serializer.errors)
+        self.assertIsNotNone(serializer.errors['is_good_end_product'])
+
+    def test_serializer_validation_with_unsure(self):
+        data = {'description': '', 'control_code': '', 'is_good_controlled': GoodControlled.UNSURE, 'is_good_end_product': ''}
+        serializer = GoodSerializer(data=data)
+        serializer.is_valid()
+        self.assertIsNotNone(serializer.errors['description'])
+        self.assertIsNotNone(serializer.errors['not_sure_details_details'])
         self.assertIsNotNone(serializer.errors['is_good_end_product'])

@@ -6,13 +6,14 @@ from rest_framework.views import APIView
 from case_types.models import CaseType
 from cases.models import Case
 from conf.authentication import PkAuthentication
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from clc_queries.models import ClcQuery
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
+
 
 
 class GoodList(APIView):
@@ -37,14 +38,13 @@ class GoodList(APIView):
         # if data['not_sure_details_control_code'] is not None:
         #     data['control_code'] = data['not_sure_details_control_code']
         serializer = GoodSerializer(data=data)
-        print(data['validate_only'])
 
         if serializer.is_valid():
             if not data['validate_only']:
                 good = serializer.save()
-                if data['is_good_controlled'] == 'unsure':
+                if data['is_good_controlled'] == GoodControlled.UNSURE:
                     # automatically raise a CLC query case
-                    print(data)
+
                     clc_query = ClcQuery(details=data['not_sure_details_details'], good=good)
                     clc_query.save()
 
