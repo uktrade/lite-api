@@ -1,9 +1,7 @@
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
-
 from test_helpers.clients import DataTestClient
-
 from goods.enums import GoodControlled
 
 
