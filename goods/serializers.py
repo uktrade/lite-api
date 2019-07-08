@@ -3,6 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from clc_queries.models import ClcQuery
 from clc_queries.enums import ClcQueryStatus
+from cases.models import Case
 from goods.enums import GoodStatus, GoodControlled, GoodAreYouSure
 from goods.models import Good
 from organisations.models import Organisation
@@ -16,12 +17,14 @@ class GoodSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
+    clc_query_case_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Good
         fields = ('id',
                   'description',
                   'is_good_controlled',
+                  'clc_query_case_id',
                   'control_code',
                   'is_good_end_product',
                   'part_number',
@@ -32,6 +35,14 @@ class GoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
+
+    def get_clc_query_case_id(self, instance):
+        try:
+            clc_query = ClcQuery.objects.get(good=instance)
+            case = Case.objects.get(clc_query=clc_query)
+            return case.id
+        except Exception:
+            return None
 
     def validate(self, cleaned_data):
         is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES
