@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-
 from clc_queries.models import ClcQuery
 from clc_queries.enums import ClcQueryStatus
 from goods.enums import GoodStatus, GoodControlled
@@ -40,6 +39,7 @@ class GoodSerializer(serializers.ModelSerializer):
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
             self.fields['control_code'] = serializers.CharField(required=True)
 
+    # pylint: disable=W0703
     def get_clc_query_case_id(self, instance):
         try:
             clc_query = ClcQuery.objects.get(good=instance)
@@ -48,15 +48,16 @@ class GoodSerializer(serializers.ModelSerializer):
         except Exception:
             return None
 
-    def validate(self, cleaned_data):
-        is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES
-        if is_controlled_good and not cleaned_data.get('control_code'):
+    # pylint: disable=W0221
+    def validate(self, value):
+        is_controlled_good = value.get('is_good_controlled') == GoodControlled.YES
+        if is_controlled_good and not value.get('control_code'):
             raise serializers.ValidationError('Control Code must be set when good is controlled')
 
-        is_controlled_unsure = cleaned_data.get('is_good_controlled') == GoodControlled.UNSURE
-        if is_controlled_unsure and not cleaned_data.get('not_sure_details_details'):
+        is_controlled_unsure = value.get('is_good_controlled') == GoodControlled.UNSURE
+        if is_controlled_unsure and not value.get('not_sure_details_details'):
             raise serializers.ValidationError('Please enter details of why you don\'t know if your good is controlled')
-        return cleaned_data
+        return value
 
     def create(self, validated_data):
         not_sure_details_details = validated_data.pop('not_sure_details_details')

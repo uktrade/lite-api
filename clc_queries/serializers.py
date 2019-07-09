@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from conf.helpers import str_to_bool
 from clc_queries.models import ClcQuery
-from goods.enums import GoodControlled
 from goods.serializers import GoodSerializer
 
 

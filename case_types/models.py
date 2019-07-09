@@ -1,11 +1,6 @@
 import uuid
-
 import reversion
 from django.db import models
-from end_user.models import EndUser
-from goods.models import Good
-from organisations.models import Organisation, Site, ExternalLocation
-from static.denial_reasons.models import DenialReason
 
 
 @reversion.register()
