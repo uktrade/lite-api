@@ -45,7 +45,7 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
-        except Exception as e:
+        except (ValueError, Exception) as e:
             logging.exception(e)
             return None
 
