@@ -8,6 +8,8 @@ from clc_queries.serializers import ClcQuerySerializer
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from case_types.serializers import CaseTypeSerializer
+from queues.models import Queue
+
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -28,7 +30,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
 
 class CaseDetailSerializer(CaseSerializer):
-    queues = PrimaryKeyRelatedField(many=True, read_only=True)
+    queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
     case_type = CaseTypeSerializer(read_only=True)
