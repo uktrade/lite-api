@@ -48,18 +48,17 @@ class GoodSerializer(serializers.ModelSerializer):
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
             message.capitalize()
-            pass
-            # return None
+            return None
 
-    def validate(self, cleaned_data):
-        is_controlled_good = cleaned_data.get('is_good_controlled') == GoodControlled.YES
-        if is_controlled_good and not cleaned_data.get('control_code'):
+    def validate(self, value):
+        is_controlled_good = value.get('is_good_controlled') == GoodControlled.YES
+        if is_controlled_good and not value.get('control_code'):
             raise serializers.ValidationError('Control Code must be set when good is controlled')
 
-        is_controlled_unsure = cleaned_data.get('is_good_controlled') == GoodControlled.UNSURE
-        if is_controlled_unsure and not cleaned_data.get('not_sure_details_details'):
+        is_controlled_unsure = value.get('is_good_controlled') == GoodControlled.UNSURE
+        if is_controlled_unsure and not value.get('not_sure_details_details'):
             raise serializers.ValidationError('Please enter details of why you don\'t know if your good is controlled')
-        return cleaned_data
+        return value
 
     def create(self, validated_data):
         not_sure_details_details = validated_data.pop('not_sure_details_details')
