@@ -40,13 +40,13 @@ class GoodSerializer(serializers.ModelSerializer):
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
             self.fields['control_code'] = serializers.CharField(required=True)
 
+    # pylint: disable=W0703
     def get_clc_query_case_id(self, instance):
         try:
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
-        except (ValueError, Exception) as e:
-            logging.exception(e)
+        except Exception:
             return None
 
     # pylint: disable=W0221
