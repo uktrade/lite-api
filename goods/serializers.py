@@ -40,7 +40,6 @@ class GoodSerializer(serializers.ModelSerializer):
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
             self.fields['control_code'] = serializers.CharField(required=True)
 
-
     def get_clc_query_case_id(self, instance):
         try:
             clc_query = ClcQuery.objects.get(good=instance)
@@ -63,8 +62,6 @@ class GoodSerializer(serializers.ModelSerializer):
         not_sure_details_details = validated_data.pop('not_sure_details_details')
 
         good = super(GoodSerializer, self).create(validated_data)
-        if not not_sure_details_details:
-            ClcQuery.objects.create(good=good, details=not_sure_details_details, status=ClcQueryStatus.SUBMITTED)
         return good
 
     def update(self, instance, validated_data):
