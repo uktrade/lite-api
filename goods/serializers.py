@@ -49,6 +49,7 @@ class GoodSerializer(serializers.ModelSerializer):
             logging.exception(e)
             return None
 
+    # pylint: disable=W:279
     def validate(self, value):
         is_controlled_good = value.get('is_good_controlled') == GoodControlled.YES
         if is_controlled_good and not value.get('control_code'):
