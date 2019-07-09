@@ -6,7 +6,6 @@ from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
 from cases.models import Case
-import logging
 
 
 class GoodSerializer(serializers.ModelSerializer):
