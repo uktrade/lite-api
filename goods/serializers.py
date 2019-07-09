@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-
 from clc_queries.models import ClcQuery
 from clc_queries.enums import ClcQueryStatus
 from goods.enums import GoodStatus, GoodControlled
@@ -40,13 +39,15 @@ class GoodSerializer(serializers.ModelSerializer):
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
             self.fields['control_code'] = serializers.CharField(required=True)
 
-
     def get_clc_query_case_id(self, instance):
         try:
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
-        except Exception:
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            message.capitalize()
             return None
 
     def validate(self, cleaned_data):
