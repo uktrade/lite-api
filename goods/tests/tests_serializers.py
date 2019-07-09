@@ -42,5 +42,4 @@ class OrganisationTests(APITestCase):
         serializer = GoodSerializer(data=data)
         serializer.is_valid()
         self.assertIsNotNone(serializer.errors['description'])
-        self.assertIsNotNone(serializer.errors['not_sure_details_details'])
         self.assertIsNotNone(serializer.errors['is_good_end_product'])
