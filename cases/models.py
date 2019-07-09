@@ -41,3 +41,4 @@ class CaseAssignment(models.Model):
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)

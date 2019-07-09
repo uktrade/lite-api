@@ -67,7 +67,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 's3_key', 'user', 'size', 'case')
+        fields = ('name', 's3_key', 'user', 'size', 'case', 'description')
 
     def create(self, validated_data):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
@@ -86,4 +86,4 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at')
+        fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'description')
