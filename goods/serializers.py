@@ -6,6 +6,7 @@ from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
 from cases.models import Case
+import logging
 
 
 class GoodSerializer(serializers.ModelSerializer):
@@ -44,10 +45,8 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
-        except Exception as ex:
-            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            message = template.format(type(ex).__name__, ex.args)
-            message.capitalize()
+        except Exception as e:
+            logging.exception(e)
             return None
 
     def validate(self, value):
