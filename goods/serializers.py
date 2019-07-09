@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from clc_queries.models import ClcQuery
-from clc_queries.enums import ClcQueryStatus
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
@@ -60,7 +59,7 @@ class GoodSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        not_sure_details_details = validated_data.pop('not_sure_details_details')
+        del validated_data['not_sure_details_details']
 
         good = super(GoodSerializer, self).create(validated_data)
         return good
