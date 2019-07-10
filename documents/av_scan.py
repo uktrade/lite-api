@@ -50,12 +50,10 @@ def virus_scan_document(document_pk: str):
     Any errors are logged and sent to Sentry.
     """
     try:
-        print('banana 2')
         with advisory_lock(f'av-scan-{document_pk}'):
-            print('banana 3')
             _process_document(document_pk)
-    except Exception:
-        print('failed')
+    except Exception as e:
+        print(e)
         # logger.exception('Error scanning document for viruses')
         # client.captureException()
 
@@ -65,18 +63,13 @@ def _process_document(document_pk: str):
     if not settings.AV_SERVICE_URL:
         raise VirusScanException(f'Cannot scan document with ID {document_pk}; AV service URL not'
                                  f'configured')
-    print('banana 4')
-    print(document_pk)
-    print(env('AV_SERVICE_URL'))
     doc = CaseDocument.objects.get(pk=document_pk)
     if doc.virus_scanned_at is not None:
-        print('banana 5')
         warn_msg = f'Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}'
         # logger.warning(warn_msg)
         # client.captureMessage(warn_msg)
         return
     try:
-        print('banana 6')
         is_file_clean = _scan_s3_object(doc.name, env('AWS_STORAGE_BUCKET_NAME'), doc.s3_key)
         if is_file_clean is not None:
             doc.virus_scanned_at = now()
@@ -84,7 +77,6 @@ def _process_document(document_pk: str):
             doc.save()
     except Exception as e:
         print(e)
-        print('banan 7')
         doc.safe = None
         doc.virus_scanned_at = None
         doc.save()
@@ -124,6 +116,7 @@ def _scan_raw_file(filename, file_object, content_type):
     report = response.json()
     if 'malware' not in report:
         raise VirusScanException(f'File identified as malware: {response.text}')
+
     return not report.get('malware')
 
 
