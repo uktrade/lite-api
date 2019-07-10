@@ -18,3 +18,17 @@ class ClcQuerySerializer(serializers.ModelSerializer):
 
     def get_organisation_name(self, instance):
         return instance.good.organisation.name
+
+
+class ClcQueryUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ClcQuery
+        fields = (
+            'id',
+            'status')
+
+    def update(self, instance, partial):
+        instance.status = partial.get('status', instance.status)
+        instance.save()
+        return instance
