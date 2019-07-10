@@ -94,9 +94,6 @@ class ActivityList(APIView):
 
     def get(self, request, pk):
         case = get_case(pk)
-        print(dir(case))
-        print(case.application_id)
-        print(case.clc_query_id)
         case_notes = get_case_notes_from_case(case)
 
         if case.application_id:
