@@ -23,6 +23,7 @@ urlpatterns = [
     path('applications/', include('applications.urls')),
     path('audit/', include('audit.urls')),
     path('cases/', include('cases.urls')),
+    path('clc_queries/', include('clc_queries.urls')),
     path('drafts/', include('drafts.urls')),
     path('goods/', include('goods.urls')),
     path('goodstype/', include('goodstype.urls')),

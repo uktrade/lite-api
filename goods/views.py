@@ -3,12 +3,17 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from case_types.models import CaseType
+from cases.models import Case
 from conf.authentication import PkAuthentication
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good
 from goods.models import Good
 from goods.serializers import GoodSerializer
+from clc_queries.models import ClcQuery
 from organisations.libraries.get_organisation import get_organisation_by_user
+from queues.models import Queue
+
 
 
 class GoodList(APIView):
@@ -27,14 +32,30 @@ class GoodList(APIView):
 
     def post(self, request):
         organisation = get_organisation_by_user(request.user)
-
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
         data['status'] = GoodStatus.DRAFT
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
+            if not data['validate_only']:
+                good = serializer.save()
+
+                if data['is_good_controlled'] == GoodControlled.UNSURE:
+                    # automatically raise a CLC query case
+                    clc_query = ClcQuery(details=data['not_sure_details_details'], good=good)
+                    clc_query.save()
+
+                    # Create a case
+                    case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+                    case = Case(clc_query=clc_query, case_type=case_type)
+                    case.save()
+
+                    # Add said case to default queue
+                    queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
+                    queue.cases.add(case)
+                    queue.save()
+
             return JsonResponse(data={'good': serializer.data},
                                 status=status.HTTP_201_CREATED)
 

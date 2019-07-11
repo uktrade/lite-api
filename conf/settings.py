@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'content_strings.apps.ContentStringsConfig',
     'goodstype',
     'flags.apps.FlagsConfig',
+    'clc_queries',
+    'case_types',
 ]
 
 MIDDLEWARE = [
