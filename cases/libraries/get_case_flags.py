@@ -7,4 +7,4 @@ def get_case_flags_from_case(case):
     """
     Returns all the case flags assigned to a case
     """
-    return CaseFlags.objects.filter(case=case)
+    return CaseFlags.objects.filter(case=case).prefetch_related('flag').all()
