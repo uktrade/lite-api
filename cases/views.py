@@ -9,8 +9,9 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
+from cases.libraries.get_case_flags import get_case_flags_from_case
 from cases.models import CaseAssignment
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagSerializer
 from conf.authentication import GovAuthentication
 
 
@@ -126,3 +127,15 @@ class ActivityList(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
+
+
+class CaseFlagsList(APIView):
+    authentication_classes = (GovAuthentication,)
+    """
+    Retrieves all flags related to a case:
+    """
+
+    def get(self, request, pk):
+        case = get_case(pk)
+        serializer = CaseFlagSerializer(get_case_flags_from_case(case), many=True)
+        return JsonResponse(data={'case_flags': serializer.data})

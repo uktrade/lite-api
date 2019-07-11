@@ -6,6 +6,7 @@ from django.db import models
 from applications.models import Application
 from gov_users.models import GovUser
 from queues.models import Queue
+from flags.models import Flag
 
 
 @reversion.register()
@@ -35,3 +36,11 @@ class CaseAssignment(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+
+
+class CaseFlags(models.Model):
+    """
+    Flags on a case, visible by internal users.
+    """
+    case = models.ForeignKey(Case, related_name='case_on_flag', on_delete=models.CASCADE, null=False)
+    flag = models.ForeignKey(Flag, related_name='flag_on_case', on_delete=models.CASCADE, null=False)

@@ -2,11 +2,12 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
-from cases.models import Case, CaseNote, CaseAssignment
+from cases.models import Case, CaseNote, CaseAssignment, CaseFlags
 from content_strings.strings import get_string
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
+from flags.models import Flag
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -53,3 +54,15 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')
+
+
+class CaseFlagSerializer(serializers.ModelSerializer):
+    """
+    Serializes flags on case
+    """
+    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
+    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+
+    class Meta:
+        model = CaseFlags
+        fields = ('case', 'flag')
