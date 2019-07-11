@@ -69,7 +69,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
         case_document.save()
         #if env('ASYNC_DOC_PREPARE'):
-        prepare_document(case_document.id)
+        prepare_document(str(case_document.id))
         #elif not ASYNC_DOC_PREPARE and document.safe is None:
         #     prepare_document.run(document.id, case.id if case else None)
         return case_document

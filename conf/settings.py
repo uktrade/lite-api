@@ -60,7 +60,8 @@ INSTALLED_APPS = [
     'content_strings.apps.ContentStringsConfig',
     'goodstype',
     'flags.apps.FlagsConfig',
-    'documents.apps.DocumentsConfig'
+    'documents.apps.DocumentsConfig',
+    'background_task'
 ]
 
 MIDDLEWARE = [
@@ -145,6 +146,8 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 ASYNC_DOC_PREPARE = False
+
+BACKGROUND_TASK_RUN_ASYNC = env('BACKGROUND_TASK_RUN_ASYNC')
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
