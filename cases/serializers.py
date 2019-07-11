@@ -58,10 +58,6 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):
-    # size = serializers.IntegerField(max_value=500,
-    #                                 error_messages={
-    #                                     'max_value': get_string('documents.max_value')
-    #                                 })  # Max file size is 500mb
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
 

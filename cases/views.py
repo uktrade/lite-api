@@ -155,11 +155,11 @@ class CaseDocuments(APIView):
             document['case'] = case_id
             document['user'] = request.user.id
 
-        serializer = CaseDocumentCreateSerializer(data=data, many=True) #
+        serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({'documents': serializer.data})
-        print(serializer.errors)
+
         return JsonResponse({'errors': serializer.errors})
 
 
