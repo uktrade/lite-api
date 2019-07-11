@@ -72,9 +72,16 @@ class CaseFlagSerializer(serializers.ModelSerializer):
     """
     Serializes flags on case
     """
-    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
-    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+    flag_id = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+    flag_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CaseFlags
-        fields = ('case', 'flag')
+        fields = ('flag_id', 'flag_name')
+
+    # pylint: disable=W0703
+    def get_flag_name(self, instance):
+        try:
+            return instance.flag.name
+        except Exception:
+            return None
