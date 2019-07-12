@@ -11,7 +11,6 @@ from case_types.serializers import CaseTypeSerializer
 from queues.models import Queue
 
 
-
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
@@ -40,7 +39,7 @@ class CaseDetailSerializer(CaseSerializer):
         fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
 
     def validate_queues(self, attrs):
-        if len(attrs) == 0:
+        if attrs:
             raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
         return attrs
 
@@ -53,10 +52,11 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.all())
     created_at = serializers.DateTimeField(read_only=True)
+    is_visible_for_exporter = serializers.BooleanField()
 
     class Meta:
         model = CaseNote
-        fields = ('id', 'text', 'case', 'user', 'created_at')
+        fields = ('id', 'text', 'case', 'user', 'created_at', 'is_visible_for_exporter')
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):

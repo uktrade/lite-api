@@ -35,7 +35,7 @@ class CaseNote(models.Model):
     user = models.ForeignKey(GovUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    is_visible_for_exporter = models.BooleanField(default=False, null=False)
+    is_visible_for_exporter = models.BooleanField(default=None, blank=True, null=True)
 
 
 class CaseAssignment(models.Model):
