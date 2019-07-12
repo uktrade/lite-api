@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
             name='CaseFlags',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_flags', to='cases.Case')),
-                ('flag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_flags', to='flags.Flag')),
+                ('case', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='case_flags', to='cases.Case')),
+                ('flag', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='case_flags', to='flags.Flag')),
             ],
         ),
     ]

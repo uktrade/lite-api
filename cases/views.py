@@ -88,7 +88,7 @@ class CaseNoteList(APIView):
 class ActivityList(APIView):
     authentication_classes = (GovAuthentication,)
     """
-    Retrieves all activity related to a case:
+    Retrieves all activity related to a case
     * Case Notes
     * Case Updates
     """
@@ -135,12 +135,30 @@ class ActivityList(APIView):
 
 class CaseFlagsList(APIView):
     authentication_classes = (GovAuthentication,)
-    """
-    Retrieves all flags related to a case:
-    """
 
     def get(self, request, pk):
-        case = get_case(pk)
-        case_flags = get_case_flags_from_case(case)
+        """
+            Retrieves all flags related to a case
+        """
+        case_flags = get_case_flags_from_case(pk)
         serializer = CaseFlagSerializer(case_flags, many=True)
         return JsonResponse(data={'case_flags': serializer.data})
+
+    def post(self, request, pk):
+        """
+            Assigns flags to a case
+        """
+        case = get_case(pk)
+        case_flags = get_case_flags_from_case(case)
+        case_flags_to_assign = request.data['flags']
+
+        # TODO: Check that flags being assigned are valid and are owned by team
+        # serializer = CaseFlagSerializer(case_flags_to_assign)
+
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return JsonResponse(data={'case_flags': serializer.data},
+        #                         status=status.HTTP_201_CREATED)
+
+        # return JsonResponse(data={'errors': serializer.errors},
+        #                     status=status.HTTP_400_BAD_REQUEST)
