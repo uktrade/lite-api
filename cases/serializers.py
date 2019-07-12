@@ -5,10 +5,13 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from conf.settings import ASYNC_DOC_PREPARE
 from content_strings.strings import get_string
 # from documents.serializers import DocumentSerializer
+from clc_queries.serializers import ClcQuerySerializer
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
+from case_types.serializers import CaseTypeSerializer
 from queues.models import Queue
 from documents.tasks import prepare_document
+
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -16,18 +19,27 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     application = ApplicationBaseSerializer(read_only=True)
+    is_clc = serializers.SerializerMethodField()
+    clc_query = ClcQuerySerializer(read_only=True)
+    case_type = CaseTypeSerializer(read_only=True)
+
+    def get_is_clc(self, obj):
+        return obj.case_type.name == 'CLC query'
 
     class Meta:
         model = Case
-        fields = ('id', 'application')
+        fields = ('id', 'application', 'is_clc', 'clc_query', 'case_type')
 
 
 class CaseDetailSerializer(CaseSerializer):
-    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    is_clc = serializers.SerializerMethodField()
+    clc_query = ClcQuerySerializer(read_only=True)
+    case_type = CaseTypeSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues')
+        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
 
     def validate_queues(self, attrs):
         if len(attrs) == 0:

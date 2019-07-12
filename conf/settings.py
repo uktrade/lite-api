@@ -61,7 +61,9 @@ INSTALLED_APPS = [
     'goodstype',
     'flags.apps.FlagsConfig',
     'documents.apps.DocumentsConfig',
-    'background_task'
+    'background_task',
+    'clc_queries',
+    'case_types'
 ]
 
 MIDDLEWARE = [

@@ -5,6 +5,8 @@ from django.db import models
 
 from applications.models import Application
 from documents.models import Document
+from case_types.models import CaseType
+from clc_queries.models import ClcQuery
 from gov_users.models import GovUser
 from queues.models import Queue
 
@@ -15,7 +17,12 @@ class Case(models.Model):
     Wrapper for application model intended for internal users.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE)
+    case_type = models.ForeignKey(CaseType,
+                                  related_name='case',
+                                  on_delete=models.DO_NOTHING,
+                                  default='0ec51727-2acf-4459-b568-93a906d84008')
+    application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
+    clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
 
 
