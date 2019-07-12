@@ -37,6 +37,14 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_for_exporter = models.BooleanField(default=None, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        creating = self._state.adding is True
+        super(CaseNote, self).save(*args, **kwargs)
+
+        if creating and self.is_visible_for_exporter:
+            for user in self.case.application.organisation.user_set.all():
+                user.create_notification(self)
+
 
 class CaseAssignment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -4,7 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from organisations.models import Organisation
-from users.models import User, UserStatuses
+from users.models import User, UserStatuses, Notifications
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -77,3 +77,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data.get('password'))
         return User.objects.create(**validated_data)
+
+
+class NotificationsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notifications
+        exclude = []

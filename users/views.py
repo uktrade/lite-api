@@ -1,16 +1,16 @@
 import reversion
 from django.http.response import JsonResponse
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
-from users.models import User, UserStatuses
-from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
+from users.models import User, UserStatuses, Notifications
+from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
 
 
 class AuthenticateUser(APIView):
@@ -93,3 +93,18 @@ class UserDetail(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
+
+
+class NotificationViewset(viewsets.ModelViewSet):
+    model = Notifications
+    serializer_class = NotificationsSerializer
+    authentication_classes = (PkAuthentication,)
+    permission_classes = (IsAuthenticated, )
+    queryset = Notifications.objects.all()
+
+    def get_queryset(self):
+        queryset = Notifications.objects.filter(user=self.request.user)
+        if self.request.GET.get('unviewed'):
+            queryset = queryset.filter(viewed_at__isnull=True)
+
+        return queryset
