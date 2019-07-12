@@ -5,6 +5,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from cases.models import CaseNote
 from organisations.models import Organisation
 from users.enums import UserStatuses
 
@@ -56,3 +57,9 @@ class User(AbstractUser):
         return self.email
 
     objects = CustomUserManager()
+
+
+class Notifications(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+    note_id = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
+    viewed = models.DateTimeField(null=True, auto_now=True)
