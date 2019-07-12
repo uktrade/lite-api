@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('gov_users', '0002_govuserrevisionmeta'),
         ('documents', '0001_initial'),
-        ('cases', '0002_auto_20190702_1525'),
+        ('cases', '0002_auto_20190708_1020'),
     ]
 
     operations = [

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
