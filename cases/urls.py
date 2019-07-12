@@ -11,5 +11,5 @@ urlpatterns = [
     # ex: /cases/<uuid:pk>/activity/?fields=activity,status
     path('<uuid:pk>/activity/', views.ActivityList.as_view(), name='activity'),
     # ex: /cases/<uuid:pk>/assigned-flags/
-    path('<uuid:pk>/case_flags/', views.CaseFlagsList.as_view(), name='case_flags'),
+    path('<uuid:pk>/case-flags/', views.CaseFlagsList.as_view(), name='case_flags'),
 ]
