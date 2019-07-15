@@ -60,11 +60,9 @@ class RoleDetail(APIView):
         Get the details of a specific role
         """
         role = get_role_by_pk(pk)
-
         serializer = RoleSerializer(role)
 
-        return JsonResponse(data={'role': serializer.data},
-                            status=status.HTTP_200_OK)
+        return JsonResponse(data={'role': serializer.data})
 
     def put(self, request, pk):
         """
