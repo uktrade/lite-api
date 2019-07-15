@@ -1,4 +1,5 @@
 from django.urls import path, include, reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from conf.constants import Permissions
@@ -64,3 +65,23 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(Permissions.MAKE_FINAL_DECISIONS in Role.objects.get(id=role_id).permissions.values_list('id', flat=True))
+
+    @parameterized.expand([
+        [{
+            'name': 'this is a name',
+            'permissions': []
+        }],
+        [{
+            'name': 'ThIs iS A NaMe',
+            'permissions': []
+        }],
+        [{
+            'name': ' this is a name    ',
+            'permissions': []
+        }],
+    ])
+    def tests_role_name_must_be_unique(self, data):
+        Role(name='this is a name').save()
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(Role.objects.all().count(), 2)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
