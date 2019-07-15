@@ -46,7 +46,7 @@ def virus_scan_document(document_pk: str):
     try:
         with advisory_lock(f'av-scan-{document_pk}'):
             _process_document(document_pk)
-    except Exception as e: #noqa
+    except Exception as e: #  noqa
         logging.error('Error scanning document for viruses')
         logging.error(e)
 
