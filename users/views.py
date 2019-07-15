@@ -11,6 +11,7 @@ from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses, Notifications
 from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
+import pprint
 
 
 class AuthenticateUser(APIView):
@@ -103,7 +104,26 @@ class NotificationViewset(viewsets.ModelViewSet):
     queryset = Notifications.objects.all()
 
     def get_queryset(self):
-        queryset = Notifications.objects.filter(user=self.request.user)
+        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
+        # join to Case Note table join to Cases table and see if clc_query is null)
+        queryset = Notifications.objects.filter(user=self.request.user, note__case__clc_query_id__isnull=True)
+        if self.request.GET.get('unviewed'):
+            queryset = queryset.filter(viewed_at__isnull=True)
+
+        return queryset
+
+
+class ClcNotificationViewset(viewsets.ModelViewSet):
+    model = Notifications
+    serializer_class = NotificationsSerializer
+    authentication_classes = (PkAuthentication,)
+    permission_classes = (IsAuthenticated, )
+    queryset = Notifications.objects.all()
+
+    def get_queryset(self):
+        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
+        # join to Case Note table join to Cases table and see if application_id is null)
+        queryset = Notifications.objects.filter(user=self.request.user, note__case__application_id__isnull=True)
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
 

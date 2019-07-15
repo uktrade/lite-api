@@ -6,6 +6,7 @@ app_name = "users"
 
 router = routers.SimpleRouter()
 router.register(r'notifications', views.NotificationViewset)
+router.register(r'clc_notifications', views.ClcNotificationViewset)
 
 urlpatterns = [
     path('', views.UserList.as_view(), name='users'),
