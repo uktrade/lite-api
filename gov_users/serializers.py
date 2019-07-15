@@ -6,6 +6,7 @@ from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
 from gov_users.models import GovUser, Role, Permission
 from teams.models import Team
+from teams.serializers import TeamSerializer
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -29,29 +30,9 @@ class RoleSerializer(serializers.ModelSerializer):
                   'permissions')
 
 
-class GovUserSerializer(serializers.ModelSerializer):
-    team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
-                                  error_messages={
-                                      'null': get_string('users.null_team'),
-                                  })
-    status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=GovUser.objects.all())],
-        error_messages={
-            'blank': get_string('users.invalid_email'),
-            'invalid': get_string('users.invalid_email'),
-        }
-    )
-    role = PrimaryKeyRelatedField(queryset=Role.objects.all())
-    team_name = serializers.SerializerMethodField()
-
-    def get_team_name(self, instance):
-        return instance.team.name
-
-    role_name = serializers.SerializerMethodField()
-
-    def get_role_name(self, instance):
-        return instance.role.name
+class GovUserViewSerializer(serializers.ModelSerializer):
+    team = TeamSerializer()
+    role = RoleSerializer()
 
     class Meta:
         model = GovUser
@@ -60,20 +41,35 @@ class GovUserSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'status',
-                  'role',
-                  'role_name',
                   'team',
-                  'team_name')
+                  'role',)
 
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.email = validated_data.get('email', instance.email)
-        instance.team = validated_data.get('team', instance.team)
-        instance.role = validated_data.get('role', instance.role)
-        instance.status = validated_data.get('status', instance.status)
-        instance.save()
-        return instance
+
+class GovUserCreateSerializer(GovUserViewSerializer):
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
+    email = serializers.EmailField(validators=[UniqueValidator(queryset=GovUser.objects.all())],
+                                   error_messages={
+                                       'blank': get_string('users.invalid_email'),
+                                       'invalid': get_string('users.invalid_email'),
+                                   })
+    team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
+                                  error_messages={
+                                      'null': get_string('users.null_team'),
+                                  })
+    role = PrimaryKeyRelatedField(queryset=Role.objects.all(),
+                                  error_messages={
+                                      'null': get_string('users.null_role'),
+                                  })
+
+    class Meta:
+        model = GovUser
+        fields = ('id',
+                  'email',
+                  'first_name',
+                  'last_name',
+                  'status',
+                  'team',
+                  'role',)
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
