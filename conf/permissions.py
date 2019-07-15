@@ -1,20 +1,15 @@
-from rest_framework import authentication, exceptions
+from rest_framework import exceptions
 
-from gov_users.enums import GovUserStatuses
-from gov_users.libraries.token_to_user_pk import token_to_user_pk
-from gov_users.models import GovUser
-from users.models import User, UserStatuses
+from gov_users.models import Permission
+from users.models import User
 
 
-class PkAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
+class CanMakeFinalDecisions:
+    def check_permissions(self, request):
         pk = request.META.get('HTTP_USER_ID')
-        try:
-            user = User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise exceptions.AuthenticationFailed('No such user with that ID')
+        user = User.objects.get(pk=pk)
 
-        if user.status == UserStatuses.DEACTIVATED:
-            raise exceptions.PermissionDenied('User has been deactivated')
+        if Permission.objects.get(id='00000000-0000-0000-0000-000000000001') not in user.role.permissions:
+            raise exceptions.PermissionDenied('User does not have permission to make final decisions')
 
-        return user, None
+        return None

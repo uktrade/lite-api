@@ -9,7 +9,7 @@ from teams.models import Team
 
 
 class Permission(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
 
 

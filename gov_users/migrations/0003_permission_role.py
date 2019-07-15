@@ -15,7 +15,7 @@ def init(apps, schema_editor):
 
     Permission = apps.get_model('gov_users', 'Permission')
     if not Permission.objects.all():
-        permission = Permission(id='00000000-0000-0000-0000-000000000001',
+        permission = Permission(id='MAKE_FINAL_DECISIONS',
                                 name='Make final decisions')
         permission.save()
 
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Permission',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('id', models.CharField(editable=False, primary_key=True, serialize=False, max_length=30)),
                 ('name', models.CharField(blank=True, default=None, max_length=30, null=True)),
             ],
         ),

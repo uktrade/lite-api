@@ -1,8 +1,7 @@
 from django.urls import path, include, reverse
 from rest_framework import status
 
-from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser, Permission, Role
+from gov_users.models import Permission, Role
 from test_helpers.clients import DataTestClient
 
 
