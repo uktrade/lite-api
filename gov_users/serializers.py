@@ -21,11 +21,16 @@ class GovUserSerializer(serializers.ModelSerializer):
             'invalid': get_string('users.invalid_email'),
         }
     )
-    team_name = serializers.SerializerMethodField()
     role = PrimaryKeyRelatedField(queryset=Role.objects.all())
+    team_name = serializers.SerializerMethodField()
 
     def get_team_name(self, instance):
         return instance.team.name
+
+    role_name = serializers.SerializerMethodField()
+
+    def get_role_name(self, instance):
+        return instance.role.name
 
     class Meta:
         model = GovUser
@@ -35,6 +40,7 @@ class GovUserSerializer(serializers.ModelSerializer):
                   'last_name',
                   'status',
                   'role',
+                  'role_name',
                   'team',
                   'team_name')
 
