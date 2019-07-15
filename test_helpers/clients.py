@@ -11,6 +11,7 @@ from gov_users.models import GovUser
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
+from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
@@ -132,3 +133,8 @@ class DataTestClient(BaseTestClient):
         data = {'id': draft_id}
         self.client.post(url, data, **self.headers)
         return Application.objects.get(pk=draft_id)
+
+    def create_flag(self, name: str, level: str, team: Team):
+        flag = Flag(name=name, level=level, team=team)
+        flag.save()
+        return flag

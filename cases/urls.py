@@ -10,6 +10,6 @@ urlpatterns = [
     # ex: /cases/<uuid:pk>/activity/
     # ex: /cases/<uuid:pk>/activity/?fields=activity,status
     path('<uuid:pk>/activity/', views.ActivityList.as_view(), name='activity'),
-    # ex: /cases/<uuid:pk>/assigned-flags/
+    # ex: /cases/<uuid:pk>/case-flags/
     path('<uuid:pk>/case-flags/', views.CaseFlagsList.as_view(), name='case_flags'),
 ]

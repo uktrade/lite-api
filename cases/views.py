@@ -146,7 +146,7 @@ class CaseFlagsList(APIView):
         case_flags = get_case_flags_from_case(str(pk))
         serializer = CaseFlagSerializer(case_flags, context={'method': request.method}, many=True)
 
-        return JsonResponse(data={'case_flags': serializer.data})
+        return JsonResponse(data={'case_flags': serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
