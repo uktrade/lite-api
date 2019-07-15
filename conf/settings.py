@@ -147,8 +147,6 @@ AV_SERVICE_URL = env('AV_SERVICE_URL')
 AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
-ASYNC_DOC_PREPARE = False
-
 BACKGROUND_TASK_RUN_ASYNC = env('BACKGROUND_TASK_RUN_ASYNC')
 
 # Internationalization
@@ -171,8 +169,7 @@ if 'test' not in sys.argv:
         'formatters': {
             'json': {
                 'class': 'pythonjsonlogger.jsonlogger.JsonFormatter',
-                'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)',
-                # noqa
+                'format': '(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)', # noqa
             },
         },
         'handlers': {

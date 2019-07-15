@@ -3,9 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
-from conf.settings import ASYNC_DOC_PREPARE
 from content_strings.strings import get_string
-# from documents.serializers import DocumentSerializer
 from clc_queries.serializers import ClcQuerySerializer
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
@@ -81,10 +79,8 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
         case_document.save()
-        #if env('ASYNC_DOC_PREPARE'):
+
         prepare_document(str(case_document.id))
-        #elif not ASYNC_DOC_PREPARE and document.safe is None:
-        #     prepare_document.run(document.id, case.id if case else None)
         return case_document
 
 

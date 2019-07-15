@@ -1,6 +1,4 @@
-import boto3
 from contextlib import closing
-from logging import getLogger
 
 import requests
 from django.conf import settings
@@ -36,12 +34,6 @@ class S3StreamingBodyWrapper:
         """
         return self._remaining_bytes
 
-"""
-def get_s3_client():
-    # DEPRECATED
-    s3 = boto3.client('s3')
-    return s3
-"""
 
 def virus_scan_document(document_pk: str):
     """Virus scans an uploaded document.

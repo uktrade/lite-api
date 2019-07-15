@@ -19,10 +19,10 @@ class Document(models.Model):
     def __str__(self):
         return self.name
 
-    def delete(self, **kwargs):
+    def delete_s3(self, **kwargs):
         s3_client().delete_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
         # If we ever need to remove the metadata of the file
-        # super().delete()
+        # super().delete() or self.delete()
 
     def scan_for_viruses(self):
         from documents.av_scan import virus_scan_document
@@ -41,9 +41,9 @@ class Document(models.Model):
             self.update_md5_checksum()
             self.scan_for_viruses()
             if self.safe is False:
-                self.delete()
+                self.delete_s3()
             return bool(self.checksum) and self.safe
-        except Exception:
+        except Exception: # noqa
             return False
 
     def update_md5_checksum(self):
