@@ -50,5 +50,5 @@ class CaseFlags(models.Model):
     Flags on a case, visible by internal users.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, related_name='case_flags', on_delete=models.PROTECT, null=False)
-    flag = models.ForeignKey(Flag, related_name='case_flags', on_delete=models.PROTECT, null=False)
+    case = models.ForeignKey(Case, related_name='case_flags', on_delete=models.CASCADE)
+    flag = models.ForeignKey(Flag, related_name='case_flags', on_delete=models.CASCADE)

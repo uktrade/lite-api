@@ -12,7 +12,6 @@ from queues.models import Queue
 from flags.models import Flag
 
 
-
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
@@ -70,14 +69,26 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
 
 class CaseFlagSerializer(serializers.ModelSerializer):
     """
-    Serializes flags on case
+        Serializes flags on case
     """
-    flag_id = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
+    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
     flag_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CaseFlags
-        fields = ('flag_id', 'flag_name')
+        fields = ('id', 'case', 'flag', 'flag_name')
+
+    def __init__(self, *args, **kwargs):
+        super(CaseFlagSerializer, self).__init__(*args, **kwargs)
+
+        # Don't return id or case_id if the request is a GET
+        # Don't validate flag_name if the request is a POST
+        if self.context['method'] == "GET":
+            del self.fields['id']
+            del self.fields['case']
+        elif self.context['method'] == "POST":
+            del self.fields['flag_name']
 
     # pylint: disable=W0703
     def get_flag_name(self, instance):
@@ -85,3 +96,8 @@ class CaseFlagSerializer(serializers.ModelSerializer):
             return instance.flag.name
         except Exception:
             return None
+
+    def validate_flag(self, value):
+        if value not in self.context['team_case_level_flags']:
+            raise serializers.ValidationError('You can only assign flags that are available for your team.')
+        return value

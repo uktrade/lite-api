@@ -3,14 +3,17 @@ from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
+from uuid import UUID
 
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_case_flags import get_case_flags_from_case
-from cases.models import CaseAssignment
+from cases.models import CaseAssignment, CaseFlags
+from flags.models import Flag
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagSerializer
 from conf.authentication import GovAuthentication
 
@@ -138,27 +141,56 @@ class CaseFlagsList(APIView):
 
     def get(self, request, pk):
         """
-            Retrieves all flags related to a case
+        Retrieves all flags related to a case
         """
-        case_flags = get_case_flags_from_case(pk)
-        serializer = CaseFlagSerializer(case_flags, many=True)
+        case_flags = get_case_flags_from_case(str(pk))
+        serializer = CaseFlagSerializer(case_flags, context={'method': request.method}, many=True)
+
         return JsonResponse(data={'case_flags': serializer.data})
 
     def post(self, request, pk):
         """
-            Assigns flags to a case
+        Assigns flags to a case
         """
-        case = get_case(pk)
-        case_flags = get_case_flags_from_case(case)
-        case_flags_to_assign = request.data['flags']
+        case = str(pk)
+        data = JSONParser().parse(request)
+        case_flags = []
 
-        # TODO: Check that flags being assigned are valid and are owned by team
-        # serializer = CaseFlagSerializer(case_flags_to_assign)
+        for flag in data['flags']:
+            case_flags.append({'case': case, 'flag': flag})
 
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return JsonResponse(data={'case_flags': serializer.data},
-        #                         status=status.HTTP_201_CREATED)
+        team_case_level_flags = Flag.objects.filter(level='Case', team=request.user.team.id)
 
-        # return JsonResponse(data={'errors': serializer.errors},
-        #                     status=status.HTTP_400_BAD_REQUEST)
+        serializer = CaseFlagSerializer(data=case_flags, context={
+                'method': request.method,
+                'team_case_level_flags': team_case_level_flags
+            }, many=True)
+
+        if serializer.is_valid():
+            previously_assigned_team_case_level_flags = CaseFlags.objects.filter(case=case, flag__level='Case', flag__team=request.user.team.id)
+
+            # Delete case_flags that aren't in validated_data
+            for previously_assigned_flag in previously_assigned_team_case_level_flags:
+                delete_case_flag = True
+                for validated_case_flag in serializer.validated_data:
+                    if previously_assigned_flag.flag == validated_case_flag.get('flag'):
+                        delete_case_flag = False
+                        break
+                if delete_case_flag:
+                    previously_assigned_flag.delete()
+
+            # Add case_flags in validated_data if not already present
+            for validated_case_flag in serializer.validated_data:
+                add_case_flag = True
+                for previously_assigned_flag in previously_assigned_team_case_level_flags:
+                    if validated_case_flag.get('flag') == previously_assigned_flag.flag:
+                        add_case_flag = False
+                if add_case_flag:
+                    case_flag = CaseFlags(case=validated_case_flag.get('case'), flag=validated_case_flag.get('flag'))
+                    case_flag.save()
+
+            return JsonResponse(data={'case_flags': serializer.data},
+                                status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
