@@ -69,8 +69,8 @@ class RoleSerializer(serializers.ModelSerializer):
     permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
     name = serializers.CharField(max_length=30,
                                  validators=[UniqueValidator(queryset=Role.objects.all(), lookup='iexact',
-                                                             message='Enter a name which is not already in use by another role')],
-                                 error_messages={'blank': 'Role name may not be blank'})
+                                                             message=get_string('roles.duplicate_name'))],
+                                 error_messages={'blank': get_string('roles.blank_name')})
 
     class Meta:
         model = Role
