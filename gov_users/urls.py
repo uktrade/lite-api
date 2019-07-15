@@ -3,8 +3,7 @@ from django.urls import path
 from gov_users.views import gov_user_views
 from gov_users.views import roles_views
 
-app_name = "gov_users"
-
+app_name = 'gov_users'
 urlpatterns = [
     path('', gov_user_views.GovUserList.as_view(), name='gov_users'),
     path('authenticate/', gov_user_views.AuthenticateGovUser.as_view(), name='authenticate'),

@@ -1,5 +1,4 @@
 import json
-from uuid import UUID
 
 from django.urls import path, include, reverse
 from rest_framework import status
