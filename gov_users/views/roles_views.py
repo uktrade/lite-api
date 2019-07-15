@@ -59,7 +59,7 @@ class RoleDetail(APIView):
         """
         Get the details of a specific role
         """
-        role = get_role_by_pk()
+        role = get_role_by_pk(pk)
 
         serializer = RoleSerializer(role)
 
