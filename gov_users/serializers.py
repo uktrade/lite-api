@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser
+from gov_users.models import GovUser, Role
 from teams.models import Team
 
 
@@ -22,6 +22,7 @@ class GovUserSerializer(serializers.ModelSerializer):
         }
     )
     team_name = serializers.SerializerMethodField()
+    role = PrimaryKeyRelatedField(queryset=Role.objects.all())
 
     def get_team_name(self, instance):
         return instance.team.name
@@ -33,6 +34,7 @@ class GovUserSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'status',
+                  'role',
                   'team',
                   'team_name')
 
@@ -41,6 +43,7 @@ class GovUserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
         instance.team = validated_data.get('team', instance.team)
+        instance.role = validated_data.get('role', instance.role)
         instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
@@ -53,3 +56,11 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email')
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ('id',
+                  'name',
+                  'permissions')

@@ -94,7 +94,7 @@ class GovUserList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'good': serializer.data},
+            return JsonResponse(data={'gov_user': serializer.data},
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
