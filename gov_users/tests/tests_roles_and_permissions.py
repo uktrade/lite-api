@@ -1,5 +1,3 @@
-import json
-
 from django.urls import path, include, reverse
 from rest_framework import status
 
@@ -46,3 +44,13 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['permissions']), 1)
+
+    def tests_edit_a_role(self):
+        role_id = '00000000-0000-0000-0000-000000000001'
+        url = reverse('gov_users:role', kwargs={'pk': role_id})
+        data = {
+            'permissions': [Permissions.MAKE_FINAL_DECISIONS]
+        }
+        response = self.client.put(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(Permissions.MAKE_FINAL_DECISIONS in Role.objects.get(id=role_id).permissions.values_list('id'))

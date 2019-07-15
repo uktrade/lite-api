@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from gov_users.libraries.get_role import get_role_by_pk
 from gov_users.models import Role, Permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 
@@ -44,6 +45,41 @@ class Roles(APIView):
                                 status=status.HTTP_201_CREATED)
 
         print(serializer.errors)
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class RoleDetail(APIView):
+    """
+    Manage a specific role
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get the details of a specific role
+        """
+        role = get_role_by_pk()
+
+        serializer = RoleSerializer(role)
+
+        return JsonResponse(data={'role': serializer.data},
+                            status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        """
+        update a role
+        """
+        data = JSONParser().parse(request)
+        role = get_role_by_pk(pk)
+
+        serializer = RoleSerializer(role, data=data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'role': serializer.data},
+                                status=status.HTTP_200_OK)
+
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 

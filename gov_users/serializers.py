@@ -65,6 +65,10 @@ class RoleSerializer(serializers.ModelSerializer):
                   'name',
                   'permissions')
 
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        
+
 
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
