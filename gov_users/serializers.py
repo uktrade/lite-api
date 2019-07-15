@@ -66,7 +66,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
 
 class RoleSerializer(serializers.ModelSerializer):
-    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, )
+    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
 
     class Meta:
         model = Role
