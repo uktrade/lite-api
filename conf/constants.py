@@ -1,0 +1,2 @@
+class Permissions:
+    MAKE_FINAL_DECISIONS = 'MAKE_FINAL_DECISIONS'
