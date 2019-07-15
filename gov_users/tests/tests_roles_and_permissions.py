@@ -28,6 +28,16 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.get(name='some role').name, 'some role')
 
+    def test_create_new_role_with_no_permissions(self):
+        data = {
+            'name': 'some role',
+            'permissions': [],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Role.objects.get(name='some role').name, 'some role')
+
     def tests_get_list_of_all_roles(self):
         role = Role(name='some')
         role.permissions.set([Permission.objects.get(id=Permissions.MAKE_FINAL_DECISIONS).id])
