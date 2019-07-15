@@ -53,4 +53,4 @@ class RolesAndPermissionsTests(DataTestClient):
         }
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(Permissions.MAKE_FINAL_DECISIONS in Role.objects.get(id=role_id).permissions.values_list('id'))
+        self.assertTrue(Permissions.MAKE_FINAL_DECISIONS in Role.objects.get(id=role_id).permissions.values_list('id', flat=True))

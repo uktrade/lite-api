@@ -58,20 +58,18 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
                   'email')
 
 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = ('id',
-                  'name',
-                  'permissions')
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        
-
-
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
         fields = ('id',
                   'name')
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, )
+
+    class Meta:
+        model = Role
+        fields = ('id',
+                  'name',
+                  'permissions')
