@@ -35,15 +35,19 @@ class CaseNote(models.Model):
     user = models.ForeignKey(GovUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    is_visible_for_exporter = models.BooleanField(default=None, blank=True, null=True)
+    is_visible_for_exporter = models.BooleanField(default=False, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         creating = self._state.adding is True
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_for_exporter:
-            for user in self.case.application.organisation.user_set.all():
-                user.create_notification(self)
+            if not self.case.clc_query:
+                for user in self.case.application.organisation.user_set.all():
+                    user.create_notification(self)
+            else:
+                for user in self.case.clc_query.good.organisation.user_set.all():
+                    user.create_notification(self)
 
 
 class CaseAssignment(models.Model):

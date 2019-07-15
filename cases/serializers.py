@@ -52,7 +52,7 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     case = PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedField(queryset=GovUser.objects.all())
     created_at = serializers.DateTimeField(read_only=True)
-    is_visible_for_exporter = serializers.BooleanField()
+    is_visible_for_exporter = serializers.BooleanField(default=False)
 
     class Meta:
         model = CaseNote
