@@ -21,7 +21,8 @@ class Document(models.Model):
 
     def delete(self, **kwargs):
         s3_client().delete_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
-        super().delete()
+        # If we ever need to remove the metadata of the file
+        # super().delete()
 
     def scan_for_viruses(self):
         from documents.av_scan import virus_scan_document
@@ -37,7 +38,7 @@ class Document(models.Model):
             - get the checksum/etag
         """
         try:
-            # self.update_md5_checksum()
+            self.update_md5_checksum()
             self.scan_for_viruses()
             if self.safe is False:
                 self.delete()
@@ -45,10 +46,10 @@ class Document(models.Model):
         except Exception:
             return False
 
-    # def update_md5_checksum(self):
-    #     """
-    #     Update the md5 checksum on the document record
-    #     """
-    #     self.checksum = self.get_md5_checksum()
-    #     self.save()
+    def update_md5_checksum(self):
+        """
+        Update the md5 checksum on the document record
+        """
+        self.checksum = self.get_md5_checksum()
+        self.save()
 
