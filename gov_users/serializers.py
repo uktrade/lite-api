@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser, Role
+from gov_users.models import GovUser, Role, Permission
 from teams.models import Team
 
 
@@ -64,3 +64,10 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'permissions')
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('id',
+                  'name')

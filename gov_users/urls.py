@@ -10,4 +10,5 @@ urlpatterns = [
     path('authenticate/', gov_user_views.AuthenticateGovUser.as_view(), name='authenticate'),
     path('<uuid:pk>/', gov_user_views.GovUserDetail.as_view(), name='gov_user'),
     path('roles/', roles_views.Roles.as_view(), name='roles'),
+    path('permissions/', roles_views.Permissions.as_view(), name='permissions'),
 ]

@@ -6,7 +6,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from gov_users.serializers import RoleSerializer
+from gov_users.models import Role, Permission
+from gov_users.serializers import RoleSerializer, PermissionSerializer
 
 
 class Roles(APIView):
@@ -14,6 +15,15 @@ class Roles(APIView):
     Manage roles
     """
     authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        """
+        Return list of all roles
+        """
+        roles = Role.objects.all().order_by('name')
+        serializer = RoleSerializer(roles, many=True)
+        return JsonResponse(data={'roles': serializer.data})
+
 
     @swagger_auto_schema(
         request_body=RoleSerializer,
@@ -36,3 +46,18 @@ class Roles(APIView):
         print(serializer.errors)
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class Permissions(APIView):
+    """
+    Manage permissions
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        """
+        Return list of all permissions
+        """
+        roles = Permission.objects.all().order_by('name')
+        serializer = PermissionSerializer(roles, many=True)
+        return JsonResponse(data={'permissions': serializer.data})
