@@ -1,11 +1,11 @@
 from contextlib import closing
 
+import logging
 import requests
 from django.conf import settings
 from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-# from raven.contrib.django.raven_compat.models import client
 from conf.settings import env
 from .utils import s3_client
 from cases.models import CaseDocument
@@ -28,7 +28,8 @@ class S3StreamingBodyWrapper:
         return content
 
     def __len__(self):
-        """Return remaining bytes, that have not been read yet.
+        """
+        Return remaining bytes, that have not been read yet.
         requests-toolbelt expects this to return the number of unread bytes (rather than
         the total length of the stream).
         """
@@ -36,7 +37,8 @@ class S3StreamingBodyWrapper:
 
 
 def virus_scan_document(document_pk: str):
-    """Virus scans an uploaded document.
+    """
+    Virus scans an uploaded document.
     This is intended to be run in the thread pool executor. The file is streamed from S3 to the
     anti-virus service.
     Any errors are logged and sent to Sentry.
@@ -44,10 +46,9 @@ def virus_scan_document(document_pk: str):
     try:
         with advisory_lock(f'av-scan-{document_pk}'):
             _process_document(document_pk)
-    except Exception as e:
-        print(e)
-        # logger.exception('Error scanning document for viruses')
-        # client.captureException()
+    except Exception as e: #noqa
+        logging.error('Error scanning document for viruses')
+        logging.error(e)
 
 
 def _process_document(document_pk: str):
@@ -58,8 +59,7 @@ def _process_document(document_pk: str):
     doc = CaseDocument.objects.get(pk=document_pk)
     if doc.virus_scanned_at is not None:
         warn_msg = f'Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}'
-        # logger.warning(warn_msg)
-        # client.captureMessage(warn_msg)
+        logging.warning(warn_msg)
         return
     try:
         is_file_clean = _scan_s3_object(doc.name, env('AWS_STORAGE_BUCKET_NAME'), doc.s3_key)
@@ -67,8 +67,8 @@ def _process_document(document_pk: str):
             doc.virus_scanned_at = now()
             doc.safe = is_file_clean
             doc.save()
-    except Exception as e:
-        print(e)
+    except Exception as e: # noqa
+        logging.error(e)
         doc.safe = None
         doc.virus_scanned_at = None
         doc.save()

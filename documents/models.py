@@ -1,5 +1,6 @@
 import uuid
 
+import logging
 from django.db import models
 
 from conf.settings import env
@@ -43,7 +44,8 @@ class Document(models.Model):
             if self.safe is False:
                 self.delete_s3()
             return bool(self.checksum) and self.safe
-        except Exception: # noqa
+        except Exception as e: # noqa
+            logging.error(e)
             return False
 
     def update_md5_checksum(self):
