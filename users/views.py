@@ -11,7 +11,6 @@ from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import User, UserStatuses, Notifications
 from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
-import pprint
 
 
 class AuthenticateUser(APIView):
