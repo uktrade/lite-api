@@ -8,6 +8,27 @@ from gov_users.models import GovUser, Role, Permission
 from teams.models import Team
 
 
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('id',
+                  'name')
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
+    name = serializers.CharField(max_length=30,
+                                 validators=[UniqueValidator(queryset=Role.objects.all(), lookup='iexact',
+                                                             message=get_string('roles.duplicate_name'))],
+                                 error_messages={'blank': get_string('roles.blank_name')})
+
+    class Meta:
+        model = Role
+        fields = ('id',
+                  'name',
+                  'permissions')
+
+
 class GovUserSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
                                   error_messages={
@@ -62,24 +83,3 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email')
-
-
-class PermissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Permission
-        fields = ('id',
-                  'name')
-
-
-class RoleSerializer(serializers.ModelSerializer):
-    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
-    name = serializers.CharField(max_length=30,
-                                 validators=[UniqueValidator(queryset=Role.objects.all(), lookup='iexact',
-                                                             message=get_string('roles.duplicate_name'))],
-                                 error_messages={'blank': get_string('roles.blank_name')})
-
-    class Meta:
-        model = Role
-        fields = ('id',
-                  'name',
-                  'permissions')
