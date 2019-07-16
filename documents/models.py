@@ -20,9 +20,8 @@ class Document(models.Model):
         return self.name
 
     def delete_s3(self, **kwargs):
+        """ Removes file from s3 bucket (eg when the file is virus infected) """
         s3_client().delete_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
-        # If we ever need to remove the metadata of the file
-        # super().delete() or self.delete()
 
     def scan_for_viruses(self):
         from documents.av_scan import virus_scan_document
@@ -35,7 +34,6 @@ class Document(models.Model):
         Prepares the document for usage. This is run async after the document
         is already on S3.
             - perform a virus check
-            - get the checksum/etag
         """
         try:
             self.scan_for_viruses()

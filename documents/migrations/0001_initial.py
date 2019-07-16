@@ -21,7 +21,6 @@ class Migration(migrations.Migration):
                 ('size', models.IntegerField(blank=True, null=True)),
                 ('virus_scanned_at', models.DateTimeField(blank=True, null=True)),
                 ('safe', models.NullBooleanField()),
-                ('checksum', models.CharField(blank=True, max_length=64, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
         ),

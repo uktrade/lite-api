@@ -146,6 +146,11 @@ class CaseDocuments(APIView):
 
         return JsonResponse({'documents': serializer.data})
 
+    @swagger_auto_schema(
+        request_body=CaseDocumentCreateSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     @transaction.atomic()
     def post(self, request, pk):
         """
@@ -164,7 +169,8 @@ class CaseDocuments(APIView):
             serializer.save()
             return JsonResponse({'documents': serializer.data})
 
-        return JsonResponse({'errors': serializer.errors})
+        return JsonResponse({'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class CaseDocumentDetail(APIView):
