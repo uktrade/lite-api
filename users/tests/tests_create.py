@@ -37,3 +37,4 @@ class UserTests(APITestCase, URLPatternsTestCase):
         response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.filter(organisation=self.test_helper.organisation).count(), 1)
+

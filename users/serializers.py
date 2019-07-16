@@ -4,7 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from organisations.models import Organisation
-from users.models import User, UserStatuses, Notifications
+from users.models import User, UserStatuses, Notification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -82,5 +82,5 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class NotificationsSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Notifications
+        model = Notification
         exclude = []

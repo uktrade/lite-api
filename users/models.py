@@ -59,13 +59,13 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     def create_notification(self, case):
-        Notifications.objects.create(
+        Notification.objects.create(
             user=self,
             note=case
         )
 
 
-class Notifications(models.Model):
+class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
     note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
     viewed_at = models.DateTimeField(null=True)

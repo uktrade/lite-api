@@ -7,9 +7,11 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
+from clc_queries.enums import ClcQueryStatus
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
+from goods.enums import GoodControlled
 from goods.models import Good
 from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
@@ -17,6 +19,7 @@ from static.countries.helpers import get_country
 from static.units.enums import Units
 from teams.models import Team
 from users.models import User
+from clc_queries.models import ClcQuery
 
 
 class OrgAndUserHelper:
@@ -113,12 +116,37 @@ class OrgAndUserHelper:
         return draft
 
     @staticmethod
+    def complete_open_draft(name, org):
+        draft = Draft(name=name,
+                      licence_type=ApplicationLicenceType.OPEN_LICENCE,
+                      export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.choices,
+                      reference_number_on_information_form='',
+                      activity='Trade',
+                      usage='Fun',
+                      organisation=org)
+        draft.save()
+        return draft
+
+    @staticmethod
     def create_draft_with_good_end_user_and_site(name, org):
-        draft = OrgAndUserHelper.complete_draft(name, org)
+        draft = OrgAndUserHelper.complete_open_draft(name, org)
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()
         GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
         draft.end_user = OrgAndUserHelper.create_end_user('test', org)
+        SiteOnDraft(site=org.primary_site, draft=draft).save()
+        draft.save()
+        return draft
+
+    @staticmethod
+    def create_open_licence_draft_with_clc_query_good_and_location(name, org):
+        draft = OrgAndUserHelper.complete_draft(name, org)
+        good = OrgAndUserHelper.create_clc_query_good('a clc thing')
+        good.save()
+        # GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
+        # draft.end_user = OrgAndUserHelper.create_end_user('test', org)
+
         SiteOnDraft(site=org.primary_site, draft=draft).save()
         draft.save()
         return draft
@@ -134,13 +162,30 @@ class OrgAndUserHelper:
     @staticmethod
     def create_controlled_good(description, org):
         good = Good(description=description,
-                    is_good_controlled=True,
+                    is_good_controlled=GoodControlled.YES,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
                     organisation=org)
         good.save()
         return good
+
+    @staticmethod
+    def create_clc_query(description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.UNSURE,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org
+                    )
+        good.save()
+
+        clc_query = ClcQuery(details='this is a test text',
+                             good=good,
+                             status=ClcQueryStatus.SUBMITTED)
+        clc_query.save()
+        return clc_query
 
     @staticmethod
     def create_additional_users(org, quantity=1):

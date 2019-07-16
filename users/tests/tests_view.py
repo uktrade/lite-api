@@ -38,3 +38,5 @@ class UserTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, **{'HTTP_USER_ID': str(test_helper_2.user.id)})
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["users"]), 5)
+
+
