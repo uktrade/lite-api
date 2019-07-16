@@ -5,6 +5,7 @@ from applications.serializers import ApplicationBaseSerializer
 from case_types.serializers import CaseTypeSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from clc_queries.serializers import ClcQuerySerializer
+from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
@@ -79,7 +80,10 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
         case_document.save()
 
-        prepare_document(str(case_document.id))
+        if BACKGROUND_TASK_ENABLED:
+            prepare_document(str(case_document.id))
+        else:
+            prepare_document.now(str(case_document.id))
         return case_document
 
 

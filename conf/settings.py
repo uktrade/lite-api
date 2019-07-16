@@ -15,6 +15,7 @@ env = Env(
     ALLOWED_HOSTS=(str, ''),
     DEBUG=(bool, False),
     LOG_LEVEL=(str, 'INFO'),
+    BACKGROUND_TASK_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -146,7 +147,7 @@ AV_SERVICE_URL = env('AV_SERVICE_URL')
 AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
-BACKGROUND_TASK_RUN_ASYNC = env('BACKGROUND_TASK_RUN_ASYNC')
+BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
