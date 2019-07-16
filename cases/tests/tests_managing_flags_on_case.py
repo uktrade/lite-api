@@ -10,6 +10,23 @@ from test_helpers.clients import DataTestClient
 
 
 class CaseFlagsManagementTests(DataTestClient):
+    """
+        Given I am a logged in government user viewing a case
+        Then I should see any flags which are already set on the case including those which belong to other teams
+        And I should see an option to edit the case flags
+
+        When I choose to edit the case flags
+        Then I should see only the case level flags which are set that belong to my team
+        And I should see an option to set more flags
+        And I should see an option to unset the existing flags
+
+        When I choose to unset an existing flag
+        Then  I should be able to remove a flag and no longer see it on the case
+
+        When I choose to set more case flags
+        Then I should see all the flags which belong to my team that are not already set on the case
+        And I should be able to select one or more to add to the case
+    """
 
     def setUp(self):
         super().setUp()
@@ -19,39 +36,66 @@ class CaseFlagsManagementTests(DataTestClient):
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
-        # # Flags
-        # self.flag1 = self.create_flag("Flag1", "Case", self.team)
-        # self.flag2 = self.create_flag("Flag2", "Organisation", self.team)
-        # self.flag3 = self.create_flag("Flag3", "Case", self.team)
-
         # Cases
-        # self.case = Case.objects.get(application=self.application)
-        # CaseFlags(case=self.case, flag=self.flag1).save()
-        # CaseFlags(case=self.case, flag=self.flag2).save()
-        # CaseFlags(case=self.case, flag=self.flag3).save()
+        self.case = Case.objects.get(application=self.application)
 
-    # def test_can_see_all_flags_on_case(self):
-    #     response = self.client.get(self.url, **self.gov_headers)
+        # Teams
+        self.other_team = self.create_team("Team")
 
-    #     response_data = response.json()
+        # Flags
+        self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
+        self.team_org_flag_1 = self.create_flag("Org Flag 1", "Organisation", self.team)
+        self.team_case_flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
+        self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
+        self.all_flags = [self.team_case_flag_1, self.team_org_flag_1, self.team_case_flag_2, self.other_team_case_flag] 
 
-    #     self.assertEqual(len(response_data['case_flags']), 3)
+        self.url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
+        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
-    def test_given_new_case_then_return_flags_as_empty_list(self):
-        case = Case.objects.get(application=self.application)
-        url = reverse('cases:case_flags', kwargs={'pk': case.id})
+    def _add_flag_to_case(self, c, f):
+        case_flag = CaseFlags(case=c, flag=f)
+        case_flag.save()
+        return case_flag
 
-        response = self.client.get(url, **self.gov_headers)
+    def _expected_flag_data_object(self, case_flag):
+        return {'flag': str(case_flag.flag.id), 'flag_name': case_flag.flag.name}
 
+    def test_correct_flags_returned_for_new_case(self):
+        """
+        Given a new case
+        When a user requests CaseFlags
+        Then an empty list is returned
+        """
+        # Arrange
+
+        # Act
+        response = self.client.get(self.url, **self.gov_headers)
+
+        # Assert
         self.assertEqual(response.json()['case_flags'], [])
-        case.delete()
 
     def test_given_case_with_flags_then_flags_returned(self):
-        assert False
+        """
+        Given a Case
+        And CaseFlags are already set
+        When a user requests CaseFlags
+        Then the correct flags are returned
+        """
+        # Arrange
+        added_flags = [self.add_flag_to_case(self.case, f) for f in self.all_flags]
+        expected_response = [self.expected_flag_data_object(f) for f in added_flags]
+
+        # Act
+        response = self.client.get(self.url, **self.gov_headers)
+        returned_flags = response.json()['case_flags']
+
+        # Assert
+        self.assertEquals(len(returned_flags), 4)
+        [self.assertTrue(f in returned_flags) for f in expected_response]
 
     def test_given_new_case_when_case_is_on_users_queue_when_flags_are_set_then_they_are_returned_correctly(self):
         assert False
-    
+
     def test_given_new_case_when_case_is_on_users_queue_when_case_has_more_than_one_flag_and_one_is_removed_then_remaining_flags_are_returned(self):
         assert False
 
@@ -68,4 +112,17 @@ class CaseFlagsManagementTests(DataTestClient):
         # Expecting 401 bad-request
 
     def test_given_case_has_been_modified_then_appropriate_audit_is_in_place(self):
-        assert False
+        """
+        Given a new Case
+        When a case-level flag is added
+        Then an audit record is created
+        """
+        # Arrange
+
+        # Act
+        self.add_flag_to_case(self.case, self.team_case_flag_1)
+
+        # Assert
+        response = self.client.get(self.audit_url, **self.gov_headers)
+        response_data = response.json()
+        self.assertEquals(len(response_data['activity']), 1)

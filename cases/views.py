@@ -150,7 +150,7 @@ class CaseFlagsList(APIView):
 
         return JsonResponse(data={'case_flags': serializer.data}, status=status.HTTP_200_OK)
 
-    def post(self, request, pk):
+    def put(self, request, pk):
         """
         Assigns flags to a case
         """
