@@ -187,6 +187,6 @@ class CaseFlagsList(APIView):
         validated_case_flags = list(map(lambda x: x.get('flag'), serializer.validated_data))
         case_flags_removed = [self._remove_flags(case_flag) for case_flag in previously_assigned_flags if case_flag.flag not in validated_case_flags]
         with reversion.create_revision():
-            reversion.set_comment('Removed flags: ' + str(case_flags_removed) + ' Added flags: ' + str(case_flags_added))
+            reversion.set_comment("{'removed_flags': " + str(case_flags_removed) + ", 'added_flags': " + str(case_flags_added) + "}")
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
             serializer.save()
