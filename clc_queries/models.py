@@ -1,6 +1,8 @@
 import uuid
+
 import reversion
 from django.db import models
+
 from clc_queries.enums import ClcQueryStatus
 from goods.models import Good
 

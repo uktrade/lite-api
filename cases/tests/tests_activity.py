@@ -34,7 +34,7 @@ class CaseActivityTests(DataTestClient):
 
         # Update the application status
         data = {
-            'status': ApplicationStatus.APPROVED,
+            'status': ApplicationStatus.MORE_INFORMATION_REQUIRED,
         }
 
         self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)

@@ -2,7 +2,7 @@ from django.urls import path, include, reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser
+from gov_users.models import GovUser, Role
 from test_helpers.clients import DataTestClient
 
 
@@ -24,7 +24,8 @@ class GovUserAuthenticateTests(DataTestClient):
             'first_name': 'Jane',
             'last_name': 'Smith',
             'email': 'jsmith@name.com',
-            'team': self.team.id
+            'team': self.team.id,
+            'role': Role.objects.get(name='Default').id
         }
         url = reverse('gov_users:gov_users')
         response = self.client.post(url, data, **self.gov_headers)
