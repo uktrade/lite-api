@@ -6,7 +6,6 @@ from django.conf import settings
 from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-from conf.settings import env
 from .utils import s3_client
 from cases.models import CaseDocument
 
