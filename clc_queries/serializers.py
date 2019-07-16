@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from clc_queries.models import ClcQuery
 from goods.serializers import GoodSerializer
 
