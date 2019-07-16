@@ -97,13 +97,14 @@ class CaseFlagSerializer(serializers.ModelSerializer):
             return None
 
     def validate_flag(self, value):
-        if value not in self.context['team_case_level_flags']:
+        team_case_level_flags = Flag.objects.filter(level='Case', team=self.context['user'].team.id)
+        if (value) not in team_case_level_flags:
             raise serializers.ValidationError('You can only assign flags that are available for your team.')
         return value
 
     def create(self, validated_data):
         # Create case_flags that haven't already been assigned
-        case_flag = self.context['previously_assigned_team_case_level_flags'].filter(flag=validated_data['flag']).first()
+        case_flag = CaseFlags.objects.filter(flag=validated_data['flag']).first()
         if not case_flag:
             return super(CaseFlagSerializer, self).create(validated_data)
         else:
