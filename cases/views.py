@@ -169,10 +169,14 @@ class CaseFlagsList(APIView):
             }, many=True)
 
         if serializer.is_valid():
-            previously_assigned_team_case_level_flags = CaseFlags.objects.filter(case=case, flag__level='Case', flag__team=request.user.team.id)
+            previously_assigned_team_case_level_flags = CaseFlags.objects.filter(
+                case=case,
+                flag__level='Case',
+                flag__team=request.user.team.id
+            )
             flags_removed = self._remove_flags(serializer, previously_assigned_team_case_level_flags)
-            flags_added = self._add_flags(serializer, previously_assigned_team_case_level_flags)
-            self._audit_flag_assignments(request.user, flags_removed, flags_added)
+            flags_added = self._add_flags(serializer, previously_assigned_team_case_level_flags, request.user)
+            # self._audit_flag_assignments(request.user, flags_removed, flags_added)
 
             return JsonResponse(data={'case_flags': serializer.data},
                                 status=status.HTTP_201_CREATED)
@@ -196,7 +200,7 @@ class CaseFlagsList(APIView):
                 flags_removed.append(flag_name)
         return flags_removed
 
-    def _add_flags(self, serializer, previously_assigned_team_case_level_flags):
+    def _add_flags(self, serializer, previously_assigned_team_case_level_flags, user):
         flags_added = []
 
         # Add case_flags in validated_data if not already present
@@ -208,6 +212,11 @@ class CaseFlagsList(APIView):
             if add_case_flag:
                 flag_name = validated_case_flag.get('flag').name
                 case_flag = CaseFlags(case=validated_case_flag.get('case'), flag=validated_case_flag.get('flag'))
+
+                with reversion.create_revision():
+                    reversion.set_comment("comment")
+                    reversion.add_meta(GovUserRevisionMeta, gov_user=user)
+
                 case_flag.save()
                 flags_added.append(flag_name)
         return flags_added
