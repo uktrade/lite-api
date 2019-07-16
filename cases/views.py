@@ -163,23 +163,22 @@ class CaseFlagsList(APIView):
 
         team_case_level_flags = Flag.objects.filter(level='Case', team=request.user.team.id)
 
-        with reversion.create_revision():
-            serializer = CaseFlagSerializer(data=case_flags, context={
-                    'method': request.method,
-                    'team_case_level_flags': team_case_level_flags
-                }, many=True)
+        serializer = CaseFlagSerializer(data=case_flags, context={
+                'method': request.method,
+                'team_case_level_flags': team_case_level_flags
+            }, many=True)
 
-            if serializer.is_valid():
-                previously_assigned_team_case_level_flags = CaseFlags.objects.filter(case=case, flag__level='Case', flag__team=request.user.team.id)
-                flags_removed = self._remove_flags(serializer, previously_assigned_team_case_level_flags)
-                flags_added = self._add_flags(serializer, previously_assigned_team_case_level_flags)
-                self._audit_flag_assignments(request.user, flags_removed, flags_added)
+        if serializer.is_valid():
+            previously_assigned_team_case_level_flags = CaseFlags.objects.filter(case=case, flag__level='Case', flag__team=request.user.team.id)
+            flags_removed = self._remove_flags(serializer, previously_assigned_team_case_level_flags)
+            flags_added = self._add_flags(serializer, previously_assigned_team_case_level_flags)
+            self._audit_flag_assignments(request.user, flags_removed, flags_added)
 
-                return JsonResponse(data={'case_flags': serializer.data},
-                                    status=status.HTTP_201_CREATED)
-            else:
-                return JsonResponse(data={'errors': serializer.errors},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'case_flags': serializer.data},
+                                status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
 
     def _remove_flags(self, serializer, previously_assigned_team_case_level_flags):
         flags_removed = []
@@ -195,6 +194,7 @@ class CaseFlagsList(APIView):
                 flag_name = previously_assigned_flag.flag.name
                 previously_assigned_flag.delete()
                 flags_removed.append(flag_name)
+        return flags_removed
 
     def _add_flags(self, serializer, previously_assigned_team_case_level_flags):
         flags_added = []
@@ -206,22 +206,23 @@ class CaseFlagsList(APIView):
                 if validated_case_flag.get('flag') == previously_assigned_flag.flag:
                     add_case_flag = False
             if add_case_flag:
-                flag_name = validated_case_flag.get('flag_name')
+                flag_name = validated_case_flag.get('flag').name
                 case_flag = CaseFlags(case=validated_case_flag.get('case'), flag=validated_case_flag.get('flag'))
                 case_flag.save()
                 flags_added.append(flag_name)
+        return flags_added
 
     def _audit_flag_assignments(self, user, flags_removed, flags_added):
-        if flags_added or flags_removed:
-            comment = ""
-            if len(flags_added) > 0:
-                comment += "Added case-level flags: "
-                for flag in flags_added:
-                    comment += flag + ' '
-            if len(flags_removed) > 0:
-                comment += "Removed case-level flags: "
-                for flag in flags_removed:
-                    comment += flag + ' '
-            reversion.add_meta(GovUserRevisionMeta, gov_user=user)
-            reversion.set_user(user)
-            reversion.set_comment(comment)
+        with reversion.create_revision():
+            if len(flags_added) > 0 or len(flags_removed) > 0:
+                comment = ""
+                if len(flags_added) > 0:
+                    comment += "Added case-level flags: "
+                    for flag in flags_added:
+                        comment += str(flag) + ' '
+                if len(flags_removed) > 0:
+                    comment += "Removed case-level flags: "
+                    for flag in flags_removed:
+                        comment += str(flag) + ' '
+                reversion.set_comment(comment)
+                reversion.add_meta(GovUserRevisionMeta, gov_user=user)

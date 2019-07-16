@@ -45,6 +45,7 @@ class CaseAssignment(models.Model):
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
 
 
+@reversion.register()
 class CaseFlags(models.Model):
     """
     Flags on a case, visible by internal users.
