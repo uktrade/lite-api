@@ -103,8 +103,10 @@ class DataTestClient(BaseTestClient):
                     self.test_helper.organisation)))
 
     def create_clc_query_case(self, name):
-        return Case.objects.get(
-                clc_query=self.test_helper.create_clc_query(name, self.test_helper.organisation))
+        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation)
+        case = Case(clc_query=clc_query)
+        case.save()
+        return case
 
     def create_case_note(self, case: Case, text: str):
         case_note = CaseNote(case=case,
