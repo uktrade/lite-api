@@ -117,19 +117,20 @@ class ApplicationDetail(APIView):
         Update an application instance.
         """
         with reversion.create_revision():
-            request_data = json.loads(request.body)
+            data = json.loads(request.body)
 
-            if request_data.get('status') == 'approved' or request_data.get('status') == 'declined':
-                if not has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS):
-                    return JsonResponse(data={'application': 'Permission not found'}, status=403)
+            # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
+            if data.get('status') == 'approved' or data.get('status') == 'declined':
+                has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+                # Set audit information
                 reversion.set_comment("Updated application details")
                 reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=400)
