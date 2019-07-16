@@ -203,23 +203,22 @@ class CaseFlagsList(APIView):
     def _add_flags(self, serializer, previously_assigned_team_case_level_flags, user):
         flags_added = []
 
-        # Add case_flags in validated_data if not already present
-        for validated_case_flag in serializer.validated_data:
-            add_case_flag = True
-            for previously_assigned_flag in previously_assigned_team_case_level_flags:
-                if validated_case_flag.get('flag') == previously_assigned_flag.flag:
-                    add_case_flag = False
-            if add_case_flag:
-                flag_name = validated_case_flag.get('flag').name
-                case_flag = CaseFlags(case=validated_case_flag.get('case'), flag=validated_case_flag.get('flag'))
-
-                with reversion.create_revision():
-                    reversion.set_comment("comment")
+        with reversion.create_revision():
+            # Add case_flags in validated_data if not already present
+            for validated_case_flag in serializer.validated_data:
+                add_case_flag = True
+                for previously_assigned_flag in previously_assigned_team_case_level_flags:
+                    if validated_case_flag.get('flag') == previously_assigned_flag.flag:
+                        add_case_flag = False
+                if add_case_flag:
+                    flag_name = validated_case_flag.get('flag').name
+                    case_flag = CaseFlags(case=validated_case_flag.get('case'), flag=validated_case_flag.get('flag'))
+                    reversion.set_comment('hey')
                     reversion.add_meta(GovUserRevisionMeta, gov_user=user)
 
-                case_flag.save()
-                flags_added.append(flag_name)
-        return flags_added
+                    case_flag.save()
+                    flags_added.append(flag_name)
+            return flags_added
 
     def _audit_flag_assignments(self, user, flags_removed, flags_added):
         with reversion.create_revision():
