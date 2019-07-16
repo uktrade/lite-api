@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
+
+from cases.models import Case
 from clc_queries.models import ClcQuery
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
 from organisations.models import Organisation
-from cases.models import Case
 
 
 class GoodSerializer(serializers.ModelSerializer):

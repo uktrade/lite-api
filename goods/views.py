@@ -5,15 +5,14 @@ from rest_framework.views import APIView
 
 from case_types.models import CaseType
 from cases.models import Case
+from clc_queries.models import ClcQuery
 from conf.authentication import PkAuthentication
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good
 from goods.models import Good
 from goods.serializers import GoodSerializer
-from clc_queries.models import ClcQuery
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
-
 
 
 class GoodList(APIView):
