@@ -55,7 +55,7 @@ class Document(models.Model):
         if self.s3_key:
             _client = s3_client()
             obj = _client.get_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
-            e_tag = obj.e_tag.replace('"', '').replace("'", "")
+            e_tag = obj.ETag.replace('"', '').replace("'", "")
             return e_tag
         return None
 
