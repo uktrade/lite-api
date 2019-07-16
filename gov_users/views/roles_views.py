@@ -24,7 +24,6 @@ class Roles(APIView):
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={'roles': serializer.data})
 
-
     @swagger_auto_schema(
         request_body=RoleSerializer,
         responses={
@@ -62,6 +61,11 @@ class RoleDetail(APIView):
 
         return JsonResponse(data={'role': serializer.data})
 
+    @swagger_auto_schema(
+        request_body=RoleSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     def put(self, request, pk):
         """
         update a role

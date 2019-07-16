@@ -55,10 +55,12 @@ class GovUserCreateSerializer(GovUserViewSerializer):
     team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
                                   error_messages={
                                       'null': get_string('users.null_team'),
+                                      'invalid': get_string('users.null_team'),
                                   })
     role = PrimaryKeyRelatedField(queryset=Role.objects.all(),
                                   error_messages={
                                       'null': get_string('users.null_role'),
+                                      'invalid': get_string('users.null_role'),
                                   })
 
     class Meta:

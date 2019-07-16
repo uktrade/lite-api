@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationLicenceType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
@@ -120,7 +120,7 @@ class ApplicationDetail(APIView):
             data = json.loads(request.body)
 
             # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
-            if data.get('status') == 'approved' or data.get('status') == 'declined':
+            if data.get('status') == ApplicationStatus.APPROVED or data.get('status') == ApplicationStatus.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)

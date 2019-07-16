@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from content_strings.strings import get_string
 from teams.models import Team
 
 
@@ -8,9 +9,9 @@ class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=50,
                                  validators=[
                                      UniqueValidator(queryset=Team.objects.all(), lookup='iexact',
-                                                     message='Enter a name which is not already in use by another team')
+                                                     message=get_string('teams.not_unique_name'))
                                  ],
-                                 error_messages={'blank': 'Team name may not be blank'})
+                                 error_messages={'blank': get_string('teams.blank_name')})
 
     class Meta:
         model = Team
