@@ -62,7 +62,7 @@ def _process_document(document_pk: str):
         logging.warning(warn_msg)
         return
     try:
-        is_file_clean = _scan_s3_object(doc.name, env('AWS_STORAGE_BUCKET_NAME'), doc.s3_key)
+        is_file_clean = _scan_s3_object(doc.name, settings.AWS_STORAGE_BUCKET_NAME, doc.s3_key)
         if is_file_clean is not None:
             doc.virus_scanned_at = now()
             doc.safe = is_file_clean

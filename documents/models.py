@@ -3,7 +3,7 @@ import uuid
 import logging
 from django.db import models
 
-from conf.settings import env
+from conf import settings
 from documents.utils import s3_client
 
 
@@ -21,7 +21,7 @@ class Document(models.Model):
 
     def delete_s3(self, **kwargs):
         """ Removes file from s3 bucket (eg when the file is virus infected) """
-        s3_client().delete_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
+        s3_client().delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=self.s3_key)
 
     def scan_for_viruses(self):
         from documents.av_scan import virus_scan_document
