@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.models import Application
+from case_types.models import CaseType
 from cases.models import CaseNote, Case
 from conf.urls import urlpatterns
 from drafts.models import Draft
@@ -104,7 +105,8 @@ class DataTestClient(BaseTestClient):
 
     def create_clc_query_case(self, name):
         clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation)
-        case = Case(clc_query=clc_query)
+        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+        case = Case(clc_query=clc_query, case_type=case_type)
         case.save()
         return case
 
