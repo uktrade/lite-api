@@ -97,8 +97,6 @@ class GovUserList(APIView):
             return JsonResponse(data={'gov_user': serializer.data},
                                 status=status.HTTP_201_CREATED)
 
-        print(serializer.errors)
-
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
