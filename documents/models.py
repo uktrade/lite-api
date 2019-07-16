@@ -14,7 +14,6 @@ class Document(models.Model):
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
     safe = models.NullBooleanField()
-    #checksum = models.CharField(max_length=64, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __str__(self):
@@ -39,29 +38,10 @@ class Document(models.Model):
             - get the checksum/etag
         """
         try:
-            self.update_md5_checksum()
             self.scan_for_viruses()
             if self.safe is False:
                 self.delete_s3()
-            return bool(self.checksum) and self.safe
+            return self.safe
         except Exception as e: # noqa
             logging.error(e)
             return False
-
-    def get_md5_checksum(self):
-        """
-        Get the md5 checksum via the file's s3 etag
-        """
-        if self.s3_key:
-            _client = s3_client()
-            obj = _client.get_object(Bucket=env('AWS_STORAGE_BUCKET_NAME'), Key=self.s3_key)
-            e_tag = obj.ETag.replace('"', '').replace("'", "")
-            return e_tag
-        return None
-
-    def update_md5_checksum(self):
-        """
-        Update the md5 checksum on the document record
-        """
-        self.checksum = self.get_md5_checksum()
-        self.save()
