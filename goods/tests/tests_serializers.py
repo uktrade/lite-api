@@ -1,9 +1,8 @@
 from rest_framework.test import APITestCase
 
+from goods.enums import GoodControlled
 from goods.serializers import GoodSerializer
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-
-from goods.enums import GoodControlled
 
 
 class OrganisationTests(APITestCase):

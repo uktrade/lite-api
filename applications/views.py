@@ -7,12 +7,14 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationLicenceType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
+from conf.constants import Permissions
+from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
@@ -115,13 +117,20 @@ class ApplicationDetail(APIView):
         Update an application instance.
         """
         with reversion.create_revision():
+            data = json.loads(request.body)
+
+            # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
+            if data.get('status') == ApplicationStatus.APPROVED or data.get('status') == ApplicationStatus.DECLINED:
+                has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
+
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+                # Set audit information
                 reversion.set_comment("Updated application details")
                 reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=400)

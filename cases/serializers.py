@@ -4,10 +4,11 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment, CaseFlags
 from content_strings.strings import get_string
+from case_types.serializers import CaseTypeSerializer
 from clc_queries.serializers import ClcQuerySerializer
+from content_strings.strings import get_string
 from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
-from case_types.serializers import CaseTypeSerializer
 from queues.models import Queue
 from flags.models import Flag
 

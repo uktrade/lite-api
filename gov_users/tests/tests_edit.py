@@ -3,6 +3,7 @@ import json
 from django.urls import path, include, reverse
 from rest_framework import status
 
+from gov_users.models import Permission, Role
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 
@@ -46,4 +47,18 @@ class GovUserEditTests(DataTestClient):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def tests_change_role_of_a_gov_user(self):
+        role = Role(name='some role')
+        role.permissions.set([Permission.objects.get(name='Make final decisions').id])
+        role.save()
+        data = {
+            'role': role.id
+        }
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
+        response = self.client.put(url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+
+        self.assertEqual(response_data['gov_user']['role'], str(role.id))
 

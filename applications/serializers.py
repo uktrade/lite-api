@@ -182,6 +182,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
+
         # Remove any previous denial reasons
         if validated_data.get('status') == ApplicationStatus.APPROVED:
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
