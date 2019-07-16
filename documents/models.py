@@ -47,6 +47,16 @@ class Document(models.Model):
         except Exception as e: # noqa
             logging.error(e)
             return False
+        
+    def get_md5_checksum(self):
+        """
+        Get the md5 checksum via the file's s3 etag
+        """
+        if self.file:
+            obj = self.file.storage.bucket.Object(self.file.name)
+            e_tag = obj.e_tag.replace('"', '').replace("'", "")
+            return e_tag
+        return None
 
     def update_md5_checksum(self):
         """
