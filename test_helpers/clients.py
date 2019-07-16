@@ -117,6 +117,14 @@ class DataTestClient(BaseTestClient):
         case_note.save()
         return case_note
 
+    def create_case_note_visible_to_exporter(self, case: Case, text: str):
+        case_note = CaseNote(case=case,
+                             text=text,
+                             user=self.user,
+                             is_visible_for_exporter=True)
+        case_note.save()
+        return case_note
+
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,
                       team=team)

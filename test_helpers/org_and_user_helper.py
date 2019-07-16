@@ -139,17 +139,6 @@ class OrgAndUserHelper:
         draft.save()
         return draft
 
-    @staticmethod
-    def create_open_licence_draft_with_clc_query_good_and_location(name, org):
-        draft = OrgAndUserHelper.complete_draft(name, org)
-        good = OrgAndUserHelper.create_clc_query_good('a clc thing')
-        good.save()
-        # GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
-        # draft.end_user = OrgAndUserHelper.create_end_user('test', org)
-
-        SiteOnDraft(site=org.primary_site, draft=draft).save()
-        draft.save()
-        return draft
 
     @staticmethod
     def submit_draft(self, draft):
