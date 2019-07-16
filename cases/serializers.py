@@ -87,8 +87,6 @@ class CaseFlagSerializer(serializers.ModelSerializer):
         if self.context['method'] == "GET":
             del self.fields['id']
             del self.fields['case']
-        elif self.context['method'] == "POST":
-            del self.fields['flag_name']
 
     # pylint: disable=W0703
     def get_flag_name(self, instance):
