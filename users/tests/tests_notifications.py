@@ -11,18 +11,7 @@ from users.models import User, Notification
 
 class NotificationTests(DataTestClient):
 
-    urlpatterns = [
-        path('users/', include('users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
-
-    def setUp(self):
-        super().setUp()
-
     def tests_create_new_clc_query_notification(self):
-
         self.create_clc_query_case("Case Ref")
         self.assertEqual(Case.objects.all().count(), 1)
         # note = self.create_case_note(self.case, "This is a test note")
