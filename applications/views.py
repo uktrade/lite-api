@@ -3,6 +3,7 @@ import json
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -10,7 +11,7 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
 from cases.models import Case
 from conf.authentication import PkAuthentication, GovAuthentication
 from conf.constants import Permissions
@@ -99,7 +100,9 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = [GovAuthentication]
+    serializer_class = ApplicationBaseSerializer
+
     """
     Retrieve, update or delete a application instance.
     """
@@ -109,7 +112,7 @@ class ApplicationDetail(APIView):
         Retrieve an application instance.
         """
         application = get_application_by_pk(pk)
-        serializer = ApplicationBaseSerializer(application)
+        serializer = self.serializer_class(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
@@ -134,3 +137,19 @@ class ApplicationDetail(APIView):
                 return JsonResponse(data={'application': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=400)
+
+
+class ApplicationDetailPkUser(ApplicationDetail):
+    authentication_classes = [PkAuthentication]
+    serializer_class = ApplicationCaseNotesSerializer
+
+    def get(self, request, pk):
+        """
+        Retrieve an application instance.
+        """
+        application = get_application_by_pk(pk)
+        request.user.notification_set.filter(note__case__application=application).update(
+            viewed_at=timezone.now()
+        )
+
+        return super(ApplicationDetailPkUser, self).get(request, pk)
