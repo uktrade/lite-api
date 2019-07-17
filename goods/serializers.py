@@ -21,7 +21,7 @@ class GoodSerializer(serializers.ModelSerializer):
     notes = serializers.SerializerMethodField()
 
     def get_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer  # cirular import prevention
+        from cases.serializers import CaseNoteSerializer  # circular import prevention
         return CaseNoteSerializer(obj.notes, many=True).data
 
     class Meta:

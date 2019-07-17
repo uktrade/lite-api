@@ -21,5 +21,5 @@ class Good(models.Model):
 
     @property
     def notes(self):
-        from cases.models import CaseNote # cirlular import prevention
+        from cases.models import CaseNote # circular import prevention
         return CaseNote.objects.filter(case__clc_query__good=self)
