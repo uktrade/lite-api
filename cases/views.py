@@ -98,7 +98,7 @@ class ActivityList(APIView):
 
     def get(self, request, pk):
         case = get_case(pk)
-        case_notes = get_case_notes_from_case(case)
+        case_notes = get_case_notes_from_case(case, False)
 
         if case.application_id:
             version_records = Version.objects.filter(object_id=case.application.pk).order_by('-revision_id')

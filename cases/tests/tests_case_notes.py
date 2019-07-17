@@ -91,22 +91,12 @@ class CaseNotesViewTests(DataTestClient):
         self.create_case_note(self.case, 'Hairpin Turns', self.gov_user)
         self.create_case_note(self.case, 'Not in Kansas', self.gov_user)
         self.create_case_note(self.case, 'Dust Swirls In Strange Light', self.gov_user)
-        self.create_case_note(self.case, 'Rylan', self.gov_user)
+        self.create_case_note(self.case, 'Rylan', self.exporter_user)
 
         response = self.client.get(self.url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json().get('case_notes')), 4)
 
-    def test_get_case_notes_from_case(self):
-        self.create_case_note(self.case, 'Hairpin Turns', self.gov_user)
-        self.create_case_note(self.case, 'Not in Kansas', self.gov_user)
-        self.create_case_note(self.case, 'Dust Swirls In Strange Light', self.gov_user)
-        self.create_case_note(self.case, 'Rylan', self.exporter_user)
-
-        # Show all case notes that are visible to internal users
-        case_notes = get_case_notes_from_case(self.case, False)
-        self.assertEqual(len(case_notes), 4)
-
-        # Only show case notes that are visible to exporters
-        case_notes = get_case_notes_from_case(self.case, True)
-        self.assertEqual(len(case_notes), 1)
+        response = self.client.get(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json().get('case_notes')), 1)
