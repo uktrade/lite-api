@@ -233,9 +233,9 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
     case_notes = serializers.SerializerMethodField()
 
     def get_case_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer, CaseNote # to prevent circular imports
-        queryset = CaseNote.objects.filter(is_visible_for_exporter=True, case__application=obj)
-        return CaseNoteSerializer(queryset, many=True).data
+        from cases.serializers import CaseNoteViewSerializer, CaseNote
+        queryset = CaseNote.objects.filter(is_visible_to_exporter=True, case__application=obj)
+        return CaseNoteViewSerializer(queryset, many=True).data
 
     class Meta:
         model = Application
@@ -255,5 +255,4 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
                   'application_denial_reason',
                   'destinations',
                   'goods_locations',
-                  'case_notes'
-                  )
+                  'case_notes')
