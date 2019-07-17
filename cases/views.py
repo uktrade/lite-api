@@ -163,9 +163,11 @@ class CaseFlagsAssignment(APIView):
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def _assign_flags(self, validated_data, case, user):
-        previously_assigned_case_flags = case.flags.filter(level='Case', team=user.team)
-        case_flags_to_add = [case_flag.name for case_flag in validated_data if case_flag not in previously_assigned_case_flags]
-        case_flags_removed = [case_flag.name for case_flag in previously_assigned_case_flags if case_flag not in validated_data]
+        previously_assigned_flags = case.flags.all()
+        previously_assigned_team_flags = previously_assigned_flags.filter(level='Case', team=user.team)
+        previously_assigned_not_team_flags = previously_assigned_flags.exclude(level='Case', team=user.team)
+        case_flags_to_add = [case_flag.name for case_flag in validated_data if case_flag not in previously_assigned_team_flags]
+        case_flags_removed = [case_flag.name for case_flag in previously_assigned_team_flags if case_flag not in validated_data]
 
         with reversion.create_revision():
             reversion.set_comment(
@@ -174,4 +176,4 @@ class CaseFlagsAssignment(APIView):
             )
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
 
-            case.flags.set(validated_data)
+            case.flags.set(validated_data + list(previously_assigned_not_team_flags))
