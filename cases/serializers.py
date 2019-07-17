@@ -71,15 +71,6 @@ class CaseNoteCreateSerializer(CaseNoteViewSerializer):
         model = CaseNote
         fields = '__all__'
 
-    def create(self, validated_data):
-        try:
-            ExporterUser.objects.get(id=validated_data['user'].id)
-            validated_data['is_visible_to_exporter'] = True
-        except ExporterUser.DoesNotExist:
-            pass
-
-        return CaseNote.objects.create(**validated_data)
-
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
     users = GovUserSimpleSerializer(many=True)

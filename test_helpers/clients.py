@@ -11,7 +11,7 @@ from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser
+from users.models import GovUser, BaseUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -32,6 +32,8 @@ class DataTestClient(BaseTestClient):
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.exporter_headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
         self.team = Team.objects.get(name='Admin')
+
+        self.exporter_user = self.test_helper.user
 
         self.gov_user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
                                 email='test@mail.com',
@@ -103,10 +105,10 @@ class DataTestClient(BaseTestClient):
                     name,
                     self.test_helper.organisation)))
 
-    def create_case_note(self, case: Case, text: str):
+    def create_case_note(self, case: Case, text: str, user: BaseUser):
         case_note = CaseNote(case=case,
                              text=text,
-                             user=self.gov_user)
+                             user=user)
         case_note.save()
         return case_note
 

@@ -7,7 +7,7 @@ from applications.models import Application
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from queues.models import Queue
-from users.models import GovUser, BaseUser
+from users.models import GovUser, BaseUser, ExporterUser
 
 
 @reversion.register()
@@ -36,6 +36,14 @@ class CaseNote(models.Model):
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
+
+    def save(self, *args, **kwargs):
+        try:
+            ExporterUser.objects.get(id=self.user.id)
+            self.is_visible_to_exporter = True
+        except ExporterUser.DoesNotExist:
+            pass
+        super(CaseNote, self).save(*args, **kwargs)
 
 
 class CaseAssignment(models.Model):
