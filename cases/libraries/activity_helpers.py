@@ -7,6 +7,7 @@ from gov_users.models import GovUserRevisionMeta
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
+CHANGE_FLAGS = 'change_case_flags'
 
 
 def _activity_item(activity_type, date, user, data):
@@ -50,15 +51,18 @@ def convert_audit_to_activity(version: Version):
     except GovUserRevisionMeta.DoesNotExist:
         return
 
+    data = json.loads(version.serialized_data)[0]['fields']
+
     if _revision_object.comment:
         try:
             comment = json.loads(_revision_object.comment)
         except:
             comment = _revision_object.comment
+        data['comment'] = comment
 
-    data = json.loads(version.serialized_data)[0]['fields'] + comment
+    activity_type = CHANGE_FLAGS if 'removed_flags' in data['comment'] or 'added_flags' in data['comment'] else CHANGE
 
-    return _activity_item(CHANGE,
+    return _activity_item(activity_type,
                           _revision_object.date_created,
                           {
                               'id': gov_user.id,

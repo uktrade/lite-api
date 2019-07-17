@@ -121,15 +121,18 @@ class ActivityList(APIView):
             fields = fields.split(',')
 
             for item in activity:
-                item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
+                if 'type' in item and item['type'] == 'change_case_flags':
+                    item['data'] = item['data']['comment']
+                else:
+                    item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
 
             # Only show unique dictionaries
-            for i in range(len(activity)):
-                if i < len(activity) - 1:
-                    activity[i]['data'] = dict(set(activity[i]['data'].items()) - set(activity[i + 1]['data'].items()))
+            # for i in range(len(activity)):
+            #     if i < len(activity) - 1:
+            #         activity[i]['data'] = dict(set(activity[i]['data'].items()) - set(activity[i + 1]['data'].items()))
 
-                    if not activity[i]['data']:
-                        del activity[i]
+            #         if not activity[i]['data']:
+            #             del activity[i]
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
