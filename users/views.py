@@ -75,12 +75,13 @@ class UserDetail(APIView):
     def put(self, request, pk):
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
+
         if 'status' in data.keys():
             if user_is_trying_to_change_own_status(user.id, request.user.id):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
-        with reversion.create_revision():
 
+        with reversion.create_revision():
             for key in list(data.keys()):
                 if data[key] is '':
                     del data[key]

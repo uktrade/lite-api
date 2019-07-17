@@ -31,7 +31,7 @@ class GovUserDeactivateTests(DataTestClient):
         data = {
             'status': 'Deactivated'
         }
-        url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

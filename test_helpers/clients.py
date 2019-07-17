@@ -32,13 +32,14 @@ class DataTestClient(BaseTestClient):
         self.test_helper = OrgAndUserHelper(name='Org1')
         self.exporter_headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
         self.team = Team.objects.get(name='Admin')
-        self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
-                            email='test@mail.com',
-                            first_name='John',
-                            last_name='Smith',
-                            team=self.team)
-        self.user.save()
-        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.user.id)}
+
+        self.gov_user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
+                                email='test@mail.com',
+                                first_name='John',
+                                last_name='Smith',
+                                team=self.team)
+        self.gov_user.save()
+        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.gov_user.id)}
 
     def create_organisation(self, name):
         self.name = name
@@ -105,7 +106,7 @@ class DataTestClient(BaseTestClient):
     def create_case_note(self, case: Case, text: str):
         case_note = CaseNote(case=case,
                              text=text,
-                             user=self.user)
+                             user=self.gov_user)
         case_note.save()
         return case_note
 

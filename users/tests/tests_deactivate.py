@@ -8,16 +8,13 @@ from users.enums import UserStatuses
 
 class UserTests(DataTestClient):
 
-    def setUp(self):
-        super().setUp()
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
-
     def test_deactivate_a_user(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation)
+
         data = {
             'status': UserStatuses.DEACTIVATED
         }
+
         url = reverse('users:user', kwargs={'pk': user.id})
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -26,6 +23,12 @@ class UserTests(DataTestClient):
         data = {
             'status': UserStatuses.DEACTIVATED
         }
+
+        # print('\n\n\n')
+        # print(self.exporter_headers)
+        # print(self.test_helper.user.id)
+        # print('\n\n\n')
+
         url = reverse('users:user', kwargs={'pk': self.test_helper.user.id})
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -33,10 +36,12 @@ class UserTests(DataTestClient):
     def test_deactivate_and_reactivate_a_user(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation)
         url = reverse('users:authenticate')
+
         data = {
             'email': user.email,
             'password': 'password'
         }
+
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = {

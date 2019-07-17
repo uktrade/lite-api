@@ -28,7 +28,7 @@ class GovUserEditTests(DataTestClient):
             'team': team.id
         }
 
-        url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
@@ -42,8 +42,8 @@ class GovUserEditTests(DataTestClient):
         url = reverse('gov_users:authenticate')
         data = {
             'email': 'test@mail.com',
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name
+            'first_name': self.gov_user.first_name,
+            'last_name': self.gov_user.last_name
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -55,7 +55,7 @@ class GovUserEditTests(DataTestClient):
         data = {
             'role': role.id
         }
-        url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)

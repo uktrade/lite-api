@@ -28,8 +28,8 @@ class CaseActivityTests(DataTestClient):
         role = Role(name='some')
         role.permissions.set([Permission.objects.get(id='MAKE_FINAL_DECISIONS').id])
         role.save()
-        self.user.role = role
-        self.user.save()
+        self.gov_user.role = role
+        self.gov_user.save()
 
         data = {
             'status': ApplicationStatus.APPROVED,
