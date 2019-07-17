@@ -227,3 +227,33 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'site',
                   'application')
+
+
+class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
+    case_notes = serializers.SerializerMethodField()
+
+    def get_case_notes(self, obj):
+        from cases.serializers import CaseNoteSerializer, CaseNote # to prevent circular imports
+        queryset = CaseNote.objects.filter(is_visible_for_exporter=True, case__application=obj)
+        return CaseNoteSerializer(queryset, many=True).data
+
+    class Meta:
+        model = Application
+        fields = ('id',
+                  'name',
+                  'organisation',
+                  'activity',
+                  'usage',
+                  'goods',
+                  'created_at',
+                  'last_modified_at',
+                  'submitted_at',
+                  'status',
+                  'licence_type',
+                  'export_type',
+                  'reference_number_on_information_form',
+                  'application_denial_reason',
+                  'destinations',
+                  'goods_locations',
+                  'case_notes'
+                  )

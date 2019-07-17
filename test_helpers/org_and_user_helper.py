@@ -7,9 +7,11 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
+from clc_queries.enums import ClcQueryStatus
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
+from goods.enums import GoodControlled
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
@@ -17,6 +19,8 @@ from static.units.enums import Units
 from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
+from users.models import User
+from clc_queries.models import ClcQuery
 
 
 class OrgAndUserHelper:
@@ -123,6 +127,7 @@ class OrgAndUserHelper:
         draft.save()
         return draft
 
+
     @staticmethod
     def submit_draft(self, draft):
         draft_id = draft.id
@@ -134,13 +139,30 @@ class OrgAndUserHelper:
     @staticmethod
     def create_controlled_good(description, org):
         good = Good(description=description,
-                    is_good_controlled=True,
+                    is_good_controlled=GoodControlled.YES,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
                     organisation=org)
         good.save()
         return good
+
+    @staticmethod
+    def create_clc_query(description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.UNSURE,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org
+                    )
+        good.save()
+
+        clc_query = ClcQuery(details='this is a test text',
+                             good=good,
+                             status=ClcQueryStatus.SUBMITTED)
+        clc_query.save()
+        return clc_query
 
     @staticmethod
     def create_additional_users(org, quantity=1):

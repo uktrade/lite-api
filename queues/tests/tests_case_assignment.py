@@ -23,8 +23,8 @@ class CaseAssignmentTests(DataTestClient):
 
         # Cases
         self.case = Case.objects.get(application=self.application)
-        self.case2 = self.create_case('Example')
-        self.case3 = self.create_case('Example 2')
+        self.case2 = self.create_application_case('Example')
+        self.case3 = self.create_application_case('Example 2')
 
         # Users
         self.gov_user = self.create_gov_user('gov1@email.com', team=self.default_team)

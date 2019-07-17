@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.models import Application
+from case_types.models import CaseType
 from cases.models import CaseNote, Case
 from conf.urls import urlpatterns
 from drafts.models import Draft
@@ -98,17 +99,32 @@ class DataTestClient(BaseTestClient):
         }
         self.client.post(url, data, **self.exporter_headers)
 
-    def create_case(self, name):
+    def create_application_case(self, name):
         return Case.objects.get(
             application=self.test_helper.submit_draft(
                 self, self.test_helper.create_draft_with_good_end_user_and_site(
                     name,
                     self.test_helper.organisation)))
 
-    def create_case_note(self, case: Case, text: str, user: BaseUser):
+    def create_clc_query_case(self, name):
+        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation)
+        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+        case = Case(clc_query=clc_query, case_type=case_type)
+        case.save()
+        return case
+
+    def create_case_note(self, case: Case, text: str):
         case_note = CaseNote(case=case,
                              text=text,
                              user=user)
+        case_note.save()
+        return case_note
+
+    def create_case_note_visible_to_exporter(self, case: Case, text: str):
+        case_note = CaseNote(case=case,
+                             text=text,
+                             user=self.user,
+                             is_visible_for_exporter=True)
         case_note.save()
         return case_note
 

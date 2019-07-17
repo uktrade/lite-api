@@ -43,8 +43,16 @@ class CaseNote(models.Model):
             self.is_visible_to_exporter = True
         except ExporterUser.DoesNotExist:
             pass
+        creating = self._state.adding is True
         super(CaseNote, self).save(*args, **kwargs)
 
+        if creating and self.is_visible_for_exporter:
+            if not self.case.clc_query:
+                for user in self.case.application.organisation.user_set.all():
+                    user.create_notification(self)
+            else:
+                for user in self.case.clc_query.good.organisation.user_set.all():
+                    user.create_notification(self)
 
 class CaseAssignment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

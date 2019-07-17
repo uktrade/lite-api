@@ -1,4 +1,5 @@
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -73,6 +74,9 @@ class GoodDetail(APIView):
             raise Http404
 
         serializer = GoodSerializer(good)
+        request.user.notification_set.filter(note__case__clc_query__good=good).update(
+            viewed_at=timezone.now()
+        )
         return JsonResponse(data={'good': serializer.data})
 
     def put(self, request, pk):
