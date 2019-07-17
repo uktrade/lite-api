@@ -35,11 +35,7 @@ class Document(models.Model):
         is already on S3.
             - perform a virus check
         """
-        try:
-            self.scan_for_viruses()
-            if self.safe is False:
-                self.delete_s3()
-            return self.safe
-        except Exception as e: # noqa
-            logging.error(e)
-            return False
+        self.scan_for_viruses()
+        if self.safe is False:
+            self.delete_s3()
+        return self.safe
