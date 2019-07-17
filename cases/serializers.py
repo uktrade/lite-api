@@ -9,7 +9,7 @@ from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from users.models import BaseUser, ExporterUser
-from users.serializers import BaseUserSerializer
+from users.serializers import BaseUserViewSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -49,7 +49,7 @@ class CaseNoteViewSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
     """
-    user = BaseUserSerializer()
+    user = BaseUserViewSerializer()
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:

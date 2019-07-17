@@ -4,13 +4,47 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from cases.models import Notification
+from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
-from users.models import ExporterUser, UserStatuses, BaseUser
+from teams.serializers import TeamSerializer
+from users.libraries.get_user import get_user_by_pk
+from users.models import ExporterUser, UserStatuses, BaseUser, GovUser
 
 
-class BaseUserSerializer(serializers.ModelSerializer):
+class BaseUserViewSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        instance = get_user_by_pk(instance.id)
+
+        if isinstance(instance, ExporterUser):
+            return ExporterUserViewSerializer(instance=instance).data
+        else:
+            return GovUserViewSerializer(instance=instance).data
+
     class Meta:
         model = BaseUser
+        fields = '__all__'
+
+
+class ExporterUserViewSerializer(serializers.ModelSerializer):
+    organisation = serializers.SerializerMethodField()
+
+    def get_organisation(self, instance):
+        return {
+            'id': instance.organisation.id,
+            'name': instance.organisation.name
+        }
+
+    class Meta:
+        model = ExporterUser
+        fields = '__all__'
+
+
+class GovUserViewSerializer(serializers.ModelSerializer):
+    team = TeamSerializer()
+    role = RoleSerializer()
+
+    class Meta:
+        model = GovUser
         fields = '__all__'
 
 
