@@ -20,9 +20,12 @@ class GoodSerializer(serializers.ModelSerializer):
     clc_query_case_id = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
 
-    def get_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer  # cirular import prevention
-        return CaseNoteSerializer(obj.notes, many=True).data
+    def get_notes(self, instance):
+        from cases.serializers import CaseNoteSerializer  # circular import prevention
+        try:
+            return CaseNoteSerializer(ClcQuery.objects.get(id=instance.clc_query_case_id).notes, many=True).data
+        except Exception:
+            return None
 
     class Meta:
         model = Good

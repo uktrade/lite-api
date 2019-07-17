@@ -1,9 +1,5 @@
-from applications.models import Application
-from cases.models import Case
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import Notification
-from django.urls import reverse
 
 
 class NotificationTests(DataTestClient):
