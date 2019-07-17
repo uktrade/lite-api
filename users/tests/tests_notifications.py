@@ -1,4 +1,5 @@
 from applications.models import Application
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import Notification
@@ -18,7 +19,13 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(Notification.objects.all().count(), 3)
 
-    # def tests_create_new_application_notification(self):
+    def tests_create_new_application_notification(self):
+        app_case = self.create_application_case("Case Ref")
+
+        # self.case = Case.objects.get(application=self.application)
+        #print(self.case)
+        self.create_case_note_visible_to_exporter(app_case, "This is a test note 1")
+
     #     draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
     #                                                                           self.test_helper.organisation)
     #     application = self.test_helper.submit_draft(self, draft)
