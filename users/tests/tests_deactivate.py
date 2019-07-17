@@ -24,11 +24,6 @@ class UserTests(DataTestClient):
             'status': UserStatuses.DEACTIVATED
         }
 
-        # print('\n\n\n')
-        # print(self.exporter_headers)
-        # print(self.test_helper.user.id)
-        # print('\n\n\n')
-
         url = reverse('users:user', kwargs={'pk': self.test_helper.user.id})
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
