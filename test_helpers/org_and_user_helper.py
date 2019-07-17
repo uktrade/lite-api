@@ -19,7 +19,6 @@ from static.units.enums import Units
 from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
-from users.models import User
 from clc_queries.models import ClcQuery
 
 

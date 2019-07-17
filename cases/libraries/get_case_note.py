@@ -1,6 +1,5 @@
-from django.http import Http404
-
 from cases.models import CaseNote
+from conf.exceptions import NotFoundError
 
 
 def get_case_note(pk):
@@ -10,7 +9,7 @@ def get_case_note(pk):
     try:
         return CaseNote.objects.get(pk=pk)
     except CaseNote.DoesNotExist:
-        raise Http404
+        raise NotFoundError({'case_note': 'Case Note not found'})
 
 
 def get_case_notes_from_case(case, only_show_notes_visible_to_exporter):

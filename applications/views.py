@@ -140,7 +140,7 @@ class ApplicationDetail(APIView):
 
 
 class ApplicationDetailPkUser(ApplicationDetail):
-    authentication_classes = [PkAuthentication]
+    authentication_classes = [ExporterAuthentication]
     serializer_class = ApplicationCaseNotesSerializer
 
     def get(self, request, pk):

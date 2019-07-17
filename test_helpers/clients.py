@@ -113,18 +113,11 @@ class DataTestClient(BaseTestClient):
         case.save()
         return case
 
-    def create_case_note(self, case: Case, text: str):
+    def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
-                             user=user)
-        case_note.save()
-        return case_note
-
-    def create_case_note_visible_to_exporter(self, case: Case, text: str):
-        case_note = CaseNote(case=case,
-                             text=text,
-                             user=self.user,
-                             is_visible_for_exporter=True)
+                             user=user,
+                             is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
 

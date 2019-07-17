@@ -7,7 +7,7 @@ from applications.models import Application
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from queues.models import Queue
-from users.models import GovUser, BaseUser, ExporterUser
+from users.models import BaseUser, ExporterUser, GovUser
 
 
 @reversion.register()
@@ -46,16 +46,20 @@ class CaseNote(models.Model):
         creating = self._state.adding is True
         super(CaseNote, self).save(*args, **kwargs)
 
-        if creating and self.is_visible_for_exporter:
-            if not self.case.clc_query:
-                for user in self.case.application.organisation.user_set.all():
-                    user.create_notification(self)
-            else:
-                for user in self.case.clc_query.good.organisation.user_set.all():
-                    user.create_notification(self)
+        if creating and self.is_visible_to_exporter:
+            organisation = self.case.clc_query.good.organisation if self.case.clc_query else self.case.application.organisation
+            for user in ExporterUser.objects.filter(organisation=organisation):
+                user.send_notification(self)
+
 
 class CaseAssignment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE, null=False)
+    note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
+    viewed_at = models.DateTimeField(null=True)

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
+from cases.models import Notification
 from organisations.models import Organisation
 from users.models import ExporterUser, UserStatuses, BaseUser
 

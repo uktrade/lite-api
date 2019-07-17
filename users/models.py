@@ -5,7 +5,6 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from cases.models import CaseNote
 from organisations.models import Organisation
 from teams.models import Team
 from users.enums import UserStatuses
@@ -74,11 +73,10 @@ class BaseUser(AbstractUser):
 class ExporterUser(BaseUser):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
 
-	def create_notification(self, case):
-        Notification.objects.create(
-            user=self,
-            note=case
-        )
+    def send_notification(self, case):
+        from cases.models import Notification
+        Notification.objects.create(user=self, note=case)
+
 
 class GovUser(BaseUser):
     team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
@@ -89,9 +87,3 @@ class GovUser(BaseUser):
         Remove gov user from all cases
         """
         self.case_assignments.clear()
-
-
-class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
-    note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
-    viewed_at = models.DateTimeField(null=True)

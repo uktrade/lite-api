@@ -5,6 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from cases.models import Notification
 from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
@@ -99,7 +100,7 @@ class UserDetail(APIView):
 class NotificationViewset(viewsets.ModelViewSet):
     model = Notification
     serializer_class = NotificationsSerializer
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated, )
     queryset = Notification.objects.all()
 
@@ -116,7 +117,7 @@ class NotificationViewset(viewsets.ModelViewSet):
 class ClcNotificationViewset(viewsets.ModelViewSet):
     model = Notification
     serializer_class = NotificationsSerializer
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated, )
     queryset = Notification.objects.all()
 

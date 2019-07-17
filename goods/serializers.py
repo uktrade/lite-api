@@ -18,11 +18,11 @@ class GoodSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
-    notes = serializers.SerializerMethodField()
+    # notes = serializers.SerializerMethodField()
 
-    def get_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer  # circular import prevention
-        return CaseNoteSerializer(obj.notes, many=True).data
+    # def get_notes(self, obj):
+    #     from cases.serializers import CaseNoteSerializer  # circular import prevention
+    #     return CaseNoteSerializer(obj.notes, many=True).data
 
     class Meta:
         model = Good
@@ -36,7 +36,6 @@ class GoodSerializer(serializers.ModelSerializer):
                   'organisation',
                   'status',
                   'not_sure_details_details',
-                  'notes'
                   )
 
     def __init__(self, *args, **kwargs):
