@@ -3,6 +3,8 @@ from rest_framework import status
 
 from cases.models import CaseDocument
 from test_helpers.clients import DataTestClient
+# from nose.tools import assert_true
+# import requests
 
 
 class CaseDocumentsTests(DataTestClient):
@@ -23,15 +25,16 @@ class CaseDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data['documents']), 2)
 
     #still work in progress
-    def test_add_a_document(self):
-        data = [{"name": "file123.pdf",
-                 "s3_key": "file123_12345678.pdf",
-                 "size": 476,
-                 "description": "Description 58398"}]
+    # def test_add_a_document(self):
+    #     data = [{"name": "file123.pdf",
+    #              "s3_key": "file123_12345678.pdf",
+    #              "size": 476,
+    #              "description": "Description 58398"}]
+    #
+    #     response = self.client.post(self.url, data=data, **self.gov_headers)
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #     print('STATUSCODE' + str(response.status_code))
+    #     self.assertEqual(CaseDocument.objects.count(), 1)
+    #     self.assertEqual(CaseDocument.objects.get().case, self.case)
 
-        response = self.client.post(self.url, data=data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print('STATUSCODE' + str(response.status_code))
-        self.assertEqual(CaseDocument.objects.count(), 1)
-        self.assertEqual(CaseDocument.objects.get().case, self.case)

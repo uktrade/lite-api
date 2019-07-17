@@ -86,7 +86,6 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
             try:
                 prepare_document.now(str(case_document.id))
             except Exception:
-                print('EXCEPTION CHECKPOIINT')
                 raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
 
         return case_document
