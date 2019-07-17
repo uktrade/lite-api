@@ -24,6 +24,7 @@ class Case(models.Model):
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
     clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
+    flags = models.ManyToManyField(Flag, related_name='cases')
 
 
 @reversion.register()
@@ -43,13 +44,3 @@ class CaseAssignment(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-
-
-@reversion.register()
-class CaseFlags(models.Model):
-    """
-    Flags on a case, visible by internal users.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, related_name='case_flags', on_delete=models.CASCADE)
-    flag = models.ForeignKey(Flag, related_name='case_flags', on_delete=models.CASCADE)

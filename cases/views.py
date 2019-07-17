@@ -13,7 +13,7 @@ from cases.libraries.activity_helpers import convert_audit_to_activity, convert_
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_case_flags import get_case_flags_from_case
-from cases.models import CaseAssignment, CaseFlags, Case
+from cases.models import CaseAssignment, Case
 from flags.models import Flag
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagSerializer
 from conf.authentication import GovAuthentication
@@ -145,9 +145,8 @@ class CaseFlagsList(APIView):
         """
         Retrieves all flags related to a case
         """
-        case_flags = get_case_flags_from_case(str(pk))
-        serializer = CaseFlagSerializer(case_flags, context={'method': request.method}, many=True)
-
+        case = get_case(str(pk))
+        serializer = CaseFlagSerializer(case)
         return JsonResponse(data={'case_flags': serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
@@ -155,7 +154,7 @@ class CaseFlagsList(APIView):
         Assigns flags to a case
         """
         case = str(pk)
-        data = JSONParser().parse(request)
+        case = JSONParser().parse(request)
         case_flags = [{'case': case, 'flag': flag} for flag in data['flags']]
 
         serializer = CaseFlagSerializer(
@@ -177,7 +176,7 @@ class CaseFlagsList(APIView):
         return flag_name
 
     def _assign_flags(self, serializer, case, user):
-        previously_assigned_case_flags = CaseFlags.objects.filter(
+        previously_assigned_case_flags = Case.objects.filter(
             case=case,
             flag__level='Case',
             flag__team=user.team

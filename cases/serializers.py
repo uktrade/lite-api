@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
-from cases.models import Case, CaseNote, CaseAssignment, CaseFlags
+from cases.models import Case, CaseNote, CaseAssignment
 from content_strings.strings import get_string
 from case_types.serializers import CaseTypeSerializer
 from clc_queries.serializers import ClcQuerySerializer
@@ -11,6 +11,7 @@ from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from flags.models import Flag
+from flags.serializers import FlagSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -68,35 +69,17 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         fields = ('case', 'users')
 
 
-class CaseFlagSerializer(serializers.ModelSerializer):
+class CaseFlagSerializer(CaseSerializer):
     """
     Serializes flags on case
     """
-    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
-    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
-    flag_name = serializers.SerializerMethodField()
+    flags = FlagSerializer(many=True)
 
     class Meta:
-        model = CaseFlags
-        fields = ('id', 'case', 'flag', 'flag_name')
+        model = Case
+        fields = ('id', 'flags')
 
-    def __init__(self, *args, **kwargs):
-        super(CaseFlagSerializer, self).__init__(*args, **kwargs)
-
-        # Don't return id or case_id if the request is a GET
-        # Don't validate flag_name if the request is a POST
-        if self.context['method'] == "GET":
-            del self.fields['id']
-            del self.fields['case']
-
-    # pylint: disable=W0703
-    def get_flag_name(self, instance):
-        try:
-            return instance.flag.name
-        except Exception:
-            return None
-
-    def validate_flag(self, value):
+    def validate_flags(self, value):
         team_case_level_flags = Flag.objects.filter(level='Case', team=self.context['user'].team.id)
         if (value) not in team_case_level_flags:
             raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
@@ -104,7 +87,7 @@ class CaseFlagSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Create case_flags that haven't already been assigned
-        case_flag = CaseFlags.objects.filter(flag=validated_data['flag']).first()
+        case_flag = Case.objects.filter(flag=validated_data['flag']).first()
         if not case_flag:
             return super(CaseFlagSerializer, self).create(validated_data)
         else:
