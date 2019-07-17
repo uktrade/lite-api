@@ -50,6 +50,14 @@ def convert_audit_to_activity(version: Version):
     except GovUserRevisionMeta.DoesNotExist:
         return
 
+    if _revision_object.comment:
+        try:
+            comment = json.loads(_revision_object.comment)
+        except:
+            comment = _revision_object.comment
+
+    data = json.loads(version.serialized_data)[0]['fields'] + comment
+
     return _activity_item(CHANGE,
                           _revision_object.date_created,
                           {
@@ -58,4 +66,4 @@ def convert_audit_to_activity(version: Version):
                               'first_name': gov_user.first_name,
                               'last_name': gov_user.last_name,
                           },
-                          json.loads(version.serialized_data)[0]['fields'])
+                          data)

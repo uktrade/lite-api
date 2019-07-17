@@ -17,6 +17,7 @@ from flags.models import Flag
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagsAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.models import GovUserRevisionMeta
+from django.db.models import Q
 
 
 @permission_classes((permissions.AllowAny,))
@@ -102,7 +103,9 @@ class ActivityList(APIView):
         case_notes = get_case_notes_from_case(case)
 
         if case.application_id:
-            version_records = Version.objects.filter(object_id=case.application.pk).order_by('-revision_id')
+            version_records = Version.objects.filter(
+                Q(object_id=case.application.pk) | Q(object_id=case.pk)
+            ).order_by('-revision_id')
         else:
             version_records = {}
         activity = []
@@ -118,7 +121,7 @@ class ActivityList(APIView):
             fields = fields.split(',')
 
             for item in activity:
-                item['data'] = {your_key: item['data'][your_key] for your_key in fields}
+                item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
 
             # Only show unique dictionaries
             for i in range(len(activity)):
@@ -163,7 +166,8 @@ class CaseFlagsAssignment(APIView):
 
         with reversion.create_revision():
             reversion.set_comment(
-                "{'removed_flags': " + str(case_flags_removed) + ", 'added_flags': " + str(case_flags_to_add) + "}"
+                ('{"removed_flags": ' + str(case_flags_removed) + ', "added_flags": ' + str(case_flags_to_add) + '}')
+                .replace('\'', '"')
             )
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
 
