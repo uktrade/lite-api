@@ -9,7 +9,7 @@ from conf.authentication import PkAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
-from users.models import User, UserStatuses
+from users.models import ExporterUser, UserStatuses
 from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
 
 
@@ -42,7 +42,7 @@ class UserList(APIView):
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
-        serializer = UserViewSerializer(User.objects.filter(organisation=organisation), many=True)
+        serializer = UserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
         return JsonResponse(data={'users': serializer.data})
 
     def post(self, request):

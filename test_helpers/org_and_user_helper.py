@@ -16,7 +16,7 @@ from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.units.enums import Units
 from teams.models import Team
-from users.models import User
+from users.models import ExporterUser
 
 
 class OrgAndUserHelper:
@@ -95,7 +95,7 @@ class OrgAndUserHelper:
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
-        self.user = User.objects.filter(organisation=self.organisation)[0]
+        self.user = ExporterUser.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site
         self.address = self.primary_site.address
 
@@ -148,12 +148,12 @@ class OrgAndUserHelper:
         for i in range(quantity):
             first_name, last_name = random_name()
             email = first_name + '.' + last_name + '@' + org.name + '.com'
-            if User.objects.filter(email=email).count() == 1:
+            if ExporterUser.objects.filter(email=email).count() == 1:
                 email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
-            user = User(first_name=first_name,
-                        last_name=last_name,
-                        email=email,
-                        organisation=org)
+            user = ExporterUser(first_name=first_name,
+                                last_name=last_name,
+                                email=email,
+                                organisation=org)
             user.set_password('password')
             user.save()
             if quantity == 1:

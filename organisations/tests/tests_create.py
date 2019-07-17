@@ -8,7 +8,7 @@ from reversion.models import Version
 
 from organisations.models import Organisation, Site
 from test_helpers.clients import DataTestClient
-from users.models import User
+from users.models import ExporterUser
 
 
 class OrganisationCreateTests(DataTestClient):
@@ -75,16 +75,16 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(Organisation.objects.get().sic_number, "2765")
         self.assertEqual(Organisation.objects.get().vat_number, "123456789")
         self.assertEqual(Organisation.objects.get().registration_number, "987654321")
-        self.assertEqual(User.objects.get().email, "trinity@bsg.com")
-        self.assertEqual(User.objects.get().first_name, self.admin_user_first_name)
-        self.assertEqual(User.objects.get().last_name, self.admin_user_last_name)
+        self.assertEqual(ExporterUser.objects.get().email, "trinity@bsg.com")
+        self.assertEqual(ExporterUser.objects.get().first_name, self.admin_user_first_name)
+        self.assertEqual(ExporterUser.objects.get().last_name, self.admin_user_last_name)
         self.assertEqual(Site.objects.get(name="Headquarters").address.address_line_1,
                          "42 Industrial Estate")
         self.assertEqual(Site.objects.get(name="Headquarters").name, "Headquarters")
 
         response_json = json.loads(response.content)
         organisation_id = response_json['organisation']['id']
-        user_id = User.objects.get(email='trinity@bsg.com').id
+        user_id = ExporterUser.objects.get(email='trinity@bsg.com').id
         site_id = Organisation.objects.get(id=organisation_id).primary_site.id
         address_id = Organisation.objects.get(id=organisation_id).primary_site.address.id
         version_record = Version.objects.get(object_id=uuid.UUID(organisation_id))

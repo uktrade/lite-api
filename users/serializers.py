@@ -4,14 +4,14 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from organisations.models import Organisation
-from users.models import User, UserStatuses
+from users.models import ExporterUser, UserStatuses
 
 
 class UserSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        model = User
+        model = ExporterUser
         fields = ('id',
                   'email',
                   'first_name',
@@ -25,7 +25,7 @@ class UserViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        model = User
+        model = ExporterUser
         fields = ('id',
                   'email',
                   'first_name',
@@ -36,7 +36,7 @@ class UserViewSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(UserSerializer):
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())],
+        validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
             'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
@@ -61,7 +61,7 @@ class UserUpdateSerializer(UserSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())],
+        validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
             'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
@@ -71,9 +71,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
-        model = User
+        model = ExporterUser
         fields = ('id', 'email', 'first_name', 'last_name', 'password', 'organisation')
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data.get('password'))
-        return User.objects.create(**validated_data)
+        return ExporterUser.objects.create(**validated_data)

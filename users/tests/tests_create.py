@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import User
+from users.models import ExporterUser
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
@@ -29,11 +29,11 @@ class UserTests(APITestCase, URLPatternsTestCase):
         url = reverse('users:users')
         response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.filter(organisation=self.test_helper.organisation).count(), 2)
+        self.assertEqual(ExporterUser.objects.filter(organisation=self.test_helper.organisation).count(), 2)
 
     def test_fail_create_new_user(self):
         data = {}
         url = reverse('users:users')
         response = self.client.post(url, data, **self.headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(User.objects.filter(organisation=self.test_helper.organisation).count(), 1)
+        self.assertEqual(ExporterUser.objects.filter(organisation=self.test_helper.organisation).count(), 1)

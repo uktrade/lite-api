@@ -1,10 +1,10 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 
-from users.models import User
+from users.models import ExporterUser
 
 
-@admin.register(User)
+@admin.register(ExporterUser)
 class UserModelAdmin(VersionAdmin):
 
     pass

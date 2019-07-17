@@ -4,7 +4,7 @@ from django.urls import path, include, reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import User
+from users.models import ExporterUser
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
@@ -28,7 +28,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         OrgAndUserHelper.create_additional_users(organisation_1, 2)
         OrgAndUserHelper.create_additional_users(organisation_2, 4)
 
-        self.assertEqual(User.objects.all().count(), 8)
+        self.assertEqual(ExporterUser.objects.all().count(), 8)
         url = reverse('users:users')
         response = self.client.get(url, **self.headers)
         response_data = json.loads(response.content)

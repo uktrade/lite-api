@@ -5,7 +5,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from gov_users.models import Role
 from organisations.models import Organisation
+from teams.models import Team
 from users.enums import UserStatuses
 
 
@@ -41,12 +43,10 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-@reversion.register()
-class User(AbstractUser):
+class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True, unique=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
     USERNAME_FIELD = 'email'
@@ -56,3 +56,18 @@ class User(AbstractUser):
         return self.email
 
     objects = CustomUserManager()
+
+
+class ExporterUser(BaseUser):
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
+
+
+class GovUser(BaseUser):
+    team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name='role', default='00000000-0000-0000-0000-000000000001', on_delete=models.PROTECT)
+
+    def unassign_from_cases(self):
+        """
+        Remove gov user from all cases
+        """
+        self.case_assignments.clear()

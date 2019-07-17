@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import User
+from users.models import ExporterUser
 
 
 class UserTests(APITestCase, URLPatternsTestCase):
@@ -42,7 +42,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertNotEqual(response_data['user']['email'], original_email)
-        self.assertNotEqual(User.objects.get(email='some@thing.com').password, original_password)
+        self.assertNotEqual(ExporterUser.objects.get(email='some@thing.com').password, original_password)
 
         # Show that new password works with login
         url = reverse('users:authenticate')
@@ -72,4 +72,4 @@ class UserTests(APITestCase, URLPatternsTestCase):
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertEqual(response_data['user']['email'], original_email)
-        self.assertEqual(User.objects.get(email=user.email).password, original_password)
+        self.assertEqual(ExporterUser.objects.get(email=user.email).password, original_password)
