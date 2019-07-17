@@ -83,7 +83,12 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
         if BACKGROUND_TASK_ENABLED:
             prepare_document(str(case_document.id))
         else:
-            prepare_document.now(str(case_document.id))
+            try:
+                prepare_document.now(str(case_document.id))
+            except Exception:
+                print('EXCEPTION CHECKPOIINT')
+                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
+
         return case_document
 
 

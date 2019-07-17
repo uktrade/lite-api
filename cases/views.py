@@ -167,7 +167,7 @@ class CaseDocuments(APIView):
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({'documents': serializer.data})
+            return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
