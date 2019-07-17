@@ -33,13 +33,14 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    flags = FlagSerializer(many=True)
     is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
     case_type = CaseTypeSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
+        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type', 'flags')
 
     def validate_queues(self, attrs):
         if len(attrs) == 0:
@@ -69,26 +70,18 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         fields = ('case', 'users')
 
 
-class CaseFlagSerializer(CaseSerializer):
+class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
     """
     Serializes flags on case
     """
-    flags = FlagSerializer(many=True)
+    flags = PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
 
     class Meta:
         model = Case
         fields = ('id', 'flags')
 
-    def validate_flags(self, value):
-        team_case_level_flags = Flag.objects.filter(level='Case', team=self.context['user'].team.id)
-        if (value) not in team_case_level_flags:
+    def validate_flags(self, flags):
+        team_case_level_flags = list(Flag.objects.filter(level='Case', team=self.context['team']))
+        if not set(flags).issubset(list(team_case_level_flags)):
             raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
-        return value
-
-    def create(self, validated_data):
-        # Create case_flags that haven't already been assigned
-        case_flag = Case.objects.filter(flag=validated_data['flag']).first()
-        if not case_flag:
-            return super(CaseFlagSerializer, self).create(validated_data)
-        else:
-            return case_flag
+        return flags
