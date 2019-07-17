@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import Draft
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
@@ -11,7 +11,7 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class DraftList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     """
     List all drafts that belong to an organisation create a new draft.
     """
@@ -39,7 +39,7 @@ class DraftList(APIView):
 
 
 class DraftDetail(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     """
     Retrieve, update or delete a draft instance.
     """

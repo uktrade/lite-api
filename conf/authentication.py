@@ -12,7 +12,7 @@ USER_DEACTIVATED_ERROR = 'User has been deactivated'
 USER_DOES_NOT_EXIST_ERROR = 'No such user with that identifier'
 
 
-class PkAuthentication(authentication.BaseAuthentication):
+class ExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         pk = request.META.get(EXPORTER_ID)
         try:

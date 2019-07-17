@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good
 from goods.models import Good
@@ -16,7 +16,7 @@ from queues.models import Queue
 
 
 class GoodList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -63,7 +63,7 @@ class GoodList(APIView):
 
 
 class GoodDetail(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)

@@ -3,13 +3,13 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 
 
 class GoodsTypeList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         """
@@ -37,7 +37,7 @@ class GoodsTypeList(APIView):
 
 
 class GoodsTypeDetail(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         """

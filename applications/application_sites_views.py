@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import SiteOnApplication
 from applications.serializers import SiteOnApplicationViewSerializer
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_site import get_site_by_pk
 from organisations.serializers import SiteViewSerializer
 
@@ -16,7 +16,7 @@ class ApplicationSites(APIView):
     """
     View sites belonging to an Application or add one
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         application = get_application_by_pk(pk)

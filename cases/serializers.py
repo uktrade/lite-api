@@ -8,7 +8,7 @@ from clc_queries.serializers import ClcQuerySerializer
 from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
-from users.models import BaseUser
+from users.models import BaseUser, ExporterUser
 from users.serializers import BaseUserSerializer
 
 
@@ -70,6 +70,15 @@ class CaseNoteCreateSerializer(CaseNoteViewSerializer):
     class Meta:
         model = CaseNote
         fields = '__all__'
+
+    def create(self, validated_data):
+        try:
+            ExporterUser.objects.get(id=validated_data['user'].id)
+            validated_data['is_visible_to_exporter'] = True
+        except ExporterUser.DoesNotExist:
+            pass
+
+        return CaseNote.objects.create(**validated_data)
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):

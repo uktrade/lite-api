@@ -51,8 +51,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
 
     def test_create_case_note_successful(self):
         data = {
-            'text': 'Days of brutalism',
-            'is_visible_to_exporter': True
+            'text': 'Days of brutalism'
         }
 
         response = self.client.post(self.url, data=data, **self.exporter_headers)

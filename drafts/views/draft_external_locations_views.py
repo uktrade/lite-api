@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from drafts.serializers import ExternalLocationOnDraftSerializer
@@ -18,7 +18,7 @@ class DraftExternalLocations(APIView):
     """
     View sites belonging to a draft or add them
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         draft = get_draft(pk)
