@@ -13,7 +13,7 @@ from cases.libraries.activity_helpers import convert_audit_to_activity, convert_
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_case_flags import get_case_flags_from_case
-from cases.models import CaseAssignment, CaseFlags
+from cases.models import CaseAssignment, CaseFlags, Case
 from flags.models import Flag
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagSerializer
 from conf.authentication import GovAuthentication
@@ -156,21 +156,20 @@ class CaseFlagsList(APIView):
         """
         case = str(pk)
         data = JSONParser().parse(request)
-        case_flags = []
+        case_flags = [{'case': case, 'flag': flag} for flag in data['flags']]
 
-        for flag in data['flags']:
-            case_flags.append({'case': case, 'flag': flag})
-
-        serializer = CaseFlagSerializer(data=case_flags, context={'method': request.method, 'user': request.user}, many=True)
+        serializer = CaseFlagSerializer(
+            data=case_flags,
+            context={'method': request.method, 'user': request.user},
+            many=True
+        )
 
         if serializer.is_valid():
             self._assign_flags(serializer, case, request.user)
 
-            return JsonResponse(data={'case_flags': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'case_flags': serializer.data}, status=status.HTTP_201_CREATED)
         else:
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def _remove_flags(self, case_flag):
         flag_name = case_flag.flag.name
@@ -178,15 +177,20 @@ class CaseFlagsList(APIView):
         return flag_name
 
     def _assign_flags(self, serializer, case, user):
-        previously_assigned_flags = CaseFlags.objects.filter(
+        previously_assigned_case_flags = CaseFlags.objects.filter(
             case=case,
             flag__level='Case',
             flag__team=user.team
         )
-        case_flags_added = [valid_case_flag.get('flag').name for valid_case_flag in serializer.validated_data]
-        validated_case_flags = list(map(lambda x: x.get('flag'), serializer.validated_data))
-        case_flags_removed = [self._remove_flags(case_flag) for case_flag in previously_assigned_flags if case_flag.flag not in validated_case_flags]
+        case_flags_to_add = [case_flag.get('flag').name for case_flag in serializer.validated_data]
+        case_flags_removed = [self._remove_flags(case_flag) for case_flag in previously_assigned_case_flags if case_flag.flag.name not in case_flags_to_add]
         with reversion.create_revision():
-            reversion.set_comment("{'removed_flags': " + str(case_flags_removed) + ", 'added_flags': " + str(case_flags_added) + "}")
+            reversion.set_comment(
+                "{'removed_flags': " + str(case_flags_removed) + ", 'added_flags': " + str(case_flags_to_add) + "}"
+            )
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
-            serializer.save()
+
+            if len(case_flags_removed) > len(case_flags_to_add):
+                Case.objects.get(pk=case).save()
+            else:
+                serializer.save()

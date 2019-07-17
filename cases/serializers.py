@@ -99,7 +99,7 @@ class CaseFlagSerializer(serializers.ModelSerializer):
     def validate_flag(self, value):
         team_case_level_flags = Flag.objects.filter(level='Case', team=self.context['user'].team.id)
         if (value) not in team_case_level_flags:
-            raise serializers.ValidationError('You can only assign flags that are available for your team.')
+            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
         return value
 
     def create(self, validated_data):
