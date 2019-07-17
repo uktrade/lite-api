@@ -21,39 +21,26 @@ class NotificationTests(DataTestClient):
 
     def tests_create_new_application_notification(self):
         app_case = self.create_application_case("Case Ref")
+        self.create_case_note(app_case, "This is a test note 1")
+        self.create_case_note_visible_to_exporter(app_case, "This is a test note 2")
 
-        # self.case = Case.objects.get(application=self.application)
-        #print(self.case)
+        self.assertEqual(Notification.objects.all().count(), 1)
+
+    def tests_create_both_clc_and_application_notifications(self):
+
+        app_case = self.create_application_case("Case Ref")
+        clc_case = self.create_clc_query_case("Case Ref")
+
         self.create_case_note_visible_to_exporter(app_case, "This is a test note 1")
+        self.create_case_note_visible_to_exporter(app_case, "This is a test note 2")
+        self.create_case_note_visible_to_exporter(app_case, "This is a test note 3")
+        self.create_case_note_visible_to_exporter(app_case, "This is a test note 4")
 
-    #     draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-    #                                                                           self.test_helper.organisation)
-    #     application = self.test_helper.submit_draft(self, draft)
-    #     self.url = reverse('applications:application', kwargs={'pk': application.id})
+        self.create_case_note_visible_to_exporter(clc_case, "This is a test note 1")
+        self.create_case_note_visible_to_exporter(clc_case, "This is a test note 2")
+        self.create_case_note_visible_to_exporter(clc_case, "This is a test note 3")
 
-
-        # app_case = Case.objects.get(application=application)
-        # self.create_case_note(app_case, "This is a test note 1")
-        # self.create_case_note_visible_to_exporter(app_case, "This is a test note 2")
-        # self.assertEqual(Notification.objects.all().count(), 1)
-
-
-
-    # def tests_create_both_clc_and_application_notifications(self):
-    #
-    #     app_case = self.create_application_case("Case Ref")
-    #     clc_case = self.create_clc_query_case("Case Ref")
-    #
-    #     self.create_case_note_visible_to_exporter(app_case, "This is a test note 1")
-    #     self.create_case_note_visible_to_exporter(app_case, "This is a test note 2")
-    #     self.create_case_note_visible_to_exporter(app_case, "This is a test note 3")
-    #     self.create_case_note_visible_to_exporter(app_case, "This is a test note 4")
-    #
-    #     self.create_case_note_visible_to_exporter(clc_case, "This is a test note 1")
-    #     self.create_case_note_visible_to_exporter(clc_case, "This is a test note 2")
-    #     self.create_case_note_visible_to_exporter(clc_case, "This is a test note 3")
-    #
-    #     self.assertEqual(Notification.objects.all().count(), 7)
-    #     self.assertEqual(Notification.objects.filter(note__case__clc_query_id__isnull=True).count(), 4)
-    #     self.assertEqual(Notification.objects.filter(note__case__application_id__isnull=True).count(), 3)
+        self.assertEqual(Notification.objects.all().count(), 7)
+        self.assertEqual(Notification.objects.filter(note__case__clc_query_id__isnull=True).count(), 4)
+        self.assertEqual(Notification.objects.filter(note__case__application_id__isnull=True).count(), 3)
 

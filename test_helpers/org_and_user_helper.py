@@ -116,21 +116,8 @@ class OrgAndUserHelper:
         return draft
 
     @staticmethod
-    def complete_open_draft(name, org):
-        draft = Draft(name=name,
-                      licence_type=ApplicationLicenceType.OPEN_LICENCE,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.choices,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Fun',
-                      organisation=org)
-        draft.save()
-        return draft
-
-    @staticmethod
     def create_draft_with_good_end_user_and_site(name, org):
-        draft = OrgAndUserHelper.complete_open_draft(name, org)
+        draft = OrgAndUserHelper.complete_draft(name, org)
         good = OrgAndUserHelper.create_controlled_good('a thing', org)
         good.save()
         GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
