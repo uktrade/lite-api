@@ -3,7 +3,7 @@ import json
 from reversion.models import Revision, Version
 
 from cases.models import CaseNote
-from gov_users.models import GovUserRevisionMeta
+# from users.models import GovUserRevisionMeta
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
@@ -44,18 +44,20 @@ def convert_audit_to_activity(version: Version):
     """
     Converts an audit item to a dict suitable for the case activity list
     """
-    _revision_object = Revision.objects.get(id=version.revision_id)
-    try:
-        gov_user = GovUserRevisionMeta.objects.get(revision_id=version.revision_id).gov_user
-    except GovUserRevisionMeta.DoesNotExist:
-        return
-
-    return _activity_item(CHANGE,
-                          _revision_object.date_created,
-                          {
-                              'id': gov_user.id,
-                              'email': gov_user.email,
-                              'first_name': gov_user.first_name,
-                              'last_name': gov_user.last_name,
-                          },
-                          json.loads(version.serialized_data)[0]['fields'])
+    # _revision_object = Revision.objects.get(id=version.revision_id)
+    # try:
+    #     gov_user = GovUserRevisionMeta.objects.get(revision_id=version.revision_id).gov_user
+    # except GovUserRevisionMeta.DoesNotExist:
+    #     return
+    #
+    # return _activity_item(CHANGE,
+    #                       _revision_object.date_created,
+    #                       {
+    #                           'id': gov_user.id,
+    #                           'email': gov_user.email,
+    #                           'first_name': gov_user.first_name,
+    #                           'last_name': gov_user.last_name,
+    #                       },
+    #                       json.loads(version.serialized_data)[0]['fields'])
+    # TODO
+    return {}

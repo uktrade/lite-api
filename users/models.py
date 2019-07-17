@@ -5,10 +5,21 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from gov_users.models import Role
 from organisations.models import Organisation
 from teams.models import Team
 from users.enums import UserStatuses
+
+
+class Permission(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+
+
+@reversion.register()
+class Role(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    permissions = models.ManyToManyField(Permission, related_name='roles')
 
 
 class CustomUserManager(BaseUserManager):
@@ -43,6 +54,7 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+@reversion.register()
 class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None

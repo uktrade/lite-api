@@ -4,7 +4,8 @@ from rest_framework.validators import UniqueValidator
 
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser, Role, Permission
+from users.models import GovUser
+from users.models import Role, Permission
 from teams.models import Team
 from teams.serializers import TeamSerializer
 

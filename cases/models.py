@@ -6,7 +6,7 @@ from django.db import models
 from applications.models import Application
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
-from gov_users.models import GovUser
+from users.models import GovUser
 from queues.models import Queue
 
 

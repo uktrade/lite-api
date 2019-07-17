@@ -2,7 +2,7 @@ from rest_framework import authentication, exceptions
 
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.token_to_user_pk import token_to_user_pk
-from gov_users.models import GovUser
+from users.models import GovUser
 from users.models import ExporterUser, UserStatuses
 
 

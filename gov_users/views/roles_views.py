@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from gov_users.libraries.get_role import get_role_by_pk
-from gov_users.models import Role, Permission
+from users.models import Role, Permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 
 

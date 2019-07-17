@@ -3,7 +3,7 @@ import json
 from django.urls import path, include, reverse
 from rest_framework import status
 
-from gov_users.models import Permission, Role
+from users.models import Permission, Role
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 

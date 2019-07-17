@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.enums import ApplicationStatus
 from cases.models import Case
-from gov_users.models import Role, Permission
+from users.models import Role, Permission
 from test_helpers.clients import DataTestClient
 
 
