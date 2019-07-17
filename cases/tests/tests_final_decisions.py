@@ -8,6 +8,7 @@ from test_helpers.clients import DataTestClient
 
 
 class CaseActivityTests(DataTestClient):
+
     def setUp(self):
         super().setUp()
         self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application', self.test_helper.organisation)

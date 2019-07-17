@@ -24,11 +24,11 @@ class DraftTests(DataTestClient):
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         url = '/drafts/' + str(draft.id) + '/goods/'
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["goods"]), 1)
 
@@ -46,10 +46,10 @@ class DraftTests(DataTestClient):
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["goods"]), 0)
 
@@ -72,5 +72,5 @@ class DraftTests(DataTestClient):
         }
 
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
-        response = self.client.post(url, post_data, **self.headers)
+        response = self.client.post(url, post_data, **self.exporter_headers)
         self.assertEqual(response.status_code, data['response'])

@@ -36,7 +36,7 @@ class GoodsCreateTests(DataTestClient):
             'not_sure_details_details': not_sure_details_details
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEquals(response.status_code, expected_status)
 
         if response.status_code == status.HTTP_201_CREATED:

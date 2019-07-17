@@ -23,7 +23,7 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
         data = {'id': draft.id}
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         application = Application.objects.get(pk=draft.id)
@@ -40,7 +40,7 @@ class ApplicationsTests(DataTestClient):
         OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
         data = {'id': draft_id}
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
@@ -52,5 +52,5 @@ class ApplicationsTests(DataTestClient):
 
         url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

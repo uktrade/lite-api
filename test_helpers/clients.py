@@ -30,7 +30,7 @@ class DataTestClient(BaseTestClient):
     def setUp(self):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        self.exporter_headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
         self.team = Team.objects.get(name='Admin')
         self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
                             email='test@mail.com',
@@ -93,7 +93,7 @@ class DataTestClient(BaseTestClient):
                 'password': self.password
             },
         }
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
 
     def create_case(self, name):
         return Case.objects.get(
@@ -130,5 +130,5 @@ class DataTestClient(BaseTestClient):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         return Application.objects.get(pk=draft_id)

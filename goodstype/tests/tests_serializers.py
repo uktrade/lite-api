@@ -1,14 +1,8 @@
-from rest_framework.test import APITestCase
-
 from goodstype.serializers import GoodsTypeSerializer
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.clients import DataTestClient
 
 
-class OrganisationTests(APITestCase):
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='name')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class OrganisationTests(DataTestClient):
 
     def test_serializer_validation_with_empty(self):
         data = {'description': '', 'control_code': '', 'is_good_controlled': '', 'is_good_end_product': ''}

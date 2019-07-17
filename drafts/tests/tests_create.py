@@ -22,7 +22,7 @@ class DraftTests(DataTestClient):
             'have_you_been_informed': 'yes',
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Draft.objects.count(), 1)
 
@@ -45,6 +45,6 @@ class DraftTests(DataTestClient):
         """
         Ensure we cannot create a new draft object with an invalid POST
         """
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Draft.objects.count(), 0)

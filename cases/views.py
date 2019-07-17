@@ -2,7 +2,7 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework.views import APIView
 from reversion.models import Version
 
@@ -10,11 +10,11 @@ from cases.libraries.activity_helpers import convert_audit_to_activity, convert_
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer
-from conf.authentication import GovAuthentication
+from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer
+from conf.authentication import GovAuthentication, SharedAuthentication
+from users.models import ExporterUser
 
 
-@permission_classes((permissions.AllowAny,))
 class CaseDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
@@ -54,7 +54,7 @@ class CaseDetail(APIView):
 
 
 class CaseNoteList(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     """
     Retrieve/create case notes.
     """
@@ -64,16 +64,21 @@ class CaseNoteList(APIView):
         Gets all case notes
         """
         case = get_case(pk)
-        serializer = CaseNoteSerializer(get_case_notes_from_case(case), many=True)
+
+        case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
+        serializer = CaseNoteCreateSerializer(case_notes, many=True)
         return JsonResponse(data={'case_notes': serializer.data})
 
     def post(self, request, pk):
+        """
+        Creates a case note on a case
+        """
         case = get_case(pk)
         data = request.data
         data['case'] = str(case.id)
         data['user'] = str(request.user.id)
 
-        serializer = CaseNoteSerializer(data=data)
+        serializer = CaseNoteCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -85,7 +90,7 @@ class CaseNoteList(APIView):
 
 
 class ActivityList(APIView):
-    authentication_classes = (GovAuthentication,)
+    # authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case:
     * Case Notes

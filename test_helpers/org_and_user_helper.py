@@ -90,8 +90,8 @@ class OrgAndUserHelper:
                             team=self.team)
         self.user.save()
 
-        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
-        self.client.post(url, data, **self.headers)
+        self.gov_headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.client.post(url, data, **self.gov_headers)
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
@@ -128,7 +128,7 @@ class OrgAndUserHelper:
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         return Application.objects.get(pk=draft_id)
 
     @staticmethod

@@ -3,7 +3,6 @@ import json
 from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APIClient
 
 from addresses.models import Address
 from organisations.models import Site
@@ -13,19 +12,9 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 class SiteViewTests(DataTestClient):
 
-    urlpatterns = [
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='Org1')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
-
     def test_site_list(self):
         url = reverse('organisations:sites')
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
@@ -39,7 +28,7 @@ class SiteViewTests(DataTestClient):
         }
 
         pk = self.test_helper.primary_site.id
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(Site.objects.get(pk=pk).address.address_line_1, '42 Industrial Estate')
         self.assertEqual(Site.objects.get(pk=pk).name, 'regional site')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -54,7 +43,7 @@ class SiteViewTests(DataTestClient):
                 }
 
         id = self.test_helper.primary_site.id
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(Site.objects.get(id=id).address.address_line_1, '43 Commercial Road')
         self.assertEqual(Site.objects.get(id=id).address.address_line_2, 'The place')
         self.assertEqual(Site.objects.get(id=id).name, 'regional site')
@@ -70,7 +59,7 @@ class SiteViewTests(DataTestClient):
                     'region': 'Hertfordshire',
                     'country': 'GB'},}
 
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
 
@@ -139,7 +128,7 @@ class OrgSiteViewTests(DataTestClient):
     #     OrgAndUserHelper('org2')
     #     self.assertEqual(Site.objects.all().count(), 2)
     #     url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
-    #     response = self.client.get(url, **self.headers)
+    #     response = self.client.get(url, **self.exporter_headers)
     #     response_data = json.loads(response.content)
     #     self.assertEqual(response_data['sites'][0]['id'], str(self.test_helper.primary_site.id))
     #     self.assertEqual(len(response_data['sites']), 1)

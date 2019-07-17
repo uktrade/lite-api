@@ -4,7 +4,13 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from organisations.models import Organisation
-from users.models import ExporterUser, UserStatuses
+from users.models import ExporterUser, UserStatuses, BaseUser
+
+
+class BaseUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):

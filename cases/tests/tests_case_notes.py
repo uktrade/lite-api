@@ -6,7 +6,7 @@ from cases.models import Case, CaseNote
 from test_helpers.clients import DataTestClient
 
 
-class CaseNotesCreateTests(DataTestClient):
+class CaseNotesGovCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
@@ -25,6 +25,7 @@ class CaseNotesCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaseNote.objects.count(), 1)
         self.assertEqual(CaseNote.objects.get().text, data.get('text'))
+        self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
 
     @parameterized.expand([
         [{}],  # Empty data
@@ -34,6 +35,40 @@ class CaseNotesCreateTests(DataTestClient):
     ])
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(CaseNote.objects.count(), 0)
+
+
+class CaseNotesExporterCreateTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
+                                                                               self.test_helper.organisation)
+        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.case = Case.objects.get(application=self.application)
+        self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
+
+    def test_create_case_note_successful(self):
+        data = {
+            'text': 'Days of brutalism',
+            'is_visible_to_exporter': True
+        }
+
+        response = self.client.post(self.url, data=data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CaseNote.objects.count(), 1)
+        self.assertEqual(CaseNote.objects.get().text, data.get('text'))
+        self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, True)
+
+    @parameterized.expand([
+        [{}],  # Empty data
+        [{'text': ''}],  # Empty text field
+        [{'text': '🙂'}],  # Less than two character minimum
+        [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
+    ])
+    def test_create_case_note_failure(self, data):
+        response = self.client.post(self.url, data=data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 

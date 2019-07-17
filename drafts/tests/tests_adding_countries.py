@@ -23,10 +23,10 @@ class CountriesOnDraftTests(DataTestClient):
             'countries': Country.objects.all()[:self.COUNTRIES_COUNT].values_list('id', flat=True)
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.get(self.url, **self.headers).json()
+        response = self.client.get(self.url, **self.exporter_headers).json()
         self.assertEqual(len(response['countries']), self.COUNTRIES_COUNT)
 
     def test_add_countries_to_a_draft_failure(self):
@@ -37,10 +37,10 @@ class CountriesOnDraftTests(DataTestClient):
             'countries': ['1234']
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        response = self.client.get(self.url, **self.headers).json()
+        response = self.client.get(self.url, **self.exporter_headers).json()
         self.assertEqual(len(response['countries']), 0)
 
     def test_add_countries_to_another_orgs_draft_failure(self):
@@ -55,8 +55,8 @@ class CountriesOnDraftTests(DataTestClient):
             'countries': Country.objects.all()[:self.COUNTRIES_COUNT].values_list('id', flat=True)
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        response = self.client.get(self.url, **self.headers).json()
+        response = self.client.get(self.url, **self.exporter_headers).json()
         self.assertEqual(len(response['countries']), 0)

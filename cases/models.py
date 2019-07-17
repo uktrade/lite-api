@@ -6,7 +6,7 @@ from django.db import models
 from applications.models import Application
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
-from users.models import GovUser
+from users.models import GovUser, BaseUser
 from queues.models import Queue
 
 
@@ -32,9 +32,10 @@ class CaseNote(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name='case_note', on_delete=models.CASCADE)
-    user = models.ForeignKey(GovUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
+    user = models.ForeignKey(BaseUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
 
 class CaseAssignment(models.Model):

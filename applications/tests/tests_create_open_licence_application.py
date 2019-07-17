@@ -41,7 +41,7 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
         data = {'id': draft.id}
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         application = Application.objects.get(pk=draft.id)

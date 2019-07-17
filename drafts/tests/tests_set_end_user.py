@@ -32,7 +32,7 @@ class EndUserOnDraftTests(DataTestClient):
         }
         self.draft = Draft.objects.get(pk=self.draft.id)
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -61,7 +61,7 @@ class EndUserOnDraftTests(DataTestClient):
     def test_set_end_user_on_draft_failure(self, data):
         self.draft = Draft.objects.get(pk=self.draft.id)
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

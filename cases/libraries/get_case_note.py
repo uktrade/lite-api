@@ -13,8 +13,12 @@ def get_case_note(pk):
         raise Http404
 
 
-def get_case_notes_from_case(case):
+def get_case_notes_from_case(case, is_visible_to_exporter):
     """
     Returns all the case notes from a case
+    If is_visible_to_exporter is True, then only show case notes that are visible to exporters
     """
-    return CaseNote.objects.filter(case=case).order_by('-created_at')
+    if is_visible_to_exporter:
+        return CaseNote.objects.filter(case=case, is_visible_to_exporter=True).order_by('-created_at')
+    else:
+        return CaseNote.objects.filter(case=case).order_by('-created_at')
