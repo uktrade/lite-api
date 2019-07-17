@@ -1,7 +1,5 @@
 from django.urls import reverse
-from rest_framework import status
 
-from applications.enums import ApplicationStatus
 from cases.models import Case
 from test_helpers.clients import DataTestClient
 

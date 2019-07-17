@@ -1,9 +1,5 @@
-import json
-import uuid
-
 from rest_framework import status
 from rest_framework.reverse import reverse
-from reversion.models import Version
 
 from organisations.models import Organisation, Site
 from test_helpers.clients import DataTestClient

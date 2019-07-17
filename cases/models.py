@@ -6,8 +6,8 @@ from django.db import models
 from applications.models import Application
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
-from users.models import GovUser, BaseUser
 from queues.models import Queue
+from users.models import GovUser, BaseUser
 
 
 @reversion.register()

@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from clc_queries.libraries.get_clc_query import get_clc_query_by_pk
 from clc_queries.serializers import ClcQueryUpdateSerializer
 from conf.authentication import GovAuthentication
+
+
 # from users.models import GovUserRevisionMeta
 
 

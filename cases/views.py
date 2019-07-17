@@ -1,8 +1,7 @@
 from django.db import transaction
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes, authentication_classes
+from rest_framework import status
 from rest_framework.views import APIView
 from reversion.models import Version
 

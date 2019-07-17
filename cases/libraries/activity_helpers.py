@@ -1,8 +1,10 @@
-import json
-
-from reversion.models import Revision, Version
+from reversion.models import Version
 
 from cases.models import CaseNote
+from reversion.models import Version
+
+from cases.models import CaseNote
+
 # from users.models import GovUserRevisionMeta
 
 CHANGE = 'change'

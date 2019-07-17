@@ -6,9 +6,9 @@ from case_types.serializers import CaseTypeSerializer
 from cases.models import Case, CaseNote, CaseAssignment
 from clc_queries.serializers import ClcQuerySerializer
 from content_strings.strings import get_string
-from users.models import BaseUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
+from users.models import BaseUser
 from users.serializers import BaseUserSerializer
 
 

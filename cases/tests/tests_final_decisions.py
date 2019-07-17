@@ -3,8 +3,8 @@ from rest_framework import status
 
 from applications.enums import ApplicationStatus
 from cases.models import Case
-from users.models import Role, Permission
 from test_helpers.clients import DataTestClient
+from users.models import Role, Permission
 
 
 class CaseActivityTests(DataTestClient):

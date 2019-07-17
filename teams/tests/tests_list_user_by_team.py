@@ -3,9 +3,9 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-from users.models import GovUser
 from teams.models import Team
 from test_helpers.clients import DataTestClient
+from users.models import GovUser
 
 
 class UserByTeamListTests(DataTestClient):
