@@ -39,7 +39,7 @@ class CaseDetailSerializer(CaseSerializer):
         fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
 
     def validate_queues(self, attrs):
-        if attrs:
+        if not attrs:
             raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
         return attrs
 

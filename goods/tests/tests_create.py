@@ -39,17 +39,15 @@ class GoodsCreateTests(DataTestClient):
             'not_sure_details_details': not_sure_details_details
         }
 
-        if is_good_controlled == GoodControlled.UNSURE:
-            data['are_you_sure'] = 'True'
-
         # Act
         response = self.client.post(self.url, data, **self.headers)
 
         # Assert
         if is_good_controlled == GoodControlled.UNSURE:
             case = Case.objects.get()
+            # If a good is an 'unsure' good, then a case should have been created with a clc query and the clc query's good should be
+            # the good that was created.
             self.assertEqual(case.clc_query.good.description, description)
-
 
         self.assertEquals(response.status_code, expected_status)
         if response.status_code == status.HTTP_201_CREATED:

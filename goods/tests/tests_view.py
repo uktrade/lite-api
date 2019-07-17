@@ -3,6 +3,8 @@ import json
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from cases.models import Case, CaseNote
+from goods.enums import GoodControlled
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -12,7 +14,7 @@ class GoodViewTests(DataTestClient):
 
     def test_view_good_details(self):
         good = Good(description='thing',
-                    is_good_controlled=False,
+                    is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
                     organisation=self.test_helper.organisation)
         good.save()
@@ -21,11 +23,27 @@ class GoodViewTests(DataTestClient):
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_view_unsure_good_with_associated_case_notes(self):
+        # Assemble
+        clc_query_case = self.create_clc_query_case('My little CLC Query')
+        case_note = self.create_case_note(clc_query_case, 'This is a note about my little case')
+
+        url = reverse('goods:good', kwargs={'pk': clc_query_case.clc_query.good.id})
+
+        # Act
+        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+
+        # Assert
+        response_data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data['good']['notes']), 1)
+        self.assertEqual(response_data['good']['notes'][0]['id'], str(case_note.id))
+
     def test_fail_view_other_organisations_goods_details(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
 
         good = Good(description='thing',
-                    is_good_controlled=False,
+                    is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
                     organisation=self.test_helper.organisation)
         good.save()
@@ -64,28 +82,28 @@ class GoodViewTests(DataTestClient):
 
         # create a set of Goods for the test
         Good.objects.create(description='car1',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='cl500',
                             organisation=org)
 
         Good.objects.create(description='Car2',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='CL300',
                             organisation=org)
 
         Good.objects.create(description='car3',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='ML500',
                             organisation=org)
 
         Good.objects.create(description='Truck',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='CL1000',
