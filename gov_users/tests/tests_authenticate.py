@@ -1,4 +1,4 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.utils import json
@@ -9,14 +9,7 @@ from test_helpers.clients import DataTestClient
 
 class GovUserAuthenticateTests(DataTestClient):
 
-    urlpatterns = [
-        path('gov-users/', include('gov_users.urls')),
-        path('organisations', include('organisations.urls'))
-    ]
-
-    def setUp(self):
-        super().setUp()
-        self.url = reverse('gov_users:authenticate')
+    url = reverse('gov_users:authenticate')
 
     def test_authentication_success(self):
         """

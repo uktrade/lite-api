@@ -1,17 +1,12 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
-from users.models import GovUser
 from test_helpers.clients import DataTestClient
+from users.models import GovUser
 
 
 class GovUserDeactivateTests(DataTestClient):
-
-    urlpatterns = [
-        path('gov-users/', include('gov_users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
 
     def setUp(self):
         super().setUp()

@@ -1,6 +1,5 @@
 import json
 
-from django.urls import path, include
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -72,13 +71,6 @@ class SiteViewTests(DataTestClient):
 
 
 class OrgSiteViewTests(DataTestClient):
-
-    urlpatterns = [
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    def setUp(self):
-        super().setUp()
 
     def test_site_list(self):
 

@@ -1,19 +1,14 @@
 import json
 
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
 
-from users.models import Permission, Role
 from teams.models import Team
 from test_helpers.clients import DataTestClient
+from users.models import Permission, Role
 
 
 class GovUserEditTests(DataTestClient):
-
-    urlpatterns = [
-        path('gov-users/', include('gov_users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
 
     def setUp(self):
         super().setUp()
