@@ -3,7 +3,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.models import Case, CaseNote, CaseAssignment
-from content_strings.strings import get_string
 from case_types.serializers import CaseTypeSerializer
 from clc_queries.serializers import ClcQuerySerializer
 from content_strings.strings import get_string

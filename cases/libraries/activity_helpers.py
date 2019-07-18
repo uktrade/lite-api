@@ -56,7 +56,7 @@ def convert_audit_to_activity(version: Version):
     if _revision_object.comment:
         try:
             comment = json.loads(_revision_object.comment)
-        except:
+        except ValueError:
             comment = _revision_object.comment
         data['comment'] = comment
 

@@ -144,14 +144,10 @@ class CaseFlagsAssignment(APIView):
     * Case Updates
     """
 
-    """
-    TODO: Extend put method to use different _assign_flags(): 
-    depending on the level of flags being assigned
-    """
-
     def put(self, request, pk):
         """
         Assigns flags to a case
+        TODO: Extend put method to use different _assign_flags(): depending on the level of flags being assigned
         """
         case = get_case(str(pk))
         data = JSONParser().parse(request)
@@ -169,12 +165,12 @@ class CaseFlagsAssignment(APIView):
         previously_assigned_flags = case.flags.all()
         previously_assigned_team_flags = previously_assigned_flags.filter(level='Case', team=user.team)
         previously_assigned_not_team_flags = previously_assigned_flags.exclude(level='Case', team=user.team)
-        case_flags_to_add = [case_flag.name for case_flag in validated_data if case_flag not in previously_assigned_team_flags]
-        case_flags_removed = [case_flag.name for case_flag in previously_assigned_team_flags if case_flag not in validated_data]
+        add_case_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
+        remove_case_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
 
         with reversion.create_revision():
             reversion.set_comment(
-                ('{"removed_flags": ' + str(case_flags_removed) + ', "added_flags": ' + str(case_flags_to_add) + '}')
+                ('{"removed_flags": ' + str(remove_case_flags) + ', "added_flags": ' + str(add_case_flags) + '}')
                 .replace('\'', '"')
             )
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
