@@ -128,10 +128,10 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+
                 # Set audit information
-                # TODO
-                # reversion.set_comment("Updated application details")
-                # reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+                reversion.set_comment("Updated application details")
+                reversion.set_user(self.request.user)
 
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
