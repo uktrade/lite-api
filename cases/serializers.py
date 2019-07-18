@@ -8,7 +8,7 @@ from clc_queries.serializers import ClcQuerySerializer
 from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
-from users.models import BaseUser, ExporterUser
+from users.models import BaseUser
 from users.serializers import BaseUserViewSerializer
 
 

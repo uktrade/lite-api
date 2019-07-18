@@ -77,8 +77,6 @@ class CaseNoteList(APIView):
         data['case'] = str(case.id)
         data['user'] = str(request.user.id)
 
-        print(data)
-
         serializer = CaseNoteCreateSerializer(data=data)
 
         if serializer.is_valid():
