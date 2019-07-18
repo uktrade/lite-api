@@ -1,9 +1,8 @@
 import json
 
 from django.urls import reverse
-from rest_framework import status
 
-from cases.models import Case, CaseAssignment, CaseFlags
+from cases.models import Case, CaseAssignment
 from teams.models import Team
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
@@ -49,49 +48,42 @@ class CaseFlagsManagementTests(DataTestClient):
         self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
         self.all_flags = [self.team_case_flag_1, self.team_org_flag_1, self.team_case_flag_2, self.other_team_case_flag] 
 
-        self.url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
-        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id})
+        self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
+        self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
+        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=activity?"
 
-    def _add_flag_to_case(self, c, f):
-        case_flag = CaseFlags(case=c, flag=f)
-        case_flag.save()
-        return case_flag
 
-    def _expected_flag_data_object(self, case_flag):
-        return {'flag': str(case_flag.flag.id), 'flag_name': case_flag.flag.name}
+    def test_correct_flags_returned_for_new_case(self):
+        """
+        Given a new case
+        When a user requests case
+        Then an empty list is returned
+        """
+        # Arrange
 
-    # def test_correct_flags_returned_for_new_case(self):
-    #     """
-    #     Given a new case
-    #     When a user requests CaseFlags
-    #     Then an empty list is returned
-    #     """
-    #     # Arrange
+        # Act
+        response = self.client.get(self.case_url, **self.gov_headers)
 
-    #     # Act
-    #     response = self.client.get(self.url, **self.gov_headers)
+        # Assert
+        self.assertEqual(response.json()['case']['flags'], [])
 
-    #     # Assert
-    #     self.assertEqual(response.json()['case_flags'], [])
 
-    # def test_given_case_with_flags_then_flags_returned(self):
-    #     """
-    #     Given a Case
-    #     And CaseFlags are already set
-    #     When a user requests CaseFlags
-    #     Then the correct flags are returned
-    #     """
-    #     # Arrange
-    #     added_flags = [self.add_flag_to_case(self.case, f) for f in self.all_flags]
-    #     expected_response = [self.expected_flag_data_object(f) for f in added_flags]
+    def test_given_case_with_flags_then_flags_returned(self):
+        """
+        Given a Case
+        And CaseFlags are already set
+        When a user requests CaseFlags
+        Then the correct flags are returned
+        """
+        # Arrange
+        self.case.flags.set(self.all_flags)
 
-    #     # Act
-    #     response = self.client.get(self.url, **self.gov_headers)
-    #     returned_flags = response.json()['case_flags']
+        # Act
+        response = self.client.get(self.case_url, **self.gov_headers)
+        returned_case = response.json()['case']
 
-    #     # Assert
-    #     self.assertEquals(len(returned_flags), 4)
-    #     [self.assertTrue(f in returned_flags) for f in expected_response]
+        # Assert
+        self.assertEquals(len(self.case.flags.all()), len(returned_case['flags']))
 
     # def test_given_new_case_when_case_is_on_users_queue_when_flags_are_set_then_they_are_returned_correctly(self):
     #     assert False
@@ -111,6 +103,7 @@ class CaseFlagsManagementTests(DataTestClient):
     #     assert False
     #     # Expecting 401 bad-request
 
+
     def test_given_case_has_been_modified_then_appropriate_audit_is_in_place(self):
         """
         Given a new Case
@@ -118,12 +111,14 @@ class CaseFlagsManagementTests(DataTestClient):
         Then an audit record is created
         """
         # Arrange
+        flags = {'flags': [self.team_case_flag_1.pk]}
 
         # Act
-        self._add_flag_to_case(self.case, self.team_case_flag_1)
+        test = self.client.put(self.case_flag_url, flags, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
 
         # Assert
-        response = self.client.get(self.audit_url, **self.gov_headers)
         response_data = response.json()
-        self.assertEquals(len(response_data['activity']), 1)
+        activity = response_data['activity']
+        self.assertEquals(len(activity), 1)
+        self.assertEquals(activity[0]['data']['added_flags'], [self.team_case_flag_1.__dict__['name']])

@@ -138,3 +138,4 @@ class DataTestClient(BaseTestClient):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
+

@@ -117,12 +117,15 @@ class ActivityList(APIView):
         fields = request.GET.get('fields', None)
         if fields:
             fields = fields.split(',')
-
             for item in activity:
-                if 'type' in item and item['type'] == 'change_case_flags':
-                    item['data'] = item['data']['comment']
-                else:
-                    item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
+                data = {}
+                for field in fields:
+                    if 'type' in item and item['type'] == 'change_case_flags':
+                        data['removed_flags'] = item['data']['comment']['removed_flags']
+                        data['added_flags'] = item['data']['comment']['added_flags']
+                    elif field in item['data']:
+                        data[field] = item['data'][field]
+                item['data'] = data
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
