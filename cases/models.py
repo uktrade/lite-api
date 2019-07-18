@@ -37,7 +37,7 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
-    # pylint: disable=W:279
+    # pylint: disable=W0221
     def save(self, *args, **kwargs):
         try:
             ExporterUser.objects.get(id=self.user.id)
