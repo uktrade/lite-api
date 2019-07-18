@@ -1,15 +1,10 @@
 import json
 
-from reversion.models import Version, Revision
-
-from cases.models import CaseNote
+from reversion.models import Revision
 from reversion.models import Version
 
 from cases.models import CaseNote
-
-# from users.models import GovUserRevisionMeta
 from users.libraries.get_user import get_user_by_pk
-from users.models import GovUser
 from users.serializers import BaseUserViewSerializer
 
 CHANGE = 'change'
