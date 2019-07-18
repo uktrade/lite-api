@@ -1,8 +1,6 @@
-import json
-
 from django.urls import reverse
 
-from cases.models import Case, CaseAssignment
+from cases.models import Case
 from teams.models import Team
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
@@ -50,8 +48,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
-        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=activity?"
-
+        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=flags"
 
     def test_correct_flags_returned_for_new_case(self):
         """
@@ -66,7 +63,6 @@ class CaseFlagsManagementTests(DataTestClient):
 
         # Assert
         self.assertEqual(response.json()['case']['flags'], [])
-
 
     def test_given_case_with_flags_then_flags_returned(self):
         """
@@ -103,7 +99,6 @@ class CaseFlagsManagementTests(DataTestClient):
     #     assert False
     #     # Expecting 401 bad-request
 
-
     def test_given_case_has_been_modified_then_appropriate_audit_is_in_place(self):
         """
         Given a new Case
@@ -121,4 +116,4 @@ class CaseFlagsManagementTests(DataTestClient):
         response_data = response.json()
         activity = response_data['activity']
         self.assertEquals(len(activity), 1)
-        self.assertEquals(activity[0]['data']['added_flags'], [self.team_case_flag_1.__dict__['name']])
+        self.assertEquals(activity[0]['data']['flags']['added_flags'], [self.team_case_flag_1.__dict__['name']])

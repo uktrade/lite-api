@@ -120,9 +120,8 @@ class ActivityList(APIView):
             for item in activity:
                 data = {}
                 for field in fields:
-                    if 'type' in item and item['type'] == 'change_case_flags':
-                        data['removed_flags'] = item['data']['comment']['removed_flags']
-                        data['added_flags'] = item['data']['comment']['added_flags']
+                    if field == 'flags' and 'type' in item and item['type'] == 'change_case_flags':
+                        data[field] = item['data']['comment']
                     elif field in item['data']:
                         data[field] = item['data'][field]
                 item['data'] = data
