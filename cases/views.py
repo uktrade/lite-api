@@ -7,13 +7,11 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
-from uuid import UUID
 
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.models import CaseAssignment, Case
-from flags.models import Flag
+from cases.models import CaseAssignment
 from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagsAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.models import GovUserRevisionMeta
@@ -126,14 +124,6 @@ class ActivityList(APIView):
                 else:
                     item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
 
-            # Only show unique dictionaries
-            # for i in range(len(activity)):
-            #     if i < len(activity) - 1:
-            #         activity[i]['data'] = dict(set(activity[i]['data'].items()) - set(activity[i + 1]['data'].items()))
-
-            #         if not activity[i]['data']:
-            #             del activity[i]
-
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
 
@@ -145,6 +135,16 @@ class ActivityList(APIView):
 
 class CaseFlagsAssignment(APIView):
     authentication_classes = (GovAuthentication,)
+    """
+    Assigns flags to a case
+    * Case Notes
+    * Case Updates
+    """
+
+    """
+    TODO: Extend put method to use different _assign_flags(): 
+    depending on the level of flags being assigned
+    """
 
     def put(self, request, pk):
         """
