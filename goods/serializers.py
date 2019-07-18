@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case
+from cases.models import Case, CaseNote
 from clc_queries.models import ClcQuery
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
@@ -18,11 +18,6 @@ class GoodSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
-    # notes = serializers.SerializerMethodField()
-
-    # def get_notes(self, obj):
-    #     from cases.serializers import CaseNoteSerializer  # circular import prevention
-    #     return CaseNoteSerializer(obj.notes, many=True).data
 
     class Meta:
         model = Good
@@ -52,6 +47,18 @@ class GoodSerializer(serializers.ModelSerializer):
             case = Case.objects.get(clc_query=clc_query)
             return case.id
         except Exception:
+            return None
+
+    def get_notes(self, instance):
+        from cases.serializers import CaseNoteSerializer  # circular import prevention
+        try:
+            clc_query = ClcQuery.objects.get(good=instance)
+            case = Case.objects.get(clc_query=clc_query)
+            case_notes = CaseNote.objects.filter(case=case)
+
+            return CaseNoteSerializer(case_notes, many=True).data
+        except Exception:
+
             return None
 
     # pylint: disable=W0221

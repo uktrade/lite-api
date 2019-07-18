@@ -39,4 +39,3 @@ class NotificationTests(DataTestClient):
         self.assertEqual(Notification.objects.all().count(), 7)
         self.assertEqual(Notification.objects.filter(note__case__clc_query_id__isnull=True).count(), 4)
         self.assertEqual(Notification.objects.filter(note__case__application_id__isnull=True).count(), 3)
-
