@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.models import Application
+from documents.models import Document
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from gov_users.models import GovUser
@@ -44,3 +45,9 @@ class CaseAssignment(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+
+
+class CaseDocument(Document):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)

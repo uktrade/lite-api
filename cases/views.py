@@ -1,5 +1,6 @@
 import reversion
 from django.db import transaction
+from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -9,13 +10,13 @@ from rest_framework.views import APIView
 from reversion.models import Version
 
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
-from cases.libraries.get_case import get_case
+from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.models import CaseAssignment
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseFlagsAssignmentSerializer
+from cases.models import CaseAssignment, CaseDocument
+from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
+    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.models import GovUserRevisionMeta
-from django.db.models import Q
 
 
 @permission_classes((permissions.AllowAny,))
@@ -88,7 +89,7 @@ class CaseNoteList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class ActivityList(APIView):
+class CaseActivity(APIView):
     authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case
@@ -166,3 +167,55 @@ class CaseFlagsAssignment(APIView):
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
 
             case.flags.set(validated_data + list(previously_assigned_not_team_flags))
+
+class CaseDocuments(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns a list of documents on the specified case
+        """
+        case = get_case(pk)
+        case_documents = CaseDocument.objects.filter(case=case).order_by('-created_at')
+        serializer = CaseDocumentViewSerializer(case_documents, many=True)
+
+        return JsonResponse({'documents': serializer.data})
+
+    @swagger_auto_schema(
+        request_body=CaseDocumentCreateSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
+    @transaction.atomic()
+    def post(self, request, pk):
+        """
+        Adds a document to the specified case
+        """
+        case = get_case(pk)
+        case_id = str(case.id)
+        data = request.data
+
+        for document in data:
+            document['case'] = case_id
+            document['user'] = request.user.id
+
+        serializer = CaseDocumentCreateSerializer(data=data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse({'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class CaseDocumentDetail(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk, s3_key):
+        """
+        Returns a list of documents on the specified case
+        """
+        case = get_case(pk)
+        case_document = get_case_document(case, s3_key)
+        serializer = CaseDocumentViewSerializer(case_document)
+        return JsonResponse({'document': serializer.data})
