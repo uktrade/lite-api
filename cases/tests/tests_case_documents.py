@@ -11,7 +11,7 @@ class CaseDocumentsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.case = self.create_case('case')
+        self.case = self.create_application_case('case')
         self.url = reverse('cases:documents', kwargs={'pk': self.case.id})
 
     def test_can_view_all_documents_on_a_case(self):
