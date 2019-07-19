@@ -4,26 +4,10 @@ from cases.models import Case
 from teams.models import Team
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
+from rest_framework import status
 
 
 class CaseFlagsManagementTests(DataTestClient):
-    """
-        Given I am a logged in government user viewing a case
-        Then I should see any flags which are already set on the case including those which belong to other teams
-        And I should see an option to edit the case flags
-
-        When I choose to edit the case flags
-        Then I should see only the case level flags which are set that belong to my team
-        And I should see an option to set more flags
-        And I should see an option to unset the existing flags
-
-        When I choose to unset an existing flag
-        Then  I should be able to remove a flag and no longer see it on the case
-
-        When I choose to set more case flags
-        Then I should see all the flags which belong to my team that are not already set on the case
-        And I should be able to select one or more to add to the case
-    """
 
     def setUp(self):
         super().setUp()
@@ -41,36 +25,37 @@ class CaseFlagsManagementTests(DataTestClient):
 
         # Flags
         self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
-        self.team_org_flag_1 = self.create_flag("Org Flag 1", "Organisation", self.team)
         self.team_case_flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
+        self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
         self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
-        self.all_flags = [self.team_case_flag_1, self.team_org_flag_1, self.team_case_flag_2, self.other_team_case_flag] 
+        self.all_flags = [self.team_case_flag_1, self.team_org_flag, self.team_case_flag_2, self.other_team_case_flag]
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
         self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=flags"
 
-    def test_correct_flags_returned_for_new_case(self):
+    def test_no_flags_for_case_are_returned(self):
         """
-        Given a new case
-        When a user requests case
-        Then an empty list is returned
+        Given a Case with no Flags assigned
+        When a user requests the Case
+        Then the correct Case with an empty Flag list is returned
         """
+
         # Arrange
 
         # Act
         response = self.client.get(self.case_url, **self.gov_headers)
 
         # Assert
-        self.assertEqual(response.json()['case']['flags'], [])
+        self.assertEqual([], response.json()['case']['flags'])
 
-    def test_given_case_with_flags_then_flags_returned(self):
+    def test_all_flags_for_case_are_returned(self):
         """
-        Given a Case
-        And CaseFlags are already set
-        When a user requests CaseFlags
-        Then the correct flags are returned
+        Given a Case with Flags already assigned
+        When a user requests the Case
+        Then the correct Case with all assigned Flags are returned
         """
+
         # Arrange
         self.case.flags.set(self.all_flags)
 
@@ -81,39 +66,97 @@ class CaseFlagsManagementTests(DataTestClient):
         # Assert
         self.assertEquals(len(self.case.flags.all()), len(returned_case['flags']))
 
-    # def test_given_new_case_when_case_is_on_users_queue_when_flags_are_set_then_they_are_returned_correctly(self):
-    #     assert False
+    def test_user_can_add_case_level_flags_from_their_own_team(self):
+        """
+        Given a Case with no Flags assigned
+        When a user attempts to add a case-level Flag owned by their Team to the Case
+        Then the Flag is successfully added
+        """
 
-    # def test_given_new_case_when_case_is_on_users_queue_when_case_has_more_than_one_flag_and_one_is_removed_then_remaining_flags_are_returned(self):
-    #     assert False
+        # Arrange
+        flags_to_add = {'flags': [self.team_case_flag_1.pk]}
 
-    # def test_given_new_case_when_not_in_a_teams_queue_then_user_cannot_add_flags_from_that_team(self):
-    #     assert False
-    #     # Expecting 401 bad-request
+        # Act
+        self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-    # def test_given_new_case_when_case_is_on_queue_and_user_is_not_on_team_then_user_cannot_add_flags_from_that_team(self):
-    #     assert False
-    #     # Expecting 401 bad-request
+        # Assert
+        self.assertEquals(len(flags_to_add['flags']), len(self.case.flags.all()))
+        self.assertTrue(self.team_case_flag_1 in self.case.flags.all())
 
-    # def test_given_new_case_when_case_is_on_queue_then_user_is_not_allowed_toassig_a_flag_that_is_not_case_level(self):
-    #     assert False
-    #     # Expecting 401 bad-request
+    def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
+        """
+        Given a Case with no Flags assigned
+        When a user attempts to add a case-level Flag not owned by their Team to the Case
+        Then the Flag is not added
+        """
+
+        # Arrange
+        flags_to_add = {'flags': [self.other_team_case_flag.pk]}
+
+        # Act
+        response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        # Assert
+        self.assertEquals(0, len(self.case.flags.all()))
+        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+    def test_user_cannot_assign_flags_that_are_not_case_level(self):
+        """
+        Given a Case with no Flags assigned
+        When a user attempts to add a non-case-level Flag owned by their Team to the Case
+        Then the Flag is not added
+        """
+
+        # Arrange
+        flags_to_add = {'flags': [self.team_org_flag.pk]}
+
+        # Act
+        response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
+
+        # Assert
+        self.assertEquals(0, len(self.case.flags.all()))
+        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+
+    def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
+        """
+        Given a Case with Flags already assigned
+        When a user removes a case-level Flag owned by their Team from the Case
+        Then only that Flag is removed
+        """
+
+        # Arrange (note that the endpoint expects flags being PUT to the case, therefore the flag being removed is not
+        # included in the request body)
+        self.case.flags.set(self.all_flags)
+        flags_to_keep = {'flags': [self.team_case_flag_2.pk]}
+        self.all_flags.remove(self.team_case_flag_1)
+
+        # Act
+        self.client.put(self.case_flag_url, flags_to_keep, **self.gov_headers)
+
+        # Assert
+        self.assertEquals(len(self.all_flags), len(self.case.flags.all()))
+        for flag in self.all_flags:
+            self.assertTrue(flag in self.case.flags.all())
 
     def test_given_case_has_been_modified_then_appropriate_audit_is_in_place(self):
         """
-        Given a new Case
-        When a case-level flag is added
-        Then an audit record is created
+        Given a Case with no Flags assigned
+        When a user attempts to add a non-case-level Flag owned by their Team to the Case
+        And the Flag is successfully added
+        And an audit record is created
+        And the user requests the activity on the Case
+        Then the activity is returned showing the Flag which was added
         """
+
         # Arrange
         flags = {'flags': [self.team_case_flag_1.pk]}
 
         # Act
-        test = self.client.put(self.case_flag_url, flags, **self.gov_headers)
+        self.client.put(self.case_flag_url, flags, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
 
         # Assert
         response_data = response.json()
         activity = response_data['activity']
-        self.assertEquals(len(activity), 1)
-        self.assertEquals(activity[0]['data']['flags']['added'], [self.team_case_flag_1.__dict__['name']])
+        self.assertEquals(len(flags['flags']), len(activity))
+        self.assertEquals([self.team_case_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])

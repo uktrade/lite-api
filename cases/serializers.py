@@ -10,7 +10,6 @@ from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from flags.models import Flag
-from flags.serializers import FlagSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
