@@ -116,4 +116,4 @@ class CaseFlagsManagementTests(DataTestClient):
         response_data = response.json()
         activity = response_data['activity']
         self.assertEquals(len(activity), 1)
-        self.assertEquals(activity[0]['data']['flags']['added_flags'], [self.team_case_flag_1.__dict__['name']])
+        self.assertEquals(activity[0]['data']['flags']['added'], [self.team_case_flag_1.__dict__['name']])

@@ -118,13 +118,7 @@ class ActivityList(APIView):
         if fields:
             fields = fields.split(',')
             for item in activity:
-                data = {}
-                for field in fields:
-                    if field == 'flags' and 'type' in item and item['type'] == 'change_case_flags':
-                        data[field] = item['data']['comment']
-                    elif field in item['data']:
-                        data[field] = item['data'][field]
-                item['data'] = data
+                item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
@@ -139,14 +133,11 @@ class CaseFlagsAssignment(APIView):
     authentication_classes = (GovAuthentication,)
     """
     Assigns flags to a case
-    * Case Notes
-    * Case Updates
     """
 
     def put(self, request, pk):
         """
-        Assigns flags to a case
-        TODO: Extend put method to use different _assign_flags(): depending on the level of flags being assigned
+        TODO: Extend put method to use different _assign_x_flags methods depending on the level of flags being assigned
         """
         case = get_case(str(pk))
         data = JSONParser().parse(request)
@@ -169,7 +160,7 @@ class CaseFlagsAssignment(APIView):
 
         with reversion.create_revision():
             reversion.set_comment(
-                ('{"removed_flags": ' + str(remove_case_flags) + ', "added_flags": ' + str(add_case_flags) + '}')
+                ('{"flags": {"removed": ' + str(remove_case_flags) + ', "added": ' + str(add_case_flags) + '}}')
                 .replace('\'', '"')
             )
             reversion.add_meta(GovUserRevisionMeta, gov_user=user)
