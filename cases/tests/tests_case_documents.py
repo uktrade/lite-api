@@ -24,7 +24,7 @@ class CaseDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['documents']), 2)
 
-    #still work in progress
+    # TODO: work in progress
     # def test_add_a_document(self):
     #     data = [{"name": "file123.pdf",
     #              "s3_key": "file123_12345678.pdf",
