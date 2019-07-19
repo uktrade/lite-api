@@ -16,6 +16,10 @@ python-json-logger = "==0.1.11"
 parameterized = "*"
 drf-yasg = "*"
 prospector = "==1.1.6.2"
+boto3 = ">=1.9"
+django-pglocks = ">=1.0.2"
+requests-toolbelt = "*"
+django-background-tasks = ">=1.2"
 
 [requires]
 python_version = "3.7"

@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.models import Application
-from cases.models import CaseNote, Case
+from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
 from gov_users.models import GovUser
@@ -132,3 +132,15 @@ class DataTestClient(BaseTestClient):
         data = {'id': draft_id}
         self.client.post(url, data, **self.headers)
         return Application.objects.get(pk=draft_id)
+
+    def create_case_document(self, case: Case, user: GovUser, name: str):
+        case_doc = CaseDocument(case=case,
+                                description='This is a document',
+                                user=user,
+                                name=name,
+                                s3_key='thisisakey',
+                                size=123456,
+                                virus_scanned_at=None,
+                                safe=None)
+        case_doc.save()
+        return case_doc
