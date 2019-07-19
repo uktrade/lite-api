@@ -9,5 +9,9 @@ urlpatterns = [
     path('<uuid:pk>/case_notes/', views.CaseNoteList.as_view(), name='case_notes'),
     # ex: /cases/<uuid:pk>/activity/
     # ex: /cases/<uuid:pk>/activity/?fields=activity,status
-    path('<uuid:pk>/activity/', views.ActivityList.as_view(), name='activity'),
+    path('<uuid:pk>/activity/', views.CaseActivity.as_view(), name='activity'),
+    # ex: /cases/<uuid:pk>/documents/
+    path('<uuid:pk>/documents/', views.CaseDocuments.as_view(), name='documents'),
+    # ex: /cases/<uuid:pk>/documents/<uuid:file_pk>/
+    path('<uuid:pk>/documents/<str:s3_key>/', views.CaseDocumentDetail.as_view(), name='document'),
 ]

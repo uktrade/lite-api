@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.models import Application
+from documents.models import Document
 from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from queues.models import Queue
@@ -64,3 +65,8 @@ class Notification(models.Model):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE, null=False)
     note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
     viewed_at = models.DateTimeField(null=True)
+
+class CaseDocument(Document):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)

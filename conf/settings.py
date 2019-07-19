@@ -15,14 +15,14 @@ env = Env(
     ALLOWED_HOSTS=(str, ''),
     DEBUG=(bool, False),
     LOG_LEVEL=(str, 'INFO'),
+    BACKGROUND_TASK_ENABLED=(bool, False),
 )
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9' # noqa
+SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'  # noqa
 
 DEBUG = env('DEBUG')
 
@@ -60,8 +60,10 @@ INSTALLED_APPS = [
     'content_strings.apps.ContentStringsConfig',
     'goodstype',
     'flags.apps.FlagsConfig',
+    'documents.apps.DocumentsConfig',
+    'background_task',
     'clc_queries',
-    'case_types',
+    'case_types'
 ]
 
 MIDDLEWARE = [
@@ -134,6 +136,18 @@ else:
         'default': env.db()
     }
 
+S3_CLIENT = 'boto3'
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_REGION = env('AWS_REGION')
+S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
+
+AV_SERVICE_URL = env('AV_SERVICE_URL')
+AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
+AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
+
+BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

@@ -1,15 +1,16 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from case_types.serializers import CaseTypeSerializer
-from cases.models import Case, CaseNote, CaseAssignment
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from clc_queries.serializers import ClcQuerySerializer
+from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from users.models import BaseUser
 from users.serializers import BaseUserViewSerializer
+from documents.tasks import prepare_document
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -62,8 +63,8 @@ class CaseNoteCreateSerializer(CaseNoteViewSerializer):
     Serializes case notes
     """
     text = serializers.CharField(min_length=2, max_length=2200)
-    case = PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
     created_at = serializers.DateTimeField(read_only=True)
     is_visible_to_exporter = serializers.BooleanField(default=False)
 
@@ -78,3 +79,40 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')
+
+
+class CaseDocumentCreateSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
+
+    class Meta:
+        model = CaseDocument
+        fields = ('name', 's3_key', 'user', 'size', 'case', 'description')
+
+    def create(self, validated_data):
+        case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
+        case_document.save()
+
+        if BACKGROUND_TASK_ENABLED:
+            prepare_document(str(case_document.id))
+        else:
+            try:
+                prepare_document.now(str(case_document.id))
+            except Exception:
+                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
+
+        return case_document
+
+
+class CaseDocumentViewSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(read_only=True)
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = GovUserSimpleSerializer()
+    s3_key = serializers.SerializerMethodField()
+
+    def get_s3_key(self, instance):
+        return instance.s3_key if instance.safe else 'File not ready'
+
+    class Meta:
+        model = CaseDocument
+        fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
