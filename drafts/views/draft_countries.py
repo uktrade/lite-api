@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft, get_draft_with_organisation
 from drafts.models import CountryOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -14,7 +14,7 @@ from static.countries.serializers import CountrySerializer
 
 
 class DraftCountries(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         """

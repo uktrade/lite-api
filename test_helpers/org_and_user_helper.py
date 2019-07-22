@@ -13,12 +13,12 @@ from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.enums import GoodControlled
 from goods.models import Good
-from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.units.enums import Units
 from teams.models import Team
-from users.models import User
+from users.models import ExporterUser
+from users.models import GovUser
 from clc_queries.models import ClcQuery
 
 
@@ -93,12 +93,12 @@ class OrgAndUserHelper:
                             team=self.team)
         self.user.save()
 
-        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
-        self.client.post(url, data, **self.headers)
+        self.gov_headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.client.post(url, data, **self.gov_headers)
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
-        self.user = User.objects.filter(organisation=self.organisation)[0]
+        self.user = ExporterUser.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site
         self.address = self.primary_site.address
 
@@ -132,7 +132,7 @@ class OrgAndUserHelper:
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         return Application.objects.get(pk=draft_id)
 
     @staticmethod
@@ -169,12 +169,12 @@ class OrgAndUserHelper:
         for i in range(quantity):
             first_name, last_name = random_name()
             email = first_name + '.' + last_name + '@' + org.name + '.com'
-            if User.objects.filter(email=email).count() == 1:
+            if ExporterUser.objects.filter(email=email).count() == 1:
                 email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
-            user = User(first_name=first_name,
-                        last_name=last_name,
-                        email=email,
-                        organisation=org)
+            user = ExporterUser(first_name=first_name,
+                                last_name=last_name,
+                                email=email,
+                                organisation=org)
             user.set_password('password')
             user.save()
             if quantity == 1:

@@ -1,25 +1,14 @@
 import json
 
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import User
+from users.models import ExporterUser
 
 
-class UserTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('users/', include('users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='apple')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+class UserTests(DataTestClient):
 
     def test_edit_a_user(self):
         user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 1)
@@ -36,13 +25,13 @@ class UserTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         response_data = json.loads(response.content)
 
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertNotEqual(response_data['user']['email'], original_email)
-        self.assertNotEqual(User.objects.get(email='some@thing.com').password, original_password)
+        self.assertNotEqual(ExporterUser.objects.get(email='some@thing.com').password, original_password)
 
         # Show that new password works with login
         url = reverse('users:authenticate')
@@ -50,7 +39,7 @@ class UserTests(APITestCase, URLPatternsTestCase):
             'email': 'some@thing.com',
             'password': '1234'
         }
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_a_user_some_fields(self):
@@ -66,10 +55,10 @@ class UserTests(APITestCase, URLPatternsTestCase):
         }
 
         url = reverse('users:user', kwargs={'pk': user.id})
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         response_data = json.loads(response.content)
 
         self.assertNotEqual(response_data['user']['first_name'], original_first_name)
         self.assertNotEqual(response_data['user']['last_name'], original_last_name)
         self.assertEqual(response_data['user']['email'], original_email)
-        self.assertEqual(User.objects.get(email=user.email).password, original_password)
+        self.assertEqual(ExporterUser.objects.get(email=user.email).password, original_password)

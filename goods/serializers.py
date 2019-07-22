@@ -52,15 +52,14 @@ class GoodSerializer(serializers.ModelSerializer):
             return None
 
     def get_notes(self, instance):
-        from cases.serializers import CaseNoteSerializer  # circular import prevention
+        from cases.serializers import CaseNoteViewSerializer  # circular import prevention
         try:
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             case_notes = CaseNote.objects.filter(case=case)
 
-            return CaseNoteSerializer(case_notes, many=True).data
+            return CaseNoteViewSerializer(case_notes, many=True).data
         except Exception:
-
             return None
 
     # pylint: disable=W0221

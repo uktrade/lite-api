@@ -21,8 +21,12 @@ class ApplicationsTests(DataTestClient):
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
         draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
         draft.save()
-        data = {'id': draft.id}
-        response = self.client.post(self.url, data,**self.headers)
+
+        data = {
+            'id': draft.id
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(GoodOnApplication.objects.count(), 2)
         application = Application.objects.get()
@@ -35,5 +39,5 @@ class ApplicationsTests(DataTestClient):
 
         url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, **self.headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

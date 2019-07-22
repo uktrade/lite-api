@@ -6,6 +6,8 @@ from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
+from cases.libraries.get_case_note import get_case_notes_from_case
+from cases.models import Case
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
@@ -230,12 +232,17 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
 
 
 class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
+    case = serializers.SerializerMethodField()
     case_notes = serializers.SerializerMethodField()
 
+    def get_case(self, obj):
+        case = Case.objects.get(application=obj)
+        return case.id
+
     def get_case_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer, CaseNote # to prevent circular imports
-        queryset = CaseNote.objects.filter(is_visible_for_exporter=True, case__application=obj)
-        return CaseNoteSerializer(queryset, many=True).data
+        from cases.serializers import CaseNoteViewSerializer
+        data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
+        return CaseNoteViewSerializer(data, many=True).data
 
     class Meta:
         model = Application
@@ -255,5 +262,5 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
                   'application_denial_reason',
                   'destinations',
                   'goods_locations',
-                  'case_notes'
-                  )
+                  'case_notes',
+                  'case')

@@ -13,19 +13,18 @@ from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
 from cases.models import Case
-from conf.authentication import PkAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
-from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
 
 class ApplicationList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         """
@@ -129,9 +128,10 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+
                 # Set audit information
                 reversion.set_comment("Updated application details")
-                reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+                reversion.set_user(self.request.user)
 
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
@@ -140,7 +140,7 @@ class ApplicationDetail(APIView):
 
 
 class ApplicationDetailPkUser(ApplicationDetail):
-    authentication_classes = [PkAuthentication]
+    authentication_classes = [ExporterAuthentication]
     serializer_class = ApplicationCaseNotesSerializer
 
     def get(self, request, pk):

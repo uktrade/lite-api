@@ -93,7 +93,7 @@ TEMPLATES = [
     },
 ]
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.BaseUser"
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

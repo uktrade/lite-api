@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.serializers import ApplicationBaseSerializer
 from case_types.serializers import CaseTypeSerializer
@@ -7,9 +6,10 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from clc_queries.serializers import ClcQuerySerializer
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
-from gov_users.models import GovUser
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
+from users.models import BaseUser, GovUser
+from users.serializers import BaseUserViewSerializer
 from documents.tasks import prepare_document
 
 
@@ -31,7 +31,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
 
 class CaseDetailSerializer(CaseSerializer):
-    queues = PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
     case_type = CaseTypeSerializer(read_only=True)
@@ -46,19 +46,31 @@ class CaseDetailSerializer(CaseSerializer):
         return attrs
 
 
-class CaseNoteSerializer(serializers.ModelSerializer):
+class CaseNoteViewSerializer(serializers.ModelSerializer):
+    """
+    Serializes case notes
+    """
+    user = BaseUserViewSerializer()
+    created_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = CaseNote
+        fields = '__all__'
+
+
+class CaseNoteCreateSerializer(CaseNoteViewSerializer):
     """
     Serializes case notes
     """
     text = serializers.CharField(min_length=2, max_length=2200)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
     created_at = serializers.DateTimeField(read_only=True)
-    is_visible_for_exporter = serializers.BooleanField(default=False)
+    is_visible_to_exporter = serializers.BooleanField(default=False)
 
     class Meta:
         model = CaseNote
-        fields = ('id', 'text', 'case', 'user', 'created_at', 'is_visible_for_exporter')
+        fields = '__all__'
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):

@@ -3,7 +3,6 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import Case
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 
@@ -15,7 +14,6 @@ class MoveCasesTests(DataTestClient):
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.case = Case.objects.get(application=self.application)
         self.url = reverse('cases:case', kwargs={'pk': self.case.id})
-        self.team = Team.objects.get()
         self.queues = [
             self.create_queue('Queue 1', self.team),
             self.create_queue('Queue 2', self.team),
@@ -28,6 +26,7 @@ class MoveCasesTests(DataTestClient):
         }
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(data['queues']))
 

@@ -39,8 +39,8 @@ class GoodsCreateTests(DataTestClient):
             'not_sure_details_details': not_sure_details_details
         }
 
-        # Act
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEquals(response.status_code, expected_status)
 
         # Assert
         if is_good_controlled == GoodControlled.UNSURE:

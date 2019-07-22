@@ -3,8 +3,8 @@ from parameterized import parameterized
 from rest_framework import status
 
 from conf.constants import Permissions
-from gov_users.models import Role
 from test_helpers.clients import DataTestClient
+from users.models import Role
 
 
 class RolesAndPermissionsTests(DataTestClient):

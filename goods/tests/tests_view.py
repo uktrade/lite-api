@@ -23,22 +23,6 @@ class GoodViewTests(DataTestClient):
         response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_view_unsure_good_with_associated_case_notes(self):
-        # Assemble
-        clc_query_case = self.create_clc_query_case('My little CLC Query')
-        case_note = self.create_case_note(clc_query_case, 'This is a note about my little case')
-
-        url = reverse('goods:good', kwargs={'pk': clc_query_case.clc_query.good.id})
-
-        # Act
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
-
-        # Assert
-        response_data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['good']['notes']), 1)
-        self.assertEqual(response_data['good']['notes'][0]['id'], str(case_note.id))
-
     def test_fail_view_other_organisations_goods_details(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
 
