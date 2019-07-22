@@ -15,7 +15,7 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument
 from conf.authentication import GovAuthentication, SharedAuthentication
 from users.models import ExporterUser
-from cases.serializers import CaseNoteSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
+from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
 
 

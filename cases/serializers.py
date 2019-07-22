@@ -90,7 +90,7 @@ class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
     """
     Serializes flags on case
     """
-    flags = PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+    flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
 
     class Meta:
         model = Case
