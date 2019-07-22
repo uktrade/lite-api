@@ -5,8 +5,11 @@ services:
     image: "postgres"
     environment:
       - POSTGRES_PASSWORD=password
+    expose:
+      - 5432
     ports:
       - 5432:5432
+
   api:
     env_file:
       - .env
@@ -14,9 +17,9 @@ services:
     volumes:
       - .:/app
     ports:
-      - ${PORT}:${PORT}
+      - 8100:8080
     depends_on:
       - db
     expose:
-      - ${PORT}
-    command: pipenv run ./manage.py runserver 0.0.0.0:${PORT}
+      - 8080
+    command: pipenv run ./manage.py runserver 0.0.0.0:8080
