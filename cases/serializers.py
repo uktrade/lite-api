@@ -10,6 +10,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from users.models import BaseUser, GovUser
 from users.serializers import BaseUserViewSerializer
+from flags.models import Flag
 from documents.tasks import prepare_document
 
 
@@ -32,13 +33,17 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    flags = serializers.SerializerMethodField()
     is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
     case_type = CaseTypeSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type')
+        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type', 'flags')
+
+    def get_flags(self, instance):
+        return list(instance.flags.all().values('id', 'name'))
 
     def validate_queues(self, attrs):
         if not attrs:
@@ -79,6 +84,23 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')
+
+
+class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
+    """
+    Serializes flags on case
+    """
+    flags = PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+
+    class Meta:
+        model = Case
+        fields = ('id', 'flags')
+
+    def validate_flags(self, flags):
+        team_case_level_flags = list(Flag.objects.filter(level='Case', team=self.context['team']))
+        if not set(flags).issubset(list(team_case_level_flags)):
+            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
+        return flags
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):

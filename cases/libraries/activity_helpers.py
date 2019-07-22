@@ -9,6 +9,7 @@ from users.serializers import BaseUserViewSerializer
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
+CHANGE_FLAGS = 'change_case_flags'
 
 
 def _activity_item(activity_type, date, user, data, status=None):
@@ -42,7 +43,22 @@ def convert_audit_to_activity(version: Version):
     _revision_object = Revision.objects.get(id=version.revision_id)
     user = get_user_by_pk(_revision_object.user.id)
 
-    return _activity_item(CHANGE,
+    data = json.loads(version.serialized_data)[0]['fields']
+
+    if _revision_object.comment:
+        try:
+            comment = json.loads(_revision_object.comment)
+            if 'flags' in comment:
+                data['flags'] = comment['flags']
+                activity_type = CHANGE_FLAGS
+        except ValueError:
+            comment = _revision_object.comment
+            activity_type = CHANGE
+        data['comment'] = comment
+    else:
+        activity_type = CHANGE
+
+    return _activity_item(activity_type,
                           _revision_object.date_created,
                           BaseUserViewSerializer(user).data,
                           json.loads(version.serialized_data)[0]['fields'])
