@@ -9,6 +9,7 @@ from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from gov_users.models import GovUser
 from queues.models import Queue
+from flags.models import Flag
 
 
 @reversion.register()
@@ -24,6 +25,7 @@ class Case(models.Model):
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
     clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
+    flags = models.ManyToManyField(Flag, related_name='cases')
 
 
 @reversion.register()
