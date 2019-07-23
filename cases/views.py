@@ -12,10 +12,10 @@ from cases.libraries.activity_helpers import convert_audit_to_activity, convert_
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument
-from conf.authentication import GovAuthentication, SharedAuthentication
-from users.models import ExporterUser, GovUserRevisionMeta, GovUser, BaseUser
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
+from conf.authentication import GovAuthentication, SharedAuthentication
+from users.models import ExporterUser
 
 
 class CaseDetail(APIView):
