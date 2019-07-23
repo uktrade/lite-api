@@ -3,8 +3,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
@@ -14,7 +13,7 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument
 from conf.authentication import GovAuthentication, SharedAuthentication
-from users.models import ExporterUser
+from users.models import ExporterUser, GovUserRevisionMeta, GovUser, BaseUser
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
 
@@ -122,8 +121,11 @@ class CaseActivity(APIView):
         fields = request.GET.get('fields', None)
         if fields:
             fields = fields.split(',')
+            print(fields)
             for item in activity:
                 item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
+
+                print('\nItem data', item['data'])
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
@@ -168,7 +170,7 @@ class CaseFlagsAssignment(APIView):
                 ('{"flags": {"removed": ' + str(remove_case_flags) + ', "added": ' + str(add_case_flags) + '}}')
                 .replace('\'', '"')
             )
-            reversion.add_meta(GovUserRevisionMeta, gov_user=user)
+            reversion.set_user(user)
 
             case.flags.set(validated_data + list(previously_assigned_not_team_flags))
 
