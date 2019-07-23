@@ -3,6 +3,7 @@ import json
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -10,21 +11,20 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
 from cases.models import Case
-from conf.authentication import PkAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
-from gov_users.models import GovUserRevisionMeta
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
 
 class ApplicationList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         """
@@ -99,7 +99,9 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = [GovAuthentication]
+    serializer_class = ApplicationBaseSerializer
+
     """
     Retrieve, update or delete a application instance.
     """
@@ -109,7 +111,7 @@ class ApplicationDetail(APIView):
         Retrieve an application instance.
         """
         application = get_application_by_pk(pk)
-        serializer = ApplicationBaseSerializer(application)
+        serializer = self.serializer_class(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):
@@ -126,11 +128,28 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
+
                 # Set audit information
                 reversion.set_comment("Updated application details")
-                reversion.add_meta(GovUserRevisionMeta, gov_user=request.user)
+                reversion.set_user(self.request.user)
 
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=400)
+
+
+class ApplicationDetailPkUser(ApplicationDetail):
+    authentication_classes = [ExporterAuthentication]
+    serializer_class = ApplicationCaseNotesSerializer
+
+    def get(self, request, pk):
+        """
+        Retrieve an application instance.
+        """
+        application = get_application_by_pk(pk)
+        request.user.notification_set.filter(note__case__application=application).update(
+            viewed_at=timezone.now()
+        )
+
+        return super(ApplicationDetailPkUser, self).get(request, pk)

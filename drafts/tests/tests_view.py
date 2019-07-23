@@ -18,7 +18,7 @@ class DraftTests(DataTestClient):
         OrgAndUserHelper.complete_draft(name='test 2', org=self.test_helper.organisation).save()
 
         url = reverse('drafts:drafts')
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['drafts']), 2)
 
@@ -29,7 +29,7 @@ class DraftTests(DataTestClient):
         draft = OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_view_incorrect_draft(self):
@@ -40,7 +40,7 @@ class DraftTests(DataTestClient):
         invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
 
         url = reverse('drafts:draft', kwargs={'pk': invalid_id})
-        response = self.client.put(url, **self.headers)
+        response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
@@ -50,7 +50,7 @@ class DraftTests(DataTestClient):
         OrgAndUserHelper.complete_draft(name='test', org=draft_test_helper_2.organisation)
 
         url = reverse('drafts:drafts')
-        response = self.client.get(url, **self.headers)
+        response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Draft.objects.count(), 2)

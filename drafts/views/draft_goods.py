@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
 from drafts.models import GoodOnDraft
 from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
@@ -17,7 +17,7 @@ class DraftGoodsType(APIView):
     """
     View goods belonging to a draft, or add one
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         """
@@ -29,7 +29,7 @@ class DraftGoodsType(APIView):
 
 
 class DraftGoods(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     """
     View goods belonging to a draft, or add one
     """

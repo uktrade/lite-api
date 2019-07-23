@@ -4,15 +4,16 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.models import Application
+from case_types.models import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
-from gov_users.models import GovUser
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
+from users.models import GovUser, BaseUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -31,15 +32,18 @@ class DataTestClient(BaseTestClient):
     def setUp(self):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
-        self.headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        self.exporter_headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
         self.team = Team.objects.get(name='Admin')
-        self.user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
-                            email='test@mail.com',
-                            first_name='John',
-                            last_name='Smith',
-                            team=self.team)
-        self.user.save()
-        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.user.id)}
+
+        self.exporter_user = self.test_helper.user
+
+        self.gov_user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
+                                email='test@mail.com',
+                                first_name='John',
+                                last_name='Smith',
+                                team=self.team)
+        self.gov_user.save()
+        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.gov_user.id)}
 
     def create_organisation(self, name):
         self.name = name
@@ -94,19 +98,27 @@ class DataTestClient(BaseTestClient):
                 'password': self.password
             },
         }
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
 
-    def create_case(self, name):
+    def create_application_case(self, name):
         return Case.objects.get(
             application=self.test_helper.submit_draft(
                 self, self.test_helper.create_draft_with_good_end_user_and_site(
                     name,
                     self.test_helper.organisation)))
 
-    def create_case_note(self, case: Case, text: str):
+    def create_clc_query_case(self, name):
+        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation)
+        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+        case = Case(clc_query=clc_query, case_type=case_type)
+        case.save()
+        return case
+
+    def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
-                             user=self.user)
+                             user=user,
+                             is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
 
@@ -131,7 +143,7 @@ class DataTestClient(BaseTestClient):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         return Application.objects.get(pk=draft_id)
 
     def create_case_document(self, case: Case, user: GovUser, name: str):

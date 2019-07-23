@@ -3,6 +3,8 @@ import json
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from cases.models import Case, CaseNote
+from goods.enums import GoodControlled
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -12,7 +14,7 @@ class GoodViewTests(DataTestClient):
 
     def test_view_good_details(self):
         good = Good(description='thing',
-                    is_good_controlled=False,
+                    is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
                     organisation=self.test_helper.organisation)
         good.save()
@@ -25,7 +27,7 @@ class GoodViewTests(DataTestClient):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
 
         good = Good(description='thing',
-                    is_good_controlled=False,
+                    is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
                     organisation=self.test_helper.organisation)
         good.save()
@@ -64,28 +66,28 @@ class GoodViewTests(DataTestClient):
 
         # create a set of Goods for the test
         Good.objects.create(description='car1',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='cl500',
                             organisation=org)
 
         Good.objects.create(description='Car2',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='CL300',
                             organisation=org)
 
         Good.objects.create(description='car3',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='ML500',
                             organisation=org)
 
         Good.objects.create(description='Truck',
-                            is_good_controlled=True,
+                            is_good_controlled=GoodControlled.YES,
                             control_code='ML1',
                             is_good_end_product=True,
                             part_number='CL1000',

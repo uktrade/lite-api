@@ -1,16 +1,17 @@
 import reversion
 from django.http.response import JsonResponse
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from cases.models import Notification
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
-from users.models import User, UserStatuses
-from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer
+from users.models import ExporterUser, UserStatuses
+from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
 
 
 class AuthenticateUser(APIView):
@@ -38,11 +39,11 @@ class AuthenticateUser(APIView):
 
 
 class UserList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
-        serializer = UserViewSerializer(User.objects.filter(organisation=organisation), many=True)
+        serializer = UserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
         return JsonResponse(data={'users': serializer.data})
 
     def post(self, request):
@@ -62,7 +63,7 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     """
     Get user from pk
     """
@@ -75,12 +76,13 @@ class UserDetail(APIView):
     def put(self, request, pk):
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
+
         if 'status' in data.keys():
             if user_is_trying_to_change_own_status(user.id, request.user.id):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
-        with reversion.create_revision():
 
+        with reversion.create_revision():
             for key in list(data.keys()):
                 if data[key] is '':
                     del data[key]
@@ -93,3 +95,37 @@ class UserDetail(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
+
+
+class NotificationViewset(viewsets.ModelViewSet):
+    model = Notification
+    serializer_class = NotificationsSerializer
+    authentication_classes = (ExporterAuthentication,)
+    permission_classes = (IsAuthenticated, )
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
+        # join to Case Note table join to Cases table and see if clc_query is null)
+        queryset = Notification.objects.filter(user=self.request.user, note__case__clc_query_id__isnull=True)
+        if self.request.GET.get('unviewed'):
+            queryset = queryset.filter(viewed_at__isnull=True)
+
+        return queryset
+
+
+class ClcNotificationViewset(viewsets.ModelViewSet):
+    model = Notification
+    serializer_class = NotificationsSerializer
+    authentication_classes = (ExporterAuthentication,)
+    permission_classes = (IsAuthenticated, )
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
+        # join to Case Note table join to Cases table and see if application_id is null)
+        queryset = Notification.objects.filter(user=self.request.user, note__case__application_id__isnull=True)
+        if self.request.GET.get('unviewed'):
+            queryset = queryset.filter(viewed_at__isnull=True)
+
+        return queryset

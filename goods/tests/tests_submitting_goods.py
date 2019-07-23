@@ -33,7 +33,7 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {}
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unsubmitted_good_can_be_edited(self):
@@ -44,7 +44,7 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {'description': 'some great good'}
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.get().description, 'some great good')
 
@@ -56,7 +56,7 @@ class GoodTests(DataTestClient):
         self.test_helper.submit_draft(self, draft=draft)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
-        response = self.client.delete(url, **self.headers)
+        response = self.client.delete(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Good.objects.count(), 1)
 
@@ -67,7 +67,7 @@ class GoodTests(DataTestClient):
         self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
-        response = self.client.delete(url, **self.headers)
+        response = self.client.delete(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.count(), 0)
 
@@ -82,7 +82,7 @@ class GoodTests(DataTestClient):
         self.assertEqual(Good.objects.all().count(), 1)
         self.assertEqual(GoodOnDraft.objects.count(), 2)
         url = reverse('goods:good', kwargs={'pk': good.id})
-        response = self.client.delete(url, **self.headers)
+        response = self.client.delete(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.all().count(), 0)
         self.assertEqual(GoodOnDraft.objects.count(), 0)

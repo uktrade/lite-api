@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from end_user.serializers import EndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -15,7 +15,7 @@ class DraftEndUser(APIView):
     """
     Set the end user of a draft application
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
     def post(self, request, pk):

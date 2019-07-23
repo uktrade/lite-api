@@ -1,4 +1,5 @@
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -6,7 +7,7 @@ from rest_framework.views import APIView
 from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good
 from goods.models import Good
@@ -16,7 +17,7 @@ from queues.models import Queue
 
 
 class GoodList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -63,7 +64,7 @@ class GoodList(APIView):
 
 
 class GoodDetail(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
@@ -73,6 +74,9 @@ class GoodDetail(APIView):
             raise Http404
 
         serializer = GoodSerializer(good)
+        request.user.notification_set.filter(note__case__clc_query__good=good).update(
+            viewed_at=timezone.now()
+        )
         return JsonResponse(data={'good': serializer.data})
 
     def put(self, request, pk):

@@ -3,11 +3,12 @@ from rest_framework import status
 
 from applications.enums import ApplicationStatus
 from cases.models import Case
-from gov_users.models import Role, Permission
 from test_helpers.clients import DataTestClient
+from users.models import Role, Permission
 
 
 class CaseActivityTests(DataTestClient):
+
     def setUp(self):
         super().setUp()
         self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application', self.test_helper.organisation)
@@ -27,8 +28,8 @@ class CaseActivityTests(DataTestClient):
         role = Role(name='some')
         role.permissions.set([Permission.objects.get(id='MAKE_FINAL_DECISIONS').id])
         role.save()
-        self.user.role = role
-        self.user.save()
+        self.gov_user.role = role
+        self.gov_user.save()
 
         data = {
             'status': ApplicationStatus.APPROVED,

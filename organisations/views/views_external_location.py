@@ -5,14 +5,14 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 
 
 class ExternalLocationList(APIView):
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     """
     List all sites for an organisation/create site
     """

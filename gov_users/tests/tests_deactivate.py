@@ -1,17 +1,12 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
-from gov_users.models import GovUser
 from test_helpers.clients import DataTestClient
+from users.models import GovUser
 
 
 class GovUserDeactivateTests(DataTestClient):
-
-    urlpatterns = [
-        path('gov-users/', include('gov_users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
 
     def setUp(self):
         super().setUp()
@@ -31,7 +26,7 @@ class GovUserDeactivateTests(DataTestClient):
         data = {
             'status': 'Deactivated'
         }
-        url = reverse('gov_users:gov_user', kwargs={'pk': self.user.id})
+        url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

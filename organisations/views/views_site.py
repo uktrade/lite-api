@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import PkAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
@@ -16,7 +16,7 @@ class SiteList(APIView):
     """
     List all sites for an organisation/create site
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -123,7 +123,7 @@ class SiteDetail(APIView):
     """
     Show details for for a specific site/edit site
     """
-    authentication_classes = (PkAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)

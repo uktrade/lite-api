@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case
+from cases.models import Case, CaseNote
 from clc_queries.models import ClcQuery
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good
@@ -9,6 +9,7 @@ from organisations.models import Organisation
 
 
 class GoodSerializer(serializers.ModelSerializer):
+
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     control_code = serializers.CharField(required=False, default="", allow_blank=True)
@@ -17,6 +18,7 @@ class GoodSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
+    notes = serializers.SerializerMethodField()
 
     class Meta:
         model = Good
@@ -30,6 +32,7 @@ class GoodSerializer(serializers.ModelSerializer):
                   'organisation',
                   'status',
                   'not_sure_details_details',
+                  'notes'
                   )
 
     def __init__(self, *args, **kwargs):
@@ -45,6 +48,17 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
+        except Exception:
+            return None
+
+    def get_notes(self, instance):
+        from cases.serializers import CaseNoteViewSerializer  # circular import prevention
+        try:
+            clc_query = ClcQuery.objects.get(good=instance)
+            case = Case.objects.get(clc_query=clc_query)
+            case_notes = CaseNote.objects.filter(case=case)
+
+            return CaseNoteViewSerializer(case_notes, many=True).data
         except Exception:
             return None
 

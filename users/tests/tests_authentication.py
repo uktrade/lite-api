@@ -1,22 +1,12 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import UserStatuses
 
 
-class UserTests(APITestCase, URLPatternsTestCase):
-
-    urlpatterns = [
-        path('users/', include('users.urls')),
-        path('organisations/', include('organisations.urls'))
-    ]
-
-    client = APIClient()
-
-    def setUp(self):
-        self.test_helper = OrgAndUserHelper(name='banana')
+class UserTests(DataTestClient):
 
     def test_login_success(self):
         url = reverse('users:authenticate')

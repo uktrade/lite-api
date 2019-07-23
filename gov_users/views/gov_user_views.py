@@ -11,9 +11,9 @@ from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from gov_users.libraries.user_to_token import user_to_token
-from gov_users.models import GovUser
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
+from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):

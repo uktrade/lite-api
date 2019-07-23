@@ -23,14 +23,14 @@ class ExternalLocationsOnDraftTests(DataTestClient):
             ]
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.draft = Draft.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Brokering')
 
         url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
-        response = self.client.get(url, **self.headers).json()
+        response = self.client.get(url, **self.exporter_headers).json()
         self.assertEqual(len(response["external_locations"]), 1)
 
     def test_adding_external_location_to_draft_removes_sites(self):
@@ -40,12 +40,12 @@ class ExternalLocationsOnDraftTests(DataTestClient):
                 self.test_helper.primary_site.id
             ]
         }
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         data = {
             'external_locations': [
                 self.external_location.id
             ]
         }
-        self.client.post(self.url, data, **self.headers)
+        self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(SiteOnDraft.objects.filter(draft=self.draft).count(), 0)
         self.assertEqual(ExternalLocationOnDraft.objects.filter(draft=self.draft).count(), 1)

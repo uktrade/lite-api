@@ -1,4 +1,4 @@
-from django.urls import path, include, reverse
+from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.utils import json
@@ -9,23 +9,16 @@ from test_helpers.clients import DataTestClient
 
 class GovUserAuthenticateTests(DataTestClient):
 
-    urlpatterns = [
-        path('gov-users/', include('gov_users.urls')),
-        path('organisations', include('organisations.urls'))
-    ]
-
-    def setUp(self):
-        super().setUp()
-        self.url = reverse('gov_users:authenticate')
+    url = reverse('gov_users:authenticate')
 
     def test_authentication_success(self):
         """
         Authorises user then checks the token which is sent is valid upon another request
         """
         data = {
-            'email': self.user.email,
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name
+            'email': self.gov_user.email,
+            'first_name': self.gov_user.first_name,
+            'last_name': self.gov_user.last_name
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -50,12 +43,12 @@ class GovUserAuthenticateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_a_deactivated_user_cannot_log_in(self):
-        self.user.status = GovUserStatuses.DEACTIVATED
-        self.user.save()
+        self.gov_user.status = GovUserStatuses.DEACTIVATED
+        self.gov_user.save()
         data = {
-            'email': self.user.email,
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name
+            'email': self.gov_user.email,
+            'first_name': self.gov_user.first_name,
+            'last_name': self.gov_user.last_name
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

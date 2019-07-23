@@ -32,7 +32,7 @@ class GoodsTypeCreateDraftTests(DataTestClient):
             'object_id': draft.pk
         }
 
-        response = self.client.post(self.url, data, **self.headers)
+        response = self.client.post(self.url, data, **self.exporter_headers)
 
         if response.status_code == status.HTTP_201_CREATED:
             response_data = response.json()['good']

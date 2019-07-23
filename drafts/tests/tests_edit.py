@@ -15,7 +15,7 @@ class DraftTests(DataTestClient):
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
         data = {'name': 'Test'}
-        response = self.client.put(url, data, **self.headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(Draft.objects.count(), 1)

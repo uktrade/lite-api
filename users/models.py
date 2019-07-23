@@ -1,12 +1,26 @@
 import uuid
 
 import reversion
+from reversion.models import Revision
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from organisations.models import Organisation
+from teams.models import Team
 from users.enums import UserStatuses
+
+
+class Permission(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+
+
+@reversion.register()
+class Role(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    permissions = models.ManyToManyField(Permission, related_name='roles')
 
 
 class CustomUserManager(BaseUserManager):
@@ -42,11 +56,10 @@ class CustomUserManager(BaseUserManager):
 
 
 @reversion.register()
-class User(AbstractUser):
+class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True, unique=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
     USERNAME_FIELD = 'email'
@@ -56,3 +69,27 @@ class User(AbstractUser):
         return self.email
 
     objects = CustomUserManager()
+
+
+class ExporterUser(BaseUser):
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
+
+    def send_notification(self, case):
+        from cases.models import Notification
+        Notification.objects.create(user=self, note=case)
+
+
+class GovUser(BaseUser):
+    team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name='role', default='00000000-0000-0000-0000-000000000001', on_delete=models.PROTECT)
+
+    def unassign_from_cases(self):
+        """
+        Remove gov user from all cases
+        """
+        self.case_assignments.clear()
+
+
+class GovUserRevisionMeta(models.Model):
+    revision = models.OneToOneField(Revision, on_delete=models.CASCADE)
+    gov_user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

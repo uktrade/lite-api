@@ -7,16 +7,19 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
+from clc_queries.enums import ClcQueryStatus
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
+from goods.enums import GoodControlled
 from goods.models import Good
-from gov_users.models import GovUser
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.units.enums import Units
 from teams.models import Team
-from users.models import User
+from users.models import ExporterUser
+from users.models import GovUser
+from clc_queries.models import ClcQuery
 
 
 class OrgAndUserHelper:
@@ -90,12 +93,12 @@ class OrgAndUserHelper:
                             team=self.team)
         self.user.save()
 
-        self.headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
-        self.client.post(url, data, **self.headers)
+        self.gov_headers = {'HTTP_GOV_USER_EMAIL': str(self.user.email)}
+        self.client.post(url, data, **self.gov_headers)
         self.user.delete()
         self.team.delete()
         self.organisation = Organisation.objects.get(name=name)
-        self.user = User.objects.filter(organisation=self.organisation)[0]
+        self.user = ExporterUser.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site
         self.address = self.primary_site.address
 
@@ -123,18 +126,19 @@ class OrgAndUserHelper:
         draft.save()
         return draft
 
+
     @staticmethod
     def submit_draft(self, draft):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
-        self.client.post(url, data, **self.headers)
+        self.client.post(url, data, **self.exporter_headers)
         return Application.objects.get(pk=draft_id)
 
     @staticmethod
     def create_controlled_good(description, org):
         good = Good(description=description,
-                    is_good_controlled=True,
+                    is_good_controlled=GoodControlled.YES,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
@@ -143,17 +147,34 @@ class OrgAndUserHelper:
         return good
 
     @staticmethod
+    def create_clc_query(description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.UNSURE,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org
+                    )
+        good.save()
+
+        clc_query = ClcQuery(details='this is a test text',
+                             good=good,
+                             status=ClcQueryStatus.SUBMITTED)
+        clc_query.save()
+        return clc_query
+
+    @staticmethod
     def create_additional_users(org, quantity=1):
         users = []
         for i in range(quantity):
             first_name, last_name = random_name()
             email = first_name + '.' + last_name + '@' + org.name + '.com'
-            if User.objects.filter(email=email).count() == 1:
+            if ExporterUser.objects.filter(email=email).count() == 1:
                 email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
-            user = User(first_name=first_name,
-                        last_name=last_name,
-                        email=email,
-                        organisation=org)
+            user = ExporterUser(first_name=first_name,
+                                last_name=last_name,
+                                email=email,
+                                organisation=org)
             user.set_password('password')
             user.save()
             if quantity == 1:

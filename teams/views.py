@@ -6,11 +6,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from gov_users.models import GovUser
 from gov_users.serializers import GovUserViewSerializer
 from teams.libraries.get_team import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
+from users.models import GovUser
 
 
 class TeamList(APIView):
