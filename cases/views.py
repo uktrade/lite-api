@@ -121,11 +121,8 @@ class CaseActivity(APIView):
         fields = request.GET.get('fields', None)
         if fields:
             fields = fields.split(',')
-            print(fields)
             for item in activity:
                 item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
-
-                print('\nItem data', item['data'])
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))

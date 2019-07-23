@@ -51,7 +51,6 @@ def convert_audit_to_activity(version: Version):
             comment = json.loads(_revision_object.comment)
             if 'flags' in comment:
                 data['flags'] = comment['flags']
-                print('flags_data', data['flags'])
                 activity_type = CHANGE_FLAGS
         except ValueError:
             comment = _revision_object.comment
