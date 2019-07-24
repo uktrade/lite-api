@@ -2,7 +2,7 @@ from rest_framework import authentication, exceptions
 
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.token_to_user_pk import token_to_user_pk
-from users.models import ExporterUser, UserStatuses
+from users.models import ExporterUser
 from users.models import GovUser
 
 EXPORTER_ID = 'HTTP_USER_ID'
