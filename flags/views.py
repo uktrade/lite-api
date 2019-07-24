@@ -22,7 +22,18 @@ class FlagsList(APIView):
         """
         Returns list of all flags
         """
-        flags = Flag.objects.filter().order_by('name')
+        level = request.GET.get('level', None)
+        if level:
+            flags = Flag.objects.filter(level=level)
+        else:
+            flags = Flag.objects.filter()
+
+        team = request.GET.get('team', None)
+        if team:
+            team_id = request.user.team.id
+            flags = flags.filter(team=team_id)
+
+        flags = flags.order_by('name')
         serializer = FlagSerializer(flags, many=True)
         return JsonResponse(data={'flags': serializer.data})
 

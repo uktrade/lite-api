@@ -1,6 +1,7 @@
 import uuid
 
 import reversion
+from reversion.models import Revision
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -87,3 +88,8 @@ class GovUser(BaseUser):
         Remove gov user from all cases
         """
         self.case_assignments.clear()
+
+
+class GovUserRevisionMeta(models.Model):
+    revision = models.OneToOneField(Revision, on_delete=models.CASCADE)
+    gov_user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

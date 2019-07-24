@@ -11,6 +11,7 @@ from drafts.models import Draft
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
+from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import GovUser, BaseUser
 
@@ -156,3 +157,8 @@ class DataTestClient(BaseTestClient):
                                 safe=None)
         case_doc.save()
         return case_doc
+
+    def create_flag(self, name: str, level: str, team: Team):
+        flag = Flag(name=name, level=level, team=team)
+        flag.save()
+        return flag

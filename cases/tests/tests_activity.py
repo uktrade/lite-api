@@ -18,7 +18,6 @@ class CaseActivityTests(DataTestClient):
     def test_view_case_activity(self):
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['activity']), 1)
 
