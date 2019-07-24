@@ -34,7 +34,7 @@ class AuthenticateExporterUser(APIView):
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         :param request:
-        :param email, first_name, last_name:
+        :param email:
         :return token:
         """
         try:
@@ -43,16 +43,9 @@ class AuthenticateExporterUser(APIView):
             return JsonResponse(data={'errors': 'Invalid Json'},
                                 status=status.HTTP_400_BAD_REQUEST)
         email = data.get('email')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
 
         try:
             user = ExporterUser.objects.get(email=email)
-
-            # Update the user's first and last names
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(data={'errors': 'User not found'},
                                 status=status.HTTP_403_FORBIDDEN)

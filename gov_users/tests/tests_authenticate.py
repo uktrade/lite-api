@@ -55,7 +55,6 @@ class GovUserAuthenticateTests(DataTestClient):
 
     @parameterized.expand([
         [{'headers': {'HTTP_GOV_USER_EMAIL': str('test@mail.com')}, 'response': status.HTTP_200_OK}],
-        [{'headers': {'HTTP_GOV_USER_TOKEN': str('43a88949-5db9-4334-b0cc-044e91827451')}, 'response': status.HTTP_200_OK}],
         [{'headers': {}, 'response': status.HTTP_403_FORBIDDEN}],
         [{'headers': {'HTTP_GOV_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}, 'response': status.HTTP_403_FORBIDDEN}],
     ])

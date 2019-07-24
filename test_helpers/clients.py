@@ -8,6 +8,7 @@ from case_types.models import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
+from gov_users.libraries.user_to_token import user_to_token
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -32,7 +33,7 @@ class DataTestClient(BaseTestClient):
     def setUp(self):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': str(self.test_helper.user.id)}
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)}
         self.team = Team.objects.get(name='Admin')
 
         self.exporter_user = self.test_helper.user
@@ -43,7 +44,7 @@ class DataTestClient(BaseTestClient):
                                 last_name='Smith',
                                 team=self.team)
         self.gov_user.save()
-        self.gov_headers = {'HTTP_GOV_USER_TOKEN': str(self.gov_user.id)}
+        self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
     def create_organisation(self, name):
         self.name = name
