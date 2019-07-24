@@ -185,3 +185,5 @@ if 'test' not in sys.argv:
             },
         }
     }
+
+ALL_CASES_SYSTEM_QUEUE_ID = 'de13c40a-b330-4d77-8304-57ac12326e5a'

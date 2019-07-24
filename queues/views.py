@@ -7,13 +7,15 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
-from cases.models import CaseAssignment
+from cases.models import CaseAssignment, Case
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
+from django.conf import settings
+
 
 
 @permission_classes((permissions.AllowAny,))
@@ -69,9 +71,19 @@ class CaseAssignments(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        """
-        Get all case assignments for that queue
-        """
+        if settings.ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
+            return self._get_all_case_assignments()
+        else:
+            return self._get_case_assignments_for_specific_queue(pk)
+
+    # noinspection PyMethodMayBeStatic
+    def _get_all_case_assignments(self):
+        case_assignments = CaseAssignment.objects.all()
+        serializer = CaseAssignmentSerializer(case_assignments, many=True)
+        return JsonResponse(data={'case_assignments': serializer.data})
+
+    # noinspection PyMethodMayBeStatic
+    def _get_case_assignments_for_specific_queue(self, pk):
         queue = get_queue(pk)
 
         case_assignments = CaseAssignment.objects.filter(queue=queue)
