@@ -32,7 +32,7 @@ class DataTestClient(BaseTestClient):
     def setUp(self):
         super().setUp()
         self.test_helper = OrgAndUserHelper(name='Org1')
-        self.exporter_headers = {'HTTP_USER_ID': str(self.test_helper.user.id)}
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': str(self.test_helper.user.id)}
         self.team = Team.objects.get(name='Admin')
 
         self.exporter_user = self.test_helper.user

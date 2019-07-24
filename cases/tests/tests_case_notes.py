@@ -5,6 +5,7 @@ from rest_framework import status
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case, CaseNote
 from test_helpers.clients import DataTestClient
+from users.models import ExporterUser
 
 
 class CaseNotesGovCreateTests(DataTestClient):

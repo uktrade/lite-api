@@ -24,7 +24,7 @@ class UserTests(DataTestClient):
         # Expect to see one more than the additional number of users created as there is one initial admin user
         self.assertEqual(len(response_data["users"]), 3)
 
-        response = self.client.get(url, **{'HTTP_USER_ID': str(test_helper_2.user.id)})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': str(test_helper_2.user.id)})
         response_data = json.loads(response.content)
         self.assertEqual(len(response_data["users"]), 5)
 

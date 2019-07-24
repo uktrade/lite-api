@@ -6,22 +6,31 @@ from users.models import ExporterUser, UserStatuses
 from users.models import GovUser
 
 EXPORTER_ID = 'HTTP_USER_ID'
-USER_EMAIL_HEADER = 'HTTP_GOV_USER_EMAIL'
-USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'
+GOV_USER_EMAIL_HEADER = 'HTTP_GOV_USER_EMAIL'
+GOV_USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'
+EXPORTER_USER_EMAIL_HEADER = 'HTTP_EXPORTER_USER_EMAIL'
+EXPORTER_USER_TOKEN_HEADER = 'HTTP_EXPORTER_USER_TOKEN'
 USER_DEACTIVATED_ERROR = 'User has been deactivated'
 USER_DOES_NOT_EXIST_ERROR = 'No such user with that identifier'
 
 
 class ExporterAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
-        pk = request.META.get(EXPORTER_ID)
-        try:
-            user = ExporterUser.objects.get(pk=pk)
-        except ExporterUser.DoesNotExist:
-            raise exceptions.AuthenticationFailed('No such user with that ID')
 
-        if user.status == UserStatuses.DEACTIVATED:
-            raise exceptions.PermissionDenied('User has been deactivated')
+    def authenticate(self, request):
+
+        email = request.META.get(EXPORTER_USER_EMAIL_HEADER)
+        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+
+        try:
+            if token:
+                user = ExporterUser.objects.get(pk=token_to_user_pk(token))
+            else:
+                user = ExporterUser.objects.get(email=email)
+        except ExporterUser.DoesNotExist:
+            raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
+
+        if user.status == GovUserStatuses.DEACTIVATED:
+            raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
 
         return user, None
 
@@ -29,8 +38,8 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 class GovAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
-        email = request.META.get(USER_EMAIL_HEADER)
-        token = request.META.get(USER_TOKEN_HEADER)
+        email = request.META.get(GOV_USER_EMAIL_HEADER)
+        token = request.META.get(GOV_USER_TOKEN_HEADER)
 
         try:
             if token:
@@ -48,21 +57,27 @@ class GovAuthentication(authentication.BaseAuthentication):
 
 class SharedAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        pk = request.META.get(EXPORTER_ID)
+        email = request.META.get(EXPORTER_USER_EMAIL_HEADER)
+        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
 
-        if pk:
+        exporter = email or token
+
+        if exporter:
             try:
-                user = ExporterUser.objects.get(pk=pk)
+                if token:
+                    user = ExporterUser.objects.get(pk=token_to_user_pk(token))
+                else:
+                    user = ExporterUser.objects.get(email=email)
             except ExporterUser.DoesNotExist:
-                raise exceptions.AuthenticationFailed('No such user with that ID')
+                raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
 
-            if user.status == UserStatuses.DEACTIVATED:
-                raise exceptions.PermissionDenied('User has been deactivated')
+            if user.status == GovUserStatuses.DEACTIVATED:
+                raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
 
             return user, None
         else:
-            email = request.META.get(USER_EMAIL_HEADER)
-            token = request.META.get(USER_TOKEN_HEADER)
+            email = request.META.get(GOV_USER_EMAIL_HEADER)
+            token = request.META.get(GOV_USER_TOKEN_HEADER)
 
             try:
                 if token:

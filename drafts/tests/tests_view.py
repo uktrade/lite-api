@@ -64,5 +64,5 @@ class DraftTests(DataTestClient):
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': str(self.test_helper.user.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
