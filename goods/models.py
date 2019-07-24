@@ -16,9 +16,3 @@ class Good(models.Model):
     part_number = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
-    # type_of_licence = models.CharField() --with this with could split the list of goods and the open license high level description of goods
-
-    # @property
-    # def notes(self):
-    #     from cases.models import CaseNote  # circular import prevention
-    #     return CaseNote.objects.filter(case__clc_query__good=self)
