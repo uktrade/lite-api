@@ -139,7 +139,7 @@ class ApplicationDetail(APIView):
             return JsonResponse(data={'errors': serializer.errors}, status=400)
 
 
-class ApplicationDetailPkUser(ApplicationDetail):
+class ApplicationDetailUser(ApplicationDetail):
     authentication_classes = [ExporterAuthentication]
     serializer_class = ApplicationCaseNotesSerializer
 
@@ -152,4 +152,4 @@ class ApplicationDetailPkUser(ApplicationDetail):
             viewed_at=timezone.now()
         )
 
-        return super(ApplicationDetailPkUser, self).get(request, pk)
+        return super(ApplicationDetailUser, self).get(request, pk)
