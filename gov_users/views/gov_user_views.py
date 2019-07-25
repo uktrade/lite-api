@@ -60,7 +60,7 @@ class AuthenticateGovUser(APIView):
                                 status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={'token': token})
+        return JsonResponse(data={'token': token, 'backend_id': str(user.id)})
 
 
 class GovUserList(APIView):

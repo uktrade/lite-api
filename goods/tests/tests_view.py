@@ -3,7 +3,6 @@ import json
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.models import Case, CaseNote
 from goods.enums import GoodControlled
 from goods.models import Good
 from gov_users.libraries.user_to_token import user_to_token
