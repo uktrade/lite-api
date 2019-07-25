@@ -63,7 +63,8 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'background_task',
     'clc_queries',
-    'case_types'
+    'case_types',
+    'picklist_items',
 ]
 
 MIDDLEWARE = [

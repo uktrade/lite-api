@@ -20,6 +20,18 @@ from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
 from clc_queries.models import ClcQuery
+from picklist_items.models import PicklistItem
+from picklist_items.enums import PicklistType
+
+
+def random_name():
+    first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
+    last_names = ('Johnson', 'Smith', 'Williams', 'Hargreaves', 'Montague', 'Jenkins')
+
+    first_name = random.choice(first_names)
+    last_name = random.choice(last_names)
+
+    return first_name, last_name
 
 
 class OrgAndUserHelper:
@@ -219,12 +231,13 @@ class OrgAndUserHelper:
         end_user.save()
         return end_user
 
+    @staticmethod
+    def create_picklist_item(status: str, team: Team, type=PicklistType.ECJU):
+        picklist_item = PicklistItem(team=team,
+                                     name='Picklist Item 1',
+                                     text='This is a string of text, please do not disturb the milk argument',
+                                     type=type,
+                                     status=status)
 
-def random_name():
-    first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
-    last_names = ('Johnson', 'Smith', 'Williams', 'Hargreaves', 'Montague', 'Jenkins')
-
-    first_name = random.choice(first_names)
-    last_name = random.choice(last_names)
-
-    return first_name, last_name
+        picklist_item.save()
+        return picklist_item

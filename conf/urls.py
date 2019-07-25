@@ -33,6 +33,7 @@ urlpatterns = [
     path('teams/', include('teams.urls')),
     path('gov-users/', include('gov_users.urls')),
     path('flags/', include('flags.urls')),
+    path('picklist_items/', include('picklist_items.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 
