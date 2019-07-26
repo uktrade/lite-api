@@ -1,4 +1,3 @@
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
@@ -57,7 +56,6 @@ class UserSerializer(serializers.ModelSerializer):
                   'email',
                   'first_name',
                   'last_name',
-                  'password',
                   'status',
                   'organisation')
 
@@ -83,7 +81,6 @@ class UserUpdateSerializer(UserSerializer):
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    password = serializers.CharField(write_only=True)
     status = serializers.ChoiceField(choices=UserStatuses.choices)
 
     def update(self, instance, validated_data):
@@ -94,8 +91,6 @@ class UserUpdateSerializer(UserSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.status = validated_data.get('status', instance.status)
-        if validated_data.get('password') is not None:
-            instance.password = make_password(validated_data.get('password'))
         instance.save()
         return instance
 
@@ -108,15 +103,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    password = serializers.CharField(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
         model = ExporterUser
-        fields = ('id', 'email', 'first_name', 'last_name', 'password', 'organisation')
+        fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data.get('password'))
         return ExporterUser.objects.create(**validated_data)
 
 

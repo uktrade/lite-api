@@ -171,6 +171,7 @@ class CaseFlagsAssignment(APIView):
 
             case.flags.set(validated_data + list(previously_assigned_not_team_flags))
 
+
 class CaseDocuments(APIView):
     authentication_classes = (GovAuthentication,)
 

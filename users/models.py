@@ -59,10 +59,11 @@ class CustomUserManager(BaseUserManager):
 class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
-    email = models.EmailField(default=None, blank=True, unique=True)
+    email = models.EmailField(default=None, blank=True)
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
-    USERNAME_FIELD = 'email'
+    # Set this to use id as email cannot be unique in the base user model (and we couldn't think of anything else to use instead)
+    USERNAME_FIELD = 'id'
     REQUIRED_FIELDS = []
 
     def __str__(self):
