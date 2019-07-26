@@ -55,7 +55,7 @@ class AuthenticateExporterUser(APIView):
                                 status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={'token': token, 'first_name': user.first_name, 'last_name': user.last_name, 'backend_id': str(user.id)})
+        return JsonResponse(data={'token': token, 'first_name': user.first_name, 'last_name': user.last_name, 'lite_api_user_id': str(user.id)})
 
 
 class UserList(APIView):
