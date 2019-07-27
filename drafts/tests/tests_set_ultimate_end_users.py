@@ -24,39 +24,39 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.ultimate_end_users[0].name, 'UK Government')
+        self.assertTrue('UK Government' in self.draft.ultimate_end_users.values_list()[0])
 
         data = {
-            'id': str(self.draft.ultimate_end_users[0].id)
+            'id': str(self.draft.ultimate_end_users.values_list('id', flat=True)[0])
         }
 
         response = self.client.delete(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.draft.ultimate_end_users), 0)
+        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 0)
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
-        data = {
-            'ultimate_end_user': {
-                'name': 'UK Government',
-                'address': 'Westminster, London SW1A 0AA',
-                'country': 'GB',
-                'type': 'commercial',
-                'website': 'https://www.gov.uk'
-            },
-            'ultimate_end_user': {
-                'name': 'French Government',
-                'address': 'Paris',
-                'country': 'FR',
-                'type': 'government',
-                'website': 'https://www.gov.fr'
-            }
-        }
+        data = [
+                {
+                    'name': 'UK Government',
+                    'address': 'Westminster, London SW1A 0AA',
+                    'country': 'GB',
+                    'type': 'commercial',
+                    'website': 'https://www.gov.uk'
+                },
+                {
+                    'name': 'French Government',
+                    'address': 'Paris',
+                    'country': 'FR',
+                    'type': 'government',
+                    'website': 'https://www.gov.fr'
+                }
+            ]
 
-        for ultimate_end_user in data['ultimate_end_user']:
+        for ultimate_end_user in data:
             self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
 
-        self.assertEqual(len(self.draft.ultimate_end_users), 2)
+        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 2)
 
     def test_unsuccessful_add_ultimate_end_user(self):
         data = {
