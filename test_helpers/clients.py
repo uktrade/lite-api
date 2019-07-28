@@ -15,6 +15,7 @@ from teams.models import Team
 from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import GovUser, BaseUser
+from clc_queries.enums import ClcQueryStatus
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -44,6 +45,7 @@ class DataTestClient(BaseTestClient):
                                 last_name='Smith',
                                 team=self.team)
         self.gov_user.save()
+        self.queue = Queue.objects.get(team=self.team)
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
     def create_organisation(self, name):
@@ -108,8 +110,8 @@ class DataTestClient(BaseTestClient):
                     name,
                     self.test_helper.organisation)))
 
-    def create_clc_query_case(self, name):
-        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation)
+    def create_clc_query_case(self, name, status=ClcQueryStatus.SUBMITTED):
+        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation, status)
         case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
         case = Case(clc_query=clc_query, case_type=case_type)
         case.save()
