@@ -31,11 +31,12 @@ class ApplicationList(APIView):
         List all applications
         """
         organisation = get_organisation_by_user(request.user)
-
+        
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
+
         return JsonResponse(data={'applications': serializer.data},
-                            )
+                            status=status.HTTP_200_OK)
 
     @transaction.atomic
     def post(self, request):
