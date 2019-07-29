@@ -5,8 +5,6 @@ class PicklistType:
     ANNUAL_REPORT_SUMMARY = 'annual_report_summary'
     STANDARD_ADVICE = 'standard_advice'
     FOOTNOTES = 'footnotes'
-    ACTIVATE = 'activate'
-    DEACTIVATE = 'deactivate'
 
     type = [
         (PROVISO, 'Proviso'),
@@ -16,6 +14,11 @@ class PicklistType:
         (STANDARD_ADVICE, 'Standard Advice'),
         (FOOTNOTES, 'Footnotes'),
     ]
+
+
+class PickListStatus:
+    ACTIVATE = 'Activate'
+    DEACTIVATE = 'Deactivate'
 
     status = [
         (ACTIVATE, 'Activate'),

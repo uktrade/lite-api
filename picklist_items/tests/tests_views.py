@@ -9,8 +9,6 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 class PickLists(DataTestClient):
 
-
-
     def test_gov_user_can_get_picklist_items(self):
         picklist_item = PicklistItem(team=self.team,
                                      name='Picklist Item 1',
