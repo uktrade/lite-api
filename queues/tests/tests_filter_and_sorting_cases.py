@@ -97,25 +97,6 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case_assignment['case']).values_list('case_type__name', flat=True)[0]
             self.assertEqual('CLC query', case_type)
 
-    def test_get_clc_and_app_type_cases(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases of type 'CLC query'
-        Then only Cases of that type are returned
-        """
-
-        # Arrange
-        all_cases = self.application_cases + self.clc_cases
-        url = self.url + '?case_type=CLC%20query,Licence%20application'
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['case_assignments']
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(all_cases), len(response_data))
-
     def test_get_cases_no_filter_sort_by_status(self):
         """
         Given multiple Cases exist with different statuses and case-types

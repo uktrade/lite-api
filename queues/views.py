@@ -73,8 +73,19 @@ class CaseAssignments(APIView):
         Get all case assignments for that queue
         """
         queue = get_queue(pk)
-
         case_assignments = CaseAssignment.objects.filter(queue=queue)
+        kwargs = {}
+
+        case_type = request.GET.get('case_type', None)
+        if case_type:
+            kwargs['case__case_type__name'] = case_type
+
+        case_assignments = case_assignments.filter(**kwargs)
+
+        case_status = request.GET.get('status', None)
+        if case_status:
+            case_assignments = case_assignments.order_by('case__case_type__name')
+
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})
 
