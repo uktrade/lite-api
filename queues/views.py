@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -80,15 +81,19 @@ class CaseAssignments(APIView):
         if case_type:
             kwargs['case__case_type__name'] = case_type
 
+        # Add other `if` conditions before next line to filter by more fields
         case_assignments = case_assignments.filter(**kwargs)
 
-        kwargs = {}
         sort = request.GET.get('sort', None)
         if sort:
             sort = sort.split(',')
-            for field in sort:
-                kwargs
-            case_assignments = case_assignments.order_by('case__application__status').order_by('case__clc_query_status')
+            if 'status' in sort:
+                case_assignments = case_assignments.annotate(
+                    status=Concat('case__application__status', 'case__clc_query__status')
+                )
+                
+            # Add other `if` conditions before next line to sort by more fields
+            case_assignments = case_assignments.order_by(*sort)
 
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})

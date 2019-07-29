@@ -17,7 +17,7 @@ class CasesFilterAndSortTests(DataTestClient):
         for app_status in ApplicationStatus.choices:
             case = self.create_application_case('Example Application')
             case.application.status = app_status
-            case.save()
+            case.application.save(update_fields=['status'])
             self.queue.cases.add(case)
             self.queue.save()
             case_assignment = CaseAssignment(case=case, queue=self.queue)
