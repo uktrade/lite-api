@@ -19,6 +19,8 @@ from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from end_user.models import EndUser
+from end_user.serializers import EndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 
@@ -31,7 +33,7 @@ class ApplicationList(APIView):
         List all applications
         """
         organisation = get_organisation_by_user(request.user)
-        
+
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
 
@@ -154,3 +156,25 @@ class ApplicationDetailUser(ApplicationDetail):
         )
 
         return super(ApplicationDetailUser, self).get(request, pk)
+
+
+class ApplicationUltimateEndUsers(APIView):
+    """
+    Set and remove ultimate end users from the draft
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get ultimate end users associated with a draft
+        """
+        draft = get_application_by_pk(pk)
+        ultimate_end_users_ids = draft.ultimate_end_users.values_list('id', flat=True)
+        ultimate_end_users = []
+        for id in ultimate_end_users_ids:
+            ultimate_end_users.append(EndUser.objects.get(id=str(id)))
+
+        serializer = EndUserSerializer(ultimate_end_users, many=True)
+
+        return JsonResponse(data={'ultimate_end_users': serializer.data},
+                            status=status.HTTP_200_OK)

@@ -8,4 +8,5 @@ urlpatterns = [
     path('', views.ApplicationList.as_view(), name='applications'),
     path('<uuid:pk>/', views.ApplicationDetail.as_view(), name='application'),
     path('<uuid:pk>/user/', views.ApplicationDetailUser.as_view(), name='application-pk-user'),
+    path('<uuid:pk>/', views.ApplicationUltimateEndUsers.as_view(), name='application_ultimate_end_users')
 ]
