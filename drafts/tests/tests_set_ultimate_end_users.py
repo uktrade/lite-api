@@ -26,11 +26,11 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue('UK Government' in self.draft.ultimate_end_users.values_list()[0])
 
-        data = {
-            'id': str(self.draft.ultimate_end_users.values_list('id', flat=True)[0])
-        }
+        id = self.draft.ultimate_end_users.values_list()[0][0]
 
-        response = self.client.delete(self.url, data, **self.exporter_headers)
+        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'ueu_pk': str(id)})
+
+        response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 0)

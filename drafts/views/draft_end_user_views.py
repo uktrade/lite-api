@@ -95,13 +95,22 @@ class DraftUltimateEndUsers(APIView):
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
 
+
+class RemoveDraftUltimateEndUsers(APIView):
+    """
+    Remove ultimate end users from a draft and delete the record (deletion won't happen in the future)
+    """
+    authentication_classes = (ExporterAuthentication,)
+    
     @transaction.atomic
-    def delete(self, request, pk):
+    def delete(self, request, pk, ueu_pk):
+        """
+        delete the ultimate end user from the draft
+        """
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
         draft = get_draft(pk)
         try:
-            end_user = EndUser.objects.get(id=data['id'])
+            end_user = EndUser.objects.get(id=ueu_pk)
             if end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)
