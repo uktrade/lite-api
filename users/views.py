@@ -1,41 +1,61 @@
 import reversion
 from django.http.response import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
+from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication
+from gov_users.enums import GovUserStatuses
+from gov_users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
-from users.libraries.get_user import get_user_by_pk, get_user_by_email
+from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
-from users.models import ExporterUser, UserStatuses
+from users.models import ExporterUser
 from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
 
 
-class AuthenticateUser(APIView):
+class AuthenticateExporterUser(APIView):
+    """
+        Authenticate user
+        """
     permission_classes = (AllowAny,)
-    """
-    Authenticate user
-    """
+
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error',
+            403: 'Forbidden'
+        })
     def post(self, request, *args, **kwargs):
-        data = JSONParser().parse(request)
-
+        """
+        Takes user details from sso and checks them against our whitelisted users
+        Returns a token which is just our ID for the user
+        :param request:
+        :param email:
+        :return token:
+        """
+        try:
+            data = JSONParser().parse(request)
+        except ParseError:
+            return JsonResponse(data={'errors': 'Invalid Json'},
+                                status=status.HTTP_400_BAD_REQUEST)
         email = data.get('email')
-        password = data.get('password')
 
-        user = get_user_by_email(email)
-        if user.status == UserStatuses.DEACTIVATED:
-            return JsonResponse(data={},
-                                status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            user = ExporterUser.objects.get(email=email)
+        except ExporterUser.DoesNotExist:
+            return JsonResponse(data={'errors': 'User not found'},
+                                status=status.HTTP_403_FORBIDDEN)
 
-        if not user.check_password(password):
-            return JsonResponse(data={},
-                                status=status.HTTP_401_UNAUTHORIZED)
+        if user.status == GovUserStatuses.DEACTIVATED:
+            return JsonResponse(data={'errors': 'User not found'},
+                                status=status.HTTP_403_FORBIDDEN)
 
-        serializer = UserViewSerializer(user)
-        return JsonResponse(data={'user': serializer.data})
+        token = user_to_token(user)
+        return JsonResponse(data={'token': token, 'first_name': user.first_name, 'last_name': user.last_name, 'lite_api_user_id': str(user.id)})
 
 
 class UserList(APIView):
@@ -55,7 +75,7 @@ class UserList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'good': serializer.data},
+            return JsonResponse(data={'user': serializer.data},
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},

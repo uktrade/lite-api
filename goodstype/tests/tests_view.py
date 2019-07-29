@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 
 from applications.models import Application
 from goodstype.models import GoodsType
+from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 
 
@@ -26,5 +27,5 @@ class GoodViewTests(DataTestClient):
         goodstype = self.create_goods_type(content_type_model='application', obj=application)
 
         url = reverse('goodstype:goodstypes-detail', kwargs={'pk': goodstype.id})
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
