@@ -9,7 +9,7 @@ from conf.authentication import ExporterAuthentication, GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
-from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteUpdateSerializer
+from organisations.serializers import SiteViewSerializer, SiteCreateSerializer
 
 
 class SiteList(APIView):
@@ -130,24 +130,23 @@ class SiteDetail(APIView):
         site = get_site_with_organisation(pk, organisation)
 
         serializer = SiteViewSerializer(site)
-        return JsonResponse(data={'site': serializer.data},
-                            )
+        return JsonResponse(data={'site': serializer.data})
 
     @transaction.atomic
     def put(self, request, pk):
         organisation = get_organisation_by_user(request.user)
 
         with reversion.create_revision():
-            serializer = SiteUpdateSerializer(get_site_with_organisation(pk, organisation),
+            serializer = SiteCreateSerializer(get_site_with_organisation(pk, organisation),
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
                 serializer.save()
+
                 reversion.set_user(request.user)
                 reversion.set_comment("Created Site Revision")
 
-                return JsonResponse(data={'site': serializer.data},
-                                    status=status.HTTP_200_OK)
+                return JsonResponse(data={'site': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)

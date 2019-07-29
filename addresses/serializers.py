@@ -9,10 +9,11 @@ class AddressSerializer(serializers.ModelSerializer):
     """
     Used for serializing addresses
     """
-    address_line_1 = serializers.CharField()
-    postcode = serializers.CharField(max_length=10)
-    city = serializers.CharField()
-    region = serializers.CharField()
+    address_line_1 = serializers.CharField(error_messages={'blank': 'Enter a real building and street name'})
+    postcode = serializers.CharField(max_length=10,
+                                     error_messages={'blank': 'Enter a real postcode'})
+    city = serializers.CharField(error_messages={'blank': 'Enter a real city'})
+    region = serializers.CharField(error_messages={'blank': 'Enter a real region'})
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(),
                                                  error_messages={'null': get_string('address.null_country')})
 
@@ -39,11 +40,7 @@ class AddressSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AddressCountrylessSerializer(serializers.ModelSerializer):
-    address_line_1 = serializers.CharField()
-    postcode = serializers.CharField(max_length=10)
-    city = serializers.CharField()
-    region = serializers.CharField()
+class AddressCountrylessSerializer(AddressSerializer):
     # TODO: Add country primary key back
     # This was removed as Django seemingly has issues deserializing it
     country = serializers.CharField(allow_blank=False, allow_null=False)
