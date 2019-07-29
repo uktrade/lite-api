@@ -232,7 +232,7 @@ class OrgAndUserHelper:
         return end_user
 
     @staticmethod
-    def create_picklist_item(status: str, team: Team, type=PicklistType.ECJU):
+    def create_picklist_item(status, team: Team, type=PicklistType.ECJU):
         picklist_item = PicklistItem(team=team,
                                      name='Picklist Item 1',
                                      text='This is a string of text, please do not disturb the milk argument',

@@ -16,10 +16,10 @@ class PicklistSerializer(serializers.ModelSerializer):
                                  max_length=5000,
                                  error_messages={'blank': get_string('picklist_items.error_messages.blank_text')})
 
-    type = serializers.ChoiceField(choices=PicklistType.type,
+    type = serializers.ChoiceField(choices=PicklistType.choices,
                                    error_messages={'invalid_choice': get_string('picklist_items.error_messages.blank_type')})
 
-    status = serializers.ChoiceField(choices=PickListStatus.status,
+    status = serializers.ChoiceField(choices=PickListStatus.choices,
                                      error_messages={'invalid_choice': get_string('picklist_items.error_messages.blank_status')})
 
     def get_team_name(self, instance):

@@ -60,7 +60,7 @@ class PicklistItemDetail(APIView):
             return JsonResponse(data={'errors': get_string('picklist_items.error_messages.forbidden')},
                                 status=status.HTTP_403_FORBIDDEN)
 
-        serializer = PicklistSerializer(instance=picklist_item, data=request.data)
+        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()

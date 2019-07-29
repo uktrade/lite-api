@@ -2,7 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
-from picklist_items.enums import PicklistType
+from picklist_items.enums import PicklistType, PickListStatus
 from teams.models import Team
 
 
@@ -12,5 +12,5 @@ class PicklistItem(models.Model):
     team = models.ForeignKey(Team, related_name='organisation_team', on_delete=models.CASCADE, blank=False)
     name = models.TextField(blank=False)
     text = models.TextField(blank=False, max_length=5000)
-    type = models.CharField(choices=PicklistType.type, max_length=50)
-    status = models.CharField(choices=PicklistType.status, default=PicklistType.ACTIVATE, max_length=50)
+    type = models.CharField(choices=PicklistType.choices, max_length=50)
+    status = models.CharField(choices=PickListStatus.choices, default=PickListStatus.ACTIVATE, max_length=50)

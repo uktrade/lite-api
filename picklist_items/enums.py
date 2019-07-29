@@ -6,7 +6,7 @@ class PicklistType:
     STANDARD_ADVICE = 'standard_advice'
     FOOTNOTES = 'footnotes'
 
-    type = [
+    choices = [
         (PROVISO, 'Proviso'),
         (ECJU, 'ECJU_Query'),
         (LETTER_PARAGRAPH, 'Under review'),
@@ -20,7 +20,7 @@ class PickListStatus:
     ACTIVATE = 'Activate'
     DEACTIVATE = 'Deactivate'
 
-    status = [
+    choices = [
         (ACTIVATE, 'Activate'),
         (DEACTIVATE, 'Deactivate'),
     ]
