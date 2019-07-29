@@ -82,9 +82,13 @@ class CaseAssignments(APIView):
 
         case_assignments = case_assignments.filter(**kwargs)
 
-        case_status = request.GET.get('status', None)
-        if case_status:
-            case_assignments = case_assignments.order_by('case__case_type__name')
+        kwargs = {}
+        sort = request.GET.get('sort', None)
+        if sort:
+            sort = sort.split(',')
+            for field in sort:
+                kwargs
+            case_assignments = case_assignments.order_by('case__application__status').order_by('case__clc_query_status')
 
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})

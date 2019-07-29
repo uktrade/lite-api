@@ -105,9 +105,10 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
+        all_cases = self.application_cases + self.clc_cases
         all_cases = [{'case': str(case.id),
                       'status': case.application.status[0] if case.application is not None else case.clc_query.status[0]
-                      } for case in self.application_cases]
+                      } for case in all_cases]
         all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
         url = self.url + '?sort=status'
 
@@ -120,7 +121,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data))
         # Assert ordering
         for i in range(0, len(response_data)):
-            self.assertEqual(response_data['case'], all_cases_sorted[i]['case'])
+            self.assertEqual(response_data[i]['case'], all_cases_sorted[i]['case'])
 
     def test_get_app_type_cases_sorted_by_status(self):
         """
@@ -142,7 +143,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.application_cases) + len(self.clc_cases), len(response_data))
+        self.assertEqual(len(self.application_cases), len(response_data))
         for i in range(0, len(response_data)):
             # Assert Case Type
             case_type = Case.objects.filter(pk=response_data[i]['case']).values_list('case_type__name', flat=True)[0]
