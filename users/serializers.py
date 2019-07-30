@@ -61,8 +61,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserViewSerializer(serializers.ModelSerializer):
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-
     class Meta:
         model = ExporterUser
         fields = ('id',
