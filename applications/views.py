@@ -156,25 +156,3 @@ class ApplicationDetailUser(ApplicationDetail):
         )
 
         return super(ApplicationDetailUser, self).get(request, pk)
-
-
-class ApplicationUltimateEndUsers(APIView):
-    """
-    Set and remove ultimate end users from the draft
-    """
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, pk):
-        """
-        Get ultimate end users associated with a draft
-        """
-        draft = get_application_by_pk(pk)
-        ultimate_end_users_ids = draft.ultimate_end_users.values_list('id', flat=True)
-        ultimate_end_users = []
-        for id in ultimate_end_users_ids:
-            ultimate_end_users.append(EndUser.objects.get(id=str(id)))
-
-        serializer = EndUserSerializer(ultimate_end_users, many=True)
-
-        return JsonResponse(data={'ultimate_end_users': serializer.data},
-                            status=status.HTTP_200_OK)

@@ -3,7 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
-from applications.libraries.get_ultimate_end_users import get_ultimate_end_user_ids
+from applications.libraries.get_ultimate_end_users import get_ultimate_end_user
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
@@ -87,7 +87,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
             return {'type': 'countries', 'data': serializer.data}
 
     def get_ultimate_end_users(self, application):
-        ultimate_end_users = get_ultimate_end_user_ids(application)
+        ultimate_end_users = get_ultimate_end_user(application)
         serializer = EndUserSerializer(ultimate_end_users, many=True)
         return {'data': serializer.data}
 

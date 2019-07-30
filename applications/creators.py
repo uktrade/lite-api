@@ -29,7 +29,7 @@ def create_standard_licence(draft, application, errors):
             errors['ultimate_end_users'] = get_string('applications.standard.no_ultimate_end_users_set')
 
         for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
-            if 'end_user' in errors and str(ultimate_end_user) == str(draft.end_user.id):
+            if not 'end_user' in errors and str(ultimate_end_user) == str(draft.end_user.id):
                 errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.get_ultimate_end_users import get_ultimate_end_user_ids
+from applications.libraries.get_ultimate_end_users import get_ultimate_end_user
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from end_user.models import EndUser
@@ -57,12 +57,11 @@ class DraftUltimateEndUsers(APIView):
         Get ultimate end users associated with a draft
         """
         draft = get_draft(pk)
-        ultimate_end_users = get_ultimate_end_user_ids(draft)
+        ultimate_end_users = get_ultimate_end_user(draft)
 
         serializer = EndUserSerializer(ultimate_end_users, many=True)
 
-        return JsonResponse(data={'ultimate_end_users': serializer.data},
-                            status=status.HTTP_200_OK)
+        return JsonResponse(data={'ultimate_end_users': serializer.data})
 
     def post(self, request, pk):
         """
@@ -91,7 +90,7 @@ class DraftUltimateEndUsers(APIView):
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+                                status=status.HTTP_400_BAD_REQUEST)
 
 
 class RemoveDraftUltimateEndUsers(APIView):
