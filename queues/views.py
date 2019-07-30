@@ -8,10 +8,11 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment, Case
-from cases.serializers import CaseAssignmentSerializer
+from cases.serializers import CaseAssignmentSerializer, CaseSerializer
 from conf.authentication import GovAuthentication
+from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue
+from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
 from django.conf import settings
@@ -27,7 +28,9 @@ class QueuesList(APIView):
 
     def get(self, request):
         queues = Queue.objects.filter().order_by('name')
-        serializer = QueueViewSerializer(queues, many=True)
+        queue_list = list(queues)
+        queue_list.insert(0, get_all_cases_queue())
+        serializer = QueueViewSerializer(queue_list, many=True)
         return JsonResponse(data={'queues': serializer.data})
 
     def post(self, request):
@@ -51,9 +54,19 @@ class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        queue = get_queue(pk)
-        serializer = QueueViewSerializer(queue)
-        return JsonResponse(data={'queue': serializer.data})
+        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
+            all_cases_queue = get_all_cases_queue()
+            response_data = {'queue': all_cases_queue}
+            response_data['queue'].cases = None
+            # TODO we stopped at the line above, added None so that the code compiles okay
+
+            # serializer = CaseSerializer(Case.objects.all(), many=True)
+            # return JsonResponse(data={'all_cases': serializer.data})
+            return JsonResponse(data=response_data)
+        else:
+            queue = get_queue(pk)
+            serializer = QueueViewSerializer(queue)
+            return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)
     def put(self, request, pk):
