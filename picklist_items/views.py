@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from picklist_items.models import PicklistItem
