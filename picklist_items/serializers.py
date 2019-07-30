@@ -34,17 +34,3 @@ class PicklistSerializer(serializers.ModelSerializer):
                   'type',
                   'status')
 
-    def validate_name(self, attrs):
-        return attrs
-
-    def validate_text(self, attrs):
-        return attrs
-
-    def validate_type(self, attrs):
-        return attrs
-
-    def validate_status(self, attrs):
-        return attrs
-
-    def validate_team(self, attrs):
-        return attrs
