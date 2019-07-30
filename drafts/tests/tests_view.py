@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from drafts.models import Draft
+from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -64,5 +65,5 @@ class DraftTests(DataTestClient):
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

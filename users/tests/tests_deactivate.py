@@ -34,7 +34,8 @@ class UserTests(DataTestClient):
 
         data = {
             'email': user.email,
-            'password': 'password'
+            'first_name': user.first_name,
+            'last_name': user.last_name
         }
 
         response = self.client.post(url, data)
@@ -51,7 +52,8 @@ class UserTests(DataTestClient):
         url = reverse('users:authenticate')
         data = {
             'email': user.email,
-            'password': 'password'
+            'first_name': user.first_name,
+            'last_name': user.last_name
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

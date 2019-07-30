@@ -54,6 +54,8 @@ class FlagsList(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 @permission_classes((permissions.AllowAny,))
 class FlagDetail(APIView):
     """
