@@ -22,7 +22,7 @@ class PickListItems(APIView):
         if type:
             picklist_items = PicklistItem.objects.filter(type=type)
         else:
-            picklist_items = PicklistItem.objects.filter()
+            picklist_items = PicklistItem.objects.all()
 
         serializer = PicklistSerializer(picklist_items, many=True)
 
