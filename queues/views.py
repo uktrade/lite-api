@@ -1,3 +1,5 @@
+from json import loads
+
 from django.db import transaction
 from django.db.models.functions import Concat
 from django.http import JsonResponse
@@ -74,26 +76,31 @@ class CaseAssignments(APIView):
         Get all case assignments for that queue
         """
         queue = get_queue(pk)
-        case_assignments = CaseAssignment.objects.filter(queue=queue)
-        kwargs = {}
+        case_assignments = CaseAssignment.objects.filter(queue=queue).annotate(
+            status=Concat('case__application__status', 'case__clc_query__status')
+        )
 
-        case_type = request.GET.get('case_type', None)
-        if case_type:
-            kwargs['case__case_type__name'] = case_type
+        filters = request.GET.get('filters', None)
+        if filters:
+            kwargs = {}
+            filters = loads(filters)
+            if 'case_type' in filters:
+                kwargs['case__case_type__name'] = filters['case_type']
+            if 'status' in filters:
+                kwargs['status'] = (filters['status'], filters['status'].capitalize())
 
-        # Add other `if` conditions before next line to filter by more fields
-        case_assignments = case_assignments.filter(**kwargs)
+            # Add other `if` conditions before next line to filter by more fields
+            case_assignments = case_assignments.filter(**kwargs)
 
         sort = request.GET.get('sort', None)
         if sort:
+            kwargs = []
             sort = sort.split(',')
             if 'status' in sort:
-                case_assignments = case_assignments.annotate(
-                    status=Concat('case__application__status', 'case__clc_query__status')
-                )
-                
+                kwargs.append('status')
+
             # Add other `if` conditions before next line to sort by more fields
-            case_assignments = case_assignments.order_by(*sort)
+            case_assignments = case_assignments.order_by(*kwargs)
 
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})

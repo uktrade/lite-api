@@ -35,6 +35,8 @@ class CasesFilterAndSortTests(DataTestClient):
             self.gov_user.case_assignments.add(case_assignment)
             self.clc_cases.append(case)
 
+        return
+
     def test_get_cases_no_filter(self):
         """
         Given multiple Cases exist with different statuses and case-types
@@ -61,7 +63,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + '?case_type=Licence%20application'
+        url = self.url + '?filters={"case_type":"Licence%20application"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -83,7 +85,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + '?case_type=CLC%20query'
+        url = self.url + '?filters={"case_type":"CLC%20query"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -92,6 +94,55 @@ class CasesFilterAndSortTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(self.clc_cases))
+        # Assert Case Type
+        for case_assignment in response_data:
+            case_type = Case.objects.filter(pk=case_assignment['case']).values_list('case_type__name', flat=True)[0]
+            self.assertEqual('CLC query', case_type)
+
+    def test_get_submitted_status_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+
+        # Arrange
+        url = self.url + '?filters={"case_type":"CLC%20query"}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()['case_assignments']
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(self.clc_cases))
+        # Assert Case Type
+        for case_assignment in response_data:
+            case_type = Case.objects.filter(pk=case_assignment['case']).values_list('case_type__name', flat=True)[0]
+            self.assertEqual('CLC query', case_type)
+
+    def test_get_submitted_status_and_clc_type_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+
+        # Arrange
+        case_status = 'submitted'
+        clc_submitted_cases = list(filter(
+            lambda case: case.clc_query.status == (case_status, case_status.capitalize()),
+            self.clc_cases
+        ))
+        url = self.url + '?filters={"case_type":"CLC%20query", "status":"' + case_status + '"}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()['case_assignments']
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(clc_submitted_cases))
         # Assert Case Type
         for case_assignment in response_data:
             case_type = Case.objects.filter(pk=case_assignment['case']).values_list('case_type__name', flat=True)[0]
@@ -135,7 +186,7 @@ class CasesFilterAndSortTests(DataTestClient):
             [{'case': str(case.id), 'status': case.application.status[0]} for case in self.application_cases],
             key=lambda k: k['status']
         )
-        url = self.url + '?case_type=Licence%20application&sort=status'
+        url = self.url + '?filters={"case_type":"Licence%20application"}&sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
