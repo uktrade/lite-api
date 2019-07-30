@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from content_strings.strings import get_string
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
@@ -67,5 +68,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data, {'errors': {'type': ['This field is required.']}})

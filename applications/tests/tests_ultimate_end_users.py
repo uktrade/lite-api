@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import Application
+from content_strings.strings import get_string
 from drafts.models import GoodOnDraft
 from goods.models import Good
 from test_helpers.clients import DataTestClient
@@ -44,5 +45,7 @@ class ApplicationUltimateEndUserTests(DataTestClient):
         """
         data = {'id': self.draft.id}
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data, {'errors': {'ultimate_end_users': get_string('applications.standard.no_ultimate_end_users_set')}})
