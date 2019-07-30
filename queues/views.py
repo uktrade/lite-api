@@ -87,7 +87,7 @@ class CaseAssignments(APIView):
             if 'case_type' in filters:
                 kwargs['case__case_type__name'] = filters['case_type']
             if 'status' in filters:
-                kwargs['status'] = (filters['status'], filters['status'].capitalize())
+                kwargs['case__status__name'] = (filters['status'], filters['status'].capitalize())
 
             # Add other `if` conditions before next line to filter by more fields
             case_assignments = case_assignments.filter(**kwargs)
@@ -97,7 +97,7 @@ class CaseAssignments(APIView):
             kwargs = []
             sort = sort.split(',')
             if 'status' in sort:
-                kwargs.append('status')
+                kwargs.append('case__status__priority')
 
             # Add other `if` conditions before next line to sort by more fields
             case_assignments = case_assignments.order_by(*kwargs)

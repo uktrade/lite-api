@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
-from applications.enums import ApplicationLicenceType, ApplicationStatus
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
@@ -21,6 +21,7 @@ from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
+from static.statuses.enums import CaseStatusEnum
 
 
 class ApplicationList(APIView):
@@ -122,7 +123,7 @@ class ApplicationDetail(APIView):
             data = json.loads(request.body)
 
             # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
-            if data.get('status') == ApplicationStatus.APPROVED or data.get('status') == ApplicationStatus.DECLINED:
+            if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)

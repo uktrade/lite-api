@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationStatus
+from static.statuses.enums import CaseStatusEnum
 from cases.models import Case
 from test_helpers.clients import DataTestClient
 
@@ -33,7 +33,7 @@ class CaseActivityTests(DataTestClient):
 
         # Update the application status
         data = {
-            'status': ApplicationStatus.MORE_INFORMATION_REQUIRED,
+            'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED,
         }
 
         self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)

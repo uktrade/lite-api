@@ -2,8 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from applications.enums import ApplicationStatus
-from clc_queries.enums import ClcQueryStatus
+from static.statuses.enums import CaseStatusEnum
 from cases.models import Case, CaseAssignment
 
 
@@ -14,7 +13,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.url = reverse('queues:case_assignment', kwargs={'pk': self.queue.pk})
 
         self.application_cases = []
-        for app_status in ApplicationStatus.choices:
+        for app_status in CaseStatusEnum.choices:
             case = self.create_application_case('Example Application')
             case.application.status = app_status
             case.application.save(update_fields=['status'])
@@ -26,7 +25,7 @@ class CasesFilterAndSortTests(DataTestClient):
             self.application_cases.append(case)
 
         self.clc_cases = []
-        for clc_status in ClcQueryStatus.choices:
+        for clc_status in CaseStatusEnum.choices:
             case = self.create_clc_query_case('Example CLC Query', clc_status)
             self.queue.cases.add(case)
             self.queue.save()
