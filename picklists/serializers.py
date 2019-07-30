@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from content_strings.strings import get_string
-from picklist_items.enums import PicklistType, PickListStatus
-from picklist_items.models import PicklistItem
+from picklists.enums import PicklistType, PickListStatus
+from picklists.models import PicklistItem
 from teams.models import Team
 
 

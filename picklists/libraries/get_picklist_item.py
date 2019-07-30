@@ -1,5 +1,5 @@
 from conf.exceptions import NotFoundError
-from picklist_items.models import PicklistItem
+from picklists.models import PicklistItem
 
 
 def get_picklist_item(pk):

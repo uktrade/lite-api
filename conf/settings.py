@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'background_task',
     'clc_queries',
     'case_types',
-    'picklist_items',
+    'picklists',
 ]
 
 MIDDLEWARE = [

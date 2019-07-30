@@ -2,7 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
-from picklist_items.enums import PicklistType, PickListStatus
+from picklists.enums import PicklistType, PickListStatus
 from teams.models import Team
 
 

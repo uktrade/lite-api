@@ -1,7 +1,7 @@
 import json
 from django.urls import reverse
 from rest_framework import status
-from picklist_items.enums import PickListStatus
+from picklists.enums import PickListStatus
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 

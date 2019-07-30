@@ -1,6 +1,6 @@
 from django.urls import path
 
-from picklist_items import views
+from picklists import views
 
 app_name = 'picklist_items'
 

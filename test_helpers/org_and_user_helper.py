@@ -20,8 +20,8 @@ from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
 from clc_queries.models import ClcQuery
-from picklist_items.models import PicklistItem
-from picklist_items.enums import PicklistType
+from picklists.models import PicklistItem
+from picklists.enums import PicklistType
 
 
 def random_name():
