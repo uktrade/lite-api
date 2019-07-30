@@ -17,10 +17,22 @@ class PickListItems(APIView):
 
     def get(self, request):
         """
-        Retrieve a picklist instance
+        Returns a list of all picklist items
         """
-        picklist_items = PicklistItem.objects.filter(type=request.GET.get('type', None))
-        return JsonResponse(data={'picklist_items': picklist_items})
+        type = request.GET.get('type', None)
+        if type:
+            picklist_items = PicklistItem.objects.filter(type=type)
+        else:
+            picklist_items = PicklistItem.objects.filter()
+
+        team = request.GET.get('team', None)
+        if team:
+            team_id = request.user.team.id
+            picklist_items = picklist_items.filter(team=team_id)
+
+        serializer = PicklistSerializer(picklist_items, many=True)
+
+        return JsonResponse(data={'picklist_items': serializer.data})
 
     def post(self, request):
         """
@@ -28,7 +40,7 @@ class PickListItems(APIView):
         """
         data = JSONParser().parse(request)
         data['team'] = request.user.team.id
-        serializer = PicklistSerializer(data=data)
+        serializer = PicklistSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -44,9 +56,12 @@ class PicklistItemDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        picklist_item = PicklistItem.objects.filter(pk=pk)
-
-        return JsonResponse(data={'picklist_item': picklist_item})
+        """
+        Gets details of a specific picklist item
+        """
+        picklist_item = get_picklist_item(pk)
+        serializer = PicklistSerializer(picklist_item)
+        return JsonResponse(data={'picklist_item': serializer.data})
 
     def put(self, request, pk):
         """

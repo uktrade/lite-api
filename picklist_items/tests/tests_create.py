@@ -19,6 +19,8 @@ class PickLists(DataTestClient):
             'status': PickListStatus.ACTIVATE,
         }
         response = self.client.post(self.url, data, **self.gov_headers)
+        response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data['picklist_item']['name'], 'picklist entry name')
 

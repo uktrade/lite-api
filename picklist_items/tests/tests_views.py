@@ -9,25 +9,37 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 class PickLists(DataTestClient):
 
-    def test_gov_user_can_get_picklist_items(self):
-        picklist_item = PicklistItem(team=self.team,
-                                     name='Picklist Item 1',
-                                     text='This is a string of text, do not disturb the milk argument',
-                                     type=PicklistType.ECJU,
-                                     status=PickListStatus.ACTIVATE)
+    url = reverse('picklist_items:picklist_items')
 
-        picklist_item.save()
-        url = reverse('picklist_items:picklist_items')
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+    def test_gov_user_can_see_all_picklist_items(self):
+
+        response = self.client.get(self.url, **self.gov_headers)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_picklist_items_query_filter_by_type(self):
-        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team, PicklistType.ANNUAL_REPORT_SUMMARY)
-        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team, PicklistType.ANNUAL_REPORT_SUMMARY)
-        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team)
+    def test_non_whitelisted_gov_user_cannot_see_the_picklist_items(self):
+        headers = {'HTTP_GOV_USER_EMAIL': str('test2@mail.com')}
+        response = self.client.get(self.url, **headers)
 
-        url = reverse('picklist_items:picklist_items') + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY
-        response = self.client.get(url, **{'HTTP_USER_ID': str(self.test_helper.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+    def test_gov_user_can_see_filtered_picklist_items(self):
+        other_team = self.create_team("Team")
+
+        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team, PicklistType.ANNUAL_REPORT_SUMMARY)
+        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team, PicklistType.ANNUAL_REPORT_SUMMARY)
+        OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, other_team)
+
+        response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '&team=' + self.team.name, **self.gov_headers)
+
+        response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)["picklist_items"]
-        self.assertEqual(len(response_data), 2)
+        self.assertEqual(len(response_data['picklist_items']), 2)
+
+    def test_gov_user_can_see_no_picklist_items_when_team_doesnt_exist(self):
+        response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '&team=blah', **self.gov_headers)
+
+        response_data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data['picklist_items']), 0)

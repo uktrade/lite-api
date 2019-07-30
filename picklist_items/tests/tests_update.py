@@ -17,9 +17,9 @@ class PickLists(DataTestClient):
 
         url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
         response = self.client.put(url, data, **self.gov_headers)
-        print(response.content)
+        response_data = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['picklist_item']['status'], PickListStatus.DEACTIVATE)
+        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.DEACTIVATE)
 
     def test_reactivate_a_picklist_item(self):
         picklist_item = OrgAndUserHelper.create_picklist_item(PickListStatus.DEACTIVATE, self.team)
@@ -30,5 +30,7 @@ class PickLists(DataTestClient):
 
         url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
         response = self.client.put(url, data, **self.gov_headers)
+        response_data = json.loads(response.content)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(picklist_item.status, PickListStatus.ACTIVATE)
+        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.ACTIVATE)
