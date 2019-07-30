@@ -6,19 +6,22 @@ from rest_framework import status
 from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import ExporterUser
 
 
 class UserTests(DataTestClient):
 
     def test_only_get_users_belonging_to_my_organisation(self):
+        """
+        Tests the 'users/users' endpoint
+        Ensures that a user can only see other users that belong to their organisation
+        """
+        url = reverse('users:users')
+
         test_helper_2 = OrgAndUserHelper(name='banana')
         organisation_2 = test_helper_2.organisation
 
         OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 2)
         OrgAndUserHelper.create_additional_users(organisation_2, 4)
-
-        url = reverse('users:users')
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = json.loads(response.content)
