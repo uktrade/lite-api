@@ -46,11 +46,3 @@ class ApplicationUltimateEndUserTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_submit_draft_with_same_end_user_as_ultimate_end_users_unsuccessful(self):
-        self.draft.ultimate_end_users.add(str(self.draft.end_user.id))
-
-        data = {'id': self.draft.id}
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

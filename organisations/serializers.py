@@ -50,11 +50,16 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         address_data = validated_data.pop('address')
         address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
         if address_serializer.is_valid():
-            instance.address.address_line_1 = address_serializer.validated_data['address_line_1']
-            instance.address.address_line_2 = address_serializer.validated_data['address_line_2']
-            instance.address.region = address_serializer.validated_data['region']
-            instance.address.postcode = address_serializer.validated_data['postcode']
-            instance.address.city = address_serializer.validated_data['city']
+            instance.address.address_line_1 = address_serializer.validated_data.get('address_line_1',
+                                                                                    instance.address.address_line_1)
+            instance.address.address_line_2 = address_serializer.validated_data.get('address_line_2',
+                                                                                    instance.address.address_line_2)
+            instance.address.region = address_serializer.validated_data.get('region',
+                                                                            instance.address.region)
+            instance.address.postcode = address_serializer.validated_data.get('postcode',
+                                                                              instance.address.postcode)
+            instance.address.city = address_serializer.validated_data.get('city',
+                                                                          instance.address.city)
             instance.address.country = get_country(address_serializer.data['country'])
             instance.address.save()
         else:

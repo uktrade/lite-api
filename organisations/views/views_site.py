@@ -103,7 +103,7 @@ class OrgSiteDetail(APIView):
         site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():
-            serializer = SiteUpdateSerializer(site,
+            serializer = SiteCreateSerializer(site,
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
