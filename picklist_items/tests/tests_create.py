@@ -3,7 +3,6 @@ from django.urls import reverse
 from rest_framework import status
 from picklist_items.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
-from parameterized import parameterized
 
 
 class PickLists(DataTestClient):
@@ -18,6 +17,7 @@ class PickLists(DataTestClient):
             'team': self.team.id,
             'status': PickListStatus.ACTIVATE,
         }
+
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = json.loads(response.content)
 

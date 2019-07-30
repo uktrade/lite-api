@@ -18,6 +18,7 @@ class PickLists(DataTestClient):
         url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
         response = self.client.put(url, data, **self.gov_headers)
         response_data = json.loads(response.content)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['picklist_item']['status'], PickListStatus.DEACTIVATE)
 
@@ -31,5 +32,6 @@ class PickLists(DataTestClient):
         url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
         response = self.client.put(url, data, **self.gov_headers)
         response_data = json.loads(response.content)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['picklist_item']['status'], PickListStatus.ACTIVATE)
