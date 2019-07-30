@@ -3,6 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
 from applications.libraries.get_application import get_application_by_pk
+from applications.libraries.get_ultimate_end_users import get_ultimate_end_user_ids
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
@@ -66,15 +67,17 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # End User, Countries
     destinations = serializers.SerializerMethodField()
 
+    # Ultimate End Users
+    ultimate_end_users = serializers.SerializerMethodField()
+
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
-    def get_destinations(self, obj):
-        countries_ids = CountryOnApplication.objects.filter(application=obj).values_list('country', flat=True)
-
-        if obj.end_user:
+    def get_destinations(self, application):
+        countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
+        if application.end_user:
             try:
-                serializer = EndUserSerializer(obj.end_user)
+                serializer = EndUserSerializer(application.end_user)
                 return {'type': 'end_user', 'data': serializer.data}
             except EndUser.DoesNotExist:
                 return {'type': 'end_user', 'data': ''}
@@ -82,6 +85,11 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
             countries = Country.objects.filter(id__in=countries_ids)
             serializer = CountrySerializer(countries, many=True)
             return {'type': 'countries', 'data': serializer.data}
+
+    def get_ultimate_end_users(self, application):
+        ultimate_end_users = get_ultimate_end_user_ids(application)
+        serializer = EndUserSerializer(ultimate_end_users, many=True)
+        return {'data': serializer.data}
 
     def get_goods_locations(self, obj):
         sites_on_application_ids = SiteOnApplication.objects.filter(application=obj)\
@@ -115,6 +123,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'reference_number_on_information_form',
                   'application_denial_reason',
                   'destinations',
+                  'ultimate_end_users',
                   'goods_locations',)
 
 
