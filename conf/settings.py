@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'static.countries',
     'static.units',
     'static.denial_reasons',
+    'static.statuses',
     'reversion',
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',
