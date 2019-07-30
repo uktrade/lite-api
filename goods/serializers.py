@@ -18,6 +18,7 @@ class GoodSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
+    clc_query = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
 
     class Meta:
@@ -32,7 +33,8 @@ class GoodSerializer(serializers.ModelSerializer):
                   'organisation',
                   'status',
                   'not_sure_details_details',
-                  'notes'
+                  'notes',
+                  'clc_query'
                   )
 
     def __init__(self, *args, **kwargs):
@@ -48,6 +50,13 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ClcQuery.objects.get(good=instance)
             case = Case.objects.get(clc_query=clc_query)
             return case.id
+        except Exception:
+            return None
+
+    def get_clc_query(self, instance):
+        try:
+            clc_query = ClcQuery.objects.get(good=instance)
+            return clc_query.id
         except Exception:
             return None
 
