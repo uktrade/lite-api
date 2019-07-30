@@ -3,7 +3,6 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from addresses.helpers import get_address
 from addresses.models import Address
 from addresses.serializers import AddressCountrylessSerializer, AddressSerializer
 from content_strings.strings import get_string
