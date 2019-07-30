@@ -22,5 +22,5 @@ class PickLists(DataTestClient):
         response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data['picklist_item']['name'], 'picklist entry name')
+        self.assertEqual(response_data['picklist_item']['name'], data['name'])
 
