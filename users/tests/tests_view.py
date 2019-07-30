@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -17,22 +15,15 @@ class UserTests(DataTestClient):
         """
         url = reverse('users:users')
 
+        # Add test data for another organisation
         test_helper_2 = OrgAndUserHelper(name='banana')
         organisation_2 = test_helper_2.organisation
-
-        OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 2)
         OrgAndUserHelper.create_additional_users(organisation_2, 4)
 
-        response = self.client.get(url, **self.exporter_headers)
-        response_data = json.loads(response.content)
+        response, status_code = self.get(url, **self.exporter_headers)
 
-        # Expect to see one more than the additional number of users created as there is one initial admin user
-        self.assertEqual(len(response_data['users']), 3)
-
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(test_helper_2.user)})
-        response_data = json.loads(response.content)
-
-        self.assertEqual(len(response_data['users']), 5)
+        self.assertEqual(status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response['users']), 1)
 
     def test_user_can_view_their_own_profile_info(self):
         """
@@ -41,14 +32,13 @@ class UserTests(DataTestClient):
         """
         url = reverse('users:me')
 
-        response = self.client.get(url, **self.exporter_headers)
-        response_data = json.loads(response.content)
+        response, status_code = self.get(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response_data['user']['id'], str(self.exporter_user.id))
-        self.assertEqual(response_data['user']['first_name'], str(self.exporter_user.first_name))
-        self.assertEqual(response_data['user']['last_name'], str(self.exporter_user.last_name))
+        self.assertEqual(response['user']['id'], str(self.exporter_user.id))
+        self.assertEqual(response['user']['first_name'], self.exporter_user.first_name)
+        self.assertEqual(response['user']['last_name'], self.exporter_user.last_name)
 
-        self.assertEqual(response_data['user']['organisation']['id'], str(self.exporter_user.organisation.id))
-        self.assertEqual(response_data['user']['organisation']['name'], str(self.exporter_user.organisation.name))
+        self.assertEqual(response['user']['organisation']['id'], str(self.exporter_user.organisation.id))
+        self.assertEqual(response['user']['organisation']['name'], self.exporter_user.organisation.name)
