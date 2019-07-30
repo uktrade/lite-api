@@ -1,10 +1,11 @@
-from django.http import Http404
-
 from conf.exceptions import NotFoundError
 from users.models import ExporterUser, GovUser
 
 
 def get_user_by_pk(pk):
+    """
+    Returns either an ExporterUser or a GovUser depending on the PK given
+    """
     try:
         return ExporterUser.objects.get(pk=pk)
     except ExporterUser.DoesNotExist:
@@ -12,10 +13,3 @@ def get_user_by_pk(pk):
             return GovUser.objects.get(pk=pk)
         except GovUser.DoesNotExist:
             raise NotFoundError({'user': 'User not found - ' + str(pk)})
-
-
-def get_user_by_email(email):
-    try:
-        return ExporterUser.objects.get(email=email)
-    except ExporterUser.DoesNotExist:
-        raise Http404
