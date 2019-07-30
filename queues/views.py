@@ -11,6 +11,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment, Case
 from cases.serializers import CaseAssignmentSerializer, CaseSerializer
 from conf.authentication import GovAuthentication
+from conf.constants import SystemLimits
 from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old
@@ -68,10 +69,13 @@ class QueueDetail(APIView):
             # Assemble an all cases pseudo queue object in memory, including the appropriate cases
             queue = get_all_cases_queue()
             queue = queue.__dict__
+
+            # Get all cases, ordered most recent first and with a maximum of MAX_ALL_CASES_RESULTS
             cases_with_submitted_at = Case.objects.annotate(
                 created_at=Concat('application__submitted_at', 'clc_query__submitted_at')
-            )
-            queue['cases'] = list(cases_with_submitted_at.order_by('created_at'))
+            ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
+
+            queue['cases'] = list(cases_with_submitted_at)
         else:
             queue = get_queue(pk)
 
