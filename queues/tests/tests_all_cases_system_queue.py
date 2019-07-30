@@ -53,7 +53,6 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         queue_id_list = [q['id'] for q in response_data['queues']]
-        print(queue_id_list)
         self.assertFalse(ALL_CASES_SYSTEM_QUEUE_ID in queue_id_list)
 
     def test_get_all_queues_without_system_queues_param(self):
