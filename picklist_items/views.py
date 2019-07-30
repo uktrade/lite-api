@@ -17,18 +17,13 @@ class PickListItems(APIView):
 
     def get(self, request):
         """
-        Returns a list of all picklist items
+        Returns a list of all picklist items, filtered by type
         """
         type = request.GET.get('type', None)
         if type:
             picklist_items = PicklistItem.objects.filter(type=type)
         else:
             picklist_items = PicklistItem.objects.filter()
-
-        team = request.GET.get('team', None)
-        if team:
-            team_id = request.user.team.id
-            picklist_items = picklist_items.filter(team=team_id)
 
         serializer = PicklistSerializer(picklist_items, many=True)
 
@@ -68,8 +63,6 @@ class PicklistItemDetail(APIView):
         Edit status of a new picklist item
         """
         picklist_item = get_picklist_item(pk)
-
-        # data = JSONParser().parse(request)
 
         if request.user.team != picklist_item.team:
             return JsonResponse(data={'errors': get_string('picklist_items.error_messages.forbidden')},
