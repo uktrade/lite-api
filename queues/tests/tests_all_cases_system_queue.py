@@ -76,7 +76,3 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
-
-        #TODO REMOVE WHEN CODE HAS BEEN FIXED
-        print('response_data', response_data)
-        print('status_code', response.status_code)
