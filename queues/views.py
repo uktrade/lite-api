@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -27,10 +28,19 @@ class QueuesList(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
+        """
+        Gets all queues. Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
+        """
+        include_system_queues = request.GET.get('include_system_queues', 'false')
+
         queues = Queue.objects.filter().order_by('name')
-        queue_list = list(queues)
-        queue_list.insert(0, get_all_cases_queue())
-        serializer = QueueViewSerializer(queue_list, many=True)
+
+        if include_system_queues.lower() == 'true':
+            queues = list(queues)
+            queues.insert(0, get_all_cases_queue())
+
+        serializer = QueueViewSerializer(queues, many=True)
+
         return JsonResponse(data={'queues': serializer.data})
 
     def post(self, request):
@@ -55,18 +65,18 @@ class QueueDetail(APIView):
 
     def get(self, request, pk):
         if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
-            all_cases_queue = get_all_cases_queue()
-            response_data = {'queue': all_cases_queue}
-            response_data['queue'].cases = None
-            # TODO we stopped at the line above, added None so that the code compiles okay
-
-            # serializer = CaseSerializer(Case.objects.all(), many=True)
-            # return JsonResponse(data={'all_cases': serializer.data})
-            return JsonResponse(data=response_data)
+            # Assemble an all cases pseudo queue object in memory, including the appropriate cases
+            queue = get_all_cases_queue()
+            queue = queue.__dict__
+            cases_with_submitted_at = Case.objects.annotate(
+                created_at=Concat('application__submitted_at', 'clc_query__submitted_at')
+            )
+            queue['cases'] = list(cases_with_submitted_at.order_by('created_at'))
         else:
             queue = get_queue(pk)
-            serializer = QueueViewSerializer(queue)
-            return JsonResponse(data={'queue': serializer.data})
+
+        serializer = QueueViewSerializer(queue)
+        return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)
     def put(self, request, pk):
