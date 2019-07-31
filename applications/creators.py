@@ -26,10 +26,10 @@ def create_standard_licence(draft, application, errors):
     if ultimate_end_user_required:
         if len(draft.ultimate_end_users.values_list()) == 0:
             errors['ultimate_end_users'] = get_string('applications.standard.no_ultimate_end_users_set')
-
-        for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
-            if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
+        else:
+            for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
+                if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
+                    errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
