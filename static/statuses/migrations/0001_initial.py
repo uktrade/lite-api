@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 from static.statuses.enums import CaseStatusEnum
-import uuid
 
 
 def get_priority(choice):
@@ -28,7 +27,7 @@ def populate_statuses(apps, schema_editor):
     CaseStatus = apps.get_model('statuses', 'CaseStatus')
 
     for choice in CaseStatusEnum.choices:
-        case_status = CaseStatus(name=choice[0], priority=get_priority(choice))
+        case_status = CaseStatus(id=choice[0], name=choice[1], priority=get_priority(choice))
         case_status.save()
 
 
@@ -43,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CaseStatus',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('id', models.CharField(max_length=50, blank=False, null=False, unique=True, primary_key=True)),
                 ('name', models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('approved', 'Approved'), ('declined', 'Declined')], default='submitted', max_length=50)),
                 ('priority', models.IntegerField()),
             ],

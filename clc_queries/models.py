@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 from goods.models import Good
 from static.statuses.models import CaseStatus
+from static.statuses.enums import CaseStatusEnum
 
 
 @reversion.register()
@@ -12,4 +13,4 @@ class ClcQuery(models.Model):
     details = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name='clc_query')
     status = models.ForeignKey(CaseStatus, related_name='clc_query_status', on_delete=models.CASCADE,
-                               default=None, blank=True, null=True)
+                               default=CaseStatusEnum.SUBMITTED, blank=True, null=True)
