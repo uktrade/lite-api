@@ -74,9 +74,10 @@ class QueueDetail(APIView):
         sort = request.GET.get('sort', None)
         if sort:
             kwargs = []
-            sort = sort.split(',')
+            sort = loads(sort)
             if 'status' in sort:
-                kwargs.append('status__priority')
+                order = '-' if sort['status'] == 'desc' else ''
+                kwargs.append('%sstatus__priority' % order)
 
             # Add other `if` conditions before next line to sort by more fields
             cases = cases.order_by(*kwargs)

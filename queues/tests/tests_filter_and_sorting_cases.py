@@ -140,11 +140,11 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
             self.assertEqual('CLC query', case_type)
 
-    def test_get_cases_no_filter_sort_by_status(self):
+    def test_get_cases_no_filter_sort_by_status_ascending(self):
         """
         Given multiple Cases exist with different statuses and case-types
         When a user requests to view all Cases sorted by case_type
-        Then all Cases are sorted and returned
+        Then all Cases are sorted in ascending order and returned
         """
 
         # Arrange
@@ -158,7 +158,7 @@ class CasesFilterAndSortTests(DataTestClient):
             for case in all_cases
         ]
         all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
-        url = self.url + '?sort=status'
+        url = self.url + '?sort={"status":"asc"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -171,20 +171,21 @@ class CasesFilterAndSortTests(DataTestClient):
         for i in range(0, len(response_data)):
             self.assertEqual(response_data[i]['id'], all_cases_sorted[i]['case'])
 
-    def test_get_app_type_cases_sorted_by_status(self):
+    def test_get_app_type_cases_sorted_by_status_descending(self):
         """
         Given multiple Cases exist with different statuses and case-types
         When a user requests to view all Cases sorted by case_type
-        Then all Cases are sorted and returned
+        Then all Cases are sorted in descending order and returned
         """
 
         # Arrange
         application_cases_sorted = sorted(
             [{'case': str(case.id), 'status': case.application.status.priority} for case in self.application_cases],
-            key=lambda k: k['status']
+            key=lambda k: k['status'],
+            reverse=True
         )
 
-        url = self.url + '?filters={"case_type":"Licence%20application"}&sort=status'
+        url = self.url + '?filters={"case_type":"Licence%20application"}&sort={"status":"desc"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
