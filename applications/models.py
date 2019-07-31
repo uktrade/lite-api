@@ -11,7 +11,6 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.units.enums import Units
 from static.statuses.models import CaseStatus
-from static.statuses.enums import CaseStatusEnum
 
 
 @reversion.register()
@@ -24,8 +23,8 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE,
-                               default=CaseStatusEnum.SUBMITTED, blank=True, null=True)
+    status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
+                               null=True)
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50) # this is open or standard lincences
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)

@@ -22,6 +22,7 @@ from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class ApplicationList(APIView):
@@ -61,7 +62,8 @@ class ApplicationList(APIView):
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
-                                      organisation=draft.organisation)
+                                      organisation=draft.organisation,
+                                      status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
 
             errors = {}
 
@@ -126,6 +128,8 @@ class ApplicationDetail(APIView):
             # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
             if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
+
+            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 

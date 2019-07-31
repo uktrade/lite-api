@@ -66,7 +66,7 @@ class QueueDetail(APIView):
             if 'case_type' in filters:
                 kwargs['case_type__name'] = filters['case_type']
             if 'status' in filters:
-                kwargs['status__priority'] = CaseStatus.objects.get(pk=filters['status']).priority
+                kwargs['status__priority'] = CaseStatus.objects.get(status=filters['status']).priority
 
             # Add other `if` conditions before next line to filter by more fields
             cases = cases.filter(**kwargs)

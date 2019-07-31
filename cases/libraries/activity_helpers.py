@@ -5,6 +5,7 @@ from reversion.models import Version
 
 from static.statuses.enums import CaseStatusEnum
 from cases.models import CaseNote
+from static.statuses.libraries.get_case_status import get_case_status_from_status, get_case_status_from_pk
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 from users.serializers import BaseUserViewSerializer
@@ -59,10 +60,16 @@ def convert_audit_to_activity(version: Version):
     else:
         activity_type = CHANGE
 
+    if activity_type == CHANGE and 'status' in data:
+        data['status'] = get_case_status_from_pk(data['status']).status
+        return None
+
     if activity_type == CHANGE and 'flags' in data:
         return None
 
-    if isinstance(user, ExporterUser) and activity_type == CHANGE and data['status'] == CaseStatusEnum.SUBMITTED:
+    if isinstance(user, ExporterUser) \
+            and activity_type == CHANGE \
+            and data['status'] == str(get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk):
         return None
 
     return _activity_item(activity_type,

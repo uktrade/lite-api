@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from static.statuses.libraries.get_case_status import get_case_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from static.statuses.enums import CaseStatusEnum
@@ -15,17 +15,17 @@ class CasesFilterAndSortTests(DataTestClient):
         self.url = reverse('queues:queue', kwargs={'pk': self.queue.pk})
 
         self.application_cases = []
-        for app_status in CaseStatusEnum.choices:
+        for app_status in CaseStatusEnum.statuses:
             case = self.create_application_case('Example Application')
-            case.application.status = get_case_status(app_status)
+            case.application.status = get_case_status_from_status(app_status)
             case.application.save(update_fields=['status'])
             self.queue.cases.add(case)
             self.queue.save()
             self.application_cases.append(case)
 
         self.clc_cases = []
-        for clc_status in CaseStatusEnum.choices:
-            case = self.create_clc_query_case('Example CLC Query', get_case_status(clc_status))
+        for clc_status in CaseStatusEnum.statuses:
+            case = self.create_clc_query_case('Example CLC Query', get_case_status_from_status(clc_status))
             self.queue.cases.add(case)
             self.queue.save()
             self.clc_cases.append(case)
@@ -124,9 +124,9 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = CaseStatus.objects.get(pk='submitted')
+        case_status = CaseStatus.objects.get(status=CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
-        url = self.url + '?filters={"case_type":"CLC%20query", "status":"' + case_status.pk + '"}'
+        url = self.url + '?filters={"case_type":"CLC%20query", "status":"' + case_status.status + '"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)

@@ -14,6 +14,8 @@ from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class GoodList(APIView):
@@ -43,7 +45,9 @@ class GoodList(APIView):
 
                 if data['is_good_controlled'] == GoodControlled.UNSURE:
                     # automatically raise a CLC query case
-                    clc_query = ClcQuery(details=data['not_sure_details_details'], good=good)
+                    clc_query = ClcQuery(details=data['not_sure_details_details'],
+                                         good=good,
+                                         status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
                     clc_query.save()
 
                     # Create a case

@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from static.statuses.enums import CaseStatusEnum
 
 
 def migrate_statuses(apps, schema_editor):
@@ -10,8 +9,8 @@ def migrate_statuses(apps, schema_editor):
     ClcQuery = apps.get_model('clc_queries', 'ClcQuery')
 
     for clc_query in ClcQuery.objects.all():
-        clc_query.status = CaseStatus.objects.filter(id=clc_query.status)
-        clc_query.save()
+        clc_query.status = CaseStatus.objects.filter(status=clc_query.status)
+        clc_query.save(update_fields=['status'])
 
 
 class Migration(migrations.Migration):
@@ -25,7 +24,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='clcquery',
             name='status',
-            field=models.ForeignKey(blank=True, default=CaseStatusEnum.SUBMITTED, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='clc_query_status', to='statuses.CaseStatus'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='clc_query_status', to='statuses.CaseStatus'),
         ),
         migrations.RunPython(migrate_statuses),
     ]
