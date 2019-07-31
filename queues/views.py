@@ -80,7 +80,7 @@ class QueueDetail(APIView):
             queue = get_open_cases_queue()
             queue = queue.__dict__
 
-            cases_with_submitted_at = Case.objects.annotate(
+            cases_with_annotations = Case.objects.annotate(
                 created_at=Concat('application__submitted_at', 'clc_query__submitted_at'),
                 status=Concat('application__status', 'clc_query__status')
             ).filter(
@@ -91,7 +91,7 @@ class QueueDetail(APIView):
                 Q(status='resubmitted')
             ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
 
-            queue['cases'] = list(cases_with_submitted_at)
+            queue['cases'] = list(cases_with_annotations)
         else:
             queue = get_queue(pk)
 
@@ -114,7 +114,7 @@ class CaseAssignments(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        if settings.ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
+        if settings.ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or settings.OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
             return self._get_all_case_assignments()
         else:
             return self._get_case_assignments_for_specific_queue(pk)
