@@ -56,7 +56,7 @@ class QueueDetail(APIView):
         queue = get_queue(pk)
 
         cases = queue.cases.annotate(
-            status_priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
         )
 
         filters = request.GET.get('filters', None)
@@ -66,7 +66,7 @@ class QueueDetail(APIView):
             if 'case_type' in filters:
                 kwargs['case_type__name'] = filters['case_type']
             if 'status' in filters:
-                kwargs['status_priority'] = CaseStatus.objects.get(pk=filters['status']).priority
+                kwargs['status__priority'] = CaseStatus.objects.get(pk=filters['status']).priority
 
             # Add other `if` conditions before next line to filter by more fields
             cases = cases.filter(**kwargs)
@@ -76,7 +76,7 @@ class QueueDetail(APIView):
             kwargs = []
             sort = sort.split(',')
             if 'status' in sort:
-                kwargs.append('status_priority')
+                kwargs.append('status__priority')
 
             # Add other `if` conditions before next line to sort by more fields
             cases = cases.order_by(*kwargs)
