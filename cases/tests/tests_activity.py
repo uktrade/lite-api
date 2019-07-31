@@ -38,9 +38,9 @@ class CaseActivityTests(DataTestClient):
 
         self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)
 
-        # Validate that there is now one objects in activity
+        # Validate that there is now two objects in activity
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['activity']), 1)
+        self.assertEqual(len(response_data['activity']), 2)
