@@ -15,7 +15,8 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer
+from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer, \
+    ClcNotificationsSerializer
 
 
 class AuthenticateExporterUser(APIView):
@@ -136,7 +137,7 @@ class NotificationViewset(viewsets.ModelViewSet):
 
 class ClcNotificationViewset(viewsets.ModelViewSet):
     model = Notification
-    serializer_class = NotificationsSerializer
+    serializer_class = ClcNotificationsSerializer
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated, )
     queryset = Notification.objects.all()
