@@ -20,9 +20,8 @@ def create_standard_licence(draft, application, errors):
         errors['goods'] = get_string('applications.standard.no_goods_set')
 
     ultimate_end_user_required = False
-    for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-        if not good_on_draft.good.is_good_end_product:
-            ultimate_end_user_required = True
+    if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnDraft.objects.filter(draft=draft)), None):
+        ultimate_end_user_required = True
 
     if ultimate_end_user_required:
         if len(draft.ultimate_end_users.values_list()) == 0:
