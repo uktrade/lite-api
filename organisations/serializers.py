@@ -13,7 +13,8 @@ from users.serializers import UserCreateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
+    name = serializers.CharField(error_messages={'blank': 'Enter a name for your site'})
+
     # TODO: Simplify country process
     address = AddressCountrylessSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
@@ -40,6 +41,30 @@ class SiteCreateSerializer(serializers.ModelSerializer):
 
         site = Site.objects.create(address=address, **validated_data)
         return site
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data['name']
+        instance.save()
+
+        address_data = validated_data.pop('address')
+        address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
+        if address_serializer.is_valid():
+            instance.address.address_line_1 = address_serializer.validated_data.get('address_line_1',
+                                                                                    instance.address.address_line_1)
+            instance.address.address_line_2 = address_serializer.validated_data.get('address_line_2',
+                                                                                    instance.address.address_line_2)
+            instance.address.region = address_serializer.validated_data.get('region',
+                                                                            instance.address.region)
+            instance.address.postcode = address_serializer.validated_data.get('postcode',
+                                                                              instance.address.postcode)
+            instance.address.city = address_serializer.validated_data.get('city',
+                                                                          instance.address.city)
+            instance.address.country = get_country(address_serializer.data['country'])
+            instance.address.save()
+        else:
+            return address_serializer.errors
+
+        return instance
 
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
@@ -130,32 +155,6 @@ class OrganisationUpdateSerializer(OrganisationViewSerializer):
         Update and return an existing `Organisation` instance, given the validated data.
         """
         instance.primary_site = validated_data.get('primary_site', instance.primary_site)
-        instance.save()
-        return instance
-
-
-class SiteUpdateSerializer(OrganisationViewSerializer):
-    name = serializers.CharField()
-    address = AddressSerializer(many=False, write_only=True)
-
-    class Meta:
-        model = Site
-        fields = ('id',
-                  'name',
-                  'address')
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Site` instance, given the validated data.
-        """
-        address_data = validated_data.pop('address')
-        address_serializer = AddressSerializer(Address.objects.get(pk=instance.address.id),
-                                               data=address_data,
-                                               partial=True)
-        if address_serializer.is_valid():
-            address_serializer.save()
-
-        instance.name = validated_data.get('name', instance.name)
         instance.save()
         return instance
 

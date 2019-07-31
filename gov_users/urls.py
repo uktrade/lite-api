@@ -11,4 +11,6 @@ urlpatterns = [
     path('roles/', roles_views.Roles.as_view(), name='roles'),
     path('roles/<uuid:pk>/', roles_views.RoleDetail.as_view(), name='role'),
     path('permissions/', roles_views.Permissions.as_view(), name='permissions'),
+    # ex: /users/me/
+    path('me/', gov_user_views.UserMeDetail.as_view(), name='me'),
 ]

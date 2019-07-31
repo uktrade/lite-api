@@ -17,6 +17,7 @@ class PicklistSerializer(serializers.ModelSerializer):
                                    error_messages={'invalid_choice': get_string('picklist_items.error_messages.blank_type')})
     status = serializers.ChoiceField(choices=PickListStatus.choices,
                                      error_messages={'invalid_choice': get_string('picklist_items.error_messages.blank_status')})
+    team_name = serializers.SerializerMethodField()
 
     def get_team_name(self, instance):
         return instance.team.name
@@ -28,5 +29,6 @@ class PicklistSerializer(serializers.ModelSerializer):
                   'name',
                   'text',
                   'type',
-                  'status')
+                  'status',
+                  'team_name')
 
