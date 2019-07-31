@@ -4,3 +4,4 @@ class Permissions:
 
 class SystemLimits:
     MAX_ALL_CASES_RESULTS = 200
+    MAX_OPEN_CASES_RESULTS = 200

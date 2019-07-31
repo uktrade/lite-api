@@ -23,20 +23,3 @@ def get_queue(pk):
         return Queue.objects.get(pk=pk)
     except Queue.DoesNotExist:
         raise NotFoundError({'queue': 'Queue not found'})
-
-
-#TODO this was constructing the object the old fashioned way, probably not needed
-def get_all_cases_queue_old():
-    all_cases_queue = {
-        'queue': {
-            'id': ALL_CASES_SYSTEM_QUEUE_ID,
-            'name': 'All cases',
-            'team': {
-                'id': ADMIN_TEAM_ID,
-                'name': 'Admin'
-            },
-            'cases': []
-        }
-    }
-
-    return all_cases_queue

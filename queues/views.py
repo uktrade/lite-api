@@ -39,6 +39,7 @@ class QueuesList(APIView):
 
         if include_system_queues.lower() == 'true':
             queues = list(queues)
+            queues.insert(0, get_open_cases_queue())
             queues.insert(0, get_all_cases_queue())
 
         serializer = QueueViewSerializer(queues, many=True)
@@ -88,7 +89,7 @@ class QueueDetail(APIView):
                 Q(status='under_review') |
                 Q(status='under_final_review') |
                 Q(status='resubmitted')
-            ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
+            ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
 
             queue['cases'] = list(cases_with_submitted_at)
         else:
