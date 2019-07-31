@@ -17,7 +17,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status_by_id import get_case_status_by_id
+from static.statuses.libraries.get_case_status import get_case_status
 from static.statuses.models import CaseStatus
 
 
@@ -190,11 +190,11 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_by_id(CaseStatusEnum.APPROVED):
+        if validated_data.get('status') == get_case_status(CaseStatusEnum.APPROVED):
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_by_id(CaseStatusEnum.UNDER_FINAL_REVIEW):
+        if validated_data.get('status') == get_case_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}

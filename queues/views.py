@@ -1,7 +1,7 @@
 from json import loads
 
 from django.db import transaction
-from django.db.models.functions import Concat
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -17,6 +17,7 @@ from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
+from static.statuses.models import CaseStatus
 
 
 @permission_classes((permissions.AllowAny,))
@@ -53,6 +54,36 @@ class QueueDetail(APIView):
 
     def get(self, request, pk):
         queue = get_queue(pk)
+
+        cases = queue.cases.annotate(
+            status_priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+        )
+
+        filters = request.GET.get('filters', None)
+        if filters:
+            kwargs = {}
+            filters = loads(filters)
+            if 'case_type' in filters:
+                kwargs['case_type__name'] = filters['case_type']
+            if 'status' in filters:
+                kwargs['status_priority'] = CaseStatus.objects.get(pk=filters['status']).priority
+
+            # Add other `if` conditions before next line to filter by more fields
+            cases = cases.filter(**kwargs)
+
+        sort = request.GET.get('sort', None)
+        if sort:
+            kwargs = []
+            sort = sort.split(',')
+            if 'status' in sort:
+                kwargs.append('status_priority')
+
+            # Add other `if` conditions before next line to sort by more fields
+            cases = cases.order_by(*kwargs)
+
+        queue = queue.__dict__
+        queue['cases'] = list(cases.all())
+
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
@@ -76,32 +107,7 @@ class CaseAssignments(APIView):
         Get all case assignments for that queue
         """
         queue = get_queue(pk)
-        case_assignments = CaseAssignment.objects.filter(queue=queue).annotate(
-            status=Concat('case__application__status', 'case__clc_query__status')
-        )
-
-        filters = request.GET.get('filters', None)
-        if filters:
-            kwargs = {}
-            filters = loads(filters)
-            if 'case_type' in filters:
-                kwargs['case__case_type__name'] = filters['case_type']
-            if 'status' in filters:
-                kwargs['case__status__name'] = (filters['status'], filters['status'].capitalize())
-
-            # Add other `if` conditions before next line to filter by more fields
-            case_assignments = case_assignments.filter(**kwargs)
-
-        sort = request.GET.get('sort', None)
-        if sort:
-            kwargs = []
-            sort = sort.split(',')
-            if 'status' in sort:
-                kwargs.append('case__status__priority')
-
-            # Add other `if` conditions before next line to sort by more fields
-            case_assignments = case_assignments.order_by(*kwargs)
-
+        case_assignments = CaseAssignment.objects.filter(queue=queue)
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})
 

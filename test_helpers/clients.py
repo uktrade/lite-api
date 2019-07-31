@@ -16,7 +16,7 @@ from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import GovUser, BaseUser
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status_by_id import get_case_status_by_id
+from static.statuses.libraries.get_case_status import get_case_status
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -113,7 +113,7 @@ class DataTestClient(BaseTestClient):
 
     def create_clc_query_case(self, name, status=None):
         if not status:
-            status = get_case_status_by_id(CaseStatusEnum.SUBMITTED)
+            status = get_case_status(CaseStatusEnum.SUBMITTED)
         clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation, status)
         case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
         case = Case(clc_query=clc_query, case_type=case_type)
