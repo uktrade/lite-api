@@ -1,6 +1,7 @@
 from rest_framework import status
 
 from cases.models import CaseAssignment
+from conf.settings import OPEN_CASES_SYSTEM_QUEUE_ID
 from test_helpers.clients import DataTestClient
 from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 
@@ -11,8 +12,11 @@ class RetrieveAllCases(DataTestClient):
         self.team = self.create_team('team team')
         self.queue1 = self.create_queue('queue1', self.team)
         self.queue2 = self.create_queue('queue2', self.team)
-        self.case1 = self.create_application_case('case2 case2 for queue1')
-        self.case2 = self.create_application_case('case3 case3 case3 for queue2')
+        self.case1 = self.create_application_case('case1 case1 for queue1')
+        self.case2 = self.create_application_case('case2 case2 case2 for queue2')
+        self.case3 = self.create_application_case('case3 case3 case3 for queue2')
+        self.case3.application.status = 'approved'
+        self.case3.application.save(update_fields=['status'])
 
     def test_get_all_case_assignments(self):
         case_assignment = CaseAssignment(queue=self.queue1, case=self.case1)
@@ -75,3 +79,15 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
+        self.assertEqual(3, len(response_data['queue']['cases']))
+
+    def test_get_open_cases_system_queue(self):
+        url = '/queues/' + OPEN_CASES_SYSTEM_QUEUE_ID + '/'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(OPEN_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
+        self.assertEqual(2, len(response_data['queue']['cases']))

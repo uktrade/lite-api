@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -12,9 +13,9 @@ from cases.models import CaseAssignment, Case
 from cases.serializers import CaseAssignmentSerializer, CaseSerializer
 from conf.authentication import GovAuthentication
 from conf.constants import SystemLimits
-from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID
+from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old
+from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old, get_open_cases_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
 from django.conf import settings
@@ -66,12 +67,27 @@ class QueueDetail(APIView):
 
     def get(self, request, pk):
         if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
-            # Assemble an all cases pseudo queue object in memory, including the appropriate cases
             queue = get_all_cases_queue()
             queue = queue.__dict__
 
             cases_with_submitted_at = Case.objects.annotate(
                 created_at=Concat('application__submitted_at', 'clc_query__submitted_at')
+            ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
+
+            queue['cases'] = list(cases_with_submitted_at)
+        elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+            queue = get_open_cases_queue()
+            queue = queue.__dict__
+
+            cases_with_submitted_at = Case.objects.annotate(
+                created_at=Concat('application__submitted_at', 'clc_query__submitted_at'),
+                status=Concat('application__status', 'clc_query__status')
+            ).filter(
+                Q(status='submitted') |
+                Q(status='more_information_required') |
+                Q(status='under_review') |
+                Q(status='under_final_review') |
+                Q(status='resubmitted')
             ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
 
             queue['cases'] = list(cases_with_submitted_at)
