@@ -60,10 +60,6 @@ def convert_audit_to_activity(version: Version):
     else:
         activity_type = CHANGE
 
-    if activity_type == CHANGE and 'status' in data:
-        data['status'] = get_case_status_from_pk(data['status']).status
-        return None
-
     if activity_type == CHANGE and 'flags' in data:
         return None
 
@@ -71,6 +67,9 @@ def convert_audit_to_activity(version: Version):
             and activity_type == CHANGE \
             and data['status'] == str(get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk):
         return None
+
+    if activity_type == CHANGE and 'status' in data:
+        data['status'] = get_case_status_from_pk(data['status']).status
 
     return _activity_item(activity_type,
                           _revision_object.date_created,

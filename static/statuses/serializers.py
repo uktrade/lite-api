@@ -7,5 +7,5 @@ class CaseStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseStatus
         fields = ('id',
-                  'name',
-                  'rank',)
+                  'status',
+                  'priority',)

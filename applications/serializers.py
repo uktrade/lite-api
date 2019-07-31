@@ -58,7 +58,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
+    status = serializers.SerializerMethodField()
     licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
         'required': 'Select which type of licence you want to apply for.'})
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
@@ -75,6 +75,9 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
+
+    def get_status(self, application):
+        return application.status.status
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
