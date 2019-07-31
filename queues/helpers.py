@@ -1,5 +1,5 @@
 from conf.exceptions import NotFoundError
-from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, ADMIN_TEAM_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from teams.models import Team
 
