@@ -10,12 +10,12 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment, Case
-from cases.serializers import CaseAssignmentSerializer, CaseSerializer
+from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from conf.constants import SystemLimits
 from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old, get_open_cases_queue
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
 from django.conf import settings
