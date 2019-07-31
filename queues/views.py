@@ -16,7 +16,7 @@ from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_all_cases_queue_old
 from queues.models import Queue
-from queues.serializers import QueueSerializer, QueueViewSerializer
+from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
 from django.conf import settings
 
 
@@ -70,7 +70,6 @@ class QueueDetail(APIView):
             queue = get_all_cases_queue()
             queue = queue.__dict__
 
-            # Get all cases, ordered most recent first and with a maximum of MAX_ALL_CASES_RESULTS
             cases_with_submitted_at = Case.objects.annotate(
                 created_at=Concat('application__submitted_at', 'clc_query__submitted_at')
             ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
@@ -79,7 +78,7 @@ class QueueDetail(APIView):
         else:
             queue = get_queue(pk)
 
-        serializer = QueueViewSerializer(queue)
+        serializer = AllCasesQueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)
