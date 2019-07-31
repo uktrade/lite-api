@@ -26,6 +26,10 @@ class BaseTestClient(APITestCase, URLPatternsTestCase):
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
+
 
 class DataTestClient(BaseTestClient):
     """

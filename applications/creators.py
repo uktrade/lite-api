@@ -19,11 +19,25 @@ def create_standard_licence(draft, application, errors):
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
 
+    ultimate_end_user_required = False
+    if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnDraft.objects.filter(draft=draft)), None):
+        ultimate_end_user_required = True
+
+    if ultimate_end_user_required:
+        if len(draft.ultimate_end_users.values_list()) == 0:
+            errors['ultimate_end_users'] = get_string('applications.standard.no_ultimate_end_users_set')
+        else:
+            # We make sure that an ultimate end user is not also the end user
+            for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
+                if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
+                    errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
+
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
     # Save associated end users, goods and sites
     application.end_user = draft.end_user
+    application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
     application.save()
 
     for good_on_draft in GoodOnDraft.objects.filter(draft=draft):

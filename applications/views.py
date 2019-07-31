@@ -35,6 +35,7 @@ class ApplicationList(APIView):
 
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
+
         return JsonResponse(data={'applications': serializer.data},
                             )
 
