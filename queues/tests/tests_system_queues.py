@@ -47,6 +47,7 @@ class RetrieveAllCases(DataTestClient):
 
         queue_id_list = [q['id'] for q in response_data['queues']]
         self.assertTrue(ALL_CASES_SYSTEM_QUEUE_ID in queue_id_list)
+        self.assertTrue(OPEN_CASES_SYSTEM_QUEUE_ID in queue_id_list)
 
     def test_get_all_queues_including_false_system_queues_param(self):
         url = '/queues/?include_system_queues=False'
@@ -58,6 +59,7 @@ class RetrieveAllCases(DataTestClient):
 
         queue_id_list = [q['id'] for q in response_data['queues']]
         self.assertFalse(ALL_CASES_SYSTEM_QUEUE_ID in queue_id_list)
+        self.assertFalse(OPEN_CASES_SYSTEM_QUEUE_ID in queue_id_list)
 
     def test_get_all_queues_without_system_queues_param(self):
         url = '/queues/'
