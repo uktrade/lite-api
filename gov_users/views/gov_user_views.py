@@ -151,3 +151,13 @@ class GovUserDetail(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
+
+
+class UserMeDetail(APIView):
+    authentication_classes = (GovAuthentication,)
+    """
+    Get the user from request
+    """
+    def get(self, request):
+        serializer = GovUserViewSerializer(request.user)
+        return JsonResponse(data={'user': serializer.data})
