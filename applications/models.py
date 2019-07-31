@@ -31,6 +31,7 @@ class Application(models.Model):
                                  default=None, blank=True, null=True)
     #  destination = models to be a list of countries
     # plus there maybe a consignee too - the person moving the cargo
+    ultimate_end_users = models.ManyToManyField(EndUser, related_name='application_ultimate_end_users')
 
 
 @reversion.register()
