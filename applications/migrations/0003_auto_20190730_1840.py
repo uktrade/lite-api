@@ -17,7 +17,7 @@ def migrate_statuses(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0002_auto_20190717_0851'),
+        ('applications', '0003_application_ultimate_end_users'),
         ('statuses', '0001_initial'),
     ]
 
