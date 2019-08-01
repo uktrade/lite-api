@@ -148,7 +148,7 @@ class RetrieveAllCases(DataTestClient):
 
         i = 0
 
-        while i <= 300:
+        while i <= 210:
             self.create_application_case('Limits case ' + str(i))
 
             i += 1
@@ -166,14 +166,14 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(200, len(response_data['queue']['cases']))
 
         # Test ordering: Cases should be returned newest first
-        self.assertEqual('Limits case 101', response_data['queue']['cases'][199]['application']['name'])
-        self.assertEqual('Limits case 300', response_data['queue']['cases'][0]['application']['name'])
+        self.assertEqual('Limits case 11', response_data['queue']['cases'][199]['application']['name'])
+        self.assertEqual('Limits case 210', response_data['queue']['cases'][0]['application']['name'])
 
-    def test_get_open_cases_system_queue(self):
+    def test_get_open_cases_system_queue_returns_expected_cases(self):
         """
-        Given that a number of cases exist and are assigned to different user defined queues
-        When a user the open cases system queue
-        Then only open cases are returned regardless of which user defined queues they are assigned to
+        Given that a number of open and closed cases exist
+        When a user gets the open cases system queue
+        Then only open cases are returned
         """
 
         # Arrange
