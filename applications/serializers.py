@@ -261,8 +261,9 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
         return CaseNoteViewSerializer(data, many=True).data
 
-    def get_status(self, obj):
-        return obj.status.name
+    # pylint: disable=W0221
+    def get_status(self, instance):
+        return instance.status.name
 
     class Meta:
         model = Application
