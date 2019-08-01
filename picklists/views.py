@@ -4,7 +4,7 @@ from picklists.models import PicklistItem
 from django.http.response import JsonResponse
 from rest_framework import status, permissions
 from rest_framework.parsers import JSONParser
-from picklists.libraries.get_picklist_item import get_picklist_item
+from picklists.helpers import get_picklist_item
 from picklists.serializers import PicklistSerializer
 from content_strings.strings import get_string
 from rest_framework.decorators import permission_classes

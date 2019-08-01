@@ -1,37 +1,38 @@
-import json
-from django.urls import reverse
 from rest_framework import status
+from rest_framework.reverse import reverse
+
 from picklists.enums import PickListStatus
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class PickLists(DataTestClient):
+class PickListUpdate(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.picklist_item = OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team)
+        self.url = reverse('picklist_items:picklist_item', kwargs={'pk': self.picklist_item.id})
 
     def test_deactivate_a_picklist_item(self):
-        picklist_item = OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, self.team)
-
         data = {
             'status': PickListStatus.DEACTIVATE
         }
 
-        url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
-        response = self.client.put(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response = self.client.put(self.url, data, **self.gov_headers)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.DEACTIVATE)
+        self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.DEACTIVATE,
+                                                                    'value': 'Deactivated'})
 
     def test_reactivate_a_picklist_item(self):
-        picklist_item = OrgAndUserHelper.create_picklist_item(PickListStatus.DEACTIVATE, self.team)
-
         data = {
             'status': PickListStatus.ACTIVATE
         }
 
-        url = reverse('picklist_items:picklist_item', kwargs={'pk': picklist_item.id})
-        response = self.client.put(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response = self.client.put(self.url, data, **self.gov_headers)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.ACTIVATE)
+        self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.ACTIVATE,
+                                                                    'value': 'Active'})

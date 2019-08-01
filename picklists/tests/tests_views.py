@@ -5,12 +5,11 @@ from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
-class PickLists(DataTestClient):
+class PickListsViews(DataTestClient):
 
     url = reverse('picklist_items:picklist_items')
 
     def test_gov_user_can_see_all_picklist_items(self):
-
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -21,7 +20,6 @@ class PickLists(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-
     def test_gov_user_can_see_filtered_picklist_items(self):
         other_team = self.create_team("Team")
 
@@ -30,14 +28,14 @@ class PickLists(DataTestClient):
         OrgAndUserHelper.create_picklist_item(PickListStatus.ACTIVATE, other_team)
 
         response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '&team=' + self.team.name, **self.gov_headers)
-
         response_data = response.json()
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['picklist_items']), 2)
 
     def test_gov_user_can_see_no_picklist_items_when_team_doesnt_exist(self):
         response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '&team=blah', **self.gov_headers)
-
         response_data = response.json()
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['picklist_items']), 0)

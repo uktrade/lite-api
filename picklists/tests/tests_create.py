@@ -1,6 +1,6 @@
-import json
 from django.urls import reverse
 from rest_framework import status
+
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -19,8 +19,7 @@ class PickLists(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['picklist_item']['name'], data['name'])
-
