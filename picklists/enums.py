@@ -8,8 +8,8 @@ class PicklistType:
 
     choices = [
         (PROVISO, 'Proviso'),
-        (ECJU, 'ECJU_Query'),
-        (LETTER_PARAGRAPH, 'Under review'),
+        (ECJU, 'ECJU Query'),
+        (LETTER_PARAGRAPH, 'Letter Paragraph'),
         (ANNUAL_REPORT_SUMMARY, 'Annual Report Summary'),
         (STANDARD_ADVICE, 'Standard Advice'),
         (FOOTNOTES, 'Footnotes'),
@@ -17,10 +17,10 @@ class PicklistType:
 
 
 class PickListStatus:
-    ACTIVATE = 'Activate'
-    DEACTIVATE = 'Deactivate'
+    ACTIVATE = 'active'
+    DEACTIVATE = 'deactivated'
 
     choices = [
-        (ACTIVATE, 'Activate'),
-        (DEACTIVATE, 'Deactivate'),
+        (ACTIVATE, 'Active'),
+        (DEACTIVATE, 'Deactivated'),
     ]
