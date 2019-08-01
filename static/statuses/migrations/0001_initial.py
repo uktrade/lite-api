@@ -8,8 +8,8 @@ from static.statuses.enums import CaseStatusEnum
 def populate_statuses(apps, schema_editor):
     CaseStatus = apps.get_model('statuses', 'CaseStatus')
 
-    for status in CaseStatusEnum.statuses:
-        case_status = CaseStatus(status=status[0], priority=status[1])
+    for status, priority in CaseStatusEnum.priorities.items():
+        case_status = CaseStatus(status=status, priority=priority)
         case_status.save()
 
 

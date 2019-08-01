@@ -17,7 +17,7 @@ from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
-from static.statuses.models import CaseStatus
+from static.statuses.enums import CaseStatusEnum
 
 
 @permission_classes((permissions.AllowAny,))
@@ -66,7 +66,7 @@ class QueueDetail(APIView):
             if 'case_type' in filters:
                 kwargs['case_type__name'] = filters['case_type']
             if 'status' in filters:
-                kwargs['status__priority'] = CaseStatus.objects.get(status=filters['status']).priority
+                kwargs['status__priority'] = CaseStatusEnum.priorities[filters['status']]
 
             # Add other `if` conditions before next line to filter by more fields
             cases = cases.filter(**kwargs)

@@ -76,8 +76,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
-    def get_status(self, application):
-        return application.status.status
+    def get_status(self, instance):
+        return instance.status.status
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
