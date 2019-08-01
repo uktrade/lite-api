@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('text', models.TextField(max_length=5000)),
                 ('type', models.CharField(choices=[('proviso', 'Proviso'), ('ecju_query', 'ECJU Query'), ('letter_paragraph', 'Letter Paragraph'), ('annual_report_summary', 'Annual Report Summary'), ('standard_advice', 'Standard Advice'), ('footnotes', 'Footnotes')], max_length=50)),
                 ('status', models.CharField(choices=[('active', 'Active'), ('deactivated', 'Deactivated')], default='active', max_length=50)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                ('last_modified_at', models.DateTimeField(auto_now=True)),
                 ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='organisation_team', to='teams.Team')),
             ],
         ),

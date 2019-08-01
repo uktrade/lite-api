@@ -36,4 +36,4 @@ class PicklistSerializer(ModelSerializer):
                   'type',
                   'status',
                   'team_name',
-                  'last_updated')
+                  'last_modified_at')
