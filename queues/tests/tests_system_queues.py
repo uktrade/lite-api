@@ -49,8 +49,8 @@ class RetrieveAllCases(DataTestClient):
 
     def test_get_all_queues_including_true_system_queues_param(self):
         """
-        Given that a number of user defined queues exists
-        When a user requests the queues including system queues
+        Given that a number of user defined queues exist
+        When a user requests queues including system queues
         Then all user defined queues and system queues are returned
         """
 
@@ -71,7 +71,7 @@ class RetrieveAllCases(DataTestClient):
 
     def test_get_all_queues_including_false_system_queues_param(self):
         """
-        Given that a number of user defined queues exists
+        Given that a number of user defined queues exist
         When a user requests queues not including system queues
         Then all user defined queues are returned
         And system queues are not returned
@@ -118,7 +118,7 @@ class RetrieveAllCases(DataTestClient):
     def test_get_all_cases_system_queue(self):
         """
         Given that a number of cases exist and are assigned to different user defined queues
-        When a user the all cases system queue
+        When a user gets the all cases system queue
         Then all cases are returned regardless of which user defined queues they are assigned to
         """
 
@@ -135,6 +135,39 @@ class RetrieveAllCases(DataTestClient):
 
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
         self.assertEqual(3, len(response_data['queue']['cases']))
+
+    def test_get_all_cases_system_queue_limits_to_200_cases(self):
+        """
+        Given that in excess of 200 cases exist
+        When a user gets the all cases system queue
+        Then 200 cases are returned
+        """
+
+        # Arrange
+        url = '/queues/' + ALL_CASES_SYSTEM_QUEUE_ID + '/'
+
+        i = 0
+
+        while i <= 300:
+            self.create_application_case('Limits case ' + str(i))
+
+            i += 1
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+
+        # Assert
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
+
+        self.assertEqual(200, len(response_data['queue']['cases']))
+
+        # Test ordering: Cases should be returned newest first
+        self.assertEqual('Limits case 101', response_data['queue']['cases'][199]['application']['name'])
+        self.assertEqual('Limits case 300', response_data['queue']['cases'][0]['application']['name'])
 
     def test_get_open_cases_system_queue(self):
         """
