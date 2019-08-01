@@ -17,8 +17,8 @@ class PicklistType:
 
 
 class PickListStatus:
-    ACTIVATE = 'Active'
-    DEACTIVATE = 'Deactivated'
+    ACTIVATE = 'active'
+    DEACTIVATE = 'deactivated'
 
     choices = [
         (ACTIVATE, 'Active'),

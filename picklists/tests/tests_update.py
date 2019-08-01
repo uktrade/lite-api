@@ -23,7 +23,7 @@ class PickListUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.DEACTIVATE,
-                                                                    'value': PickListStatus.DEACTIVATE})
+                                                                    'value': 'Deactivated'})
 
     def test_reactivate_a_picklist_item(self):
         data = {
@@ -35,4 +35,4 @@ class PickListUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.ACTIVATE,
-                                                                    'value': PickListStatus.ACTIVATE})
+                                                                    'value': 'Active'})
