@@ -22,7 +22,6 @@ class PickListUpdate(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.DEACTIVATE)
         self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.DEACTIVATE,
                                                                     'value': PickListStatus.DEACTIVATE})
 
@@ -35,6 +34,5 @@ class PickListUpdate(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['picklist_item']['status'], PickListStatus.ACTIVATE)
         self.assertEqual(response_data['picklist_item']['status'], {'key': PickListStatus.ACTIVATE,
                                                                     'value': PickListStatus.ACTIVATE})
