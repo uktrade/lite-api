@@ -8,8 +8,8 @@ from static.statuses.enums import CaseStatusEnum
 def populate_statuses(apps, schema_editor):
     CaseStatus = apps.get_model('statuses', 'CaseStatus')
 
-    for status, priority in CaseStatusEnum.priorities.items():
-        case_status = CaseStatus(status=status, priority=priority)
+    for choice in CaseStatusEnum.choices:
+        case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
         case_status.save()
 
 
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             name='CaseStatus',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(max_length=50, blank=False, null=False, unique=True)),
+                ('status', models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('approved', 'Approved'), ('declined', 'Declined')], max_length=50, blank=False, null=False, unique=True)),
                 ('priority', models.IntegerField(null=False, blank=False)),
             ],
         ),

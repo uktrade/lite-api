@@ -15,7 +15,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.url = reverse('queues:queue', kwargs={'pk': self.queue.pk})
 
         self.application_cases = []
-        for app_status, priorities in CaseStatusEnum.priorities.items():
+        for app_status in CaseStatusEnum.choices:
             case = self.create_application_case('Example Application')
             case.application.status = get_case_status_from_status(app_status)
             case.application.save(update_fields=['status'])
@@ -24,7 +24,7 @@ class CasesFilterAndSortTests(DataTestClient):
             self.application_cases.append(case)
 
         self.clc_cases = []
-        for clc_status, priorities in CaseStatusEnum.priorities.items():
+        for clc_status in CaseStatusEnum.choices:
             case = self.create_clc_query_case('Example CLC Query', get_case_status_from_status(clc_status))
             self.queue.cases.add(case)
             self.queue.save()
