@@ -76,6 +76,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
+    # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
 
