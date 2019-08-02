@@ -2,6 +2,8 @@ from json import loads
 
 from django.db import transaction
 from django.db.models.functions import Coalesce
+from django.db.models import Q
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
@@ -10,14 +12,18 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
-from cases.models import CaseAssignment
+from cases.models import CaseAssignment, Case
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
+from conf.constants import SystemLimits
+from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer
 from static.statuses.models import CaseStatus
+from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
+from django.conf import settings
 
 
 @permission_classes((permissions.AllowAny,))
@@ -28,8 +34,20 @@ class QueuesList(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
+        """
+        Gets all queues. Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
+        """
+        include_system_queues = request.GET.get('include_system_queues', 'false')
+
         queues = Queue.objects.filter().order_by('name')
+
+        if include_system_queues.lower() == 'true':
+            queues = list(queues)
+            queues.insert(0, get_open_cases_queue())
+            queues.insert(0, get_all_cases_queue())
+
         serializer = QueueViewSerializer(queues, many=True)
+
         return JsonResponse(data={'queues': serializer.data})
 
     def post(self, request):
@@ -53,12 +71,36 @@ class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        queue = get_queue(pk)
-        cases = queue.cases.annotate(
+        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
+            queue = get_all_cases_queue()
+            cases = Case.objects.all()
+            case_limit = SystemLimits.MAX_ALL_CASES_RESULTS
+        elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+            queue = get_open_cases_queue()
+            cases = Case.objects.all()
+            case_limit = SystemLimits.MAX_OPEN_CASES_RESULTS
+        else:
+            queue = get_queue(pk)
+            cases = queue.cases
+            case_limit = None
+
+        # coalescing on status' priority so we can order
+        cases = cases.annotate(
+            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
             status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
         )
 
+        # filters cases
         kwargs = {}
+        if OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+            cases = cases.filter(
+                Q(status__priority='1') |
+                Q(status__priority='2') |
+                Q(status__priority='3') |
+                Q(status__priority='4') |
+                Q(status__priority='5')
+            )
+
         case_type = request.GET.get('case_type', None)
         if case_type:
             kwargs['case_type__name'] = case_type
@@ -68,6 +110,10 @@ class QueueDetail(APIView):
             kwargs['status__priority'] = CaseStatus.objects.get(status=status).priority
 
         cases = cases.filter(**kwargs)
+
+        # order cases
+        if OPEN_CASES_SYSTEM_QUEUE_ID == str(pk) or ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
+            cases = cases.order_by('-created_at')
 
         sort = request.GET.get('sort', None)
         if sort:
@@ -80,10 +126,14 @@ class QueueDetail(APIView):
             # Add other `if` conditions before next line to sort by more fields
             cases = cases.order_by(*kwargs)
 
-        queue = queue.__dict__
-        queue['cases'] = list(cases.all())
+        # slice cases
+        if case_limit:
+            cases = cases[:case_limit]
 
-        serializer = QueueViewSerializer(queue)
+        queue = queue.__dict__
+        queue['cases'] = list(cases)
+
+        serializer = AllCasesQueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)
@@ -102,9 +152,19 @@ class CaseAssignments(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        """
-        Get all case assignments for that queue
-        """
+        if settings.ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or settings.OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+            return self._get_all_case_assignments()
+        else:
+            return self._get_case_assignments_for_specific_queue(pk)
+
+    # noinspection PyMethodMayBeStatic
+    def _get_all_case_assignments(self):
+        case_assignments = CaseAssignment.objects.all()
+        serializer = CaseAssignmentSerializer(case_assignments, many=True)
+        return JsonResponse(data={'case_assignments': serializer.data})
+
+    # noinspection PyMethodMayBeStatic
+    def _get_case_assignments_for_specific_queue(self, pk):
         queue = get_queue(pk)
         case_assignments = CaseAssignment.objects.filter(queue=queue)
         serializer = CaseAssignmentSerializer(case_assignments, many=True)

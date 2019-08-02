@@ -16,7 +16,7 @@ def migrate_statuses(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('clc_queries', '0003_auto_20190718_1030'),
+        ('clc_queries', '0004_clcquery_submitted_at'),
         ('statuses', '0001_initial'),
     ]
 

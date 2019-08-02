@@ -33,6 +33,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
@@ -40,16 +41,18 @@ class CaseDetailSerializer(CaseSerializer):
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type', 'flags')
+        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type', 'flags', 'queue_names')
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))
+
+    def get_queue_names(self, instance):
+        return list(instance.queues.values_list('name', flat=True))
 
     def validate_queues(self, attrs):
         if not attrs:
             raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
         return attrs
-
 
 class CaseNoteViewSerializer(serializers.ModelSerializer):
     """

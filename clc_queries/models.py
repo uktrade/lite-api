@@ -13,3 +13,4 @@ class ClcQuery(models.Model):
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name='clc_query')
     status = models.ForeignKey(CaseStatus, related_name='clc_query_status', on_delete=models.CASCADE,
                                blank=True, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True, blank=True)

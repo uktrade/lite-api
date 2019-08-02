@@ -187,3 +187,7 @@ if 'test' not in sys.argv:
             },
         }
     }
+
+ALL_CASES_SYSTEM_QUEUE_ID = 'de13c40a-b330-4d77-8304-57ac12326e5a'
+OPEN_CASES_SYSTEM_QUEUE_ID = 'f1a0631d-7abd-4152-a184-5e8557da8d49'
+ADMIN_TEAM_ID = '00000000-0000-0000-0000-000000000001'
