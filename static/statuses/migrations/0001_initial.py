@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             name='CaseStatus',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('approved', 'Approved'), ('declined', 'Declined')], max_length=50, blank=False, null=False, unique=True)),
+                ('status', models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('approved', 'Approved'), ('declined', 'Declined')], max_length=50)),
                 ('priority', models.IntegerField(null=False, blank=False)),
             ],
         ),
