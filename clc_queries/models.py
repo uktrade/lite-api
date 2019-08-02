@@ -13,3 +13,4 @@ class ClcQuery(models.Model):
     details = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name='clc_query')
     status = models.CharField(choices=ClcQueryStatus.choices, default=ClcQueryStatus.SUBMITTED, max_length=50)
+    submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
