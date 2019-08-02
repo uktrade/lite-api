@@ -3,14 +3,12 @@ from json import loads
 from django.db import transaction
 from django.db.models.functions import Coalesce
 from django.db.models import Q
-from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment, Case
 from cases.serializers import CaseAssignmentSerializer
@@ -20,7 +18,6 @@ from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue
 from queues.models import Queue
-from queues.serializers import QueueSerializer, QueueViewSerializer
 from static.statuses.models import CaseStatus
 from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
 from django.conf import settings
