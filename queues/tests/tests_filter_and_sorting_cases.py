@@ -58,7 +58,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + '?filters={"case_type":"Licence%20application"}'
+        url = self.url + '?case_type=Licence%20application'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -80,7 +80,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + '?filters={"case_type":"CLC%20query"}'
+        url = self.url + '?case_type=CLC%20query'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -102,7 +102,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + '?filters={"case_type":"CLC%20query"}'
+        url = self.url + '?case_type=CLC%20query'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -126,7 +126,7 @@ class CasesFilterAndSortTests(DataTestClient):
         # Arrange
         case_status = CaseStatus.objects.get(status=CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
-        url = self.url + '?filters={"case_type":"CLC%20query", "status":"' + case_status.status + '"}'
+        url = self.url + '?case_type=CLC%20query&status=' + case_status.status
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -185,7 +185,7 @@ class CasesFilterAndSortTests(DataTestClient):
             reverse=True
         )
 
-        url = self.url + '?filters={"case_type":"Licence%20application"}&sort={"status":"desc"}'
+        url = self.url + '?case_type=Licence%20application&sort={"status":"desc"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
