@@ -7,7 +7,7 @@ from conf.exceptions import NotFoundError
 from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.models import CaseStatus
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from teams.models import Team
 
 
@@ -43,7 +43,7 @@ def get_filtered_cases(request, cases):
 
     status = request.GET.get('status', None)
     if status:
-        status = CaseStatus.objects.get(status=status).priority
+        status = get_case_status_from_status(status).priority
         kwargs['status__priority'] = status
 
     return cases.filter(**kwargs)
@@ -68,13 +68,10 @@ def get_open_cases_queue(with_cases=False):
 
     if with_cases:
         cases = _coalesce_cases(Case.objects.all())
-        withdrawn_status_priority = CaseStatus.objects.get(status=CaseStatusEnum.WITHDRAWN).priority
-        approved_status_priority = CaseStatus.objects.get(status=CaseStatusEnum.APPROVED).priority
-        declined_status_priority = CaseStatus.objects.get(status=CaseStatusEnum.DECLINED).priority
         cases = cases.filter(
-            ~Q(status__priority=withdrawn_status_priority) &
-            ~Q(status__priority=approved_status_priority) &
-            ~Q(status__priority=declined_status_priority)
+            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
+            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
+            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
         )
         return queue, cases, SystemLimits.MAX_OPEN_CASES_RESULTS
 

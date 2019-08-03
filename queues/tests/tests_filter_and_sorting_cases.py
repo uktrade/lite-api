@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from static.statuses.libraries.get_case_status import get_case_status_from_status
-from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from static.statuses.enums import CaseStatusEnum
 from cases.models import Case
@@ -124,7 +123,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = CaseStatus.objects.get(status=CaseStatusEnum.SUBMITTED)
+        case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
         url = self.url + '?case_type=CLC%20query&status=' + case_status.status
 
