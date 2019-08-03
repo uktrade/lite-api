@@ -88,7 +88,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(self.clc_cases))
+        self.assertEqual(len(self.clc_cases), len(response_data))
         # Assert Case Type
         for case in response_data:
             case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
@@ -134,7 +134,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(clc_submitted_cases))
+        self.assertEqual(len(clc_submitted_cases), len(response_data))
         # Assert Case Type
         for case in response_data:
             case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
