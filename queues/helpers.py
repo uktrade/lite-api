@@ -18,7 +18,7 @@ def _coalesce_cases(cases):
     )
 
 
-def get_sorted_cases(request, cases):
+def get_sorted_cases(request, pk, cases):
     sort = request.GET.get('sort', None)
     if sort:
         kwargs = []
@@ -28,11 +28,16 @@ def get_sorted_cases(request, cases):
             kwargs.append(order + 'status__priority')
 
         if kwargs:
+            # return now to prevent default ordering of `all` and `open` cases`
             return cases.order_by(*kwargs)
 
-    return cases.annotate(
-        created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
-    ).order_by('-created_at')
+    # only sort by created at if the queue is `all cases` or `open cases`
+    if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+        return cases.annotate(
+            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
+        ).order_by('-created_at')
+    else:
+        return cases
 
 
 def get_filtered_cases(request, cases):
