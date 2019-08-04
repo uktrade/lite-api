@@ -11,36 +11,32 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 from teams.models import Team
 
 
-def _coalesce_cases(cases):
-    # coalescing on status' priority so we can filter and order if needed
-    return cases.annotate(
-        status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
-    )
+def _coalesce_case_status(queue_id, cases):
+    if not OPEN_CASES_SYSTEM_QUEUE_ID == str(queue_id):
+        return cases.annotate(
+            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+        )
+    else:
+        return cases
 
 
-def get_sorted_cases(request, pk, cases):
+def get_sorted_cases(request, queue_id, cases):
     sort = request.GET.get('sort', None)
     if sort:
         kwargs = []
         sort = loads(sort)
         if 'status' in sort:
+            cases = _coalesce_case_status(queue_id, cases)
             order = '-' if sort['status'] == 'desc' else ''
             kwargs.append(order + 'status__priority')
 
         if kwargs:
-            # return now to prevent default ordering of `all` and `open` cases`
             return cases.order_by(*kwargs)
 
-    # only sort by created at if the queue is `all cases` or `open cases`
-    if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
-        return cases.annotate(
-            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
-        ).order_by('-created_at')
-    else:
-        return cases
+    return cases
 
 
-def get_filtered_cases(request, cases):
+def get_filtered_cases(request, queue_id, cases):
     kwargs = {}
     case_type = request.GET.get('case_type', None)
     if case_type:
@@ -48,10 +44,14 @@ def get_filtered_cases(request, cases):
 
     status = request.GET.get('status', None)
     if status:
+        cases = _coalesce_case_status(queue_id, cases)
         status = get_case_status_from_status(status).priority
         kwargs['status__priority'] = status
 
-    return cases.filter(**kwargs)
+    if kwargs:
+        return cases.filter(**kwargs)
+
+    return cases
 
 
 def get_all_cases_queue(with_cases=False):
@@ -60,8 +60,11 @@ def get_all_cases_queue(with_cases=False):
                   team=Team.objects.get(name='Admin'))
 
     if with_cases:
-        cases = _coalesce_cases(Case.objects.all())
-        return queue, cases, SystemLimits.MAX_OPEN_CASES_RESULTS
+        cases = Case.objects.annotate(
+            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
+        ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
+
+        return queue, cases
 
     return queue
 
@@ -72,13 +75,18 @@ def get_open_cases_queue(with_cases=False):
                   team=Team.objects.get(name='Admin'))
 
     if with_cases:
-        cases = _coalesce_cases(Case.objects.all())
+        cases = Case.objects.annotate(
+            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
+            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+        )
+
         cases = cases.filter(
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
-        )
-        return queue, cases, SystemLimits.MAX_OPEN_CASES_RESULTS
+        ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
+
+        return queue, cases
 
     return queue
 
@@ -88,12 +96,13 @@ def get_queue(pk, with_cases=False):
         return get_all_cases_queue(with_cases)
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
         return get_open_cases_queue(with_cases)
-    try:
-        if with_cases:
+    else:
+        try:
             queue = Queue.objects.get(pk=pk)
-            cases = _coalesce_cases(queue.cases)
-            return queue, cases, None
+        except Queue.DoesNotExist:
+            raise NotFoundError({'queue': 'Queue not found'})
+
+        if with_cases:
+            return queue, queue.cases
         else:
-            return Queue.objects.get(pk=pk)
-    except Queue.DoesNotExist:
-        raise NotFoundError({'queue': 'Queue not found'})
+            return queue

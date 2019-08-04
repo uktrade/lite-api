@@ -61,16 +61,12 @@ class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        queue, cases, case_limit = get_queue(pk, with_cases=True)
-        cases = get_filtered_cases(request, cases)
-        cases = get_sorted_cases(request, pk, cases)
-
-        # slice cases
-        if case_limit:
-            cases = cases[:case_limit]
+        queue, cases = get_queue(pk, with_cases=True)
+        cases = get_filtered_cases(request, queue.id, cases)
+        cases = get_sorted_cases(request, queue.id, cases)
 
         queue = queue.__dict__
-        queue['cases'] = list(cases)
+        queue['cases'] = list(cases.all())
         serializer = AllCasesQueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
