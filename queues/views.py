@@ -12,7 +12,7 @@ from conf.authentication import GovAuthentication
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases
 from queues.models import Queue
-from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
+from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
 from django.conf import settings
 
 
@@ -61,13 +61,13 @@ class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        queue, cases = get_queue(pk, with_cases=True)
+        queue, cases = get_queue(pk, return_cases=True)
         cases = get_filtered_cases(request, queue.id, cases)
         cases = get_sorted_cases(request, queue.id, cases)
 
         queue = queue.__dict__
         queue['cases'] = list(cases)
-        serializer = AllCasesQueueViewSerializer(queue)
+        serializer = QueueViewCaseDetailSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)

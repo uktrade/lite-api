@@ -54,12 +54,12 @@ def get_filtered_cases(request, queue_id, cases):
     return cases
 
 
-def get_all_cases_queue(with_cases=False):
+def get_all_cases_queue(return_cases=False):
     queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
                   name='All cases',
                   team=Team.objects.get(name='Admin'))
 
-    if with_cases:
+    if return_cases:
         cases = Case.objects.annotate(
             created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
         ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
@@ -69,12 +69,12 @@ def get_all_cases_queue(with_cases=False):
     return queue
 
 
-def get_open_cases_queue(with_cases=False):
+def get_open_cases_queue(return_cases=False):
     queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
                   name='Open cases',
                   team=Team.objects.get(name='Admin'))
 
-    if with_cases:
+    if return_cases:
         cases = Case.objects.annotate(
             created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
             status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
@@ -91,18 +91,19 @@ def get_open_cases_queue(with_cases=False):
     return queue
 
 
-def get_queue(pk, with_cases=False):
+def get_queue(pk, return_cases=False):
     if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
-        return get_all_cases_queue(with_cases)
+        return get_all_cases_queue(return_cases)
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
-        return get_open_cases_queue(with_cases)
+        return get_open_cases_queue(return_cases)
     else:
         try:
-            queue = Queue.objects.get(pk=pk)
+            if return_cases:
+                # we get the cases separately so they can be sorted and re-assigned to the queue queryset object
+                queue = Queue.objects.defer('cases').get(pk=pk)
+                cases = Case.objects.filter(queues=queue)
+                return queue, cases
+            else:
+                return Queue.objects.get(pk=pk)
         except Queue.DoesNotExist:
             raise NotFoundError({'queue': 'Queue not found'})
-
-        if with_cases:
-            return queue, queue.cases.all()
-        else:
-            return queue
