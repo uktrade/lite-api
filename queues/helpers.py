@@ -103,6 +103,6 @@ def get_queue(pk, with_cases=False):
             raise NotFoundError({'queue': 'Queue not found'})
 
         if with_cases:
-            return queue, queue.cases
+            return queue, queue.cases.all()
         else:
             return queue
