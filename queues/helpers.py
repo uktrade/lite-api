@@ -55,7 +55,9 @@ def get_filtered_cases(request, queue_id, cases):
 
 
 def get_sliced_cases(queue_id, cases):
-    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
+    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id:
+        return cases[:SystemLimits.MAX_ALL_CASES_RESULTS]
+    elif OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
         return cases[:SystemLimits.MAX_OPEN_CASES_RESULTS]
     else:
         return cases
