@@ -8,9 +8,9 @@ from cases.models import Case
 
 
 class CasesFilterAndSortTests(DataTestClient):
+
     def setUp(self):
         super().setUp()
-
         self.url = reverse('queues:queue', kwargs={'pk': self.queue.pk})
 
         self.application_cases = []

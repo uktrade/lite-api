@@ -19,8 +19,8 @@ class ClcQuery(APIView):
         """
         with reversion.create_revision():
             data = json.loads(request.body)
-            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
-            serializer = ClcQueryUpdateSerializer(get_clc_query_by_pk(pk), data=request.data, partial=True)
+            data['status'] = str(get_case_status_from_status(data.get('status')).pk)
+            serializer = ClcQueryUpdateSerializer(get_clc_query_by_pk(pk), data=data, partial=True)
 
             if serializer.is_valid():
                 serializer.save()

@@ -12,6 +12,7 @@ from teams.models import Team
 
 
 def _coalesce_case_status(queue_id, cases):
+    # We do not need to coalesce on `status__priority` again if the queue is `open_cases`
     if not OPEN_CASES_SYSTEM_QUEUE_ID == str(queue_id):
         return cases.annotate(
             status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
@@ -45,8 +46,8 @@ def get_filtered_cases(request, queue_id, cases):
     status = request.GET.get('status', None)
     if status:
         cases = _coalesce_case_status(queue_id, cases)
-        status = get_case_status_from_status(status).priority
-        kwargs['status__priority'] = status
+        priority = get_case_status_from_status(status).priority
+        kwargs['status__priority'] = priority
 
     if kwargs:
         return cases.filter(**kwargs)
@@ -74,8 +75,8 @@ def get_all_cases_queue(return_cases=False):
         ).order_by('-created_at')
 
         return queue, cases
-
-    return queue
+    else:
+        return queue
 
 
 def get_open_cases_queue(return_cases=False):
@@ -96,8 +97,21 @@ def get_open_cases_queue(return_cases=False):
         ).order_by('-created_at')
 
         return queue, cases
+    else:
+        return queue
 
-    return queue
+
+def get_default_queue(pk, return_cases=False):
+    try:
+        if return_cases:
+            # we get the cases separately so they can be sorted and re-assigned to the queue queryset object
+            queue = Queue.objects.defer('cases').get(pk=pk)
+            cases = Case.objects.filter(queues=queue)
+            return queue, cases
+        else:
+            return Queue.objects.get(pk=pk)
+    except Queue.DoesNotExist:
+        raise NotFoundError({'queue': 'Queue not found'})
 
 
 def get_queue(pk, return_cases=False):
@@ -106,13 +120,4 @@ def get_queue(pk, return_cases=False):
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
         return get_open_cases_queue(return_cases)
     else:
-        try:
-            if return_cases:
-                # we get the cases separately so they can be sorted and re-assigned to the queue queryset object
-                queue = Queue.objects.defer('cases').get(pk=pk)
-                cases = Case.objects.filter(queues=queue)
-                return queue, cases
-            else:
-                return Queue.objects.get(pk=pk)
-        except Queue.DoesNotExist:
-            raise NotFoundError({'queue': 'Queue not found'})
+        return get_default_queue(pk, return_cases)
