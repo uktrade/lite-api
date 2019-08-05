@@ -3,13 +3,14 @@ import uuid
 import reversion
 from django.db import models
 
-from applications.enums import ApplicationStatus, ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.units.enums import Units
+from static.statuses.models import CaseStatus
 
 
 @reversion.register()
@@ -22,7 +23,8 @@ class Application(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.CharField(choices=ApplicationStatus.choices, default=ApplicationStatus.SUBMITTED, max_length=50)
+    status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
+                               null=True)
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50) # this is open or standard lincences
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)

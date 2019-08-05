@@ -1,25 +1,20 @@
 from django.db import transaction
-from django.db.models import Q
-from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-
 from cases.libraries.get_case import get_case
-from cases.models import CaseAssignment, Case
+from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
-from conf.constants import SystemLimits
-from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases, \
+    get_sliced_cases
 from queues.models import Queue
-from queues.serializers import QueueSerializer, QueueViewSerializer, AllCasesQueueViewSerializer
+from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
 from django.conf import settings
-
 
 
 @permission_classes((permissions.AllowAny,))
@@ -67,35 +62,14 @@ class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
-            queue = get_all_cases_queue()
-            queue = queue.__dict__
+        queue, cases = get_queue(pk, return_cases=True)
+        cases = get_filtered_cases(request, queue.id, cases)
+        cases = get_sorted_cases(request, queue.id, cases)
+        cases = get_sliced_cases(queue.id, cases)
 
-            cases_with_submitted_at = Case.objects.annotate(
-                created_at=Concat('application__submitted_at', 'clc_query__submitted_at')
-            ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
-
-            queue['cases'] = list(cases_with_submitted_at)
-        elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
-            queue = get_open_cases_queue()
-            queue = queue.__dict__
-
-            cases_with_annotations = Case.objects.annotate(
-                created_at=Concat('application__submitted_at', 'clc_query__submitted_at'),
-                status=Concat('application__status', 'clc_query__status')
-            ).filter(
-                Q(status='submitted') |
-                Q(status='more_information_required') |
-                Q(status='under_review') |
-                Q(status='under_final_review') |
-                Q(status='resubmitted')
-            ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
-
-            queue['cases'] = list(cases_with_annotations)
-        else:
-            queue = get_queue(pk)
-
-        serializer = AllCasesQueueViewSerializer(queue)
+        queue = queue.__dict__
+        queue['cases'] = list(cases)
+        serializer = QueueViewCaseDetailSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
     @swagger_auto_schema(request_body=QueueSerializer)
@@ -128,7 +102,6 @@ class CaseAssignments(APIView):
     # noinspection PyMethodMayBeStatic
     def _get_case_assignments_for_specific_queue(self, pk):
         queue = get_queue(pk)
-
         case_assignments = CaseAssignment.objects.filter(queue=queue)
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
         return JsonResponse(data={'case_assignments': serializer.data})

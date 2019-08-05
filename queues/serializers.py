@@ -33,8 +33,7 @@ class QueueViewSerializer(QueueSerializer):
                   'cases',)
 
 
-class AllCasesQueueViewSerializer(QueueSerializer):
-    team = TeamSerializer(required=False)
+class QueueViewCaseDetailSerializer(QueueViewSerializer):
     cases = CaseDetailSerializer(many=True)
 
     class Meta:

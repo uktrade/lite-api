@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationStatus
+from static.statuses.enums import CaseStatusEnum
 from cases.models import Case
 from test_helpers.clients import DataTestClient
 
@@ -24,7 +24,7 @@ class CaseActivityTests(DataTestClient):
         # Add a case note
         self.create_case_note(self.case, 'Example Note', self.gov_user)
 
-        # Validate that there are now two objects in activity
+        # Validate that there is now one object in activity
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
@@ -33,12 +33,12 @@ class CaseActivityTests(DataTestClient):
 
         # Update the application status
         data = {
-            'status': ApplicationStatus.MORE_INFORMATION_REQUIRED,
+            'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED,
         }
 
         self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)
 
-        # Validate that there are now three objects in activity
+        # Validate that there are now two objects in activity
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 

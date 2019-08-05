@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationStatus
+from applications.enums import ApplicationLicenceType, ApplicationExportType
 from applications.libraries.get_application import get_application_by_pk
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
@@ -17,6 +17,9 @@ from organisations.serializers import SiteViewSerializer, OrganisationViewSerial
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.models import CaseStatus
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -55,7 +58,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    status = serializers.ChoiceField(choices=ApplicationStatus.choices)
+    status = serializers.SerializerMethodField()
     licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
         'required': 'Select which type of licence you want to apply for.'})
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
@@ -72,6 +75,10 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
+
+    # pylint: disable=W0221
+    def get_status(self, instance):
+        return instance.status.status
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
@@ -155,6 +162,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
     activity = serializers.CharField()
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
@@ -195,11 +203,11 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == ApplicationStatus.APPROVED:
+        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.APPROVED):
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == ApplicationStatus.UNDER_FINAL_REVIEW:
+        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}
@@ -252,6 +260,10 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         from cases.serializers import CaseNoteViewSerializer
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
         return CaseNoteViewSerializer(data, many=True).data
+
+    # pylint: disable=W0221
+    def get_status(self, instance):
+        return instance.status.name
 
     class Meta:
         model = Application

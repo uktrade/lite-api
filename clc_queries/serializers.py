@@ -2,11 +2,13 @@ from rest_framework import serializers
 
 from clc_queries.models import ClcQuery
 from goods.serializers import GoodSerializer
+from static.statuses.models import CaseStatus
 
 
 class ClcQuerySerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     organisation_name = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     submitted_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
@@ -22,8 +24,12 @@ class ClcQuerySerializer(serializers.ModelSerializer):
     def get_organisation_name(self, instance):
         return instance.good.organisation.name
 
+    def get_status(self, application):
+        return application.status.status
+
 
 class ClcQueryUpdateSerializer(serializers.ModelSerializer):
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
     class Meta:
         model = ClcQuery

@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
-from clc_queries.enums import ClcQueryStatus
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
@@ -138,7 +137,6 @@ class OrgAndUserHelper:
         draft.save()
         return draft
 
-
     @staticmethod
     def submit_draft(self, draft):
         draft_id = draft.id
@@ -159,7 +157,7 @@ class OrgAndUserHelper:
         return good
 
     @staticmethod
-    def create_clc_query(description, org):
+    def create_clc_query(description, org, status):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
@@ -171,7 +169,7 @@ class OrgAndUserHelper:
 
         clc_query = ClcQuery(details='this is a test text',
                              good=good,
-                             status=ClcQueryStatus.SUBMITTED)
+                             status=status)
         clc_query.save()
         return clc_query
 

@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
-from applications.enums import ApplicationLicenceType, ApplicationStatus
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
@@ -21,6 +21,8 @@ from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class ApplicationList(APIView):
@@ -60,7 +62,8 @@ class ApplicationList(APIView):
                                       usage=draft.usage,
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
-                                      organisation=draft.organisation)
+                                      organisation=draft.organisation,
+                                      status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
 
             errors = {}
 
@@ -95,7 +98,7 @@ class ApplicationList(APIView):
             queue.save()
 
             serializer = ApplicationBaseSerializer(application)
-            return JsonResponse(data={'application': serializer.data},
+            return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
                                 status=status.HTTP_201_CREATED)
 
 
@@ -123,8 +126,10 @@ class ApplicationDetail(APIView):
             data = json.loads(request.body)
 
             # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
-            if data.get('status') == ApplicationStatus.APPROVED or data.get('status') == ApplicationStatus.DECLINED:
+            if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
+
+            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
