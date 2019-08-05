@@ -101,7 +101,7 @@ def get_open_cases_queue(return_cases=False):
         return queue
 
 
-def get_default_queue(pk, return_cases=False):
+def get_non_system_queue(pk, return_cases=False):
     try:
         if return_cases:
             # we get the cases separately so they can be sorted and re-assigned to the queue queryset object
@@ -120,4 +120,4 @@ def get_queue(pk, return_cases=False):
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
         return get_open_cases_queue(return_cases)
     else:
-        return get_default_queue(pk, return_cases)
+        return get_non_system_queue(pk, return_cases)
