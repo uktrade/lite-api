@@ -54,6 +54,13 @@ def get_filtered_cases(request, queue_id, cases):
     return cases
 
 
+def get_sliced_cases(queue_id, cases):
+    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
+        return cases[:SystemLimits.MAX_OPEN_CASES_RESULTS]
+    else:
+        return cases
+
+
 def get_all_cases_queue(return_cases=False):
     queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
                   name='All cases',
@@ -62,7 +69,7 @@ def get_all_cases_queue(return_cases=False):
     if return_cases:
         cases = Case.objects.annotate(
             created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
-        ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
+        ).order_by('-created_at')
 
         return queue, cases
 
@@ -84,7 +91,7 @@ def get_open_cases_queue(return_cases=False):
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
-        ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
+        ).order_by('-created_at')
 
         return queue, cases
 
