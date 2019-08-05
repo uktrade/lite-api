@@ -4,15 +4,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def migrate_statuses(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
-    Application = apps.get_model('applications', 'Application')
-
-    for application in Application.objects.all():
-        application.status = CaseStatus.objects.filter(status=application.status)
-        application.save(update_fields=['status'])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -27,5 +18,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
                                     related_name='application_status', to='statuses.CaseStatus'),
         ),
-        migrations.RunPython(migrate_statuses),
     ]
