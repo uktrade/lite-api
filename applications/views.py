@@ -98,7 +98,7 @@ class ApplicationList(APIView):
             queue.save()
 
             serializer = ApplicationBaseSerializer(application)
-            return JsonResponse(data={'application': serializer.data},
+            return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
                                 status=status.HTTP_201_CREATED)
 
 
