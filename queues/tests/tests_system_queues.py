@@ -3,6 +3,8 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from conf.settings import OPEN_CASES_SYSTEM_QUEUE_ID
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
 from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 
@@ -16,7 +18,7 @@ class RetrieveAllCases(DataTestClient):
         self.case1 = self.create_application_case('case1 case1 for queue1')
         self.case2 = self.create_application_case('case2 case2 case2 for queue2')
         self.case3 = self.create_application_case('case3 case3 case3 for queue2')
-        self.case3.application.status = 'approved'
+        self.case3.application.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
         self.case3.application.save(update_fields=['status'])
 
     def test_get_all_case_assignments(self):

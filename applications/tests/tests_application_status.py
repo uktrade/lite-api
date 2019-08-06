@@ -2,8 +2,9 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.enums import ApplicationStatus
+from static.statuses.enums import CaseStatusEnum
 from applications.models import ApplicationDenialReason
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
 
 
@@ -19,13 +20,13 @@ class ApplicationDenialTests(DataTestClient):
     @parameterized.expand([
         # Valid reasons and valid reason_details
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': ['1a', '1b', '1c'],
             'reason_details': 'I liked the old way',
         }],
         # Valid reasons and valid missing reason_details
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': ['1a', '1b', '1c'],
         }],
     ])
@@ -36,7 +37,7 @@ class ApplicationDenialTests(DataTestClient):
         application_denial_reason = ApplicationDenialReason.objects.get(application=self.application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.application.status, ApplicationStatus.UNDER_FINAL_REVIEW)
+        self.assertEqual(self.application.status, get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
         self.assertEqual(application_denial_reason.reason_details,
                          data.get('reason_details'))
         self.assertEqual(application_denial_reason.reasons.all().count(),
@@ -45,30 +46,30 @@ class ApplicationDenialTests(DataTestClient):
     @parameterized.expand([
         # Invalid reasons
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': ['1234', '5678', '8910!'],
             'reason_details': 'I liked the old way',
         }],
         # Empty reasons
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': [],
             'reason_details': 'I liked the old way',
         }],
         # No reasons
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reason_details': 'I liked the old way',
         }],
         # Valid reasons except one
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': ['1a', '1b', '8910!'],
             'reason_details': 'I liked the old way',
         }],
         # Valid reasons but reason_details is too long
         [{
-            'status': ApplicationStatus.UNDER_FINAL_REVIEW,
+            'status': CaseStatusEnum.UNDER_FINAL_REVIEW,
             'reasons': ['1a', '1b'],
             'reason_details': '🙂' * 2201,
         }],

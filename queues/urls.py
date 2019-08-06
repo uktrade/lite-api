@@ -9,6 +9,8 @@ urlpatterns = [
     path('', views.QueuesList.as_view(), name='queues'),
     # ex: /queues/<uuid:pk>/ - View a specific queue
     path('<uuid:pk>/', views.QueueDetail.as_view(), name='queue'),
-    # ex: /queues/<uuid:pk>/case-assignments/ - Assign users to cases, on that particular queue
+    # ex: /queues/<uuid:pk>/case-assignments/ -
+    # Get user's case assignments, on that particular queue
+    # Assign users to cases, on that particular queue
     path('<uuid:pk>/case-assignments/', views.CaseAssignments.as_view(), name='case_assignment')
 ]
