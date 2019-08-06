@@ -263,7 +263,7 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
 
     # pylint: disable=W0221
     def get_status(self, instance):
-        return instance.status.name
+        return instance.status.status
 
     class Meta:
         model = Application

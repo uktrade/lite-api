@@ -1,3 +1,4 @@
+from django.test import tag
 from rest_framework import status
 
 from cases.models import CaseAssignment
@@ -138,6 +139,7 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
         self.assertEqual(3, len(response_data['queue']['cases']))
 
+    @tag('slow')
     def test_get_all_cases_system_queue_limits_to_200_cases(self):
         """
         Given that in excess of 200 cases exist
