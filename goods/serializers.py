@@ -8,6 +8,7 @@ from documents.tasks import prepare_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
+from organisations.serializers import OrganisationViewSerializer
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -110,7 +111,7 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodDocument
-        fields = ('name', 's3_key', 'user', 'size', 'good', 'description')
+        fields = ('name', 's3_key', 'user', 'organisation', 'size', 'good', 'description')
 
     def create(self, validated_data):
         good_document = super(GoodDocumentCreateSerializer, self).create(validated_data)
@@ -131,6 +132,7 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = ExporterUserSimpleSerializer()
+    organisation = OrganisationViewSerializer()
     s3_key = serializers.SerializerMethodField()
 
     def get_s3_key(self, instance):
@@ -138,4 +140,4 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodDocument
-        fields = ('name', 's3_key', 'user', 'size', 'good', 'created_at', 'safe', 'description')
+        fields = ('name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')

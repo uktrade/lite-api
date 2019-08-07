@@ -149,10 +149,19 @@ class GoodDocuments(APIView):
         good = get_good(pk)
         good_id = str(good.id)
         data = request.data
+        organisation = get_organisation_by_user(request.user)
+
+        if good.organisation != organisation:
+            raise Http404
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         for document in data:
             document['good'] = good_id
             document['user'] = request.user.id
+            document['organisation'] = organisation.id
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -163,17 +172,26 @@ class GoodDocuments(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-# class GoodDocumentDetail(APIView):
-#     authentication_classes = (ExporterAuthentication,)
-#
-#     def get(self, request, pk, s3_key):
-#         """
-#         Returns a list of documents on the specified good
-#         """
-#         good = get_good(pk)
-#         good_document = get_good_document(good, s3_key)
-#         serializer = GoodDocumentViewSerializer(good_document)
-#         return JsonResponse({'document': serializer.data})
+class GoodDocumentDetail(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk, s3_key):
+        """
+        Returns a list of documents on the specified good
+        """
+        good = get_good(pk)
+        organisation = get_organisation_by_user(request.user)
+
+        if good.organisation != organisation:
+            raise Http404
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        good_document = get_good_document(good, s3_key)
+        serializer = GoodDocumentViewSerializer(good_document)
+        return JsonResponse({'document': serializer.data})
 
 
 class RemoveGoodDocument(APIView):
@@ -191,9 +209,13 @@ class RemoveGoodDocument(APIView):
 
         good = get_good(pk)
         organisation = get_organisation_by_user(request.user)
+
         if good.organisation != organisation:
-            print('they do not match')
-            return JsonResponse({'not found': get_string('document.document_not_found')}, status=Http404)
+            raise Http404
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         good_document = Document.objects.get(id=doc_pk)
         document = get_good_document(good, good_document.s3_key)
