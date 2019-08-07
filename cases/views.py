@@ -15,6 +15,8 @@ from cases.models import CaseAssignment, CaseDocument
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
+from ecju_queries.models import EcjuQuery
+from ecju_queries.serializers import EcjuQuerySerializer
 from users.models import ExporterUser
 
 
@@ -223,3 +225,17 @@ class CaseDocumentDetail(APIView):
         case_document = get_case_document(case, s3_key)
         serializer = CaseDocumentViewSerializer(case_document)
         return JsonResponse({'document': serializer.data})
+
+
+class CaseEcjuQueries(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns the list of ECJU Queries on a case
+        """
+        case = get_case(pk)
+        case_ecju_queries = EcjuQuery.objects.filter(case=case)
+        serializer = EcjuQuerySerializer(case_ecju_queries, many=True)
+
+        return JsonResponse({'ecju_queries': serializer.data})
