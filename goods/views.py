@@ -10,6 +10,7 @@ from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
+from content_strings.strings import get_string
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good, get_good_document
@@ -187,15 +188,14 @@ class RemoveGoodDocument(APIView):
         :param doc_pk:
         :return:
         """
+
         good = get_good(pk)
-
         organisation = get_organisation_by_user(request.user)
-
         if good.organisation != organisation:
-            return JsonResponse({'forbidden': 'user forbidden'}, status=Http404)
+            print('they do not match')
+            return JsonResponse({'not found': get_string('document.document_not_found')}, status=Http404)
 
         good_document = Document.objects.get(id=doc_pk)
-
         document = get_good_document(good, good_document.s3_key)
         document.delete_s3()
 
