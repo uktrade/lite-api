@@ -8,13 +8,14 @@ from case_types.models import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
+from goods.models import Good, GoodDocument
 from gov_users.libraries.user_to_token import user_to_token
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from flags.models import Flag
 from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser, BaseUser
+from users.models import GovUser, BaseUser, ExporterUser
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 
@@ -167,6 +168,19 @@ class DataTestClient(BaseTestClient):
                                 safe=None)
         case_doc.save()
         return case_doc
+
+    def create_good_document(self, good: Good, user: ExporterUser, name: str):
+        good_doc = GoodDocument(good=good,
+                                description='This is a document',
+                                user=user,
+                                organisation=user.organisation,
+                                name=name,
+                                s3_key='thisisakey',
+                                size=123456,
+                                virus_scanned_at=None,
+                                safe=None)
+        good_doc.save()
+        return good_doc
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)

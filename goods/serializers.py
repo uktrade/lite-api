@@ -3,9 +3,13 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case, CaseNote
 from clc_queries.models import ClcQuery
+from conf.settings import BACKGROUND_TASK_ENABLED
+from documents.tasks import prepare_document
 from goods.enums import GoodStatus, GoodControlled
-from goods.models import Good
+from goods.models import Good, GoodDocument
 from organisations.models import Organisation
+from users.models import ExporterUser
+from users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodSerializer(serializers.ModelSerializer):
@@ -97,3 +101,41 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
+
+
+class GoodDocumentCreateSerializer(serializers.ModelSerializer):
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
+    class Meta:
+        model = GoodDocument
+        fields = ('name', 's3_key', 'user', 'size', 'good', 'description')
+
+    def create(self, validated_data):
+        good_document = super(GoodDocumentCreateSerializer, self).create(validated_data)
+        good_document.save()
+
+        if BACKGROUND_TASK_ENABLED:
+            prepare_document(str(good_document.id))
+        else:
+            try:
+                prepare_document.now(str(good_document.id))
+            except Exception:
+                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
+
+        return good_document
+
+
+class GoodDocumentViewSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(read_only=True)
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+    user = ExporterUserSimpleSerializer()
+    s3_key = serializers.SerializerMethodField()
+
+    def get_s3_key(self, instance):
+        return instance.s3_key if instance.safe else 'File not ready'
+
+    class Meta:
+        model = GoodDocument
+        fields = ('name', 's3_key', 'user', 'size', 'good', 'created_at', 'safe', 'description')

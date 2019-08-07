@@ -1,5 +1,7 @@
+from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.utils import timezone
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -8,10 +10,11 @@ from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
+from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled
-from goods.libraries.get_good import get_good
-from goods.models import Good
-from goods.serializers import GoodSerializer
+from goods.libraries.get_good import get_good, get_good_document
+from goods.models import Good, GoodDocument
+from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
@@ -117,3 +120,85 @@ class GoodDetail(APIView):
         good.delete()
         return JsonResponse(data={'status': 'Good Deleted'},
                             status=status.HTTP_200_OK)
+
+
+class GoodDocuments(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns a list of documents on the specified good
+        """
+        good = get_good(pk)
+        good_documents = GoodDocument.objects.filter(good=good).order_by('-created_at')
+        serializer = GoodDocumentViewSerializer(good_documents, many=True)
+
+        return JsonResponse({'documents': serializer.data})
+
+    @swagger_auto_schema(
+        request_body=GoodDocumentCreateSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
+    @transaction.atomic()
+    def post(self, request, pk):
+        """
+        Adds a document to the specified good
+        """
+        good = get_good(pk)
+        good_id = str(good.id)
+        data = request.data
+
+        for document in data:
+            document['good'] = good_id
+            document['user'] = request.user.id
+
+        serializer = GoodDocumentCreateSerializer(data=data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse({'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+# class GoodDocumentDetail(APIView):
+#     authentication_classes = (ExporterAuthentication,)
+#
+#     def get(self, request, pk, s3_key):
+#         """
+#         Returns a list of documents on the specified good
+#         """
+#         good = get_good(pk)
+#         good_document = get_good_document(good, s3_key)
+#         serializer = GoodDocumentViewSerializer(good_document)
+#         return JsonResponse({'document': serializer.data})
+
+
+class RemoveGoodDocument(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic()
+    def delete(self, request, pk, doc_pk):
+        """
+        Deletes good document
+        :param request:
+        :param pk:
+        :param doc_pk:
+        :return:
+        """
+        good = get_good(pk)
+
+        organisation = get_organisation_by_user(request.user)
+
+        if good.organisation != organisation:
+            return JsonResponse({'forbidden': 'user forbidden'}, status=Http404)
+
+        good_document = Document.objects.get(id=doc_pk)
+
+        document = get_good_document(good, good_document.s3_key)
+        document.delete_s3()
+
+        good_document.delete()
+
+        return JsonResponse({'document': 'deleted success'})
