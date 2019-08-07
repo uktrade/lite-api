@@ -5,7 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from ecju_queries.serializers import EcjuQuerySerializer
+from ecju_queries.libraries.get_ecju_query import get_ecju_query
+from ecju_queries.serializers import EcjuQuerySerializer, EcjuQueryCreateSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -17,7 +18,7 @@ class EcjuQueriesList(APIView):
         Add a new ECJU query
         """
         data = JSONParser().parse(request)
-        serializer = EcjuQuerySerializer(data=data)
+        serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -26,3 +27,19 @@ class EcjuQueriesList(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+@permission_classes((permissions.AllowAny,))
+class EcjuQueryDetail(APIView):
+    """
+    Details of a specific ECJU query
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns details of a specific flag
+        """
+        ecju_query = get_ecju_query(pk)
+        serializer = EcjuQuerySerializer(ecju_query)
+        return JsonResponse(data={'ecju_query': serializer.data})

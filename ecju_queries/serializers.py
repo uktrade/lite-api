@@ -5,13 +5,23 @@ from ecju_queries.models import EcjuQuery
 
 
 class EcjuQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',)
+
+
+class EcjuQueryCreateSerializer(serializers.ModelSerializer):
+    """
+    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
+    """
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
-    response = serializers.CharField(max_length=5000, required=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
 
     class Meta:
         model = EcjuQuery
         fields = ('id',
                   'question',
-                  'response',
                   'case',)
