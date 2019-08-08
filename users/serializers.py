@@ -47,31 +47,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserSerializer(serializers.ModelSerializer):
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-
-    class Meta:
-        model = ExporterUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'organisation')
-
-
-class UserViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExporterUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'organisation')
-
-
-class UserUpdateSerializer(UserSerializer):
+class ExporterUserUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
