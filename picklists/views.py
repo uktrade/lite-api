@@ -1,5 +1,11 @@
+import operator
+
+from django.db.models import Q
+from functools import reduce
 from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
+from picklists.enums import PickListStatus
 from picklists.models import PicklistItem
 from django.http.response import JsonResponse
 from rest_framework import status, permissions
@@ -16,16 +22,20 @@ class PickListItems(APIView):
 
     def get(self, request):
         """
-        Returns a list of all picklist items, filtered by type
+        Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        type = request.GET.get('type', None)
-        if type:
-            picklist_items = PicklistItem.objects.filter(type=type)
-        else:
-            picklist_items = PicklistItem.objects.all()
+        picklist_type = request.GET.get('type', None)
+        show_deactivated = str_to_bool(request.GET.get('show_deactivated', None))
+        query = [Q(team=request.user.team.id)]
 
+        if picklist_type:
+            query.append(Q(type=picklist_type))
+
+        if not show_deactivated:
+            query.append(Q(status=PickListStatus.ACTIVE))
+
+        picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
         serializer = PicklistSerializer(picklist_items, many=True)
-
         return JsonResponse(data={'picklist_items': serializer.data})
 
     def post(self, request):

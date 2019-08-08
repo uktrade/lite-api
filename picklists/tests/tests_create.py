@@ -5,7 +5,7 @@ from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
 
-class PickLists(DataTestClient):
+class PicklistItemCreate(DataTestClient):
 
     url = reverse('picklist_items:picklist_items')
 
@@ -14,8 +14,8 @@ class PickLists(DataTestClient):
             'name': 'picklist entry name',
             'text': 'ats us nai',
             'type': PicklistType.ECJU,
-            'team': self.team.id,
-            'status': PickListStatus.ACTIVATE,
+            'team': str(self.team.id),
+            'status': PickListStatus.ACTIVE,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -23,3 +23,7 @@ class PickLists(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['picklist_item']['name'], data['name'])
+        self.assertEqual(response_data['picklist_item']['text'], data['text'])
+        self.assertEqual(response_data['picklist_item']['type']['key'], data['type'])
+        self.assertEqual(response_data['picklist_item']['team'], data['team'])
+        self.assertEqual(response_data['picklist_item']['status']['key'], data['status'])

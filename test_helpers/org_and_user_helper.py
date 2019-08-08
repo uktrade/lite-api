@@ -228,14 +228,3 @@ class OrgAndUserHelper:
                            country=get_country('GB'))
         end_user.save()
         return end_user
-
-    @staticmethod
-    def create_picklist_item(status, team: Team, type=PicklistType.ECJU):
-        picklist_item = PicklistItem(team=team,
-                                     name='Picklist Item 1',
-                                     text='This is a string of text, please do not disturb the milk argument',
-                                     type=type,
-                                     status=status)
-
-        picklist_item.save()
-        return picklist_item

@@ -11,6 +11,8 @@ from conf.urls import urlpatterns
 from drafts.models import Draft
 from goodstype.models import GoodsType
 from gov_users.libraries.user_to_token import user_to_token
+from picklists.enums import PicklistType
+from picklists.models import PicklistItem
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -184,3 +186,13 @@ class DataTestClient(BaseTestClient):
                               )
         goodstype.save()
         return goodstype
+
+    def create_picklist_item(self, name, team: Team, picklist_type, status):
+        picklist_item = PicklistItem(team=team,
+                                     name=name,
+                                     text='This is a string of text, please do not disturb the milk argument',
+                                     type=picklist_type,
+                                     status=status)
+
+        picklist_item.save()
+        return picklist_item
