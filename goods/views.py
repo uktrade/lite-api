@@ -10,7 +10,6 @@ from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
-from content_strings.strings import get_string
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_good import get_good, get_good_document
