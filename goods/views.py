@@ -12,7 +12,7 @@ from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled
-from goods.libraries.get_good import get_good, get_good_document, get_good_document_by_pk
+from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -188,7 +188,7 @@ class GoodDocumentDetail(APIView):
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        good_document = get_good_document_by_pk(good, doc_pk)
+        good_document = get_good_document(good, doc_pk)
         serializer = GoodDocumentViewSerializer(good_document)
         return JsonResponse({'document': serializer.data})
 
@@ -213,7 +213,7 @@ class GoodDocumentDetail(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         good_document = Document.objects.get(id=doc_pk)
-        document = get_good_document(good, good_document.id)
+        document = get_good_document_by_pk(good, good_document.id)
         document.delete_s3()
 
         good_document.delete()

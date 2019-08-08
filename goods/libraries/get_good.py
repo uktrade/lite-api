@@ -13,17 +13,7 @@ def get_good(pk):
         raise Http404
 
 
-def get_good_document(good: Good, s3_key: str):
-    """
-    Returns a case or returns a 404 on failure
-    """
-    try:
-        return GoodDocument.objects.get(good=good, s3_key=s3_key)
-    except GoodDocument.DoesNotExist:
-        raise NotFoundError({'document': get_string('documents.document_not_found')})
-
-
-def get_good_document_by_pk(good: Good, pk):
+def get_good_document(good: Good, pk):
     """
     Returns a case or returns a 404 on failure
     """
