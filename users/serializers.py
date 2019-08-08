@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from cases.models import Notification
@@ -47,29 +46,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ExporterUserUpdateSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
-        error_messages={
-            'invalid': 'Enter an email address in the correct format, like name@example.com'}
-    )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    status = serializers.ChoiceField(choices=UserStatuses.choices)
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `User` instance, given the validated data.
-        """
-        instance.email = validated_data.get('email', instance.email)
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.status = validated_data.get('status', instance.status)
-        instance.save()
-        return instance
-
-
-class ExporterUserCreateSerializer(serializers.ModelSerializer):
+class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
@@ -83,8 +60,16 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
         model = ExporterUser
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
-    def create(self, validated_data):
-        return ExporterUser.objects.create(**validated_data)
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `User` instance, given the validated data.
+        """
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+        return instance
 
 
 class NotificationsSerializer(serializers.ModelSerializer):

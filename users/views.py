@@ -15,7 +15,7 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import ExporterUserUpdateSerializer, ExporterUserCreateSerializer, NotificationsSerializer, \
+from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserCreateUpdateSerializer, NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer
 
 
@@ -69,7 +69,7 @@ class UserList(APIView):
 
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
-        serializer = ExporterUserCreateSerializer(data=data)
+        serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -105,7 +105,7 @@ class UserDetail(APIView):
                 if data[key] is '':
                     del data[key]
 
-            serializer = ExporterUserUpdateSerializer(user, data=data, partial=True)
+            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'user': serializer.data},
