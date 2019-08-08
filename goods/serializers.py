@@ -140,4 +140,4 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodDocument
-        fields = ('name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')
+        fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')

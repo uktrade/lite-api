@@ -33,7 +33,7 @@ class GoodDocumentsTests(DataTestClient):
         doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
         self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
 
-        url = reverse('goods:remove_document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
+        url = reverse('goods:document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 

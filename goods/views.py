@@ -12,7 +12,7 @@ from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled
-from goods.libraries.get_good import get_good, get_good_document
+from goods.libraries.get_good import get_good, get_good_document, get_good_document_by_pk
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -174,7 +174,7 @@ class GoodDocuments(APIView):
 class GoodDocumentDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk, s3_key):
+    def get(self, request, pk, doc_pk):
         """
         Returns a list of documents on the specified good
         """
@@ -188,13 +188,9 @@ class GoodDocumentDetail(APIView):
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        good_document = get_good_document(good, s3_key)
+        good_document = get_good_document_by_pk(good, doc_pk)
         serializer = GoodDocumentViewSerializer(good_document)
         return JsonResponse({'document': serializer.data})
-
-
-class RemoveGoodDocument(APIView):
-    authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic()
     def delete(self, request, pk, doc_pk):
@@ -217,7 +213,7 @@ class RemoveGoodDocument(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         good_document = Document.objects.get(id=doc_pk)
-        document = get_good_document(good, good_document.s3_key)
+        document = get_good_document(good, good_document.id)
         document.delete_s3()
 
         good_document.delete()
