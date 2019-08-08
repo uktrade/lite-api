@@ -69,7 +69,7 @@ class ExporterUserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class ExporterUserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
