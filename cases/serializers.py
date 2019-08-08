@@ -1,9 +1,12 @@
+from collections import OrderedDict
+
 from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
-from case_types.serializers import CaseTypeSerializer
+from cases.enums import CaseType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
 from clc_queries.serializers import ClcQuerySerializer
+from conf.serializers import KeyValueChoiceField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
@@ -18,30 +21,36 @@ class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
     """
-    application = ApplicationBaseSerializer(read_only=True)
-    is_clc = serializers.SerializerMethodField()
+    type = KeyValueChoiceField(choices=CaseType.choices)
     clc_query = ClcQuerySerializer(read_only=True)
-    case_type = CaseTypeSerializer(read_only=True)
-
-    def get_is_clc(self, obj):
-        return obj.case_type.name == 'CLC query'
+    application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'is_clc', 'clc_query', 'case_type')
+        fields = ('id', 'type', 'application', 'clc_query',)
+
+    def to_representation(self, value):
+        """
+        Only show 'application' if it has an application inside,
+        and only show 'clc_query' if it has a CLC query inside
+        """
+        repr_dict = super(CaseSerializer, self).to_representation(value)
+        if not repr_dict['application']:
+            del repr_dict['application']
+        if not repr_dict['clc_query']:
+            del repr_dict['clc_query']
+        return repr_dict
 
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    is_clc = serializers.SerializerMethodField()
     clc_query = ClcQuerySerializer(read_only=True)
-    case_type = CaseTypeSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'application', 'queues', 'is_clc', 'clc_query', 'case_type', 'flags', 'queue_names')
+        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'clc_query',)
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))
@@ -53,6 +62,7 @@ class CaseDetailSerializer(CaseSerializer):
         if not attrs:
             raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
         return attrs
+
 
 class CaseNoteViewSerializer(serializers.ModelSerializer):
     """

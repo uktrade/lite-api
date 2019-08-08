@@ -41,7 +41,7 @@ def get_filtered_cases(request, queue_id, cases):
     kwargs = {}
     case_type = request.GET.get('case_type', None)
     if case_type:
-        kwargs['case_type__name'] = case_type
+        kwargs['type'] = case_type
 
     status = request.GET.get('status', None)
     if status:

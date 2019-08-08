@@ -1,13 +1,15 @@
 from uuid import UUID
 
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.models import Application
-from case_types.models import CaseType
+from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
+from goodstype.models import GoodsType
 from gov_users.libraries.user_to_token import user_to_token
 from queues.models import Queue
 from static.urls import urlpatterns as static_urlpatterns
@@ -119,8 +121,7 @@ class DataTestClient(BaseTestClient):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
         clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation, status)
-        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-        case = Case(clc_query=clc_query, case_type=case_type)
+        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
 
@@ -172,3 +173,14 @@ class DataTestClient(BaseTestClient):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
+
+    def create_goods_type(self, content_type_model, obj):
+        goodstype = GoodsType(description='thing',
+                              is_good_controlled=False,
+                              control_code='ML1a',
+                              is_good_end_product=True,
+                              content_type=ContentType.objects.get(model=content_type_model),
+                              object_id=obj.pk,
+                              )
+        goodstype.save()
+        return goodstype

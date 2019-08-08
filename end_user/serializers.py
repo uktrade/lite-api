@@ -24,14 +24,15 @@ class EndUserSerializer(serializers.ModelSerializer):
                   'type',
                   'organisation')
 
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Site` instance, given the validated data.
-        """
-        instance.name = validated_data.get('name', instance.name)
-        instance.address = validated_data.get('address', instance.address)
-        instance.country = validated_data.get('country', instance.country)
-        instance.website = validated_data.get('website', instance.website)
-        instance.type = validated_data.get('type', instance.type)
-        instance.save()
-        return instance
+    # TODO: Maybe remove
+    # def update(self, instance, validated_data):
+    #     """
+    #     Update and return an existing `Site` instance, given the validated data.
+    #     """
+    #     instance.name = validated_data.get('name', instance.name)
+    #     instance.address = validated_data.get('address', instance.address)
+    #     instance.country = validated_data.get('country', instance.country)
+    #     instance.website = validated_data.get('website', instance.website)
+    #     instance.type = validated_data.get('type', instance.type)
+    #     instance.save()
+    #     return instance

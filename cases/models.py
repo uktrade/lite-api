@@ -4,8 +4,8 @@ import reversion
 from django.db import models
 
 from applications.models import Application
+from cases.enums import CaseType
 from documents.models import Document
-from case_types.models import CaseType
 from clc_queries.models import ClcQuery
 from queues.models import Queue
 from users.models import BaseUser, ExporterUser, GovUser
@@ -18,10 +18,7 @@ class Case(models.Model):
     Wrapper for application model intended for internal users.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case_type = models.ForeignKey(CaseType,
-                                  related_name='case',
-                                  on_delete=models.DO_NOTHING,
-                                  default='0ec51727-2acf-4459-b568-93a906d84008')
+    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=20)
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
     clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
@@ -31,7 +28,7 @@ class Case(models.Model):
 @reversion.register()
 class CaseNote(models.Model):
     """
-    Note on a case, visible by internal users.
+    Note on a case, visible to internal users and exporters depending on is_visible_to_exporter.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name='case_note', on_delete=models.CASCADE)
@@ -57,6 +54,9 @@ class CaseNote(models.Model):
 
 
 class CaseAssignment(models.Model):
+    """
+    Assigns users to a case on a particular queue
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     users = models.ManyToManyField(GovUser, related_name='case_assignments')
@@ -67,6 +67,7 @@ class Notification(models.Model):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE, null=False)
     note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
     viewed_at = models.DateTimeField(null=True)
+
 
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)

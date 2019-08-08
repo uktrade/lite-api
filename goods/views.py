@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from case_types.models import CaseType
+from cases.enums import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
@@ -51,8 +51,7 @@ class GoodList(APIView):
                     clc_query.save()
 
                     # Create a case
-                    case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-                    case = Case(clc_query=clc_query, case_type=case_type)
+                    case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
                     case.save()
 
                     # Add said case to default queue
