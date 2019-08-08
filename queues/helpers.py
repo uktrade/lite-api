@@ -24,12 +24,7 @@ def get_sorted_cases(request, queue_id, cases):
             cases = _coalesce_case_status(queue_id, cases)
             order = '-' if sort['status'] == 'desc' else ''
             kwargs.append(order + 'status__priority')
-
-        if kwargs:
-            # if system queue order by memory
-            if kwargs['is_system_queue']:
-                return cases.order_by(*kwargs)
-
+            return cases.order_by(*kwargs)
     return cases
 
 
@@ -48,9 +43,9 @@ def get_filtered_cases(request, queue_id, cases):
     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
         # filter in memory new method
         return filter_in_memory(request, cases)
-    else:
+    # else:
         # filter using existing code
-        return cases
+        # return cases
 
     kwargs = {}
     case_type = request.GET.get('case_type', None)
@@ -67,15 +62,6 @@ def get_filtered_cases(request, queue_id, cases):
         return cases.filter(**kwargs)
 
     return cases
-
-
-# def get_sliced_cases(queue_id, cases):
-#     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id:
-#         return cases[:SystemLimits.MAX_ALL_CASES_RESULTS]
-#     elif OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
-#         return cases[:SystemLimits.MAX_OPEN_CASES_RESULTS]
-#     else:
-#         return cases
 
 
 def get_all_cases_queue(return_cases=False):
