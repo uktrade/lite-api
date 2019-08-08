@@ -43,9 +43,6 @@ def get_filtered_cases(request, queue_id, cases):
     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
         # filter in memory new method
         return filter_in_memory(request, cases)
-    # else:
-        # filter using existing code
-        # return cases
 
     kwargs = {}
     case_type = request.GET.get('case_type', None)

@@ -10,8 +10,7 @@ from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases, \
-    get_sliced_cases
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
 from django.conf import settings
