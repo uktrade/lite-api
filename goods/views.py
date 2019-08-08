@@ -213,7 +213,7 @@ class GoodDocumentDetail(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         good_document = Document.objects.get(id=doc_pk)
-        document = get_good_document_by_pk(good, good_document.id)
+        document = get_good_document(good, good_document.id)
         document.delete_s3()
 
         good_document.delete()
