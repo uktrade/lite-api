@@ -82,14 +82,9 @@ class GoodSerializer(serializers.ModelSerializer):
         if is_controlled_good and not value.get('control_code'):
             raise serializers.ValidationError('Control Code must be set when good is controlled')
 
-        is_controlled_unsure = value.get('is_good_controlled') == GoodControlled.UNSURE
-        if is_controlled_unsure and not value.get('not_sure_details_details'):
-            raise serializers.ValidationError('Please enter details of why you don\'t know if your good is controlled')
         return value
 
     def create(self, validated_data):
-        del validated_data['not_sure_details_details']
-
         good = super(GoodSerializer, self).create(validated_data)
         return good
 
