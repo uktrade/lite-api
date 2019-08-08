@@ -12,13 +12,7 @@ from teams.models import Team
 
 
 def _coalesce_case_status(queue_id, cases):
-    # We do not need to coalesce on `status__priority` again if the queue is `open_cases`
-    if not OPEN_CASES_SYSTEM_QUEUE_ID == str(queue_id):
-        return cases.annotate(
-            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
-        )
-    else:
-        return cases
+    return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
 
 
 def get_sorted_cases(request, queue_id, cases):
@@ -32,12 +26,32 @@ def get_sorted_cases(request, queue_id, cases):
             kwargs.append(order + 'status__priority')
 
         if kwargs:
-            return cases.order_by(*kwargs)
+            # if system queue order by memory
+            if kwargs['is_system_queue']:
+                return cases.order_by(*kwargs)
 
     return cases
 
 
+def filter_in_memory(request, cases):
+    sort = request.GET.get('sort', None)
+    if sort:
+        sort = loads(sort)
+        if 'status' in sort:
+            if sort['status'] == 'desc':
+                return sorted(cases, key=lambda k: k['status__priority'])
+            else:
+                return sorted(cases, key=lambda k: k['status__priority']).reverse
+
+
 def get_filtered_cases(request, queue_id, cases):
+    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
+        # filter in memory new method
+        return filter_in_memory(request, cases)
+    else:
+        # filter using existing code
+        return cases
+
     kwargs = {}
     case_type = request.GET.get('case_type', None)
     if case_type:
@@ -55,13 +69,13 @@ def get_filtered_cases(request, queue_id, cases):
     return cases
 
 
-def get_sliced_cases(queue_id, cases):
-    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id:
-        return cases[:SystemLimits.MAX_ALL_CASES_RESULTS]
-    elif OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
-        return cases[:SystemLimits.MAX_OPEN_CASES_RESULTS]
-    else:
-        return cases
+# def get_sliced_cases(queue_id, cases):
+#     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id:
+#         return cases[:SystemLimits.MAX_ALL_CASES_RESULTS]
+#     elif OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
+#         return cases[:SystemLimits.MAX_OPEN_CASES_RESULTS]
+#     else:
+#         return cases
 
 
 def get_all_cases_queue(return_cases=False):
@@ -72,7 +86,7 @@ def get_all_cases_queue(return_cases=False):
     if return_cases:
         cases = Case.objects.annotate(
             created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
-        ).order_by('-created_at')
+        ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
 
         return queue, cases
     else:
@@ -94,7 +108,7 @@ def get_open_cases_queue(return_cases=False):
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
-        ).order_by('-created_at')
+        ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
 
         return queue, cases
     else:
