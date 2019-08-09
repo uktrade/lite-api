@@ -11,6 +11,7 @@ from reversion.models import Version
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
+from cases.libraries.get_ecju_queries import get_ecju_queries_from_case
 from cases.models import CaseAssignment, CaseDocument
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
@@ -105,6 +106,7 @@ class CaseActivity(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         case_notes = get_case_notes_from_case(case, False)
+        ecju_queries = get_ecju_queries_from_case(case)
 
         if case.application_id:
             version_records = Version.objects.filter(
@@ -129,6 +131,8 @@ class CaseActivity(APIView):
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
 
+        for ecju_query in ecju_queries:
+            activity.append(convert_ecju_query_to_activity(case_note))
         # Sort the activity based on date (newest first)
         activity.sort(key=lambda x: x['date'], reverse=True)
 
@@ -142,9 +146,6 @@ class CaseFlagsAssignment(APIView):
     """
 
     def put(self, request, pk):
-        """
-        TODO: Extend put method to use different _assign_x_flags methods depending on the level of flags being assigned
-        """
         case = get_case(str(pk))
         data = JSONParser().parse(request)
 

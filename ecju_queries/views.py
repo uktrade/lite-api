@@ -1,3 +1,5 @@
+import reversion
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
@@ -13,17 +15,19 @@ from ecju_queries.serializers import EcjuQuerySerializer, EcjuQueryCreateSeriali
 class EcjuQueriesList(APIView):
     authentication_classes = (GovAuthentication,)
 
+    @transaction.atomic
     def post(self, request):
         """
         Add a new ECJU query
         """
         data = JSONParser().parse(request)
-        serializer = EcjuQueryCreateSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'ecju_query_id': serializer.data['id']},
-                                status=status.HTTP_201_CREATED)
+        data['raised_by_user'] = request.user.id
+        serializer = EcjuQueryCreateSerializer(data=data)  # context={'user_id': request.user.id}
+        with reversion.create_revision():
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(data={'ecju_query_id': serializer.data['id']},
+                                    status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
