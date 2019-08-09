@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from documents.models import Document
+from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -74,6 +75,11 @@ class GoodDetail(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
+
+        if data['is_good_controlled'] == 'unsure':
+            for good_on_draft in GoodOnDraft.objects.filter(good=good):
+                good_on_draft.delete()
+
         data['organisation'] = organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
         if serializer.is_valid():
@@ -92,6 +98,9 @@ class GoodDetail(APIView):
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(data={'errors': 'Good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+        for document in GoodDocument.objects.filter(good=good):
+            document.delete_s3()
 
         good.delete()
         return JsonResponse(data={'status': 'Good Deleted'},
@@ -193,5 +202,8 @@ class GoodDocumentDetail(APIView):
         document.delete_s3()
 
         good_document.delete()
+        if len(GoodDocument.objects.filter(good=good)) == 0:
+            for good_on_draft in GoodOnDraft.objects.filter(good=good):
+                good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})
