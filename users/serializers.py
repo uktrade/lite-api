@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import PKOnlyObject
 from rest_framework.validators import UniqueValidator
 
 from cases.models import Notification
@@ -11,7 +12,10 @@ from users.models import ExporterUser, BaseUser, GovUser
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
-        instance = get_user_by_pk(instance.id)
+        if isinstance(instance, PKOnlyObject):
+            instance = get_user_by_pk(str(instance))
+        else:
+            instance = get_user_by_pk(instance.id)
 
         if isinstance(instance, ExporterUser):
             return ExporterUserViewSerializer(instance=instance).data

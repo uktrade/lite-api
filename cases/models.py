@@ -84,7 +84,7 @@ class Advice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
-    type = models.CharField(choices=AdviceType.choices)
+    type = models.CharField(choices=AdviceType.choices, max_length=30)
 
     # {'goods': ['uuid', 'uuid', 'uuid']}
     # {'goods_type': ['uuid', 'uuid', 'uuid']}

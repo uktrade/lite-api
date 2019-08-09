@@ -1,4 +1,4 @@
-from cases.models import Case, CaseDocument
+from cases.models import Case, CaseDocument, Advice
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 

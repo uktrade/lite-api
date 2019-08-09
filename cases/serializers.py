@@ -4,9 +4,9 @@ from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice
 from clc_queries.serializers import ClcQuerySerializer
-from conf.serializers import KeyValueChoiceField
+from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from gov_users.serializers import GovUserSimpleSerializer
@@ -64,25 +64,13 @@ class CaseDetailSerializer(CaseSerializer):
         return attrs
 
 
-class CaseNoteViewSerializer(serializers.ModelSerializer):
-    """
-    Serializes case notes
-    """
-    user = BaseUserViewSerializer()
-    created_at = serializers.DateTimeField(read_only=True)
-
-    class Meta:
-        model = CaseNote
-        fields = '__all__'
-
-
-class CaseNoteCreateSerializer(CaseNoteViewSerializer):
+class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
     """
     text = serializers.CharField(min_length=2, max_length=2200)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)
     is_visible_to_exporter = serializers.BooleanField(default=False)
 
@@ -151,3 +139,14 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseDocument
         fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
+
+
+class CaseAdviceSerializer(serializers.ModelSerializer):
+    case = PrimaryKeyRelatedSerializerField(queryset=Case.objects.all())
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all())
+    goods = serializers.JSONField()
+    destinations = serializers.JSONField()
+
+    class Meta:
+        model = Advice
+        fields = ('case', 'user', 'goods', 'destinations')

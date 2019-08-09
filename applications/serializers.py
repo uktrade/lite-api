@@ -268,9 +268,9 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         return case.id
 
     def get_case_notes(self, obj):
-        from cases.serializers import CaseNoteViewSerializer
+        from cases.serializers import CaseNoteSerializer
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
-        return CaseNoteViewSerializer(data, many=True).data
+        return CaseNoteSerializer(data, many=True).data
 
     # pylint: disable=W0221
     def get_status(self, instance):
