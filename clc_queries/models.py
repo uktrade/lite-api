@@ -2,6 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
+
 from goods.models import Good
 from static.statuses.models import CaseStatus
 

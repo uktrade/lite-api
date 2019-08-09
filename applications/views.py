@@ -11,7 +11,8 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, \
+    ApplicationCaseNotesSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions

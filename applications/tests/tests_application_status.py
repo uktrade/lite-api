@@ -2,8 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from static.statuses.enums import CaseStatusEnum
 from applications.models import ApplicationDenialReason
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
 

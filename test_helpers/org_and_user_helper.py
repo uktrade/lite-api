@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
+from clc_queries.models import ClcQuery
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
 from end_user.enums import EndUserType
 from end_user.models import EndUser
@@ -18,9 +19,6 @@ from static.units.enums import Units
 from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
-from clc_queries.models import ClcQuery
-from picklists.models import PicklistItem
-from picklists.enums import PicklistType
 
 
 def random_name():
