@@ -12,10 +12,7 @@ from users.models import ExporterUser, BaseUser, GovUser
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
-        if isinstance(instance, PKOnlyObject):
-            instance = get_user_by_pk(str(instance))
-        else:
-            instance = get_user_by_pk(instance.id)
+        instance = get_user_by_pk(instance.id)
 
         if isinstance(instance, ExporterUser):
             return ExporterUserViewSerializer(instance=instance).data

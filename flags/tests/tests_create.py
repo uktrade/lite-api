@@ -14,17 +14,22 @@ class FlagsCreateTest(DataTestClient):
     url = reverse('flags:flags')
 
     def test_gov_user_can_create_flags(self):
+        team = self.gov_user.team
         data = {
             'name': 'new flag',
             'level': 'Organisation',
         }
+
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = json.loads(response.content)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['flag']['name'], 'new flag')
         self.assertEqual(response_data['flag']['level'], 'Organisation')
-        self.assertEqual(response_data['flag']['team'], str(Team.objects.get(name='Admin').id))
+        self.assertEqual(response_data['flag']['team'], {
+            'id': str(team.id),
+            'name': team.name
+        })
 
     @parameterized.expand([
         [{'data': {'name': ''}}],  # Blank

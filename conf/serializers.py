@@ -11,7 +11,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
     def to_representation(self, value):
-        return self.serializer(value).data
+        return self.serializer(self.queryset.first()).data
 
 
 class KeyValueChoiceField(Field):
