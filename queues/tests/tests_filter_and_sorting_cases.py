@@ -115,29 +115,29 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
             self.assertEqual('CLC query', case_type)
 
-    # def test_get_submitted_status_and_clc_type_cases(self):
-    #     """
-    #     Given multiple Cases exist with different statuses and case-types
-    #     When a user requests to view all Cases of type 'CLC query'
-    #     Then only Cases of that type are returned
-    #     """
-    #
-    #     # Arrange
-    #     case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-    #     clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
-    #     url = reverse('queues:queue', kwargs={'pk': 'de13c40a-b330-4d77-8304-57ac12326e5a'})
-    #
-    #     # Act
-    #     response = self.client.get(url, **self.gov_headers)
-    #     response_data = response.json()['queue']['cases']
-    #
-    #     # Assert
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(clc_submitted_cases), len(response_data))
-    #     # Assert Case Type
-    #     for case in response_data:
-    #         case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
-    #         self.assertEqual('CLC query', case_type)
+    def test_get_submitted_status_and_clc_type_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+
+        # Arrange
+        case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
+        clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
+        url = reverse('queues:queue', kwargs={'pk': 'de13c40a-b330-4d77-8304-57ac12326e5a'}) + '?case_type=CLC%20query&status=' + case_status.status
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()['queue']['cases']
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(clc_submitted_cases), len(response_data))
+        # Assert Case Type
+        for case in response_data:
+            case_type = Case.objects.filter(pk=case['id']).values_list('case_type__name', flat=True)[0]
+            self.assertEqual('CLC query', case_type)
 
     def test_get_all_submitted_status_and_clc_type_cases(self):
         """

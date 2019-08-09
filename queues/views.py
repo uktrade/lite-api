@@ -66,7 +66,7 @@ class QueueDetail(APIView):
         cases = get_sorted_cases(request, queue.id, cases)
 
         queue = queue.__dict__
-        queue['cases'] = list(cases)
+        queue['cases'] = cases
         serializer = QueueViewCaseDetailSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 

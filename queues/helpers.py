@@ -11,24 +11,31 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 from teams.models import Team
 
 
-def _coalesce_case_status(queue_id, cases):
+def _coalesce_case_status(cases):
     return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
 
 
 def get_sorted_cases(request, queue_id, cases):
+    if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
+        return sort_in_memory(request, cases)
+
+    return sort_in_queryset(request, cases)
+
+
+def sort_in_queryset(request, cases):
     sort = request.GET.get('sort', None)
     if sort:
         kwargs = []
         sort = loads(sort)
         if 'status' in sort:
-            cases = _coalesce_case_status(queue_id, cases)
+            cases = _coalesce_case_status(cases)
             order = '-' if sort['status'] == 'desc' else ''
             kwargs.append(order + 'status__priority')
             return cases.order_by(*kwargs)
     return cases
 
 
-def filter_in_memory(request, cases):
+def sort_in_memory(request, cases):
     sort = request.GET.get('sort', None)
     if sort:
         sort = loads(sort)
@@ -37,13 +44,30 @@ def filter_in_memory(request, cases):
                 return sorted(cases, key=lambda k: k['status__priority'])
             else:
                 return sorted(cases, key=lambda k: k['status__priority']).reverse
+    return cases
+
+def filter_in_memory(request, cases):
+    case_type = request.GET.get('case_type', None)
+    if case_type:
+        cases = list(filter(lambda case: case.case_type.name == case_type, cases))
+
+    status = request.GET.get('status', None)
+    if status:
+        priority = get_case_status_from_status(status).priority
+        cases = list(filter(lambda case: case.status__priority == priority, cases))
+
+    return cases
 
 
 def get_filtered_cases(request, queue_id, cases):
+
     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
         # filter in memory new method
         return filter_in_memory(request, cases)
+    return get_filtered_case_from_queryset(request, cases)
 
+
+def get_filtered_case_from_queryset(request, cases):
     kwargs = {}
     case_type = request.GET.get('case_type', None)
     if case_type:
@@ -51,7 +75,7 @@ def get_filtered_cases(request, queue_id, cases):
 
     status = request.GET.get('status', None)
     if status:
-        cases = _coalesce_case_status(queue_id, cases)
+        cases = _coalesce_case_status(cases)
         priority = get_case_status_from_status(status).priority
         kwargs['status__priority'] = priority
 
@@ -68,7 +92,8 @@ def get_all_cases_queue(return_cases=False):
 
     if return_cases:
         cases = Case.objects.annotate(
-            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
+            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
+            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
         ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS]
 
         return queue, cases
