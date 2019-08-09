@@ -6,19 +6,13 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from case_types.models import CaseType
-from cases.models import Case
-from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
-from queues.models import Queue
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class GoodList(APIView):
@@ -43,25 +37,7 @@ class GoodList(APIView):
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
-            # if not data['validate_only']:
             serializer.save()
-            #
-            #     if data['is_good_controlled'] == GoodControlled.UNSURE:
-            #         # automatically raise a CLC query case
-            #         clc_query = ClcQuery(details=data['not_sure_details_details'],
-            #                              good=good,
-            #                              status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
-            #         clc_query.save()
-            #
-            #         # Create a case
-            #         case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-            #         case = Case(clc_query=clc_query, case_type=case_type)
-            #         case.save()
-            #
-            #         # Add said case to default queue
-            #         queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-            #         queue.cases.add(case)
-            #         queue.save()
 
             return JsonResponse(data={'good': serializer.data},
                                 status=status.HTTP_201_CREATED)

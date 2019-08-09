@@ -169,7 +169,7 @@ class CLCList(APIView):
     def post(self, request):
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
-        print(good)
+
         clc_query = ClcQuery(details=data['not_sure_details_details'],
                              good=good,
                              status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
@@ -189,4 +189,4 @@ class CLCList(APIView):
         queue.cases.add(case)
         queue.save()
 
-        return JsonResponse(data={'status2': 'success'}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': clc_query.id }, status=status.HTTP_201_CREATED)

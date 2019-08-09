@@ -81,10 +81,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
-            names = []
-            for document in documents:
-                names.append(document.name)
-            return names
+            return SimpleGoodDocumentViewSerializer(documents, many=True).data
         return None
 
     # pylint: disable=W0221
@@ -147,3 +144,10 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
         fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')
+
+
+class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GoodDocument
+        fields = ('id', 'name', 'description', 'size', 'safe')

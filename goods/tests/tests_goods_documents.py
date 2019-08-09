@@ -68,7 +68,7 @@ class GoodDocumentsTests(DataTestClient):
         doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
         self.test_helper.submit_draft(self, draft=draft)
 
-        url = reverse('goods:remove_document', kwargs={'pk': good.id, 'doc_pk': doc1.id})
+        url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': doc1.id})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
