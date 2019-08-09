@@ -2,7 +2,6 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from applications.models import Application
-# from applications.serializers import ApplicationBaseSerializer
 from conf.helpers import str_to_bool
 from drafts.serializers import DraftBaseSerializer
 from goodstype.models import GoodsType
@@ -13,19 +12,20 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
     content_type_name = serializers.CharField(source='content_type.model', read_only=True)
-    # content_object = serializers.SerializerMethodField(read_only=True)
+    content_object = serializers.SerializerMethodField(read_only=True)
     content_type = serializers.CharField()
 
     def validate_content_type(self, value):
         return ContentType.objects.get(model=value)
 
-    # def get_content_object(self, obj):
-    #     """
-    #     Gets the content object of draft or application
-    #     """
-    #     if type(obj) == Application:
-    #         return ApplicationBaseSerializer(obj.content_object).data
-    #     return DraftBaseSerializer(obj.content_object).data
+    def get_content_object(self, obj):
+        """
+        Gets the content object of draft or application
+        """
+        from applications.serializers import ApplicationBaseSerializer
+        if type(obj) == Application:
+            return ApplicationBaseSerializer(obj.content_object).data
+        return DraftBaseSerializer(obj.content_object).data
 
     class Meta:
         model = GoodsType
