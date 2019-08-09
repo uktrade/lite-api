@@ -25,6 +25,7 @@ class GoodSerializer(serializers.ModelSerializer):
     clc_query_case_id = serializers.SerializerMethodField()
     clc_query_id = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = Good
@@ -39,7 +40,8 @@ class GoodSerializer(serializers.ModelSerializer):
                   'status',
                   'not_sure_details_details',
                   'notes',
-                  'clc_query_id'
+                  'clc_query_id',
+                  'documents',
                   )
 
     def __init__(self, *args, **kwargs):
@@ -52,15 +54,15 @@ class GoodSerializer(serializers.ModelSerializer):
     # pylint: disable=W0703
     def get_clc_query_case_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.get(good=instance)
-            case = Case.objects.get(clc_query=clc_query)
+            clc_query = ClcQuery.objects.filter(good=instance)[0]
+            case = Case.objects.filter(clc_query=clc_query)[0]
             return case.id
         except Exception:
             return None
 
     def get_clc_query_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.get(good=instance)
+            clc_query = ClcQuery.objects.filter(good=instance)[0]
             return clc_query.id
         except Exception:
             return None
@@ -75,6 +77,15 @@ class GoodSerializer(serializers.ModelSerializer):
             return CaseNoteViewSerializer(case_notes, many=True).data
         except Exception:
             return None
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        if documents:
+            names = []
+            for document in documents:
+                names.append(document.name)
+            return names
+        return None
 
     # pylint: disable=W0221
     def validate(self, value):

@@ -169,6 +169,7 @@ class CLCList(APIView):
     def post(self, request):
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
+        print(good)
         clc_query = ClcQuery(details=data['not_sure_details_details'],
                              good=good,
                              status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
@@ -178,6 +179,10 @@ class CLCList(APIView):
         case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
         case = Case(clc_query=clc_query, case_type=case_type)
         case.save()
+
+        good.status = "submitted"
+        good.control_code = data['not_sure_details_control_code']
+        good.save()
 
         # Add said case to default queue
         queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
