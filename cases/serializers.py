@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
@@ -9,12 +7,12 @@ from clc_queries.serializers import ClcQuerySerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
+from documents.tasks import prepare_document
+from flags.models import Flag
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from users.models import BaseUser, GovUser
 from users.serializers import BaseUserViewSerializer
-from flags.models import Flag
-from documents.tasks import prepare_document
 
 
 class CaseSerializer(serializers.ModelSerializer):

@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from content_strings.strings import get_string
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
 

@@ -1,7 +1,8 @@
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
-from cases.models import CaseNote, Case
+
+from cases.models import Case
 from goods.enums import GoodControlled
 from test_helpers.clients import DataTestClient
 

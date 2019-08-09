@@ -1,5 +1,5 @@
-from test_helpers.clients import DataTestClient
 from cases.models import Notification
+from test_helpers.clients import DataTestClient
 
 
 class NotificationTests(DataTestClient):

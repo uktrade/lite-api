@@ -1,17 +1,17 @@
 import uuid
 
 import reversion
-from django.db import models
 from django.contrib.postgres import fields
+from django.db import models
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
-from documents.models import Document
 from clc_queries.models import ClcQuery
+from documents.models import Document
+from flags.models import Flag
 from queues.models import Queue
 from static.denial_reasons.models import DenialReason
 from users.models import BaseUser, ExporterUser, GovUser
-from flags.models import Flag
 
 
 @reversion.register()

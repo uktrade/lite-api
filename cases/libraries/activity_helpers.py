@@ -3,8 +3,8 @@ import json
 from reversion.models import Revision
 from reversion.models import Version
 
-from static.statuses.enums import CaseStatusEnum
 from cases.models import CaseNote
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status, get_case_status_from_pk
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser

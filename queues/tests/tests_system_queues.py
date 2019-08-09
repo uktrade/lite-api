@@ -2,10 +2,10 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from conf.settings import OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
-from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 
 
 class RetrieveAllCases(DataTestClient):

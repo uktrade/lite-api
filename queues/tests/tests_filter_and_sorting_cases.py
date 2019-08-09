@@ -1,10 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from cases.models import Case
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
-from static.statuses.enums import CaseStatusEnum
-from cases.models import Case
 
 
 class CasesFilterAndSortTests(DataTestClient):

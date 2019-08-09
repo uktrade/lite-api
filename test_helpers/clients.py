@@ -9,18 +9,17 @@ from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
+from flags.models import Flag
 from goodstype.models import GoodsType
 from gov_users.libraries.user_to_token import user_to_token
-from picklists.enums import PicklistType
 from picklists.models import PicklistItem
 from queues.models import Queue
-from static.urls import urlpatterns as static_urlpatterns
-from teams.models import Team
-from flags.models import Flag
-from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser, BaseUser
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.urls import urlpatterns as static_urlpatterns
+from teams.models import Team
+from test_helpers.org_and_user_helper import OrgAndUserHelper
+from users.models import GovUser, BaseUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):

@@ -5,7 +5,6 @@ from rest_framework.utils import json
 
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
 
 
 class ExporterUserAuthenticateTests(DataTestClient):

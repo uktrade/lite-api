@@ -1,10 +1,10 @@
 from django.urls import reverse
+from rest_framework import status
 
 from cases.models import Case
-from teams.models import Team
 from queues.models import Queue
+from teams.models import Team
 from test_helpers.clients import DataTestClient
-from rest_framework import status
 
 
 class CaseFlagsManagementTests(DataTestClient):

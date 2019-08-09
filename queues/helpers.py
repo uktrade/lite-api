@@ -1,6 +1,8 @@
-from django.db.models import Q
 from json import loads
+
+from django.db.models import Q
 from django.db.models.functions import Coalesce
+
 from cases.models import Case
 from conf.constants import SystemLimits
 from conf.exceptions import NotFoundError

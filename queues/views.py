@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -5,6 +6,7 @@ from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+
 from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
@@ -14,7 +16,6 @@ from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue,
     get_sliced_cases
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
-from django.conf import settings
 
 
 @permission_classes((permissions.AllowAny,))
