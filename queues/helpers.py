@@ -11,24 +11,27 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 from teams.models import Team
 
 
-def _coalesce_case_status(cases):
-    return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
+def _coalesce_case_status(cases, coalesced=False):
+    if not coalesced:
+        return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
+    else:
+        return cases
 
 
-def get_sorted_cases(request, queue_id, cases):
+def get_sorted_cases(request, queue_id, cases, coalesced):
     if ALL_CASES_SYSTEM_QUEUE_ID == queue_id or OPEN_CASES_SYSTEM_QUEUE_ID == queue_id:
         return sort_in_memory(request, cases)
 
-    return sort_in_queryset(request, cases)
+    return sort_in_queryset(request, cases, coalesced)
 
 
-def sort_in_queryset(request, cases):
+def sort_in_queryset(request, cases, coalesced):
     sort = request.GET.get('sort', None)
     if sort:
         kwargs = []
         sort = loads(sort)
         if 'status' in sort:
-            cases = _coalesce_case_status(cases)
+            cases = _coalesce_case_status(cases, coalesced)
             order = '-' if sort['status'] == 'desc' else ''
             kwargs.append(order + 'status__priority')
             return cases.order_by(*kwargs)
@@ -46,17 +49,21 @@ def sort_in_memory(request, cases):
                 return sorted(cases, key=lambda k: k['status__priority']).reverse
     return cases
 
+
 def filter_in_memory(request, cases):
+    coalesced = False
     case_type = request.GET.get('case_type', None)
     if case_type:
         cases = list(filter(lambda case: case.case_type.name == case_type, cases))
+        coalesced = True
 
     status = request.GET.get('status', None)
     if status:
         priority = get_case_status_from_status(status).priority
         cases = list(filter(lambda case: case.status__priority == priority, cases))
+        coalesced = True
 
-    return cases
+    return cases, coalesced
 
 
 def get_filtered_cases(request, queue_id, cases):
@@ -70,19 +77,21 @@ def get_filtered_cases(request, queue_id, cases):
 def get_filtered_case_from_queryset(request, cases):
     kwargs = {}
     case_type = request.GET.get('case_type', None)
+    coalesced = False
     if case_type:
         kwargs['case_type__name'] = case_type
 
     status = request.GET.get('status', None)
     if status:
         cases = _coalesce_case_status(cases)
+        coalesced = True
         priority = get_case_status_from_status(status).priority
         kwargs['status__priority'] = priority
 
     if kwargs:
-        return cases.filter(**kwargs)
+        return cases.filter(**kwargs), coalesced
 
-    return cases
+    return cases, coalesced
 
 
 def get_all_cases_queue(return_cases=False):

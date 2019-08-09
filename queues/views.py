@@ -62,8 +62,8 @@ class QueueDetail(APIView):
 
     def get(self, request, pk):
         queue, cases = get_queue(pk, return_cases=True)
-        cases = get_filtered_cases(request, queue.id, cases)
-        cases = get_sorted_cases(request, queue.id, cases)
+        cases, coalesce = get_filtered_cases(request, queue.id, cases)
+        cases = get_sorted_cases(request, queue.id, cases, coalesce)
 
         queue = queue.__dict__
         queue['cases'] = cases
