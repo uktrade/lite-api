@@ -101,10 +101,6 @@ class UserDetail(APIView):
                                     status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
-            for key in list(data.keys()):
-                if data[key] is '':
-                    del data[key]
-
             serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()

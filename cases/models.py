@@ -2,12 +2,14 @@ import uuid
 
 import reversion
 from django.db import models
+from django.contrib.postgres import fields
 
 from applications.models import Application
-from cases.enums import CaseType
+from cases.enums import CaseType, AdviceType
 from documents.models import Document
 from clc_queries.models import ClcQuery
 from queues.models import Queue
+from static.denial_reasons.models import DenialReason
 from users.models import BaseUser, ExporterUser, GovUser
 from flags.models import Flag
 
@@ -73,3 +75,29 @@ class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
+
+
+class Advice(models.Model):
+    """
+    Advice for goods and destinations on cases
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    type = models.CharField(choices=AdviceType.choices)
+
+    # {'goods': ['uuid', 'uuid', 'uuid']}
+    # {'goods_type': ['uuid', 'uuid', 'uuid']}
+    goods = fields.JSONField()
+
+    # {'countries': ['uuid', 'uuid', 'uuid']}
+    # {'end_user': ['uuid']}
+    # {'end_user': ['uuid'], 'ultimate_end_users': ['uuid']}
+    destinations = fields.JSONField()
+
+    # Optional depending on type of advice
+    proviso = models.TextField(default=None, blank=True, null=True)
+    denial_reasons = models.ManyToManyField(DenialReason)
+
+    advice = models.TextField(default=None, blank=True, null=True)
+    note = models.TextField(default=None, blank=True, null=True)
