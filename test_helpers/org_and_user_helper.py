@@ -9,6 +9,11 @@ from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
 
+"""
+This is deprecated!
+Please don't add to it - instead add functions to clients.py
+"""
+
 
 def random_name():
     first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
@@ -103,6 +108,7 @@ class OrgAndUserHelper:
     @staticmethod
     def create_additional_users(org, quantity=1):
         users = []
+
         for i in range(quantity):
             first_name, last_name = random_name()
             email = first_name + '.' + last_name + '@' + org.name + '.com'
