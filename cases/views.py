@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
-
-from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
+from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
+    convert_ecju_query_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_queries_from_case
@@ -99,8 +99,9 @@ class CaseActivity(APIView):
     authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case
-    * Case Notes
     * Case Updates
+    * Case Notes
+    * ECJU Queries
     """
 
     def get(self, request, pk):
@@ -108,31 +109,28 @@ class CaseActivity(APIView):
         case_notes = get_case_notes_from_case(case, False)
         ecju_queries = get_ecju_queries_from_case(case)
 
+        version_records = {}
         if case.application_id:
             version_records = Version.objects.filter(
                 Q(object_id=case.application.pk) | Q(object_id=case.pk)
-            ).order_by('-revision_id')
-        else:
-            version_records = {}
-        activity = []
+            )
+        elif case.clc_query_id:
+            version_records = Version.objects.filter(
+                Q(object_id=case.clc_query.pk) | Q(object_id=case.pk)
+            )
 
+        activity = []
         for version in version_records:
-            activity_item = convert_audit_to_activity(version)
+            activity_item = convert_case_reversion_to_activity(version)
             if activity_item:
                 activity.append(activity_item)
-
-        # Split fields into request fields
-        fields = request.GET.get('fields', None)
-        if fields:
-            fields = fields.split(',')
-            for item in activity:
-                item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
 
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
 
         for ecju_query in ecju_queries:
-            activity.append(convert_ecju_query_to_activity(case_note))
+            activity.append(convert_ecju_query_to_activity(ecju_query))
+
         # Sort the activity based on date (newest first)
         activity.sort(key=lambda x: x['date'], reverse=True)
 

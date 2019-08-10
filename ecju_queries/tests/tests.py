@@ -76,7 +76,7 @@ class FlagsCreateTest(DataTestClient):
         Then the request is successful and the details of the ECJU query are returned
         """
         # Assemble
-        ecju_query = EcjuQuery(question='Ble', case=self.case)
+        ecju_query = EcjuQuery(question='Ble', case=self.case, raised_by_user=self.gov_user)
         ecju_query.save()
 
         get_url = reverse('ecju_queries:ecju_query', kwargs={'pk': ecju_query.id})
@@ -92,3 +92,26 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(str(ecju_query.question), response_data['ecju_query']['question'])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data['ecju_query']['case'])
+
+    def test_raise_ecju_queries_creates_audit(self):
+        """
+        Given a case with no ECJU queries
+        When a gov user raises an ECJU query for the case
+        And the request is successful
+        Then an audit entry can be retrieved
+        """
+        # Assemble
+        ecju_query = EcjuQuery(question='Bleh', case=self.case, raised_by_user=self.gov_user)
+        ecju_query.save()
+        audit_url = reverse('cases:activity', kwargs={'pk': self.case.pk})
+
+        # Act
+        response = self.client.get(audit_url, **self.gov_headers)
+        activity = response.json().get('activity')
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(activity), 1)
+        self.assertEqual('ecju_query', activity[0]['type'])
+        self.assertEqual(ecju_query.question, activity[0]['data'])
+        self.assertEqual(ecju_query.raised_by_user.get_full_name(), activity[0]['user'])
