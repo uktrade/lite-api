@@ -157,9 +157,8 @@ class CaseFlagsAssignment(APIView):
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def _assign_flags(self, validated_data, case, user):
-        previously_assigned_flags = case.flags.all()
-        previously_assigned_team_flags = previously_assigned_flags.filter(level='Case', team=user.team)
-        previously_assigned_not_team_flags = previously_assigned_flags.exclude(level='Case', team=user.team)
+        previously_assigned_team_flags = case.flags.filter(level='Case', team=user.team)
+        previously_assigned_not_team_flags = case.flags.exclude(level='Case', team=user.team)
         add_case_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
         remove_case_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
 

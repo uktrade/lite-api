@@ -64,7 +64,8 @@ def convert_case_reversion_to_activity(version: Version):
     activity_type = CHANGE
     data = {}
 
-    # Ignore the exporter user's `submitted` status audit (this is created when a case has first been created)
+    # Ignore the exporter user's `submitted` status and `case-created` audits
+    # (this are created when a case has first been made)
     if isinstance(user, ExporterUser) and \
             ('case_type' in activity or activity['status'] == str(get_case_status_from_status(
                 CaseStatusEnum.SUBMITTED).pk)):

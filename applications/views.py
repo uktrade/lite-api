@@ -136,7 +136,7 @@ class ApplicationDetail(APIView):
             if serializer.is_valid():
 
                 # Set audit information
-                reversion.set_comment("Updated application details")
+                reversion.set_comment("Updated Application details")
                 reversion.set_user(self.request.user)
 
                 serializer.save()

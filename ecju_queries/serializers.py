@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from cases.models import Case
 from ecju_queries.models import EcjuQuery
-from users.models import GovUser
 
 
 class EcjuQuerySerializer(serializers.ModelSerializer):
