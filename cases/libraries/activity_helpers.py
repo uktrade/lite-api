@@ -9,7 +9,7 @@ from cases.models import CaseNote
 from static.statuses.libraries.get_case_status import get_case_status_from_status, get_case_status_from_pk
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
-from users.serializers import BaseUserViewSerializer
+from users.serializers import UserViewSerializer
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
@@ -37,7 +37,7 @@ def convert_case_note_to_activity(case_note: CaseNote):
 
     return _activity_item(CASE_NOTE,
                           case_note.created_at,
-                          BaseUserViewSerializer(user).data,
+                          UserViewSerializer(user).dataa,
                           case_note.text,
                           status='Visible to exporter' if case_note.is_visible_to_exporter else None)
 
@@ -50,7 +50,7 @@ def convert_ecju_query_to_activity(ecju_query: EcjuQuery):
 
     return _activity_item(ECJU_QUERY,
                           ecju_query.created_at,
-                          user.get_full_name(),
+                          UserViewSerializer(user).data,
                           ecju_query.question)
 
 
@@ -65,10 +65,9 @@ def convert_case_reversion_to_activity(version: Version):
     data = {}
 
     # Ignore the exporter user's `submitted` status and `case-created` audits
-    # (this are created when a case has first been made)
-    if isinstance(user, ExporterUser) and \
-            ('case_type' in activity or activity['status'] == str(get_case_status_from_status(
-                CaseStatusEnum.SUBMITTED).pk)):
+    # (these are created when a case has first been made)
+    if isinstance(user, ExporterUser) and ('case_type' in activity or activity['status'] == str(
+            get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk)):
         return None
 
     try:
@@ -82,5 +81,5 @@ def convert_case_reversion_to_activity(version: Version):
 
     return _activity_item(activity_type,
                           revision_object.date_created,
-                          BaseUserViewSerializer(user).data,
+                          UserViewSerializer(user).data,
                           data)
