@@ -13,13 +13,13 @@ class ApplicationsTests(DataTestClient):
     url = reverse('applications:applications')
 
     def test_that_goods_are_added_to_application_when_submitted(self):
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        good = self.create_controlled_good('test good', self.test_helper.organisation)
+        draft = self.create_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('test good', self.exporter_user.organisation)
         SiteOnDraft(site=self.test_helper.primary_site, draft=draft).save()
 
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
-        draft.end_user = self.create_end_user('test', self.test_helper.organisation)
+        draft.end_user = self.create_end_user('test', self.exporter_user.organisation)
         draft.save()
 
         data = {
@@ -33,7 +33,7 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 2)
 
     def test_that_cannot_submit_with_no_goods(self):
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        draft = self.create_draft(self.exporter_user.organisation)
         site_on_draft_1 = SiteOnDraft(site=self.test_helper.primary_site, draft=draft)
         site_on_draft_1.save()
 

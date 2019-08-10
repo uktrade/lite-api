@@ -11,7 +11,7 @@ from users.models import ExporterUser
 class UserTests(DataTestClient):
 
     def test_edit_a_user(self):
-        user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 1)
+        user = OrgAndUserHelper.create_additional_users(self.exporter_user.organisation, 1)
         original_first_name = user.first_name
         original_last_name = user.last_name
         original_email = user.email
@@ -40,7 +40,7 @@ class UserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_a_user_some_fields(self):
-        user = OrgAndUserHelper.create_additional_users(self.test_helper.organisation, 1)
+        user = OrgAndUserHelper.create_additional_users(self.exporter_user.organisation, 1)
         original_first_name = user.first_name
         original_last_name = user.last_name
         original_email = user.email

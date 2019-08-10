@@ -12,9 +12,8 @@ from test_helpers.org_and_user_helper import OrgAndUserHelper
 class DraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        org = self.test_helper.organisation
-        draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        good = OrgAndUserHelper.create_controlled_good('A good', org)
+        draft = self.create_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('A good', self.exporter_user.organisation)
 
         data = {
             'good_id': good.id,
@@ -30,12 +29,12 @@ class DraftTests(DataTestClient):
         url = '/drafts/' + str(draft.id) + '/goods/'
         response = self.client.get(url, **self.exporter_headers)
         response_data = json.loads(response.content)
-        self.assertEqual(len(response_data["goods"]), 1)
+        self.assertEqual(len(response_data['goods']), 1)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
-        good = OrgAndUserHelper.create_controlled_good('test', test_helper_2.organisation)
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        draft = self.create_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('test', test_helper_2.organisation)
 
         data = {
             'draft': draft.id,
@@ -51,7 +50,7 @@ class DraftTests(DataTestClient):
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = json.loads(response.content)
-        self.assertEqual(len(response_data["goods"]), 0)
+        self.assertEqual(len(response_data['goods']), 0)
 
     @parameterized.expand([
         [{'value': '123.45', 'quantity': '1123423.901234', 'response': status.HTTP_201_CREATED}],
@@ -60,9 +59,8 @@ class DraftTests(DataTestClient):
         [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
     ])
     def test_adding_goods_with_different_number_formats(self, data):
-        org = self.test_helper.organisation
-        draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        good = OrgAndUserHelper.create_controlled_good('A good', org)
+        draft = self.create_standard_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('A good', self.exporter_user.organisation)
 
         post_data = {
             'good_id': good.id,

@@ -19,7 +19,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
     def test_site_name_update(self):
-        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.exporter_user.organisation.primary_site.id})
 
         data = {
             'name': 'regional site',
@@ -33,7 +33,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_edit_address_and_name_of_site(self):
-        url = reverse('organisations:site', kwargs={'pk': self.test_helper.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.exporter_user.organisation.primary_site.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': '43 Commercial Road',
@@ -63,7 +63,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(Site.objects.all().count(), 2)
 
     def test_add_site_via_helper(self):
-        self.create_site('org2', self.test_helper.organisation)
+        self.create_site('org2', self.exporter_user.organisation)
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
@@ -74,14 +74,14 @@ class OrgSiteViewTests(DataTestClient):
 
     def test_site_list(self):
 
-        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
+        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.exporter_user.organisation.id})
         response = self.client.get(url, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         self.assertEqual(response_data['sites'][0]['name'], 'headquarters')
 
     def test_add_site(self):
-        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.test_helper.organisation.id})
+        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.exporter_user.organisation.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': 'a street',
@@ -94,12 +94,12 @@ class OrgSiteViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
 
-        self.assertEqual(Site.objects.filter(organisation=self.test_helper.organisation).count(), 2)
+        self.assertEqual(Site.objects.filter(organisation=self.exporter_user.organisation).count(), 2)
 
     def test_edit_address_and_name_of_site(self):
         url = reverse('organisations:organisation_site',
-                      kwargs={'org_pk': self.test_helper.organisation.id,
-                              'site_pk': self.test_helper.organisation.primary_site.id})
+                      kwargs={'org_pk': self.exporter_user.organisation.id,
+                              'site_pk': self.exporter_user.organisation.primary_site.id})
         data = {'name': 'regional site',
                 'address': {
                     'address_line_1': '43 Commercial Road',
@@ -119,14 +119,14 @@ class OrgSiteViewTests(DataTestClient):
     # def test_user_can_only_see_their_own_sites(self):
     #     OrgAndUserHelper('org2')
     #     self.assertEqual(Site.objects.all().count(), 2)
-    #     url = reverse('organisations:sites', kwargs={'org_pk': self.test_helper.organisation.id})
+    #     url = reverse('organisations:sites', kwargs={'org_pk': self.exporter_user.organisation.id})
     #     response = self.client.get(url, **self.exporter_headers)
     #     response_data = json.loads(response.content)
     #     self.assertEqual(response_data['sites'][0]['id'], str(self.test_helper.primary_site.id))
     #     self.assertEqual(len(response_data['sites']), 1)
 
     def test_add_site_via_helper(self):
-        self.create_site('org2', self.test_helper.organisation)
+        self.create_site('org2', self.exporter_user.organisation)
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.

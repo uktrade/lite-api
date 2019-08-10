@@ -16,7 +16,7 @@ class GoodViewTests(DataTestClient):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.test_helper.organisation)
+                    organisation=self.exporter_user.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -29,7 +29,7 @@ class GoodViewTests(DataTestClient):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.test_helper.organisation)
+                    organisation=self.exporter_user.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -37,32 +37,32 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_view_good__query_filter_by_description(self):
-        org = self.test_helper.organisation
+        org = self.exporter_user.organisation
 
-        OrgAndUserHelper.create_controlled_good('thing1', org)
-        OrgAndUserHelper.create_controlled_good('Thing2', org)
-        OrgAndUserHelper.create_controlled_good('item3', org)
+        self.create_controlled_good('thing1', org)
+        self.create_controlled_good('Thing2', org)
+        self.create_controlled_good('item3', org)
 
         url = reverse('goods:goods') + '?description=thing'
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)["goods"]
+        response_data = json.loads(response.content)['goods']
         self.assertEqual(len(response_data), 2)
 
         url = reverse('goods:goods') + '?description=item'
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)["goods"]
+        response_data = json.loads(response.content)['goods']
         self.assertEqual(len(response_data), 1)
 
         url = reverse('goods:goods')
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)["goods"]
+        response_data = json.loads(response.content)['goods']
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
-        org = self.test_helper.organisation
+        org = self.exporter_user.organisation
 
         # create a set of Goods for the test
         Good.objects.create(description='car1',

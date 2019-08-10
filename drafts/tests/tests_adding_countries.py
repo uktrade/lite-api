@@ -12,9 +12,7 @@ class CountriesOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.primary_site = self.org.primary_site
-        self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
+        self.draft = self.create_standard_draft(self.exporter_user.organisation)
 
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 
@@ -48,7 +46,7 @@ class CountriesOnDraftTests(DataTestClient):
         Ensure that a user cannot add countries to another organisation's draft
         """
         org2 = OrgAndUserHelper(name='organisation2')
-        self.draft = OrgAndUserHelper.complete_draft('Goods test', org2.organisation)
+        self.draft = self.create_standard_draft(org2.organisation)
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 
         data = {

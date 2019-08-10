@@ -12,9 +12,7 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.primary_site = self.org.primary_site
-        self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
+        self.draft = self.create_standard_draft(self.exporter_user.organisation)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
 
     @parameterized.expand([
@@ -30,7 +28,6 @@ class EndUserOnDraftTests(DataTestClient):
             'type': data_type,
             'website': 'https://www.gov.uk'
         }
-        self.draft = Draft.objects.get(pk=self.draft.id)
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -59,8 +56,7 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_failure(self, data):
-        self.draft = Draft.objects.get(pk=self.draft.id)
-
+        self.draft = self.create_draft(self.exporter_user.organisation)
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()

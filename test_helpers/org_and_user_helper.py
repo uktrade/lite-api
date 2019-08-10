@@ -4,18 +4,7 @@ from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from addresses.models import Address
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import Application
-from clc_queries.models import ClcQuery
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft
-from end_user.enums import EndUserType
-from end_user.models import EndUser
-from goods.enums import GoodControlled
-from goods.models import Good
-from organisations.models import Organisation, Site, ExternalLocation
-from static.countries.helpers import get_country
-from static.units.enums import Units
+from organisations.models import Organisation
 from teams.models import Team
 from users.models import ExporterUser
 from users.models import GovUser
@@ -110,38 +99,6 @@ class OrgAndUserHelper:
         self.user = ExporterUser.objects.filter(organisation=self.organisation)[0]
         self.primary_site = self.organisation.primary_site
         self.address = self.primary_site.address
-
-    @staticmethod
-    def complete_draft(name, org):
-        draft = Draft(name=name,
-                      licence_type=ApplicationLicenceType.STANDARD_LICENCE,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.choices,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Fun',
-                      organisation=org)
-        draft.save()
-        return draft
-
-    @staticmethod
-    def submit_draft(self, draft):
-        draft_id = draft.id
-        url = reverse('applications:applications')
-        data = {'id': draft_id}
-        self.client.post(url, data, **self.exporter_headers)
-        return Application.objects.get(pk=draft_id)
-
-    @staticmethod
-    def create_controlled_good(description, org):
-        good = Good(description=description,
-                    is_good_controlled=GoodControlled.YES,
-                    control_code='ML1',
-                    is_good_end_product=True,
-                    part_number='123456',
-                    organisation=org)
-        good.save()
-        return good
 
     @staticmethod
     def create_additional_users(org, quantity=1):

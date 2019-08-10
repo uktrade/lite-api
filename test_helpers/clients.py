@@ -159,7 +159,7 @@ class DataTestClient(BaseTestClient):
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.test_helper.organisation, status)
+        clc_query = self.create_clc_query(name, self.exporter_user.organisation, status)
         case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
@@ -266,7 +266,8 @@ class DataTestClient(BaseTestClient):
 
     # Drafts
 
-    def create_draft(self, organisation: Organisation, licence_type, reference_name='Standard Draft'):
+    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                     reference_name='Standard Draft'):
         draft = Draft(name=reference_name,
                       licence_type=licence_type,
                       export_type=ApplicationExportType.PERMANENT,

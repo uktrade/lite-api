@@ -37,7 +37,7 @@ class ApplicationsTests(DataTestClient):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        OrgAndUserHelper.complete_draft(name='test', org=self.exporter_user.organisation)
+        self.create_standard_draft(self.exporter_user.organisation)
 
         data = {'id': draft_id}
         response = self.client.post(self.url, data, **self.exporter_headers)

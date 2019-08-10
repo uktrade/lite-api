@@ -9,7 +9,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = OrgAndUserHelper.complete_draft('Goods test', self.test_helper.organisation)
+        self.draft = self.create_standard_draft(self.exporter_user.organisation)
         self.url = reverse('drafts:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
