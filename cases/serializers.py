@@ -1,18 +1,25 @@
+import json
+
 from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
-from cases.enums import CaseType
+from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice
 from clc_queries.serializers import ClcQuerySerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from documents.tasks import prepare_document
+from end_user.models import EndUser
 from flags.models import Flag
+from goods.models import Good
+from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
+from static.countries.models import Country
+from static.denial_reasons.models import DenialReason
 from users.models import BaseUser, GovUser
-from users.serializers import BaseUserViewSerializer
+from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -139,12 +146,38 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
         fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
 
 
-class CaseAdviceSerializer(serializers.ModelSerializer):
-    case = PrimaryKeyRelatedSerializerField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all())
-    goods = serializers.JSONField()
-    destinations = serializers.JSONField()
+class _CaseAdviceSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
+    proviso = serializers.CharField(required=True, write_only=False)
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=True)
+
+    def __init__(self, *args, **kwargs):
+        super(_CaseAdviceSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get('type') != AdviceType.PROVISO:
+            self.fields.pop('proviso')
+
+        if self.get_initial().get('type') != AdviceType.REFUSE:
+            self.fields.pop('denial_reasons')
+
+
+class StandardCaseAdviceSerializer(_CaseAdviceSerializer):
+    goods = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), many=True)
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
 
     class Meta:
         model = Advice
-        fields = ('case', 'user', 'goods', 'destinations')
+        fields = ('case', 'user', 'advice', 'note', 'type',
+                  'goods', 'end_user', 'proviso', 'denial_reasons')
+
+
+class OpenCaseAdviceSerializer(_CaseAdviceSerializer):
+    goods_types = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), many=True)
+    countries = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
+
+    class Meta:
+        model = Advice
+        fields = ('case', 'user', 'advice', 'note', 'type',
+                  'proviso', 'goods_types', 'countries', 'denial_reasons')

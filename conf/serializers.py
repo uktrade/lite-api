@@ -8,6 +8,9 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.serializer = kwargs.pop('serializer', None)
 
+        if not self.serializer:
+            raise Exception("PrimaryKeyRelatedSerializerField must define a 'serializer' attribute.")
+
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
     def to_representation(self, value):

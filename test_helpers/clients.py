@@ -4,18 +4,24 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
-from drafts.models import Draft
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from flags.models import Flag
+from goods.enums import GoodControlled
+from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.libraries.user_to_token import user_to_token
+from organisations.models import Organisation
 from picklists.models import PicklistItem
 from queues.models import Queue
+from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -195,3 +201,101 @@ class DataTestClient(BaseTestClient):
 
         picklist_item.save()
         return picklist_item
+
+    def convert_queryset_to_str(self, queryset):
+        return [str(x) for x in queryset]
+
+    def create_controlled_good(self, description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.YES,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org)
+        good.save()
+        return good
+
+    def create_good_type(self, description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.YES,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org)
+        good.save()
+        return good
+
+    # Drafts
+
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        """
+        Creates a standard draft application
+        """
+        draft = Draft(name=reference_name,
+                      licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                      export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                      reference_number_on_information_form='',
+                      activity='Trade',
+                      usage='Trade',
+                      organisation=organisation)
+        draft.save()
+
+        # Add a good to the standard draft
+        GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
+                    draft=draft,
+                    quantity=10,
+                    unit=Units.NAR,
+                    value=500).save()
+
+        # Set the draft's end user
+        draft.end_user = OrgAndUserHelper.create_end_user('test', organisation)
+
+        # Add a site to the draft
+        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+
+        draft.save()
+        return draft
+
+    def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
+        """
+        Creates an open draft application
+        """
+        draft = Draft(name=reference_name,
+                      licence_type=ApplicationLicenceType.OPEN_LICENCE,
+                      export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                      reference_number_on_information_form='',
+                      activity='Trade',
+                      usage='Trade',
+                      organisation=organisation)
+        draft.save()
+
+        # Add a goods description
+        self.create_goods_type('draft', draft)
+
+        # Add a country to the draft
+        CountryOnDraft(draft=draft,
+                       country=get_country('GB')).save()
+
+        # Add a site to the draft
+        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+
+        draft.save()
+        return draft
+
+    # Applications
+
+    def create_standard_application(self, organisation: Organisation, reference_name='Standard Application'):
+        """
+        Creates a complete standard application
+        """
+        draft = self.create_standard_draft(organisation, reference_name)
+        return self.submit_draft(draft)
+
+    def create_open_application(self, organisation: Organisation, reference_name='Open Application'):
+        """
+        Creates a complete open application
+        """
+        draft = self.create_open_draft(organisation, reference_name)
+        return self.submit_draft(draft)

@@ -8,12 +8,14 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
+from applications.enums import ApplicationLicenceType
 from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument, Advice
 from cases.serializers import CaseDetailSerializer, CaseDocumentCreateSerializer, \
-    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, CaseAdviceSerializer, CaseNoteSerializer
+    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, StandardCaseAdviceSerializer, OpenCaseAdviceSerializer, \
+    CaseNoteSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from users.models import ExporterUser
 
@@ -228,31 +230,41 @@ class CaseDocumentDetail(APIView):
 class CaseAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
+    case = None
+    advice = None
+    serializer_object = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.case = get_case(kwargs['pk'])
+        self.advice = Advice.objects.filter(case=self.case)
+        application_type = self.case.application.licence_type
+
+        if application_type == ApplicationLicenceType.STANDARD_LICENCE:
+            self.serializer_object = StandardCaseAdviceSerializer
+        elif application_type == ApplicationLicenceType.OPEN_LICENCE:
+            self.serializer_object = OpenCaseAdviceSerializer
+
+        return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
+
     def get(self, request, pk):
         """
         Returns all advice for a case
         """
-        case = get_case(pk)
-        advice = Advice.objects.filter(case=case)
-
-        serializer = CaseAdviceSerializer(advice, many=True)
+        serializer = self.serializer_object(self.advice, many=True)
         return JsonResponse({'advice': serializer.data})
 
     def post(self, request, pk):
         """
         Creates advice for a case
         """
-        case = get_case(pk)
         data = request.data
-        data['case'] = case.id
+        data['case'] = self.case.id
         data['user'] = request.user.id
-        data['goods'] = str({'goods': ['1234']})
-        data['destinations'] = str({'end_user': '1234'})
 
-        serializer = CaseAdviceSerializer(data=data)
+        serializer = self.serializer_object(data=data)
 
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse({'advice': serializer.errors})
+        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

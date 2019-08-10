@@ -8,8 +8,12 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
+from end_user.models import EndUser
 from flags.models import Flag
+from goods.models import Good
+from goodstype.models import GoodsType
 from queues.models import Queue
+from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from users.models import BaseUser, ExporterUser, GovUser
 
@@ -85,19 +89,24 @@ class Advice(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     type = models.CharField(choices=AdviceType.choices, max_length=30)
+    advice = models.TextField(default=None, blank=True, null=True)
+    note = models.TextField(default=None, blank=True, null=True)
 
-    # {'goods': ['uuid', 'uuid', 'uuid']}
-    # {'goods_type': ['uuid', 'uuid', 'uuid']}
-    goods = fields.JSONField()
+    # Optional goods
+    goods = models.ManyToManyField(Good, related_name='goods')
+    goods_types = models.ManyToManyField(GoodsType, related_name='goods_types')
 
-    # {'countries': ['uuid', 'uuid', 'uuid']}
-    # {'end_user': ['uuid']}
-    # {'end_user': ['uuid'], 'ultimate_end_users': ['uuid']}
-    destinations = fields.JSONField()
+    # Optional destinations
+    countries = models.ManyToManyField(Country, related_name='countries')
+    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
+    ultimate_end_users = models.ManyToManyField(EndUser, related_name='ultimate_end_users')
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
 
-    advice = models.TextField(default=None, blank=True, null=True)
-    note = models.TextField(default=None, blank=True, null=True)
+    def save(self, *args, **kwargs):
+        if self.type is not AdviceType.PROVISO:
+            self.proviso = None
+
+        super(Advice, self).save(*args, **kwargs)
