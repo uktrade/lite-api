@@ -12,7 +12,7 @@ class ExternalLocationViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.external_location = OrgAndUserHelper.create_external_location(name='storage facility',
+        self.external_location = self.create_external_location(name='storage facility',
                                                                            org=self.test_helper.organisation)
 
     def test_site_list(self):
@@ -33,7 +33,7 @@ class ExternalLocationViewTests(DataTestClient):
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
 
     def test_add_external_location_via_helper(self):
-        external_location = OrgAndUserHelper.create_external_location('org2', self.test_helper.organisation)
+        external_location = self.create_external_location('org2', self.test_helper.organisation)
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
         self.assertEqual(ExternalLocation.objects.filter(id=external_location.id).count(), 1)
 

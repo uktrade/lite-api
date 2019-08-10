@@ -14,12 +14,12 @@ class ApplicationsTests(DataTestClient):
 
     def test_that_goods_are_added_to_application_when_submitted(self):
         draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
+        good = self.create_controlled_good('test good', self.test_helper.organisation)
         SiteOnDraft(site=self.test_helper.primary_site, draft=draft).save()
 
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
-        draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        draft.end_user = self.create_end_user('test', self.test_helper.organisation)
         draft.save()
 
         data = {

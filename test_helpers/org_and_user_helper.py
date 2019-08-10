@@ -125,17 +125,6 @@ class OrgAndUserHelper:
         return draft
 
     @staticmethod
-    def create_draft_with_good_end_user_and_site(name, org):
-        draft = OrgAndUserHelper.complete_draft(name, org)
-        good = OrgAndUserHelper.create_controlled_good('a thing', org)
-        good.save()
-        GoodOnDraft(good=good, draft=draft, quantity=10, unit=Units.NAR, value=500).save()
-        draft.end_user = OrgAndUserHelper.create_end_user('test', org)
-        SiteOnDraft(site=org.primary_site, draft=draft).save()
-        draft.save()
-        return draft
-
-    @staticmethod
     def submit_draft(self, draft):
         draft_id = draft.id
         url = reverse('applications:applications')
@@ -153,23 +142,6 @@ class OrgAndUserHelper:
                     organisation=org)
         good.save()
         return good
-
-    @staticmethod
-    def create_clc_query(description, org, status):
-        good = Good(description=description,
-                    is_good_controlled=GoodControlled.UNSURE,
-                    control_code='ML1',
-                    is_good_end_product=True,
-                    part_number='123456',
-                    organisation=org
-                    )
-        good.save()
-
-        clc_query = ClcQuery(details='this is a test text',
-                             good=good,
-                             status=status)
-        clc_query.save()
-        return clc_query
 
     @staticmethod
     def create_additional_users(org, quantity=1):
@@ -191,38 +163,3 @@ class OrgAndUserHelper:
             users.append(user)
 
         return users
-
-    @staticmethod
-    def create_site(name, org):
-        address = Address(address_line_1='42 Road',
-                          address_line_2='',
-                          country=get_country('GB'),
-                          city='London',
-                          region='Buckinghamshire',
-                          postcode='E14QW')
-        address.save()
-        site = Site(name=name,
-                    organisation=org,
-                    address=address)
-        site.save()
-        return site, address
-
-    @staticmethod
-    def create_external_location(name, org):
-        external_location = ExternalLocation(name=name,
-                                             address='20 Questions Road, Enigma',
-                                             country=get_country('GB'),
-                                             organisation=org)
-        external_location.save()
-        return external_location
-
-    @staticmethod
-    def create_end_user(name, organisation):
-        end_user = EndUser(name=name,
-                           organisation=organisation,
-                           address='42 Road, London, Buckinghamshire',
-                           website='www.' + name + '.com',
-                           type=EndUserType.GOVERNMENT,
-                           country=get_country('GB'))
-        end_user.save()
-        return end_user

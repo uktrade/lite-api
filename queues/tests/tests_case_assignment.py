@@ -15,16 +15,14 @@ class CaseAssignmentTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.application = self.create_standard_application(self.exporter_user.organisation)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         # Cases
         self.case = Case.objects.get(application=self.application)
-        self.case2 = self.create_application_case('Example')
-        self.case3 = self.create_application_case('Example 2')
+        self.case2 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case3 = self.create_standard_application_case(self.exporter_user.organisation)
 
         # Users
         self.gov_user = self.create_gov_user('gov1@email.com', team=self.default_team)

@@ -14,9 +14,9 @@ class RetrieveAllCases(DataTestClient):
         self.team = self.create_team('team team')
         self.queue1 = self.create_queue('queue1', self.team)
         self.queue2 = self.create_queue('queue2', self.team)
-        self.case1 = self.create_application_case('case1 case1 for queue1')
-        self.case2 = self.create_application_case('case2 case2 case2 for queue2')
-        self.case3 = self.create_application_case('case3 case3 case3 for queue2')
+        self.case1 = self.create_standard_application_case(self.exporter_user.organisation, 'case1 case1 for queue1')
+        self.case2 = self.create_standard_application_case(self.exporter_user.organisation, 'case2 case2 case2 for queue2')
+        self.case3 = self.create_standard_application_case(self.exporter_user.organisation, 'case3 case3 case3 for queue2')
         self.case3.application.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
         self.case3.application.save(update_fields=['status'])
 
@@ -151,7 +151,7 @@ class RetrieveAllCases(DataTestClient):
         i = 0
 
         while i <= 210:
-            self.create_application_case('Limits case ' + str(i))
+            self.create_standard_application_case(self.exporter_user.organisation, 'Limits case ' + str(i))
 
             i += 1
 

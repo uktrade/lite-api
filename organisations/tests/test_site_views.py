@@ -63,7 +63,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(Site.objects.all().count(), 2)
 
     def test_add_site_via_helper(self):
-        OrgAndUserHelper.create_site('org2', self.test_helper.organisation)
+        self.create_site('org2', self.test_helper.organisation)
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.
@@ -126,7 +126,7 @@ class OrgSiteViewTests(DataTestClient):
     #     self.assertEqual(len(response_data['sites']), 1)
 
     def test_add_site_via_helper(self):
-        OrgAndUserHelper.create_site('org2', self.test_helper.organisation)
+        self.create_site('org2', self.test_helper.organisation)
         self.assertEqual(Site.objects.all().count(), 2)
         # There is a dummy address which means there are two real ones after
         # the create additional site and the one dummy one.

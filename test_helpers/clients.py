@@ -4,18 +4,22 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
+from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from end_user.enums import EndUserType
+from end_user.models import EndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.libraries.user_to_token import user_to_token
-from organisations.models import Organisation
+from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
 from queues.models import Queue
 from static.countries.helpers import get_country
@@ -117,17 +121,45 @@ class DataTestClient(BaseTestClient):
         }
         self.client.post(url, data, **self.exporter_headers)
 
-    def create_application_case(self, name):
-        return Case.objects.get(
-            application=self.test_helper.submit_draft(
-                self, self.test_helper.create_draft_with_good_end_user_and_site(
-                    name,
-                    self.test_helper.organisation)))
+    @staticmethod
+    def create_site(name, org):
+        address = Address(address_line_1='42 Road',
+                          address_line_2='',
+                          country=get_country('GB'),
+                          city='London',
+                          region='Buckinghamshire',
+                          postcode='E14QW')
+        address.save()
+        site = Site(name=name,
+                    organisation=org,
+                    address=address)
+        site.save()
+        return site, address
+
+    @staticmethod
+    def create_external_location(name, org):
+        external_location = ExternalLocation(name=name,
+                                             address='20 Questions Road, Enigma',
+                                             country=get_country('GB'),
+                                             organisation=org)
+        external_location.save()
+        return external_location
+
+    @staticmethod
+    def create_end_user(name, organisation):
+        end_user = EndUser(name=name,
+                           organisation=organisation,
+                           address='42 Road, London, Buckinghamshire',
+                           website='www.' + name + '.com',
+                           type=EndUserType.GOVERNMENT,
+                           country=get_country('GB'))
+        end_user.save()
+        return end_user
 
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation, status)
+        clc_query = self.create_clc_query(name, self.test_helper.organisation, status)
         case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
@@ -215,24 +247,28 @@ class DataTestClient(BaseTestClient):
         good.save()
         return good
 
-    def create_good_type(self, description, org):
+    @staticmethod
+    def create_clc_query(description, org, status):
         good = Good(description=description,
-                    is_good_controlled=GoodControlled.YES,
+                    is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=org)
+                    organisation=org
+                    )
         good.save()
-        return good
+
+        clc_query = ClcQuery(details='this is a test text',
+                             good=good,
+                             status=status)
+        clc_query.save()
+        return clc_query
 
     # Drafts
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
-        """
-        Creates a standard draft application
-        """
+    def create_draft(self, organisation: Organisation, licence_type, reference_name='Standard Draft'):
         draft = Draft(name=reference_name,
-                      licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                      licence_type=licence_type,
                       export_type=ApplicationExportType.PERMANENT,
                       have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
                       reference_number_on_information_form='',
@@ -240,6 +276,13 @@ class DataTestClient(BaseTestClient):
                       usage='Trade',
                       organisation=organisation)
         draft.save()
+        return draft
+
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        """
+        Creates a standard draft application
+        """
+        draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
 
         # Add a good to the standard draft
         GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
@@ -249,7 +292,7 @@ class DataTestClient(BaseTestClient):
                     value=500).save()
 
         # Set the draft's end user
-        draft.end_user = OrgAndUserHelper.create_end_user('test', organisation)
+        draft.end_user = self.create_end_user('test', organisation)
 
         # Add a site to the draft
         SiteOnDraft(site=organisation.primary_site, draft=draft).save()
@@ -261,22 +304,13 @@ class DataTestClient(BaseTestClient):
         """
         Creates an open draft application
         """
-        draft = Draft(name=reference_name,
-                      licence_type=ApplicationLicenceType.OPEN_LICENCE,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Trade',
-                      organisation=organisation)
-        draft.save()
+        draft = self.create_draft(organisation, ApplicationLicenceType.OPEN_LICENCE, reference_name)
 
         # Add a goods description
         self.create_goods_type('draft', draft)
 
         # Add a country to the draft
-        CountryOnDraft(draft=draft,
-                       country=get_country('GB')).save()
+        CountryOnDraft(draft=draft, country=get_country('GB')).save()
 
         # Add a site to the draft
         SiteOnDraft(site=organisation.primary_site, draft=draft).save()
@@ -299,3 +333,21 @@ class DataTestClient(BaseTestClient):
         """
         draft = self.create_open_draft(organisation, reference_name)
         return self.submit_draft(draft)
+
+    # Cases
+
+    def create_standard_application_case(self, organisation: Organisation, reference_name='Standard Application Case'):
+        """
+        Creates a complete standard application case
+        """
+        draft = self.create_standard_draft(organisation, reference_name)
+        application = self.submit_draft(draft)
+        return Case.objects.get(application=application)
+
+    def create_open_application_case(self, organisation: Organisation, reference_name='Open Application Case'):
+        """
+        Creates a complete open application case
+        """
+        draft = self.create_open_draft(organisation, reference_name)
+        application = self.submit_draft(draft)
+        return Case.objects.get(application=application)

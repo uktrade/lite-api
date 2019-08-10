@@ -10,10 +10,8 @@ class CaseNotesGovCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.standard_application = self.create_open_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_create_case_note_successful(self):
@@ -43,10 +41,8 @@ class CaseNotesExporterCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.standard_application = self.create_open_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_create_case_note_successful(self):
@@ -76,14 +72,9 @@ class CaseNotesViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.draft2 = self.test_helper.create_draft_with_good_end_user_and_site('Example Application 2',
-                                                                                self.test_helper.organisation)
-        self.application = self.submit_draft(self.draft)
-        self.application2 = self.submit_draft(self.draft2)
-        self.case = Case.objects.get(application=self.application)
-        self.case2 = Case.objects.get(application=self.application2)
+        self.standard_application = self.create_open_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
+
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_view_case_notes_successful(self):

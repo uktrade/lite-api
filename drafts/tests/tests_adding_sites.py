@@ -36,7 +36,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response["sites"]), 1)
 
     def test_add_multiple_sites_to_a_draft(self):
-        site2, address = OrgAndUserHelper.create_site('site2', self.org)
+        site2, address = self.create_site('site2', self.org)
 
         data = {
             'sites': [
@@ -76,7 +76,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response_data["sites"]), 0)
 
     def test_add_a_site_to_a_draft_deletes_existing_sites(self):
-        site2, address = OrgAndUserHelper.create_site('site2', self.org)
+        site2, address = self.create_site('site2', self.org)
 
         # Add an initial site to the draft
         existing_site_on_draft = SiteOnDraft(site=site2, draft=self.draft)
@@ -107,7 +107,7 @@ class SitesOnDraftTests(DataTestClient):
 
     def test_adding_site_to_draft_deletes_external_locations(self):
         draft = self.draft
-        external_location = self.test_helper.create_external_location('test', self.org)
+        external_location = self.create_external_location('test', self.org)
         url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
         data = {
             'external_locations': [

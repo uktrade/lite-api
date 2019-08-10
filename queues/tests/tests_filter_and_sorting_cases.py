@@ -15,7 +15,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         self.application_cases = []
         for app_status in CaseStatusEnum.choices:
-            case = self.create_application_case('Example Application')
+            case = self.create_standard_application_case(self.exporter_user.organisation, 'Example Application')
             case.application.status = get_case_status_from_status(app_status)
             case.application.save(update_fields=['status'])
             self.queue.cases.add(case)
