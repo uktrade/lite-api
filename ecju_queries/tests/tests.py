@@ -113,4 +113,5 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(len(activity), 1)
         self.assertEqual('ecju_query', activity[0]['type'])
         self.assertEqual(ecju_query.question, activity[0]['data'])
-        self.assertEqual(ecju_query.raised_by_user.get_full_name(), activity[0]['user'])
+        self.assertEqual(ecju_query.raised_by_user.get_full_name(), activity[0]['user']['first_name'] + ' '
+                         + activity[0]['user']['last_name'])

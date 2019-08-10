@@ -37,7 +37,7 @@ def convert_case_note_to_activity(case_note: CaseNote):
 
     return _activity_item(CASE_NOTE,
                           case_note.created_at,
-                          UserViewSerializer(user).dataa,
+                          UserViewSerializer(user).data,
                           case_note.text,
                           status='Visible to exporter' if case_note.is_visible_to_exporter else None)
 
