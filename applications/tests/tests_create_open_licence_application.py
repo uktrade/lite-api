@@ -6,7 +6,6 @@ from applications.models import Application
 from drafts.models import Draft, SiteOnDraft
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):

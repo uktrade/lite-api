@@ -5,7 +5,6 @@ from drafts.models import GoodOnDraft
 from goods.models import Good
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class GoodTests(DataTestClient):

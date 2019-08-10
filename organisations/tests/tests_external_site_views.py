@@ -1,11 +1,8 @@
-import json
-
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from organisations.models import ExternalLocation
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ExternalLocationViewTests(DataTestClient):
@@ -13,13 +10,14 @@ class ExternalLocationViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.external_location = self.create_external_location(name='storage facility',
-                                                                           org=self.exporter_user.organisation)
+                                                               org=self.exporter_user.organisation)
 
     def test_site_list(self):
         url = reverse('organisations:external_locations')
         response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
         self.assertEqual(response_data['external_locations'][0]['name'], 'storage facility')
 
     def test_create_external_location(self):

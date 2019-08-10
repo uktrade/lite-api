@@ -5,7 +5,6 @@ from applications.models import Application, GoodOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):
@@ -15,7 +14,7 @@ class ApplicationsTests(DataTestClient):
     def test_that_goods_are_added_to_application_when_submitted(self):
         draft = self.create_draft(self.exporter_user.organisation)
         good = self.create_controlled_good('test good', self.exporter_user.organisation)
-        SiteOnDraft(site=self.test_helper.primary_site, draft=draft).save()
+        SiteOnDraft(site=self.organisation.primary_site, draft=draft).save()
 
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
@@ -34,7 +33,7 @@ class ApplicationsTests(DataTestClient):
 
     def test_that_cannot_submit_with_no_goods(self):
         draft = self.create_draft(self.exporter_user.organisation)
-        site_on_draft_1 = SiteOnDraft(site=self.test_helper.primary_site, draft=draft)
+        site_on_draft_1 = SiteOnDraft(site=self.organisation.primary_site, draft=draft)
         site_on_draft_1.save()
 
         url = reverse('applications:applications')

@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
@@ -28,8 +26,8 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
-from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser, BaseUser
+from test_helpers.helpers import random_name
+from users.models import GovUser, BaseUser, ExporterUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -51,75 +49,45 @@ class DataTestClient(BaseTestClient):
 
     def setUp(self):
         super().setUp()
-        self.test_helper = OrgAndUserHelper(name='Org1')
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)}
+
+        # Gov User Setup
         self.team = Team.objects.get(name='Admin')
-
-        self.exporter_user = self.test_helper.user
-
-        self.gov_user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
-                                email='test@mail.com',
+        self.gov_user = GovUser(email='test@mail.com',
                                 first_name='John',
                                 last_name='Smith',
                                 team=self.team)
         self.gov_user.save()
-        self.queue = Queue.objects.get(team=self.team)
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
-    def create_organisation(self, name):
-        self.name = name
-        self.eori_number = "GB123456789000"
-        self.sic_number = "2765"
-        self.vat_number = "123456789"
-        self.registration_number = "987654321"
+        # Exporter User Setup
+        self.organisation = self.create_organisation()
+        self.exporter_user = ExporterUser.objects.get()
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user)}
 
-        # Site name
-        self.site_name = "headquarters"
+        self.queue = Queue.objects.get(team=self.team)
 
-        # Address details
-        self.country = 'GB'
-        self.address_line_1 = "42 Industrial Estate"
-        self.address_line_2 = "Queens Road"
-        self.region = "Hertfordshire"
-        self.postcode = "AL1 4GT"
-        self.city = "St Albans"
+    def create_organisation(self, name='Organisation'):
+        first_name, last_name = random_name()
 
-        # First admin user details
-        self.admin_user_first_name = "Trinity"
-        self.admin_user_last_name = "Fishburne"
-        self.admin_user_email = "trinity@" + name + ".com"
-        self.password = "password123"
+        organisation = Organisation(name=name,
+                                    eori_number='GB123456789000',
+                                    sic_number='2765',
+                                    vat_number='123456789',
+                                    registration_number='987654321')
+        organisation.save()
 
-        url = reverse('organisations:organisations')
-        data = {
-            'name': self.name,
-            'eori_number': self.eori_number,
-            'sic_number': self.sic_number,
-            'vat_number': self.vat_number,
-            'registration_number': self.registration_number,
-            # Site details
-            'site': {
-                'name': self.site_name,
-                # Address details
-                'address': {
-                    'country': self.country,
-                    'address_line_1': self.address_line_1,
-                    'address_line_2': self.address_line_2,
+        site, address = self.create_site('HQ', organisation)
 
-                    'region': self.region,
-                    'postcode': self.postcode,
-                    'city': self.city,
-                },
-            },
-            # First admin user details
-            'user': {
-                'first_name': self.admin_user_first_name,
-                'last_name': self.admin_user_last_name,
-                'email': self.admin_user_email,
-                'password': self.password
-            },
-        }
-        self.client.post(url, data, **self.exporter_headers)
+        organisation.primary_site = site
+        organisation.save()
+
+        exporter_user = ExporterUser(first_name=first_name,
+                                     last_name=last_name,
+                                     email=f'{first_name}@{last_name}.com',
+                                     organisation=organisation)
+        exporter_user.save()
+
+        return organisation
 
     @staticmethod
     def create_site(name, org):

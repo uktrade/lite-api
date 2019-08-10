@@ -3,11 +3,8 @@ from rest_framework import status
 
 from applications.enums import ApplicationLicenceType
 from applications.models import Application
-from drafts.models import GoodOnDraft
 from queues.models import Queue
-from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):

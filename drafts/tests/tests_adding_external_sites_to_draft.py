@@ -3,7 +3,6 @@ from rest_framework import status
 
 from drafts.models import SiteOnDraft, Draft, ExternalLocationOnDraft
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ExternalLocationsOnDraftTests(DataTestClient):
@@ -36,7 +35,7 @@ class ExternalLocationsOnDraftTests(DataTestClient):
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         data = {
             'sites': [
-                self.test_helper.primary_site.id
+                self.organisation.primary_site.id
             ]
         }
         self.client.post(url, data, **self.exporter_headers)

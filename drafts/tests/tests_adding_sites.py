@@ -1,11 +1,8 @@
-import json
-
 from django.urls import reverse
 from rest_framework import status
 
 from drafts.models import SiteOnDraft, Draft, ExternalLocationOnDraft
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class SitesOnDraftTests(DataTestClient):
@@ -52,11 +49,11 @@ class SitesOnDraftTests(DataTestClient):
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
-        response_data = json.loads(response.content)
+        response_data = response.json()
         self.assertEqual(len(response_data["sites"]), 2)
 
     def test_user_cannot_add_another_organisations_site_to_a_draft(self):
-        org2 = OrgAndUserHelper(name='organisation2')
+        org2 = self.create_organisation()
         site_org2 = org2.primary_site
 
         data = {

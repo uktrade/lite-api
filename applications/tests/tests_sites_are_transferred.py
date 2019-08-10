@@ -1,11 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import Application, SiteOnApplication, ExternalLocationOnApplication
-from drafts.models import GoodOnDraft, SiteOnDraft
-from static.units.enums import Units
+from applications.models import Application, SiteOnApplication
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):

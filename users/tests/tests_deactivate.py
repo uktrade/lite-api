@@ -2,14 +2,14 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.helpers import create_additional_users
 from users.enums import UserStatuses
 
 
 class UserTests(DataTestClient):
 
     def test_deactivate_a_user(self):
-        user = OrgAndUserHelper.create_additional_users(self.exporter_user.organisation)
+        user = create_additional_users(self.exporter_user.organisation)
 
         data = {
             'status': UserStatuses.DEACTIVATED
@@ -24,12 +24,12 @@ class UserTests(DataTestClient):
             'status': UserStatuses.DEACTIVATED
         }
 
-        url = reverse('users:user', kwargs={'pk': self.test_helper.user.id})
+        url = reverse('users:user', kwargs={'pk': self.exporter_user.id})
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_deactivate_and_reactivate_a_user(self):
-        user = OrgAndUserHelper.create_additional_users(self.exporter_user.organisation)
+        user = create_additional_users(self.exporter_user.organisation)
         url = reverse('users:authenticate')
 
         data = {

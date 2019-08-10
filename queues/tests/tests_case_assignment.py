@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -153,7 +151,7 @@ class CaseAssignmentTests(DataTestClient):
         url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
         self.client.put(url, data, **self.gov_headers)
         response = self.client.get(url, **self.gov_headers)
-        case_assignments_response_data = json.loads(response.content)['case_assignments']
+        case_assignments_response_data = response.json()['case_assignments']
         i = 0
         for case_assignment in case_assignments_response_data:
             if case_assignment['case'] == str(self.case.id):

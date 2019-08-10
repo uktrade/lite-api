@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -20,7 +18,7 @@ class FlagsCreateTest(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['flag']['name'], 'new flag')

@@ -1,13 +1,9 @@
-import json
 from uuid import UUID
 
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import Draft
-from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class DraftTests(DataTestClient):
@@ -48,8 +44,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
-        draft_test_helper_2 = OrgAndUserHelper(name='organisation2')
-        self.create_standard_draft(draft_test_helper_2.organisation)
+        organisation_2 = self.create_organisation()
+        self.create_standard_draft(organisation_2)
 
         url = reverse('drafts:drafts')
         response = self.client.get(url, **self.exporter_headers)
@@ -59,10 +55,10 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data['drafts']), 1)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
-        draft_test_helper_2 = OrgAndUserHelper(name='organisation2')
-        draft = self.create_standard_draft(draft_test_helper_2.organisation)
+        organisation_2 = self.create_organisation()
+        draft = self.create_standard_draft(organisation_2)
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)})
+        response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

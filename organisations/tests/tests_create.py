@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from organisations.models import Organisation, Site
+from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.models import ExporterUser
 
@@ -9,69 +9,71 @@ from users.models import ExporterUser
 class OrganisationCreateTests(DataTestClient):
 
     def test_create_organisation_with_first_user(self):
-        self.name = "Big Scary Guns ltd"
-        self.eori_number = "GB123456789000"
-        self.sic_number = "2765"
-        self.vat_number = "123456789"
-        self.registration_number = "987654321"
-        self.address = "London"
+        name = 'New Organisation'
+        eori_number = 'GB123456789000'
+        sic_number = '2765'
+        vat_number = '123456789'
+        registration_number = '987654321'
+        address = 'London'
 
         # Site name
-        self.site_name = "Headquarters"
+        site_name = 'Headquarters'
 
         # Address details
-        self.country = 'GB'
-        self.address_line_1 = "42 Industrial Estate"
-        self.address_line_2 = "Queens Road"
-        self.region = "Hertfordshire"
-        self.postcode = "AL1 4GT"
-        self.city = "St Albans"
+        country = 'GB'
+        address_line_1 = '42 Industrial Estate'
+        address_line_2 = 'Queens Road'
+        region = 'Hertfordshire'
+        postcode = 'AL1 4GT'
+        city = 'St Albans'
 
         # First admin user details
-        self.admin_user_first_name = "Trinity"
-        self.admin_user_last_name = "Fishburne"
-        self.admin_user_email = "trinity@bsg.com"
-        self.password = "password123"
+        admin_user_first_name = 'Trinity'
+        admin_user_last_name = 'Fishburne'
+        admin_user_email = 'trinity@bsg.com'
+        password = 'password123'
 
         url = reverse('organisations:organisations')
         data = {
-            'name': self.name,
-            'eori_number': self.eori_number,
-            'sic_number': self.sic_number,
-            'vat_number': self.vat_number,
-            'registration_number': self.registration_number,
+            'name': name,
+            'eori_number': eori_number,
+            'sic_number': sic_number,
+            'vat_number': vat_number,
+            'registration_number': registration_number,
             'site': {
-                'name': self.site_name,
+                'name': site_name,
                 'address': {
-                    'country': self.country,
-                    'address_line_1': self.address_line_1,
-                    'address_line_2': self.address_line_2,
-                    'region': self.region,
-                    'postcode': self.postcode,
-                    'city': self.city,
+                    'country': country,
+                    'address_line_1': address_line_1,
+                    'address_line_2': address_line_2,
+                    'region': region,
+                    'postcode': postcode,
+                    'city': city,
                 },
             },
             'user': {
-                'first_name': self.admin_user_first_name,
-                'last_name': self.admin_user_last_name,
-                'email': self.admin_user_email,
-                'password': self.password
+                'first_name': admin_user_first_name,
+                'last_name': admin_user_last_name,
+                'email': admin_user_email
             },
         }
         response = self.client.post(url, data, **self.gov_headers)
-        Organisation.objects.get(name='Org1').delete()
+
+        organisation = Organisation.objects.filter(name=name)[0]
+        exporter_user = ExporterUser.objects.filter(organisation=organisation)[0]
+        site = organisation.primary_site
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Organisation.objects.get().name, "Big Scary Guns ltd")
-        self.assertEqual(Organisation.objects.get().eori_number, "GB123456789000")
-        self.assertEqual(Organisation.objects.get().sic_number, "2765")
-        self.assertEqual(Organisation.objects.get().vat_number, "123456789")
-        self.assertEqual(Organisation.objects.get().registration_number, "987654321")
-        self.assertEqual(ExporterUser.objects.get().email, "trinity@bsg.com")
-        self.assertEqual(ExporterUser.objects.get().first_name, self.admin_user_first_name)
-        self.assertEqual(ExporterUser.objects.get().last_name, self.admin_user_last_name)
-        self.assertEqual(Site.objects.get(name="Headquarters").address.address_line_1,
-                         "42 Industrial Estate")
-        self.assertEqual(Site.objects.get(name="Headquarters").name, "Headquarters")
+        self.assertEqual(organisation.name, name)
+        self.assertEqual(organisation.eori_number, 'GB123456789000')
+        self.assertEqual(organisation.sic_number, '2765')
+        self.assertEqual(organisation.vat_number, '123456789')
+        self.assertEqual(organisation.registration_number, '987654321')
+        self.assertEqual(exporter_user.email, 'trinity@bsg.com')
+        self.assertEqual(exporter_user.first_name, admin_user_first_name)
+        self.assertEqual(exporter_user.last_name, admin_user_last_name)
+        self.assertEqual(site.address.address_line_1, '42 Industrial Estate')
+        self.assertEqual(site.name, 'Headquarters')
 
     def tests_errors_are_send_from_failed_create(self):
         url = reverse('organisations:organisations')
