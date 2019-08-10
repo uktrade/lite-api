@@ -1,7 +1,6 @@
 import uuid
 
 import reversion
-from django.contrib.postgres import fields
 from django.db import models
 
 from applications.models import Application
