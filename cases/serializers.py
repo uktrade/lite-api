@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
@@ -34,6 +32,7 @@ class CaseSerializer(serializers.ModelSerializer):
         model = Case
         fields = ('id', 'type', 'application', 'clc_query',)
 
+    # pylint: disable=W0221
     def to_representation(self, value):
         """
         Only show 'application' if it has an application inside,

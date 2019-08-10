@@ -105,6 +105,7 @@ class Advice(models.Model):
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
 
+    # pylint: disable=W0221
     def save(self, *args, **kwargs):
         if self.type is not AdviceType.PROVISO:
             self.proviso = None
