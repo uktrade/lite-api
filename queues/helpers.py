@@ -12,11 +12,13 @@ from teams.models import Team
 
 
 def _coalesce_case_status_priority(cases):
-    case = cases.first().__dict__
-    if 'status__priority' not in case:
-        return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
-    else:
-        return cases
+    case = cases.first()
+    if case:
+        case = case.__dict__
+        if 'status__priority' not in case:
+            return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
+
+    return cases
 
 
 def sort_in_queryset(request, cases):
