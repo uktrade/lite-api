@@ -123,9 +123,9 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
         if BACKGROUND_TASK_ENABLED:
             prepare_document(str(good_document.id))
         else:
+            # pylint: disable=W0703
             try:
                 prepare_document.now(str(good_document.id))
-            # pylint: disable=W0703
             except Exception:
                 raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
 
