@@ -11,7 +11,7 @@ class CaseActivityTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_open_application(self.exporter_user.organisation)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
