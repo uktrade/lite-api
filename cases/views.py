@@ -11,13 +11,11 @@ from cases.libraries.activity_helpers import convert_case_reversion_to_activity,
     convert_ecju_query_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.libraries.get_ecju_queries import get_ecju_queries_from_case
-from cases.models import CaseAssignment, CaseDocument
+from cases.libraries.get_ecju_queries import get_ecju_queries_from_case, get_ecju_query
+from cases.models import CaseAssignment, CaseDocument, EcjuQuery
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
-    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
+    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, EcjuQuerySerializer, EcjuQueryCreateSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
-from ecju_queries.models import EcjuQuery
-from ecju_queries.serializers import EcjuQuerySerializer
 from users.models import ExporterUser
 
 
@@ -237,3 +235,35 @@ class CaseEcjuQueries(APIView):
         serializer = EcjuQuerySerializer(case_ecju_queries, many=True)
 
         return JsonResponse({'ecju_queries': serializer.data})
+
+    def post(self, request, pk):
+        """
+        Add a new ECJU query
+        """
+        data = JSONParser().parse(request)
+        data['case'] = pk
+        data['raised_by_user'] = request.user.id
+        serializer = EcjuQueryCreateSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'ecju_query_id': serializer.data['id']},
+                                status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryDetail(APIView):
+    """
+    Details of a specific ECJU query
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk, ecju_pk):
+        """
+        Returns details of an ecju query
+        """
+        ecju_query = get_ecju_query(ecju_pk)
+        serializer = EcjuQuerySerializer(ecju_query)
+        return JsonResponse(data={'ecju_query': serializer.data})

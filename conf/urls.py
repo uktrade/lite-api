@@ -35,7 +35,6 @@ urlpatterns = [
     path('gov-users/', include('gov_users.urls')),
     path('flags/', include('flags.urls')),
     path('picklist/', include('picklists.urls')),
-    path('ecju-queries/', include('ecju_queries.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 

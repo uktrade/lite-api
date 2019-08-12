@@ -66,7 +66,6 @@ INSTALLED_APPS = [
     'clc_queries',
     'case_types',
     'picklists',
-    'ecju_queries',
 ]
 
 MIDDLEWARE = [

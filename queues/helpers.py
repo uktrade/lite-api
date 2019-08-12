@@ -16,7 +16,9 @@ def _coalesce_case_status_priority(cases):
     if case:
         case = case.__dict__
         if 'status__priority' not in case:
-            return cases.annotate(status__priority=Coalesce('application__status__priority', 'clc_query__status__priority'))
+            return cases.annotate(
+                status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+            )
 
     return cases
 

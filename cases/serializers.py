@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from applications.serializers import ApplicationBaseSerializer
 from case_types.serializers import CaseTypeSerializer
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, EcjuQuery
 from clc_queries.serializers import ClcQuerySerializer
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
@@ -53,6 +53,7 @@ class CaseDetailSerializer(CaseSerializer):
         if not attrs:
             raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
         return attrs
+
 
 class CaseNoteViewSerializer(serializers.ModelSerializer):
     """
@@ -141,3 +142,27 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseDocument
         fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
+
+
+class EcjuQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',)
+
+
+class EcjuQueryCreateSerializer(serializers.ModelSerializer):
+    """
+    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
+    """
+    question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'case',
+                  'raised_by_user',)

@@ -17,4 +17,6 @@ urlpatterns = [
     path('<uuid:pk>/flags/', views.CaseFlagsAssignment.as_view(), name='case_flags'),
     # ex: /cases/<uuid:pk>/ecju-queries/
     path('<uuid:pk>/ecju-queries/', views.CaseEcjuQueries.as_view(), name='case_ecju_queries'),
+    # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/
+    path('<uuid:pk>/ecju-queries/<uuid:ecju_pk>/', views.EcjuQueryDetail.as_view(), name='case_ecju_query'),
 ]
