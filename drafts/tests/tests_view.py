@@ -8,6 +8,8 @@ from test_helpers.clients import DataTestClient
 
 class DraftTests(DataTestClient):
 
+    url = reverse('drafts:drafts')
+
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.exporter_user.organisation)
@@ -18,8 +20,7 @@ class DraftTests(DataTestClient):
         """
         self.create_standard_draft(self.exporter_user.organisation)
 
-        url = reverse('drafts:drafts')
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()['drafts']), 2)
@@ -47,8 +48,7 @@ class DraftTests(DataTestClient):
         organisation_2 = self.create_organisation()
         self.create_standard_draft(organisation_2)
 
-        url = reverse('drafts:drafts')
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
