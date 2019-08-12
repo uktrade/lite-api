@@ -86,4 +86,3 @@ class GoodDocumentsTests(DataTestClient):
     #     print('STATUSCODE' + str(response.status_code))
     #     self.assertEqual(CaseDocument.objects.count(), 1)
     #     self.assertEqual(CaseDocument.objects.get().case, self.case)
-
