@@ -23,8 +23,7 @@ class SiteList(APIView):
         sites = Site.objects.filter(organisation=organisation)
 
         serializer = SiteViewSerializer(sites, many=True)
-        return JsonResponse(data={'sites': serializer.data},
-                            )
+        return JsonResponse(data={'sites': serializer.data})
 
     @transaction.atomic
     def post(self, request):
@@ -54,11 +53,9 @@ class OrgSiteList(APIView):
         Endpoint for listing the Sites of an organisation
         An organisation must have at least one site
         """
-
         sites = Site.objects.filter(organisation=org_pk)
         serializer = SiteViewSerializer(sites, many=True)
-        return JsonResponse(data={'sites': serializer.data},
-                            )
+        return JsonResponse(data={'sites': serializer.data})
 
     @transaction.atomic
     def post(self, request, org_pk):

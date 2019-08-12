@@ -4,6 +4,7 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.models import Case, Advice
+from conf.helpers import convert_queryset_to_str
 from test_helpers.clients import DataTestClient
 
 
@@ -70,7 +71,7 @@ class CreateCaseAdviceTests(DataTestClient):
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
             self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
-            self.assertEqual(self.convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
+            self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
                              data['denial_reasons'])
 
     @parameterized.expand([
@@ -122,5 +123,5 @@ class CreateCaseAdviceTests(DataTestClient):
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
             self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
-            self.assertEqual(self.convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
+            self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
                              data['denial_reasons'])

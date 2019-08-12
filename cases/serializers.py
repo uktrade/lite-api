@@ -4,6 +4,7 @@ from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice
 from clc_queries.serializers import ClcQuerySerializer
+from conf.helpers import convert_queryset_to_str
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
@@ -164,12 +165,23 @@ class _CaseAdviceSerializer(serializers.ModelSerializer):
 
 class StandardCaseAdviceSerializer(_CaseAdviceSerializer):
     goods = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), many=True)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Advice
         fields = ('case', 'user', 'advice', 'note', 'type',
                   'goods', 'end_user', 'proviso', 'denial_reasons')
+
+    def to_representation(self, instance):
+        repr_dict = super(StandardCaseAdviceSerializer, self).to_representation(instance)
+
+        if instance.type == AdviceType.PROVISO:
+            repr_dict['proviso'] = instance.proviso
+
+        if instance.type == AdviceType.REFUSE:
+            repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+
+        return repr_dict
 
 
 class OpenCaseAdviceSerializer(_CaseAdviceSerializer):
@@ -180,3 +192,14 @@ class OpenCaseAdviceSerializer(_CaseAdviceSerializer):
         model = Advice
         fields = ('case', 'user', 'advice', 'note', 'type',
                   'proviso', 'goods_types', 'countries', 'denial_reasons')
+
+    def to_representation(self, instance):
+        repr_dict = super(OpenCaseAdviceSerializer, self).to_representation(instance)
+
+        if instance.type == AdviceType.PROVISO:
+            repr_dict['proviso'] = instance.proviso
+
+        if instance.type == AdviceType.REFUSE:
+            repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+
+        return repr_dict

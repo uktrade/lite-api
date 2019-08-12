@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class RetrieveAllCases(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.team = self.create_team('team team')
+        self.team = self.create_team('team')
         self.queue1 = self.create_queue('queue1', self.team)
         self.queue2 = self.create_queue('queue2', self.team)
         self.case1 = self.create_standard_application_case(self.exporter_user.organisation, 'case1 case1 for queue1')
@@ -183,8 +183,6 @@ class RetrieveAllCases(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-
-        # Assert
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

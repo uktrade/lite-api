@@ -4,6 +4,9 @@ from users.models import ExporterUser
 
 
 def random_name():
+    """
+    :return: A randomly generated first name and last name
+    """
     first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
     last_names = ('Johnson', 'Smith', 'Williams', 'Hargreaves', 'Montague', 'Jenkins')
 

@@ -202,9 +202,6 @@ class DataTestClient(BaseTestClient):
         picklist_item.save()
         return picklist_item
 
-    def convert_queryset_to_str(self, queryset):
-        return [str(x) for x in queryset]
-
     def create_controlled_good(self, description, org):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,

@@ -31,7 +31,6 @@ class OrganisationCreateTests(DataTestClient):
         admin_user_first_name = 'Trinity'
         admin_user_last_name = 'Fishburne'
         admin_user_email = 'trinity@bsg.com'
-        password = 'password123'
 
         url = reverse('organisations:organisations')
         data = {

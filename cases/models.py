@@ -97,7 +97,7 @@ class Advice(models.Model):
 
     # Optional destinations
     countries = models.ManyToManyField(Country, related_name='countries')
-    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
+    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True, blank=True)
     ultimate_end_users = models.ManyToManyField(EndUser, related_name='ultimate_end_users')
 
     # Optional depending on type of advice
