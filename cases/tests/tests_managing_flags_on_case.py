@@ -19,18 +19,18 @@ class CaseFlagsManagementTests(DataTestClient):
         self.case = Case.objects.get(application=self.standard_application)
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = self.create_team('Team')
 
         # Flags
-        self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
-        self.team_case_flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
-        self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
-        self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
+        self.team_case_flag_1 = self.create_flag('Case Flag 1', 'Case', self.team)
+        self.team_case_flag_2 = self.create_flag('Case Flag 2', 'Case', self.team)
+        self.team_org_flag = self.create_flag('Org Flag 1', 'Organisation', self.team)
+        self.other_team_case_flag = self.create_flag('Other Team Case Flag', 'Case', self.other_team)
         self.all_flags = [self.team_case_flag_1, self.team_org_flag, self.team_case_flag_2, self.other_team_case_flag]
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
-        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=flags"
+        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + '?fields=flags'
 
     def test_no_flags_for_case_are_returned(self):
         """
