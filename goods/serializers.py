@@ -125,6 +125,7 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
         else:
             try:
                 prepare_document.now(str(good_document.id))
+            # pylint: disable=W0703
             except Exception:
                 raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
 
