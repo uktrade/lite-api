@@ -76,7 +76,7 @@ class GoodDetail(APIView):
 
         data = request.data.copy()
 
-        if data['is_good_controlled'] == 'unsure':
+        if data.get('is_good_controlled') == 'unsure':
             for good_on_draft in GoodOnDraft.objects.filter(good=good):
                 good_on_draft.delete()
 
