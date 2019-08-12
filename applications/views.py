@@ -22,6 +22,7 @@ from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
@@ -180,7 +181,7 @@ class CLCList(APIView):
         case = Case(clc_query=clc_query, case_type=case_type)
         case.save()
 
-        good.status = "submitted"
+        good.status = GoodStatus.SUBMITTED
         good.control_code = data['not_sure_details_control_code']
         good.save()
 
