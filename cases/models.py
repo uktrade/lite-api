@@ -68,6 +68,7 @@ class Notification(models.Model):
     note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=False)
     viewed_at = models.DateTimeField(null=True)
 
+
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

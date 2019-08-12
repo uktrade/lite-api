@@ -24,4 +24,5 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
         model = EcjuQuery
         fields = ('id',
                   'question',
-                  'case',)
+                  'case',
+                  'raised_by_user',)

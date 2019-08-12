@@ -3,7 +3,6 @@ from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-
 from conf.authentication import GovAuthentication
 from ecju_queries.libraries.get_ecju_query import get_ecju_query
 from ecju_queries.serializers import EcjuQuerySerializer, EcjuQueryCreateSerializer
@@ -18,6 +17,7 @@ class EcjuQueriesList(APIView):
         Add a new ECJU query
         """
         data = JSONParser().parse(request)
+        data['raised_by_user'] = request.user.id
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid():

@@ -32,7 +32,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
-        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id}) + "?fields=flags"
+        self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
     def test_no_flags_for_case_are_returned(self):
         """

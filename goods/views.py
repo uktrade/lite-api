@@ -1,3 +1,4 @@
+import reversion
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from rest_framework import status
@@ -44,16 +45,19 @@ class GoodList(APIView):
                 good = serializer.save()
 
                 if data['is_good_controlled'] == GoodControlled.UNSURE:
-                    # automatically raise a CLC query case
-                    clc_query = ClcQuery(details=data['not_sure_details_details'],
-                                         good=good,
-                                         status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
-                    clc_query.save()
+                    with reversion.create_revision():
+                        reversion.set_comment("Created CLC Query")
+                        reversion.set_user(request.user)
+                        # automatically raise a CLC query case
+                        clc_query = ClcQuery(details=data['not_sure_details_details'],
+                                             good=good,
+                                             status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+                        clc_query.save()
 
-                    # Create a case
-                    case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-                    case = Case(clc_query=clc_query, case_type=case_type)
-                    case.save()
+                        # Create a case
+                        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+                        case = Case(clc_query=clc_query, case_type=case_type)
+                        case.save()
 
                     # Add said case to default queue
                     queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
