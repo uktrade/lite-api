@@ -13,8 +13,6 @@ class DocumentDetail(APIView):
         """
         Returns a list of documents on the specified good
         """
-        print(pk)
-        print(Document.objects.all())
         document = Document.objects.get(id=pk)
         serializer = DocumentViewSerializer(document)
         return JsonResponse({'document': serializer.data})

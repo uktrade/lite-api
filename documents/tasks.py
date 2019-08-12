@@ -9,5 +9,4 @@ def prepare_document(document_id):
     """
     from documents.models import Document
     doc = Document.objects.get(id=document_id)
-    print('found document', doc)
     doc.prepare_document()
