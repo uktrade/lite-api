@@ -28,22 +28,22 @@ class GoodDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data['documents']), 2)
 
 
-    @tag('slow')
-    def test_can_remove_document_from_unsubmitted_good(self):
-        doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-        self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
-
-        url = reverse('goods:document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['documents']), 1)
+    # @tag('slow')
+    # def test_can_remove_document_from_unsubmitted_good(self):
+    #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
+    #     self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
+    #
+    #     url = reverse('goods:document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
+    #
+    #     response = self.client.delete(url, **self.exporter_headers)
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #
+    #     response = self.client.get(self.url, **self.exporter_headers)
+    #     response_data = response.json()
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(len(response_data['documents']), 1)
 
     def test_submitted_good_cannot_have_docs_added(self):
         """
