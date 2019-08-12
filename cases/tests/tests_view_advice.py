@@ -35,10 +35,10 @@ class ViewCaseAdviceTests(DataTestClient):
         advice.save()
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_json = response.json()['advice']
+        response_data = response.json()['advice']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_json), 1)
+        self.assertEqual(len(response_data), 1)
 
     def test_view_open_case_advice(self):
         """
@@ -56,7 +56,7 @@ class ViewCaseAdviceTests(DataTestClient):
         advice.save()
 
         response = self.client.get(self.open_case_url, **self.gov_headers)
-        response_json = response.json()['advice']
+        response_data = response.json()['advice']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_json), 1)
+        self.assertEqual(len(response_data), 1)
