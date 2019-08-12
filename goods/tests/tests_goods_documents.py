@@ -65,15 +65,16 @@ class GoodDocumentsTests(DataTestClient):
         """
         draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
         good = GoodOnDraft.objects.get(draft=draft).good
-        doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
+        document_1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
         self.test_helper.submit_draft(self, draft=draft)
 
-        url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': doc1.id})
+        url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': document_1.id})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # TODO: work in progress
+    # Circle CI does not like calls to live S3
+    # TODO: Work in progress
     # def test_add_a_document(self):
     #     data = [{"name": "file123.pdf",
     #              "s3_key": "file123_12345678.pdf",
