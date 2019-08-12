@@ -1,6 +1,5 @@
-from django.http import Http404
-
 from cases.models import EcjuQuery
+from conf.exceptions import NotFoundError
 
 
 def get_ecju_queries_from_case(case):
@@ -14,4 +13,4 @@ def get_ecju_query(pk):
     try:
         return EcjuQuery.objects.get(pk=pk)
     except EcjuQuery.DoesNotExist:
-        raise Http404
+        raise NotFoundError({'ecju_query': 'ECJU Query not found'})
