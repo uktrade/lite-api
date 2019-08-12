@@ -10,6 +10,7 @@ from applications.models import Site, SiteOnApplication
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
+from content_strings.strings import get_string
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
@@ -62,10 +63,9 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-        'required': 'Select which type of licence you want to apply for.'})
+        'required': get_string('applications.generic.no_licence_type')})
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
-        'required': 'Select if you want to apply for a temporary or permanent '
-                    'licence.'})
+        'required': get_string('applications.generic.no_export_type')})
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
 
