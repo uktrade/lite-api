@@ -149,9 +149,19 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
 class _CaseAdviceSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
-    proviso = serializers.CharField(required=True, write_only=False)
+    proviso = serializers.CharField(required=True,
+                                    allow_blank=False,
+                                    allow_null=False,
+                                    error_messages={'blank': 'Enter a proviso'})
     type = KeyValueChoiceField(choices=AdviceType.choices)
-    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=True)
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
+                                                        many=True,
+                                                        required=True)
+
+    def validate_denial_reasons(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError('Select at least one denial reason')
+        return attrs
 
     def __init__(self, *args, **kwargs):
         super(_CaseAdviceSerializer, self).__init__(*args, **kwargs)
