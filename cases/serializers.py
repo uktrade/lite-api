@@ -152,7 +152,8 @@ class _CaseAdviceSerializer(serializers.ModelSerializer):
     proviso = serializers.CharField(required=True,
                                     allow_blank=False,
                                     allow_null=False,
-                                    error_messages={'blank': 'Enter a proviso'})
+                                    error_messages={'blank': 'Enter a proviso'},
+                                    max_length=5000)
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
                                                         many=True,
