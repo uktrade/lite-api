@@ -1,0 +1,8 @@
+[run]
+include =
+    ./*/views.py
+    ./*/serializers.py
+    ./*/libraries/*.py
+
+omit =
+    ./*/__init__.py
