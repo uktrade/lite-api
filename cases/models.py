@@ -76,6 +76,9 @@ class CaseDocument(Document):
 
 
 class EcjuQuery(models.Model):
+    """
+    Query from ECJU to exporters
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
     response = models.CharField(null=True, blank=False, max_length=5000)

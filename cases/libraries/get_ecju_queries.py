@@ -13,4 +13,4 @@ def get_ecju_query(pk):
     try:
         return EcjuQuery.objects.get(pk=pk)
     except EcjuQuery.DoesNotExist:
-        raise NotFoundError({'ecju_query': 'ECJU Query not found'})
+        raise NotFoundError({'ecju_query': 'ECJU Query not found - ' + str(pk)})

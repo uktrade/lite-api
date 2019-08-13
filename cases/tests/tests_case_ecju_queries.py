@@ -43,8 +43,6 @@ class CaseEcjuQueriesTests(DataTestClient):
         When a gov user requests the ECJU queries for the case
         Then the request is successful and the expected number of ECJU queries are returned
         """
-        # Assemble
-
         # Act
         response = self.client.get(self.url, **self.gov_headers)
 
@@ -57,8 +55,6 @@ class CaseEcjuQueriesTests(DataTestClient):
         When a gov user requests the ECJU queries for the case
         Then the expected ECJU queries and properties are returned
         """
-        # Assemble
-
         # Act
         response = self.client.get(self.url, **self.gov_headers)
 

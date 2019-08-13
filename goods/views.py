@@ -46,7 +46,7 @@ class GoodList(APIView):
 
                 if data['is_good_controlled'] == GoodControlled.UNSURE:
                     with reversion.create_revision():
-                        reversion.set_comment("Created CLC Query")
+                        reversion.set_comment('Created CLC Query')
                         reversion.set_user(request.user)
                         # automatically raise a CLC query case
                         clc_query = ClcQuery(details=data['not_sure_details_details'],
