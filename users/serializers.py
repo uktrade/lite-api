@@ -7,7 +7,7 @@ from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, UserStatuses, BaseUser, GovUser
+from users.models import ExporterUser, UserStatuses, BaseUser, GovUser, UserOrganisationRelationship
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -94,21 +94,36 @@ class UserUpdateSerializer(UserSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
             'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
         model = ExporterUser
+        unique_together = ('email', 'organisation')
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
     def create(self, validated_data):
-        return ExporterUser.objects.create(**validated_data)
+        exporter_user = self.get_user_by_email(self.email)
+        if not exporter_user:
+            return ExporterUser.objects.create(**validated_data)
+
+
+    def get_user_by_email(email):
+        try:
+            return ExporterUser.objects.get(email=email)
+        except ExporterUser.DoesNotExist:
+            return None
+
+    def get_organisations_by_user(user):
+        try:
+            return UserOrganisationRelationship.objects.get(user=user)
+        except UserOrganisationRelationship.DoesNotExist:
+            return None
 
 
 class NotificationsSerializer(serializers.ModelSerializer):
