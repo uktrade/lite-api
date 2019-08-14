@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'clc_queries',
     'case_types',
     'picklists',
+    'end_user.end_user_document',
 ]
 
 MIDDLEWARE = [
