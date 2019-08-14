@@ -108,20 +108,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
     def create(self, validated_data):
-        exporter_user = self.get_user_by_email(self.email)
+        exporter_user = self.get_user_by_email(email=validated_data['email'])
         if not exporter_user:
             return ExporterUser.objects.create(**validated_data)
+        elif exporter_user in self.get_organisations_by_user(organisation=validated_data['organisation']):
+            UserOrganisationRelationship.objects.create(**validated_data)
 
-
-    def get_user_by_email(email):
+    def get_user_by_email(self):
         try:
-            return ExporterUser.objects.get(email=email)
+            return ExporterUser.objects.get(email=self.email)
         except ExporterUser.DoesNotExist:
             return None
 
-    def get_organisations_by_user(user):
+    def get_organisations_by_user(self):
         try:
-            return UserOrganisationRelationship.objects.get(user=user)
+            return UserOrganisationRelationship.objects.get(user=self.user)
         except UserOrganisationRelationship.DoesNotExist:
             return None
 
