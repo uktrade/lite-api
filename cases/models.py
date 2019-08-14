@@ -105,8 +105,38 @@ class Advice(models.Model):
     denial_reasons = models.ManyToManyField(DenialReason)
 
     # pylint: disable=W0221
-    def save(self, *args, **kwargs):
+    def save(self, update_other_items=False, *args, **kwargs):
         if self.type is not AdviceType.PROVISO:
             self.proviso = None
 
+        other_advice_on_case = Advice.objects.filter(case=self.case, user=self.user).exclude(pk=self.id)
+
         super(Advice, self).save(*args, **kwargs)
+
+        if update_other_items:
+            # Update other advice on this case by the same user
+            other_advice_on_case = [advice for advice in other_advice_on_case if
+                                    self.goods in advice.goods.all() or
+                                    self.goods_types in advice.goods_types.all() or
+                                    self.countries in advice.countries.all() or
+                                    self.end_user is self.end_user or
+                                    self.ultimate_end_users in advice.ultimate_end_users.all()]
+
+            for advice in other_advice_on_case:
+                advice.goods.remove(*self.goods.all())
+                advice.goods_types.remove(*self.goods_types.all())
+                advice.countries.remove(*self.countries.all())
+                advice.ultimate_end_users.remove(*self.ultimate_end_users.all())
+
+                if self.end_user:
+                    advice.end_user = None
+
+                advice.save()
+
+                # Delete the advice if it isn't linked to anything
+                if not advice.ultimate_end_users.all() and \
+                        not advice.end_user and \
+                        not advice.goods_types.all() and \
+                        not advice.goods.all() and \
+                        not advice.countries.all():
+                    advice.delete()

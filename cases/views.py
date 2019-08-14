@@ -264,7 +264,9 @@ class CaseAdvice(APIView):
         serializer = self.serializer_object(data=data)
 
         if serializer.is_valid():
-            serializer.save()
+            advice = serializer.save()
+            advice.save(True)
+
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
