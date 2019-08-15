@@ -1,9 +1,8 @@
-from django.test import tag
+from unittest import mock
 from django.urls import reverse
 from rest_framework import status
-
-from drafts.models import GoodOnDraft
 from test_helpers.clients import DataTestClient
+from end_user.end_user_document.models import EndUserDocument
 
 
 class DraftEndUserDocumentsTests(DataTestClient):
@@ -15,32 +14,37 @@ class DraftEndUserDocumentsTests(DataTestClient):
         self.end_user = self.test_helper.create_end_user("Mr. Kim", self.org)
         self.url = reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id})
 
-    def test_can_view_document_on_end_user(self):
-        self.create_draft_end_user_document(
-            draft=self.draft,
-            end_user=self.end_user,
-            user=self.exporter_user,
-            s3_key='doc1key',
-            name='doc1.pdf'
-        )
-        self.create_draft_end_user_document(
-            draft=self.draft,
-            end_user=self.end_user,
-            user=self.exporter_user,
-            s3_key='doc2key',
-            name='doc2.pdf'
-        )
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_for_storing_meta(self, prepare_document_function):
+        data = [{"name": "file123.pdf",
+                 "s3_key": "file123_12345678.pdf",
+                 "size": 476,
+                 "description": "Description 58398"}]
 
+        response = self.client.post(self.url, data=data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # act
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()
+        response_data = response.json()['documents'][0]
 
-        print('RESPONSE DATA', response_data)
-
+        #assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['documents']), 2)
+        self.assertEqual(response_data['name'], data[0]['name'])
+        self.assertEqual(response_data['s3_key'], data[0]['s3_key'])
+        self.assertEqual(response_data['size'], data[0]['size'])
+        self.assertEqual(response_data['description'], data[0]['description'])
 
+    # DRAFT TESTS
+    # if DELETE/POST/GET - end-user not set - return 400
 
+    # if GET - document not set - return 404
+    # if POST - document not set - return 201
+    # if DELETE - document not set - return 400
 
+    # if POST - document exist - return 400
+    # if DELETE - document exist - return 204
+    # if GET - document exist - return 200
 
 
 

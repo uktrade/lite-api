@@ -8,7 +8,7 @@ from case_types.models import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
-from end_user.end_user_document.models import DraftEndUserDocument
+from end_user.end_user_document.models import EndUserDocument
 from end_user.models import EndUser
 from goods.models import Good, GoodDocument
 from gov_users.libraries.user_to_token import user_to_token
@@ -185,7 +185,7 @@ class DataTestClient(BaseTestClient):
         return good_doc
 
     def create_draft_end_user_document(self, draft: Draft, end_user: EndUser, user: ExporterUser, name: str, s3_key: str):
-        draft_end_user_document = DraftEndUserDocument(
+        draft_end_user_document = EndUserDocument(
             draft=draft,
             end_user=end_user,
             description='This is a document',

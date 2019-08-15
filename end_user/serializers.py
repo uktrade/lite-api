@@ -1,9 +1,8 @@
 from rest_framework import serializers, relations
 
 from conf.settings import BACKGROUND_TASK_ENABLED
-from documents.tasks import prepare_document
 from drafts.models import Draft
-from end_user.end_user_document.models import EndUserDocument, DraftEndUserDocument
+from end_user.end_user_document.models import EndUserDocument, EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from organisations.models import Organisation
@@ -11,6 +10,8 @@ from organisations.serializers import OrganisationViewSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
+
+import documents
 
 
 class EndUserSerializer(serializers.ModelSerializer):
@@ -44,42 +45,38 @@ class EndUserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class EndUserDocumentViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-    user = ExporterUserSimpleSerializer()
-    organisation = OrganisationViewSerializer()
-    s3_key = serializers.SerializerMethodField()
+# class EndUserDocumentViewSerializer(serializers.ModelSerializer):
+#     created_at = serializers.DateTimeField(read_only=True)
+#     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
+#     user = ExporterUserSimpleSerializer()
+#     organisation = OrganisationViewSerializer()
+#     s3_key = serializers.SerializerMethodField()
+#
+#     def get_s3_key(self, instance):
+#         return instance.s3_key if instance.safe else 'File not ready'
+#
+#     class Meta:
+#         model = EndUserDocument
+#         fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')
 
-    def get_s3_key(self, instance):
-        return instance.s3_key if instance.safe else 'File not ready'
+
+class EndUserDocumentSerializer(serializers.ModelSerializer):
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
 
     class Meta:
         model = EndUserDocument
-        fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')
-
-
-class DraftEndUserDocumentSerializer(serializers.ModelSerializer):
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    draft = serializers.PrimaryKeyRelatedField(queryset=Draft.objects.all())
-
-    class Meta:
-        model = DraftEndUserDocument
-        fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'end_user', 'description', 'draft')
+        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'description' )
 
     def create(self, validated_data):
-        end_user_document = super(DraftEndUserDocumentSerializer, self).create(validated_data)
+        end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)
         end_user_document.save()
 
         if BACKGROUND_TASK_ENABLED:
-            prepare_document(str(end_user_document.id))
+            documents.tasks.prepare_document(str(end_user_document.id))
         else:
             try:
-                prepare_document.now(str(end_user_document.id))
+                documents.tasks.prepare_document.now(str(end_user_document.id))
             except Exception:
                 raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
 
         return end_user_document
-

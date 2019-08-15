@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.end_user_document.models import DraftEndUserDocument
-from end_user.serializers import DraftEndUserDocumentSerializer
+from end_user.end_user_document.models import EndUserDocument
+from end_user.serializers import EndUserDocumentSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -20,14 +20,14 @@ class EndUserDocuments(APIView):
         """
         draft = get_draft(pk)
         end_user = draft.end_user
-        draft_end_user_documents = DraftEndUserDocument.objects.filter(draft__id=draft.id, draft__end_user=end_user).order_by('-created_at')
-        serializer = DraftEndUserDocumentSerializer(draft_end_user_documents, many=True)
+        end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
+        serializer = EndUserDocumentSerializer(end_user_documents, many=True)
 
         return JsonResponse({'documents': serializer.data})
 
 
     @swagger_auto_schema(
-        request_body=DraftEndUserDocumentSerializer,
+        request_body=EndUserDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -39,27 +39,39 @@ class EndUserDocuments(APIView):
 
         draft = get_draft(pk)
         end_user = draft.end_user
-        end_user_id = str(end_user.id)
-        organisation = get_organisation_by_user(request.user)
-        data = request.data
 
-        if end_user.organisation != organisation:
-            raise Http404
+        if end_user is None:
+            raise HttpResponseBadRequest
+
+        end_user_id = str(end_user.id)
+        data = request.data
 
         for document in data:
             document['end_user'] = end_user_id
-            document['user'] = request.user.id
-            document['organisation'] = organisation.id
-            document['draft'] = draft.id
 
-        serializer = DraftEndUserDocumentSerializer(data=data, many=True)
+        serializer = EndUserDocumentSerializer(data=data, many=True)
 
         if serializer.is_valid():
-            print('SERIALIZER VALID')
             serializer.save()
             return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
-        print('SERIALIZER NOT VALID')
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
+
+    @swagger_auto_schema(
+        request_body=EndUserDocumentSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
+    @transaction.atomic()
+    def delete(self, request, pk):
+        """
+        Deletes a document from the specified end user
+        """
+        draft = get_draft(pk)
+        end_user = draft.end_user
+        doc  = EndUserDocument.objects.get(id=dr)
+        end_user_id = str(end_user.id)
+        organisation = get_organisation_by_user(request.user)
+        data = request.data
