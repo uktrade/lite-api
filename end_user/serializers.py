@@ -2,6 +2,7 @@ from rest_framework import serializers, relations
 
 from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document
+from drafts.models import Draft
 from end_user.end_user_document.models import EndUserDocument, DraftEndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
@@ -62,10 +63,11 @@ class DraftEndUserDocumentSerializer(serializers.ModelSerializer):
     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    draft = serializers.PrimaryKeyRelatedField(queryset=Draft.objects.all())
 
     class Meta:
         model = DraftEndUserDocument
-        fields = ('name', 's3_key', 'user', 'organisation', 'size', 'end_user', 'description')
+        fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'end_user', 'description', 'draft')
 
     def create(self, validated_data):
         end_user_document = super(DraftEndUserDocumentSerializer, self).create(validated_data)

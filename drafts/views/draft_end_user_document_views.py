@@ -50,6 +50,7 @@ class EndUserDocuments(APIView):
             document['end_user'] = end_user_id
             document['user'] = request.user.id
             document['organisation'] = organisation.id
+            document['draft'] = draft.id
 
         serializer = DraftEndUserDocumentSerializer(data=data, many=True)
 
