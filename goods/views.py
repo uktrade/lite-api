@@ -49,15 +49,15 @@ class GoodList(APIView):
                         reversion.set_comment('Created CLC Query')
                         reversion.set_user(request.user)
 
-						# automatically raise a CLC query case
-	                    clc_query = ClcQuery(details=data['not_sure_details_details'],
-	                                         good=good,
-	                                         status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
-	                    clc_query.save()
+                        # automatically raise a CLC query case
+                        clc_query = ClcQuery(details=data['not_sure_details_details'],
+                                             good=good,
+                                             status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+                        clc_query.save()
 
-	                    # Create a case
-	                    case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-	                    case.save()
+                        # Create a case
+                        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
+                        case.save()
 
                     # Add said case to default queue
                     queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
