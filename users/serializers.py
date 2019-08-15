@@ -102,29 +102,31 @@ class UserCreateSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
+    def get_a_user_by_email(self, email):
+        try:
+            return ExporterUser.objects.get(email=email)
+        except ExporterUser.DoesNotExist:
+            return None
+
+    def get_organisations_by_user(self, email):
+        try:
+            return UserOrganisationRelationship.objects.get(email=email)
+        except UserOrganisationRelationship.DoesNotExist:
+            return None
+
+    def create(self, validated_data):
+        exporter_user = self.get_a_user_by_email(self.data['email'])
+        if not exporter_user:
+            return ExporterUser.objects.create(**validated_data)
+        elif exporter_user not in self.get_organisations_by_user(validated_data['email']):
+            return UserOrganisationRelationship.objects.create(**validated_data)
+        else:
+            return None
+
     class Meta:
         model = ExporterUser
         unique_together = ('email', 'organisation')
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
-
-    def create(self, validated_data):
-        exporter_user = self.get_user_by_email(email=validated_data['email'])
-        if not exporter_user:
-            return ExporterUser.objects.create(**validated_data)
-        elif exporter_user in self.get_organisations_by_user(organisation=validated_data['organisation']):
-            UserOrganisationRelationship.objects.create(**validated_data)
-
-    def get_user_by_email(self):
-        try:
-            return ExporterUser.objects.get(email=self.email)
-        except ExporterUser.DoesNotExist:
-            return None
-
-    def get_organisations_by_user(self):
-        try:
-            return UserOrganisationRelationship.objects.get(user=self.user)
-        except UserOrganisationRelationship.DoesNotExist:
-            return None
 
 
 class NotificationsSerializer(serializers.ModelSerializer):
