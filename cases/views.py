@@ -15,6 +15,7 @@ from cases.models import CaseAssignment, CaseDocument
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
     CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
 
 
@@ -208,6 +209,7 @@ class CaseDocuments(APIView):
             serializer.save()
             return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
+        delete_documents_on_bad_request(data)
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
