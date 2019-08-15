@@ -117,7 +117,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             exporter_user = ExporterUser.objects.create(**validated_data)
 
         if not self.user_has_organisation(exporter_user, validated_data['organisation'].id):
-            email = validated_data.pop('email')
+            validated_data.pop('email')
             validated_data['organisation'] = validated_data['organisation'].id
             validated_data['user'] = exporter_user
             serializer = UserOrganisationSerializer(data=validated_data)
