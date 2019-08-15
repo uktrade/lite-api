@@ -108,9 +108,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except ExporterUser.DoesNotExist:
             return None
 
-    def get_organisations_by_user(self, email):
+    def get_organisations_by_user(self, user):
         try:
-            return UserOrganisationRelationship.objects.get(email=email)
+            return UserOrganisationRelationship.objects.filter(user=user)
         except UserOrganisationRelationship.DoesNotExist:
             return None
 
@@ -118,8 +118,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
         exporter_user = self.get_a_user_by_email(self.data['email'])
         if not exporter_user:
             return ExporterUser.objects.create(**validated_data)
-        elif exporter_user not in self.get_organisations_by_user(validated_data['email']):
-            return UserOrganisationRelationship.objects.create(**validated_data)
+        elif validated_data['organisation'] not in self.get_organisations_by_user(user=exporter_user):
+            print('shazzam')
+            print(validated_data)
+            del validated_data['email']
+            print(validated_data)
+            # error here as user object not in validated_data - serializer mismatch ?
+            serializer = UserOrganisationSerializer(data=validated_data)
+            if serializer.is_valid():
+                print('shazasdasdasdaszam')
+                serializer.save()
+                return serializer.data
+            print(serializer.errors)
+            return serializer.errors
         else:
             return None
 
@@ -152,4 +163,14 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
+        exclude = []
+
+
+class UserOrganisationSerializer(serializers.ModelSerializer):
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
+    status = serializers.BooleanField()
+
+    class Meta:
+        model: UserOrganisationRelationship
         exclude = []
