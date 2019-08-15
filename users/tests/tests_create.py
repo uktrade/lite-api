@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
+from test_helpers.org_and_user_helper import OrgAndUserHelper
 from users.models import ExporterUser
 
 
@@ -18,6 +19,20 @@ class UserTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExporterUser.objects.filter(organisation=self.test_helper.organisation).count(), 2)
+
+        organisation = OrgAndUserHelper('test-org').organisation
+
+        # where they in a different organisation
+        # data = {
+        #     'first_name': 'Jane',
+        #     'last_name': 'Smith',
+        #     'email': 'jsmith@name.com',
+        #     'organisation': str(organisation.id)
+        # }
+        # url = reverse('users:users')
+        # response = self.client.post(url, data, **self.exporter_headers)
+        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # self.assertEqual(ExporterUser.objects.filter(organisation=organisation).count(), 2)
 
     def test_fail_create_new_user(self):
         data = {}
