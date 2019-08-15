@@ -2,6 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
@@ -86,57 +87,37 @@ class Advice(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
     type = models.CharField(choices=AdviceType.choices, max_length=30)
-    advice = models.TextField(default=None, blank=True, null=True)
+    text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
 
-    # Optional goods
-    goods = models.ManyToManyField(Good, related_name='goods')
-    goods_types = models.ManyToManyField(GoodsType, related_name='goods_types')
-
-    # Optional destinations
-    countries = models.ManyToManyField(Country, related_name='countries')
-    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True, blank=True)
-    ultimate_end_users = models.ManyToManyField(EndUser, related_name='ultimate_end_users')
+    # Optional goods/destinations
+    good = models.ForeignKey(Good, on_delete=models.CASCADE, null=True)
+    goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
+    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
+    ultimate_end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, related_name='ultimate_end_user', null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
 
     # pylint: disable=W0221
-    def save(self, update_other_items=False, *args, **kwargs):
+    def save(self, *args, **kwargs):
         if self.type is not AdviceType.PROVISO:
             self.proviso = None
 
-        other_advice_on_case = Advice.objects.filter(case=self.case, user=self.user).exclude(pk=self.id)
+        try:
+            existing_object = Advice.objects.get(case=self.case,
+                                                 user=self.user,
+                                                 good=self.good,
+                                                 goods_type=self.goods_type,
+                                                 country=self.country,
+                                                 end_user=self.end_user,
+                                                 ultimate_end_user=self.ultimate_end_user)
+            existing_object.delete()
+        except Advice.DoesNotExist:
+            pass
 
         super(Advice, self).save(*args, **kwargs)
-
-        if update_other_items:
-            # Update other advice on this case by the same user
-            other_advice_on_case = [advice for advice in other_advice_on_case if
-                                    self.goods in advice.goods.all() or
-                                    self.goods_types in advice.goods_types.all() or
-                                    self.countries in advice.countries.all() or
-                                    self.end_user is self.end_user or
-                                    self.ultimate_end_users in advice.ultimate_end_users.all()]
-
-            for advice in other_advice_on_case:
-                advice.goods.remove(*self.goods.all())
-                advice.goods_types.remove(*self.goods_types.all())
-                advice.countries.remove(*self.countries.all())
-                advice.ultimate_end_users.remove(*self.ultimate_end_users.all())
-
-                if self.end_user:
-                    advice.end_user = None
-
-                advice.save()
-
-                # Delete the advice if it isn't linked to anything
-                if not advice.ultimate_end_users.all() and \
-                        not advice.end_user and \
-                        not advice.goods_types.all() and \
-                        not advice.goods.all() and \
-                        not advice.countries.all():
-                    advice.delete()

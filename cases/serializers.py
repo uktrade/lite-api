@@ -1,10 +1,11 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice
 from clc_queries.serializers import ClcQuerySerializer
-from conf.helpers import convert_queryset_to_str
+from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
@@ -146,10 +147,11 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
         fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
 
 
-class _CaseAdviceSerializer(serializers.ModelSerializer):
+class CaseAdviceSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
-    proviso = serializers.CharField(required=True,
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(),
+                                            serializer=GovUserViewSerializer)
+    proviso = serializers.CharField(required=False,
                                     allow_blank=False,
                                     allow_null=False,
                                     error_messages={'blank': 'Enter a proviso'},
@@ -157,60 +159,97 @@ class _CaseAdviceSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
                                                         many=True,
-                                                        required=True)
+                                                        required=False)
 
-    def validate_denial_reasons(self, attrs):
-        if not attrs:
-            raise serializers.ValidationError('Select at least one denial reason')
-        return attrs
-
-    def __init__(self, *args, **kwargs):
-        super(_CaseAdviceSerializer, self).__init__(*args, **kwargs)
-
-        if self.get_initial().get('type') != AdviceType.PROVISO:
-            self.fields.pop('proviso')
-
-        if self.get_initial().get('type') != AdviceType.REFUSE:
-            self.fields.pop('denial_reasons')
-
-
-class StandardCaseAdviceSerializer(_CaseAdviceSerializer):
-    goods = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), many=True)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False, allow_null=True)
+    # Optional fields
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
+    goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
 
     class Meta:
         model = Advice
-        fields = ('case', 'user', 'advice', 'note', 'type',
-                  'goods', 'end_user', 'proviso', 'denial_reasons')
+        fields = ('case', 'user', 'text', 'note', 'type', 'proviso', 'denial_reasons',
+                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user')
+
+    def validate_denial_reasons(self, value):
+        """
+        Check that the denial reasons are set if type is REFUSE
+        """
+        for data in self.initial_data:
+            if data['type'] == AdviceType.REFUSE and not data['denial_reasons']:
+                raise serializers.ValidationError('Select at least one denial reason')
+
+        return value
+
+    def validate_proviso(self, value):
+        """
+        Check that the proviso is set if type is REFUSE
+        """
+        for data in self.initial_data:
+            if data['type'] == AdviceType.PROVISO and not data['proviso']:
+                raise ValidationError('Provide a proviso')
+
+        return value
+
+    # def __init__(self, *args, **kwargs):
+    #     super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
+    #
+    #     if self.initial_data:
+    #         print('\n')
+    #         print('inside a car')
+    #         print(self.initial_data)
+    #         print('\n')
+
+    # def __init__(self, *args, **kwargs):
+    #     super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
+
+        # if self.get_initial().get('type') != AdviceType.PROVISO:
+        #     self.fields.pop('proviso')
+        #
+        # if self.get_initial().get('type') != AdviceType.REFUSE:
+        #     self.fields.pop('denial_reasons')
+
+        # print('banana')
+        # print(self.get_initial().get('denial_reasons'))
+
+        # fields = self.get_initial()
+        # application_fields = ['good',
+        #                       'goods_type',
+        #                       'country',
+        #                       'end_user',
+        #                       'ultimate_end_user']
+        #
+        # # print('yo end user is: ' + self.get_initial().get('end_user'))
+        #
+        # # print(self.get_initial())
+        #
+        # # Ensure that only one attribute
+        # # print(len([item for item in application_fields if fields.get('item') is not None]))
+        # # if not ensure_x_items_not_none([fields.get(x) for x in application_fields], 1):
+        # #     raise serializers.ValidationError({'errors': 'Only give one attribute a value for application fields'})
+        #
+        # # Pop unused application fields
+        # # application_fields = [x for x in application_fields if fields.get(x) is None]
+        # # for field in application_fields:
+        # #     self.fields.pop(field)
+        #
+        # print('yo your type is')
+        # print(self.get_initial().get('type'))
+        #
 
     def to_representation(self, instance):
-        repr_dict = super(StandardCaseAdviceSerializer, self).to_representation(instance)
+        repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
 
         if instance.type == AdviceType.PROVISO:
             repr_dict['proviso'] = instance.proviso
+        else:
+            del repr_dict['proviso']
 
         if instance.type == AdviceType.REFUSE:
             repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
-
-        return repr_dict
-
-
-class OpenCaseAdviceSerializer(_CaseAdviceSerializer):
-    goods_types = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), many=True)
-    countries = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
-
-    class Meta:
-        model = Advice
-        fields = ('case', 'user', 'advice', 'note', 'type',
-                  'proviso', 'goods_types', 'countries', 'denial_reasons')
-
-    def to_representation(self, instance):
-        repr_dict = super(OpenCaseAdviceSerializer, self).to_representation(instance)
-
-        if instance.type == AdviceType.PROVISO:
-            repr_dict['proviso'] = instance.proviso
-
-        if instance.type == AdviceType.REFUSE:
-            repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+        else:
+            del repr_dict['denial_reasons']
 
         return repr_dict

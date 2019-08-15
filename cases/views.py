@@ -14,8 +14,8 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import CaseAssignment, CaseDocument, Advice
 from cases.serializers import CaseDetailSerializer, CaseDocumentCreateSerializer, \
-    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, StandardCaseAdviceSerializer, OpenCaseAdviceSerializer, \
-    CaseNoteSerializer
+    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, \
+    CaseNoteSerializer, CaseAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from users.models import ExporterUser
 
@@ -239,10 +239,12 @@ class CaseAdvice(APIView):
         self.advice = Advice.objects.filter(case=self.case)
         application_type = self.case.application.licence_type
 
-        if application_type == ApplicationLicenceType.STANDARD_LICENCE:
-            self.serializer_object = StandardCaseAdviceSerializer
-        elif application_type == ApplicationLicenceType.OPEN_LICENCE:
-            self.serializer_object = OpenCaseAdviceSerializer
+        self.serializer_object = CaseAdviceSerializer
+
+        # if application_type == ApplicationLicenceType.STANDARD_LICENCE:
+        #     self.serializer_object = StandardCaseAdviceSerializer
+        # elif application_type == ApplicationLicenceType.OPEN_LICENCE:
+        #     self.serializer_object = OpenCaseAdviceSerializer
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
@@ -258,15 +260,20 @@ class CaseAdvice(APIView):
         Creates advice for a case
         """
         data = request.data
-        data['case'] = self.case.id
-        data['user'] = request.user.id
 
-        serializer = self.serializer_object(data=data)
+        # Update the case and user in each piece of advice
+        for advice in data:
+            advice['case'] = self.case.id
+            advice['user'] = request.user.id
+
+        # print('\nYour data is')
+        # print(data)
+        # print('\n')
+
+        serializer = self.serializer_object(data=data, many=True)
 
         if serializer.is_valid():
-            advice = serializer.save()
-            advice.save(True)
-
+            serializer.save()
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
