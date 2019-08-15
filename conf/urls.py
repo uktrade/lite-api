@@ -11,10 +11,11 @@ api_info = openapi.Info(
       default_version='v0.3',
       description="Service for handling backend calls in LITE.",
       terms_of_service="https://github.com/uktrade/lite-api/blob/master/LICENSE",
-      contact=openapi.Contact(email="tbd@local"),
+      contact=openapi.Contact(url="https://github.com/uktrade/lite-api/",email="tbd@local"),
       license=openapi.License(name="MIT License"),
    )
 schema_view = get_schema_view(
+   api_info,
    public=True,
    permission_classes=(permissions.AllowAny,),
 )

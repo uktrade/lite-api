@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Lite-API</title>
+    <title>LITE API</title>
     <style type="text/css">
       body {
 	font-family: Trebuchet MS, sans-serif;
@@ -179,9 +179,9 @@ font-style: italic;
     </style>
   </head>
   <body>
-  <h1>Lite-API</h1>
+  <h1>LITE API</h1>
     <div class="app-desc">Service for handling backend calls in LITE.</div>
-    <div class="app-desc">More information: <a href="https://helloreverb.com">https://helloreverb.com</a></div>
+    <div class="app-desc">More information: <a href="https://github.com/uktrade/lite-api/">https://github.com/uktrade/lite-api/</a></div>
     <div class="app-desc">Contact Info: <a href="tbd@local">tbd@local</a></div>
     <div class="app-desc">Version: v0.3</div>
     <div class="app-desc">BasePath:/</div>
@@ -203,35 +203,51 @@ font-style: italic;
   <li><a href="#applicationsList"><code><span class="http-method">get</span> /applications/</code></a></li>
   <li><a href="#applicationsRead"><code><span class="http-method">get</span> /applications/{id}/</code></a></li>
   <li><a href="#applicationsUpdate"><code><span class="http-method">put</span> /applications/{id}/</code></a></li>
-  </ul>
-  <h4><a href="#Audit">Audit</a></h4>
-  <ul>
-  <li><a href="#auditRead"><code><span class="http-method">get</span> /audit/{type}/{id}/</code></a></li>
+  <li><a href="#applicationsUserList"><code><span class="http-method">get</span> /applications/{id}/user/</code></a></li>
+  <li><a href="#applicationsUserUpdate"><code><span class="http-method">put</span> /applications/{id}/user/</code></a></li>
   </ul>
   <h4><a href="#Cases">Cases</a></h4>
   <ul>
   <li><a href="#casesActivityList"><code><span class="http-method">get</span> /cases/{id}/activity/</code></a></li>
   <li><a href="#casesCaseNotesCreate"><code><span class="http-method">post</span> /cases/{id}/case_notes/</code></a></li>
   <li><a href="#casesCaseNotesList"><code><span class="http-method">get</span> /cases/{id}/case_notes/</code></a></li>
+  <li><a href="#casesDocumentsCreate"><code><span class="http-method">post</span> /cases/{id}/documents/</code></a></li>
+  <li><a href="#casesDocumentsList"><code><span class="http-method">get</span> /cases/{id}/documents/</code></a></li>
+  <li><a href="#casesDocumentsRead"><code><span class="http-method">get</span> /cases/{id}/documents/{s3_key}/</code></a></li>
+  <li><a href="#casesFlagsUpdate"><code><span class="http-method">put</span> /cases/{id}/flags/</code></a></li>
   <li><a href="#casesRead"><code><span class="http-method">get</span> /cases/{id}/</code></a></li>
   <li><a href="#casesUpdate"><code><span class="http-method">put</span> /cases/{id}/</code></a></li>
   </ul>
+  <h4><a href="#ClcQueries">ClcQueries</a></h4>
+  <ul>
+  <li><a href="#clcQueriesUpdate"><code><span class="http-method">put</span> /clc_queries/{id}/</code></a></li>
+  </ul>
   <h4><a href="#Drafts">Drafts</a></h4>
   <ul>
+  <li><a href="#draftsCountriesCreate"><code><span class="http-method">post</span> /drafts/{id}/countries/</code></a></li>
+  <li><a href="#draftsCountriesList"><code><span class="http-method">get</span> /drafts/{id}/countries/</code></a></li>
   <li><a href="#draftsCreate"><code><span class="http-method">post</span> /drafts/</code></a></li>
   <li><a href="#draftsDelete"><code><span class="http-method">delete</span> /drafts/{id}/</code></a></li>
   <li><a href="#draftsEndUserCreate"><code><span class="http-method">post</span> /drafts/{id}/end-user/</code></a></li>
-  <li><a href="#draftsExternalLocationsCreate"><code><span class="http-method">post</span> /drafts/{id}/external_locations</code></a></li>
-  <li><a href="#draftsExternalLocationsList"><code><span class="http-method">get</span> /drafts/{id}/external_locations</code></a></li>
+  <li><a href="#draftsExternalLocationsCreate"><code><span class="http-method">post</span> /drafts/{id}/external_locations/</code></a></li>
+  <li><a href="#draftsExternalLocationsList"><code><span class="http-method">get</span> /drafts/{id}/external_locations/</code></a></li>
   <li><a href="#draftsGoodsCreate"><code><span class="http-method">post</span> /drafts/{id}/goods/</code></a></li>
   <li><a href="#draftsGoodsCreate_1"><code><span class="http-method">post</span> /drafts/{id}/goods/{good_pk}/</code></a></li>
   <li><a href="#draftsGoodsList"><code><span class="http-method">get</span> /drafts/{id}/goods/</code></a></li>
   <li><a href="#draftsGoodsRead"><code><span class="http-method">get</span> /drafts/{id}/goods/{good_pk}/</code></a></li>
+  <li><a href="#draftsGoodstypeList"><code><span class="http-method">get</span> /drafts/{id}/goodstype/</code></a></li>
   <li><a href="#draftsList"><code><span class="http-method">get</span> /drafts/</code></a></li>
   <li><a href="#draftsRead"><code><span class="http-method">get</span> /drafts/{id}/</code></a></li>
   <li><a href="#draftsSitesCreate"><code><span class="http-method">post</span> /drafts/{id}/sites/</code></a></li>
   <li><a href="#draftsSitesList"><code><span class="http-method">get</span> /drafts/{id}/sites/</code></a></li>
   <li><a href="#draftsUpdate"><code><span class="http-method">put</span> /drafts/{id}/</code></a></li>
+  </ul>
+  <h4><a href="#Flags">Flags</a></h4>
+  <ul>
+  <li><a href="#flagsCreate"><code><span class="http-method">post</span> /flags/</code></a></li>
+  <li><a href="#flagsList"><code><span class="http-method">get</span> /flags/</code></a></li>
+  <li><a href="#flagsRead"><code><span class="http-method">get</span> /flags/{id}/</code></a></li>
+  <li><a href="#flagsUpdate"><code><span class="http-method">put</span> /flags/{id}/</code></a></li>
   </ul>
   <h4><a href="#Goods">Goods</a></h4>
   <ul>
@@ -241,12 +257,23 @@ font-style: italic;
   <li><a href="#goodsRead"><code><span class="http-method">get</span> /goods/{id}/</code></a></li>
   <li><a href="#goodsUpdate"><code><span class="http-method">put</span> /goods/{id}/</code></a></li>
   </ul>
+  <h4><a href="#Goodstype">Goodstype</a></h4>
+  <ul>
+  <li><a href="#goodstypeCreate"><code><span class="http-method">post</span> /goodstype/</code></a></li>
+  <li><a href="#goodstypeList"><code><span class="http-method">get</span> /goodstype/</code></a></li>
+  <li><a href="#goodstypeRead"><code><span class="http-method">get</span> /goodstype/{id}/</code></a></li>
+  </ul>
   <h4><a href="#GovUsers">GovUsers</a></h4>
   <ul>
   <li><a href="#govUsersAuthenticateCreate"><code><span class="http-method">post</span> /gov-users/authenticate/</code></a></li>
   <li><a href="#govUsersCreate"><code><span class="http-method">post</span> /gov-users/</code></a></li>
   <li><a href="#govUsersList"><code><span class="http-method">get</span> /gov-users/</code></a></li>
+  <li><a href="#govUsersPermissionsList"><code><span class="http-method">get</span> /gov-users/permissions/</code></a></li>
   <li><a href="#govUsersRead"><code><span class="http-method">get</span> /gov-users/{id}/</code></a></li>
+  <li><a href="#govUsersRolesCreate"><code><span class="http-method">post</span> /gov-users/roles/</code></a></li>
+  <li><a href="#govUsersRolesList"><code><span class="http-method">get</span> /gov-users/roles/</code></a></li>
+  <li><a href="#govUsersRolesRead"><code><span class="http-method">get</span> /gov-users/roles/{id}/</code></a></li>
+  <li><a href="#govUsersRolesUpdate"><code><span class="http-method">put</span> /gov-users/roles/{id}/</code></a></li>
   <li><a href="#govUsersUpdate"><code><span class="http-method">put</span> /gov-users/{id}/</code></a></li>
   </ul>
   <h4><a href="#Organisations">Organisations</a></h4>
@@ -265,8 +292,17 @@ font-style: italic;
   <li><a href="#organisationsSitesUpdate"><code><span class="http-method">put</span> /organisations/sites/{id}/</code></a></li>
   <li><a href="#organisationsSitesUpdate_4"><code><span class="http-method">put</span> /organisations/{org_pk}/sites/{site_pk}/</code></a></li>
   </ul>
+  <h4><a href="#Picklist">Picklist</a></h4>
+  <ul>
+  <li><a href="#picklistCreate"><code><span class="http-method">post</span> /picklist/</code></a></li>
+  <li><a href="#picklistList"><code><span class="http-method">get</span> /picklist/</code></a></li>
+  <li><a href="#picklistRead"><code><span class="http-method">get</span> /picklist/{id}/</code></a></li>
+  <li><a href="#picklistUpdate"><code><span class="http-method">put</span> /picklist/{id}/</code></a></li>
+  </ul>
   <h4><a href="#Queues">Queues</a></h4>
   <ul>
+  <li><a href="#queuesCaseAssignmentsList"><code><span class="http-method">get</span> /queues/{id}/case-assignments/</code></a></li>
+  <li><a href="#queuesCaseAssignmentsUpdate"><code><span class="http-method">put</span> /queues/{id}/case-assignments/</code></a></li>
   <li><a href="#queuesCreate"><code><span class="http-method">post</span> /queues/</code></a></li>
   <li><a href="#queuesList"><code><span class="http-method">get</span> /queues/</code></a></li>
   <li><a href="#queuesRead"><code><span class="http-method">get</span> /queues/{id}/</code></a></li>
@@ -289,8 +325,20 @@ font-style: italic;
   <h4><a href="#Users">Users</a></h4>
   <ul>
   <li><a href="#usersAuthenticateCreate"><code><span class="http-method">post</span> /users/authenticate/</code></a></li>
+  <li><a href="#usersClcNotificationsCreate"><code><span class="http-method">post</span> /users/clc_notifications/</code></a></li>
+  <li><a href="#usersClcNotificationsDelete"><code><span class="http-method">delete</span> /users/clc_notifications/{id}/</code></a></li>
+  <li><a href="#usersClcNotificationsList"><code><span class="http-method">get</span> /users/clc_notifications/</code></a></li>
+  <li><a href="#usersClcNotificationsPartialUpdate"><code><span class="http-method">patch</span> /users/clc_notifications/{id}/</code></a></li>
+  <li><a href="#usersClcNotificationsRead"><code><span class="http-method">get</span> /users/clc_notifications/{id}/</code></a></li>
+  <li><a href="#usersClcNotificationsUpdate"><code><span class="http-method">put</span> /users/clc_notifications/{id}/</code></a></li>
   <li><a href="#usersCreate"><code><span class="http-method">post</span> /users/</code></a></li>
   <li><a href="#usersList"><code><span class="http-method">get</span> /users/</code></a></li>
+  <li><a href="#usersNotificationsCreate"><code><span class="http-method">post</span> /users/notifications/</code></a></li>
+  <li><a href="#usersNotificationsDelete"><code><span class="http-method">delete</span> /users/notifications/{id}/</code></a></li>
+  <li><a href="#usersNotificationsList"><code><span class="http-method">get</span> /users/notifications/</code></a></li>
+  <li><a href="#usersNotificationsPartialUpdate"><code><span class="http-method">patch</span> /users/notifications/{id}/</code></a></li>
+  <li><a href="#usersNotificationsRead"><code><span class="http-method">get</span> /users/notifications/{id}/</code></a></li>
+  <li><a href="#usersNotificationsUpdate"><code><span class="http-method">put</span> /users/notifications/{id}/</code></a></li>
   <li><a href="#usersRead"><code><span class="http-method">get</span> /users/{id}/</code></a></li>
   <li><a href="#usersUpdate"><code><span class="http-method">put</span> /users/{id}/</code></a></li>
   </ul>
@@ -448,19 +496,57 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <h1><a name="Audit">Audit</a></h1>
-  <div class="method"><a name="auditRead"/>
+  <div class="method"><a name="applicationsUserList"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /audit/{type}/{id}/</code></pre></div>
-    <div class="method-summary"> (<span class="nickname">auditRead</span>)</div>
-    <div class="method-notes">Retrieve a model's history.</div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /applications/{id}/user/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">applicationsUserList</span>)</div>
+    <div class="method-notes">Retrieve an application instance.</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
       <div class="param">id (required)</div>
 
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">type (required)</div>
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="applicationsUserUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /applications/{id}/user/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">applicationsUserUpdate</span>)</div>
+    <div class="method-notes">Update an application instance.</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
 
       <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
     </div>  <!-- field-items -->
@@ -539,7 +625,7 @@ font-style: italic;
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /cases/{id}/case_notes/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">casesCaseNotesCreate</span>)</div>
-    <div class="method-notes"></div>
+    <div class="method-notes">Creates a case note on a case</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
@@ -580,6 +666,197 @@ font-style: italic;
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /cases/{id}/case_notes/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">casesCaseNotesList</span>)</div>
+    <div class="method-notes">Gets all case notes</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="casesDocumentsCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /cases/{id}/documents/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">casesDocumentsCreate</span>)</div>
+    <div class="method-notes">Adds a document to the specified case</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#CaseDocumentCreate">CaseDocumentCreate</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#CaseDocumentCreate">CaseDocumentCreate</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "size" : -1803530559,
+  "name" : "name",
+  "s3_key" : "s3_key",
+  "description" : "description",
+  "user" : "user",
+  "case" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#CaseDocumentCreate">CaseDocumentCreate</a>
+    <h4 class="field-label">400</h4>
+    JSON parse error
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="casesDocumentsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /cases/{id}/documents/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">casesDocumentsList</span>)</div>
+    <div class="method-notes">Returns a list of documents on the specified case</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="casesDocumentsRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /cases/{id}/documents/{s3_key}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">casesDocumentsRead</span>)</div>
+    <div class="method-notes">Returns a list of documents on the specified case</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">s3_key (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="casesFlagsUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /cases/{id}/flags/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">casesFlagsUpdate</span>)</div>
     <div class="method-notes"></div>
 
     <h3 class="field-label">Path parameters</h3>
@@ -621,7 +898,7 @@ font-style: italic;
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /cases/{id}/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">casesRead</span>)</div>
-    <div class="method-notes">Retrieve a case instance.</div>
+    <div class="method-notes">Retrieve a case instance</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
@@ -662,7 +939,7 @@ font-style: italic;
     <a class="up" href="#__Methods">Up</a>
     <pre class="put"><code class="huge"><span class="http-method">put</span> /cases/{id}/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">casesUpdate</span>)</div>
-    <div class="method-notes">Change the list of queues case belongs to (minimum one queue)</div>
+    <div class="method-notes">Change the queues a case belongs to</div>
 
     <h3 class="field-label">Path parameters</h3>
     <div class="field-items">
@@ -701,7 +978,131 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="ClcQueries">ClcQueries</a></h1>
+  <div class="method"><a name="clcQueriesUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /clc_queries/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">clcQueriesUpdate</span>)</div>
+    <div class="method-notes">Update a clc query instance.</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="Drafts">Drafts</a></h1>
+  <div class="method"><a name="draftsCountriesCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /drafts/{id}/countries/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">draftsCountriesCreate</span>)</div>
+    <div class="method-notes">Add countries to an open licence draft</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="draftsCountriesList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /drafts/{id}/countries/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">draftsCountriesList</span>)</div>
+    <div class="method-notes">View countries belonging to an open licence draft</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <div class="method"><a name="draftsCreate"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -822,7 +1223,7 @@ font-style: italic;
   <div class="method"><a name="draftsExternalLocationsCreate"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /drafts/{id}/external_locations</code></pre></div>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /drafts/{id}/external_locations/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">draftsExternalLocationsCreate</span>)</div>
     <div class="method-notes">View sites belonging to a draft or add them</div>
 
@@ -863,7 +1264,7 @@ font-style: italic;
   <div class="method"><a name="draftsExternalLocationsList"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
-    <pre class="get"><code class="huge"><span class="http-method">get</span> /drafts/{id}/external_locations</code></pre></div>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /drafts/{id}/external_locations/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">draftsExternalLocationsList</span>)</div>
     <div class="method-notes">View sites belonging to a draft or add them</div>
 
@@ -1038,6 +1439,47 @@ font-style: italic;
       <div class="param">good_pk (required)</div>
 
       <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div><div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="draftsGoodstypeList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /drafts/{id}/goodstype/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">draftsGoodstypeList</span>)</div>
+    <div class="method-notes">Gets draft Goods Types</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
 
       <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
     </div>  <!-- field-items -->
@@ -1268,6 +1710,159 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Flags">Flags</a></h1>
+  <div class="method"><a name="flagsCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /flags/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">flagsCreate</span>)</div>
+    <div class="method-notes">Add a new flag</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="flagsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /flags/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">flagsList</span>)</div>
+    <div class="method-notes">Returns list of all flags</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="flagsRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /flags/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">flagsRead</span>)</div>
+    <div class="method-notes">Returns details of a specific flag</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="flagsUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /flags/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">flagsUpdate</span>)</div>
+    <div class="method-notes">Edit details of a specific flag</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="Goods">Goods</a></h1>
   <div class="method"><a name="goodsCreate"/>
     <div class="method-path">
@@ -1462,6 +2057,118 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Goodstype">Goodstype</a></h1>
+  <div class="method"><a name="goodstypeCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /goodstype/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">goodstypeCreate</span>)</div>
+    <div class="method-notes">Posts Goods Types</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="goodstypeList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /goodstype/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">goodstypeList</span>)</div>
+    <div class="method-notes">Gets list of all Goods Types</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="goodstypeRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /goodstype/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">goodstypeRead</span>)</div>
+    <div class="method-notes">Gets a single Goods Type</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="GovUsers">GovUsers</a></h1>
   <div class="method"><a name="govUsersAuthenticateCreate"/>
     <div class="method-path">
@@ -1472,7 +2179,6 @@ font-style: italic;
 Returns a token which is just our ID for the user
 :param request:
 :param email, first_name, last_name:
-:param kwargs:
 :return token:</div>
 
 
@@ -1525,7 +2231,7 @@ Returns a token which is just our ID for the user
 
     <h3 class="field-label">Request body</h3>
     <div class="field-items">
-      <div class="param">data <a href="#GovUser">GovUser</a> (required)</div>
+      <div class="param">data <a href="#GovUserCreate">GovUserCreate</a> (required)</div>
 
       <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
 
@@ -1536,7 +2242,7 @@ Returns a token which is just our ID for the user
 
     <h3 class="field-label">Return type</h3>
     <div class="return-type">
-      <a href="#GovUser">GovUser</a>
+      <a href="#GovUserCreate">GovUserCreate</a>
       
     </div>
 
@@ -1545,12 +2251,12 @@ Returns a token which is just our ID for the user
     <h3 class="field-label">Example data</h3>
     <div class="example-data-content-type">Content-Type: application/json</div>
     <pre class="example"><code>{
+  "role" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "last_name" : "last_name",
   "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "team" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "first_name" : "first_name",
   "email" : "email",
-  "team_name" : "team_name",
   "status" : "Active"
 }</code></pre>
 
@@ -1564,7 +2270,7 @@ Returns a token which is just our ID for the user
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">201</h4>
     
-        <a href="#GovUser">GovUser</a>
+        <a href="#GovUserCreate">GovUserCreate</a>
     <h4 class="field-label">400</h4>
     JSON parse error
         <a href="#"></a>
@@ -1576,6 +2282,41 @@ Returns a token which is just our ID for the user
     <pre class="get"><code class="huge"><span class="http-method">get</span> /gov-users/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">govUsersList</span>)</div>
     <div class="method-notes">Fetches all government users</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="govUsersPermissionsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /gov-users/permissions/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">govUsersPermissionsList</span>)</div>
+    <div class="method-notes">Return list of all permissions</div>
 
 
     <h3 class="field-label">Consumes</h3>
@@ -1646,6 +2387,202 @@ Returns a token which is just our ID for the user
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <div class="method"><a name="govUsersRolesCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /gov-users/roles/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">govUsersRolesCreate</span>)</div>
+    <div class="method-notes">Create a role</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Role">Role</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Role">Role</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "permissions" : [ "permissions", "permissions" ],
+  "name" : "name",
+  "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#Role">Role</a>
+    <h4 class="field-label">400</h4>
+    JSON parse error
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="govUsersRolesList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /gov-users/roles/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">govUsersRolesList</span>)</div>
+    <div class="method-notes">Return list of all roles</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="govUsersRolesRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /gov-users/roles/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">govUsersRolesRead</span>)</div>
+    <div class="method-notes">Get the details of a specific role</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="govUsersRolesUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /gov-users/roles/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">govUsersRolesUpdate</span>)</div>
+    <div class="method-notes">update a role</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Role">Role</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Role">Role</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "permissions" : [ "permissions", "permissions" ],
+  "name" : "name",
+  "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Role">Role</a>
+    <h4 class="field-label">400</h4>
+    JSON parse error
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <div class="method"><a name="govUsersUpdate"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -1668,7 +2605,7 @@ Returns a token which is just our ID for the user
 
     <h3 class="field-label">Request body</h3>
     <div class="field-items">
-      <div class="param">data <a href="#GovUser">GovUser</a> (required)</div>
+      <div class="param">data <a href="#GovUserCreate">GovUserCreate</a> (required)</div>
 
       <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
 
@@ -1679,7 +2616,7 @@ Returns a token which is just our ID for the user
 
     <h3 class="field-label">Return type</h3>
     <div class="return-type">
-      <a href="#GovUser">GovUser</a>
+      <a href="#GovUserCreate">GovUserCreate</a>
       
     </div>
 
@@ -1688,12 +2625,12 @@ Returns a token which is just our ID for the user
     <h3 class="field-label">Example data</h3>
     <div class="example-data-content-type">Content-Type: application/json</div>
     <pre class="example"><code>{
+  "role" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "last_name" : "last_name",
   "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "team" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
   "first_name" : "first_name",
   "email" : "email",
-  "team_name" : "team_name",
   "status" : "Active"
 }</code></pre>
 
@@ -1707,7 +2644,7 @@ Returns a token which is just our ID for the user
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
     
-        <a href="#GovUser">GovUser</a>
+        <a href="#GovUserCreate">GovUserCreate</a>
     <h4 class="field-label">400</h4>
     Bad Request
         <a href="#"></a>
@@ -1719,7 +2656,7 @@ Returns a token which is just our ID for the user
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /organisations/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">organisationsCreate</span>)</div>
-    <div class="method-notes"></div>
+    <div class="method-notes">Create a new organisation</div>
 
 
     <h3 class="field-label">Consumes</h3>
@@ -1728,13 +2665,58 @@ Returns a token which is just our ID for the user
       <li><code>application/json</code></li>
     </ul>
 
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#OrganisationCreate">OrganisationCreate</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
 
 
 
 
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#OrganisationCreate">OrganisationCreate</a>
+      
+    </div>
 
     <!--Todo: process Response Object and its headers, schema, examples -->
 
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "site" : {
+    "address" : {
+      "country" : "country",
+      "city" : "city",
+      "address_line_1" : "address_line_1",
+      "postcode" : "postcode",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "address_line_2" : "address_line_2",
+      "region" : "region"
+    },
+    "name" : "name",
+    "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+  },
+  "vat_number" : "vat_number",
+  "registration_number" : "registration_number",
+  "eori_number" : "eori_number",
+  "sic_number" : "sic_number",
+  "name" : "name",
+  "created_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "user" : {
+    "last_name" : "last_name",
+    "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "first_name" : "first_name",
+    "email" : "email"
+  },
+  "last_modified_at" : "2000-01-23T04:56:07.000+00:00"
+}</code></pre>
 
     <h3 class="field-label">Produces</h3>
     This API call produces the following media types according to the <span class="header">Accept</span> request header;
@@ -1746,6 +2728,9 @@ Returns a token which is just our ID for the user
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">201</h4>
     
+        <a href="#OrganisationCreate">OrganisationCreate</a>
+    <h4 class="field-label">400</h4>
+    JSON parse error
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
@@ -1824,7 +2809,7 @@ Returns a token which is just our ID for the user
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /organisations/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">organisationsList</span>)</div>
-    <div class="method-notes"></div>
+    <div class="method-notes">List all organisations</div>
 
 
     <h3 class="field-label">Consumes</h3>
@@ -2216,7 +3201,270 @@ An organisation must have at least one site</div>
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Picklist">Picklist</a></h1>
+  <div class="method"><a name="picklistCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /picklist/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">picklistCreate</span>)</div>
+    <div class="method-notes">Add a new picklist item</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="picklistList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /picklist/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">picklistList</span>)</div>
+    <div class="method-notes">Returns a list of all picklist items, filtered by type</div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="picklistRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /picklist/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">picklistRead</span>)</div>
+    <div class="method-notes">Gets details of a specific picklist item</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="picklistUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /picklist/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">picklistUpdate</span>)</div>
+    <div class="method-notes">Edit status of a new picklist item</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="Queues">Queues</a></h1>
+  <div class="method"><a name="queuesCaseAssignmentsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /queues/{id}/case-assignments/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">queuesCaseAssignmentsList</span>)</div>
+    <div class="method-notes">Get all case assignments for that queue</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="queuesCaseAssignmentsUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /queues/{id}/case-assignments/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">queuesCaseAssignmentsUpdate</span>)</div>
+    <div class="method-notes">Assign users to cases on that queue</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash;  </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#CaseAssignment">CaseAssignment</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#CaseAssignment">CaseAssignment</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "case" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "users" : [ {
+    "last_name" : "last_name",
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "first_name" : "first_name",
+    "email" : "email"
+  }, {
+    "last_name" : "last_name",
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "first_name" : "first_name",
+    "email" : "email"
+  } ]
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#CaseAssignment">CaseAssignment</a>
+  </div> <!-- method -->
+  <hr/>
   <div class="method"><a name="queuesCreate"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -2348,13 +3596,269 @@ An organisation must have at least one site</div>
       <li><code>application/json</code></li>
     </ul>
 
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Queue">Queue</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
 
 
 
 
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Queue">Queue</a>
+      
+    </div>
 
     <!--Todo: process Response Object and its headers, schema, examples -->
 
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "cases" : [ {
+    "application" : {
+      "reference_number_on_information_form" : "reference_number_on_information_form",
+      "export_type" : "permanent",
+      "activity" : "activity",
+      "submitted_at" : "2000-01-23T04:56:07.000+00:00",
+      "usage" : "usage",
+      "destinations" : "destinations",
+      "organisation" : {
+        "primary_site" : {
+          "address" : {
+            "country" : "country",
+            "city" : "city",
+            "address_line_1" : "address_line_1",
+            "postcode" : "postcode",
+            "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+            "address_line_2" : "address_line_2",
+            "region" : "region"
+          },
+          "name" : "name",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+        },
+        "vat_number" : "vat_number",
+        "registration_number" : "registration_number",
+        "eori_number" : "eori_number",
+        "sic_number" : "sic_number",
+        "name" : "name",
+        "created_at" : "2000-01-23T04:56:07.000+00:00",
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "last_modified_at" : "2000-01-23T04:56:07.000+00:00"
+      },
+      "goods" : [ {
+        "unit" : "GRM",
+        "quantity" : 0.80082819046101150206595775671303272247314453125,
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "good" : {
+          "is_good_end_product" : true,
+          "is_good_controlled" : "unsure",
+          "notes" : "notes",
+          "control_code" : "control_code",
+          "description" : "description",
+          "part_number" : "part_number",
+          "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "clc_query_case_id" : "clc_query_case_id",
+          "not_sure_details_details" : "not_sure_details_details",
+          "status" : "draft"
+        },
+        "value" : "value"
+      }, {
+        "unit" : "GRM",
+        "quantity" : 0.80082819046101150206595775671303272247314453125,
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "good" : {
+          "is_good_end_product" : true,
+          "is_good_controlled" : "unsure",
+          "notes" : "notes",
+          "control_code" : "control_code",
+          "description" : "description",
+          "part_number" : "part_number",
+          "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "clc_query_case_id" : "clc_query_case_id",
+          "not_sure_details_details" : "not_sure_details_details",
+          "status" : "draft"
+        },
+        "value" : "value"
+      } ],
+      "created_at" : "2000-01-23T04:56:07.000+00:00",
+      "application_denial_reason" : [ {
+        "reasons" : [ {
+          "id" : "id"
+        }, {
+          "id" : "id"
+        } ],
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "reason_details" : "reason_details"
+      }, {
+        "reasons" : [ {
+          "id" : "id"
+        }, {
+          "id" : "id"
+        } ],
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "reason_details" : "reason_details"
+      } ],
+      "last_modified_at" : "2000-01-23T04:56:07.000+00:00",
+      "licence_type" : "standard_licence",
+      "name" : "name",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "goods_locations" : "goods_locations",
+      "status" : "submitted"
+    },
+    "clc_query" : {
+      "details" : "details",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "organisation_name" : "organisation_name",
+      "good" : {
+        "is_good_end_product" : true,
+        "is_good_controlled" : "unsure",
+        "notes" : "notes",
+        "control_code" : "control_code",
+        "description" : "description",
+        "part_number" : "part_number",
+        "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "clc_query_case_id" : "clc_query_case_id",
+        "not_sure_details_details" : "not_sure_details_details",
+        "status" : "draft"
+      },
+      "status" : "submitted"
+    },
+    "case_type" : {
+      "name" : "name",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+    },
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "is_clc" : "is_clc"
+  }, {
+    "application" : {
+      "reference_number_on_information_form" : "reference_number_on_information_form",
+      "export_type" : "permanent",
+      "activity" : "activity",
+      "submitted_at" : "2000-01-23T04:56:07.000+00:00",
+      "usage" : "usage",
+      "destinations" : "destinations",
+      "organisation" : {
+        "primary_site" : {
+          "address" : {
+            "country" : "country",
+            "city" : "city",
+            "address_line_1" : "address_line_1",
+            "postcode" : "postcode",
+            "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+            "address_line_2" : "address_line_2",
+            "region" : "region"
+          },
+          "name" : "name",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+        },
+        "vat_number" : "vat_number",
+        "registration_number" : "registration_number",
+        "eori_number" : "eori_number",
+        "sic_number" : "sic_number",
+        "name" : "name",
+        "created_at" : "2000-01-23T04:56:07.000+00:00",
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "last_modified_at" : "2000-01-23T04:56:07.000+00:00"
+      },
+      "goods" : [ {
+        "unit" : "GRM",
+        "quantity" : 0.80082819046101150206595775671303272247314453125,
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "good" : {
+          "is_good_end_product" : true,
+          "is_good_controlled" : "unsure",
+          "notes" : "notes",
+          "control_code" : "control_code",
+          "description" : "description",
+          "part_number" : "part_number",
+          "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "clc_query_case_id" : "clc_query_case_id",
+          "not_sure_details_details" : "not_sure_details_details",
+          "status" : "draft"
+        },
+        "value" : "value"
+      }, {
+        "unit" : "GRM",
+        "quantity" : 0.80082819046101150206595775671303272247314453125,
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "good" : {
+          "is_good_end_product" : true,
+          "is_good_controlled" : "unsure",
+          "notes" : "notes",
+          "control_code" : "control_code",
+          "description" : "description",
+          "part_number" : "part_number",
+          "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+          "clc_query_case_id" : "clc_query_case_id",
+          "not_sure_details_details" : "not_sure_details_details",
+          "status" : "draft"
+        },
+        "value" : "value"
+      } ],
+      "created_at" : "2000-01-23T04:56:07.000+00:00",
+      "application_denial_reason" : [ {
+        "reasons" : [ {
+          "id" : "id"
+        }, {
+          "id" : "id"
+        } ],
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "reason_details" : "reason_details"
+      }, {
+        "reasons" : [ {
+          "id" : "id"
+        }, {
+          "id" : "id"
+        } ],
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "reason_details" : "reason_details"
+      } ],
+      "last_modified_at" : "2000-01-23T04:56:07.000+00:00",
+      "licence_type" : "standard_licence",
+      "name" : "name",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "goods_locations" : "goods_locations",
+      "status" : "submitted"
+    },
+    "clc_query" : {
+      "details" : "details",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "organisation_name" : "organisation_name",
+      "good" : {
+        "is_good_end_product" : true,
+        "is_good_controlled" : "unsure",
+        "notes" : "notes",
+        "control_code" : "control_code",
+        "description" : "description",
+        "part_number" : "part_number",
+        "organisation" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+        "clc_query_case_id" : "clc_query_case_id",
+        "not_sure_details_details" : "not_sure_details_details",
+        "status" : "draft"
+      },
+      "status" : "submitted"
+    },
+    "case_type" : {
+      "name" : "name",
+      "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+    },
+    "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "is_clc" : "is_clc"
+  } ],
+  "name" : "name",
+  "id" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "team" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+}</code></pre>
 
     <h3 class="field-label">Produces</h3>
     This API call produces the following media types according to the <span class="header">Accept</span> request header;
@@ -2366,7 +3870,7 @@ An organisation must have at least one site</div>
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
     
-        <a href="#"></a>
+        <a href="#Queue">Queue</a>
   </div> <!-- method -->
   <hr/>
   <h1><a name="Static">Static</a></h1>
@@ -2739,7 +4243,11 @@ An organisation must have at least one site</div>
     <a class="up" href="#__Methods">Up</a>
     <pre class="post"><code class="huge"><span class="http-method">post</span> /users/authenticate/</code></pre></div>
     <div class="method-summary"> (<span class="nickname">usersAuthenticateCreate</span>)</div>
-    <div class="method-notes"></div>
+    <div class="method-notes">Takes user details from sso and checks them against our whitelisted users
+Returns a token which is just our ID for the user
+:param request:
+:param email:
+:return token:</div>
 
 
     <h3 class="field-label">Consumes</h3>
@@ -2767,6 +4275,350 @@ An organisation must have at least one site</div>
     <h4 class="field-label">201</h4>
     
         <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    JSON parse error
+        <a href="#"></a>
+    <h4 class="field-label">403</h4>
+    Forbidden
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /users/clc_notifications/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsCreate</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsDelete"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /users/clc_notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsDelete</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">204</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /users/clc_notifications/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsList</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of results to return per page. </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The initial index from which to return the results. </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#inline_response_200">inline_response_200</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "next" : "http://example.com/aeiou",
+  "previous" : "http://example.com/aeiou",
+  "count" : 0,
+  "results" : [ {
+    "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+    "id" : 6,
+    "user" : "user"
+  }, {
+    "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+    "id" : 6,
+    "user" : "user"
+  } ]
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#inline_response_200">inline_response_200</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsPartialUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="patch"><code class="huge"><span class="http-method">patch</span> /users/clc_notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsPartialUpdate</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /users/clc_notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsRead</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersClcNotificationsUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /users/clc_notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersClcNotificationsUpdate</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
   </div> <!-- method -->
   <hr/>
   <div class="method"><a name="usersCreate"/>
@@ -2837,6 +4689,344 @@ An organisation must have at least one site</div>
     <h4 class="field-label">200</h4>
     
         <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsCreate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /users/notifications/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsCreate</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">201</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsDelete"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="delete"><code class="huge"><span class="http-method">delete</span> /users/notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsDelete</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">204</h4>
+    
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsList"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /users/notifications/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsList</span>)</div>
+    <div class="method-notes"></div>
+
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">limit (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; Number of results to return per page. </div><div class="param">offset (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The initial index from which to return the results. </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#inline_response_200">inline_response_200</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "next" : "http://example.com/aeiou",
+  "previous" : "http://example.com/aeiou",
+  "count" : 0,
+  "results" : [ {
+    "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+    "id" : 6,
+    "user" : "user"
+  }, {
+    "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+    "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+    "id" : 6,
+    "user" : "user"
+  } ]
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#inline_response_200">inline_response_200</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsPartialUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="patch"><code class="huge"><span class="http-method">patch</span> /users/notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsPartialUpdate</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsRead"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /users/notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsRead</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="usersNotificationsUpdate"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="put"><code class="huge"><span class="http-method">put</span> /users/notifications/{id}/</code></pre></div>
+    <div class="method-summary"> (<span class="nickname">usersNotificationsUpdate</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">id (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; A unique integer value identifying this notification. </div>
+    </div>  <!-- field-items -->
+
+    <h3 class="field-label">Consumes</h3>
+    This API call consumes the following media types via the <span class="header">Content-Type</span> request header:
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">data <a href="#Notifications">Notifications</a> (required)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash;  </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Return type</h3>
+    <div class="return-type">
+      <a href="#Notifications">Notifications</a>
+      
+    </div>
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/json</div>
+    <pre class="example"><code>{
+  "note" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+  "viewed_at" : "2000-01-23T04:56:07.000+00:00",
+  "id" : 6,
+  "user" : "user"
+}</code></pre>
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="header">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    
+        <a href="#Notifications">Notifications</a>
   </div> <!-- method -->
   <hr/>
   <div class="method"><a name="usersRead"/>
@@ -2927,12 +5117,190 @@ An organisation must have at least one site</div>
 
   <h3>Table of Contents</h3>
   <ol>
-    <li><a href="#GovUser"><code>GovUser</code> - </a></li>
+    <li><a href="#Address"><code>Address</code> - Address</a></li>
+    <li><a href="#AddressCountryless"><code>AddressCountryless</code> - Address</a></li>
+    <li><a href="#ApplicationBase"><code>ApplicationBase</code> - Application</a></li>
+    <li><a href="#ApplicationDenialReasonView"><code>ApplicationDenialReasonView</code> - </a></li>
+    <li><a href="#Case"><code>Case</code> - </a></li>
+    <li><a href="#CaseAssignment"><code>CaseAssignment</code> - </a></li>
+    <li><a href="#CaseDocumentCreate"><code>CaseDocumentCreate</code> - </a></li>
+    <li><a href="#CaseType"><code>CaseType</code> - Case type</a></li>
+    <li><a href="#ClcQuery"><code>ClcQuery</code> - Clc query</a></li>
+    <li><a href="#DenialReason"><code>DenialReason</code> - </a></li>
+    <li><a href="#Good"><code>Good</code> - Good</a></li>
+    <li><a href="#GoodOnApplicationView"><code>GoodOnApplicationView</code> - </a></li>
+    <li><a href="#GovUserCreate"><code>GovUserCreate</code> - </a></li>
+    <li><a href="#GovUserSimple"><code>GovUserSimple</code> - </a></li>
+    <li><a href="#Notifications"><code>Notifications</code> - </a></li>
+    <li><a href="#OrganisationCreate"><code>OrganisationCreate</code> - </a></li>
+    <li><a href="#OrganisationView"><code>OrganisationView</code> - Organisation</a></li>
+    <li><a href="#Queue"><code>Queue</code> - </a></li>
+    <li><a href="#Role"><code>Role</code> - </a></li>
+    <li><a href="#SiteCreate"><code>SiteCreate</code> - Site</a></li>
+    <li><a href="#SiteView"><code>SiteView</code> - Primary site</a></li>
     <li><a href="#Team"><code>Team</code> - </a></li>
+    <li><a href="#UserCreate"><code>UserCreate</code> - User</a></li>
+    <li><a href="#inline_response_200"><code>inline_response_200</code> - </a></li>
   </ol>
 
   <div class="model">
-    <h3><a name="GovUser"><code>GovUser</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <h3><a name="Address"><code>Address</code> - Address</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">address_line_1 </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">address_line_2 (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">postcode </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">city </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">region </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">country </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="AddressCountryless"><code>AddressCountryless</code> - Address</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">address_line_1 </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">address_line_2 (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">postcode </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">city </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">region </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">country </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="ApplicationBase"><code>ApplicationBase</code> - Application</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">organisation </div><div class="param-desc"><span class="param-type"><a href="#OrganisationView">OrganisationView</a></span>  </div>
+<div class="param">activity (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">usage (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">goods (optional)</div><div class="param-desc"><span class="param-type"><a href="#GoodOnApplicationView">array[GoodOnApplicationView]</a></span>  </div>
+<div class="param">created_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">last_modified_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">submitted_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">status </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">submitted</div><div class="param-enum">more_information_required</div><div class="param-enum">under_review</div><div class="param-enum">under_final_review</div><div class="param-enum">resubmitted</div><div class="param-enum">withdrawn</div><div class="param-enum">approved</div><div class="param-enum">declined</div>
+<div class="param">licence_type </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">standard_licence</div><div class="param-enum">open_licence</div>
+<div class="param">export_type </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">permanent</div><div class="param-enum">temporary</div>
+<div class="param">reference_number_on_information_form </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">application_denial_reason (optional)</div><div class="param-desc"><span class="param-type"><a href="#ApplicationDenialReasonView">array[ApplicationDenialReasonView]</a></span>  </div>
+<div class="param">destinations (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">goods_locations (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="ApplicationDenialReasonView"><code>ApplicationDenialReasonView</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">reason_details (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">reasons </div><div class="param-desc"><span class="param-type"><a href="#DenialReason">array[DenialReason]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="Case"><code>Case</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">application (optional)</div><div class="param-desc"><span class="param-type"><a href="#ApplicationBase">ApplicationBase</a></span>  </div>
+<div class="param">is_clc (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">clc_query (optional)</div><div class="param-desc"><span class="param-type"><a href="#ClcQuery">ClcQuery</a></span>  </div>
+<div class="param">case_type (optional)</div><div class="param-desc"><span class="param-type"><a href="#CaseType">CaseType</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="CaseAssignment"><code>CaseAssignment</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">case </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">users </div><div class="param-desc"><span class="param-type"><a href="#GovUserSimple">array[GovUserSimple]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="CaseDocumentCreate"><code>CaseDocumentCreate</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">s3_key (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">user </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">size (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">case </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">description (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="CaseType"><code>CaseType</code> - Case type</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="ClcQuery"><code>ClcQuery</code> - Clc query</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">details (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">good (optional)</div><div class="param-desc"><span class="param-type"><a href="#Good">Good</a></span>  </div>
+<div class="param">status (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">submitted</div><div class="param-enum">more_information_required</div><div class="param-enum">under_review</div><div class="param-enum">under_final_review</div><div class="param-enum">resubmitted</div><div class="param-enum">withdrawn</div><div class="param-enum">approved</div><div class="param-enum">declined</div>
+<div class="param">organisation_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="DenialReason"><code>DenialReason</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="Good"><code>Good</code> - Good</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">description </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">is_good_controlled </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">unsure</div>
+<div class="param">clc_query_case_id (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">control_code (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">is_good_end_product </div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span>  </div>
+<div class="param">part_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">organisation </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">status </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">draft</div><div class="param-enum">submitted</div><div class="param-enum">clcquery</div>
+<div class="param">not_sure_details_details (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">notes (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="GoodOnApplicationView"><code>GoodOnApplicationView</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">good (optional)</div><div class="param-desc"><span class="param-type"><a href="#Good">Good</a></span>  </div>
+<div class="param">quantity (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span>  </div>
+<div class="param">unit (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+        <div class="param-enum-header">Enum:</div>
+        <div class="param-enum">GRM</div><div class="param-enum">KGM</div><div class="param-enum">NAR</div><div class="param-enum">MTK</div><div class="param-enum">MTR</div><div class="param-enum">LTR</div><div class="param-enum">MTQ</div>
+<div class="param">value </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  format: decimal</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="GovUserCreate"><code>GovUserCreate</code> - </a> <a class="up" href="#__Models">Up</a></h3>
     <div class='model-description'></div>
     <div class="field-items">
       <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
@@ -2943,7 +5311,96 @@ An organisation must have at least one site</div>
         <div class="param-enum-header">Enum:</div>
         <div class="param-enum">Active</div><div class="param-enum">Deactivated</div>
 <div class="param">team </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
-<div class="param">team_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">role </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="GovUserSimple"><code>GovUserSimple</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">first_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">last_name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">email (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  format: email</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="Notifications"><code>Notifications</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">viewed_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">user </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">note </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="OrganisationCreate"><code>OrganisationCreate</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">eori_number </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">sic_number </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">vat_number </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">registration_number </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">created_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">last_modified_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">user </div><div class="param-desc"><span class="param-type"><a href="#UserCreate">UserCreate</a></span>  </div>
+<div class="param">site </div><div class="param-desc"><span class="param-type"><a href="#SiteCreate">SiteCreate</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="OrganisationView"><code>OrganisationView</code> - Organisation</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">eori_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">sic_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">vat_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">registration_number (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">primary_site </div><div class="param-desc"><span class="param-type"><a href="#SiteView">SiteView</a></span>  </div>
+<div class="param">created_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+<div class="param">last_modified_at (optional)</div><div class="param-desc"><span class="param-type"><a href="#DateTime">Date</a></span>  format: date-time</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="Queue"><code>Queue</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">team </div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">cases (optional)</div><div class="param-desc"><span class="param-type"><a href="#Case">array[Case]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="Role"><code>Role</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">permissions </div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="SiteCreate"><code>SiteCreate</code> - Site</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">address </div><div class="param-desc"><span class="param-type"><a href="#AddressCountryless">AddressCountryless</a></span>  </div>
+<div class="param">organisation (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="SiteView"><code>SiteView</code> - Primary site</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">name (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">address </div><div class="param-desc"><span class="param-type"><a href="#Address">Address</a></span>  </div>
     </div>  <!-- field-items -->
   </div>
   <div class="model">
@@ -2952,6 +5409,27 @@ An organisation must have at least one site</div>
     <div class="field-items">
       <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
 <div class="param">name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="UserCreate"><code>UserCreate</code> - User</a> <a class="up" href="#__Models">Up</a></h3>
+    <div class='model-description'></div>
+    <div class="field-items">
+      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+<div class="param">email </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  format: email</div>
+<div class="param">first_name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">last_name </div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  </div>
+<div class="param">organisation (optional)</div><div class="param-desc"><span class="param-type"><a href="#UUID">UUID</a></span>  format: uuid</div>
+    </div>  <!-- field-items -->
+  </div>
+  <div class="model">
+    <h3><a name="inline_response_200"><code>inline_response_200</code> - </a> <a class="up" href="#__Models">Up</a></h3>
+    
+    <div class="field-items">
+      <div class="param">count </div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span>  </div>
+<div class="param">next (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  format: uri</div>
+<div class="param">previous (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span>  format: uri</div>
+<div class="param">results </div><div class="param-desc"><span class="param-type"><a href="#Notifications">array[Notifications]</a></span>  </div>
     </div>  <!-- field-items -->
   </div>
   </body>

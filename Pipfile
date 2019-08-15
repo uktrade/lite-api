@@ -21,6 +21,7 @@ django-pglocks = ">=1.0.2"
 requests-toolbelt = "*"
 django-background-tasks = ">=1.2"
 packaging = "==19.0"
+coverage = ">=4.5.4"
 
 [requires]
 python_version = "3.7"
