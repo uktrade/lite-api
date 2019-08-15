@@ -263,12 +263,8 @@ class CaseAdvice(APIView):
 
         # Update the case and user in each piece of advice
         for advice in data:
-            advice['case'] = self.case.id
-            advice['user'] = request.user.id
-
-        # print('\nYour data is')
-        # print(data)
-        # print('\n')
+            advice['case'] = str(self.case.id)
+            advice['user'] = str(request.user.id)
 
         serializer = self.serializer_object(data=data, many=True)
 
