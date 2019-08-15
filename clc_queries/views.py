@@ -23,7 +23,10 @@ class ClcQuery(APIView):
             serializer = ClcQueryUpdateSerializer(get_clc_query_by_pk(pk), data=data, partial=True)
 
             if serializer.is_valid():
-                serializer.save()
+                with reversion.create_revision():
+                    reversion.set_comment("Updated CLC Query Details")
+                    reversion.set_user(request.user)
+                    serializer.save()
                 return JsonResponse(data={'clc_query': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors},

@@ -7,13 +7,14 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
-
-from cases.libraries.activity_helpers import convert_audit_to_activity, convert_case_note_to_activity
+from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
+    convert_ecju_query_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.models import CaseAssignment, CaseDocument
+from cases.libraries.get_ecju_queries import get_ecju_queries_from_case, get_ecju_query
+from cases.models import CaseAssignment, CaseDocument, EcjuQuery
 from cases.serializers import CaseNoteCreateSerializer, CaseDetailSerializer, CaseDocumentCreateSerializer, \
-    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer
+    CaseDocumentViewSerializer, CaseFlagsAssignmentSerializer, EcjuQuerySerializer, EcjuQueryCreateSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
@@ -97,36 +98,37 @@ class CaseActivity(APIView):
     authentication_classes = (GovAuthentication,)
     """
     Retrieves all activity related to a case
-    * Case Notes
     * Case Updates
+    * Case Notes
+    * ECJU Queries
     """
 
     def get(self, request, pk):
         case = get_case(pk)
         case_notes = get_case_notes_from_case(case, False)
+        ecju_queries = get_ecju_queries_from_case(case)
 
+        version_records = {}
         if case.application_id:
             version_records = Version.objects.filter(
                 Q(object_id=case.application.pk) | Q(object_id=case.pk)
-            ).order_by('-revision_id')
-        else:
-            version_records = {}
-        activity = []
+            )
+        elif case.clc_query_id:
+            version_records = Version.objects.filter(
+                Q(object_id=case.clc_query.pk) | Q(object_id=case.pk)
+            )
 
+        activity = []
         for version in version_records:
-            activity_item = convert_audit_to_activity(version)
+            activity_item = convert_case_reversion_to_activity(version)
             if activity_item:
                 activity.append(activity_item)
 
-        # Split fields into request fields
-        fields = request.GET.get('fields', None)
-        if fields:
-            fields = fields.split(',')
-            for item in activity:
-                item['data'] = {your_key: item['data'][your_key] for your_key in fields if your_key in item['data']}
-
         for case_note in case_notes:
             activity.append(convert_case_note_to_activity(case_note))
+
+        for ecju_query in ecju_queries:
+            activity.append(convert_ecju_query_to_activity(ecju_query))
 
         # Sort the activity based on date (newest first)
         activity.sort(key=lambda x: x['date'], reverse=True)
@@ -141,9 +143,6 @@ class CaseFlagsAssignment(APIView):
     """
 
     def put(self, request, pk):
-        """
-        TODO: Extend put method to use different _assign_x_flags methods depending on the level of flags being assigned
-        """
         case = get_case(str(pk))
         data = JSONParser().parse(request)
 
@@ -157,9 +156,8 @@ class CaseFlagsAssignment(APIView):
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def _assign_flags(self, validated_data, case, user):
-        previously_assigned_flags = case.flags.all()
-        previously_assigned_team_flags = previously_assigned_flags.filter(level='Case', team=user.team)
-        previously_assigned_not_team_flags = previously_assigned_flags.exclude(level='Case', team=user.team)
+        previously_assigned_team_flags = case.flags.filter(level='Case', team=user.team)
+        previously_assigned_not_team_flags = case.flags.exclude(level='Case', team=user.team)
         add_case_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
         remove_case_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
 
@@ -225,3 +223,53 @@ class CaseDocumentDetail(APIView):
         case_document = get_case_document(case, s3_key)
         serializer = CaseDocumentViewSerializer(case_document)
         return JsonResponse({'document': serializer.data})
+
+
+class CaseEcjuQueries(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns the list of ECJU Queries on a case
+        """
+        case = get_case(pk)
+        case_ecju_queries = EcjuQuery.objects.filter(case=case)
+        serializer = EcjuQuerySerializer(case_ecju_queries, many=True)
+
+        return JsonResponse({'ecju_queries': serializer.data})
+
+    def post(self, request, pk):
+        """
+        Add a new ECJU query
+        """
+        data = JSONParser().parse(request)
+        data['case'] = pk
+        data['raised_by_user'] = request.user.id
+        serializer = EcjuQueryCreateSerializer(data=data)
+
+        if serializer.is_valid():
+            if 'validate_only' not in data or not data['validate_only']:
+                serializer.save()
+
+                return JsonResponse(data={'ecju_query_id': serializer.data['id']},
+                                    status=status.HTTP_201_CREATED)
+            else:
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class EcjuQueryDetail(APIView):
+    """
+    Details of a specific ECJU query
+    """
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk, ecju_pk):
+        """
+        Returns details of an ecju query
+        """
+        ecju_query = get_ecju_query(ecju_pk)
+        serializer = EcjuQuerySerializer(ecju_query)
+        return JsonResponse(data={'ecju_query': serializer.data})
