@@ -10,4 +10,4 @@ omit =
     ./*/models.py
     ./*/migrations/*.py
     ./conf/settings.py
-    *test*  
+    *test*
