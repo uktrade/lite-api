@@ -56,7 +56,6 @@ class GoodsCreateTests(DataTestClient):
 
             if is_good_controlled == GoodControlled.UNSURE:
                 data = {
-                    'validate_only': validate_only,
                     'not_sure_details_details': not_sure_details_details,
                     'not_sure_details_control_code': control_code,
                     'good_id': response_data['id']
