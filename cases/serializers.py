@@ -156,6 +156,12 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                                     allow_null=False,
                                     error_messages={'blank': 'Enter a proviso'},
                                     max_length=5000)
+    text = serializers.CharField(required=True,
+                                 allow_blank=False,
+                                 allow_null=False,
+                                 error_messages={'blank': 'Enter some advice'},
+                                 max_length=5000)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
                                                         many=True,
@@ -205,39 +211,39 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     # def __init__(self, *args, **kwargs):
     #     super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
 
-        # if self.get_initial().get('type') != AdviceType.PROVISO:
-        #     self.fields.pop('proviso')
-        #
-        # if self.get_initial().get('type') != AdviceType.REFUSE:
-        #     self.fields.pop('denial_reasons')
+    # if self.get_initial().get('type') != AdviceType.PROVISO:
+    #     self.fields.pop('proviso')
+    #
+    # if self.get_initial().get('type') != AdviceType.REFUSE:
+    #     self.fields.pop('denial_reasons')
 
-        # print('banana')
-        # print(self.get_initial().get('denial_reasons'))
+    # print('banana')
+    # print(self.get_initial().get('denial_reasons'))
 
-        # fields = self.get_initial()
-        # application_fields = ['good',
-        #                       'goods_type',
-        #                       'country',
-        #                       'end_user',
-        #                       'ultimate_end_user']
-        #
-        # # print('yo end user is: ' + self.get_initial().get('end_user'))
-        #
-        # # print(self.get_initial())
-        #
-        # # Ensure that only one attribute
-        # # print(len([item for item in application_fields if fields.get('item') is not None]))
-        # # if not ensure_x_items_not_none([fields.get(x) for x in application_fields], 1):
-        # #     raise serializers.ValidationError({'errors': 'Only give one attribute a value for application fields'})
-        #
-        # # Pop unused application fields
-        # # application_fields = [x for x in application_fields if fields.get(x) is None]
-        # # for field in application_fields:
-        # #     self.fields.pop(field)
-        #
-        # print('yo your type is')
-        # print(self.get_initial().get('type'))
-        #
+    # fields = self.get_initial()
+    # application_fields = ['good',
+    #                       'goods_type',
+    #                       'country',
+    #                       'end_user',
+    #                       'ultimate_end_user']
+    #
+    # # print('yo end user is: ' + self.get_initial().get('end_user'))
+    #
+    # # print(self.get_initial())
+    #
+    # # Ensure that only one attribute
+    # # print(len([item for item in application_fields if fields.get('item') is not None]))
+    # # if not ensure_x_items_not_none([fields.get(x) for x in application_fields], 1):
+    # #     raise serializers.ValidationError({'errors': 'Only give one attribute a value for application fields'})
+    #
+    # # Pop unused application fields
+    # # application_fields = [x for x in application_fields if fields.get(x) is None]
+    # # for field in application_fields:
+    # #     self.fields.pop(field)
+    #
+    # print('yo your type is')
+    # print(self.get_initial().get('type'))
+    #
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
@@ -253,6 +259,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             del repr_dict['denial_reasons']
 
         return repr_dict
+
 
 class EcjuQuerySerializer(serializers.ModelSerializer):
     class Meta:
