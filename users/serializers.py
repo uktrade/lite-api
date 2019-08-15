@@ -108,31 +108,24 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except ExporterUser.DoesNotExist:
             return None
 
-    def get_organisations_by_user(self, user):
-        try:
-            return UserOrganisationRelationship.objects.filter(user=user)
-        except UserOrganisationRelationship.DoesNotExist:
-            return None
+    def user_has_organisation(self, user, organisation_id):
+        return UserOrganisationRelationship.objects.filter(user=user, organisation_id=organisation_id).exists()
 
     def create(self, validated_data):
         exporter_user = self.get_a_user_by_email(self.data['email'])
         if not exporter_user:
-            return ExporterUser.objects.create(**validated_data)
-        elif validated_data['organisation'] not in self.get_organisations_by_user(user=exporter_user):
-            print('shazzam')
-            print(validated_data)
-            del validated_data['email']
-            print(validated_data)
-            # error here as user object not in validated_data - serializer mismatch ?
+            exporter_user = ExporterUser.objects.create(**validated_data)
+
+        if not self.user_has_organisation(exporter_user, validated_data['organisation'].id):
+            email = validated_data.pop('email')
+            validated_data['organisation'] = validated_data['organisation'].id
+            validated_data['user'] = exporter_user
             serializer = UserOrganisationSerializer(data=validated_data)
-            if serializer.is_valid():
-                print('shazasdasdasdaszam')
+            if serializer.is_valid(raise_exception=False):
                 serializer.save()
-                return serializer.data
-            print(serializer.errors)
+                return exporter_user
             return serializer.errors
-        else:
-            return None
+        return exporter_user
 
     class Meta:
         model = ExporterUser
@@ -169,8 +162,7 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
 class UserOrganisationSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
-    status = serializers.BooleanField()
 
     class Meta:
-        model: UserOrganisationRelationship
+        model = UserOrganisationRelationship
         exclude = []

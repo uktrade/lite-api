@@ -71,7 +71,7 @@ class UserList(APIView):
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
-        if not data.get('organisation:'):
+        if not data.get('organisation'):
             data['organisation'] = organisation.id
         serializer = UserCreateSerializer(data=data)
 
