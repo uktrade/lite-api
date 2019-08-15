@@ -135,9 +135,8 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
-
                 # Set audit information
-                reversion.set_comment("Updated application details")
+                reversion.set_comment("Updated Application Details")
                 reversion.set_user(self.request.user)
 
                 serializer.save()

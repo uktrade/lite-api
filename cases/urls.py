@@ -7,7 +7,7 @@ app_name = 'cases'
 urlpatterns = [
     path('<uuid:pk>/', views.CaseDetail.as_view(), name='case'),
     path('<uuid:pk>/case_notes/', views.CaseNoteList.as_view(), name='case_notes'),
-    # ex: /cases/<uuid:pk>/activity/?fields=activity,status,flags
+    # ex: /cases/<uuid:pk>/activity/
     path('<uuid:pk>/activity/', views.CaseActivity.as_view(), name='activity'),
     # ex: /cases/<uuid:pk>/documents/
     path('<uuid:pk>/documents/', views.CaseDocuments.as_view(), name='documents'),
@@ -17,4 +17,8 @@ urlpatterns = [
     path('<uuid:pk>/flags/', views.CaseFlagsAssignment.as_view(), name='case_flags'),
     # ex: /cases/<uuid:pk>/advice/
     path('<uuid:pk>/advice/', views.CaseAdvice.as_view(), name='case_advice'),
+    # ex: /cases/<uuid:pk>/ecju-queries/
+    path('<uuid:pk>/ecju-queries/', views.CaseEcjuQueries.as_view(), name='case_ecju_queries'),
+    # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/
+    path('<uuid:pk>/ecju-queries/<uuid:ecju_pk>/', views.EcjuQueryDetail.as_view(), name='case_ecju_query'),
 ]

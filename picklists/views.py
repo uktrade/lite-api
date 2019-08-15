@@ -86,5 +86,3 @@ class PicklistItemDetail(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
-

@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
 from clc_queries.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -253,3 +253,26 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             del repr_dict['denial_reasons']
 
         return repr_dict
+
+class EcjuQuerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',)
+
+
+class EcjuQueryCreateSerializer(serializers.ModelSerializer):
+    """
+    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
+    """
+    question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'case',
+                  'raised_by_user',)
