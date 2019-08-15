@@ -12,13 +12,13 @@ class GoodsCreateTests(DataTestClient):
     url = reverse('goods:goods')
 
     @parameterized.expand([
-        ('Widget', GoodControlled.YES, 'ML1a', True, '1337', status.HTTP_201_CREATED, False, ''),  # Create a new good
+        ('Widget', GoodControlled.YES, 'ML1a', True, '1337', status.HTTP_201_CREATED, ''),  # Create a new good
         # successfully
-        ('Widget', GoodControlled.NO, '', True, '1337', status.HTTP_201_CREATED, False, ''),  # Control Code shouldn't be set
-        ('Test Unsure Good Name', GoodControlled.UNSURE, '', True, '1337', status.HTTP_201_CREATED, False, 'This is test text'),  # CLC query
-        ('Widget', GoodControlled.YES, '', True, '1337', status.HTTP_400_BAD_REQUEST, False, ''),  # Controlled but is missing
+        ('Widget', GoodControlled.NO, '', True, '1337', status.HTTP_201_CREATED, ''),  # Control Code shouldn't be set
+        ('Test Unsure Good Name', GoodControlled.UNSURE, '', True, '1337', status.HTTP_201_CREATED, 'This is test text'),  # CLC query
+        ('Widget', GoodControlled.YES, '', True, '1337', status.HTTP_400_BAD_REQUEST, ''),  # Controlled but is missing
         # control code
-        ('', '', '', '', '', status.HTTP_400_BAD_REQUEST, '', ''),  # Request is empty
+        ('', '', '', '', '', status.HTTP_400_BAD_REQUEST, ''),  # Request is empty
     ])
     def test_create_good(self,
                          description,
@@ -27,7 +27,6 @@ class GoodsCreateTests(DataTestClient):
                          is_good_end_product,
                          part_number,
                          expected_status,
-                         validate_only,
                          not_sure_details_details):
         # Assemble
         data = {
@@ -57,7 +56,7 @@ class GoodsCreateTests(DataTestClient):
             if is_good_controlled == GoodControlled.UNSURE:
                 data = {
                     'not_sure_details_details': not_sure_details_details,
-                    'not_sure_details_control_code': control_code,
+                    'not_sure_details_control_code': 'ML17b',
                     'good_id': response_data['id']
                 }
 
