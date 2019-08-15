@@ -7,6 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
@@ -136,9 +137,11 @@ class GoodDocuments(APIView):
         organisation = get_organisation_by_user(request.user)
 
         if good.organisation != organisation:
+            delete_documents_on_bad_request(data)
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
+            delete_documents_on_bad_request(data)
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -152,9 +155,9 @@ class GoodDocuments(APIView):
             serializer.save()
             return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
+        delete_documents_on_bad_request(data)
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
 
 class GoodDocumentDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
