@@ -20,7 +20,8 @@ class EndUserDocuments(APIView):
         draft = get_draft(pk)
         end_user = draft.end_user
         if end_user is None:
-            return HttpResponseBadRequest
+            return JsonResponse(data={'error': 'No such user'},
+                                status=status.HTTP_400_BAD_REQUEST)
         end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
         serializer = EndUserDocumentSerializer(end_user_documents, many=True)
 
@@ -42,7 +43,8 @@ class EndUserDocuments(APIView):
         end_user = draft.end_user
 
         if end_user is None:
-            return HttpResponseBadRequest
+            return JsonResponse(data={'error': 'No such user'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         end_user_id = str(end_user.id)
         data = request.data
