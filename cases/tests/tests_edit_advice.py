@@ -25,7 +25,7 @@ class EditCaseAdviceTests(DataTestClient):
         """
         data = {
             'type': AdviceType.APPROVE,
-            'advice': 'I Am Easy to Find',
+            'text': 'I Am Easy to Find',
             'note': 'I Am Easy to Find',
             'country': 'GB',
         }

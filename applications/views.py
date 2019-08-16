@@ -14,7 +14,6 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
-from case_types.models import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication, GovAuthentication

@@ -1,9 +1,9 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from drafts.models import GoodOnDraft
 from test_helpers.clients import DataTestClient
+
 
 # from nose.tools import assert_true
 # import requests
@@ -13,8 +13,7 @@ class GoodDocumentsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.good = self.test_helper.create_controlled_good('this is a good', self.org)
+        self.good = self.create_controlled_good('this is a good', self.organisation)
         self.url = reverse('goods:documents', kwargs={'pk': self.good.id})
 
     def test_can_view_all_documents_on_a_good(self):
@@ -49,9 +48,9 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.create_standard_draft(self.organisation)
         good_id = GoodOnDraft.objects.get(draft=draft).good.id
-        self.test_helper.submit_draft(self, draft=draft)
+        self.submit_draft(draft)
 
         url = reverse('goods:documents', kwargs={'pk': good_id})
         data = {}
@@ -63,10 +62,10 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.create_standard_draft(self.organisation)
         good = GoodOnDraft.objects.get(draft=draft).good
         document_1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-        self.test_helper.submit_draft(self, draft=draft)
+        self.submit_draft(draft)
 
         url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': document_1.id})
         response = self.client.delete(url, **self.exporter_headers)

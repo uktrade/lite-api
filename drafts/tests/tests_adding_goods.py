@@ -9,7 +9,6 @@ from test_helpers.clients import DataTestClient
 class DraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        org = self.test_helper.organisation
         draft = self.create_draft(self.exporter_user.organisation)
         good = self.create_controlled_good('A good', self.exporter_user.organisation)
         self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
