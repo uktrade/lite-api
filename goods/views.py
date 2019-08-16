@@ -1,5 +1,4 @@
 from django.db import transaction
-import reversion
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
