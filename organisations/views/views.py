@@ -10,7 +10,7 @@ from conf.authentication import GovAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
-from users.models import UserOrganisationRelationship, ExporterUser
+from users.models import ExporterUser
 
 
 class OrganisationsList(APIView):
@@ -41,9 +41,6 @@ class OrganisationsList(APIView):
 
             if serializer.is_valid():
                 serializer.save()
-                UserOrganisationRelationship(user=ExporterUser.objects.get(email=user_email),
-                                             organisation=Organisation.objects.get(id=serializer.data['id'])
-                                             ).save()
                 return JsonResponse(data={'organisation': serializer.data},
                                     status=status.HTTP_201_CREATED)
 

@@ -7,7 +7,7 @@ from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, UserStatuses, BaseUser, GovUser, UserOrganisationRelationship
+from users.models import ExporterUser, UserStatuses, BaseUser, GovUser
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -102,34 +102,27 @@ class UserCreateSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
-    def get_a_user_by_email(self, email):
-        try:
-            return ExporterUser.objects.get(email=email)
-        except ExporterUser.DoesNotExist:
-            return None
+    # def user_has_organisation(self, email, organisation):
+    #     return ExporterUser.objects.filter(email=email, organisation=organisation).exists()
 
-    def user_has_organisation(self, user, organisation_id):
-        return ExporterUser.objects.filter(email=user, organisation=organisation_id).exists()
+    # def create(self, validated_data):
+    #     if not self.user_has_organisation(validated_data['email'], organisation=validated_data['organisation']):
+    #         exporter_user = ExporterUser.objects.create(**validated_data)
+    #         return exporter_user
 
-    def create(self, validated_data):
-        exporter_user = self.get_a_user_by_email(self.data['email'])
-        if not exporter_user:
-            exporter_user = ExporterUser.objects.create(**validated_data)
 
-        if not self.user_has_organisation(exporter_user, validated_data['organisation'].id):
-            validated_data.pop('email')
-            validated_data['organisation'] = validated_data['organisation'].id
-            validated_data['user'] = exporter_user
-            # serializer = UserOrganisationSerializer(data=validated_data)
-            # if serializer.is_valid(raise_exception=False):
-            #     serializer.save()
-            #     return exporter_user
-            # return serializer.errors
-        return exporter_user
+
+        # if not exporter_user:
+        #     exporter_user = ExporterUser.objects.create(**validated_data)
+        #
+        # if not self.user_has_organisation(exporter_user, validated_data['organisation'].id):
+        #     validated_data.pop('email')
+        #     validated_data['organisation'] = validated_data['organisation'].id
+        #     validated_data['user'] = exporter_user
+        # return exporter_user
 
     class Meta:
         model = ExporterUser
-        # unique_together = ('email', 'organisation')
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
 
@@ -156,13 +149,4 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        exclude = []
-
-
-class UserOrganisationSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
-
-    class Meta:
-        model = UserOrganisationRelationship
         exclude = []

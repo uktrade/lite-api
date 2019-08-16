@@ -2,7 +2,7 @@ import reversion
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -71,8 +71,15 @@ class UserList(APIView):
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
-        if not data.get('organisation'):
-            data['organisation'] = organisation.id
+        data['organisation'] = organisation.id
+        if ExporterUser.objects.filter(email=data.get('email'), organisation=organisation):
+            return JsonResponse(data={
+                    'errors': {
+                        'email': [ErrorDetail('This email is already registered with your organisation.', code='invalid')]
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST)
+
         serializer = UserCreateSerializer(data=data)
 
         if serializer.is_valid():

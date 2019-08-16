@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from organisations.models import Organisation, Site
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser, UserOrganisationRelationship
+from users.models import ExporterUser
 
 
 class OrganisationCreateTests(DataTestClient):

@@ -94,12 +94,3 @@ class GovUser(BaseUser):
 class GovUserRevisionMeta(models.Model):
     revision = models.OneToOneField(Revision, on_delete=models.CASCADE)
     gov_user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
-
-
-class UserOrganisationRelationship(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(ExporterUser, related_name='user_organisation_assignments', on_delete=models.CASCADE,
-                             blank=False, null=False)
-    organisation = models.ForeignKey(Organisation, related_name='organisation_organisation_assignments', on_delete=models.CASCADE,
-                                     blank=False, null=False)
-    status = models.BooleanField(blank=False, null=False, default=True)
