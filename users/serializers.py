@@ -109,7 +109,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             return None
 
     def user_has_organisation(self, user, organisation_id):
-        return UserOrganisationRelationship.objects.filter(user=user, organisation_id=organisation_id).exists()
+        return ExporterUser.objects.filter(email=user, organisation=organisation_id).exists()
 
     def create(self, validated_data):
         exporter_user = self.get_a_user_by_email(self.data['email'])
@@ -120,16 +120,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
             validated_data.pop('email')
             validated_data['organisation'] = validated_data['organisation'].id
             validated_data['user'] = exporter_user
-            serializer = UserOrganisationSerializer(data=validated_data)
-            if serializer.is_valid(raise_exception=False):
-                serializer.save()
-                return exporter_user
-            return serializer.errors
+            # serializer = UserOrganisationSerializer(data=validated_data)
+            # if serializer.is_valid(raise_exception=False):
+            #     serializer.save()
+            #     return exporter_user
+            # return serializer.errors
         return exporter_user
 
     class Meta:
         model = ExporterUser
-        unique_together = ('email', 'organisation')
+        # unique_together = ('email', 'organisation')
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
 

@@ -37,8 +37,8 @@ class UserTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        user_org_count = UserOrganisationRelationship.objects.filter(
-            user__email=email
+        user_org_count = ExporterUser.objects.filter(
+            email=email
         ).count()
 
         self.assertEqual(user_org_count, 2)
@@ -62,17 +62,10 @@ class UserTests(DataTestClient):
         url = reverse('users:users')
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, 201)
-        user_org_count = UserOrganisationRelationship.objects.filter(
-            user__email=email
-        ).count()
-        self.assertEqual(user_org_count, 1)
+
         response = self.client.post(url, data, **self.exporter_headers)
         # check status code for correct user behaviour
         self.assertEqual(response.status_code, 201)
-        user_org_count = UserOrganisationRelationship.objects.filter(
-            user__email=email
-        ).count()
-        self.assertEqual(user_org_count, 1)
 
     def test_fail_create_new_user(self):
         data = {}
