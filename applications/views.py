@@ -5,21 +5,26 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, \
-    ApplicationCaseNotesSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
+from case_types.models import CaseType
 from cases.models import Case
+from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from goods.enums import GoodStatus
+from goods.libraries.get_good import get_good
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
@@ -159,3 +164,34 @@ class ApplicationDetailUser(ApplicationDetail):
         )
 
         return super(ApplicationDetailUser, self).get(request, pk)
+
+
+class CLCList(APIView):
+    def post(self, request):
+        data = JSONParser().parse(request)
+        good = get_good(data['good_id'])
+
+        good.status = GoodStatus.SUBMITTED
+        if data['not_sure_details_control_code'] == '':
+            return JsonResponse(data={'errors': {
+                'not_sure_details_control_code': [ErrorDetail('This field may not be blank.', code='blank')]
+            }}, status=status.HTTP_400_BAD_REQUEST)
+        good.control_code = data['not_sure_details_control_code']
+        good.save()
+
+        clc_query = ClcQuery(details=data['not_sure_details_details'],
+                             good=good,
+                             status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+        clc_query.save()
+
+        # Create a case
+        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
+        case = Case(clc_query=clc_query, case_type=case_type)
+        case.save()
+
+        # Add said case to default queue
+        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
+        queue.cases.add(case)
+        queue.save()
+
+        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id }, status=status.HTTP_201_CREATED)

@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from cases.models import CaseDocument
+from documents.models import Document
 from .utils import s3_client
 
 
@@ -52,7 +52,8 @@ def _process_document(document_pk: str):
     if not settings.AV_SERVICE_URL:
         raise VirusScanException(f'Cannot scan document with ID {document_pk}; AV service URL not'
                                  f'configured')
-    doc = CaseDocument.objects.get(pk=document_pk)
+
+    doc = Document.objects.get(pk=document_pk)
     if doc.virus_scanned_at is not None:
         warn_msg = f'Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}'
         logging.warning(warn_msg)

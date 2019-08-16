@@ -176,6 +176,19 @@ class DataTestClient(BaseTestClient):
         case_doc.save()
         return case_doc
 
+    def create_good_document(self, good: Good, user: ExporterUser, name: str, s3_key: str):
+        good_doc = GoodDocument(good=good,
+                                description='This is a document',
+                                user=user,
+                                organisation=user.organisation,
+                                name=name,
+                                s3_key=s3_key,
+                                size=123456,
+                                virus_scanned_at=None,
+                                safe=None)
+        good_doc.save()
+        return good_doc
+
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
         flag.save()

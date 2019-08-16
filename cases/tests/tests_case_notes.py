@@ -59,8 +59,8 @@ class CaseNotesExporterCreateTests(DataTestClient):
     @parameterized.expand([
         [{}],  # Empty data
         [{'text': ''}],  # Empty text field
-        [{'text': '🙂'}],  # Less than two character minimum
-        [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
+        [{'text': '🍌'}],  # Less than two character minimum
+        [{'text': '🍌' * 2201}],  # More than two thousand, two hundred character maximum
     ])
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=data, **self.exporter_headers)
