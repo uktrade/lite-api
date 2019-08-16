@@ -72,7 +72,14 @@ class EndUserDocuments(APIView):
         """
         Deletes a document from the specified end user
         """
-        return HttpResponseServerError
+        draft = get_draft(pk)
+        end_user = draft.end_user
+
+        if end_user is None:
+            return JsonResponse(data={'error': 'No such user'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_500)
 
         # draft = get_draft(pk)
         # end_user = draft.end_user

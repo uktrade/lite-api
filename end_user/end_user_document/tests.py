@@ -31,7 +31,7 @@ class DraftEndUserDocumentsTests(DataTestClient):
         response_data = response.json()['documents'][0]
         expected = self.data[0]
 
-        #assert
+        # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['name'], expected['name'])
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
@@ -42,20 +42,20 @@ class DraftEndUserDocumentsTests(DataTestClient):
     def test_get_no_user(self):
         # act
         response = self.client.get(self.url_no_user, **self.exporter_headers)
-        #assert
+        # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_post_no_user(self, prepare_document_function):
         # act
         response = self.client.post(self.url_no_user, data=self.data, **self.exporter_headers)
-        #assert
+        # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_no_user(self):
         # act
         response = self.client.delete(self.url_no_user, **self.exporter_headers)
-        #assert
+        # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
