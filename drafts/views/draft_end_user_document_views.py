@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseServerError
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.views import APIView
@@ -8,7 +8,6 @@ from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from end_user.end_user_document.models import EndUserDocument
 from end_user.serializers import EndUserDocumentSerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class EndUserDocuments(APIView):
@@ -20,6 +19,8 @@ class EndUserDocuments(APIView):
         """
         draft = get_draft(pk)
         end_user = draft.end_user
+        if end_user is None:
+            return HttpResponseBadRequest
         end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
         serializer = EndUserDocumentSerializer(end_user_documents, many=True)
 
@@ -41,7 +42,7 @@ class EndUserDocuments(APIView):
         end_user = draft.end_user
 
         if end_user is None:
-            raise HttpResponseBadRequest
+            return HttpResponseBadRequest
 
         end_user_id = str(end_user.id)
         data = request.data
@@ -69,9 +70,11 @@ class EndUserDocuments(APIView):
         """
         Deletes a document from the specified end user
         """
-        draft = get_draft(pk)
-        end_user = draft.end_user
-        doc  = EndUserDocument.objects.get(id=dr)
-        end_user_id = str(end_user.id)
-        organisation = get_organisation_by_user(request.user)
-        data = request.data
+        return HttpResponseServerError
+
+        # draft = get_draft(pk)
+        # end_user = draft.end_user
+        # doc  = EndUserDocument.objects.get(id=dr)
+        # end_user_id = str(end_user.id)
+        # organisation = get_organisation_by_user(request.user)
+        # data = request.data

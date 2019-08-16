@@ -2,7 +2,6 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 from test_helpers.clients import DataTestClient
-from end_user.end_user_document.models import EndUserDocument
 
 
 class DraftEndUserDocumentsTests(DataTestClient):
@@ -11,32 +10,54 @@ class DraftEndUserDocumentsTests(DataTestClient):
         super().setUp()
         self.org = self.test_helper.organisation
         self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Superdraft', self.org)
-        self.end_user = self.test_helper.create_end_user("Mr. Kim", self.org)
+        # self.end_user = self.test_helper.create_end_user("Mr. Kim", self.org)
         self.url = reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id})
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    def test_for_storing_meta(self, prepare_document_function):
-        data = [{"name": "file123.pdf",
+        self.draft_no_user = self.test_helper.complete_draft('Superdraft2', self.org)
+        self.url_no_user = reverse('drafts:end_user_documents', kwargs={'pk': self.draft_no_user.id})
+
+        self.data = [{"name": "file123.pdf",
                  "s3_key": "file123_12345678.pdf",
                  "size": 476,
                  "description": "Description 58398"}]
 
-        response = self.client.post(self.url, data=data, **self.exporter_headers)
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_data_is_returned(self, prepare_document_function):
+        response = self.client.post(self.url, data=self.data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # act
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()['documents'][0]
+        expected = self.data[0]
 
         #assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['name'], data[0]['name'])
-        self.assertEqual(response_data['s3_key'], data[0]['s3_key'])
-        self.assertEqual(response_data['size'], data[0]['size'])
-        self.assertEqual(response_data['description'], data[0]['description'])
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+        self.assertEqual(response_data['description'], expected['description'])
 
-    # DRAFT TESTS
     # if DELETE/POST/GET - end-user not set - return 400
+    def test_get_no_user(self):
+        # act
+        response = self.client.get(self.url_no_user, **self.exporter_headers)
+        #assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_no_user(self, prepare_document_function):
+        # act
+        response = self.client.post(self.url_no_user, data=self.data, **self.exporter_headers)
+        #assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_no_user(self):
+        # act
+        response = self.client.delete(self.url_no_user, **self.exporter_headers)
+        #assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
     # if GET - document not set - return 404
     # if POST - document not set - return 201
@@ -45,23 +66,6 @@ class DraftEndUserDocumentsTests(DataTestClient):
     # if POST - document exist - return 400
     # if DELETE - document exist - return 204
     # if GET - document exist - return 200
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
