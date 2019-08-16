@@ -43,14 +43,13 @@ class UserTests(DataTestClient):
 
         self.assertEqual(user_org_count, 2)
 
-    def test_fail_not_add_multiple_same_user_organization(self):
+    def test_fail_not_add_multiple_same_user_organisation(self):
         organisation = Organisation.objects.create(
             name='test-org',
             eori_number='123',
             sic_number='',
             vat_number='',
             registration_number='',
-
         )
         email = 'jsmith@name.com'
         data = {
@@ -58,8 +57,7 @@ class UserTests(DataTestClient):
             'last_name': 'Smith',
             'email': email,
             'password': 'password123',
-            'organization': str(organisation.id)
-
+            'organisation': str(organisation.id)
         }
         url = reverse('users:users')
         response = self.client.post(url, data, **self.exporter_headers)
