@@ -22,21 +22,25 @@ class DraftEndUserDocumentsTests(DataTestClient):
                  "description": "Description 58398"}]
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_post_data_is_returned(self, prepare_document_function):
+    def test_get_post_delete_doc(self, prepare_document_function):
         response = self.client.post(self.url, data=self.data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # act
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()['documents'][0]
         expected = self.data[0]
 
-        # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['name'], expected['name'])
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
         self.assertEqual(response_data['size'], expected['size'])
         self.assertEqual(response_data['description'], expected['description'])
+
+        response = self.client.delete(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     # if DELETE/POST/GET - end-user not set - return 400
     def test_get_no_user(self):
@@ -67,74 +71,3 @@ class DraftEndUserDocumentsTests(DataTestClient):
     # if DELETE - document exist - return 204
     # if GET - document exist - return 200
 
-
-
-
-
-
-
-    # def test_can_remove_document_from_unsubmitted_good(self):
-    #     doc1 = self.create_end_user_document(end_user=self.end_user,
-    #                                          user=self.exporter_user,
-    #                                          s3_key='doc1key',
-    #                                          name='doc.pdf')
-    #
-    #     self.create_end_user_document(end_user=self.end_user,
-    #                                   user=self.exporter_user,
-    #                                   s3_key='doc1key',
-    #                                   name='doc.pdf')
-    #
-    #     response = self.client.get(self.url, **self.exporter_headers)
-    #     response_data = response.json()
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response_data['documents']), 1)
-
-
-
-    #
-    # @tag('slow')
-    # def test_can_remove_document_from_unsubmitted_good(self):
-    #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-    #     self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
-    #
-    #     url = reverse('goods:document', kwargs={'pk': self.good.id, 'doc_pk': doc1.id})
-    #
-    #     response = self.client.delete(url, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #
-    #     response = self.client.get(self.url, **self.exporter_headers)
-    #     response_data = response.json()
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response_data['documents']), 1)
-    #
-    # def test_submitted_good_cannot_have_docs_added(self):
-    #     """
-    #     Tests that the good cannot be edited after submission
-    #     """
-    #     draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
-    #     good_id = GoodOnDraft.objects.get(draft=draft).good.id
-    #     self.test_helper.submit_draft(self, draft=draft)
-    #
-    #     url = reverse('goods:documents', kwargs={'pk': good_id})
-    #     data = {}
-    #     response = self.client.post(url, data, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submitted_good_cannot_have_docs_removed(self):
-    #     """
-    #     Tests that the good cannot be edited after submission
-    #     """
-    #     draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
-    #     good = GoodOnDraft.objects.get(draft=draft).good
-    #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-    #     self.test_helper.submit_draft(self, draft=draft)
-    #
-    #     url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': doc1.id})
-    #     response = self.client.delete(url, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #

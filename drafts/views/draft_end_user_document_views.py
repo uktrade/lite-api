@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.views import APIView
@@ -23,6 +23,11 @@ class EndUserDocuments(APIView):
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
         end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
+
+        if not end_user_documents:
+            return JsonResponse(data={'error': 'Document does not exist'},
+                                status=status.HTTP_404_NOT_FOUND)
+
         serializer = EndUserDocumentSerializer(end_user_documents, many=True)
 
         return JsonResponse({'documents': serializer.data})
@@ -42,7 +47,7 @@ class EndUserDocuments(APIView):
         draft = get_draft(pk)
         end_user = draft.end_user
 
-        if end_user is None:
+        if not end_user:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,15 +80,13 @@ class EndUserDocuments(APIView):
         draft = get_draft(pk)
         end_user = draft.end_user
 
-        if end_user is None:
+        if not end_user:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_500)
+        end_user_document = EndUserDocument.objects.filter(end_user=end_user).first()
 
-        # draft = get_draft(pk)
-        # end_user = draft.end_user
-        # doc  = EndUserDocument.objects.get(id=dr)
-        # end_user_id = str(end_user.id)
-        # organisation = get_organisation_by_user(request.user)
-        # data = request.data
+        end_user_document.delete_s3()
+        end_user_document.delete()
+
+        return HttpResponse(status=204)
