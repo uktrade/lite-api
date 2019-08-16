@@ -8,6 +8,7 @@ from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
 from drafts.models import GoodOnDraft
 from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
+from goods.models import GoodDocument
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -48,7 +49,11 @@ class DraftGoods(APIView):
 
         organisation = get_organisation_by_user(request.user)
         get_draft_with_organisation(pk, organisation)
-        get_good_with_organisation(data.get('good'), organisation)
+        good = get_good_with_organisation(data.get('good'), organisation)
+
+        if len(GoodDocument.objects.filter(good=good)) == 0:
+            return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
             serializer = GoodOnDraftBaseSerializer(data=data)
