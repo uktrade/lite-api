@@ -14,6 +14,7 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
+from cases.enums import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.authentication import ExporterAuthentication, GovAuthentication
@@ -184,8 +185,7 @@ class CLCList(APIView):
         clc_query.save()
 
         # Create a case
-        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-        case = Case(clc_query=clc_query, case_type=case_type)
+        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
 
         # Add said case to default queue

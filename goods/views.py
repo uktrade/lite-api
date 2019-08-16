@@ -42,28 +42,7 @@ class GoodList(APIView):
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
-            if not data['validate_only']:
-                good = serializer.save()
-
-                if data['is_good_controlled'] == GoodControlled.UNSURE:
-                    with reversion.create_revision():
-                        reversion.set_comment('Created CLC Query')
-                        reversion.set_user(request.user)
-
-                        # automatically raise a CLC query case
-                        clc_query = ClcQuery(details=data['not_sure_details_details'],
-                                             good=good,
-                                             status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
-                        clc_query.save()
-
-                        # Create a case
-                        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-                        case.save()
-
-                    # Add said case to default queue
-                    queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-                    queue.cases.add(case)
-                    queue.save()
+            serializer.save()
 
             return JsonResponse(data={'good': serializer.data},
                                 status=status.HTTP_201_CREATED)
