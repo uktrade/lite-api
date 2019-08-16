@@ -54,3 +54,16 @@ class ApplicationsTests(DataTestClient):
         data = {'id': draft.id}
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # if POST - end user with no document - 400
+    def test_status_code_post_no_end_user_document(self):
+        # assemble
+        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
+        url = reverse('applications:applications')
+        data = {'id': draft.id}
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
