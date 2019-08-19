@@ -49,13 +49,8 @@ class EndUserSerializer(serializers.ModelSerializer):
         return instance
 
     def get_document(self, instance):
-        print('HOLA SEÑORITA', EndUserDocument.objects.filter(end_user=instance).first())
-        # return EndUserDocument.objects.filter(end_user=instance).first().__dict__
-        return json.dumps(EndUserDocument.objects.filter(end_user=instance).first())
-        # try:
-        #     return EndUserDocument.objects.get(end_user=instance)
-        # except TypeError:
-        #     return None
+        docs = EndUserDocument.objects.filter(end_user=instance).values()
+        return docs[0] if docs else None
 
 
 class EndUserDocumentSerializer(serializers.ModelSerializer):

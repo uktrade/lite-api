@@ -20,19 +20,14 @@ class CaseEndUserDocumentTests(DataTestClient):
         self.case = Case.objects.get(application=self.application)
 
     def test_case_contains_end_user_document(self):
-        print('THIS TEST')
-
+        # act
         response = self.client.get(reverse('cases:case', kwargs={'pk': self.case.id}), **self.gov_headers)
+
+        # assert
         data = response.json()
-
-        print('DATA', data)
-
-        #TODO: Assert data contains end user document
 
         self.assertIsNotNone(data['case']['application']['destinations']['data']['document'])
         self.assertEquals(self.file_name,
                           data['case']['application']['destinations']['data']['document']['name'])
-        self.assertEquals(self.virus_scanned_at,
-                          data['case']['application']['destinations']['data']['document']['virus_scanned_at'])
         self.assertEquals(self.safe,
                           data['case']['application']['destinations']['data']['document']['safe'])
