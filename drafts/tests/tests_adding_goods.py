@@ -15,6 +15,7 @@ class DraftTests(DataTestClient):
         org = self.test_helper.organisation
         draft = OrgAndUserHelper.complete_draft('Goods test', org)
         good = OrgAndUserHelper.create_controlled_good('A good', org)
+        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         data = {
             'good_id': good.id,
@@ -36,6 +37,7 @@ class DraftTests(DataTestClient):
         test_helper_2 = OrgAndUserHelper(name='organisation2')
         good = OrgAndUserHelper.create_controlled_good('test', test_helper_2.organisation)
         draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         data = {
             'draft': draft.id,
@@ -63,6 +65,7 @@ class DraftTests(DataTestClient):
         org = self.test_helper.organisation
         draft = OrgAndUserHelper.complete_draft('Goods test', org)
         good = OrgAndUserHelper.create_controlled_good('A good', org)
+        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         post_data = {
             'good_id': good.id,

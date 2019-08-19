@@ -188,6 +188,11 @@ if 'test' not in sys.argv:
             },
         }
     }
+else:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+    }
 
 ALL_CASES_SYSTEM_QUEUE_ID = 'de13c40a-b330-4d77-8304-57ac12326e5a'
 OPEN_CASES_SYSTEM_QUEUE_ID = 'f1a0631d-7abd-4152-a184-5e8557da8d49'
