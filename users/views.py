@@ -8,14 +8,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication
-from gov_users.enums import GovUserStatuses
-from gov_users.libraries.user_to_token import user_to_token
+from conf.authentication import ExporterAuthentication, EXPORTER_USER_TOKEN_HEADER
+from gov_users.libraries.token_to_user import token_to_user_pk
+from gov_users.libraries.user_to_token import user_to_token, users_to_tokens
 from organisations.libraries.get_organisation import get_organisation_by_user
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer, \
+from users.serializers import UserViewSerializer, UserUpdateSerializer, ExporterUserCreateSerializer, NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer
 
 
@@ -34,9 +35,6 @@ class AuthenticateExporterUser(APIView):
         """
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
-        :param request:
-        :param email:
-        :return token:
         """
         try:
             data = JSONParser().parse(request)
@@ -46,12 +44,8 @@ class AuthenticateExporterUser(APIView):
         email = data.get('email')
 
         try:
-            user = ExporterUser.objects.get(email=email)
+            user = ExporterUser.objects.filter(email=email, status=UserStatuses.ACTIVE)[0]
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={'errors': 'User not found'},
-                                status=status.HTTP_403_FORBIDDEN)
-
-        if user.status == GovUserStatuses.DEACTIVATED:
             return JsonResponse(data={'errors': 'User not found'},
                                 status=status.HTTP_403_FORBIDDEN)
 
@@ -80,7 +74,7 @@ class UserList(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserCreateSerializer(data=data)
+        serializer = ExporterUserCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -168,3 +162,16 @@ class UserMeDetail(APIView):
     def get(self, request):
         serializer = ExporterUserViewSerializer(request.user)
         return JsonResponse(data={'user': serializer.data})
+
+
+class ExporterTokens(APIView):
+    def get(self, request):
+        print('headers', request.headers)
+
+        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+
+        user = ExporterUser.objects.get(pk=token_to_user_pk(token))
+
+        users = ExporterUser.objects.filter(email=user.email, status=UserStatuses.ACTIVE)
+        tokens = users_to_tokens(users)
+        return JsonResponse(data={'tokens': tokens})

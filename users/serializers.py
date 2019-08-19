@@ -7,7 +7,7 @@ from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, UserStatuses, BaseUser, GovUser
+from users.models import ExporterUser, UserStatuses, BaseUser, GovUser, UserOrganisationRelationship
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -93,8 +93,8 @@ class UserUpdateSerializer(UserSerializer):
         return instance
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
+class ExporterUserCreateSerializer(serializers.ModelSerializer):
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
     email = serializers.EmailField(
         error_messages={
             'invalid': 'Enter an email address in the correct format, like name@example.com'}
@@ -102,24 +102,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
-    # def user_has_organisation(self, email, organisation):
-    #     return ExporterUser.objects.filter(email=email, organisation=organisation).exists()
-
-    # def create(self, validated_data):
-    #     if not self.user_has_organisation(validated_data['email'], organisation=validated_data['organisation']):
-    #         exporter_user = ExporterUser.objects.create(**validated_data)
-    #         return exporter_user
-
-
-
-        # if not exporter_user:
-        #     exporter_user = ExporterUser.objects.create(**validated_data)
-        #
-        # if not self.user_has_organisation(exporter_user, validated_data['organisation'].id):
-        #     validated_data.pop('email')
-        #     validated_data['organisation'] = validated_data['organisation'].id
-        #     validated_data['user'] = exporter_user
-        # return exporter_user
+    def create(self, validated_data):
+        # if not ExporterUser.objects.filter(email=validated_data['email']):
+        #     ExporterUser(**validated_data).save()
+        # else:
+        #     exporter = ExporterUser.objects.get(email=validated_data['email'])
+        organisation = validated_data.pop('organisation')
+        exporter, created = ExporterUser.objects.get_or_create(email=validated_data['email'],
+                                                               defaults={**validated_data})
+        UserOrganisationRelationship(exporter, organisation).save()
+        return exporter
 
     class Meta:
         model = ExporterUser
