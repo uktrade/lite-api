@@ -199,51 +199,20 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
         return value
 
-    # def __init__(self, *args, **kwargs):
-    #     super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
-    #
-    #     if self.initial_data:
-    #         print('\n')
-    #         print('inside a car')
-    #         print(self.initial_data)
-    #         print('\n')
+    def __init__(self, *args, **kwargs):
+        super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
 
-    # def __init__(self, *args, **kwargs):
-    #     super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
+        application_fields = ['good',
+                              'goods_type',
+                              'country',
+                              'end_user',
+                              'ultimate_end_user']
 
-    # if self.get_initial().get('type') != AdviceType.PROVISO:
-    #     self.fields.pop('proviso')
-    #
-    # if self.get_initial().get('type') != AdviceType.REFUSE:
-    #     self.fields.pop('denial_reasons')
-
-    # print('banana')
-    # print(self.get_initial().get('denial_reasons'))
-
-    # fields = self.get_initial()
-    # application_fields = ['good',
-    #                       'goods_type',
-    #                       'country',
-    #                       'end_user',
-    #                       'ultimate_end_user']
-    #
-    # # print('yo end user is: ' + self.get_initial().get('end_user'))
-    #
-    # # print(self.get_initial())
-    #
-    # # Ensure that only one attribute
-    # # print(len([item for item in application_fields if fields.get('item') is not None]))
-    # # if not ensure_x_items_not_none([fields.get(x) for x in application_fields], 1):
-    # #     raise serializers.ValidationError({'errors': 'Only give one attribute a value for application fields'})
-    #
-    # # Pop unused application fields
-    # # application_fields = [x for x in application_fields if fields.get(x) is None]
-    # # for field in application_fields:
-    # #     self.fields.pop(field)
-    #
-    # print('yo your type is')
-    # print(self.get_initial().get('type'))
-    #
+        # Ensure only one item is provided
+        if hasattr(self, 'initial_data'):
+            for data in self.initial_data:
+                if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
+                    raise ValidationError('Only one item (such as an end_user) can be given at a time')
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)

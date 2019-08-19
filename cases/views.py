@@ -53,8 +53,7 @@ class CaseDetail(APIView):
 
             serializer.save()
 
-            return JsonResponse(data={'case': serializer.data},
-                                status=status.HTTP_200_OK)
+            return JsonResponse(data={'case': serializer.data})
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)

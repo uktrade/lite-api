@@ -2,7 +2,6 @@ import uuid
 
 import reversion
 from django.db import models
-from rest_framework.exceptions import ValidationError
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
@@ -97,7 +96,8 @@ class Advice(models.Model):
     goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, related_name='ultimate_end_user', null=True)
+    ultimate_end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
+                                          null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -122,7 +122,7 @@ class Advice(models.Model):
 
         super(Advice, self).save(*args, **kwargs)
 
-		
+
 class EcjuQuery(models.Model):
     """
     Query from ECJU to exporters

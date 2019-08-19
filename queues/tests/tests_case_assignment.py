@@ -9,7 +9,7 @@ from test_helpers.clients import DataTestClient
 
 class CaseAssignmentTests(DataTestClient):
 
-    url = reverse('queues:case_assignment', kwargs={'pk': '00000000-0000-0000-0000-000000000001'})
+    url = reverse('queues:case_assignments', kwargs={'pk': '00000000-0000-0000-0000-000000000001'})
 
     def setUp(self):
         super().setUp()
@@ -67,7 +67,7 @@ class CaseAssignmentTests(DataTestClient):
             ]
         }
 
-        url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
+        url = reverse('queues:case_assignments', kwargs={'pk': self.default_queue.id})
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -148,7 +148,7 @@ class CaseAssignmentTests(DataTestClient):
             ]
         }
 
-        url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
+        url = reverse('queues:case_assignments', kwargs={'pk': self.default_queue.id})
         self.client.put(url, data, **self.gov_headers)
         response = self.client.get(url, **self.gov_headers)
         case_assignments_response_data = response.json()['case_assignments']

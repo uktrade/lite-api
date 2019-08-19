@@ -15,7 +15,7 @@ class GoodsTypeList(APIView):
         """
         Gets list of all Goods Types
         """
-        goods = GoodsType.objects.filter()
+        goods = GoodsType.objects.all()
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data},)
 

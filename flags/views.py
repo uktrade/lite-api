@@ -26,7 +26,7 @@ class FlagsList(APIView):
         if level:
             flags = Flag.objects.filter(level=level)
         else:
-            flags = Flag.objects.filter()
+            flags = Flag.objects.all()
 
         team = request.GET.get('team', None)
         if team:

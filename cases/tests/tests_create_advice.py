@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -75,16 +76,31 @@ class CreateCaseAdviceTests(DataTestClient):
             self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
                              data['denial_reasons'])
 
-    # def test_cannot_create_empty_advice(self):
-    #     """
-    #     Tests that a gov user cannot create an approval/proviso/refuse/nlr/not_applicable
-    #     piece of advice for an end user
-    #     """
-    #     data = {
-    #         'text': 'I Am Easy to Find',
-    #         'note': 'I Am Easy to Find',
-    #         'type': AdviceType.APPROVE,
-    #     }
-    #
-    #     response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_cannot_create_empty_advice(self):
+        """
+        Tests that a gov user cannot create an empty piece of advice for an end user
+        """
+        data = {
+            'text': 'I Am Easy to Find',
+            'note': 'I Am Easy to Find',
+            'type': AdviceType.APPROVE,
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cannot_create_advice_for_two_items(self):
+        """
+        Tests that a gov user cannot create a piece of advice for more than one item
+        """
+        data = {
+            'text': 'I Am Easy to Find',
+            'note': 'I Am Easy to Find',
+            'type': AdviceType.APPROVE,
+            'end_user': str(self.standard_application.end_user.id),
+            'good': str(self.standard_application.goods.first().id)
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Advice.objects.count(), 0)

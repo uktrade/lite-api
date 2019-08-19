@@ -11,6 +11,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases
 from queues.models import Queue
@@ -19,20 +20,18 @@ from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCa
 
 @permission_classes((permissions.AllowAny,))
 class QueuesList(APIView):
-    """
-    List all queues
-    """
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
-        Gets all queues. Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
+        Gets all queues.
+        Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
         """
-        include_system_queues = request.GET.get('include_system_queues', 'false')
+        include_system_queues = str_to_bool(request.GET.get('include_system_queues', False))
 
-        queues = Queue.objects.filter().order_by('name')
+        queues = Queue.objects.all().order_by('name')
 
-        if include_system_queues.lower() == 'true':
+        if include_system_queues:
             queues = list(queues)
             queues.insert(0, get_open_cases_queue())
             queues.insert(0, get_all_cases_queue())
@@ -43,7 +42,7 @@ class QueuesList(APIView):
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = QueueSerializer(data=data, partial=True)
+        serializer = QueueSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -56,12 +55,12 @@ class QueuesList(APIView):
 
 @permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
-    """
-    Retrieve a queue instance
-    """
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        """
+        Retrieve a queue instance
+        """
         queue, cases = get_queue(pk, return_cases=True)
         cases = get_filtered_cases(request, queue.id, cases)
         cases = get_sorted_cases(request, queue.id, cases)
