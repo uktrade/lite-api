@@ -161,7 +161,10 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                                  allow_null=False,
                                  error_messages={'blank': 'Enter some advice'},
                                  max_length=5000)
-    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
+    note = serializers.CharField(required=False,
+                                 allow_blank=True,
+                                 allow_null=True,
+                                 max_length=200)
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
                                                         many=True,
