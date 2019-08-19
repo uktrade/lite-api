@@ -8,18 +8,16 @@ from case_types.models import CaseType
 from cases.models import CaseNote, Case, CaseDocument
 from conf.urls import urlpatterns
 from drafts.models import Draft
-from end_user.end_user_document.models import EndUserDocument
-from end_user.models import EndUser
+from flags.models import Flag
 from goods.models import Good, GoodDocument
 from gov_users.libraries.user_to_token import user_to_token
 from queues.models import Queue
-from static.urls import urlpatterns as static_urlpatterns
-from teams.models import Team
-from flags.models import Flag
-from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser, BaseUser, ExporterUser
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.urls import urlpatterns as static_urlpatterns
+from teams.models import Team
+from test_helpers.org_and_user_helper import OrgAndUserHelper
+from users.models import GovUser, BaseUser, ExporterUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -114,7 +112,7 @@ class DataTestClient(BaseTestClient):
     def create_application_case(self, name):
         return Case.objects.get(
             application=self.test_helper.submit_draft(
-                self, self.test_helper.create_draft_with_good_end_user_and_site(
+                self, self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
                     name,
                     self.test_helper.organisation)))
 
@@ -183,22 +181,6 @@ class DataTestClient(BaseTestClient):
                                 safe=None)
         good_doc.save()
         return good_doc
-
-    def create_draft_end_user_document(self, draft: Draft, end_user: EndUser, user: ExporterUser, name: str, s3_key: str):
-        draft_end_user_document = EndUserDocument(
-            draft=draft,
-            end_user=end_user,
-            description='This is a document',
-            user=user,
-            organisation=user.organisation,
-            name=name,
-            s3_key=s3_key,
-            size=123456,
-            virus_scanned_at=None,
-            safe=None
-        )
-        draft_end_user_document.save()
-        return draft_end_user_document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)

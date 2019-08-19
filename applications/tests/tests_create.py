@@ -17,7 +17,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a draft first and then submit it as an application
         """
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site(name='test',
+        draft = OrgAndUserHelper.create_draft_with_good_end_user_site_and_end_user_document(name='test',
                                                                           org=self.test_helper.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)

@@ -11,7 +11,7 @@ class CaseFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
+        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('Example Application',
                                                                                self.test_helper.organisation)
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')

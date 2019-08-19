@@ -19,7 +19,7 @@ class GoodTests(DataTestClient):
         """
         Test that the good's status is set to submitted
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         self.assertEqual(Good.objects.get().status, 'draft')
         self.test_helper.submit_draft(self, draft=draft)
         self.assertEqual(Good.objects.get().status, 'submitted')
@@ -28,7 +28,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         self.test_helper.submit_draft(self, draft=draft)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -40,7 +40,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be edited after submission
         """
-        self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {'description': 'some great good'}
@@ -52,7 +52,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be deleted after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         self.test_helper.submit_draft(self, draft=draft)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -64,7 +64,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be deleted after submission
         """
-        self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         response = self.client.delete(url, **self.exporter_headers)
@@ -75,7 +75,7 @@ class GoodTests(DataTestClient):
         """
         Tests that goods get deleted from drafts that they were assigned to, after good deletion
         """
-        self.test_helper.create_draft_with_good_end_user_and_site('testOne', self.org)
+        self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('testOne', self.org)
         draft_two = self.test_helper.complete_draft('testTwo', self.org)
         good = Good.objects.get()
         GoodOnDraft(good=good, draft=draft_two, quantity=10, unit=Units.NAR, value=500).save()

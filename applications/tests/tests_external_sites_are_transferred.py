@@ -20,6 +20,7 @@ class ApplicationsTests(DataTestClient):
         ExternalLocationOnDraft(external_location=site1, draft=draft).save()
         ExternalLocationOnDraft(external_location=site2, draft=draft).save()
         draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        OrgAndUserHelper.create_document_for_end_user(draft.end_user)
         draft.activity = 'Brokering'
         draft.save()
 

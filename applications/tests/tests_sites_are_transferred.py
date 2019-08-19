@@ -19,6 +19,7 @@ class ApplicationsTests(DataTestClient):
         SiteOnDraft(site=self.test_helper.primary_site, draft=draft).save()
         SiteOnDraft(site=site2, draft=draft).save()
         draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        OrgAndUserHelper.create_document_for_end_user(draft.end_user)
         draft.save()
 
         url = reverse('applications:applications')

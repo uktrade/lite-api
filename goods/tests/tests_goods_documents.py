@@ -49,7 +49,7 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         good_id = GoodOnDraft.objects.get(draft=draft).good.id
         self.test_helper.submit_draft(self, draft=draft)
 
@@ -63,7 +63,7 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.test_helper.create_draft_with_good_end_user_and_site('test', self.org)
+        draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('test', self.org)
         good = GoodOnDraft.objects.get(draft=draft).good
         document_1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
         self.test_helper.submit_draft(self, draft=draft)

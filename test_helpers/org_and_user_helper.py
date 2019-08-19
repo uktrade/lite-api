@@ -8,6 +8,7 @@ from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft
+from end_user.end_user_document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from goods.enums import GoodControlled
@@ -138,6 +139,12 @@ class OrgAndUserHelper:
         return draft
 
     @staticmethod
+    def create_draft_with_good_end_user_site_and_end_user_document(name, org):
+        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site(name, org)
+        OrgAndUserHelper.create_document_for_end_user(draft.end_user)
+        return draft
+
+    @staticmethod
     def submit_draft(self, draft):
         draft_id = draft.id
         url = reverse('applications:applications')
@@ -228,6 +235,20 @@ class OrgAndUserHelper:
                            country=get_country('GB'))
         end_user.save()
         return end_user
+
+    @staticmethod
+    def create_document_for_end_user(end_user: EndUser):
+        end_user_document = EndUserDocument(
+            end_user=end_user,
+            description='This is a document',
+            name='document_name.pdf',
+            s3_key='document_name_s3_key',
+            size=123456,
+            virus_scanned_at=None,
+            safe=None
+        )
+        end_user_document.save()
+        return end_user_document
 
     @staticmethod
     def create_picklist_item(status, team: Team, type=PicklistType.ECJU):

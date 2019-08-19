@@ -12,8 +12,8 @@ class ApplicationDenialTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
+        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
+            'Example Application', self.test_helper.organisation)
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.url = reverse('applications:application', kwargs={'pk': self.application.id})
 

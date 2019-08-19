@@ -13,7 +13,7 @@ class ApplicationUltimateEndUserTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.org = self.test_helper.organisation
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('draft', self.org)
+        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('draft', self.org)
         part_good = Good(is_good_end_product=False,
                          is_good_controlled=True,
                          control_code='ML17',
