@@ -1,0 +1,13 @@
+[run]
+include =
+    ./*/*.py
+
+omit =
+    ./*/apps.py
+    ./*/admin.py
+    ./*/urls.py
+    ./*/__init__.py
+    ./*/models.py
+    ./*/migrations/*.py
+    ./conf/settings.py
+    *test*

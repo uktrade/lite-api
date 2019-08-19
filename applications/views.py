@@ -5,6 +5,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -139,9 +140,8 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
-
                 # Set audit information
-                reversion.set_comment("Updated application details")
+                reversion.set_comment("Updated Application Details")
                 reversion.set_user(self.request.user)
 
                 serializer.save()
@@ -171,6 +171,14 @@ class CLCList(APIView):
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
 
+        good.status = GoodStatus.SUBMITTED
+        if data['not_sure_details_control_code'] == '':
+            return JsonResponse(data={'errors': {
+                'not_sure_details_control_code': [ErrorDetail('This field may not be blank.', code='blank')]
+            }}, status=status.HTTP_400_BAD_REQUEST)
+        good.control_code = data['not_sure_details_control_code']
+        good.save()
+
         clc_query = ClcQuery(details=data['not_sure_details_details'],
                              good=good,
                              status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
@@ -180,10 +188,6 @@ class CLCList(APIView):
         case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
         case = Case(clc_query=clc_query, case_type=case_type)
         case.save()
-
-        good.status = GoodStatus.SUBMITTED
-        good.control_code = data['not_sure_details_control_code']
-        good.save()
 
         # Add said case to default queue
         queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')

@@ -24,6 +24,10 @@ class PickListItems(APIView):
         else:
             picklist_items = PicklistItem.objects.all()
 
+        status = request.GET.get('status', None)
+        if status:
+            picklist_items = picklist_items.filter(status=status)
+
         serializer = PicklistSerializer(picklist_items, many=True)
 
         return JsonResponse(data={'picklist_items': serializer.data})
