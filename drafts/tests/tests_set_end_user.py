@@ -90,7 +90,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(self.draft.end_user, None)
 
 
-    # MAke sure that old end user is deleted when a new one is added
+    # Ensure old end user is deleted when a new one is added
     def test_end_user_is_deleted(self):
         # assemble
         self.draft = Draft.objects.get(pk=self.draft.id)
@@ -111,7 +111,7 @@ class EndUserOnDraftTests(DataTestClient):
             EndUser.objects.get(id=end_user_1_id)
 
 
-    # MAke sure that old end user doc is deleted when its associated end user is deleted
+    # Ensure old end user document is deleted when its associated end user is deleted
     @mock.patch('documents.tasks.prepare_document.now')
     def test_document_is_deleted(self, prepare_document_mock):
         # assemble
@@ -128,7 +128,3 @@ class EndUserOnDraftTests(DataTestClient):
         # assert
         with self.assertRaises(EndUserDocument.DoesNotExist):
             EndUserDocument.objects.get(end_user=end_user_1_id)
-
-
-    # Make sure that view serializers for Application return end user document data (GOV user)
-    # Make sure that submitting application is not allowed if the document is not marked safe
