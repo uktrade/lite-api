@@ -15,11 +15,11 @@ class CaseEndUserDocumentTests(DataTestClient):
         self.test_helper.create_custom_document_for_end_user(end_user=draft.end_user,
                                                              name='file343.pdf',
                                                              safe=True)
-        application = self.test_helper.submit_draft(self, self)
-        self.case = Case.objects.get(application=application)
+        application = self.test_helper.submit_draft(self, draft)
+        case = Case.objects.get(application=application)
 
         # act
-        response = self.client.get(reverse('cases:case', kwargs={'pk': self.case.id}), **self.gov_headers)
+        response = self.client.get(reverse('cases:case', kwargs={'pk': case.id}), **self.gov_headers)
 
         # assert
         data = response.json()
