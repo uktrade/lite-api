@@ -1,33 +1,31 @@
 from django.urls import reverse
+from rest_framework import status
 
 from cases.models import Case
-from teams.models import Team
 from queues.models import Queue
+from teams.models import Team
 from test_helpers.clients import DataTestClient
-from rest_framework import status
 
 
 class CaseFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         # Cases
-        self.case = Case.objects.get(application=self.application)
+        self.case = Case.objects.get(application=self.standard_application)
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = self.create_team('Team')
 
         # Flags
-        self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
-        self.team_case_flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
-        self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
-        self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
+        self.team_case_flag_1 = self.create_flag('Case Flag 1', 'Case', self.team)
+        self.team_case_flag_2 = self.create_flag('Case Flag 2', 'Case', self.team)
+        self.team_org_flag = self.create_flag('Org Flag 1', 'Organisation', self.team)
+        self.other_team_case_flag = self.create_flag('Other Team Case Flag', 'Case', self.other_team)
         self.all_flags = [self.team_case_flag_1, self.team_org_flag, self.team_case_flag_2, self.other_team_case_flag]
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})

@@ -1,10 +1,10 @@
 import uuid
 
 import reversion
-from reversion.models import Revision
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from reversion.models import Revision
 
 from organisations.models import Organisation
 from teams.models import Team

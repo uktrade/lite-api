@@ -37,9 +37,9 @@ class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField(max_length=100,
                                  error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-                                               'required': get_string('goods.error_messages.licence_type')})
+                                               'required': get_string('applications.generic.no_licence_type')})
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-                                              'required': get_string('goods.error_messages.export_type')})
+                                              'required': get_string('applications.generic.no_export_type')})
     have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
@@ -61,7 +61,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     usage = serializers.CharField()
     activity = serializers.CharField()
     export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-                                              'required': get_string('goods.error_messages.export_type')})
+                                              'required': get_string('applications.generic.no_export_type')})
     have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
     reference_number_on_information_form = serializers.CharField()

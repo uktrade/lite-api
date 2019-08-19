@@ -15,7 +15,7 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import UserViewSerializer, UserUpdateSerializer, UserCreateSerializer, NotificationsSerializer, \
+from users.serializers import ExporterUserCreateUpdateSerializer, NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer
 
 
@@ -34,9 +34,6 @@ class AuthenticateExporterUser(APIView):
         """
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
-        :param request:
-        :param email:
-        :return token:
         """
         try:
             data = JSONParser().parse(request)
@@ -64,7 +61,7 @@ class UserList(APIView):
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
-        serializer = UserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
+        serializer = ExporterUserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
         return JsonResponse(data={'users': serializer.data})
 
     def post(self, request):
@@ -72,7 +69,7 @@ class UserList(APIView):
 
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
-        serializer = UserCreateSerializer(data=data)
+        serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -91,7 +88,7 @@ class UserDetail(APIView):
     def get(self, request, pk):
         user = get_user_by_pk(pk)
 
-        serializer = UserViewSerializer(user)
+        serializer = ExporterUserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data})
 
     def put(self, request, pk):
@@ -104,11 +101,7 @@ class UserDetail(APIView):
                                     status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
-            for key in list(data.keys()):
-                if data[key] is '':
-                    del data[key]
-
-            serializer = UserUpdateSerializer(user, data=data, partial=True)
+            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return JsonResponse(data={'user': serializer.data},

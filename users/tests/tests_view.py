@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
+from test_helpers.helpers import create_additional_users
 
 
 class UserTests(DataTestClient):
@@ -15,9 +15,8 @@ class UserTests(DataTestClient):
         url = reverse('users:users')
 
         # Add test data for another organisation
-        test_helper_2 = OrgAndUserHelper(name='banana')
-        organisation_2 = test_helper_2.organisation
-        OrgAndUserHelper.create_additional_users(organisation_2, 4)
+        organisation_2 = self.create_organisation()
+        create_additional_users(organisation_2, 4)
 
         response, status_code = self.get(url, **self.exporter_headers)
 

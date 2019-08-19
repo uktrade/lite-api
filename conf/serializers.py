@@ -1,6 +1,20 @@
 import six
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.fields import Field, iter_options, to_choices_dict, flatten_choices_dict
+from rest_framework.relations import PrimaryKeyRelatedField
+
+
+class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
+    def __init__(self, **kwargs):
+        self.serializer = kwargs.pop('serializer', None)
+
+        if not self.serializer:
+            raise Exception("PrimaryKeyRelatedSerializerField must define a 'serializer' attribute.")
+
+        super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
+
+    def to_representation(self, value):
+        return self.serializer(self.queryset.get(pk=value.pk)).data
 
 
 class KeyValueChoiceField(Field):

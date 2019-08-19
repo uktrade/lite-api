@@ -1,13 +1,20 @@
-from rest_framework.views import APIView
-from conf.authentication import GovAuthentication
-from picklists.models import PicklistItem
+import operator
+from functools import reduce
+
+from django.db.models import Q
 from django.http.response import JsonResponse
 from rest_framework import status, permissions
-from rest_framework.parsers import JSONParser
-from picklists.helpers import get_picklist_item
-from picklists.serializers import PicklistSerializer
-from content_strings.strings import get_string
 from rest_framework.decorators import permission_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.views import APIView
+
+from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
+from content_strings.strings import get_string
+from picklists.enums import PickListStatus
+from picklists.helpers import get_picklist_item
+from picklists.models import PicklistItem
+from picklists.serializers import PicklistSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -16,20 +23,20 @@ class PickListItems(APIView):
 
     def get(self, request):
         """
-        Returns a list of all picklist items, filtered by type
+        Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        type = request.GET.get('type', None)
-        if type:
-            picklist_items = PicklistItem.objects.filter(type=type)
-        else:
-            picklist_items = PicklistItem.objects.all()
+        picklist_type = request.GET.get('type', None)
+        show_deactivated = str_to_bool(request.GET.get('show_deactivated', None))
+        query = [Q(team=request.user.team.id)]
 
-        status = request.GET.get('status', None)
-        if status:
-            picklist_items = picklist_items.filter(status=status)
+        if picklist_type:
+            query.append(Q(type=picklist_type))
 
+        if not show_deactivated:
+            query.append(Q(status=PickListStatus.ACTIVE))
+
+        picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
         serializer = PicklistSerializer(picklist_items, many=True)
-
         return JsonResponse(data={'picklist_items': serializer.data})
 
     def post(self, request):
@@ -79,5 +86,3 @@ class PicklistItemDetail(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
-

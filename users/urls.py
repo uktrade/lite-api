@@ -1,5 +1,6 @@
 from django.urls import path
 from rest_framework import routers
+
 from users import views
 
 app_name = "users"
