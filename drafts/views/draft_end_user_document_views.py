@@ -24,10 +24,6 @@ class EndUserDocuments(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
         end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
 
-        if not end_user_documents:
-            return JsonResponse(data={'error': 'Document does not exist'},
-                                status=status.HTTP_404_NOT_FOUND)
-
         serializer = EndUserDocumentSerializer(end_user_documents, many=True)
 
         return JsonResponse({'documents': serializer.data})
