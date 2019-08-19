@@ -1,25 +1,32 @@
-from django.test import tag
+from django.urls import reverse
 from rest_framework import status
 
-from cases.models import CaseAssignment
+from cases.enums import CaseType
+from cases.models import CaseAssignment, Case
 from conf.settings import OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
-from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
 
 
 class RetrieveAllCases(DataTestClient):
+
     def setUp(self):
         super().setUp()
-        self.team = self.create_team('team team')
         self.queue1 = self.create_queue('queue1', self.team)
         self.queue2 = self.create_queue('queue2', self.team)
-        self.case1 = self.create_application_case('case1 case1 for queue1')
-        self.case2 = self.create_application_case('case2 case2 case2 for queue2')
-        self.case3 = self.create_application_case('case3 case3 case3 for queue2')
+
+        self.case1 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case2 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case3 = self.create_standard_application_case(self.exporter_user.organisation)
+
         self.case3.application.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
         self.case3.application.save(update_fields=['status'])
+
+        self.url = reverse('queues:queues')
+        self.all_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID})
+        self.open_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': OPEN_CASES_SYSTEM_QUEUE_ID})
 
     def test_get_all_case_assignments(self):
         """
@@ -27,19 +34,15 @@ class RetrieveAllCases(DataTestClient):
         When a user requests the All Cases system queue
         Then all cases are returned regardless of the queues they are assigned to
         """
-
-        # Arrange
         case_assignment = CaseAssignment(queue=self.queue1, case=self.case1)
         case_assignment.save()
         case_assignment = CaseAssignment(queue=self.queue2, case=self.case2)
         case_assignment.save()
 
-        url = '/queues/' + ALL_CASES_SYSTEM_QUEUE_ID + '/case-assignments/'
+        url = reverse('queues:case_assignments', kwargs={'pk': OPEN_CASES_SYSTEM_QUEUE_ID})
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-
-        # Assert
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -58,12 +61,10 @@ class RetrieveAllCases(DataTestClient):
         """
 
         # Arrange
-        url = '/queues/?include_system_queues=True'
+        url = self.url + '?include_system_queues=True'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-
-        # Assert
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -81,12 +82,10 @@ class RetrieveAllCases(DataTestClient):
         """
 
         # Arrange
-        url = '/queues/?include_system_queues=False'
+        url = self.url + '?include_system_queues=False'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-
-        # Assert
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -102,14 +101,7 @@ class RetrieveAllCases(DataTestClient):
         Then all user defined queues are returned
         And system queues are not returned
         """
-
-        # Arrange
-        url = '/queues/'
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-
-        # Assert
+        response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -124,14 +116,7 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the all cases system queue
         Then all cases are returned regardless of which user defined queues they are assigned to
         """
-
-        # Arrange
-        url = '/queues/' + ALL_CASES_SYSTEM_QUEUE_ID + '/'
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-
-        # Assert
+        response = self.client.get(self.all_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -139,39 +124,22 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
         self.assertEqual(3, len(response_data['queue']['cases']))
 
-    @tag('slow')
     def test_get_all_cases_system_queue_limits_to_200_cases(self):
         """
         Given that in excess of 200 cases exist
         When a user gets the all cases system queue
-        Then 200 cases are returned
+        Then only 200 cases are returned
         """
+        cases = [Case(type=CaseType.APPLICATION) for i in range(201)]
+        Case.objects.bulk_create(cases)
 
-        # Arrange
-        url = '/queues/' + ALL_CASES_SYSTEM_QUEUE_ID + '/'
-
-        i = 0
-
-        while i <= 210:
-            self.create_application_case('Limits case ' + str(i))
-
-            i += 1
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-
-        # Assert
+        response = self.client.get(self.all_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
-
         self.assertEqual(200, len(response_data['queue']['cases']))
-
-        # Test ordering: Cases should be returned newest first
-        self.assertEqual('Limits case 11', response_data['queue']['cases'][199]['application']['name'])
-        self.assertEqual('Limits case 210', response_data['queue']['cases'][0]['application']['name'])
 
     def test_get_open_cases_system_queue_returns_expected_cases(self):
         """
@@ -179,14 +147,7 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the open cases system queue
         Then only open cases are returned
         """
-
-        # Arrange
-        url = '/queues/' + OPEN_CASES_SYSTEM_QUEUE_ID + '/'
-
-        # Act
-        response = self.client.get(url, **self.gov_headers)
-
-        # Assert
+        response = self.client.get(self.open_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

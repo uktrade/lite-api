@@ -1,7 +1,6 @@
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
-from rest_framework.utils import json
 
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
@@ -22,7 +21,7 @@ class GovUserAuthenticateTests(DataTestClient):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
+        response_data = response.json()
         headers = {'HTTP_GOV_USER_TOKEN': response_data['token']}
         url = reverse('gov_users:gov_users')
         response = self.client.get(url, **headers)

@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -26,7 +24,7 @@ class GovUserEditTests(DataTestClient):
         url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertNotEqual(response_data['gov_user']['first_name'], 'John')
         self.assertNotEqual(response_data['gov_user']['last_name'], 'Smith')
@@ -53,7 +51,7 @@ class GovUserEditTests(DataTestClient):
         url = reverse('gov_users:gov_user', kwargs={'pk': self.gov_user.id})
         response = self.client.put(url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertEqual(response_data['gov_user']['role'], str(role.id))
 

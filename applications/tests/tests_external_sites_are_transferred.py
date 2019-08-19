@@ -1,25 +1,25 @@
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ApplicationLicenceType
 from applications.models import Application, ExternalLocationOnApplication, SiteOnApplication
 from drafts.models import GoodOnDraft, ExternalLocationOnDraft
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):
 
     def test_that_external_locations_are_added_to_application_when_submitted(self):
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        site1 = OrgAndUserHelper.create_external_location('site1', self.test_helper.organisation)
-        site2 = OrgAndUserHelper.create_external_location('site2', self.test_helper.organisation)
+        draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        site1 = self.create_external_location('site1', self.exporter_user.organisation)
+        site2 = self.create_external_location('site2', self.exporter_user.organisation)
         unit1 = Units.NAR
-        good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
+        good = self.create_controlled_good('test good', self.exporter_user.organisation)
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400).save()
         ExternalLocationOnDraft(external_location=site1, draft=draft).save()
         ExternalLocationOnDraft(external_location=site2, draft=draft).save()
-        draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
+        draft.end_user = self.create_end_user('test', self.exporter_user.organisation)
         draft.activity = 'Brokering'
         draft.save()
 

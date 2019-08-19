@@ -12,5 +12,5 @@ urlpatterns = [
     # ex: /queues/<uuid:pk>/case-assignments/ -
     # Get user's case assignments, on that particular queue
     # Assign users to cases, on that particular queue
-    path('<uuid:pk>/case-assignments/', views.CaseAssignments.as_view(), name='case_assignment')
+    path('<uuid:pk>/case-assignments/', views.CaseAssignments.as_view(), name='case_assignments')
 ]

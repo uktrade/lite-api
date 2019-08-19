@@ -9,9 +9,13 @@ from applications.models import Application, GoodOnApplication, ApplicationDenia
 from applications.models import Site, SiteOnApplication
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
+from conf.serializers import KeyValueChoiceField
+from content_strings.strings import get_string
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import GoodSerializer
+from goodstype.models import GoodsType
+from goodstype.serializers import GoodsTypeSerializer
 from organisations.models import ExternalLocation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
@@ -57,15 +61,17 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     organisation = OrganisationViewSerializer()
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
-    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     status = serializers.SerializerMethodField()
-    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-        'required': 'Select which type of licence you want to apply for.'})
-    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
-        'required': 'Select if you want to apply for a temporary or permanent '
-                    'licence.'})
+    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+        'required': get_string('applications.generic.no_licence_type')})
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
+        'required': get_string('applications.generic.no_export_type')})
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
+
+    # Goods
+    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
+    goods_types = serializers.SerializerMethodField()
 
     # End User, Countries
     destinations = serializers.SerializerMethodField()
@@ -79,6 +85,11 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
+
+    def get_goods_types(self, application):
+        goods_types = GoodsType.objects.filter(object_id=application.id)
+        serializer = GoodsTypeSerializer(goods_types, many=True)
+        return serializer.data
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
@@ -96,7 +107,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     def get_ultimate_end_users(self, application):
         ultimate_end_users = get_ultimate_end_users(application)
         serializer = EndUserSerializer(ultimate_end_users, many=True)
-        return {'data': serializer.data}
+        return serializer.data
 
     def get_goods_locations(self, obj):
         sites_on_application_ids = SiteOnApplication.objects.filter(application=obj)\
@@ -131,7 +142,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'application_denial_reason',
                   'destinations',
                   'ultimate_end_users',
-                  'goods_locations',)
+                  'goods_locations',
+                  'goods_types')
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
@@ -201,7 +213,6 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
-
         # Remove any previous denial reasons
         if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.APPROVED):
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
@@ -226,7 +237,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         return instance
 
 
-class SiteOnApplicationBaseSerializer(serializers.ModelSerializer):
+class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
     application = PrimaryKeyRelatedField(queryset=Application.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
@@ -257,9 +268,9 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         return case.id
 
     def get_case_notes(self, obj):
-        from cases.serializers import CaseNoteViewSerializer
+        from cases.serializers import CaseNoteSerializer
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
-        return CaseNoteViewSerializer(data, many=True).data
+        return CaseNoteSerializer(data, many=True).data
 
     # pylint: disable=W0221
     def get_status(self, instance):

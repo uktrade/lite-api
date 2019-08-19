@@ -1,6 +1,6 @@
+import logging
 import uuid
 
-import logging
 from django.db import models
 
 from conf import settings

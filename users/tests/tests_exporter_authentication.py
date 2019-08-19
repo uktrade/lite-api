@@ -1,11 +1,9 @@
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
-from rest_framework.utils import json
 
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
 
 
 class ExporterUserAuthenticateTests(DataTestClient):
@@ -23,7 +21,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = json.loads(response.content)
+        response_data = response.json()
         headers = {'HTTP_EXPORTER_USER_TOKEN': response_data['token']}
         url = reverse('users:users')
         response = self.client.get(url, **headers)
@@ -55,12 +53,11 @@ class ExporterUserAuthenticateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @parameterized.expand([
-        [{'headers': {'HTTP_EXPORTER_USER_EMAIL': str('trinity@Org1.com')}, 'response': status.HTTP_200_OK}],
-        [{'headers': {}, 'response': status.HTTP_403_FORBIDDEN}],
-        [{'headers': {'HTTP_EXPORTER_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}, 'response': status.HTTP_403_FORBIDDEN}],
+        [{'headers': {}}],
+        [{'headers': {'HTTP_EXPORTER_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}}],
     ])
     def test_authorised_valid_email_in_header(self, data):
         url = reverse('users:users')
         headers = data['headers']
         response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, data['response'])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

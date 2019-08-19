@@ -19,7 +19,7 @@ class UserTests(DataTestClient):
         url = reverse('users:users')
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(ExporterUser.objects.filter(organisation=self.test_helper.organisation).count(), 2)
+        self.assertEqual(ExporterUser.objects.filter(organisation=self.exporter_user.organisation).count(), 2)
 
         test_helper_2 = OrgAndUserHelper('org2')
         exporter_2_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(test_helper_2.user)}
@@ -54,4 +54,4 @@ class UserTests(DataTestClient):
         url = reverse('users:users')
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(ExporterUser.objects.filter(organisation=self.test_helper.organisation).count(), 1)
+        self.assertEqual(ExporterUser.objects.filter(organisation=self.exporter_user.organisation).count(), 1)

@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 from cases.models import Notification
@@ -47,31 +46,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserSerializer(serializers.ModelSerializer):
-    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-
-    class Meta:
-        model = ExporterUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'organisation')
-
-
-class UserViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExporterUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'organisation')
-
-
-class UserUpdateSerializer(UserSerializer):
+class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
         error_messages={
@@ -79,7 +54,11 @@ class UserUpdateSerializer(UserSerializer):
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    status = serializers.ChoiceField(choices=UserStatuses.choices)
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
+
+    class Meta:
+        model = ExporterUser
+        fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
     def update(self, instance, validated_data):
         """
@@ -142,3 +121,12 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         exclude = []
+
+
+class ExporterUserSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExporterUser
+        fields = ('id',
+                  'first_name',
+                  'last_name',
+                  'email')

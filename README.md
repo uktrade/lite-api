@@ -27,8 +27,10 @@ Service for handling backend calls in LITE.
 * Go to the index page (e.g. `http://localhost:8100`)
 
 ## Documentation
-* [API Docs](https://uktrade.github.io/lite-api/)
-* [Running locally without Docker](docs/without-docker.md)
+
+**[API Docs available on GitHub Pages](https://uktrade.github.io/lite-api/)**
+
+[Running locally without Docker](docs/without-docker.md)
 
 ## LITE Repositories
 

@@ -1,22 +1,33 @@
-from uuid import UUID
-
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from addresses.models import Address
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
-from case_types.models import CaseType
+from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
+from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
-from drafts.models import Draft
-from gov_users.libraries.user_to_token import user_to_token
-from queues.models import Queue
-from static.urls import urlpatterns as static_urlpatterns
-from teams.models import Team
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from end_user.enums import EndUserType
+from end_user.models import EndUser
 from flags.models import Flag
-from test_helpers.org_and_user_helper import OrgAndUserHelper
-from users.models import GovUser, BaseUser
+from goods.enums import GoodControlled
+from goods.models import Good, GoodDocument
+from goodstype.models import GoodsType
+from gov_users.libraries.user_to_token import user_to_token
+from organisations.models import Organisation, Site, ExternalLocation
+from picklists.models import PicklistItem
+from queues.models import Queue
+from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.units.enums import Units
+from static.urls import urlpatterns as static_urlpatterns
+from teams.models import Team
+from test_helpers.helpers import random_name
+from users.models import GovUser, BaseUser, ExporterUser
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -38,89 +49,86 @@ class DataTestClient(BaseTestClient):
 
     def setUp(self):
         super().setUp()
-        self.test_helper = OrgAndUserHelper(name='Org1')
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.test_helper.user)}
+
+        # Gov User Setup
         self.team = Team.objects.get(name='Admin')
-
-        self.exporter_user = self.test_helper.user
-
-        self.gov_user = GovUser(id=UUID('43a88949-5db9-4334-b0cc-044e91827451'),
-                                email='test@mail.com',
+        self.gov_user = GovUser(email='test@mail.com',
                                 first_name='John',
                                 last_name='Smith',
                                 team=self.team)
         self.gov_user.save()
-        self.queue = Queue.objects.get(team=self.team)
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
-    def create_organisation(self, name):
-        self.name = name
-        self.eori_number = "GB123456789000"
-        self.sic_number = "2765"
-        self.vat_number = "123456789"
-        self.registration_number = "987654321"
+        # Exporter User Setup
+        self.organisation = self.create_organisation()
+        self.exporter_user = ExporterUser.objects.get()
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user)}
 
-        # Site name
-        self.site_name = "headquarters"
+        self.queue = Queue.objects.get(team=self.team)
 
-        # Address details
-        self.country = 'GB'
-        self.address_line_1 = "42 Industrial Estate"
-        self.address_line_2 = "Queens Road"
-        self.region = "Hertfordshire"
-        self.postcode = "AL1 4GT"
-        self.city = "St Albans"
+    def create_organisation(self, name='Organisation'):
+        first_name, last_name = random_name()
 
-        # First admin user details
-        self.admin_user_first_name = "Trinity"
-        self.admin_user_last_name = "Fishburne"
-        self.admin_user_email = "trinity@" + name + ".com"
-        self.password = "password123"
+        organisation = Organisation(name=name,
+                                    eori_number='GB123456789000',
+                                    sic_number='2765',
+                                    vat_number='123456789',
+                                    registration_number='987654321')
+        organisation.save()
 
-        url = reverse('organisations:organisations')
-        data = {
-            'name': self.name,
-            'eori_number': self.eori_number,
-            'sic_number': self.sic_number,
-            'vat_number': self.vat_number,
-            'registration_number': self.registration_number,
-            # Site details
-            'site': {
-                'name': self.site_name,
-                # Address details
-                'address': {
-                    'country': self.country,
-                    'address_line_1': self.address_line_1,
-                    'address_line_2': self.address_line_2,
+        site, address = self.create_site('HQ', organisation)
 
-                    'region': self.region,
-                    'postcode': self.postcode,
-                    'city': self.city,
-                },
-            },
-            # First admin user details
-            'user': {
-                'first_name': self.admin_user_first_name,
-                'last_name': self.admin_user_last_name,
-                'email': self.admin_user_email,
-                'password': self.password
-            },
-        }
-        self.client.post(url, data, **self.exporter_headers)
+        organisation.primary_site = site
+        organisation.save()
 
-    def create_application_case(self, name):
-        return Case.objects.get(
-            application=self.test_helper.submit_draft(
-                self, self.test_helper.create_draft_with_good_end_user_and_site(
-                    name,
-                    self.test_helper.organisation)))
+        exporter_user = ExporterUser(first_name=first_name,
+                                     last_name=last_name,
+                                     email=f'{first_name}@{last_name}.com',
+                                     organisation=organisation)
+        exporter_user.save()
+
+        return organisation
+
+    @staticmethod
+    def create_site(name, org):
+        address = Address(address_line_1='42 Road',
+                          address_line_2='',
+                          country=get_country('GB'),
+                          city='London',
+                          region='Buckinghamshire',
+                          postcode='E14QW')
+        address.save()
+        site = Site(name=name,
+                    organisation=org,
+                    address=address)
+        site.save()
+        return site, address
+
+    @staticmethod
+    def create_external_location(name, org):
+        external_location = ExternalLocation(name=name,
+                                             address='20 Questions Road, Enigma',
+                                             country=get_country('GB'),
+                                             organisation=org)
+        external_location.save()
+        return external_location
+
+    @staticmethod
+    def create_end_user(name, organisation):
+        end_user = EndUser(name=name,
+                           organisation=organisation,
+                           address='42 Road, London, Buckinghamshire',
+                           website='www.' + name + '.com',
+                           type=EndUserType.GOVERNMENT,
+                           country=get_country('GB'))
+        end_user.save()
+        return end_user
 
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.test_helper.create_clc_query(name, self.test_helper.organisation, status)
-        case_type = CaseType(id='b12cb700-7b19-40ab-b777-e82ce71e380f')
-        case = Case(clc_query=clc_query, case_type=case_type)
+        clc_query = self.create_clc_query(name, self.exporter_user.organisation, status)
+        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
 
@@ -168,7 +176,157 @@ class DataTestClient(BaseTestClient):
         case_doc.save()
         return case_doc
 
+    def create_good_document(self, good: Good, user: ExporterUser, name: str, s3_key: str):
+        good_doc = GoodDocument(good=good,
+                                description='This is a document',
+                                user=user,
+                                organisation=user.organisation,
+                                name=name,
+                                s3_key=s3_key,
+                                size=123456,
+                                virus_scanned_at=None,
+                                safe=None)
+        good_doc.save()
+        return good_doc
+
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
+
+    def create_goods_type(self, content_type_model, obj):
+        goodstype = GoodsType(description='thing',
+                              is_good_controlled=False,
+                              control_code='ML1a',
+                              is_good_end_product=True,
+                              content_type=ContentType.objects.get(model=content_type_model),
+                              object_id=obj.pk,
+                              )
+        goodstype.save()
+        return goodstype
+
+    def create_picklist_item(self, name, team: Team, picklist_type, status):
+        picklist_item = PicklistItem(team=team,
+                                     name=name,
+                                     text='This is a string of text, please do not disturb the milk argument',
+                                     type=picklist_type,
+                                     status=status)
+
+        picklist_item.save()
+        return picklist_item
+
+    def create_controlled_good(self, description, org):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.YES,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org)
+        good.save()
+        return good
+
+    @staticmethod
+    def create_clc_query(description, org, status):
+        good = Good(description=description,
+                    is_good_controlled=GoodControlled.UNSURE,
+                    control_code='ML1',
+                    is_good_end_product=True,
+                    part_number='123456',
+                    organisation=org
+                    )
+        good.save()
+
+        clc_query = ClcQuery(details='this is a test text',
+                             good=good,
+                             status=status)
+        clc_query.save()
+        return clc_query
+
+    # Drafts
+
+    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                     reference_name='Standard Draft'):
+        draft = Draft(name=reference_name,
+                      licence_type=licence_type,
+                      export_type=ApplicationExportType.PERMANENT,
+                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                      reference_number_on_information_form='',
+                      activity='Trade',
+                      usage='Trade',
+                      organisation=organisation)
+        draft.save()
+        return draft
+
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        """
+        Creates a standard draft application
+        """
+        draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
+
+        # Add a good to the standard draft
+        GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
+                    draft=draft,
+                    quantity=10,
+                    unit=Units.NAR,
+                    value=500).save()
+
+        # Set the draft's end user
+        draft.end_user = self.create_end_user('test', organisation)
+
+        # Add a site to the draft
+        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+
+        draft.save()
+        return draft
+
+    def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
+        """
+        Creates an open draft application
+        """
+        draft = self.create_draft(organisation, ApplicationLicenceType.OPEN_LICENCE, reference_name)
+
+        # Add a goods description
+        self.create_goods_type('draft', draft)
+
+        # Add a country to the draft
+        CountryOnDraft(draft=draft, country=get_country('GB')).save()
+
+        # Add a site to the draft
+        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+
+        draft.save()
+        return draft
+
+    # Applications
+
+    def create_standard_application(self, organisation: Organisation, reference_name='Standard Application'):
+        """
+        Creates a complete standard application
+        """
+        draft = self.create_standard_draft(organisation, reference_name)
+        return self.submit_draft(draft)
+
+    def create_open_application(self, organisation: Organisation, reference_name='Open Application'):
+        """
+        Creates a complete open application
+        """
+        draft = self.create_open_draft(organisation, reference_name)
+        return self.submit_draft(draft)
+
+    # Cases
+
+    def create_standard_application_case(self, organisation: Organisation, reference_name='Standard Application Case'):
+        """
+        Creates a complete standard application case
+        """
+        draft = self.create_standard_draft(organisation, reference_name)
+        application = self.submit_draft(draft)
+        return Case.objects.get(application=application)
+
+    def create_open_application_case(self, organisation: Organisation, reference_name='Open Application Case'):
+        """
+        Creates a complete open application case
+        """
+        draft = self.create_open_draft(organisation, reference_name)
+        application = self.submit_draft(draft)
+        return Case.objects.get(application=application)

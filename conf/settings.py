@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'background_task',
     'clc_queries',
-    'case_types',
     'picklists',
 ]
 
@@ -186,6 +185,11 @@ if 'test' not in sys.argv:
                 'level': env('LOG_LEVEL').upper(),
             },
         }
+    }
+else:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
     }
 
 ALL_CASES_SYSTEM_QUEUE_ID = 'de13c40a-b330-4d77-8304-57ac12326e5a'

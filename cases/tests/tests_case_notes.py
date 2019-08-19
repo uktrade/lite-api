@@ -2,20 +2,16 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case, CaseNote
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
 
 
 class CaseNotesGovCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_create_case_note_successful(self):
@@ -45,10 +41,8 @@ class CaseNotesExporterCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_create_case_note_successful(self):
@@ -65,8 +59,8 @@ class CaseNotesExporterCreateTests(DataTestClient):
     @parameterized.expand([
         [{}],  # Empty data
         [{'text': ''}],  # Empty text field
-        [{'text': '🙂'}],  # Less than two character minimum
-        [{'text': '🙂' * 2201}],  # More than two thousand, two hundred character maximum
+        [{'text': '🍌'}],  # Less than two character minimum
+        [{'text': '🍌' * 2201}],  # More than two thousand, two hundred character maximum
     ])
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=data, **self.exporter_headers)
@@ -78,14 +72,9 @@ class CaseNotesViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.draft2 = self.test_helper.create_draft_with_good_end_user_and_site('Example Application 2',
-                                                                                self.test_helper.organisation)
-        self.application = self.submit_draft(self.draft)
-        self.application2 = self.submit_draft(self.draft2)
-        self.case = Case.objects.get(application=self.application)
-        self.case2 = Case.objects.get(application=self.application2)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
+
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
     def test_view_case_notes_successful(self):
