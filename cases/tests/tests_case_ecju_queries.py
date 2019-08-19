@@ -12,11 +12,11 @@ class CaseEcjuQueriesTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site(
+        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
             'Example Application', self.test_helper.organisation)
-        self.draft2 = self.test_helper.create_draft_with_good_end_user_and_site(
+        self.draft2 = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
             'Example Application 2', self.test_helper.organisation)
-        self.noEcjuQueriesDraft = self.test_helper.create_draft_with_good_end_user_and_site(
+        self.noEcjuQueriesDraft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
             'Example Application 3', self.test_helper.organisation)
 
         self.application = self.submit_draft(self.draft)
@@ -93,7 +93,7 @@ class EcjuQueriesCreateTest(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
+        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document('Example Application',
                                                                                self.test_helper.organisation)
         self.application = self.submit_draft(self.draft)
         self.case = Case.objects.get(application=self.application)
