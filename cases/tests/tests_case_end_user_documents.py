@@ -2,18 +2,22 @@ from django.urls import reverse
 
 from cases.models import Case
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class CaseEndUserDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.test_helper.create_draft_with_good_end_user_site_and_end_user_document(
+        self.file_name = 'file343.pdf'
+        self.safe = True
+
+        self.draft = self.test_helper.create_draft_with_good_end_user_and_site(
             'Example Application 854957', self.test_helper.organisation)
+        self.test_helper.create_custom_document_for_end_user(end_user=self.draft.end_user,
+                                                             name=self.file_name,
+                                                             safe=self.safe)
         self.application = self.test_helper.submit_draft(self, self.draft)
         self.case = Case.objects.get(application=self.application)
-
 
     def test_case_contains_end_user_document(self):
         print('THIS TEST')
@@ -24,3 +28,11 @@ class CaseEndUserDocumentTests(DataTestClient):
         print('DATA', data)
 
         #TODO: Assert data contains end user document
+
+        self.assertIsNotNone(data['case']['application']['destinations']['data']['document'])
+        self.assertEquals(self.file_name,
+                          data['case']['application']['destinations']['data']['document']['name'])
+        self.assertEquals(self.virus_scanned_at,
+                          data['case']['application']['destinations']['data']['document']['virus_scanned_at'])
+        self.assertEquals(self.safe,
+                          data['case']['application']['destinations']['data']['document']['safe'])

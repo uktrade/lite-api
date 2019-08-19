@@ -1,5 +1,6 @@
 import random
 
+from django.db.models import DateTimeField
 from django.urls import path, include
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -246,6 +247,20 @@ class OrgAndUserHelper:
             size=123456,
             virus_scanned_at=None,
             safe=None
+        )
+        end_user_document.save()
+        return end_user_document
+
+    @staticmethod
+    def create_custom_document_for_end_user(end_user: EndUser, name: str, safe: bool):
+        end_user_document = EndUserDocument(
+            end_user=end_user,
+            description='This is a document',
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
         )
         end_user_document.save()
         return end_user_document

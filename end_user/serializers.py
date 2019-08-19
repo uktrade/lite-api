@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers, relations
 
 from conf.settings import BACKGROUND_TASK_ENABLED
@@ -21,6 +23,7 @@ class EndUserSerializer(serializers.ModelSerializer):
     website = serializers.URLField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=EndUserType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    document = serializers.SerializerMethodField()
 
     class Meta:
         model = EndUser
@@ -30,7 +33,8 @@ class EndUserSerializer(serializers.ModelSerializer):
                   'country',
                   'website',
                   'type',
-                  'organisation')
+                  'organisation',
+                  'document')
 
     def update(self, instance, validated_data):
         """
@@ -44,20 +48,14 @@ class EndUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-# class EndUserDocumentViewSerializer(serializers.ModelSerializer):
-#     created_at = serializers.DateTimeField(read_only=True)
-#     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-#     user = ExporterUserSimpleSerializer()
-#     organisation = OrganisationViewSerializer()
-#     s3_key = serializers.SerializerMethodField()
-#
-#     def get_s3_key(self, instance):
-#         return instance.s3_key if instance.safe else 'File not ready'
-#
-#     class Meta:
-#         model = EndUserDocument
-#         fields = ('id', 'name', 's3_key', 'user', 'organisation', 'size', 'good', 'created_at', 'safe', 'description')
+    def get_document(self, instance):
+        print('HOLA SEÑORITA', EndUserDocument.objects.filter(end_user=instance).first())
+        # return EndUserDocument.objects.filter(end_user=instance).first().__dict__
+        return json.dumps(EndUserDocument.objects.filter(end_user=instance).first())
+        # try:
+        #     return EndUserDocument.objects.get(end_user=instance)
+        # except TypeError:
+        #     return None
 
 
 class EndUserDocumentSerializer(serializers.ModelSerializer):
