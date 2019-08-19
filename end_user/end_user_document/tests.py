@@ -63,13 +63,14 @@ class DraftEndUserDocumentsTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if GET - document not set - return 404
+    # if GET - document not set - return empty list
     def test_status_code_get_document_not_exist(self):
         # act
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()['documents'], list())
 
     # if POST - document not set - return 201
     @mock.patch('documents.tasks.prepare_document.now')
