@@ -1,8 +1,12 @@
+from unittest import mock
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from drafts.models import Draft
+from end_user.end_user_document.models import EndUserDocument
+from end_user.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 from test_helpers.org_and_user_helper import OrgAndUserHelper
@@ -16,6 +20,24 @@ class EndUserOnDraftTests(DataTestClient):
         self.primary_site = self.org.primary_site
         self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
+        self.end_user_data_1 = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'type': 'government',
+            'website': 'https://www.gov.uk'
+        }
+        self.end_user_data_2 = {
+            'name': 'Government of Paraguay',
+            'address': 'Asuncion',
+            'country': 'PY',
+            'type': 'government',
+            'website': 'https://www.gov.py'
+        }
+        self.document_data = [{"name": "file689.pdf",
+                 "s3_key": "file689_098765.pdf",
+                 "size": 476,
+                 "description": "Description 7538564"}]
 
     @parameterized.expand([
         'government',
@@ -66,3 +88,47 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
+
+
+    # MAke sure that old end user is deleted when a new one is added
+    def test_end_user_is_deleted(self):
+        # assemble
+        self.draft = Draft.objects.get(pk=self.draft.id)
+
+        self.client.post(self.url, self.end_user_data_1, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        end_user_1_id = self.draft.end_user.id
+
+        # act
+        self.client.post(self.url, self.end_user_data_2, **self.exporter_headers)
+
+        # assert
+        self.draft.refresh_from_db()
+        end_user_2_id = self.draft.end_user.id
+
+        self.assertNotEqual(end_user_1_id, end_user_2_id)
+        with self.assertRaises(EndUser.DoesNotExist):
+            EndUser.objects.get(id=end_user_1_id)
+
+
+    # MAke sure that old end user doc is deleted when its associated end user is deleted
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_document_is_deleted(self, prepare_document_mock):
+        # assemble
+        self.draft = Draft.objects.get(pk=self.draft.id)
+        self.client.post(self.url, self.end_user_data_1, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        end_user_1_id = self.draft.end_user.id
+        self.client.post(reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id}),
+                         self.document_data, **self.exporter_headers)
+
+        # act
+        self.client.post(self.url, self.end_user_data_2, **self.exporter_headers)
+
+        # assert
+        with self.assertRaises(EndUserDocument.DoesNotExist):
+            EndUserDocument.objects.get(end_user=end_user_1_id)
+
+
+    # Make sure that view serializers for Application return end user document data (GOV user)
+    # Make sure that submitting application is not allowed if the document is not marked safe
