@@ -22,11 +22,9 @@ class EndUserDocuments(APIView):
         if end_user is None:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
-        end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
 
-        serializer = EndUserDocumentSerializer(end_user_documents, many=True)
-
-        return JsonResponse({'documents': serializer.data})
+        end_user_document = EndUserDocument.objects.filter(end_user=end_user).values()
+        return JsonResponse({'document': end_user_document[0] if end_user_document else None})
 
 
     @swagger_auto_schema(

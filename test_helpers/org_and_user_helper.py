@@ -246,7 +246,7 @@ class OrgAndUserHelper:
             s3_key='document_name_s3_key',
             size=123456,
             virus_scanned_at=None,
-            safe=None
+            safe=True
         )
         end_user_document.save()
         return end_user_document

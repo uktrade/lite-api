@@ -20,6 +20,8 @@ def create_standard_licence(draft, application, errors):
     end_user_document = EndUserDocument.objects.filter(end_user=draft.end_user).first()
     if not end_user_document:
         errors['end_user_document'] = get_string('applications.standard.no_end_user_document_set')
+    elif not end_user_document.safe:
+        errors['end_user_document'] = get_string('applications.standard.end_user_document_infected')
 
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')

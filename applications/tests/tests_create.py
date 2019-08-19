@@ -69,7 +69,7 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_with_untested_document(self):
-        #assemble
+        # assemble
         draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
         OrgAndUserHelper.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
@@ -81,3 +81,15 @@ class ApplicationsTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_status_code_post_with_infected_document(self):
+        # assemble
+        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
+        OrgAndUserHelper.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        url = reverse('applications:applications')
+        data = {'id': draft.id}
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

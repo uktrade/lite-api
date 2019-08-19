@@ -31,7 +31,7 @@ class DraftEndUserDocumentsTests(DataTestClient):
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        response_data = response.json()['documents'][0]
+        response_data = response.json()['document']
         expected = self.data[0]
         self.assertEqual(response_data['name'], expected['name'])
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
@@ -63,14 +63,14 @@ class DraftEndUserDocumentsTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if GET - document not set - return empty list
+    # if GET - document not set - return None
     def test_status_code_get_document_not_exist(self):
         # act
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()['documents'], list())
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(None, response.json()['document'])
 
     # if POST - document not set - return 201
     @mock.patch('documents.tasks.prepare_document.now')
