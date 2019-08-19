@@ -2,7 +2,7 @@ import reversion
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
-from rest_framework.exceptions import ParseError, ErrorDetail
+from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -16,8 +16,8 @@ from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import UserViewSerializer, UserUpdateSerializer, ExporterUserCreateSerializer, NotificationsSerializer, \
-    ExporterUserViewSerializer, ClcNotificationsSerializer
+from users.serializers import NotificationsSerializer, \
+    ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
 
 
 class AuthenticateExporterUser(APIView):
