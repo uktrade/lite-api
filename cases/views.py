@@ -236,14 +236,7 @@ class CaseAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
         self.advice = Advice.objects.filter(case=self.case)
-        application_type = self.case.application.licence_type
-
         self.serializer_object = CaseAdviceSerializer
-
-        # if application_type == ApplicationLicenceType.STANDARD_LICENCE:
-        #     self.serializer_object = StandardCaseAdviceSerializer
-        # elif application_type == ApplicationLicenceType.OPEN_LICENCE:
-        #     self.serializer_object = OpenCaseAdviceSerializer
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
