@@ -6,7 +6,7 @@ from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, UserStatuses, BaseUser, GovUser, UserOrganisationRelationship
+from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -24,13 +24,13 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
-    organisation = serializers.SerializerMethodField()
-
-    def get_organisation(self, instance):
-        return {
-            'id': instance.organisation.id,
-            'name': instance.organisation.name
-        }
+    # organisation = serializers.SerializerMethodField()
+    #
+    # def get_organisation(self, instance):
+    #     return {
+    #         'id': instance.organisation.id,
+    #         'name': instance.organisation.name
+    #     }
 
     class Meta:
         model = ExporterUser
@@ -54,11 +54,21 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(),
+                                                      required=False,
+                                                      write_only=True)
 
     class Meta:
         model = ExporterUser
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
+
+    def create(self, validated_data):
+        organisation = validated_data.pop('organisation')
+        exporter, created = ExporterUser.objects.get_or_create(email=validated_data['email'],
+                                                               defaults={**validated_data})
+        UserOrganisationRelationship(user=exporter,
+                                     organisation=organisation).save()
+        return exporter
 
     def update(self, instance, validated_data):
         """
@@ -67,7 +77,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
 
@@ -82,14 +91,11 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField()
 
     def create(self, validated_data):
-        # if not ExporterUser.objects.filter(email=validated_data['email']):
-        #     ExporterUser(**validated_data).save()
-        # else:
-        #     exporter = ExporterUser.objects.get(email=validated_data['email'])
         organisation = validated_data.pop('organisation')
         exporter, created = ExporterUser.objects.get_or_create(email=validated_data['email'],
                                                                defaults={**validated_data})
-        UserOrganisationRelationship(exporter, organisation).save()
+        UserOrganisationRelationship(user=exporter,
+                                     organisation=organisation).save()
         return exporter
 
     class Meta:

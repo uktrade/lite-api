@@ -12,7 +12,6 @@ from gov_users.enums import GovUserStatuses
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from gov_users.libraries.user_to_token import user_to_token
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
-from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import GovUser
 
 
@@ -128,10 +127,11 @@ class GovUserDetail(APIView):
         gov_user = get_gov_user_by_pk(pk)
         data = JSONParser().parse(request)
 
-        if 'status' in data.keys():
-            if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
-                return JsonResponse(data={'errors': 'A user cannot change their own status'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+        # TODO: Add status back
+        # if 'status' in data.keys():
+        #     if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
+        #         return JsonResponse(data={'errors': 'A user cannot change their own status'},
+        #                             status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
             for key in list(data.keys()):

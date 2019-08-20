@@ -1,6 +1,6 @@
 from django.urls import path
 
-from organisations.views import views, views_site, views_external_location
+from organisations.views import views, views_site, views_external_location, users
 
 app_name = 'organisations'
 
@@ -18,5 +18,8 @@ urlpatterns = [
     # ex: /organisations/sites/<uuid:pk> - View a specific site
     path('sites/<uuid:pk>/', views_site.SiteDetail.as_view(), name='site'),
     # ex: /organisations/<uuid:pk>/ - View all external locations belonging to an organisation
-    path('external_locations/', views_external_location.ExternalLocationList.as_view(), name='external_locations')
+    path('external_locations/', views_external_location.ExternalLocationList.as_view(), name='external_locations'),
+
+    # ex: /organisations/<uuid:pk>/users/ - View all users for that organisation
+    path('<uuid:org_pk>/users/', users.UsersList.as_view(), name='users'),
 ]

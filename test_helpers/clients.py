@@ -85,6 +85,7 @@ class DataTestClient(BaseTestClient):
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')
+        exporter_user.organisation = organisation
         exporter_user.save()
 
         UserOrganisationRelationship(user=exporter_user,
@@ -179,11 +180,11 @@ class DataTestClient(BaseTestClient):
         case_doc.save()
         return case_doc
 
-    def create_good_document(self, good: Good, user: ExporterUser, name: str, s3_key: str):
+    def create_good_document(self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str):
         good_doc = GoodDocument(good=good,
                                 description='This is a document',
                                 user=user,
-                                organisation=user.organisation,
+                                organisation=organisation,
                                 name=name,
                                 s3_key=s3_key,
                                 size=123456,

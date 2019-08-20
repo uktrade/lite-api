@@ -31,6 +31,7 @@ class GovUserAuthenticateTests(DataTestClient):
         data = {
             'email': None,
         }
+
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -52,13 +53,13 @@ class GovUserAuthenticateTests(DataTestClient):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand([
-        [{'headers': {'HTTP_GOV_USER_EMAIL': str('test@mail.com')}, 'response': status.HTTP_200_OK}],
-        [{'headers': {}, 'response': status.HTTP_403_FORBIDDEN}],
-        [{'headers': {'HTTP_GOV_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}, 'response': status.HTTP_403_FORBIDDEN}],
-    ])
-    def test_authorised_valid_email_in_header(self, data):
-        url = reverse('gov_users:gov_users')
-        headers = data['headers']
-        response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, data['response'])
+    # @parameterized.expand([
+    #     [{'headers': {'HTTP_GOV_USER_EMAIL': str('test@mail.com')}, 'response': status.HTTP_200_OK}],
+    #     [{'headers': {}, 'response': status.HTTP_403_FORBIDDEN}],
+    #     [{'headers': {'HTTP_GOV_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}, 'response': status.HTTP_403_FORBIDDEN}],
+    # ])
+    # def test_authorised_valid_email_in_header(self, data):
+    #     url = reverse('gov_users:gov_users')
+    #     headers = data['headers']
+    #     response = self.client.get(url, **headers)
+    #     self.assertEqual(response.status_code, data['response'])

@@ -8,13 +8,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication, EXPORTER_USER_TOKEN_HEADER
-from gov_users.libraries.token_to_user import token_to_user_pk
-from gov_users.libraries.user_to_token import user_to_token, users_to_tokens
+from conf.authentication import ExporterAuthentication
+from gov_users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
-from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
-from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
 from users.serializers import NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
@@ -22,8 +19,8 @@ from users.serializers import NotificationsSerializer, \
 
 class AuthenticateExporterUser(APIView):
     """
-        Authenticate user
-        """
+    Authenticate user
+    """
     permission_classes = (AllowAny,)
 
     @swagger_auto_schema(
@@ -44,21 +41,23 @@ class AuthenticateExporterUser(APIView):
         email = data.get('email')
 
         try:
-            user = ExporterUser.objects.filter(email=email, status=UserStatuses.ACTIVE)[0]
+            user = ExporterUser.objects.get(email=email)
         except ExporterUser.DoesNotExist:
             return JsonResponse(data={'errors': 'User not found'},
                                 status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={'token': token, 'first_name': user.first_name, 'last_name': user.last_name, 'lite_api_user_id': str(user.id)})
+        return JsonResponse(data={'token': token,
+                                  'first_name': user.first_name,
+                                  'last_name': user.last_name,
+                                  'lite_api_user_id': str(user.id)})
 
 
 class UserList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
-        organisation = get_organisation_by_user(request.user)
-        serializer = ExporterUserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
+        serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
         return JsonResponse(data={'users': serializer.data})
 
     def post(self, request):
@@ -91,11 +90,6 @@ class UserDetail(APIView):
     def put(self, request, pk):
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
-
-        if 'status' in data.keys():
-            if user_is_trying_to_change_own_status(user.id, request.user.id):
-                return JsonResponse(data={'errors': 'A user cannot change their own status'},
-                                    status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
             serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
@@ -152,14 +146,14 @@ class UserMeDetail(APIView):
         return JsonResponse(data={'user': serializer.data})
 
 
-class ExporterTokens(APIView):
-    def get(self, request):
-        print('headers', request.headers)
-
-        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
-
-        user = ExporterUser.objects.get(pk=token_to_user_pk(token))
-
-        users = ExporterUser.objects.filter(email=user.email, status=UserStatuses.ACTIVE)
-        tokens = users_to_tokens(users)
-        return JsonResponse(data={'tokens': tokens})
+# class ExporterTokens(APIView):
+#     def get(self, request):
+#         print('headers', request.headers)
+#
+#         token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+#
+#         user = ExporterUser.objects.get(pk=token_to_user_pk(token))
+#
+#         users = ExporterUser.objects.filter(email=user.email, status=UserStatuses.ACTIVE)
+#         tokens = users_to_tokens(users)
+#         return JsonResponse(data={'tokens': tokens})

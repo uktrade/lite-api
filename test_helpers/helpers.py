@@ -1,6 +1,6 @@
 import random
 
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 
 
 def random_name():
@@ -16,20 +16,22 @@ def random_name():
     return first_name, last_name
 
 
-def create_additional_users(org, quantity=1):
+def create_additional_users(organisation, quantity=1):
     users = []
 
     for i in range(quantity):
         first_name, last_name = random_name()
         email = f'{first_name}@{last_name}.com'
         if ExporterUser.objects.filter(email=email).count() == 1:
-            email = first_name + '.' + last_name + str(i) + '@' + org.name + '.com'
+            email = first_name + '.' + last_name + str(i) + '@' + organisation.name + '.com'
         user = ExporterUser(first_name=first_name,
                             last_name=last_name,
-                            email=email,
-                            organisation=org)
-        user.set_password('password')
+                            email=email)
+        user.organisation = organisation
+
+        UserOrganisationRelationship(user, organisation).save()
         user.save()
+
         if quantity == 1:
             return user
 

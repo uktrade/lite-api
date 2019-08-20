@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
@@ -38,7 +38,7 @@ class OrganisationCreateTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
 
         organisation = Organisation.objects.filter(name=data['name'])[0]
-        exporter_user = ExporterUser.objects.filter(organisation=organisation)[0]
+        exporter_user = UserOrganisationRelationship.objects.filter(organisation=organisation)[0].user
         site = organisation.primary_site
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
