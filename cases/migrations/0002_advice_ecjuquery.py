@@ -46,7 +46,6 @@ class Migration(migrations.Migration):
                 ('goods_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='goodstype.GoodsType')),
                 ('ultimate_end_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ultimate_end_user', to='end_user.EndUser')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='users.GovUser')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]
