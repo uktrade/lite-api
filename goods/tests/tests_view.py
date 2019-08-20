@@ -14,7 +14,7 @@ class GoodViewTests(DataTestClient):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.exporter_user.organisation)
+                    organisation=self.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -28,7 +28,7 @@ class GoodViewTests(DataTestClient):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.exporter_user.organisation)
+                    organisation=self.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -36,7 +36,7 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_view_good__query_filter_by_description(self):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         self.create_controlled_good('thing1', org)
         self.create_controlled_good('Thing2', org)
@@ -61,7 +61,7 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         # create a set of Goods for the test
         Good.objects.create(description='car1',

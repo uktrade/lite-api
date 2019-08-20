@@ -17,7 +17,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(len(response_data['sites']), 1)
 
     def test_site_name_update(self):
-        url = reverse('organisations:site', kwargs={'pk': self.exporter_user.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.organisation.primary_site.id})
 
         data = {
             'name': 'regional site',
@@ -31,7 +31,7 @@ class SiteViewTests(DataTestClient):
         self.assertEqual(Site.objects.get(pk=pk).name, data['name'])
 
     def test_edit_address_and_name_of_site(self):
-        url = reverse('organisations:site', kwargs={'pk': self.exporter_user.organisation.primary_site.id})
+        url = reverse('organisations:site', kwargs={'pk': self.organisation.primary_site.id})
 
         data = {
             'name': 'regional site',
@@ -70,7 +70,7 @@ class SiteViewTests(DataTestClient):
 class OrgSiteViewTests(DataTestClient):
 
     def test_site_list(self):
-        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.exporter_user.organisation.id})
+        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.organisation.id})
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
@@ -79,7 +79,7 @@ class OrgSiteViewTests(DataTestClient):
         self.assertEqual(len(response_data['sites']), 1)
 
     def test_add_site(self):
-        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.exporter_user.organisation.id})
+        url = reverse('organisations:organisation_sites', kwargs={'org_pk': self.organisation.id})
 
         data = {
             'name': 'regional site',
@@ -95,12 +95,12 @@ class OrgSiteViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.all().count(), 2)
-        self.assertEqual(Site.objects.filter(organisation=self.exporter_user.organisation).count(), 2)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
 
     def test_edit_address_and_name_of_site(self):
         url = reverse('organisations:organisation_site',
-                      kwargs={'org_pk': self.exporter_user.organisation.id,
-                              'site_pk': self.exporter_user.organisation.primary_site.id})
+                      kwargs={'org_pk': self.organisation.id,
+                              'site_pk': self.organisation.primary_site.id})
 
         data = {
             'name': 'regional site',

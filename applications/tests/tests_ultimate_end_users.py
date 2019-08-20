@@ -14,12 +14,12 @@ class ApplicationUltimateEndUserTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
 
         part_good = Good(is_good_end_product=False,
                          is_good_controlled=True,
                          control_code='ML17',
-                         organisation=self.exporter_user.organisation,
+                         organisation=self.organisation,
                          description='a good',
                          part_number='123456')
         part_good.save()
@@ -29,7 +29,7 @@ class ApplicationUltimateEndUserTests(DataTestClient):
                     quantity=17,
                     value=18).save()
 
-        self.end_user = self.create_end_user('ultimate end user', self.exporter_user.organisation)
+        self.end_user = self.create_end_user('ultimate end user', self.organisation)
 
     def test_submit_draft_with_ultimate_end_users_success(self):
         self.draft.ultimate_end_users.add(str(self.end_user.id))

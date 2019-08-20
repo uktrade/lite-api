@@ -60,8 +60,14 @@ class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True)
+    password = None
+    is_superuser = None
+    last_login = None
+    is_staff = None
+    is_active = None
 
-    # Set this to use id as email cannot be unique in the base user model (and we couldn't think of anything else to use instead)
+    # Set this to use id as email cannot be unique in the base user model
+    # (and we couldn't think of anything else to use instead)
     USERNAME_FIELD = 'id'
     REQUIRED_FIELDS = []
 
@@ -72,7 +78,6 @@ class BaseUser(AbstractUser):
 
 
 class ExporterUser(BaseUser):
-
     def send_notification(self, case):
         from cases.models import Notification
         Notification.objects.create(user=self, note=case)

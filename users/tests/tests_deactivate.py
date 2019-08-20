@@ -9,7 +9,7 @@ from users.enums import UserStatuses
 class UserTests(DataTestClient):
 
     def test_deactivate_a_user(self):
-        user = create_additional_users(self.exporter_user.organisation)
+        user = create_additional_users(self.organisation)
 
         data = {
             'status': UserStatuses.DEACTIVATED
@@ -29,7 +29,7 @@ class UserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_deactivate_and_reactivate_a_user(self):
-        user = create_additional_users(self.exporter_user.organisation)
+        user = create_additional_users(self.organisation)
         url = reverse('users:authenticate')
 
         data = {

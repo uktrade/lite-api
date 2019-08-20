@@ -11,7 +11,7 @@ class DraftTests(DataTestClient):
         """
         Ensure we can edit a draft object.
         """
-        draft = self.create_draft(self.exporter_user.organisation)
+        draft = self.create_draft(self.organisation)
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
         data = {'name': 'Test'}

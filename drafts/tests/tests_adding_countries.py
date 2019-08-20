@@ -11,7 +11,7 @@ class CountriesOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
 
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 

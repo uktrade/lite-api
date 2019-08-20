@@ -11,15 +11,15 @@ from test_helpers.clients import DataTestClient
 class ApplicationsTests(DataTestClient):
 
     def test_that_external_locations_are_added_to_application_when_submitted(self):
-        draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
-        site1 = self.create_external_location('site1', self.exporter_user.organisation)
-        site2 = self.create_external_location('site2', self.exporter_user.organisation)
+        draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        site1 = self.create_external_location('site1', self.organisation)
+        site2 = self.create_external_location('site2', self.organisation)
         unit1 = Units.NAR
-        good = self.create_controlled_good('test good', self.exporter_user.organisation)
+        good = self.create_controlled_good('test good', self.organisation)
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400).save()
         ExternalLocationOnDraft(external_location=site1, draft=draft).save()
         ExternalLocationOnDraft(external_location=site2, draft=draft).save()
-        draft.end_user = self.create_end_user('test', self.exporter_user.organisation)
+        draft.end_user = self.create_end_user('test', self.organisation)
         draft.activity = 'Brokering'
         draft.save()
 

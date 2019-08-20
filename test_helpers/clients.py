@@ -27,7 +27,7 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.helpers import random_name
-from users.models import GovUser, BaseUser, ExporterUser
+from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -83,9 +83,11 @@ class DataTestClient(BaseTestClient):
 
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com',
-                                     organisation=organisation)
+                                     email=f'{first_name}@{last_name}.com')
         exporter_user.save()
+
+        UserOrganisationRelationship(user=exporter_user,
+                                     organisation=organisation).save()
 
         return organisation
 
@@ -127,7 +129,7 @@ class DataTestClient(BaseTestClient):
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.exporter_user.organisation, status)
+        clc_query = self.create_clc_query(name, self.organisation, status)
         case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case

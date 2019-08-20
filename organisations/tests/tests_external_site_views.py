@@ -12,7 +12,7 @@ class ExternalLocationViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.external_location = self.create_external_location(name='storage facility',
-                                                               org=self.exporter_user.organisation)
+                                                               org=self.organisation)
 
     def test_site_list(self):
         response = self.client.get(self.url, **self.exporter_headers)

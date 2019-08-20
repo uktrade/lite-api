@@ -9,8 +9,8 @@ class ExternalLocationsOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.external_location = self.create_external_location('storage facility', self.exporter_user.organisation)
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.external_location = self.create_external_location('storage facility', self.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
 
         self.url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
 

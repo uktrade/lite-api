@@ -38,5 +38,5 @@ class UserTests(DataTestClient):
         self.assertEqual(response['user']['first_name'], self.exporter_user.first_name)
         self.assertEqual(response['user']['last_name'], self.exporter_user.last_name)
 
-        self.assertEqual(response['user']['organisation']['id'], str(self.exporter_user.organisation.id))
-        self.assertEqual(response['user']['organisation']['name'], self.exporter_user.organisation.name)
+        self.assertEqual(response['user']['organisation']['id'], str(self.organisation.id))
+        self.assertEqual(response['user']['organisation']['name'], self.organisation.name)
