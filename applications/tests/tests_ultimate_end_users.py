@@ -10,23 +10,26 @@ from test_helpers.clients import DataTestClient
 
 class ApplicationUltimateEndUserTests(DataTestClient):
 
+    url = reverse('applications:applications')
+
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('draft', self.org)
+        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+
         part_good = Good(is_good_end_product=False,
                          is_good_controlled=True,
                          control_code='ML17',
-                         organisation=self.org,
+                         organisation=self.exporter_user.organisation,
                          description='a good',
                          part_number='123456')
         part_good.save()
+
         GoodOnDraft(good=part_good,
                     draft=self.draft,
                     quantity=17,
                     value=18).save()
-        self.url = reverse('applications:applications')
-        self.end_user = self.test_helper.create_end_user('ultimate end user', self.org)
+
+        self.end_user = self.create_end_user('ultimate end user', self.exporter_user.organisation)
 
     def test_submit_draft_with_ultimate_end_users_success(self):
         self.draft.ultimate_end_users.add(str(self.end_user.id))

@@ -12,20 +12,9 @@ class CaseEcjuQueriesTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site(
-            'Example Application', self.test_helper.organisation)
-        self.draft2 = self.test_helper.create_draft_with_good_end_user_and_site(
-            'Example Application 2', self.test_helper.organisation)
-        self.noEcjuQueriesDraft = self.test_helper.create_draft_with_good_end_user_and_site(
-            'Example Application 3', self.test_helper.organisation)
-
-        self.application = self.submit_draft(self.draft)
-        self.application2 = self.submit_draft(self.draft2)
-        self.noEcjuQueriesApplication = self.submit_draft(self.noEcjuQueriesDraft)
-
-        self.case = Case.objects.get(application=self.application)
-        self.case2 = Case.objects.get(application=self.application2)
-        self.noEcjuQueriesCase = Case.objects.get(application=self.noEcjuQueriesApplication)
+        self.case = self.create_standard_application_case(self.organisation)
+        self.case2 = self.create_standard_application_case(self.organisation)
+        self.no_ecju_queries_case = self.create_standard_application_case(self.organisation)
 
         self.url = reverse('cases:case_ecju_queries', kwargs={'pk': self.case.id})
 
@@ -79,7 +68,7 @@ class CaseEcjuQueriesTests(DataTestClient):
         Then the request is successful and an empty list is returned
         """
         # Assemble
-        no_queries_url = reverse('cases:case_ecju_queries', kwargs={'pk': self.noEcjuQueriesCase.id})
+        no_queries_url = reverse('cases:case_ecju_queries', kwargs={'pk': self.no_ecju_queries_case.id})
 
         # Act
         response = self.client.get(no_queries_url, **self.gov_headers)
@@ -93,10 +82,7 @@ class EcjuQueriesCreateTest(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.submit_draft(self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.case = self.create_standard_application_case(self.organisation)
         self.post_url = reverse('cases:case_ecju_queries', kwargs={'pk': self.case.id})
 
     def test_gov_user_can_create_ecju_queries(self):

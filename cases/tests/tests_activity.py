@@ -1,8 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from static.statuses.enums import CaseStatusEnum
 from cases.models import Case
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -10,9 +10,8 @@ class CaseActivityTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application', self.test_helper.organisation)
-        self.application = self.submit_draft(self.draft)
-        self.case = Case.objects.get(application=self.application)
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
     def test_view_case_activity(self):
@@ -36,7 +35,8 @@ class CaseActivityTests(DataTestClient):
             'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED,
         }
 
-        self.client.put(reverse('applications:application', kwargs={'pk': self.application.id}), data=data, **self.gov_headers)
+        self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
+                        data=data, **self.gov_headers)
 
         # Validate that there are now two objects in activity
         response = self.client.get(self.url, **self.gov_headers)

@@ -1,6 +1,8 @@
-from django.db.models import Q
 from json import loads
+
+from django.db.models import Q
 from django.db.models.functions import Coalesce
+
 from cases.models import Case
 from conf.constants import SystemLimits
 from conf.exceptions import NotFoundError
@@ -58,7 +60,7 @@ def get_filtered_case_from_queryset(request, cases):
     kwargs = {}
     case_type = request.GET.get('case_type', None)
     if case_type:
-        kwargs['case_type__name'] = case_type
+        kwargs['type'] = case_type
 
     status = request.GET.get('status', None)
     if status:
@@ -75,7 +77,7 @@ def get_filtered_case_from_queryset(request, cases):
 def filter_in_memory(request, cases):
     case_type = request.GET.get('case_type', None)
     if case_type:
-        cases = list(filter(lambda case: case.case_type.name == case_type, cases))
+        cases = list(filter(lambda case: case.type == case_type, cases))
 
     status = request.GET.get('status', None)
     if status:

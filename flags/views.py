@@ -26,7 +26,7 @@ class FlagsList(APIView):
         if level:
             flags = Flag.objects.filter(level=level)
         else:
-            flags = Flag.objects.filter()
+            flags = Flag.objects.all()
 
         team = request.GET.get('team', None)
         if team:
@@ -52,8 +52,6 @@ class FlagsList(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 @permission_classes((permissions.AllowAny,))

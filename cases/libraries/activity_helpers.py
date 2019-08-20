@@ -3,12 +3,12 @@ import json
 from reversion.models import Revision
 from reversion.models import Version
 
-from static.statuses.enums import CaseStatusEnum
 from cases.models import CaseNote, EcjuQuery
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status, get_case_status_from_pk
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
-from users.serializers import UserViewSerializer
+from users.serializers import BaseUserViewSerializer
 
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
@@ -36,7 +36,7 @@ def convert_case_note_to_activity(case_note: CaseNote):
 
     return _activity_item(CASE_NOTE,
                           case_note.created_at,
-                          UserViewSerializer(user).data,
+                          BaseUserViewSerializer(user).data,
                           case_note.text,
                           status='Visible to exporter' if case_note.is_visible_to_exporter else None)
 
@@ -49,7 +49,7 @@ def convert_ecju_query_to_activity(ecju_query: EcjuQuery):
 
     return _activity_item(ECJU_QUERY,
                           ecju_query.created_at,
-                          UserViewSerializer(user).data,
+                          BaseUserViewSerializer(user).data,
                           ecju_query.question)
 
 
@@ -65,7 +65,7 @@ def convert_case_reversion_to_activity(version: Version):
 
     # Ignore the exporter user's `submitted` status and `case-created` audits
     # (these are created when a case has first been made)
-    if isinstance(user, ExporterUser) and ('case_type' in activity or activity['status'] == str(
+    if isinstance(user, ExporterUser) and ('type' in activity or activity['status'] == str(
             get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk)):
         return None
 
@@ -80,5 +80,5 @@ def convert_case_reversion_to_activity(version: Version):
 
     return _activity_item(activity_type,
                           revision_object.date_created,
-                          UserViewSerializer(user).data,
+                          BaseUserViewSerializer(user).data,
                           data)

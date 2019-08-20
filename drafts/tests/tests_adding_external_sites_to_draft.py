@@ -3,16 +3,14 @@ from rest_framework import status
 
 from drafts.models import SiteOnDraft, Draft, ExternalLocationOnDraft
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ExternalLocationsOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.external_location = self.test_helper.create_external_location('storage facility', self.org)
-        self.draft = OrgAndUserHelper.complete_draft('Goods test', self.org)
+        self.external_location = self.create_external_location('storage facility', self.exporter_user.organisation)
+        self.draft = self.create_standard_draft(self.exporter_user.organisation)
 
         self.url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
 
@@ -37,7 +35,7 @@ class ExternalLocationsOnDraftTests(DataTestClient):
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
         data = {
             'sites': [
-                self.test_helper.primary_site.id
+                self.organisation.primary_site.id
             ]
         }
         self.client.post(url, data, **self.exporter_headers)

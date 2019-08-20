@@ -1,4 +1,5 @@
 import uuid
+
 from django.db import models
 
 from static.statuses.enums import CaseStatusEnum
