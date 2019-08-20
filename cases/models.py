@@ -90,6 +90,7 @@ class Advice(models.Model):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     # Optional goods/destinations
     good = models.ForeignKey(Good, on_delete=models.CASCADE, null=True)
