@@ -5,7 +5,7 @@ from cases.models import Notification
 from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
-from users.libraries.get_user import get_user_by_pk
+from users.libraries.get_user import get_user_by_pk, get_user_organisations
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
 
@@ -24,13 +24,19 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
-    # organisation = serializers.SerializerMethodField()
-    #
-    # def get_organisation(self, instance):
-    #     return {
-    #         'id': instance.organisation.id,
-    #         'name': instance.organisation.name
-    #     }
+    organisations = serializers.SerializerMethodField()
+
+    def get_organisations(self, instance):
+        organisations = get_user_organisations(instance)
+        return_value = []
+
+        for organisation in organisations:
+            return_value.append({
+                'id': organisation.id,
+                'name': organisation.name
+            })
+
+        return return_value
 
     class Meta:
         model = ExporterUser
