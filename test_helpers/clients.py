@@ -62,7 +62,8 @@ class DataTestClient(BaseTestClient):
         # Exporter User Setup
         self.organisation = self.create_organisation()
         self.exporter_user = ExporterUser.objects.get()
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user)}
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+                                 'HTTP_ORGANISATION_ID': self.organisation.id}
 
         self.queue = Queue.objects.get(team=self.team)
 

@@ -2,92 +2,71 @@ from rest_framework import authentication, exceptions
 
 from gov_users.enums import GovUserStatuses
 from gov_users.libraries.token_to_user import token_to_user_pk
-from users.models import ExporterUser
+from organisations.libraries.get_organisation import get_organisation_by_pk
+from users.enums import UserStatuses
+from users.libraries.get_user import get_user_by_pk, get_user_organisations
+from users.models import ExporterUser, UserOrganisationRelationship
 from users.models import GovUser
 
-EXPORTER_ID = 'HTTP_USER_ID'
-GOV_USER_EMAIL_HEADER = 'HTTP_GOV_USER_EMAIL'
 GOV_USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'
-EXPORTER_USER_EMAIL_HEADER = 'HTTP_EXPORTER_USER_EMAIL'
+
 EXPORTER_USER_TOKEN_HEADER = 'HTTP_EXPORTER_USER_TOKEN'
+ORGANISATION_ID = 'HTTP_ORGANISATION_ID'
+
 USER_DEACTIVATED_ERROR = 'User has been deactivated'
-USER_DOES_NOT_EXIST_ERROR = 'No such user with that identifier'
 
 
 class ExporterAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
+        """
+        When given a user token and an organisation id, validate that the user belongs to the
+        organisation and that they're allowed to access that organisation
+        """
+        exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+        organisation_id = request.META.get(ORGANISATION_ID)
 
-        email = request.META.get(EXPORTER_USER_EMAIL_HEADER)
-        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+        exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
+        organisation = get_organisation_by_pk(organisation_id)
 
-        try:
-            if token:
-                user = ExporterUser.objects.get(pk=token_to_user_pk(token))
-            else:
-                user = ExporterUser.objects.get(email=email)
-        except ExporterUser.DoesNotExist:
-            raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
+        if organisation in get_user_organisations(exporter_user):
+            user_organisation_relationship = UserOrganisationRelationship.objects.get(user=exporter_user,
+                                                                                      organisation=organisation)
 
-        if user.status == GovUserStatuses.DEACTIVATED:
-            raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
+            if user_organisation_relationship.status == UserStatuses.DEACTIVATED:
+                raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
 
-        return user, None
+            exporter_user.organisation = organisation
+
+            return exporter_user, None
+
+        raise exceptions.PermissionDenied('You don\'t belong to that organisation')
 
 
 class GovAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
-        email = request.META.get(GOV_USER_EMAIL_HEADER)
-        token = request.META.get(GOV_USER_TOKEN_HEADER)
+        """
+        When given a user token token validate that they're a government user
+        and that their account is active
+        """
+        gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
 
-        try:
-            if token:
-                user = GovUser.objects.get(pk=token_to_user_pk(token))
-            else:
-                user = GovUser.objects.get(email=email)
-        except GovUser.DoesNotExist:
-            raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
+        gov_user = get_user_by_pk(token_to_user_pk(gov_user_token))
 
-        if user.status == GovUserStatuses.DEACTIVATED:
+        if gov_user.status == GovUserStatuses.DEACTIVATED:
             raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
 
-        return user, None
+        return gov_user, None
 
 
 class SharedAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        email = request.META.get(EXPORTER_USER_EMAIL_HEADER)
-        token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+        exporter_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
 
-        exporter = email or token
-
-        if exporter:
-            try:
-                if token:
-                    user = ExporterUser.objects.get(pk=token_to_user_pk(token))
-                else:
-                    user = ExporterUser.objects.get(email=email)
-            except ExporterUser.DoesNotExist:
-                raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
-
-            if user.status == GovUserStatuses.DEACTIVATED:
-                raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
-
-            return user, None
+        if exporter_token:
+            exporter_auth = ExporterAuthentication()
+            return exporter_auth.authenticate(request)
         else:
-            email = request.META.get(GOV_USER_EMAIL_HEADER)
-            token = request.META.get(GOV_USER_TOKEN_HEADER)
-
-            try:
-                if token:
-                    user = GovUser.objects.get(pk=token_to_user_pk(token))
-                else:
-                    user = GovUser.objects.get(email=email)
-            except GovUser.DoesNotExist:
-                raise exceptions.PermissionDenied(USER_DOES_NOT_EXIST_ERROR)
-
-            if user.status == GovUserStatuses.DEACTIVATED:
-                raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)
-
-            return user, None
+            gov_auth = GovAuthentication()
+            return gov_auth.authenticate(request)

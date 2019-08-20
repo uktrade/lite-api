@@ -1,3 +1,4 @@
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -10,6 +11,7 @@ from users.models import ExporterUser
 
 class GoodViewTests(DataTestClient):
 
+    @tag('only')
     def test_view_good_details(self):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,

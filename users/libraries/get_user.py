@@ -17,7 +17,7 @@ def get_user_by_pk(pk):
 
 def get_user_organisations(pk):
     try:
-        user_organisation_relationships = UserOrganisationRelationship(user=pk)
-        return [x.organisation for x in user_organisation_relationships.objects.all()]
+        user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=pk)
+        return [x.organisation for x in user_organisation_relationships]
     except UserOrganisationRelationship.DoesNotExist:
         raise NotFoundError({'user': 'User not found - ' + str(pk)})
