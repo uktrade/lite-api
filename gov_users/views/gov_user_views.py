@@ -127,11 +127,10 @@ class GovUserDetail(APIView):
         gov_user = get_gov_user_by_pk(pk)
         data = JSONParser().parse(request)
 
-        # TODO: Add status back
-        # if 'status' in data.keys():
-        #     if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
-        #         return JsonResponse(data={'errors': 'A user cannot change their own status'},
-        #                             status=status.HTTP_400_BAD_REQUEST)
+        if 'status' in data.keys():
+            if gov_user.id == GovUser.objects.get(email=request.user.email).id:
+                return JsonResponse(data={'errors': 'A user cannot change their own status'},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
             for key in list(data.keys()):

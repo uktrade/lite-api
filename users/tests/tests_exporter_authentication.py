@@ -8,6 +8,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
     url = reverse('users:authenticate')
 
+    # TODO: Move test to organisations
     def test_authentication_success(self):
         """
         Authorises user then checks the token which is sent is valid upon another request
@@ -20,14 +21,13 @@ class ExporterUserAuthenticateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # headers = {'HTTP_EXPORTER_USER_TOKEN': response_data['token']}
+        headers = {'HTTP_EXPORTER_USER_TOKEN': response_data['token']}
 
-        # TODO: fix
-        # url = reverse('users:users')
-        #
-        # response = self.client.get(url, **headers)
-        #
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
+        url = reverse('organisations:users', kwargs={'org_pk': str(self.organisation.id)})
+
+        response = self.client.get(url, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_empty(self):
         data = {

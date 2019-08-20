@@ -14,6 +14,7 @@ class UsersList(APIView):
         """
         List all users from the specified organisation
         """
+        print('get into endpoint')
         organisation = get_organisation_by_pk(pk)
 
         view_serializer = ExporterUserViewSerializer(get_users_from_organisation(organisation), many=True)
