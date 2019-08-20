@@ -10,12 +10,11 @@ from users.serializers import ExporterUserViewSerializer
 class UsersList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    def get(self, request, org_pk):
         """
         List all users from the specified organisation
         """
-        print('get into endpoint')
-        organisation = get_organisation_by_pk(pk)
+        organisation = get_organisation_by_pk(org_pk)
 
         view_serializer = ExporterUserViewSerializer(get_users_from_organisation(organisation), many=True)
         return JsonResponse(data={'users': view_serializer.data})

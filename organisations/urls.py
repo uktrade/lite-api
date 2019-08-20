@@ -5,6 +5,8 @@ from organisations.views import views, views_site, views_external_location, user
 app_name = 'organisations'
 
 urlpatterns = [
+    # ex: /organisations/<uuid:org_pk>/users/ - View all users for that organisation
+    path('<uuid:org_pk>/users/', users.UsersList.as_view(), name='users'),
     # ex: /organisations/ - View all organisations
     path('', views.OrganisationsList.as_view(), name='organisations'),
     # ex: /organisations/<uuid:pk>/ - View a specific organisation
@@ -19,7 +21,4 @@ urlpatterns = [
     path('sites/<uuid:pk>/', views_site.SiteDetail.as_view(), name='site'),
     # ex: /organisations/<uuid:pk>/ - View all external locations belonging to an organisation
     path('external_locations/', views_external_location.ExternalLocationList.as_view(), name='external_locations'),
-
-    # ex: /organisations/<uuid:pk>/users/ - View all users for that organisation
-    path('<uuid:org_pk>/users/', users.UsersList.as_view(), name='users'),
 ]

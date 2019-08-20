@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
+from users.models import UserOrganisationRelationship
 
 
 class ExporterUserAuthenticateTests(DataTestClient):
@@ -21,11 +22,11 @@ class ExporterUserAuthenticateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        headers = {'HTTP_EXPORTER_USER_TOKEN': response_data['token']}
+        headers = {'HTTP_EXPORTER_USER_TOKEN': response_data['token'], 'HTTP_ORGANISATION_ID': str(self.organisation.id)}
 
-        url = reverse('organisations:users', kwargs={'org_pk': str(self.organisation.id)})
+        users_url = reverse('organisations:users', kwargs={'org_pk': str(self.organisation.id)})
 
-        response = self.client.get(url, **headers)
+        response = self.client.get(users_url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
