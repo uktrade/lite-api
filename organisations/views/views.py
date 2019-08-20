@@ -6,11 +6,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
-from users.models import ExporterUser
 
 
 class OrganisationsList(APIView):
@@ -37,7 +36,6 @@ class OrganisationsList(APIView):
         with reversion.create_revision():
             data = JSONParser().parse(request)
             serializer = OrganisationCreateSerializer(data=data)
-            user_email = data['user']['email']
 
             if serializer.is_valid():
                 serializer.save()
@@ -49,7 +47,7 @@ class OrganisationsList(APIView):
 
 
 class OrganisationsDetail(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     """
     Get an organisation by its primary key
     """

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from cases.models import Notification
+from conf.exceptions import NotFoundError
 from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
@@ -27,16 +28,20 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
     organisations = serializers.SerializerMethodField()
 
     def get_organisations(self, instance):
-        organisations = get_user_organisations(instance)
-        return_value = []
+        try:
+            user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=instance)
+            return_value = []
 
-        for organisation in organisations:
-            return_value.append({
-                'id': organisation.id,
-                'name': organisation.name
-            })
+            for relationship in user_organisation_relationships:
+                return_value.append({
+                    'id': relationship.organisation.id,
+                    'name':relationship.organisation.name,
+                    'joined_at': relationship.created_at,
+                })
 
-        return return_value
+            return return_value
+        except UserOrganisationRelationship.DoesNotExist:
+            raise NotFoundError({'user': 'User not found - ' + str(instance.id)})
 
     class Meta:
         model = ExporterUser

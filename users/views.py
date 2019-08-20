@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from gov_users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
@@ -137,7 +137,7 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
 
 
 class UserMeDetail(APIView):
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (ExporterOnlyAuthentication,)
     """
     Get the user from request
     """
