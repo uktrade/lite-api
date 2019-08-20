@@ -23,20 +23,19 @@ class GoodViewTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # TODO: Fix
-    # def test_fail_view_other_organisations_goods_details(self):
-    #     organisation_2 = self.create_organisation()
-    #     organisation_2_admin = ExporterUser.objects.get(organisation=organisation_2)
-    #
-    #     good = Good(description='thing',
-    #                 is_good_controlled=GoodControlled.NO,
-    #                 is_good_end_product=True,
-    #                 organisation=self.organisation)
-    #     good.save()
-    #
-    #     url = reverse('goods:good', kwargs={'pk': good.id})
-    #     response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(organisation_2_admin)})
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    def test_fail_view_other_organisations_goods_details(self):
+        organisation_2 = self.create_organisation()
+        organisation_2_admin = ExporterUser.objects.get(organisation=organisation_2)
+
+        good = Good(description='thing',
+                    is_good_controlled=GoodControlled.NO,
+                    is_good_end_product=True,
+                    organisation=self.organisation)
+        good.save()
+
+        url = reverse('goods:good', kwargs={'pk': good.id})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(organisation_2_admin), 'HTTP_ORGANISATION_ID': str(organisation_2.id)})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_view_good__query_filter_by_description(self):
         org = self.organisation
