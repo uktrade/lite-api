@@ -44,10 +44,7 @@ def sort_in_memory(request, cases):
     if sort:
         sort = loads(sort)
         if 'status' in sort:
-            if sort['status'] == 'desc':
-                return sorted(cases, key=lambda k: k.status__priority)
-            else:
-                return sorted(cases, key=lambda k: k.status__priority).reverse
+            return sorted(cases, key=lambda k: k.status__priority, reverse=sort['status'] == 'desc')
     else:
         return cases
 
