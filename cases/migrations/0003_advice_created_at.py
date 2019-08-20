@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='created_at',
             field=models.DateTimeField(blank=True, default=None),
         ),
+        migrations.AlterField(
+            model_name='advice',
+            name='created_at',
+            field=models.DateTimeField(auto_now_add=True),
+        ),
     ]
