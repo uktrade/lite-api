@@ -126,3 +126,15 @@ class DraftEndUserDocumentsTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    # if DELETE - document exist - return 204
+    @mock.patch('documents.models.Document.delete_s3')
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_delete_end_user_document_calls_delete_s3(self, prepare_document_now_mock, delete_s3_mock):
+        # assemble
+        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+
+        # act
+        self.client.delete(self.url_draft_with_user, **self.exporter_headers)
+
+        # assert
+        delete_s3_mock.assert_called_once()

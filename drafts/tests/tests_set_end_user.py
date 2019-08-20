@@ -89,9 +89,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
 
-
-    # Ensure old end user is deleted when a new one is added
-    def test_end_user_is_deleted(self):
+    def test_end_user_is_deleted_when_new_one_added(self):
         # assemble
         self.draft = Draft.objects.get(pk=self.draft.id)
 
@@ -110,10 +108,9 @@ class EndUserOnDraftTests(DataTestClient):
         with self.assertRaises(EndUser.DoesNotExist):
             EndUser.objects.get(id=end_user_1_id)
 
-
-    # Ensure old end user document is deleted when its associated end user is deleted
+    @mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_document_is_deleted(self, prepare_document_mock):
+    def test_end_user_document_is_deleted_when_associated_end_user_is_deleted(self, prep_doc_mock, delete_s3_mock):
         # assemble
         self.draft = Draft.objects.get(pk=self.draft.id)
         self.client.post(self.url, self.end_user_data_1, **self.exporter_headers)
@@ -128,3 +125,5 @@ class EndUserOnDraftTests(DataTestClient):
         # assert
         with self.assertRaises(EndUserDocument.DoesNotExist):
             EndUserDocument.objects.get(end_user=end_user_1_id)
+
+        delete_s3_mock.assert_called_once()
