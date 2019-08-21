@@ -5,7 +5,8 @@ from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, BaseUser, GovUser, Notification
+from users.models import ExporterUser, BaseUser, GovUser
+from cases.models import Notification
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):

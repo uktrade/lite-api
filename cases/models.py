@@ -55,7 +55,7 @@ class CaseNote(models.Model):
         if creating and self.is_visible_to_exporter:
             organisation = self.case.clc_query.good.organisation if self.case.clc_query else self.case.application.organisation
             for user in ExporterUser.objects.filter(organisation=organisation):
-                user.send_notification(self)
+                user.send_notification(case_note=self)
 
 
 class CaseAssignment(models.Model):
@@ -130,3 +130,11 @@ class EcjuQuery(models.Model):
                                        default=None, null=False)
     responded_by_user = models.ForeignKey(ExporterUser, related_name='exportuser_ecju_query', on_delete=models.CASCADE,
                                           default=None, null=True)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
+    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
+    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    viewed_at = models.DateTimeField(null=True)
+
