@@ -17,7 +17,7 @@ from applications.serializers import ApplicationBaseSerializer, ApplicationUpdat
 from cases.enums import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.authentication import ExporterAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string
@@ -109,7 +109,7 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
-    authentication_classes = [GovAuthentication]
+    authentication_classes = [SharedAuthentication]
     serializer_class = ApplicationBaseSerializer
 
     """
@@ -148,22 +148,6 @@ class ApplicationDetail(APIView):
                 return JsonResponse(data={'application': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=400)
-
-
-class ApplicationDetailUser(ApplicationDetail):
-    authentication_classes = [ExporterAuthentication]
-    serializer_class = ApplicationCaseNotesSerializer
-
-    def get(self, request, pk):
-        """
-        Retrieve an application instance.
-        """
-        application = get_application_by_pk(pk)
-        request.user.notification_set.filter(note__case__application=application).update(
-            viewed_at=timezone.now()
-        )
-
-        return super(ApplicationDetailUser, self).get(request, pk)
 
 
 class CLCList(APIView):
