@@ -31,10 +31,7 @@ class ApplicationsTests(DataTestClient):
 
         draft = self.create_standard_draft(self.exporter_user.organisation)
 
-        # TODO: Uncomment if tests fail (or remove the whole thing)
-        # draft.end_user = self.create_end_user('test', self.exporter_user.organisation)
-        #
-        # self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_end_user(draft.end_user)
 
         SiteOnDraft(site=self.exporter_user.organisation.primary_site, draft=draft).save()
         draft.save()

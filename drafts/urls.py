@@ -13,7 +13,6 @@ urlpatterns = [
     path('<uuid:pk>/goodstype/', draft_goods.DraftGoodsType.as_view(), name='draft_goodstype'),
     path('<uuid:pk>/end-user/', draft_end_user_views.DraftEndUser.as_view(), name='end_user'),
     path('<uuid:pk>/end-user/documents/', draft_end_user_document_views.EndUserDocuments.as_view(), name='end_user_documents'),
-    # path('<uuid:pk>/end-user/documents/<uuid:doc_pk>/', views.EndUserDocumentDetail.as_view(), name='end_user_document'),
     path('<uuid:pk>/ultimate-end-users/', draft_end_user_views.DraftUltimateEndUsers.as_view(), name='ultimate_end_users'),
     path('<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>', draft_end_user_views.RemoveDraftUltimateEndUsers.as_view(), name='remove_ultimate_end_users'),
     path('<uuid:pk>/sites/', draft_sites_views.DraftSites.as_view(), name='draft_sites'),
