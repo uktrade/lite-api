@@ -127,7 +127,7 @@ class CasesFilterAndSortTests(DataTestClient):
         case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
         url = reverse('queues:queue', kwargs={'pk': 'de13c40a-b330-4d77-8304-57ac12326e5a'}
-                      ) + '?case_type=clc_query&status=' + case_status.status
+                      ) + '?case_type=clc_query&status=' + case_status.status + '&sort={"status":"asc"}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
