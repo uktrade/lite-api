@@ -1,7 +1,5 @@
 from rest_framework import serializers, relations
 
-from rest_framework import serializers, relations
-
 import documents
 from conf.settings import BACKGROUND_TASK_ENABLED
 from end_user.end_user_document.models import EndUserDocument
