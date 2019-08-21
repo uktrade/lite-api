@@ -6,7 +6,7 @@ from conf.exceptions import NotFoundError
 from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
-from users.libraries.get_user import get_user_by_pk, get_user_organisations
+from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
 
@@ -75,7 +75,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop('organisation')
-        exporter, created = ExporterUser.objects.get_or_create(email=validated_data['email'],
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data['email'],
                                                                defaults={**validated_data})
         UserOrganisationRelationship(user=exporter,
                                      organisation=organisation).save()
@@ -103,7 +103,7 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop('organisation')
-        exporter, created = ExporterUser.objects.get_or_create(email=validated_data['email'],
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data['email'],
                                                                defaults={**validated_data})
         UserOrganisationRelationship(user=exporter,
                                      organisation=organisation).save()
