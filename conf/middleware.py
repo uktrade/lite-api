@@ -7,7 +7,7 @@ from django.utils.deprecation import MiddlewareMixin
 class LoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
-    def process_request(self, request):
+    def process_request(request):
         request.correlation = uuid.uuid4().hex
         logging.info(json.dumps({
             "correlation": request.correlation,
@@ -17,7 +17,7 @@ class LoggingMiddleware(MiddlewareMixin):
         }))
 
     @staticmethod
-    def process_response(self, request, response):
+    def process_response(request, response):
         logging.info(json.dumps({
             "correlation": request.correlation,
             'type': 'response',
