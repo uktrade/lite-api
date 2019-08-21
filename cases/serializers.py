@@ -239,7 +239,8 @@ class EcjuQuerySerializer(serializers.ModelSerializer):
         fields = ('id',
                   'question',
                   'response',
-                  'case',)
+                  'case',
+                  'created_at')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
