@@ -15,7 +15,7 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
