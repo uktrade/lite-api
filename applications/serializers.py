@@ -82,6 +82,11 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
+    case = serializers.SerializerMethodField()
+
+    def get_case(self, instance):
+        return Case.objects.get(application=instance).id
+
     # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
@@ -128,6 +133,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         model = Application
         fields = ('id',
                   'name',
+                  'case',
                   'organisation',
                   'activity',
                   'usage',
