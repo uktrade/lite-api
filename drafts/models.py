@@ -3,13 +3,11 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from documents.models import Document
 from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from static.units.enums import Units
-from users.models import ExporterUser
 
 
 class Draft(models.Model):
