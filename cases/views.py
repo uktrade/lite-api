@@ -268,7 +268,7 @@ class CaseAdvice(APIView):
 
 
 class CaseEcjuQueries(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
         """
