@@ -1,4 +1,5 @@
-from cases.models import Notification, Case
+from cases.models import Case
+from users.models import Notification
 from test_helpers.clients import DataTestClient
 
 

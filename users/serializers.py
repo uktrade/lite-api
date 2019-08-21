@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from cases.models import Notification
 from gov_users.serializers import RoleSerializer
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, BaseUser, GovUser
+from users.models import ExporterUser, BaseUser, GovUser, Notification
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
