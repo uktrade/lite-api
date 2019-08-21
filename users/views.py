@@ -57,10 +57,20 @@ class UserList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
+        """
+        Returns a list of Exporter users
+        """
         serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
         return JsonResponse(data={'users': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request):
+        """
+        Create Exporter within the same organisation that current user is logged into
+        """
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
@@ -78,16 +88,24 @@ class UserList(APIView):
 
 class UserDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
-    """
-    Get user from pk
-    """
+
     def get(self, request, pk):
+        """
+        Get user from pk
+        """
         user = get_user_by_pk(pk)
 
         serializer = ExporterUserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error'
+        })
     def put(self, request, pk):
+        """
+        Update Exporter user
+        """
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
