@@ -5,7 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from drafts.models import Draft
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient

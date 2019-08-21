@@ -5,7 +5,7 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
     GoodOnApplication
 from content_strings.strings import get_string
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from end_user.serializers import EndUserDocumentSerializer
 
 

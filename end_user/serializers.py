@@ -2,7 +2,7 @@ from rest_framework import serializers, relations
 
 import documents
 from conf.settings import BACKGROUND_TASK_ENABLED
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from organisations.models import Organisation

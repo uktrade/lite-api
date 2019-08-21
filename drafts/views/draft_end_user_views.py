@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user

@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'background_task',
     'clc_queries',
     'picklists',
-    'end_user.end_user_document',
+    'end_user.document',
 ]
 
 MIDDLEWARE = [

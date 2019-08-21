@@ -10,7 +10,7 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from end_user.end_user_document.models import EndUserDocument
+from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from flags.models import Flag
