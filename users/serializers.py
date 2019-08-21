@@ -58,10 +58,8 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=ExporterUser.objects.all())],
-        error_messages={
-            'invalid': 'Enter an email address in the correct format, like name@example.com'}
+    email = serializers.EmailField(error_messages={
+        'invalid': 'Enter an email address in the correct format, like name@example.com'}
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
