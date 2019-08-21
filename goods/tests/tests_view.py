@@ -6,6 +6,7 @@ from goods.enums import GoodControlled
 from goods.models import Good
 from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
+from users.libraries.get_user import get_users_from_organisation
 from users.models import ExporterUser
 
 
@@ -25,7 +26,7 @@ class GoodViewTests(DataTestClient):
 
     def test_fail_view_other_organisations_goods_details(self):
         organisation_2 = self.create_organisation()
-        organisation_2_admin = ExporterUser.objects.get(organisation=organisation_2)
+        organisation_2_admin = get_users_from_organisation(organisation_2)[0]
 
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
