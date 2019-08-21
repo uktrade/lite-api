@@ -10,7 +10,7 @@ class DenialReasonsTests(BaseTestClient):
 
     def test_get_denial_reasons(self):
         response = self.client.get(self.url)
-        countries = response.json()['denial_reasons']
+        denial_reasons = response.json()['denial_reasons']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(len(countries), 0)
+        self.assertNotEqual(len(denial_reasons), 0)

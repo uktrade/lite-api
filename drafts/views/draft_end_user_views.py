@@ -42,7 +42,7 @@ class DraftEndUser(APIView):
 
                 # Reversion
                 reversion.set_user(request.user)
-                reversion.set_comment("Created End User")
+                reversion.set_comment('Created End User')
 
                 # Set the end user of the draft application
                 draft.end_user = end_user

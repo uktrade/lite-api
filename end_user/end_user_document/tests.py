@@ -1,19 +1,20 @@
 from unittest import mock
 from django.urls import reverse
 from rest_framework import status
+
+from applications.enums import ApplicationLicenceType
 from test_helpers.clients import DataTestClient
 
 
-class DraftEndUserDocumentsTests(DataTestClient):
+class EndUserDocumentTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.org = self.test_helper.organisation
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Superdraft', self.org)
-        # self.end_user = self.test_helper.create_end_user("Mr. Kim", self.org)
+
+        self.draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'Drafty Draft')
         self.url_draft_with_user = reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id})
 
-        self.draft_no_user = self.test_helper.complete_draft('Superdraft2', self.org)
+        self.draft_no_user = self.create_draft(self.exporter_user.organisation, 'Dafty daft')
         self.url_no_user = reverse('drafts:end_user_documents', kwargs={'pk': self.draft_no_user.id})
 
         self.data = [{"name": "file123.pdf",

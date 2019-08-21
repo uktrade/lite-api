@@ -10,12 +10,12 @@ class CaseEndUserDocumentTests(DataTestClient):
 
     def test_case_contains_end_user_document(self):
         # assemble
-        draft = self.test_helper.create_draft_with_good_end_user_and_site(
-            'Example Application 854957', self.test_helper.organisation)
-        self.test_helper.create_custom_document_for_end_user(end_user=draft.end_user,
+        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation,
+                                                                     'Example Application 854957')
+        self.create_custom_document_for_end_user(end_user=draft.end_user,
                                                              name='file343.pdf',
                                                              safe=True)
-        application = self.test_helper.submit_draft(self, draft)
+        application = self.submit_draft(draft)
         case = Case.objects.get(application=application)
 
         # act

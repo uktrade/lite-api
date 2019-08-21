@@ -18,7 +18,7 @@ class GoodsTypeCreateDraftTests(DataTestClient):
                               is_good_controlled,
                               control_code,
                               is_good_end_product,
-                              #have_you_been_informed,
+                              # have_you_been_informed,
                               draft=False):
         if not draft:
             draft = Draft.objects.create(name='test', licence_type='open_licence', export_type='temporary', have_you_been_informed='No',)

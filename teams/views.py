@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from gov_users.serializers import GovUserViewSerializer
-from teams.libraries.get_team import get_team_by_pk
+from teams.helpers import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import GovUser
@@ -27,6 +27,7 @@ class TeamList(APIView):
         List all teams
         """
         teams = Team.objects.all().order_by('name')
+
         serializer = TeamSerializer(teams, many=True)
         return JsonResponse(data={'teams': serializer.data})
 
@@ -42,14 +43,11 @@ class TeamList(APIView):
         data = JSONParser().parse(request)
 
         serializer = TeamSerializer(data=data)
-
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'team': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'team': serializer.data},  status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TeamDetail(APIView):
@@ -84,11 +82,12 @@ class TeamDetail(APIView):
         """
         data = JSONParser().parse(request)
         serializer = TeamSerializer(self.get_object(pk), data=data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'team': serializer.data})
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=400)
+
+        return JsonResponse(data={'errors': serializer.errors}, status=400)
 
 
 class UsersByTeamsList(APIView):
@@ -100,5 +99,6 @@ class UsersByTeamsList(APIView):
     def get(self, request, pk):
         team = get_team_by_pk(pk)
         users = GovUser.objects.filter(team=team)
+
         serializer = GovUserViewSerializer(users, many=True)
         return JsonResponse(data={'users': serializer.data})

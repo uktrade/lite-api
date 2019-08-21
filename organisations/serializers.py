@@ -9,7 +9,7 @@ from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from static.countries.models import Country
-from users.serializers import UserCreateSerializer
+from users.serializers import ExporterUserCreateUpdateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
@@ -74,7 +74,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     sic_number = serializers.CharField()
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
-    user = UserCreateSerializer(write_only=True)
+    user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteCreateSerializer(write_only=True)
 
     class Meta:
@@ -105,7 +105,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError(site_serializer.errors)
 
-        user_serializer = UserCreateSerializer(data=user_data)
+        user_serializer = ExporterUserCreateUpdateSerializer(data=user_data)
         with reversion.create_revision():
             if user_serializer.is_valid():
                 user_serializer.save()

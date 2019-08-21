@@ -1,20 +1,16 @@
-import json
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class DraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        org = self.test_helper.organisation
-        draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        good = OrgAndUserHelper.create_controlled_good('A good', org)
+        draft = self.create_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('A good', self.exporter_user.organisation)
         self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         data = {
@@ -30,13 +26,13 @@ class DraftTests(DataTestClient):
 
         url = '/drafts/' + str(draft.id) + '/goods/'
         response = self.client.get(url, **self.exporter_headers)
-        response_data = json.loads(response.content)
-        self.assertEqual(len(response_data["goods"]), 1)
+        response_data = response.json()
+        self.assertEqual(len(response_data['goods']), 1)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
-        test_helper_2 = OrgAndUserHelper(name='organisation2')
-        good = OrgAndUserHelper.create_controlled_good('test', test_helper_2.organisation)
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
+        organisation_2 = self.create_organisation()
+        draft = self.create_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('test', organisation_2)
         self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         data = {
@@ -52,8 +48,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
-        response_data = json.loads(response.content)
-        self.assertEqual(len(response_data["goods"]), 0)
+        response_data = response.json()
+        self.assertEqual(len(response_data['goods']), 0)
 
     @parameterized.expand([
         [{'value': '123.45', 'quantity': '1123423.901234', 'response': status.HTTP_201_CREATED}],
@@ -62,9 +58,8 @@ class DraftTests(DataTestClient):
         [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
     ])
     def test_adding_goods_with_different_number_formats(self, data):
-        org = self.test_helper.organisation
-        draft = OrgAndUserHelper.complete_draft('Goods test', org)
-        good = OrgAndUserHelper.create_controlled_good('A good', org)
+        draft = self.create_standard_draft(self.exporter_user.organisation)
+        good = self.create_controlled_good('A good', self.exporter_user.organisation)
         self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
 
         post_data = {

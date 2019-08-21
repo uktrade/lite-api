@@ -1,12 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ApplicationLicenceType
 from applications.models import Application
-from drafts.models import GoodOnDraft
 from queues.models import Queue
-from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):
@@ -17,8 +15,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a draft first and then submit it as an application
         """
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_site_and_end_user_document(name='test',
-                                                                          org=self.test_helper.organisation)
+        draft = self.create_standard_draft(self.exporter_user.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
@@ -37,28 +34,24 @@ class ApplicationsTests(DataTestClient):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        OrgAndUserHelper.complete_draft(name='test', org=self.test_helper.organisation)
+        self.create_standard_draft(self.exporter_user.organisation)
 
         data = {'id': draft_id}
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
-        draft = OrgAndUserHelper.complete_draft('test', self.test_helper.organisation)
-        unit1 = Units.NAR
-        good = OrgAndUserHelper.create_controlled_good('test good', self.test_helper.organisation)
-        good_on_draft_1 = GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400)
-        good_on_draft_1.save()
+        draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
 
-        url = reverse('applications:applications')
         data = {'id': draft.id}
-        response = self.client.post(url, data, **self.exporter_headers)
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     # if POST - end user with no document - 400
     def test_status_code_post_no_end_user_document(self):
         # assemble
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
+        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -70,8 +63,8 @@ class ApplicationsTests(DataTestClient):
 
     def test_status_code_post_with_untested_document(self):
         # assemble
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
-        OrgAndUserHelper.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
+        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
+        self.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -83,8 +76,8 @@ class ApplicationsTests(DataTestClient):
 
     def test_status_code_post_with_infected_document(self):
         # assemble
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site('test', self.test_helper.organisation)
-        OrgAndUserHelper.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
+        self.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 

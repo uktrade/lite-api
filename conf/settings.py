@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'background_task',
     'clc_queries',
-    'case_types',
     'picklists',
     'end_user.end_user_document',
 ]
