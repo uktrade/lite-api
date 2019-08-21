@@ -121,7 +121,7 @@ class NotificationViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         # Get queryset using dunder expression to go across relationships (so note_id on Notification table
         # join to Case Note table join to Cases table and see if clc_query is null)
-        queryset = Notification.objects.filter(user=self.request.user, note__case__clc_query_id__isnull=True)
+        queryset = Notification.objects.filter(user=self.request.user, case_note__case__clc_query_id__isnull=True)
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
 
@@ -138,7 +138,7 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         # Get queryset using dunder expression to go across relationships (so note_id on Notification table
         # join to Case Note table join to Cases table and see if application_id is null)
-        queryset = Notification.objects.filter(user=self.request.user, note__case__application_id__isnull=True)
+        queryset = Notification.objects.filter(user=self.request.user, case_note__case__application_id__isnull=True)
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
 

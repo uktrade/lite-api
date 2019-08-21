@@ -76,7 +76,7 @@ class NotificationsSerializer(serializers.ModelSerializer):
     application = serializers.SerializerMethodField()
 
     def get_application(self, obj):
-        case = obj.note.case
+        case = obj.case_note.case
         application = case.application
         return application.id
 
@@ -89,7 +89,7 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
     clc_query = serializers.SerializerMethodField()
 
     def get_clc_query(self, obj):
-        case = obj.note.case
+        case = obj.case_note.case
         clc_query = case.clc_query
         return clc_query.id
 
