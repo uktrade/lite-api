@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from reversion.models import Revision
 
+from cases.models import CaseNote, EcjuQuery
 from organisations.models import Organisation
 from teams.models import Team
 from users.enums import UserStatuses
@@ -72,11 +73,17 @@ class BaseUser(AbstractUser):
     objects = CustomUserManager()
 
 
+class Notification(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
+    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
+    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    viewed_at = models.DateTimeField(null=True)
+
+
 class ExporterUser(BaseUser):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
 
     def send_notification(self, case):
-        from cases.models import Notification
         Notification.objects.create(user=self, note=case)
 
 
