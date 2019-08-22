@@ -241,14 +241,15 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
                   'question',
                   'response',
                   'case',
-                  'responded_by_user',)
+                  'responded_by_user',
+                  'created_at')
 
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
 
     def get_team(self, instance):
-        return TeamSerializer(instance.raised_by_user.team)
+        return TeamSerializer(instance.raised_by_user.team).data
 
     class Meta:
         model = EcjuQuery
@@ -257,7 +258,8 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
                   'response',
                   'case',
                   'responded_by_user',
-                  'team')
+                  'team',
+                  'created_at')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
