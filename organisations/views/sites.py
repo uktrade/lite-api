@@ -81,7 +81,7 @@ class OrgSiteDetail(APIView):
     """
     Show details for for a specific site/edit site
     """
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk, site_pk):
         # organisation = get_organisation_by_user(request.user)

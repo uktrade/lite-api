@@ -19,5 +19,5 @@ urlpatterns = [
     path('<uuid:org_pk>/sites/<uuid:site_pk>/', sites.OrgSiteDetail.as_view(), name='site'),
 
     # ex: /organisations/external_locations/ - View all external locations belonging to the users organisation
-    path('external_locations/', external_locations.ExternalLocationList.as_view(), name='external_locations'),
+    path('<uuid:org_pk>/external_locations/', external_locations.ExternalLocationList.as_view(), name='external_locations'),
 ]
