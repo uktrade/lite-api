@@ -219,10 +219,10 @@ class DataTestClient(BaseTestClient):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description, org):
+    def create_controlled_good(self, description, org, control_code='ML1'):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
-                    control_code='ML1',
+                    control_code=control_code,
                     is_good_end_product=True,
                     part_number='123456',
                     organisation=org)

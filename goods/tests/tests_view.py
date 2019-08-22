@@ -1,3 +1,4 @@
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -110,3 +111,22 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["goods"]
         self.assertEqual(len(response_data), 2)
+
+    @parameterized.expand([
+        ('ML3', 2),
+        ('ML3a', 1),
+    ])
+    def test_view_good__query_filter_by_control_rating(self, control_rating, size):
+        org = self.exporter_user.organisation
+
+        self.create_controlled_good('thing1', org, 'ML3a')
+        self.create_controlled_good('Thing2', org, 'ML3b')
+        self.create_controlled_good('item3', org, 'ML4')
+
+        url = reverse('goods:goods') + '?control_rating=' + control_rating
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()['goods']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), size)

@@ -180,7 +180,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advice
         fields = ('case', 'user', 'text', 'note', 'type', 'proviso', 'denial_reasons',
-                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user')
+                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user', 'created_at')
 
     def validate_denial_reasons(self, value):
         """
