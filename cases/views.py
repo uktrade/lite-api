@@ -16,7 +16,7 @@ from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_fr
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, EcjuQuerySerializer, \
     EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer
+    CaseAdviceSerializer, EcjuQueryGovSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
@@ -276,7 +276,7 @@ class CaseEcjuQueries(APIView):
         """
         case = get_case(pk)
         case_ecju_queries = EcjuQuery.objects.filter(case=case)
-        serializer = EcjuQuerySerializer(case_ecju_queries, many=True)
+        serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
         return JsonResponse({'ecju_queries': serializer.data})
 

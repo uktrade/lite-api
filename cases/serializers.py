@@ -18,6 +18,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
 
@@ -233,14 +234,30 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class EcjuQuerySerializer(serializers.ModelSerializer):
+class EcjuQueryGovSerializer(serializers.ModelSerializer):
     class Meta:
         model = EcjuQuery
         fields = ('id',
                   'question',
                   'response',
                   'case',
-                  'created_at')
+                  'responded_by_user',)
+
+
+class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+
+    def get_team(self, instance):
+        return TeamSerializer(instance.raised_by_user.team)
+
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',
+                  'responded_by_user',
+                  'team')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
