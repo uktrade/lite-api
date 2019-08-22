@@ -261,12 +261,6 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
                   'team',
                   'created_at')
 
-    def update(self, instance, validated_data, user):
-        instance.response = validated_data.pop('response')
-        instance.responded_by_user = ExporterUserViewSerializer(user)
-        instance.save()
-
-
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """

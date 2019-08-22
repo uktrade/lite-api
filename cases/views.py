@@ -322,17 +322,18 @@ class EcjuQueryDetail(APIView):
         return JsonResponse(data={'ecju_query': serializer.data})
 
     def put(self, request, pk, ecju_pk):
-        ecju = get_ecju_query(ecju_pk)
+        ecju_query = get_ecju_query(ecju_pk)
 
         data = {
             'response': request.data['response'],
+            'responded_by_user': str(request.user.id)
         }
 
-        serializer = EcjuQueryExporterSerializer(instance=ecju, data=data, partial=True)
+        serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
         if serializer.is_valid():
-            serializer.update(instance=ecju, user=request.user, validated_data=data)
+            serializer.save()
 
-            return JsonResponse(data={'case': serializer.data})
+            return JsonResponse(data={'ecju_query': serializer.data})
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
