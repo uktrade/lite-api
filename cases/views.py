@@ -17,7 +17,7 @@ from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
-from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
 
@@ -311,12 +311,12 @@ class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
     """
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk, ecju_pk):
         """
         Returns details of an ecju query
         """
         ecju_query = get_ecju_query(ecju_pk)
-        serializer = EcjuQuerySerializer(ecju_query)
+        serializer = EcjuQueryExporterSerializer(ecju_query)
         return JsonResponse(data={'ecju_query': serializer.data})
