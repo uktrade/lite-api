@@ -247,6 +247,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
+    responded_by_user = ExporterUserViewSerializer()
 
     def get_team(self, instance):
         return TeamSerializer(instance.raised_by_user.team).data
