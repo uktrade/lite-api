@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
