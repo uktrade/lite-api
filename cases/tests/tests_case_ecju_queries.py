@@ -94,14 +94,14 @@ class CaseEcjuQueriesTests(DataTestClient):
         returned_ecju_query_1 = response_json.get('ecju_queries')[0]
         self.assertEqual(returned_ecju_query_1.get('question'), 'ECJU Query 1')
         self.assertEqual(returned_ecju_query_1.get('response'), None)
-        self.assertEqual(returned_ecju_query_1.get('creater_team'), 'Admin')
+        self.assertEqual(returned_ecju_query_1.get('team')['name'], 'Admin')
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get('created_at'))
 
         returned_ecju_query_2 = response_json.get('ecju_queries')[1]
         self.assertEqual(returned_ecju_query_2.get('question'), 'ECJU Query 2')
         self.assertEqual(returned_ecju_query_2.get('response'), 'I have a response')
-        self.assertEqual(returned_ecju_query_1.get('creater_team'), 'TAU')
+        self.assertEqual(returned_ecju_query_2.get('team')['name'], 'TAU')
         # We can't predict exactly when the query is created so we settle for the fact that its set
         self.assertIsNotNone(returned_ecju_query_1.get('created_at'))
 

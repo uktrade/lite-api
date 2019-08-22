@@ -311,7 +311,7 @@ class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
     """
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk, ecju_pk):
         """

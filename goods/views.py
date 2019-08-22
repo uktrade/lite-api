@@ -59,7 +59,7 @@ class GoodDetail(APIView):
             raise Http404
 
         serializer = GoodSerializer(good)
-        request.user.notification_set.filter(note__case__clc_query__good=good).update(
+        request.user.notification_set.filter(case_note__case__clc_query__good=good).update(
             viewed_at=timezone.now()
         )
         return JsonResponse(data={'good': serializer.data})
