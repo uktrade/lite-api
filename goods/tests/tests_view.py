@@ -117,7 +117,7 @@ class GoodViewTests(DataTestClient):
         ('ML3a', 1),
     ])
     def test_view_good__query_filter_by_control_rating(self, control_rating, size):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         self.create_controlled_good('thing1', org, 'ML3a')
         self.create_controlled_good('Thing2', org, 'ML3b')
