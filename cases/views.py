@@ -16,7 +16,7 @@ from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_fr
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, EcjuQuerySerializer, \
     EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer, EcjuQueryGovSerializer
+    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
@@ -315,3 +315,15 @@ class EcjuQueryDetail(APIView):
         ecju_query = get_ecju_query(ecju_pk)
         serializer = EcjuQuerySerializer(ecju_query)
         return JsonResponse(data={'ecju_query': serializer.data})
+
+    def put(self, request, pk, ecju_pk):
+        ecju = get_ecju_query(ecju_pk)
+
+        serializer = EcjuQueryExporterSerializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.update(instance=ecju, data=request.data)
+
+            return JsonResponse(data={'case': serializer.data})
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)

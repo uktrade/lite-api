@@ -20,7 +20,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser
-from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
+from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -258,6 +258,12 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
                   'case',
                   'responded_by_user',
                   'team')
+
+    def update(self, instance, validated_data, user):
+        instance.response = validated_data.pop('response')
+        instance.responded_by_user = ExporterUserViewSerializer(user)
+        instance.save()
+
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
