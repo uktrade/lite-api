@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
@@ -46,7 +46,7 @@ class OrgSiteList(APIView):
     """
     List all sites for an organisation/create site
     """
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk):
         """
