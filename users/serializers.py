@@ -3,9 +3,11 @@ from rest_framework import serializers
 from cases.models import Notification
 from conf.exceptions import NotFoundError
 from gov_users.serializers import RoleSerializer
+from organisations.libraries import get_organisation
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
-from users.libraries.get_user import get_user_by_pk
+from users.libraries.get_user import get_user_by_pk, get_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
 
@@ -34,7 +36,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             for relationship in user_organisation_relationships:
                 return_value.append({
                     'id': relationship.organisation.id,
-                    'name':relationship.organisation.name,
+                    'name': relationship.organisation.name,
                     'joined_at': relationship.created_at,
                 })
 
@@ -70,10 +72,24 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         model = ExporterUser
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
+    def validate_email(self, email):
+        if hasattr(self, 'initial_data') and 'organisation' in self.initial_data:
+            try:
+                organisation = get_organisation_by_pk(self.initial_data['organisation'])
+
+                if UserOrganisationRelationship.objects.get(user=get_user_by_email(self.initial_data['email']),
+                                                            organisation=organisation):
+                    raise serializers.ValidationError(
+                        self.initial_data['email'] + ' is already a member of this organisation.')
+            except (NotFoundError, UserOrganisationRelationship.DoesNotExist):
+                pass
+
+        return email
+
     def create(self, validated_data):
         organisation = validated_data.pop('organisation')
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data['email'],
-                                                               defaults={**validated_data})
+                                                         defaults={**validated_data})
         UserOrganisationRelationship(user=exporter,
                                      organisation=organisation).save()
         return exporter
@@ -101,7 +117,7 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         organisation = validated_data.pop('organisation')
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data['email'],
-                                                               defaults={**validated_data})
+                                                         defaults={**validated_data})
         UserOrganisationRelationship(user=exporter,
                                      organisation=organisation).save()
         return exporter

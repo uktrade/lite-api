@@ -15,6 +15,19 @@ def get_user_by_pk(pk):
             raise NotFoundError({'user': 'User not found - ' + str(pk)})
 
 
+def get_user_by_email(email):
+    """
+    Returns either an ExporterUser or a GovUser depending on the email given
+    """
+    try:
+        return ExporterUser.objects.get(email=email)
+    except ExporterUser.DoesNotExist:
+        try:
+            return GovUser.objects.get(email=email)
+        except GovUser.DoesNotExist:
+            raise NotFoundError({'user': 'User not found - ' + email})
+
+
 def get_user_organisations(pk):
     try:
         user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=pk)
