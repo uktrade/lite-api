@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
 from conf.serializers import PrimaryKeyRelatedSerializerField
@@ -30,31 +29,3 @@ class AddressSerializer(serializers.ModelSerializer):
                   'city',
                   'region',
                   'country')
-
-
-class AddressCountrylessSerializer(AddressSerializer):
-    # TODO: Add country primary key back
-    # This was removed as Django seemingly has issues deserializing it
-    country = serializers.CharField(allow_blank=False, allow_null=False)
-
-    class Meta:
-        model = Address
-        fields = ('id',
-                  'address_line_1',
-                  'address_line_2',
-                  'postcode',
-                  'city',
-                  'region',
-                  'country')
-
-    def update(self, instance, validated_data):
-        instance.address_line_1 = validated_data.get('address_line_1',
-                                                     instance.address_line_1)
-        instance.address_line_2 = validated_data.get('address_line_2',
-                                                     instance.address_line_2)
-        instance.postcode = validated_data.get('postcode', instance.postcode)
-        instance.city = validated_data.get('city', instance.city)
-        instance.region = validated_data.get('region', instance.region)
-        # instance.country = validated_data.get('country', instance.country)
-        instance.save()
-        return instance

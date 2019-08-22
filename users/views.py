@@ -162,16 +162,3 @@ class UserMeDetail(APIView):
     def get(self, request):
         serializer = ExporterUserViewSerializer(request.user)
         return JsonResponse(data={'user': serializer.data})
-
-
-# class ExporterTokens(APIView):
-#     def get(self, request):
-#         print('headers', request.headers)
-#
-#         token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
-#
-#         user = ExporterUser.objects.get(pk=token_to_user_pk(token))
-#
-#         users = ExporterUser.objects.filter(email=user.email, status=UserStatuses.ACTIVE)
-#         tokens = users_to_tokens(users)
-#         return JsonResponse(data={'tokens': tokens})

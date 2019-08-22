@@ -1,9 +1,11 @@
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from organisations.models import Organisation
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser, UserOrganisationRelationship
+from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
@@ -12,7 +14,7 @@ class OrganisationCreateTests(DataTestClient):
 
     def test_create_organisation_with_first_user(self):
         data = {
-            'name': 'New Organisation',
+            'name': 'Lemonworld Co',
             'eori_number': 'GB123456789000',
             'sic_number': '2765',
             'vat_number': '123456789',
@@ -25,7 +27,7 @@ class OrganisationCreateTests(DataTestClient):
                     'region': 'Hertfordshire',
                     'postcode': 'AL1 4GT',
                     'city': 'St Albans',
-                    'country': 'GB',
+                    'country': 'AD',
                 },
             },
             'user': {
@@ -37,7 +39,7 @@ class OrganisationCreateTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        organisation = Organisation.objects.filter(name=data['name'])[0]
+        organisation = Organisation.objects.get(name=data['name'])
         exporter_user = UserOrganisationRelationship.objects.filter(organisation=organisation)[0].user
         site = organisation.primary_site
 

@@ -100,14 +100,11 @@ class OrgSiteDetail(APIView):
         site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():
-            serializer = SiteCreateSerializer(site,
+            serializer = SiteCreateSerializer(instance=site,
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
                 serializer.save()
-                # user information for gov users does not exist yet
-                # reversion.set_user(request.user)
-                # reversion.set_comment("Created Site Revision")
 
                 return JsonResponse(data={'site': serializer.data},
                                     status=status.HTTP_200_OK)

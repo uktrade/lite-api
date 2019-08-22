@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -7,12 +6,10 @@ from goods.models import Good
 from gov_users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
-from users.models import ExporterUser
 
 
 class GoodViewTests(DataTestClient):
 
-    @tag('only')
     def test_view_good_details(self):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,

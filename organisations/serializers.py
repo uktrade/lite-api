@@ -4,19 +4,16 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
-from addresses.serializers import AddressCountrylessSerializer, AddressSerializer
+from addresses.serializers import AddressSerializer
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
-from static.countries.helpers import get_country
 from static.countries.models import Country
 from users.serializers import ExporterUserCreateUpdateSerializer
 
 
 class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={'blank': 'Enter a name for your site'})
-
-    # TODO: Simplify country process
-    address = AddressCountrylessSerializer(write_only=True)
+    address = AddressSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
@@ -26,15 +23,12 @@ class SiteCreateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         address_data = validated_data.pop('address')
+        address_data['country'] = address_data['country'].id
 
-        address_serializer = AddressCountrylessSerializer(data=address_data)
+        address_serializer = AddressSerializer(data=address_data)
         with reversion.create_revision():
             if address_serializer.is_valid():
-                # TODO: Simplify country process
-                data = address_serializer.data
-                country = get_country(data['country'])
-                del data['country']
-                address = Address(**data, country=country)
+                address = Address(**address_serializer.validated_data)
                 address.save()
             else:
                 raise serializers.ValidationError(address_serializer.errors)
@@ -43,7 +37,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         return site
 
     def update(self, instance, validated_data):
-        instance.name = validated_data['name']
+        instance.name = validated_data.get('name', instance.name)
         instance.save()
 
         address_data = validated_data.pop('address')
@@ -59,7 +53,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
                                                                               instance.address.postcode)
             instance.address.city = address_serializer.validated_data.get('city',
                                                                           instance.address.city)
-            instance.address.country = get_country(address_serializer.data['country'])
+            instance.address.country = address_serializer.validated_data.get('country', instance.address.country)
             instance.address.save()
         else:
             return address_serializer.errors
@@ -97,6 +91,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
         organisation = Organisation.objects.create(**validated_data)
         user_data['organisation'] = organisation.id
+        site_data['address']['country'] = site_data['address']['country'].id
 
         site_serializer = SiteCreateSerializer(data=site_data)
         with reversion.create_revision():
