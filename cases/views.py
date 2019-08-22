@@ -14,10 +14,10 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
-from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, EcjuQuerySerializer, \
+from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
-from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
 
@@ -274,9 +274,14 @@ class CaseEcjuQueries(APIView):
         """
         Returns the list of ECJU Queries on a case
         """
+        if isinstance(request.user, ExporterUser):
+            serializer = EcjuQueryExporterSerializer
+        else:
+            serializer = EcjuQueryGovSerializer
+
         case = get_case(pk)
         case_ecju_queries = EcjuQuery.objects.filter(case=case)
-        serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
+        serializer = serializer(case_ecju_queries, many=True)
 
         return JsonResponse({'ecju_queries': serializer.data})
 
@@ -306,14 +311,14 @@ class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
     """
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk, ecju_pk):
         """
         Returns details of an ecju query
         """
         ecju_query = get_ecju_query(ecju_pk)
-        serializer = EcjuQuerySerializer(ecju_query)
+        serializer = EcjuQueryExporterSerializer(ecju_query)
         return JsonResponse(data={'ecju_query': serializer.data})
 
     def put(self, request, pk, ecju_pk):
