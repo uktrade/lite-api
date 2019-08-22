@@ -191,21 +191,7 @@ class DataTestClient(BaseTestClient):
         return good_doc
 
     @staticmethod
-    def create_document_for_end_user(end_user: EndUser):
-        end_user_document = EndUserDocument(
-            end_user=end_user,
-            description='This is a document',
-            name='document_name.pdf',
-            s3_key='document_name_s3_key',
-            size=123456,
-            virus_scanned_at=None,
-            safe=True
-        )
-        end_user_document.save()
-        return end_user_document
-
-    @staticmethod
-    def create_custom_document_for_end_user(end_user: EndUser, name: str, safe: bool):
+    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
             end_user=end_user,
             description='This is a document',

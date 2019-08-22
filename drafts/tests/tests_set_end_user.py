@@ -93,11 +93,11 @@ class EndUserOnDraftTests(DataTestClient):
     def test_end_user_document_is_deleted_when_associated_end_user_is_deleted(self, prep_doc_mock, delete_s3_mock):
         # assemble
         end_user_1_id = self.draft.end_user.id
-        self.document_data = [{"name": "file689.pdf",
+        self.document_data = {"name": "file689.pdf",
                  "s3_key": "file689_098765.pdf",
                  "size": 476,
-                 "description": "Description 7538564"}]
-        self.client.post(reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id}),
+                 "description": "Description 7538564"}
+        self.client.post(reverse('drafts:end_user_document', kwargs={'pk': self.draft.id}),
                          self.document_data, **self.exporter_headers)
 
         # act

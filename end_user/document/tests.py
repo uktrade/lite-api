@@ -12,15 +12,15 @@ class EndUserDocumentTests(DataTestClient):
         super().setUp()
 
         self.draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'Drafty Draft')
-        self.url_draft_with_user = reverse('drafts:end_user_documents', kwargs={'pk': self.draft.id})
+        self.url_draft_with_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
         self.draft_no_user = self.create_draft(self.exporter_user.organisation, 'Dafty daft')
-        self.url_no_user = reverse('drafts:end_user_documents', kwargs={'pk': self.draft_no_user.id})
+        self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
-        self.data = [{"name": "file123.pdf",
+        self.data = {"name": "file123.pdf",
                  "s3_key": "file123_12345678.pdf",
                  "size": 476,
-                 "description": "Description 58398"}]
+                 "description": "Description 58398"}
 
     # if POST - end-user set - GET returns correct data
     @mock.patch('documents.tasks.prepare_document.now')
@@ -33,7 +33,7 @@ class EndUserDocumentTests(DataTestClient):
 
         # assert
         response_data = response.json()['document']
-        expected = self.data[0]
+        expected = self.data
         self.assertEqual(response_data['name'], expected['name'])
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
         self.assertEqual(response_data['size'], expected['size'])

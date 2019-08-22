@@ -64,7 +64,7 @@ class ApplicationsTests(DataTestClient):
     def test_status_code_post_with_untested_document(self):
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
-        self.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
+        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -77,7 +77,7 @@ class ApplicationsTests(DataTestClient):
     def test_status_code_post_with_infected_document(self):
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
-        self.create_custom_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 

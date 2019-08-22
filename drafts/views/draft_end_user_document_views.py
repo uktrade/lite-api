@@ -53,14 +53,13 @@ class EndUserDocuments(APIView):
         end_user_id = str(end_user.id)
         data = request.data
 
-        for document in data:
-            document['end_user'] = end_user_id
+        data['end_user'] = end_user_id
 
-        serializer = EndUserDocumentSerializer(data=data, many=True)
+        serializer = EndUserDocumentSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
