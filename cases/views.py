@@ -324,9 +324,13 @@ class EcjuQueryDetail(APIView):
     def put(self, request, pk, ecju_pk):
         ecju = get_ecju_query(ecju_pk)
 
-        serializer = EcjuQueryExporterSerializer(data=request.data, partial=True)
+        data = {
+            'response': request.data['response'],
+        }
+
+        serializer = EcjuQueryExporterSerializer(instance=ecju, data=data, partial=True)
         if serializer.is_valid():
-            serializer.update(instance=ecju, data=request.data)
+            serializer.update(instance=ecju, user=request.user, validated_data=data)
 
             return JsonResponse(data={'case': serializer.data})
 
