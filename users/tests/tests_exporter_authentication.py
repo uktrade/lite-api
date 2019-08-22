@@ -2,14 +2,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from users.models import UserOrganisationRelationship
 
 
 class ExporterUserAuthenticateTests(DataTestClient):
 
     url = reverse('users:authenticate')
 
-    # TODO: Move test to organisations
     def test_authentication_success(self):
         """
         Authorises user then checks the token which is sent is valid upon another request
@@ -45,13 +43,3 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    # @parameterized.expand([
-    #     [{'headers': {}}],
-    #     [{'headers': {'HTTP_EXPORTER_USER_EMAIL': str('sadkjaf@asdasdf.casdas')}}],
-    # ])
-    # def test_authorised_valid_email_in_header(self, data):
-    #     url = reverse('users:users')
-    #     headers = data['headers']
-    #     response = self.client.get(url, **headers)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -5,12 +5,19 @@ from organisations.models import Site
 from test_helpers.clients import DataTestClient
 
 
-class SiteViewTests(DataTestClient):
+class OrganisationSitesTests(DataTestClient):
 
-    url = reverse('organisations:sites')
+    def test_view_all_sites_belonging_to_organisation(self):
+        """
+        Ensure that an exporter user can view all sites belonging
+        """
+        url = reverse('organisations:sites')
 
-    def test_site_list(self):
-        response = self.client.get(self.url, **self.exporter_headers)
+        # Create an additional organisation and site to ensure
+        # that only sites from the first organisation are shown
+        self.create_organisation('New Org')
+
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

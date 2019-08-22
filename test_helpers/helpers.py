@@ -16,7 +16,7 @@ def random_name():
     return first_name, last_name
 
 
-def create_additional_users(organisation, quantity=1):
+def create_exporter_users(organisation, quantity=1):
     users = []
 
     for i in range(quantity):
