@@ -72,6 +72,7 @@ class BaseUser(AbstractUser):
     objects = CustomUserManager()
 
     def send_notification(self, case_note=None, ecju_query=None):
+        from cases.models import Notification
         Notification.objects.create(user=self, case_note=case_note, ecju_query=ecju_query)
 
 

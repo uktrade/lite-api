@@ -19,7 +19,7 @@ from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.serializers import TeamSerializer
-from users.models import BaseUser, GovUser
+from users.models import BaseUser, GovUser, ExporterUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
 
 
@@ -247,7 +247,8 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = ExporterUserViewSerializer()
+    responded_by_user = PrimaryKeyRelatedSerializerField(queryset=ExporterUser.objects.all(),
+                                                         serializer=ExporterUserViewSerializer)
 
     def get_team(self, instance):
         return TeamSerializer(instance.raised_by_user.team).data
