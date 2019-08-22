@@ -1,18 +1,18 @@
 import reversion
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from users.serializers import ExporterUserCreateUpdateSerializer
 
 
-class SiteCreateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages={'blank': 'Enter a name for your site'})
+class SiteSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(error_messages={'blank': 'Enter a name for your site'}, write_only=True)
     address = AddressSerializer(write_only=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
@@ -37,10 +37,11 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         return site
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
+        instance.name = validated_data['name']
         instance.save()
 
         address_data = validated_data.pop('address')
+        address_data['country'] = address_data['country'].id
         address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
         if address_serializer.is_valid():
             instance.address.address_line_1 = address_serializer.validated_data.get('address_line_1',
@@ -56,7 +57,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
             instance.address.country = address_serializer.validated_data.get('country', instance.address.country)
             instance.address.save()
         else:
-            return address_serializer.errors
+            raise serializers.ValidationError(address_serializer.errors)
 
         return instance
 
@@ -69,7 +70,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     vat_number = serializers.CharField()
     registration_number = serializers.CharField()
     user = ExporterUserCreateUpdateSerializer(write_only=True)
-    site = SiteCreateSerializer(write_only=True)
+    site = SiteSerializer(write_only=True)
 
     class Meta:
         model = Organisation
@@ -93,7 +94,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         user_data['organisation'] = organisation.id
         site_data['address']['country'] = site_data['address']['country'].id
 
-        site_serializer = SiteCreateSerializer(data=site_data)
+        site_serializer = SiteSerializer(data=site_data)
         with reversion.create_revision():
             if site_serializer.is_valid():
                 site = site_serializer.save()
@@ -127,7 +128,7 @@ class SiteViewSerializer(serializers.ModelSerializer):
 
 
 class OrganisationViewSerializer(serializers.ModelSerializer):
-    primary_site = SiteViewSerializer()
+    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
 
     class Meta:
         model = Organisation
@@ -140,10 +141,6 @@ class OrganisationViewSerializer(serializers.ModelSerializer):
                   'primary_site',
                   'created_at',
                   'last_modified_at')
-
-
-class OrganisationUpdateSerializer(OrganisationViewSerializer):
-    primary_site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     def update(self, instance, validated_data):
         """

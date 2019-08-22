@@ -9,37 +9,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Organisation, Site
-from organisations.serializers import SiteViewSerializer, SiteCreateSerializer
-
-
-class SiteList(APIView):
-    """
-    List all sites for an organisation/create site
-    """
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request):
-        organisation = get_organisation_by_user(request.user)
-        sites = Site.objects.filter(organisation=organisation)
-
-        serializer = SiteViewSerializer(sites, many=True)
-        return JsonResponse(data={'sites': serializer.data})
-
-    @transaction.atomic
-    def post(self, request):
-        with reversion.create_revision():
-            organisation = get_organisation_by_user(request.user)
-            data = JSONParser().parse(request)
-            data['organisation'] = organisation.id
-            serializer = SiteCreateSerializer(data=data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(data={'site': serializer.data},
-                                    status=status.HTTP_201_CREATED)
-
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+from organisations.serializers import SiteViewSerializer, SiteSerializer
 
 
 class OrgSiteList(APIView):
@@ -63,7 +33,7 @@ class OrgSiteList(APIView):
             organisation = Organisation.objects.get(pk=org_pk)
             data = JSONParser().parse(request)
             data['organisation'] = organisation.id
-            serializer = SiteCreateSerializer(data=data)
+            serializer = SiteSerializer(data=data)
 
             if serializer.is_valid():
                 # user information for gov users does not exist yet
@@ -100,7 +70,7 @@ class OrgSiteDetail(APIView):
         site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():
-            serializer = SiteCreateSerializer(instance=site,
+            serializer = SiteSerializer(instance=site,
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
@@ -131,7 +101,7 @@ class SiteDetail(APIView):
         organisation = get_organisation_by_user(request.user)
 
         with reversion.create_revision():
-            serializer = SiteCreateSerializer(get_site_with_organisation(pk, organisation),
+            serializer = SiteSerializer(get_site_with_organisation(pk, organisation),
                                               data=request.data,
                                               partial=True)
             if serializer.is_valid():
