@@ -51,7 +51,7 @@ class ApplicationsTests(DataTestClient):
     # if POST - end user with no document - 400
     def test_status_code_post_no_end_user_document(self):
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
+        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
