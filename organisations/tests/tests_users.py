@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
+from users.libraries.get_user import get_users_from_organisation
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
@@ -64,3 +65,21 @@ class OrganisationUsersTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('is already a member of this organisation.', response_data['errors']['email'][0])
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
+
+    def test_add_user_to_another_organisation_success(self):
+        """
+        Ensure that a user can be added to multiple organisations
+        """
+        organisation_2 = self.create_organisation()
+        user = get_users_from_organisation(organisation_2)[0]
+
+        data = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(len(get_users_from_organisation(self.organisation)), 2)
