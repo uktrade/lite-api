@@ -1,9 +1,7 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from organisations.models import Organisation
-from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 from users.models import UserOrganisationRelationship
 
