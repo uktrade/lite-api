@@ -5,7 +5,7 @@ from organisations.models import ExternalLocation
 from test_helpers.clients import DataTestClient
 
 
-class ExternalLocationViewTests(DataTestClient):
+class OrganisationExternalLocationsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
