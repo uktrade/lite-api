@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_pk, get_organisation_by_user
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation
 from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer
 
