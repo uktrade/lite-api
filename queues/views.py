@@ -13,9 +13,10 @@ from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases, get_all_my_team_cases_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
+from queues.tests.tests_consts import ALL_MY_QUEUES_ID
 
 
 @permission_classes((permissions.AllowAny,))
@@ -35,6 +36,7 @@ class QueuesList(APIView):
             queues = list(queues)
             queues.insert(0, get_open_cases_queue())
             queues.insert(0, get_all_cases_queue())
+            queues.insert(0, get_all_my_team_cases_queue(request.user.team))
 
         serializer = QueueViewSerializer(queues, many=True)
 
@@ -61,7 +63,8 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance
         """
-        queue, cases = get_queue(pk, return_cases=True)
+        team = request.user.team
+        queue, cases = get_queue(pk=pk, return_cases=True, team=team)
         cases = get_filtered_cases(request, queue.id, cases)
         cases = get_sorted_cases(request, queue.id, cases)
 
