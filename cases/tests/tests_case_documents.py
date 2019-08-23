@@ -1,7 +1,9 @@
 from django.urls import reverse
 from rest_framework import status
 
+from cases.models import Case
 from test_helpers.clients import DataTestClient
+
 
 # from nose.tools import assert_true
 # import requests
@@ -11,7 +13,8 @@ class CaseDocumentsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.case = self.create_application_case('case')
+        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:documents', kwargs={'pk': self.case.id})
 
     def test_can_view_all_documents_on_a_case(self):

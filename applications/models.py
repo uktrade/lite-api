@@ -9,8 +9,8 @@ from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from static.units.enums import Units
 from static.statuses.models import CaseStatus
+from static.units.enums import Units
 
 
 @reversion.register()

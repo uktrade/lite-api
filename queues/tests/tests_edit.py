@@ -18,4 +18,4 @@ class QueueEditTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Queue.objects.filter(name='Modified queue').count(), 1)
+        self.assertEqual(Queue.objects.filter(name=data['name']).count(), 1)

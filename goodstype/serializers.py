@@ -2,7 +2,6 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer
 from conf.helpers import str_to_bool
 from drafts.serializers import DraftBaseSerializer
 from goodstype.models import GoodsType
@@ -23,6 +22,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         """
         Gets the content object of draft or application
         """
+        from applications.serializers import ApplicationBaseSerializer
         if type(obj) == Application:
             return ApplicationBaseSerializer(obj.content_object).data
         return DraftBaseSerializer(obj.content_object).data

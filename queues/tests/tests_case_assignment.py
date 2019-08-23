@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -11,20 +9,18 @@ from test_helpers.clients import DataTestClient
 
 class CaseAssignmentTests(DataTestClient):
 
-    url = reverse('queues:case_assignment', kwargs={'pk': '00000000-0000-0000-0000-000000000001'})
+    url = reverse('queues:case_assignments', kwargs={'pk': '00000000-0000-0000-0000-000000000001'})
 
     def setUp(self):
         super().setUp()
-        self.draft = self.test_helper.create_draft_with_good_end_user_and_site('Example Application',
-                                                                               self.test_helper.organisation)
-        self.application = self.test_helper.submit_draft(self, self.draft)
+        self.application = self.create_standard_application(self.exporter_user.organisation)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         # Cases
         self.case = Case.objects.get(application=self.application)
-        self.case2 = self.create_application_case('Example')
-        self.case3 = self.create_application_case('Example 2')
+        self.case2 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case3 = self.create_standard_application_case(self.exporter_user.organisation)
 
         # Users
         self.gov_user = self.create_gov_user('gov1@email.com', team=self.default_team)
@@ -71,7 +67,7 @@ class CaseAssignmentTests(DataTestClient):
             ]
         }
 
-        url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
+        url = reverse('queues:case_assignments', kwargs={'pk': self.default_queue.id})
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -152,10 +148,10 @@ class CaseAssignmentTests(DataTestClient):
             ]
         }
 
-        url = reverse('queues:case_assignment', kwargs={'pk': self.default_queue.id})
+        url = reverse('queues:case_assignments', kwargs={'pk': self.default_queue.id})
         self.client.put(url, data, **self.gov_headers)
         response = self.client.get(url, **self.gov_headers)
-        case_assignments_response_data = json.loads(response.content)['case_assignments']
+        case_assignments_response_data = response.json()['case_assignments']
         i = 0
         for case_assignment in case_assignments_response_data:
             if case_assignment['case'] == str(self.case.id):

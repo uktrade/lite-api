@@ -7,28 +7,40 @@ from test_helpers.clients import DataTestClient
 
 class TeamEditTests(DataTestClient):
 
-    def tests_edit_team(self):
-        team_name = 'Team1'
-        Team(name=team_name).save()
-        id = Team.objects.filter(name=team_name)[0].id
+    def tests_edit_team_name_successful(self):
+        """
+        Test that a valid gov user can edit their team name
+        """
+        team = Team(name='Team')
+        team.save()
+
         data = {
-            'name': 'edited team'
+            'name': 'Renamed Team'
         }
-        url = reverse('teams:team', kwargs={'pk': id})
+
+        url = reverse('teams:team', kwargs={'pk': team.id})
         response = self.client.put(url, data, **self.gov_headers)
 
+        team.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Team.objects.filter(id=id)[0].name, 'edited team')
+        self.assertEqual(team.name, data['name'])
 
     def tests_cannot_rename_to_an_already_used_name_case_insensitive(self):
-        Team(name='name').save()
+        """
+        Test that a valid gov user cannot edit their team name
+        to the same as another teams
+        """
+        team = Team(name='name')
+        team.save()
+
         Team(name='test').save()
-        id = Team.objects.get(name='name').id
 
         data = {
             'name': 'TEST'
         }
-        url = reverse('teams:team', kwargs={'pk': id})
+
+        url = reverse('teams:team', kwargs={'pk': team.id})
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotEqual(team.name, data['name'])

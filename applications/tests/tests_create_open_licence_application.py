@@ -6,7 +6,6 @@ from applications.models import Application
 from drafts.models import Draft, SiteOnDraft
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
-from test_helpers.org_and_user_helper import OrgAndUserHelper
 
 
 class ApplicationsTests(DataTestClient):
@@ -27,17 +26,15 @@ class ApplicationsTests(DataTestClient):
                       reference_number_on_information_form='',
                       activity='Trade',
                       usage='Fun',
-                      organisation=self.test_helper.organisation)
+                      organisation=self.exporter_user.organisation)
         draft.save()
 
-        draft = OrgAndUserHelper.complete_draft('bloggs', self.test_helper.organisation)
+        draft = self.create_standard_draft(self.exporter_user.organisation)
 
-        draft.end_user = OrgAndUserHelper.create_end_user('test', self.test_helper.organisation)
-        SiteOnDraft(site=self.test_helper.organisation.primary_site, draft=draft).save()
+        draft.end_user = self.create_end_user('test', self.exporter_user.organisation)
+        SiteOnDraft(site=self.exporter_user.organisation.primary_site, draft=draft).save()
         draft.save()
 
-        draft = OrgAndUserHelper.create_draft_with_good_end_user_and_site(name='test',
-                                                                          org=self.test_helper.organisation)
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
         data = {'id': draft.id}
