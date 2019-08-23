@@ -47,24 +47,6 @@ class OrganisationUsersTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 2)
 
-    def test_add_existing_user_to_organisation_failure(self):
-        """
-        Ensure that a user cannot be added twice
-        to the same organisation
-        """
-        data = {
-            'first_name': self.exporter_user.first_name,
-            'last_name': self.exporter_user.last_name,
-            'email': self.exporter_user.email,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('is already a member of this organisation.', response_data['errors']['email'][0])
-        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
-
     def test_add_user_to_another_organisation_success(self):
         """
         Ensure that a user can be added to multiple organisations
@@ -82,3 +64,21 @@ class OrganisationUsersTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(len(get_users_from_organisation(self.organisation)), 2)
+
+    def test_add_existing_user_to_organisation_failure(self):
+        """
+        Ensure that a user cannot be added twice
+        to the same organisation
+        """
+        data = {
+            'first_name': self.exporter_user.first_name,
+            'last_name': self.exporter_user.last_name,
+            'email': self.exporter_user.email,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('is already a member of this organisation.', response_data['errors']['email'][0])
+        self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
