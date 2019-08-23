@@ -41,6 +41,9 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
+        """
+        TODO: Add description
+        """
         draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
 
         data = {'id': draft.id}
@@ -48,8 +51,10 @@ class ApplicationsTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if POST - end user with no document - 400
     def test_status_code_post_no_end_user_document(self):
+        """
+        Ensure we cannot add an end user without a document and receive a 400 error
+        """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         url = reverse('applications:applications')
@@ -62,6 +67,9 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_with_untested_document(self):
+        """
+        TODO: Add description
+        """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
         self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
@@ -75,6 +83,9 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_with_infected_document(self):
+        """
+        TODO: Add description
+        """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
         self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)

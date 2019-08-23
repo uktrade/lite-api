@@ -2,6 +2,7 @@ from rest_framework import serializers, relations
 
 import documents
 from conf.settings import BACKGROUND_TASK_ENABLED
+from documents.libraries.process_document import process_document
 from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
@@ -44,13 +45,5 @@ class EndUserDocumentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)
         end_user_document.save()
-
-        if BACKGROUND_TASK_ENABLED:
-            documents.tasks.prepare_document(str(end_user_document.id))
-        else:
-            try:
-                documents.tasks.prepare_document.now(str(end_user_document.id))
-            except Exception:
-                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
-
+        process_document(end_user_document)
         return end_user_document

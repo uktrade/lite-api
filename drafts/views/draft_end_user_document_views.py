@@ -15,7 +15,7 @@ class EndUserDocuments(APIView):
 
     def get(self, request, pk):
         """
-        Returns a list of documents on the specified end user
+        Returns document for the specified end user
         """
         draft = get_draft(pk)
         end_user = draft.end_user
@@ -25,7 +25,6 @@ class EndUserDocuments(APIView):
 
         end_user_document = EndUserDocument.objects.filter(end_user=end_user).values()
         return JsonResponse({'document': end_user_document[0] if end_user_document else None})
-
 
     @swagger_auto_schema(
         request_body=EndUserDocumentSerializer,
@@ -45,8 +44,8 @@ class EndUserDocuments(APIView):
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        end_user_document = EndUserDocument.objects.filter(end_user=end_user).first()
-        if end_user_document:
+        end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
+        if end_user_documents:
             return JsonResponse(data={'error': 'Document already exists'},
                                 status=status.HTTP_400_BAD_REQUEST)
 

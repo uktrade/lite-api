@@ -9,6 +9,9 @@ class CaseEndUserDocumentTests(DataTestClient):
         super().setUp()
 
     def test_case_contains_end_user_document(self):
+        """
+        Test that an end user document is attached to the end user and stores the correct data
+        """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation,
                                                                      'Example Application 854957')
