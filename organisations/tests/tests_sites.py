@@ -31,7 +31,8 @@ class OrganisationSitesTests(DataTestClient):
                 'city': 'london',
                 'postcode': 'E14GH',
                 'region': 'Hertfordshire',
-                'country': 'GB'},
+                'country': 'GB'
+            },
         }
 
         response = self.client.post(url, data, **self.gov_headers)
