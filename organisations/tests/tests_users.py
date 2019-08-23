@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from test_helpers.clients import DataTestClient
+from users.enums import UserStatuses
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
@@ -21,10 +22,11 @@ class OrganisationUsersTests(DataTestClient):
         self.create_organisation('New Org')
 
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()
+        response_data = response.json()['users']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['users']), 1)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]['status'], UserStatuses.ACTIVE)
 
     def test_add_user_to_organisation_success(self):
         """

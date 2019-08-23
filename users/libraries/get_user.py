@@ -39,6 +39,8 @@ def get_user_organisations(pk):
 def get_users_from_organisation(pk):
     try:
         user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=pk)
+        for relationship in user_organisation_relationships:
+            relationship.user.status = relationship.status
         return [x.user for x in user_organisation_relationships]
     except UserOrganisationRelationship.DoesNotExist:
         raise NotFoundError({'organisation': 'Organisation not found - ' + str(pk)})

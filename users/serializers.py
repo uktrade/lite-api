@@ -25,7 +25,14 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
+
+    def get_status(self, instance):
+        if hasattr(instance, 'status'):
+            return instance.status
+
+        return None
 
     def get_organisations(self, instance):
         try:
