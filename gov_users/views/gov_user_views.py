@@ -128,15 +128,11 @@ class GovUserDetail(APIView):
         data = JSONParser().parse(request)
 
         if 'status' in data.keys():
-            if gov_user.id == GovUser.objects.get(email=request.user.email).id:
+            if gov_user.id == request.user.id:
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
-            for key in list(data.keys()):
-                if data[key] is '':
-                    del data[key]
-
             serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -149,7 +145,7 @@ class GovUserDetail(APIView):
                                     status=status.HTTP_200_OK)
 
             return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+                                status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):
