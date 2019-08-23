@@ -15,8 +15,7 @@ class OrganisationUsersTests(DataTestClient):
 
     def test_view_all_users_belonging_to_organisation(self):
         """
-        Ensure that the sole user of a newly created organisation can see themselves
-        in the endpoint
+        Ensure that a user can see all users belonging to an organisation
         """
         # Create an additional organisation and user to ensure
         # that only users from the first organisation are shown
@@ -50,8 +49,8 @@ class OrganisationUsersTests(DataTestClient):
 
     def test_add_existing_user_to_organisation_failure(self):
         """
-        Ensure that a user cannot be added twice to the
-        same organisation
+        Ensure that a user cannot be added twice
+        to the same organisation
         """
         data = {
             'first_name': self.exporter_user.first_name,
