@@ -12,7 +12,7 @@ from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
 
 
-class OrgSiteList(APIView):
+class SitesList(APIView):
     """
     List all sites for an organisation/create site
     """
@@ -47,70 +47,33 @@ class OrgSiteList(APIView):
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class OrgSiteDetail(APIView):
+class SiteDetail(APIView):
     """
     Show details for for a specific site/edit site
     """
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk, site_pk):
-        # organisation = get_organisation_by_user(request.user)
-        # site = get_site_with_organisation(pk, organisation)
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
-
-        serializer = SiteViewSerializer(site)
-        return JsonResponse(data={'site': serializer.data},
-                            )
-
-    @transaction.atomic
-    def put(self, request, org_pk, site_pk):
-        # organisation = get_organisation_by_user(request.user)
-        Organisation.objects.get(pk=org_pk)
-        site = Site.objects.get(pk=site_pk)
-
-        with reversion.create_revision():
-            serializer = SiteSerializer(instance=site,
-                                              data=request.data,
-                                              partial=True)
-            if serializer.is_valid():
-                serializer.save()
-
-                return JsonResponse(data={'site': serializer.data},
-                                    status=status.HTTP_200_OK)
-
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
-
-
-class SiteDetail(APIView):
-    """
-    Show details for for a specific site/edit site
-    """
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        site = get_site_with_organisation(pk, organisation)
 
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data})
 
     @transaction.atomic
-    def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
+    def put(self, request, org_pk, site_pk):
+        Organisation.objects.get(pk=org_pk)
+        site = Site.objects.get(pk=site_pk)
 
         with reversion.create_revision():
-            serializer = SiteSerializer(get_site_with_organisation(pk, organisation),
-                                              data=request.data,
-                                              partial=True)
+            serializer = SiteSerializer(instance=site,
+                                        data=request.data,
+                                        partial=True)
             if serializer.is_valid():
                 serializer.save()
 
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Site Revision")
-
-                return JsonResponse(data={'site': serializer.data})
+                return JsonResponse(data={'site': serializer.data},
+                                    status=status.HTTP_200_OK)
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)

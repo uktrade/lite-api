@@ -10,7 +10,7 @@ from users.libraries.get_user import get_users_from_organisation
 from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer
 
 
-class OrganisationUsersList(APIView):
+class UsersList(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk):

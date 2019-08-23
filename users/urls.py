@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from users import views
 
-app_name = "users"
+app_name = 'users'
 
 router = routers.SimpleRouter()
 router.register(r'notifications', views.NotificationViewset,)
@@ -18,6 +18,4 @@ urlpatterns = [
     path('<uuid:pk>/', views.UserDetail.as_view(), name='user'),
     # ex: /users/me/
     path('me/', views.UserMeDetail.as_view(), name='me'),
-    #
-    # path('authenticate/tokens/', views.ExporterTokens.as_view(), name='tokens')
 ] + router.urls

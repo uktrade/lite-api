@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import create_exporter_users
-from users.models import ExporterUser
 
 
 class UserTests(DataTestClient):
