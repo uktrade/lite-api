@@ -173,6 +173,10 @@ class GoodFlagsAssignmentSerializer(serializers.ModelSerializer):
 
 
 class FullGoodSerializer(GoodSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.all().values('id', 'name'))
 
     class Meta:
         model = Good
