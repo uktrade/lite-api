@@ -12,5 +12,9 @@ urlpatterns = [
     # ex: /goods/<uuid:pk>/documents/ - View all documents on a good or add a new one
     path('<uuid:pk>/documents/', views.GoodDocuments.as_view(), name='documents'),
     # ex: /goods/<uuid:pk>/documents/<uuid:doc_pk>/ - View a specific document (get the download link etc.) or delete it
-    path('<uuid:pk>/documents/<uuid:doc_pk>/', views.GoodDocumentDetail.as_view(), name='document')
+    path('<uuid:pk>/documents/<uuid:doc_pk>/', views.GoodDocumentDetail.as_view(), name='document'),
+    # ex: /goods/<uuid:pk>/flags/
+    path('<uuid:pk>/flags/', views.GoodFlagsAssignment.as_view(), name='good_flags'),
+    # ex: /cases/<uuid:pk>/activity/
+    path('<uuid:pk>/activity/', views.GoodActivity.as_view(), name='activity'),
 ]

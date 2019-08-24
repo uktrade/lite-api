@@ -13,7 +13,8 @@ from users.serializers import BaseUserViewSerializer
 CHANGE = 'change'
 CASE_NOTE = 'case_note'
 ECJU_QUERY = 'ecju_query'
-CHANGE_FLAGS = 'change_case_flags'
+CHANGE_CASE_FLAGS = 'change_case_flags'
+CHANGE_GOOD_FLAGS = 'change_good_flags'
 
 
 def _activity_item(activity_type, date, user, data, status=None):
@@ -73,10 +74,36 @@ def convert_case_reversion_to_activity(version: Version):
         comment = json.loads(revision_object.comment)
         if 'flags' in comment:
             data['flags'] = comment['flags']
-            activity_type = CHANGE_FLAGS
+            activity_type = CHANGE_CASE_FLAGS
     except ValueError:
         if activity_type == CHANGE and 'status' in activity:
             data['status'] = get_case_status_from_pk(activity['status']).status
+
+    return _activity_item(activity_type,
+                          revision_object.date_created,
+                          BaseUserViewSerializer(user).data,
+                          data)
+
+
+def convert_good_reversion_to_activity(version: Version):
+    """
+    Converts an audit item to a dict suitable for the case activity list
+    """
+    revision_object = Revision.objects.get(id=version.revision_id)
+    user = get_user_by_pk(revision_object.user.id)
+    activity_type = CHANGE
+    data = {}
+
+    # # Ignore the exporter user's `submitted` status and `case-created` audits
+    # # (these are created when a case has first been made)
+    # if isinstance(user, ExporterUser) and ('type' in activity or activity['status'] == str(
+    #         get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk)):
+    #     return None
+
+    comment = json.loads(revision_object.comment)
+    if 'flags' in comment:
+        data['flags'] = comment['flags']
+        activity_type = CHANGE_GOOD_FLAGS
 
     return _activity_item(activity_type,
                           revision_object.date_created,

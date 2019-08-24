@@ -13,7 +13,7 @@ from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
-from goods.serializers import GoodSerializer
+from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from organisations.models import ExternalLocation
@@ -27,7 +27,7 @@ from static.statuses.models import CaseStatus
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
-    good = GoodSerializer(read_only=True)
+    good = FullGoodSerializer(read_only=True)
 
     class Meta:
         model = GoodOnApplication

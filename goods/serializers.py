@@ -5,6 +5,7 @@ from cases.models import Case, CaseNote
 from clc_queries.models import ClcQuery
 from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document
+from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
@@ -152,3 +153,27 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
         fields = ('id', 'name', 'description', 'size', 'safe')
+
+
+class GoodFlagsAssignmentSerializer(serializers.ModelSerializer):
+    """
+    Serializes flags on good
+    """
+    flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+
+    class Meta:
+        model = Good
+        fields = ('id', 'flags')
+
+    def validate_flags(self, flags):
+        team_good_level_flags = list(Flag.objects.filter(level='Good', team=self.context['team']))
+        if not set(flags).issubset(list(team_good_level_flags)):
+            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
+        return flags
+
+
+class FullGoodSerializer(GoodSerializer):
+
+    class Meta:
+        model = Good
+        fields = '__all__'
