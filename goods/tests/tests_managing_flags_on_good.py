@@ -16,6 +16,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         # Cases
         self.good = self.create_controlled_good('a good', self.organisation)
+        self.good_2 = self.create_controlled_good('a second good', self.organisation)
 
         # Teams
         self.other_team = self.create_team('Team')
@@ -28,7 +29,7 @@ class GoodFlagsManagementTests(DataTestClient):
         self.all_flags = [self.team_good_flag_1, self.team_org_flag, self.team_good_flag_2, self.other_team_good_flag]
 
         self.good_url = reverse('goods:good', kwargs={'pk': self.good.id})
-        self.good_flag_url = reverse('goods:good_flags', kwargs={'pk': self.good.id})
+        self.good_flag_url = reverse('goods:good_flags')
         self.audit_url = reverse('goods:activity', kwargs={'pk': self.good.id})
 
     def test_no_flags_for_good_are_returned(self):
@@ -71,13 +72,17 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
+        data = {
+            'goods': [self.good.pk],
+            'flags': [self.team_good_flag_1.pk],
+            'note': 'A reason for changing the flags'
+        }
 
         # Act
-        self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
+        self.client.put(self.good_flag_url, data, **self.gov_headers)
 
         # Assert
-        self.assertEquals(len(flags_to_add['flags']), len(self.good.flags.all()))
+        self.assertEquals(len(data['flags']), len(self.good.flags.all()))
         self.assertTrue(self.team_good_flag_1 in self.good.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -88,7 +93,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'goods': [self.good.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -105,7 +110,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'goods': [self.good.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -125,7 +130,7 @@ class GoodFlagsManagementTests(DataTestClient):
         # included in the request body)
         self.all_flags.remove(self.team_org_flag)
         self.good.flags.set(self.all_flags)
-        flags_to_keep = {'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
+        flags_to_keep = {'goods': [self.good.pk],'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
         self.all_flags.remove(self.team_good_flag_1)
 
         # Act
@@ -147,7 +152,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags = {'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
+        flags = {'goods': [self.good.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         self.client.put(self.good_flag_url, flags, **self.gov_headers)
@@ -158,3 +163,15 @@ class GoodFlagsManagementTests(DataTestClient):
         activity = response_data['activity']
         self.assertEquals(len(flags['flags']), len(activity))
         self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])
+
+    def test_setting_flags_on_two_goods(self):
+        data = {
+            'goods': [self.good.id, self.good_2.id],
+            'flags': [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+            'note': 'A reason for changing the flags'
+        }
+
+        response = self.client.put(self.good_flag_url, data, **self.gov_headers)
+        response_data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 2)

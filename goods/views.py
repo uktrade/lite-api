@@ -231,18 +231,22 @@ class GoodFlagsAssignment(APIView):
     Assigns flags to a good
     """
 
-    def put(self, request, pk):
-        good = get_good(str(pk))
+    @transaction.atomic
+    def put(self, request):
         data = JSONParser().parse(request)
+        response_data = []
 
-        serializer = GoodFlagsAssignmentSerializer(data=data, context={'team': request.user.team})
+        for pk in data['goods']:
+            good = get_good(pk)
+            serializer = GoodFlagsAssignmentSerializer(data=data, context={'team': request.user.team})
 
-        if serializer.is_valid():
-            self._assign_flags(serializer.validated_data.get('flags'), serializer.validated_data.get('note'), good, request.user)
+            if serializer.is_valid():
+                self._assign_flags(serializer.validated_data.get('flags'), serializer.validated_data.get('note'), good, request.user)
+                response_data.append({'good': serializer.data})
+            else:
+                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
 
     def _assign_flags(self, validated_data, note, good, user):
         previously_assigned_team_flags = good.flags.filter(level='Good', team=user.team)
