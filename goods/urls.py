@@ -15,6 +15,6 @@ urlpatterns = [
     path('<uuid:pk>/documents/<uuid:doc_pk>/', views.GoodDocumentDetail.as_view(), name='document'),
     # ex: /goods/<uuid:pk>/flags/
     path('<uuid:pk>/flags/', views.GoodFlagsAssignment.as_view(), name='good_flags'),
-    # ex: /cases/<uuid:pk>/activity/
+    # ex: /goods/<uuid:pk>/activity/
     path('<uuid:pk>/activity/', views.GoodActivity.as_view(), name='activity'),
 ]

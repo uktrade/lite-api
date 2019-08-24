@@ -94,17 +94,21 @@ def convert_good_reversion_to_activity(version: Version):
     activity_type = CHANGE
     data = {}
 
+    print(user, revision_object)
+
     # # Ignore the exporter user's `submitted` status and `case-created` audits
     # # (these are created when a case has first been made)
     # if isinstance(user, ExporterUser) and ('type' in activity or activity['status'] == str(
     #         get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk)):
     #     return None
-
-    comment = json.loads(revision_object.comment)
-    if 'flags' in comment:
-        data['flags'] = comment['flags']
-        activity_type = CHANGE_GOOD_FLAGS
-
+    try:
+        comment = json.loads(revision_object.comment)
+        print(comment)
+        if 'flags' in comment:
+            data['flags'] = comment['flags']
+            activity_type = CHANGE_GOOD_FLAGS
+    except ValueError:
+        return None
     return _activity_item(activity_type,
                           revision_object.date_created,
                           BaseUserViewSerializer(user).data,

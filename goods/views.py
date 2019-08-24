@@ -271,12 +271,15 @@ class GoodActivity(APIView):
 
     def get(self, request, pk):
         good = get_good(pk)
+        print(good)
 
         version_records = Version.objects.filter(Q(object_id=good.pk))
-
+        print(version_records)
         activity = []
         for version in version_records:
+            print(version)
             activity_item = convert_good_reversion_to_activity(version)
+            print(activity)
             if activity_item:
                 activity.append(activity_item)
 
