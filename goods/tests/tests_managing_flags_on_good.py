@@ -71,7 +71,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_good_flag_1.pk]}
+        flags_to_add = {'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -88,7 +88,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.other_team_good_flag.pk]}
+        flags_to_add = {'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -105,7 +105,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_org_flag.pk]}
+        flags_to_add = {'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -125,7 +125,7 @@ class GoodFlagsManagementTests(DataTestClient):
         # included in the request body)
         self.all_flags.remove(self.team_org_flag)
         self.good.flags.set(self.all_flags)
-        flags_to_keep = {'flags': [self.team_good_flag_2.pk]}
+        flags_to_keep = {'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
         self.all_flags.remove(self.team_good_flag_1)
 
         # Act
@@ -147,7 +147,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags = {'flags': [self.team_good_flag_1.pk]}
+        flags = {'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         self.client.put(self.good_flag_url, flags, **self.gov_headers)
@@ -156,6 +156,5 @@ class GoodFlagsManagementTests(DataTestClient):
         # Assert
         response_data = response.json()
         activity = response_data['activity']
-        print(activity)
         self.assertEquals(len(flags['flags']), len(activity))
         self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])

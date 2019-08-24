@@ -160,10 +160,11 @@ class GoodFlagsAssignmentSerializer(serializers.ModelSerializer):
     Serializes flags on good
     """
     flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+    note = serializers.CharField(max_length=200)
 
     class Meta:
         model = Good
-        fields = ('id', 'flags')
+        fields = ('id', 'flags', 'note')
 
     def validate_flags(self, flags):
         team_good_level_flags = list(Flag.objects.filter(level='Good', team=self.context['team']))

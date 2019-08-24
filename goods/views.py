@@ -228,7 +228,7 @@ class GoodDocumentDetail(APIView):
 class GoodFlagsAssignment(APIView):
     authentication_classes = (GovAuthentication,)
     """
-    Assigns flags to a case
+    Assigns flags to a good
     """
 
     def put(self, request, pk):
@@ -238,13 +238,13 @@ class GoodFlagsAssignment(APIView):
         serializer = GoodFlagsAssignmentSerializer(data=data, context={'team': request.user.team})
 
         if serializer.is_valid():
-            self._assign_flags(serializer.validated_data.get('flags'), good, request.user)
+            self._assign_flags(serializer.validated_data.get('flags'), serializer.validated_data.get('note'), good, request.user)
 
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
         else:
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    def _assign_flags(self, validated_data, good, user):
+    def _assign_flags(self, validated_data, note, good, user):
         previously_assigned_team_flags = good.flags.filter(level='Good', team=user.team)
         previously_assigned_not_team_flags = good.flags.exclude(level='Good', team=user.team)
         add_good_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
@@ -252,7 +252,7 @@ class GoodFlagsAssignment(APIView):
 
         with reversion.create_revision():
             reversion.set_comment(
-                ('{"flags": {"removed": ' + str(remove_good_flags) + ', "added": ' + str(add_good_flags) + '}}')
+                ('{"flags": {"removed": ' + str(remove_good_flags) + ', "added": ' + str(add_good_flags) + ', "note": "' + str(note) + '"}}')
                 .replace('\'', '"')
             )
             reversion.set_user(user)
@@ -271,15 +271,11 @@ class GoodActivity(APIView):
 
     def get(self, request, pk):
         good = get_good(pk)
-        print(good)
 
         version_records = Version.objects.filter(Q(object_id=good.pk))
-        print(version_records)
         activity = []
         for version in version_records:
-            print(version)
             activity_item = convert_good_reversion_to_activity(version)
-            print(activity)
             if activity_item:
                 activity.append(activity_item)
 
