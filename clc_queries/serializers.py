@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from clc_queries.models import ClcQuery
-from goods.serializers import GoodSerializer, FullGoodSerializer
+from goods.serializers import FullGoodSerializer
 from static.statuses.models import CaseStatus
 
 

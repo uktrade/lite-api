@@ -9,8 +9,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
-from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_good_reversion_to_activity
-from cases.libraries.get_case import get_case
+from cases.libraries.activity_helpers import convert_good_reversion_to_activity
 from conf.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
