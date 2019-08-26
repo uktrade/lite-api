@@ -6,7 +6,7 @@ from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
-from users.libraries.get_user import get_user_by_pk, get_user_by_email
+from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
 
@@ -66,8 +66,8 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(error_messages={
-        'invalid': 'Enter an email address in the correct format, like name@example.com'}
-    )
+        'invalid': 'Enter an email address in the correct format, like name@example.com'
+    })
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(),
@@ -83,7 +83,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
             try:
                 organisation = get_organisation_by_pk(self.initial_data['organisation'])
 
-                if UserOrganisationRelationship.objects.get(user=get_user_by_email(self.initial_data['email']),
+                if UserOrganisationRelationship.objects.get(user=get_exporter_user_by_email(self.initial_data['email']),
                                                             organisation=organisation):
                     raise serializers.ValidationError(
                         self.initial_data['email'] + ' is already a member of this organisation.')
