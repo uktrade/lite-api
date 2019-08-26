@@ -28,7 +28,7 @@ class UsersList(APIView):
         })
     def post(self, request, org_pk):
         """
-        Create Exporter within the same organisation that current user is logged into
+        Create an exporter user within the specified organisation
         """
         data = JSONParser().parse(request)
         data['organisation'] = str(org_pk)
