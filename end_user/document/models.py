@@ -6,4 +6,3 @@ from end_user.models import EndUser
 
 class EndUserDocument(Document):
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
