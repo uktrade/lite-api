@@ -158,8 +158,8 @@ class GoodDocuments(APIView):
             return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)
-        return JsonResponse({'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class GoodDocumentDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
