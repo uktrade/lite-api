@@ -16,7 +16,7 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
-from gov_users.libraries.user_to_token import user_to_token
+from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
 from queues.models import Queue

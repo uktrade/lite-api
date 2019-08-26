@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodControlled
 from goods.models import Good
-from gov_users.libraries.user_to_token import user_to_token
+from users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
 

@@ -8,9 +8,6 @@ from users.models import Permission, Role
 
 class GovUserEditTests(DataTestClient):
 
-    def setUp(self):
-        super().setUp()
-
     def test_edit_a_gov_user(self):
         team = Team(name='Second')
         team.save()

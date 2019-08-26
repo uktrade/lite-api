@@ -1,7 +1,7 @@
 from rest_framework import authentication, exceptions
 
 from gov_users.enums import GovUserStatuses
-from gov_users.libraries.token_to_user import token_to_user_pk
+from users.libraries.token_to_user import token_to_user_pk
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisations
