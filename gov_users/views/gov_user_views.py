@@ -9,9 +9,9 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
-from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from gov_users.libraries.user_to_token import user_to_token
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from users.libraries.get_user import get_user_by_pk
 from users.models import GovUser
 
 
@@ -110,7 +110,7 @@ class GovUserDetail(APIView):
         """
         Get user from pk
         """
-        gov_user = get_gov_user_by_pk(pk)
+        gov_user = get_user_by_pk(pk)
 
         serializer = GovUserViewSerializer(gov_user)
         return JsonResponse(data={'user': serializer.data})
@@ -124,7 +124,7 @@ class GovUserDetail(APIView):
         """
         Edit user from pk
         """
-        gov_user = get_gov_user_by_pk(pk)
+        gov_user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
         if 'status' in data.keys():
