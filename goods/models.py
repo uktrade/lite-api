@@ -34,4 +34,3 @@ class GoodDocument(Document):
     good = models.ForeignKey(Good, on_delete=models.CASCADE)
     user = models.ForeignKey(ExporterUser, on_delete=models.DO_NOTHING)
     organisation = models.ForeignKey(Organisation, on_delete=models.DO_NOTHING)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)

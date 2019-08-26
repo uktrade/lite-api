@@ -15,6 +15,7 @@ class Document(models.Model):
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
     safe = models.NullBooleanField()
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)
 
     def __str__(self):
         return self.name
