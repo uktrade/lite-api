@@ -1,8 +1,8 @@
 from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationLicenceType
 from test_helpers.clients import DataTestClient
 
 
@@ -21,11 +21,14 @@ class EndUserDocumentTests(DataTestClient):
                  "s3_key": "file123_12345678.pdf",
                  "size": 476}
 
-    # if POST - end-user set - GET returns correct data
     @mock.patch('documents.tasks.prepare_document.now')
     def test_correct_data_get_document(self, prepare_document_function):
         """
-        TODO: Add description
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached end user document
         """
         # assemble
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
@@ -40,33 +43,55 @@ class EndUserDocumentTests(DataTestClient):
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
         self.assertEqual(response_data['size'], expected['size'])
 
-    # if GET - end-user not set - return 400
     def test_status_code_get_document_no_user(self):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to retrieve a document
+        Then a 400 BAD REQUEST is returned
+        """
         # act
         response = self.client.get(self.url_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if POST - end-user not set - return 400
     @mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_post_no_user(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to submit a document
+        Then a 400 BAD REQUEST is returned
+        """
         # act
         response = self.client.post(self.url_no_user, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if DELETE - end-user not set - return 400
     def test_status_code_delete_no_user(self):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to delete a document
+        Then a 400 BAD REQUEST is returned
+        """
         # act
         response = self.client.delete(self.url_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    # if GET - document not set - return None
     def test_status_code_get_document_not_exist(self):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user does not have a document attached
+        When there is an attempt to get a document
+        Then a 200 OK is returned
+        And the response contains a null document
+        """
         # act
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
@@ -74,32 +99,43 @@ class EndUserDocumentTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(None, response.json()['document'])
 
-    # if POST - document not set - return 201
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_status_code_post_document_not_exist(self, mock_obj):
+    def test_status_code_post_document_not_exist(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user does not have a document attached
+        When a document is submitted
+        Then a 201 CREATED is returned
+        """
         # act
         response = self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        """
-        TODO: Test document can be fetched
-        """
 
-    # if DELETE - document not set - return 400
     def test_status_code_delete_document_not_exist(self):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to delete a document
+        Then a 400 BAD REQUEST is returned
+        """
         # act
         response = self.client.delete(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        """
-        TODO: Test only a single document is present
-        """
 
-    # if POST - document exist - return 400
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_status_code_post_document_exists(self, mock_obj):
+    def test_status_code_post_document_exists(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to post a document
+        Then a 400 BAD REQUEST is returned
+        """
         # assemble
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
@@ -108,14 +144,17 @@ class EndUserDocumentTests(DataTestClient):
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        """
-        TODO: Test document is gone
-        """
 
-    # if DELETE - document exist - return 204
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_status_code_delete_document_exists(self, delete_s3_mock, prepare_document_now_mock):
+    def test_status_code_delete_document_exists(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
         # assemble
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
@@ -125,9 +164,15 @@ class EndUserDocumentTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    # if GET - document exist - return 200
     @mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_get_document_exists(self, mock_obj):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When the document is retrieved
+        Then 200 OK is returned
+        """
         # assemble
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
@@ -137,10 +182,16 @@ class EndUserDocumentTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # if DELETE - document exist - return 204
     @mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_delete_end_user_document_calls_delete_s3(self, prepare_document_now_mock, delete_s3_mock):
+    def test_delete_end_user_document_calls_delete_s3(self, prepare_document_function, delete_s3_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to delete the document
+        Then the function to delete document from S3 is called
+        """
         # assemble
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
@@ -148,4 +199,4 @@ class EndUserDocumentTests(DataTestClient):
         self.client.delete(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        delete_s3_mock.assert_called_once()
+        delete_s3_function.assert_called_once()

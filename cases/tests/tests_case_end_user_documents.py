@@ -10,7 +10,15 @@ class CaseEndUserDocumentTests(DataTestClient):
 
     def test_case_contains_end_user_document(self):
         """
-        Test that an end user document is attached to the end user and stores the correct data
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document attached
+        And the end user document has been scanned by an AV
+        And the AV marked the document as safe
+        And the application is submitted
+        When the case is retrieved
+        Then the case it contains the end user document
+        And the data in the document is the same as the data in original draft's end user document
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation,

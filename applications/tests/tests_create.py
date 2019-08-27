@@ -53,7 +53,11 @@ class ApplicationsTests(DataTestClient):
 
     def test_status_code_post_no_end_user_document(self):
         """
-        Ensure we cannot add an end user without a document and receive a 400 error
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user doesn't have a document attached
+        When an application is submitted
+        Then a 400 BAD REQUEST is returned
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
@@ -68,7 +72,12 @@ class ApplicationsTests(DataTestClient):
 
     def test_status_code_post_with_untested_document(self):
         """
-        TODO: Add description
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document attached
+        And the end user document has not been scanned by an AV
+        When an application is submitted
+        Then a 400 BAD REQUEST is returned
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
@@ -84,7 +93,12 @@ class ApplicationsTests(DataTestClient):
 
     def test_status_code_post_with_infected_document(self):
         """
-        TODO: Add description
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document attached
+        And the AV marked the document as unsafe
+        When an application is submitted
+        Then a 400 BAD REQUEST is returned
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
