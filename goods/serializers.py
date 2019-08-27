@@ -3,9 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case, CaseNote
 from clc_queries.models import ClcQuery
-from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.libraries.process_document import process_document
-from documents.tasks import prepare_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation

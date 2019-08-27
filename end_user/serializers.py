@@ -1,7 +1,5 @@
 from rest_framework import serializers, relations
 
-import documents
-from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.libraries.process_document import process_document
 from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
