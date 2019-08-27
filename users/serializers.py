@@ -76,7 +76,7 @@ class NotificationsSerializer(serializers.ModelSerializer):
     application = serializers.SerializerMethodField()
 
     def get_application(self, obj):
-        case = obj.case_note.case
+        case = _get_notification_case(obj)
         application = case.application
         return application.id
 
@@ -89,7 +89,7 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
     clc_query = serializers.SerializerMethodField()
 
     def get_clc_query(self, obj):
-        case = obj.case_note.case
+        case = _get_notification_case(obj)
         clc_query = case.clc_query
         return clc_query.id
 
@@ -105,3 +105,12 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email')
+
+
+def _get_notification_case(notification):
+    if notification.case_note:
+        return notification.case_note.case
+    elif notification.ecju_query:
+        return notification.ecju_query.case
+    else:
+        raise Exception('Unexpected error, Notification object with no link to originating object')

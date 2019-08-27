@@ -53,7 +53,8 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = self.case.clc_query.good.organisation if self.case.clc_query else self.case.application.organisation
+            organisation = self.case.clc_query.good.organisation \
+                if self.case.clc_query else self.case.application.organisation
             for user in ExporterUser.objects.filter(organisation=organisation):
                 user.send_notification(case_note=self)
 
@@ -131,6 +132,17 @@ class EcjuQuery(models.Model):
                                        default=None, null=False)
     responded_by_user = models.ForeignKey(ExporterUser, related_name='exportuser_ecju_query', on_delete=models.CASCADE,
                                           default=None, null=True)
+
+    # pylint: disable=W0221
+    def save(self, *args, **kwargs):
+        super(EcjuQuery, self).save(*args, **kwargs)
+
+        organisation = self.case.clc_query.good.organisation \
+            if self.case.clc_query else self.case.application.organisation
+        print(organisation)
+        for user in ExporterUser.objects.filter(organisation=organisation):
+            print(2)
+            user.send_notification(ecju_query=self)
 
 
 class Notification(models.Model):
