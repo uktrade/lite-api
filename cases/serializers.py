@@ -242,7 +242,8 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
                   'response',
                   'case',
                   'responded_by_user',
-                  'created_at')
+                  'created_at',
+                  'responded_at')
 
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
@@ -261,7 +262,8 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
                   'case',
                   'responded_by_user',
                   'team',
-                  'created_at')
+                  'created_at',
+                  'responded_at')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

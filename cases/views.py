@@ -13,6 +13,7 @@ from cases.libraries.activity_helpers import convert_case_reversion_to_activity,
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
+from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
@@ -70,9 +71,9 @@ class CaseNoteList(APIView):
         Gets all case notes
         """
         case = get_case(pk)
-
         case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
         serializer = CaseNoteSerializer(case_notes, many=True)
+        mark_notifications_as_viewed(request.user, case_notes)
         return JsonResponse(data={'case_notes': serializer.data})
 
     def post(self, request, pk):
@@ -282,6 +283,7 @@ class CaseEcjuQueries(APIView):
         case = get_case(pk)
         case_ecju_queries = EcjuQuery.objects.filter(case=case)
         serializer = serializer(case_ecju_queries, many=True)
+        mark_notifications_as_viewed(request.user, case_ecju_queries)
 
         return JsonResponse({'ecju_queries': serializer.data})
 

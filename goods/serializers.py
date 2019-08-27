@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case, CaseNote
+from cases.models import Case, CaseNote, EcjuQuery
 from clc_queries.models import ClcQuery
 from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document
@@ -14,7 +14,6 @@ from users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodSerializer(serializers.ModelSerializer):
-
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     control_code = serializers.CharField(required=False, default="", allow_blank=True)
@@ -25,6 +24,7 @@ class GoodSerializer(serializers.ModelSerializer):
     clc_query_case_id = serializers.SerializerMethodField()
     clc_query_id = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
+    ecju_queries = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -40,6 +40,7 @@ class GoodSerializer(serializers.ModelSerializer):
                   'status',
                   'not_sure_details_details',
                   'notes',
+                  'ecju_queries',
                   'clc_query_id',
                   'documents',
                   )
@@ -75,6 +76,17 @@ class GoodSerializer(serializers.ModelSerializer):
             case_notes = CaseNote.objects.filter(case=case)
 
             return CaseNoteSerializer(case_notes, many=True).data
+        except Exception:
+            return None
+
+    def get_ecju_queries(self, instance):
+        from cases.serializers import EcjuQueryExporterSerializer  # circular import prevention
+        try:
+            clc_query = ClcQuery.objects.get(good=instance)
+            case = Case.objects.get(clc_query=clc_query)
+            ecju_queries = EcjuQuery.objects.filter(case=case)
+
+            return EcjuQueryExporterSerializer(ecju_queries, many=True).data
         except Exception:
             return None
 

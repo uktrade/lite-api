@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
+from cases.models import CaseNote
 from conf.authentication import ExporterAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -61,9 +63,10 @@ class GoodDetail(APIView):
             raise Http404
 
         serializer = GoodSerializer(good)
-        request.user.notification_set.filter(case_note__case__clc_query__good=good).update(
-            viewed_at=timezone.now()
-        )
+
+        case_notes = CaseNote.objects.filter(case__clc_query__good=good)
+        mark_notifications_as_viewed(request.user, case_notes)
+
         return JsonResponse(data={'good': serializer.data})
 
     def put(self, request, pk):

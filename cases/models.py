@@ -2,6 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
+from django.utils import timezone
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
@@ -128,6 +129,7 @@ class EcjuQuery(models.Model):
     response = models.CharField(null=True, blank=False, max_length=5000)
     case = models.ForeignKey(Case, related_name='case_ecju_query', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(GovUser, related_name='govuser_ecju_query', on_delete=models.CASCADE,
                                        default=None, null=False)
     responded_by_user = models.ForeignKey(ExporterUser, related_name='exportuser_ecju_query', on_delete=models.CASCADE,
@@ -135,14 +137,18 @@ class EcjuQuery(models.Model):
 
     # pylint: disable=W0221
     def save(self, *args, **kwargs):
-        super(EcjuQuery, self).save(*args, **kwargs)
+        existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
 
-        organisation = self.case.clc_query.good.organisation \
-            if self.case.clc_query else self.case.application.organisation
-        print(organisation)
-        for user in ExporterUser.objects.filter(organisation=organisation):
-            print(2)
-            user.send_notification(ecju_query=self)
+        # Only create a notification when saving a ECJU query for the first time
+        if existing_instance_count == 0:
+            super(EcjuQuery, self).save(*args, **kwargs)
+            organisation = self.case.clc_query.good.organisation \
+                if self.case.clc_query else self.case.application.organisation
+            for user in ExporterUser.objects.filter(organisation=organisation):
+                user.send_notification(ecju_query=self)
+        else:
+            self.responded_at = timezone.now()
+            super(EcjuQuery, self).save(*args, **kwargs)
 
 
 class Notification(models.Model):
