@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
@@ -105,7 +106,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
 
 class GoodOnDraftViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
-    unit = serializers.CharField()
+    unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
         model = GoodOnDraft
