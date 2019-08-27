@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.document.models import EndUserDocument
+from end_user.helpers import delete_end_user_document_if_exists
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -30,22 +30,19 @@ class DraftEndUser(APIView):
         with reversion.create_revision():
             serializer = EndUserSerializer(data=data)
             if serializer.is_valid():
-                end_user = serializer.save()
+                new_end_user = serializer.save()
 
                 # Reversion
                 reversion.set_user(request.user)
                 reversion.set_comment('Created End User')
 
-                # Ensure previous end_user on same draft is deleted when submitting a new one
+                # Delete previous end user and its document
                 if draft.end_user:
-                    old_end_user = EndUser.objects.get(id=draft.end_user.id)
-                    old_end_user_document = EndUserDocument.objects.filter(end_user__id=draft.end_user.id).first()
-                    if old_end_user_document:
-                        old_end_user_document.delete_s3()
-                    old_end_user.delete()
+                    delete_end_user_document_if_exists(draft.end_user)
+                    draft.end_user.delete()
 
                 # Set the end user of the draft application
-                draft.end_user = end_user
+                draft.end_user = new_end_user
                 draft.save()
 
                 return JsonResponse(data={'end_user': serializer.data},

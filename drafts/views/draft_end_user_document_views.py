@@ -81,12 +81,11 @@ class EndUserDocuments(APIView):
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        end_user_document = EndUserDocument.objects.filter(end_user=end_user).first()
-        if not end_user_document:
-            return JsonResponse(data={'error': 'No such document'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        end_user_document.delete_s3()
-        end_user_document.delete()
+        try:
+            end_user_document = EndUserDocument.objects.get(end_user=end_user)
+            end_user_document.delete_s3()
+            end_user_document.delete()
+        except EndUserDocument.DoesNotExist:
+            return JsonResponse(data={'error': 'No such document'}, status=status.HTTP_400_BAD_REQUEST)
 
         return HttpResponse(status=204)

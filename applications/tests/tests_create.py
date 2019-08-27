@@ -45,6 +45,10 @@ class ApplicationsTests(DataTestClient):
         TODO: Add description
         """
         draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        draft.end_user = self.create_end_user("End user", self.exporter_user.organisation)
+        draft.save()
+
+        self.create_document_for_end_user(draft.end_user)
 
         data = {'id': draft.id}
 
