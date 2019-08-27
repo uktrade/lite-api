@@ -194,7 +194,6 @@ class DataTestClient(BaseTestClient):
     def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
             end_user=end_user,
-            description='This is a document',
             name=name,
             s3_key='s3_keykey.pdf',
             size=123456,

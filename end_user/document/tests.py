@@ -19,8 +19,7 @@ class EndUserDocumentTests(DataTestClient):
 
         self.data = {"name": "file123.pdf",
                  "s3_key": "file123_12345678.pdf",
-                 "size": 476,
-                 "description": "Description 58398"}
+                 "size": 476}
 
     # if POST - end-user set - GET returns correct data
     @mock.patch('documents.tasks.prepare_document.now')
@@ -40,7 +39,6 @@ class EndUserDocumentTests(DataTestClient):
         self.assertEqual(response_data['name'], expected['name'])
         self.assertEqual(response_data['s3_key'], expected['s3_key'])
         self.assertEqual(response_data['size'], expected['size'])
-        self.assertEqual(response_data['description'], expected['description'])
 
     # if GET - end-user not set - return 400
     def test_status_code_get_document_no_user(self):

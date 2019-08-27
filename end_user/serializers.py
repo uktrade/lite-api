@@ -40,7 +40,7 @@ class EndUserDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EndUserDocument
-        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'description', 'safe')
+        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'safe')
 
     def create(self, validated_data):
         end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)

@@ -19,22 +19,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a open licence application
         """
-        draft = Draft(name='bloggs',
-                      licence_type=ApplicationLicenceType.OPEN_LICENCE,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.NO,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Fun',
-                      organisation=self.exporter_user.organisation)
-        draft.save()
-
-        draft = self.create_standard_draft(self.exporter_user.organisation)
-
-        self.create_document_for_end_user(draft.end_user)
-
-        SiteOnDraft(site=self.exporter_user.organisation.primary_site, draft=draft).save()
-        draft.save()
+        draft = self.create_open_draft(self.exporter_user.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
