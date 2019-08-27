@@ -74,6 +74,12 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(self.draft.end_user, None)
 
     def test_end_user_is_deleted_when_new_one_added(self):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        When a new end user is added
+        Then the old one is removed
+        """
         # assemble
         end_user_1_id = self.draft.end_user.id
 
@@ -91,6 +97,13 @@ class EndUserOnDraftTests(DataTestClient):
     @mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
     def test_end_user_document_is_deleted_when_associated_end_user_is_deleted(self, prep_doc_mock, delete_s3_mock):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document
+        When a new end user is added
+        Then the previous old user's associated document is deleted
+        """
         # assemble
         end_user_1_id = self.draft.end_user.id
         self.document_data = {"name": "file689.pdf",

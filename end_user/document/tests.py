@@ -3,6 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
+from end_user.document.models import EndUserDocument
 from test_helpers.clients import DataTestClient
 
 
@@ -144,6 +145,24 @@ class EndUserDocumentTests(DataTestClient):
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_only_one_document_exists_even_when_posting_multiple_documents(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to post a document
+        Then only a single document exists
+        """
+        # assemble
+        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+
+        # act
+        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(1, len(EndUserDocument.objects.all()))
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
