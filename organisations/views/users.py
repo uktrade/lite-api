@@ -19,7 +19,8 @@ class UsersList(APIView):
         """
         organisation = get_organisation_by_pk(org_pk)
 
-        view_serializer = ExporterUserViewSerializer(get_users_from_organisation(organisation), many=True)
+        users = get_users_from_organisation(organisation)
+        view_serializer = ExporterUserViewSerializer(users, many=True)
         return JsonResponse(data={'users': view_serializer.data})
 
     @swagger_auto_schema(
