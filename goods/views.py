@@ -266,9 +266,9 @@ class GoodFlagsAssignment(APIView):
 class GoodActivity(APIView):
     authentication_classes = (GovAuthentication,)
     """
-    Retrieves all activity related to a case
-    * Case Updates
-    * Case Notes
+    Retrieves all activity related to a good
+    * Good Updates
+    * Good Notes
     * ECJU Queries
     """
 
