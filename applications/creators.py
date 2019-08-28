@@ -19,7 +19,9 @@ def create_standard_licence(draft, application, errors):
 
     try:
         end_user_document = EndUserDocument.objects.get(end_user=draft.end_user)
-        if not end_user_document.safe:
+        if end_user_document.safe is None:
+            errors['end_user_document'] = get_string('applications.standard.end_user_document_processing')
+        elif not end_user_document.safe:
             errors['end_user_document'] = get_string('applications.standard.end_user_document_infected')
     except EndUserDocument.DoesNotExist:
         errors['end_user_document'] = get_string('applications.standard.no_end_user_document_set')

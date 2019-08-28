@@ -82,6 +82,7 @@ class ApplicationsTests(DataTestClient):
         And the end user document has not been scanned by an AV
         When an application is submitted
         Then a 400 BAD REQUEST is returned
+        And the response contains a message saying that the document is still being processed
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
@@ -93,7 +94,7 @@ class ApplicationsTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(response, text='still being processed', status_code=400)
 
     def test_status_code_post_with_infected_document(self):
         """
@@ -103,6 +104,7 @@ class ApplicationsTests(DataTestClient):
         And the AV marked the document as unsafe
         When an application is submitted
         Then a 400 BAD REQUEST is returned
+        And the response contains a message saying that the document is infected
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
@@ -114,4 +116,4 @@ class ApplicationsTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(response, text='infected end user document', status_code=400)
