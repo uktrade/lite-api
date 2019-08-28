@@ -10,7 +10,7 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
 
     @parameterized.expand([
@@ -54,7 +54,7 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_failure(self, data):
-        self.draft = self.create_draft(self.exporter_user.organisation)
+        self.draft = self.create_draft(self.organisation)
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()

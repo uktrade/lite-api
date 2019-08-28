@@ -16,7 +16,7 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
-from gov_users.libraries.user_to_token import user_to_token
+from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
 from queues.models import Queue
@@ -27,7 +27,7 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.helpers import random_name
-from users.models import GovUser, BaseUser, ExporterUser
+from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 
 class BaseTestClient(APITestCase, URLPatternsTestCase):
@@ -62,7 +62,8 @@ class DataTestClient(BaseTestClient):
         # Exporter User Setup
         self.organisation = self.create_organisation()
         self.exporter_user = ExporterUser.objects.get()
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user)}
+        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+                                 'HTTP_ORGANISATION_ID': self.organisation.id}
 
         self.queue = Queue.objects.get(team=self.team)
 
@@ -83,9 +84,12 @@ class DataTestClient(BaseTestClient):
 
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com',
-                                     organisation=organisation)
+                                     email=f'{first_name}@{last_name}.com')
+        exporter_user.organisation = organisation
         exporter_user.save()
+
+        UserOrganisationRelationship(user=exporter_user,
+                                     organisation=organisation).save()
 
         return organisation
 
@@ -127,7 +131,7 @@ class DataTestClient(BaseTestClient):
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.exporter_user.organisation, status)
+        clc_query = self.create_clc_query(name, self.organisation, status)
         case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
@@ -176,11 +180,11 @@ class DataTestClient(BaseTestClient):
         case_doc.save()
         return case_doc
 
-    def create_good_document(self, good: Good, user: ExporterUser, name: str, s3_key: str):
+    def create_good_document(self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str):
         good_doc = GoodDocument(good=good,
                                 description='This is a document',
                                 user=user,
-                                organisation=user.organisation,
+                                organisation=organisation,
                                 name=name,
                                 s3_key=s3_key,
                                 size=123456,

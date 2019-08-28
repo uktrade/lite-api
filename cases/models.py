@@ -14,7 +14,7 @@ from goodstype.models import GoodsType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from users.models import BaseUser, ExporterUser, GovUser
+from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
 
 
 @reversion.register()
@@ -54,8 +54,8 @@ class CaseNote(models.Model):
 
         if creating and self.is_visible_to_exporter:
             organisation = self.case.clc_query.good.organisation if self.case.clc_query else self.case.application.organisation
-            for user in ExporterUser.objects.filter(organisation=organisation):
-                user.send_notification(self)
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
+                user_relationship.user.send_notification(self)
 
 
 class CaseAssignment(models.Model):

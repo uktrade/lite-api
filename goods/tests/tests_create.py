@@ -51,6 +51,7 @@ class GoodsCreateTests(DataTestClient):
 
             self.create_good_document(good=Good.objects.get(id=response_data['id']),
                                       user=self.exporter_user,
+                                      organisation=self.organisation,
                                       name='doc1',
                                       s3_key='doc3')
 
