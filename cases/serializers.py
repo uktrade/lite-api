@@ -7,10 +7,8 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, E
 from clc_queries.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from documents.tasks import prepare_document
 from end_user.models import EndUser
 from flags.models import Flag
 from goods.models import Good
