@@ -28,7 +28,7 @@ from static.units.enums import Units
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
-    good = GoodSerializer(read_only=True)
+    good = FullGoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
