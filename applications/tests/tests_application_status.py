@@ -12,7 +12,7 @@ class ApplicationDenialTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.standard_application = self.create_standard_application(self.organisation)
         self.url = reverse('applications:application', kwargs={'pk': self.standard_application.id})
 
     @parameterized.expand([

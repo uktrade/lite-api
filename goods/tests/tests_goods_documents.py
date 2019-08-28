@@ -17,8 +17,8 @@ class GoodDocumentsTests(DataTestClient):
         self.url = reverse('goods:documents', kwargs={'pk': self.good.id})
 
     def test_can_view_all_documents_on_a_good(self):
-        self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
-        self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
+        self.create_good_document(good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key='doc1key', name='doc1.pdf')
+        self.create_good_document(good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key='doc2key', name='doc2.pdf')
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
@@ -64,7 +64,11 @@ class GoodDocumentsTests(DataTestClient):
         """
         draft = self.create_standard_draft(self.organisation)
         good = GoodOnDraft.objects.get(draft=draft).good
-        document_1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
+        document_1 = self.create_good_document(good=self.good,
+                                               user=self.exporter_user,
+                                               organisation=self.organisation,
+                                               s3_key='doc1key',
+                                               name='doc1.pdf')
         self.submit_draft(draft)
 
         url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': document_1.id})

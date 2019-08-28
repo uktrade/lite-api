@@ -8,21 +8,19 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication
-from gov_users.enums import GovUserStatuses
-from gov_users.libraries.user_to_token import user_to_token
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
+from users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
-from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
 from users.models import ExporterUser
-from users.serializers import ExporterUserCreateUpdateSerializer, NotificationsSerializer, \
-    ExporterUserViewSerializer, ClcNotificationsSerializer
+from users.serializers import NotificationsSerializer, \
+    ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
 
 
 class AuthenticateExporterUser(APIView):
     """
-        Authenticate user
-        """
+    Authenticate user
+    """
     permission_classes = (AllowAny,)
 
     @swagger_auto_schema(
@@ -48,23 +46,31 @@ class AuthenticateExporterUser(APIView):
             return JsonResponse(data={'errors': 'User not found'},
                                 status=status.HTTP_403_FORBIDDEN)
 
-        if user.status == GovUserStatuses.DEACTIVATED:
-            return JsonResponse(data={'errors': 'User not found'},
-                                status=status.HTTP_403_FORBIDDEN)
-
         token = user_to_token(user)
-        return JsonResponse(data={'token': token, 'first_name': user.first_name, 'last_name': user.last_name, 'lite_api_user_id': str(user.id)})
+        return JsonResponse(data={'token': token,
+                                  'first_name': user.first_name,
+                                  'last_name': user.last_name,
+                                  'lite_api_user_id': str(user.id)})
 
 
 class UserList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
-        organisation = get_organisation_by_user(request.user)
-        serializer = ExporterUserViewSerializer(ExporterUser.objects.filter(organisation=organisation), many=True)
+        """
+        Returns a list of Exporter users
+        """
+        serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
         return JsonResponse(data={'users': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request):
+        """
+        Create Exporter within the same organisation that current user is logged into
+        """
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
@@ -82,23 +88,26 @@ class UserList(APIView):
 
 class UserDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
-    """
-    Get user from pk
-    """
+
     def get(self, request, pk):
+        """
+        Get user from pk
+        """
         user = get_user_by_pk(pk)
 
         serializer = ExporterUserViewSerializer(user)
         return JsonResponse(data={'user': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            400: 'JSON parse error'
+        })
     def put(self, request, pk):
+        """
+        Update Exporter user
+        """
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
-
-        if 'status' in data.keys():
-            if user_is_trying_to_change_own_status(user.id, request.user.id):
-                return JsonResponse(data={'errors': 'A user cannot change their own status'},
-                                    status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
             serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
@@ -146,7 +155,7 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
 
 
 class UserMeDetail(APIView):
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (ExporterOnlyAuthentication,)
     """
     Get the user from request
     """
