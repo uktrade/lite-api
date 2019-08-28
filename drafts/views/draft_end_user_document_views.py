@@ -63,7 +63,6 @@ class EndUserDocuments(APIView):
         return JsonResponse({'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
-
     @swagger_auto_schema(
         request_body=EndUserDocumentSerializer,
         responses={

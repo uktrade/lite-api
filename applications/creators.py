@@ -10,6 +10,47 @@ from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
 
+def create_goods_for_applications(draft, application):
+    for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
+        good_on_application = GoodOnApplication(
+            good=good_on_draft.good,
+            application=application,
+            quantity=good_on_draft.quantity,
+            unit=good_on_draft.unit,
+            value=good_on_draft.value)
+        good_on_application.save()
+        good_on_application.good.status = GoodStatus.SUBMITTED
+        good_on_application.good.save()
+
+
+def create_site_for_application(draft, application):
+    for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+        site_on_application = SiteOnApplication(
+            site=site_on_draft.site,
+            application=application)
+        site_on_application.save()
+
+
+def create_external_location_for_application(draft, application):
+    for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+        external_location_on_application = ExternalLocationOnApplication(
+            external_location=external_location_on_draft.external_location,
+            application=application)
+        external_location_on_application.save()
+
+
+def check_end_user_document(end_user):
+    try:
+        end_user_document = EndUserDocument.objects.get(end_user=end_user)
+        if end_user_document.safe is None:
+            return get_string('applications.standard.end_user_document_processing')
+        elif not end_user_document.safe:
+            return get_string('applications.standard.end_user_document_infected')
+    except EndUserDocument.DoesNotExist:
+        return get_string('applications.standard.no_end_user_document_set')
+    return None
+
+
 def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
@@ -17,14 +58,9 @@ def create_standard_licence(draft, application, errors):
     if not draft.end_user:
         errors['end_user'] = get_string('applications.standard.no_end_user_set')
 
-    try:
-        end_user_document = EndUserDocument.objects.get(end_user=draft.end_user)
-        if end_user_document.safe is None:
-            errors['end_user_document'] = get_string('applications.standard.end_user_document_processing')
-        elif not end_user_document.safe:
-            errors['end_user_document'] = get_string('applications.standard.end_user_document_infected')
-    except EndUserDocument.DoesNotExist:
-        errors['end_user_document'] = get_string('applications.standard.no_end_user_document_set')
+    end_user_documents_error = check_end_user_document(draft.end_user)
+    if end_user_documents_error:
+        errors['end_user_document'] = end_user_documents_error
 
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
@@ -50,29 +86,9 @@ def create_standard_licence(draft, application, errors):
     application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
     application.save()
 
-    for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-        good_on_application = GoodOnApplication(
-            good=good_on_draft.good,
-            application=application,
-            quantity=good_on_draft.quantity,
-            unit=good_on_draft.unit,
-            value=good_on_draft.value)
-        good_on_application.save()
-        good_on_application.good.status = GoodStatus.SUBMITTED
-        good_on_application.good.save()
-
-    for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-        site_on_application = SiteOnApplication(
-            site=site_on_draft.site,
-            application=application)
-        site_on_application.save()
-
-    for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-        external_location_on_application = ExternalLocationOnApplication(
-            external_location=external_location_on_draft.external_location,
-            application=application)
-        external_location_on_application.save()
-
+    create_goods_for_applications(draft, application)
+    create_site_for_application(draft, application)
+    create_external_location_for_application(draft, application)
     return application
 
 
@@ -102,16 +118,6 @@ def create_open_licence(draft, application, errors):
             country=country_on_draft.country,
             application=application).save()
 
-    for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-        site_on_application = SiteOnApplication(
-            site=site_on_draft.site,
-            application=application)
-        site_on_application.save()
-
-    for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-        external_location_on_application = ExternalLocationOnApplication(
-            external_location=external_location_on_draft.external_location,
-            application=application)
-        external_location_on_application.save()
-
+    create_site_for_application(draft, application)
+    create_external_location_for_application(draft, application)
     return application
