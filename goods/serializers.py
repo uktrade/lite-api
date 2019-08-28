@@ -23,8 +23,6 @@ class GoodSerializer(serializers.ModelSerializer):
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
     clc_query_id = serializers.SerializerMethodField()
-    notes = serializers.SerializerMethodField()
-    ecju_queries = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -39,8 +37,6 @@ class GoodSerializer(serializers.ModelSerializer):
                   'organisation',
                   'status',
                   'not_sure_details_details',
-                  'notes',
-                  'ecju_queries',
                   'clc_query_id',
                   'documents',
                   )
@@ -65,28 +61,6 @@ class GoodSerializer(serializers.ModelSerializer):
         try:
             clc_query = ClcQuery.objects.filter(good=instance)[0]
             return clc_query.id
-        except Exception:
-            return None
-
-    def get_notes(self, instance):
-        from cases.serializers import CaseNoteSerializer  # circular import prevention
-        try:
-            clc_query = ClcQuery.objects.get(good=instance)
-            case = Case.objects.get(clc_query=clc_query)
-            case_notes = CaseNote.objects.filter(case=case)
-
-            return CaseNoteSerializer(case_notes, many=True).data
-        except Exception:
-            return None
-
-    def get_ecju_queries(self, instance):
-        from cases.serializers import EcjuQueryExporterSerializer  # circular import prevention
-        try:
-            clc_query = ClcQuery.objects.get(good=instance)
-            case = Case.objects.get(clc_query=clc_query)
-            ecju_queries = EcjuQuery.objects.filter(case=case)
-
-            return EcjuQueryExporterSerializer(ecju_queries, many=True).data
         except Exception:
             return None
 
