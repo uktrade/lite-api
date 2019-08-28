@@ -4,6 +4,7 @@ from reversion.models import Revision
 from reversion.models import Version
 
 from cases.models import CaseNote, EcjuQuery
+from goods.models import Good
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status, get_case_status_from_pk
 from users.libraries.get_user import get_user_by_pk
@@ -85,7 +86,7 @@ def convert_case_reversion_to_activity(version: Version):
                           data)
 
 
-def convert_good_reversion_to_activity(version: Version):
+def convert_good_reversion_to_activity(version: Version, good: Good):
     """
     Converts an audit item to a dict suitable for the case activity list
     """
@@ -103,6 +104,7 @@ def convert_good_reversion_to_activity(version: Version):
         comment = json.loads(revision_object.comment)
         if 'flags' in comment:
             data['flags'] = comment['flags']
+            data['good'] = good.description
             activity_type = CHANGE_GOOD_FLAGS
     except ValueError:
         return None

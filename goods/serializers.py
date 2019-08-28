@@ -160,7 +160,7 @@ class GoodFlagsAssignmentSerializer(serializers.ModelSerializer):
     Serializes flags on good
     """
     flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
-    note = serializers.CharField(max_length=200)
+    note = serializers.CharField(max_length=200, required=False, allow_blank=True)
 
     class Meta:
         model = Good

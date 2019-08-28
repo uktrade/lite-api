@@ -278,7 +278,7 @@ class GoodActivity(APIView):
         version_records = Version.objects.filter(Q(object_id=good.pk))
         activity = []
         for version in version_records:
-            activity_item = convert_good_reversion_to_activity(version)
+            activity_item = convert_good_reversion_to_activity(version, good)
             if activity_item:
                 activity.append(activity_item)
 
