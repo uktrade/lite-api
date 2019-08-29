@@ -4,7 +4,6 @@ from rest_framework.reverse import reverse
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation
-from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
@@ -28,6 +27,27 @@ class OrganisationUsersViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]['status'], UserStatuses.ACTIVE)
+
+    def test_view_user_belonging_to_organisation(self):
+        """
+        Ensure that a user can see an individual user belonging
+        to an organisation
+        """
+        url = reverse('organisations:user', kwargs={'org_pk': self.organisation.id,
+                                                    'user_pk': self.exporter_user.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()['user']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data['status'], UserStatuses.ACTIVE)
+
+
+class OrganisationUsersCreateTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('organisations:users', kwargs={'org_pk': self.organisation.id})
 
     def test_add_user_to_organisation_success(self):
         """
