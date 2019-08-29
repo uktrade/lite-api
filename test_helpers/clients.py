@@ -291,6 +291,7 @@ class DataTestClient(BaseTestClient):
 
         # Add a goods description
         self.create_goods_type('draft', draft)
+        self.create_goods_type('draft', draft)
 
         # Add a country to the draft
         CountryOnDraft(draft=draft, country=get_country('GB')).save()

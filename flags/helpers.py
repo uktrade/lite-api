@@ -1,18 +1,14 @@
 from cases.libraries.get_case import get_case
-from cases.serializers import CaseFlagsAssignmentSerializer
 from goods.libraries.get_good import get_good
-from goods.serializers import GoodFlagsAssignmentSerializer
+from goodstype.helpers import get_goods_type
 
 
 def get_object_of_level(level, pk):
-    if level == 'goods':
-        return get_good(pk)
-    elif level == 'cases':
+    if level == 'Good':
+        try:
+            good = get_good(pk)
+        except:
+            good = get_goods_type(pk)
+        return good
+    elif level == 'Case':
         return get_case(pk)
-
-
-def flag_assignment_serializer(level, data, context):
-    if level == 'goods':
-        return GoodFlagsAssignmentSerializer(data=data, context=context)
-    elif level == 'cases':
-        return CaseFlagsAssignmentSerializer(data=data, context=context)

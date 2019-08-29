@@ -11,7 +11,6 @@ from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
 from documents.tasks import prepare_document
 from end_user.models import EndUser
-from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -91,24 +90,6 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')
-
-
-class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
-    """
-    Serializes flags on case
-    """
-    flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
-    note = serializers.CharField(max_length=200, required=False, allow_blank=True)
-
-    class Meta:
-        model = Case
-        fields = ('id', 'flags', 'note')
-
-    def validate_flags(self, flags):
-        team_case_level_flags = list(Flag.objects.filter(level='Case', team=self.context['team']))
-        if not set(flags).issubset(list(team_case_level_flags)):
-            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
-        return flags
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):

@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from goodstype.models import GoodsType
 from queues.models import Queue
 from teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -10,13 +11,13 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.open_application = self.create_open_application(self.organisation)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
-        # Cases
-        self.good = self.create_controlled_good('a good', self.organisation)
-        self.good_2 = self.create_controlled_good('a second good', self.organisation)
+        self.goods_types = GoodsType.objects.filter(object_id=self.open_application.id)
+        self.goods_type = self.goods_types[0]
+        self.goods_type_2 = self.goods_types[1]
 
         # Teams
         self.other_team = self.create_team('Team')
@@ -28,11 +29,11 @@ class GoodFlagsManagementTests(DataTestClient):
         self.other_team_good_flag = self.create_flag('Other Team Good Flag', 'Good', self.other_team)
         self.all_flags = [self.team_good_flag_1, self.team_org_flag, self.team_good_flag_2, self.other_team_good_flag]
 
-        self.good_url = reverse('goods:good', kwargs={'pk': self.good.id})
+        self.good_url = reverse('goodstype:goodstypes-detail', kwargs={'pk': self.goods_type.id})
         self.good_flag_url = reverse('flags:assign_flags')
-        self.audit_url = reverse('goods:activity', kwargs={'pk': self.good.id})
+        self.audit_url = reverse('goodstype:activity', kwargs={'pk': self.goods_type.id})
 
-    def test_no_flags_for_good_are_returned(self):
+    def test_no_flags_for_goods_type_are_returned(self):
         """
         Given a Good with no Flags assigned
         When a user requests the Good
@@ -47,18 +48,18 @@ class GoodFlagsManagementTests(DataTestClient):
         # Assert
         self.assertEqual([], response.json()['good']['flags'])
 
-    def test_all_flags_for_good_are_returned(self):
+    def test_all_flags_for_goods_type_are_returned(self):
         """
         Given a Good with Flags already assigned
         When a user requests the Good
         Then the correct Good with all assigned Flags are returned
         """
-        self.good.flags.set(self.all_flags)
+        self.goods_type.flags.set(self.all_flags)
 
         response = self.client.get(self.good_url, **self.gov_headers)
         returned_good = response.json()['good']
 
-        self.assertEquals(len(self.good.flags.all()), len(returned_good['flags']))
+        self.assertEquals(len(self.goods_type.flags.all()), len(returned_good['flags']))
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
@@ -68,15 +69,15 @@ class GoodFlagsManagementTests(DataTestClient):
         """
         data = {
             'level': 'goods',
-            'objects': [self.good.pk],
+            'objects': [self.goods_type.pk],
             'flags': [self.team_good_flag_1.pk],
             'note': 'A reason for changing the flags'
         }
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data['flags']), len(self.good.flags.all()))
-        self.assertTrue(self.team_good_flag_1 in self.good.flags.all())
+        self.assertEquals(len(data['flags']), len(self.goods_type.flags.all()))
+        self.assertTrue(self.team_good_flag_1 in self.goods_type.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
         """
@@ -84,11 +85,11 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a good-level Flag not owned by their Team to the Good
         Then the Flag is not added
         """
-        flags_to_add = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
 
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(0, len(self.good.flags.all()))
+        self.assertEquals(0, len(self.goods_type.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_good_level(self):
@@ -97,11 +98,11 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a non-good-level Flag owned by their Team to the Good
         Then the Flag is not added
         """
-        flags_to_add = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
 
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
 
-        self.assertEquals(0, len(self.good.flags.all()))
+        self.assertEquals(0, len(self.goods_type.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
@@ -111,17 +112,20 @@ class GoodFlagsManagementTests(DataTestClient):
         Then only that Flag is removed
         """
         self.all_flags.remove(self.team_org_flag)
-        self.good.flags.set(self.all_flags)
-        flags_to_keep = {'level': 'goods', 'objects': [self.good.pk],'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
+        self.goods_type.flags.set(self.all_flags)
+        data = {'level': 'goods',
+                         'objects': [self.goods_type.pk],
+                         'flags': [self.team_good_flag_2.pk],
+                         'note': 'A reason for changing the flags'}
         self.all_flags.remove(self.team_good_flag_1)
 
-        self.client.put(self.good_flag_url, flags_to_keep, **self.gov_headers)
+        self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.good.flags.all()))
+        self.assertEquals(len(self.all_flags), len(self.goods_type.flags.all()))
         for flag in self.all_flags:
-            self.assertTrue(flag in self.good.flags.all())
+            self.assertTrue(flag in self.goods_type.flags.all())
 
-    def test_given_good_has_been_modified_then_appropriate_audit_is_in_place(self):
+    def test_given_good_type_has_been_modified_then_appropriate_audit_is_in_place(self):
         """
         Given a Good with no Flags assigned
         When a user attempts to add a non-good-level Flag owned by their Team to the Good
@@ -130,7 +134,7 @@ class GoodFlagsManagementTests(DataTestClient):
         And the user requests the activity on the Good
         Then the activity is returned showing the Flag which was added
         """
-        flags = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
+        flags = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
 
         self.client.put(self.good_flag_url, flags, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
@@ -143,7 +147,7 @@ class GoodFlagsManagementTests(DataTestClient):
     def test_setting_flags_on_two_goods(self):
         data = {
             'level': 'goods',
-            'objects': [self.good.id, self.good_2.id],
+            'objects': [self.goods_type.id, self.goods_type_2.id],
             'flags': [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
             'note': 'A reason for changing the flags'
         }

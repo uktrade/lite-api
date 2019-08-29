@@ -35,3 +35,14 @@ class FlagSerializer(serializers.ModelSerializer):
         instance.level = validated_data.get('level', instance.level)
         instance.save()
         return instance
+
+
+class FlagAssignmentSerializer(serializers.Serializer):
+    flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+    note = serializers.CharField(max_length=200, required=False, allow_blank=True)
+
+    def validate_flags(self, flags):
+        team_good_level_flags = list(Flag.objects.filter(level=self.context['level'], team=self.context['team'], status=FlagStatuses.ACTIVE))
+        if not set(flags).issubset(list(team_good_level_flags)):
+            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
+        return flags
