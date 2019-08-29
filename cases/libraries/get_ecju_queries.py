@@ -1,4 +1,3 @@
-from applications.models import Application
 from cases.models import EcjuQuery
 from conf.exceptions import NotFoundError
 

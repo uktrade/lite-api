@@ -6,7 +6,6 @@ from clc_queries.models import ClcQuery
 from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document
 from flags.enums import FlagStatuses
-from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation

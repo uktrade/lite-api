@@ -96,6 +96,7 @@ class FlagDetail(APIView):
 
 class AssignFlags(APIView):
     authentication_classes = (GovAuthentication,)
+
     def put(self, request):
         data = JSONParser().parse(request)
         level = data.get('level')[:-1].title()
@@ -123,7 +124,7 @@ class AssignFlags(APIView):
         with reversion.create_revision():
             reversion.set_comment(
                 ('{"flags": {"removed": ' + str(remove_flags) + ', "added": ' + str(add_flags) + ', "note": "' + str(note) + '"}}')
-                    .replace('\'', '"')
+                .replace('\'', '"')
             )
             reversion.set_user(user)
 

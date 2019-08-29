@@ -5,7 +5,6 @@ from applications.models import Application
 from conf.helpers import str_to_bool
 from drafts.serializers import DraftBaseSerializer
 from flags.enums import FlagStatuses
-from flags.models import Flag
 from goodstype.models import GoodsType
 
 
