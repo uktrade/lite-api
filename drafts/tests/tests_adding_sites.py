@@ -9,8 +9,8 @@ class SitesOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.primary_site = self.exporter_user.organisation.primary_site
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.primary_site = self.organisation.primary_site
+        self.draft = self.create_standard_draft(self.organisation)
 
         self.url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
 
@@ -32,7 +32,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response["sites"]), 1)
 
     def test_add_multiple_sites_to_a_draft(self):
-        site2, address = self.create_site('site2', self.exporter_user.organisation)
+        site2, address = self.create_site('site2', self.organisation)
 
         data = {
             'sites': [
@@ -83,7 +83,7 @@ class SitesOnDraftTests(DataTestClient):
         # Post a new site to the draft, with the expectation that the existing site is deleted
         data = {
             'sites': [
-                str(self.create_site('New Site', self.exporter_user.organisation)[0].id)
+                str(self.create_site('New Site', self.organisation)[0].id)
             ]
         }
 
@@ -99,7 +99,7 @@ class SitesOnDraftTests(DataTestClient):
 
     def test_adding_site_to_draft_deletes_external_locations(self):
         draft = self.draft
-        external_location = self.create_external_location('test', self.exporter_user.organisation)
+        external_location = self.create_external_location('test', self.organisation)
         url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
         data = {
             'external_locations': [

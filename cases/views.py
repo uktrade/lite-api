@@ -332,10 +332,14 @@ class EcjuQueryDetail(APIView):
         }
 
         serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
 
-            return JsonResponse(data={'ecju_query': serializer.data})
+        if serializer.is_valid():
+            if 'validate_only' not in request.data or not request.data['validate_only']:
+                serializer.save()
+
+                return JsonResponse(data={'ecju_query': serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)

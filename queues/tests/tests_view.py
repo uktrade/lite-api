@@ -12,9 +12,3 @@ class ViewQueuesTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_non_whitelisted_gov_user_cannot_see_the_queues(self):
-        headers = {'HTTP_GOV_USER_EMAIL': str('test2@mail.com')}
-        response = self.client.get(self.url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

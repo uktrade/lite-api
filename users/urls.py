@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from users import views
 
-app_name = "users"
+app_name = 'users'
 
 router = routers.SimpleRouter()
 router.register(r'notifications', views.NotificationViewset,)

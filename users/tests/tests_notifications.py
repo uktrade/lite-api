@@ -16,7 +16,7 @@ class NotificationTests(DataTestClient):
         self.assertEqual(Notification.objects.all().count(), 3)
 
     def tests_create_new_application_notification(self):
-        application = self.create_standard_application(self.exporter_user.organisation)
+        application = self.create_standard_application(self.organisation)
         case = Case.objects.get(application=application)
 
         self.create_case_note(case, 'This is a test note 1', self.gov_user, True)
@@ -25,7 +25,7 @@ class NotificationTests(DataTestClient):
         self.assertEqual(Notification.objects.all().count(), 1)
 
     def tests_create_both_clc_and_application_notifications(self):
-        application = self.create_standard_application(self.exporter_user.organisation)
+        application = self.create_standard_application(self.organisation)
         case = Case.objects.get(application=application)
 
         clc_case = self.create_clc_query_case('Case Ref')

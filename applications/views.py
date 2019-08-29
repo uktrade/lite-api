@@ -177,4 +177,4 @@ class CLCList(APIView):
         queue.cases.add(case)
         queue.save()
 
-        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id }, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id}, status=status.HTTP_201_CREATED)

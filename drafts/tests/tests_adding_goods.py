@@ -9,9 +9,9 @@ from test_helpers.clients import DataTestClient
 class DraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        draft = self.create_draft(self.exporter_user.organisation)
-        good = self.create_controlled_good('A good', self.exporter_user.organisation)
-        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
+        draft = self.create_draft(self.organisation)
+        good = self.create_controlled_good('A good', self.organisation)
+        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1', s3_key='doc3')
 
         data = {
             'good_id': good.id,
@@ -31,9 +31,9 @@ class DraftTests(DataTestClient):
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         organisation_2 = self.create_organisation()
-        draft = self.create_draft(self.exporter_user.organisation)
+        draft = self.create_draft(self.organisation)
         good = self.create_controlled_good('test', organisation_2)
-        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
+        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1', s3_key='doc3')
 
         data = {
             'draft': draft.id,
@@ -58,9 +58,9 @@ class DraftTests(DataTestClient):
         [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
     ])
     def test_adding_goods_with_different_number_formats(self, data):
-        draft = self.create_standard_draft(self.exporter_user.organisation)
-        good = self.create_controlled_good('A good', self.exporter_user.organisation)
-        self.create_good_document(good, user=self.exporter_user, name='doc1', s3_key='doc3')
+        draft = self.create_standard_draft(self.organisation)
+        good = self.create_controlled_good('A good', self.organisation)
+        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1', s3_key='doc3')
 
         post_data = {
             'good_id': good.id,

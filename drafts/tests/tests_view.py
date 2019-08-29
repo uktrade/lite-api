@@ -12,13 +12,13 @@ class DraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
 
     def test_view_drafts(self):
         """
         Ensure we can get a list of drafts.
         """
-        self.create_standard_draft(self.exporter_user.organisation)
+        self.create_standard_draft(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
 

@@ -24,10 +24,12 @@ from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.statuses.models import CaseStatus
+from static.units.enums import Units
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
+    unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
         model = GoodOnApplication

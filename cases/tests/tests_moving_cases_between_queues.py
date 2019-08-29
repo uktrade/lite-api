@@ -10,7 +10,7 @@ class MoveCasesTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.standard_application = self.create_standard_application(self.organisation)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.queues = [

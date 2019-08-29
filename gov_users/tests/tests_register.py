@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
+from users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
 
@@ -13,8 +14,6 @@ class GovUserAuthenticateTests(DataTestClient):
         self.gov_user_preexisting_count = GovUser.objects.all().count()
 
     def test_user_registers_new_user(self):
-        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': 'jsmith@name.com'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         data = {
             'first_name': 'Jane',
             'last_name': 'Smith',
@@ -29,7 +28,7 @@ class GovUserAuthenticateTests(DataTestClient):
         new_user = GovUser.objects.get(email='jsmith@name.com')
         self.assertEqual(new_user.status, GovUserStatuses.ACTIVE)
         self.assertEqual(new_user.email, 'jsmith@name.com')
-        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': str(new_user.email)})
+        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_TOKEN': user_to_token(new_user)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_fail_create_new_user(self):

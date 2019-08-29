@@ -6,7 +6,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 
@@ -17,19 +16,16 @@ class ExternalLocationList(APIView):
     List all sites for an organisation/create site
     """
 
-    def get(self, request):
-        organisation = get_organisation_by_user(request.user)
-        external_locations = ExternalLocation.objects.filter(organisation=organisation)
-
+    def get(self, request, org_pk):
+        external_locations = ExternalLocation.objects.filter(organisation=org_pk)
         serializer = ExternalLocationSerializer(external_locations, many=True)
         return JsonResponse(data={'external_locations': serializer.data})
 
     @transaction.atomic
-    def post(self, request):
+    def post(self, request, org_pk):
         with reversion.create_revision():
-            organisation = get_organisation_by_user(request.user)
             data = JSONParser().parse(request)
-            data['organisation'] = organisation.id
+            data['organisation'] = org_pk
             serializer = ExternalLocationSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()

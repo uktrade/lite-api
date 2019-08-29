@@ -31,12 +31,6 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['picklist_items']), 2)
 
-    def test_non_whitelisted_gov_user_cannot_see_the_picklist_items(self):
-        headers = {'HTTP_GOV_USER_EMAIL': str('test2@mail.com')}
-        response = self.client.get(self.url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
     def test_gov_user_can_see_filtered_picklist_items(self):
         response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '?show_deactivated=True', **self.gov_headers)
         response_data = response.json()

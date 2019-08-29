@@ -15,7 +15,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a draft first and then submit it as an application
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
@@ -34,14 +34,14 @@ class ApplicationsTests(DataTestClient):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        self.create_standard_draft(self.exporter_user.organisation)
+        self.create_standard_draft(self.organisation)
 
         data = {'id': draft_id}
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
-        draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
 
         data = {'id': draft.id}
 

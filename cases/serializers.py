@@ -250,6 +250,7 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
     responded_by_user = PrimaryKeyRelatedSerializerField(queryset=ExporterUser.objects.all(),
                                                          serializer=ExporterUserViewSerializer)
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
         return TeamSerializer(instance.raised_by_user.team).data

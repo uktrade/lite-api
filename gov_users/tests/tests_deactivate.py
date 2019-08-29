@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
+from users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
 from users.models import GovUser
 
@@ -32,18 +33,19 @@ class GovUserDeactivateTests(DataTestClient):
 
     def test_deactivate_and_reactivate_a_user(self):
         url = reverse('gov_users:gov_users')
-        response = self.client.get(url, **{'HTTP_GOV_USER_EMAIL': str(self.valid_user.email)})
+        response = self.client.get(url, **{'HTTP_GOV_USER_TOKEN': user_to_token(self.valid_user)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = {
             'status': 'Deactivated'
         }
         url = reverse('gov_users:gov_user', kwargs={'pk': self.valid_user.id})
         self.client.put(url, data, **self.gov_headers)
-        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': str(self.valid_user.email)})
+        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_TOKEN': user_to_token(self.valid_user)})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         data = {
             'status': 'Active'
         }
         self.client.put(url, data, **self.gov_headers)
-        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_EMAIL': str(self.valid_user.email)})
+        response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_TOKEN': user_to_token(self.valid_user)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
