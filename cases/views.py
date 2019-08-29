@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -15,7 +14,7 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, EcjuQuerySerializer, \
-    EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
+    EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
@@ -146,41 +145,6 @@ class CaseActivity(APIView):
         activity.sort(key=lambda x: x['date'], reverse=True)
 
         return JsonResponse(data={'activity': activity})
-
-
-class CaseFlagsAssignment(APIView):
-    authentication_classes = (GovAuthentication,)
-    """
-    Assigns flags to a case
-    """
-
-    def put(self, request, pk):
-        case = get_case(str(pk))
-        data = JSONParser().parse(request)
-
-        serializer = CaseFlagsAssignmentSerializer(data=data, context={'team': request.user.team})
-
-        if serializer.is_valid():
-            self._assign_flags(serializer.validated_data.get('flags'), case, request.user)
-
-            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    def _assign_flags(self, validated_data, case, user):
-        previously_assigned_team_flags = case.flags.filter(level='Case', team=user.team)
-        previously_assigned_not_team_flags = case.flags.exclude(level='Case', team=user.team)
-        add_case_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
-        remove_case_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
-
-        with reversion.create_revision():
-            reversion.set_comment(
-                ('{"flags": {"removed": ' + str(remove_case_flags) + ', "added": ' + str(add_case_flags) + '}}')
-                .replace('\'', '"')
-            )
-            reversion.set_user(user)
-
-            case.flags.set(validated_data + list(previously_assigned_not_team_flags))
 
 
 class CaseDocuments(APIView):

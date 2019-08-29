@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse, Http404
@@ -17,7 +16,7 @@ from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
-from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, GoodFlagsAssignmentSerializer, FullGoodSerializer
+from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.models import ExporterUser
 
@@ -222,45 +221,6 @@ class GoodDocumentDetail(APIView):
                 good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})
-
-
-class GoodFlagsAssignment(APIView):
-    authentication_classes = (GovAuthentication,)
-    """
-    Assigns flags to a good
-    """
-
-    @transaction.atomic
-    def put(self, request):
-        data = JSONParser().parse(request)
-        response_data = []
-
-        for pk in data['goods']:
-            good = get_good(pk)
-            serializer = GoodFlagsAssignmentSerializer(data=data, context={'team': request.user.team})
-
-            if serializer.is_valid():
-                self._assign_flags(serializer.validated_data.get('flags'), serializer.validated_data.get('note'), good, request.user)
-                response_data.append({'good': serializer.data})
-            else:
-                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
-
-    def _assign_flags(self, validated_data, note, good, user):
-        previously_assigned_team_flags = good.flags.filter(level='Good', team=user.team)
-        previously_assigned_not_team_flags = good.flags.exclude(level='Good', team=user.team)
-        add_good_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
-        remove_good_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
-
-        with reversion.create_revision():
-            reversion.set_comment(
-                ('{"flags": {"removed": ' + str(remove_good_flags) + ', "added": ' + str(add_good_flags) + ', "note": "' + str(note) + '"}}')
-                .replace('\'', '"')
-            )
-            reversion.set_user(user)
-
-            good.flags.set(validated_data + list(previously_assigned_not_team_flags))
 
 
 class GoodActivity(APIView):

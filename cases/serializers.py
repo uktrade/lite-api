@@ -98,10 +98,11 @@ class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
     Serializes flags on case
     """
     flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
+    note = serializers.CharField(max_length=200, required=False, allow_blank=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'flags')
+        fields = ('id', 'flags', 'note')
 
     def validate_flags(self, flags):
         team_case_level_flags = list(Flag.objects.filter(level='Case', team=self.context['team']))
