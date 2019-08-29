@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from cases.models import Notification
 from conf.exceptions import NotFoundError
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case, CaseNote, EcjuQuery
+from cases.models import Case
 from clc_queries.models import ClcQuery
 from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document

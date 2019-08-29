@@ -3,7 +3,6 @@ import json
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
@@ -13,11 +12,11 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.enums import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.authentication import ExporterAuthentication, GovAuthentication, SharedAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string

@@ -271,10 +271,6 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
     case = serializers.SerializerMethodField()
     case_notes = serializers.SerializerMethodField()
 
-    def get_case(self, obj):
-        case = Case.objects.get(application=obj)
-        return case.id
-
     def get_case_notes(self, obj):
         from cases.serializers import CaseNoteSerializer
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
