@@ -4,10 +4,11 @@ from rest_framework.reverse import reverse
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation
+from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
-class OrganisationUsersTests(DataTestClient):
+class OrganisationUsersViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
@@ -82,3 +83,41 @@ class OrganisationUsersTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('is already a member of this organisation.', response_data['errors']['email'][0])
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
+
+
+class OrganisationUsersUpdateTests(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('organisations:user', kwargs={'org_pk': self.organisation.id,
+                                                         'user_pk': self.exporter_user.id})
+
+    def test_can_deactivate_user(self):
+        """
+        Ensure that a user can be deactivated
+        """
+        exporter_user_2 = self.create_exporter_user(self.organisation)
+        url = reverse('organisations:user', kwargs={'org_pk': self.organisation.id,
+                                                    'user_pk': exporter_user_2.id})
+
+        data = {
+            'status': UserStatuses.DEACTIVATED
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        exporter_user_2 = self.organisation.get_users()[1]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(exporter_user_2.status, data['status'])
+
+    def test_user_cannot_deactivate_themselves(self):
+        """
+        Ensure that a user can be deactivated
+        """
+        data = {
+            'status': UserStatuses.DEACTIVATED
+        }
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

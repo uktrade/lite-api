@@ -30,6 +30,17 @@ class Organisation(models.Model):
         except UserOrganisationRelationship.DoesNotExist:
             raise NotFoundError({'user': 'User does not belong to this organisation'})
 
+    def get_users(self):
+        from users.models import UserOrganisationRelationship
+        user_organisation_relationships = UserOrganisationRelationship.objects \
+            .filter(organisation=self) \
+            .order_by('user__first_name')
+
+        for relationship in user_organisation_relationships:
+            relationship.user.status = relationship.status
+
+        return [x.user for x in user_organisation_relationships]
+
 
 @reversion.register()
 class Site(models.Model):

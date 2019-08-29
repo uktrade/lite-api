@@ -16,6 +16,7 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
+from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
@@ -67,8 +68,22 @@ class DataTestClient(BaseTestClient):
 
         self.queue = Queue.objects.get(team=self.team)
 
-    def create_organisation(self, name='Organisation'):
+    def create_exporter_user(self, organisation=None):
         first_name, last_name = random_name()
+        exporter_user = ExporterUser(first_name=first_name,
+                                     last_name=last_name,
+                                     email=f'{first_name}@{last_name}.com')
+        exporter_user.organisation = organisation
+        exporter_user.save()
+
+        if organisation:
+            UserOrganisationRelationship(user=exporter_user,
+                                         organisation=organisation).save()
+            exporter_user.status = UserStatuses.ACTIVE
+
+        return exporter_user
+
+    def create_organisation(self, name='Organisation'):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
@@ -82,14 +97,7 @@ class DataTestClient(BaseTestClient):
         organisation.primary_site = site
         organisation.save()
 
-        exporter_user = ExporterUser(first_name=first_name,
-                                     last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com')
-        exporter_user.organisation = organisation
-        exporter_user.save()
-
-        UserOrganisationRelationship(user=exporter_user,
-                                     organisation=organisation).save()
+        self.create_exporter_user(organisation)
 
         return organisation
 
