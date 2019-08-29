@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from reversion.models import Version
 
 from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
-    convert_ecju_query_to_activity, convert_good_reversion_to_activity
+    convert_ecju_query_to_activity, add_items_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
@@ -19,6 +19,7 @@ from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSeri
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goods.libraries.get_good import get_good, get_goods_from_case
+from goodstype.helpers import get_goods_types_from_case
 from users.models import ExporterUser
 
 
@@ -109,6 +110,7 @@ class CaseActivity(APIView):
         case_notes = get_case_notes_from_case(case, False)
         ecju_queries = get_ecju_queries_from_case(case)
         goods = get_goods_from_case(case)
+        goods_types = get_goods_types_from_case(case)
 
         version_records = {}
         if case.application_id:
@@ -134,12 +136,10 @@ class CaseActivity(APIView):
 
         for good in goods:
             good = get_good(good)
+            add_items_to_activity(activity, good)
 
-            version_records = Version.objects.filter(Q(object_id=good.pk))
-            for version in version_records:
-                activity_item = convert_good_reversion_to_activity(version, good)
-                if activity_item:
-                    activity.append(activity_item)
+        for good in goods_types:
+            add_items_to_activity(activity, good)
 
         # Sort the activity based on date (newest first)
         activity.sort(key=lambda x: x['date'], reverse=True)

@@ -1,5 +1,6 @@
 import json
 
+from django.db.models import Q
 from reversion.models import Revision
 from reversion.models import Version
 
@@ -112,3 +113,11 @@ def convert_good_reversion_to_activity(version: Version, good: Good):
                           revision_object.date_created,
                           BaseUserViewSerializer(user).data,
                           data)
+
+
+def add_items_to_activity(activity, object):
+    version_records = Version.objects.filter(Q(object_id=object.pk))
+    for version in version_records:
+        activity_item = convert_good_reversion_to_activity(version, object)
+        if activity_item:
+            activity.append(activity_item)
