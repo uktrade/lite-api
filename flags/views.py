@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
+from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level, flag_assignment_serializer
 from flags.libraries.get_flag import get_flag
 from flags.models import Flag
@@ -114,9 +115,10 @@ class AssignFlags(APIView):
 
     def _assign_flags(self, validated_data, note, object, user):
         previously_assigned_team_flags = object.flags.filter(level=type(object).__name__, team=user.team)
+        previously_assigned_deactivated_team_flags = object.flags.filter(level=type(object).__name__, team=user.team, status=FlagStatuses.DEACTIVATED)
         previously_assigned_not_team_flags = object.flags.exclude(level=type(object).__name__, team=user.team)
         add_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
-        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data]
+        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data or previously_assigned_deactivated_team_flags]
 
         with reversion.create_revision():
             reversion.set_comment(
@@ -125,4 +127,4 @@ class AssignFlags(APIView):
             )
             reversion.set_user(user)
 
-            object.flags.set(validated_data + list(previously_assigned_not_team_flags))
+            object.flags.set(validated_data + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
