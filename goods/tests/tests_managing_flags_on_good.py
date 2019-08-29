@@ -10,7 +10,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.exporter_user.organisation)
+        self.standard_application = self.create_standard_application(self.organisation)
         self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
         self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
@@ -29,7 +29,7 @@ class GoodFlagsManagementTests(DataTestClient):
         self.all_flags = [self.team_good_flag_1, self.team_org_flag, self.team_good_flag_2, self.other_team_good_flag]
 
         self.good_url = reverse('goods:good', kwargs={'pk': self.good.id})
-        self.good_flag_url = reverse('goods:good_flags')
+        self.good_flag_url = reverse('flags:assign_flags')
         self.audit_url = reverse('goods:activity', kwargs={'pk': self.good.id})
 
     def test_no_flags_for_good_are_returned(self):
@@ -73,7 +73,8 @@ class GoodFlagsManagementTests(DataTestClient):
 
         # Arrange
         data = {
-            'goods': [self.good.pk],
+            'level': 'goods',
+            'objects': [self.good.pk],
             'flags': [self.team_good_flag_1.pk],
             'note': 'A reason for changing the flags'
         }
@@ -93,7 +94,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'goods': [self.good.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -110,7 +111,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'goods': [self.good.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
+        flags_to_add = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
@@ -130,7 +131,7 @@ class GoodFlagsManagementTests(DataTestClient):
         # included in the request body)
         self.all_flags.remove(self.team_org_flag)
         self.good.flags.set(self.all_flags)
-        flags_to_keep = {'goods': [self.good.pk],'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
+        flags_to_keep = {'level': 'goods', 'objects': [self.good.pk],'flags': [self.team_good_flag_2.pk], 'note': 'A reason for changing the flags'}
         self.all_flags.remove(self.team_good_flag_1)
 
         # Act
@@ -152,7 +153,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags = {'goods': [self.good.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
+        flags = {'level': 'goods', 'objects': [self.good.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
 
         # Act
         self.client.put(self.good_flag_url, flags, **self.gov_headers)
@@ -166,7 +167,8 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def test_setting_flags_on_two_goods(self):
         data = {
-            'goods': [self.good.id, self.good_2.id],
+            'level': 'goods',
+            'objects': [self.good.id, self.good_2.id],
             'flags': [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
             'note': 'A reason for changing the flags'
         }

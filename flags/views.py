@@ -11,7 +11,6 @@ from flags.helpers import get_object_of_level, flag_assignment_serializer
 from flags.libraries.get_flag import get_flag
 from flags.models import Flag
 from flags.serializers import FlagSerializer
-from goods.serializers import GoodFlagsAssignmentSerializer
 
 
 @permission_classes((permissions.AllowAny,))
