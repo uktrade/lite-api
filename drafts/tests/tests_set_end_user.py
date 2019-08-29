@@ -4,7 +4,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from drafts.models import Draft
 from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
 from static.countries.helpers import get_country
@@ -15,7 +14,7 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation)
+        self.draft = self.create_standard_draft_without_end_user_document(self.organisation)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
@@ -66,7 +65,7 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_failure(self, data):
-        self.draft = self.create_draft(self.exporter_user.organisation)
+        self.draft = self.create_draft(self.organisation)
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()

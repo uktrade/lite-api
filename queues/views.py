@@ -12,10 +12,10 @@ from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
+from users.libraries.get_user import get_user_by_pk
 
 
 @permission_classes((permissions.AllowAny,))
@@ -115,7 +115,7 @@ class CaseAssignments(APIView):
 
         for assignment in data.get('case_assignments'):
             case = get_case(assignment['case_id'])
-            users = [get_gov_user_by_pk(i) for i in assignment['users']]
+            users = [get_user_by_pk(i) for i in assignment['users']]
 
             # Delete existing case assignments
             CaseAssignment.objects.filter(case=case, queue=queue).delete()

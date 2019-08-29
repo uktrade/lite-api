@@ -19,7 +19,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a open licence application
         """
-        draft = self.create_open_draft(self.exporter_user.organisation)
+        draft = self.create_open_draft(self.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 

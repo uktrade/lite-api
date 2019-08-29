@@ -12,10 +12,10 @@ class EndUserDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'Drafty Draft')
+        self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Drafty Draft')
         self.url_draft_with_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
-        self.draft_no_user = self.create_draft(self.exporter_user.organisation, 'Dafty daft')
+        self.draft_no_user = self.create_draft(self.organisation, 'Dafty daft')
         self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
         self.data = {"name": "file123.pdf",

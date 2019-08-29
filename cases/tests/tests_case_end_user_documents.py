@@ -21,7 +21,7 @@ class CaseEndUserDocumentTests(DataTestClient):
         And the data in the document is the same as the data in original draft's end user document
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation,
+        draft = self.create_standard_draft_without_end_user_document(self.organisation,
                                                                      'Example Application 854957')
         self.create_document_for_end_user(end_user=draft.end_user,
                                           name='file343.pdf',

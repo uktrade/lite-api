@@ -1,4 +1,9 @@
 class Units:
+    """
+    LITE Frontend can dynamically pluralise these
+    units, to enable this include an (s) at the
+    end of the unit.
+    """
     GRM = 'GRM'
     KGM = 'KGM'
     NAR = 'NAR'

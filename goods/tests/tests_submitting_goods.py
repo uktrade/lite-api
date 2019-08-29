@@ -13,7 +13,7 @@ class GoodTests(DataTestClient):
         """
         Test that the good's status is set to submitted
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
         self.assertEqual(Good.objects.get().status, 'draft')
 
         self.submit_draft(draft=draft)
@@ -23,7 +23,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
         self.submit_draft(draft=draft)
 
         good = Good.objects.get()
@@ -36,7 +36,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be edited after submission
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         data = {'description': 'some great good'}
@@ -48,7 +48,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be deleted after submission
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
         self.submit_draft(draft)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -60,7 +60,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be deleted after submission
         """
-        self.create_standard_draft(self.exporter_user.organisation)
+        self.create_standard_draft(self.organisation)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         response = self.client.delete(url, **self.exporter_headers)
@@ -71,7 +71,7 @@ class GoodTests(DataTestClient):
         """
         Tests that goods get deleted from drafts that they were assigned to, after good deletion
         """
-        draft_two = self.create_standard_draft(self.exporter_user.organisation)
+        draft_two = self.create_standard_draft(self.organisation)
 
         good = Good.objects.get()
         GoodOnDraft(good=good, draft=draft_two, quantity=10, unit=Units.NAR, value=500).save()

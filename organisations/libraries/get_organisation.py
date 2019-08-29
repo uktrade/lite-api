@@ -1,8 +1,5 @@
-from django.http import Http404
-
 from conf.exceptions import NotFoundError
 from organisations.models import Organisation
-from users.models import ExporterUser
 
 
 def get_organisation_by_pk(pk):
@@ -12,8 +9,5 @@ def get_organisation_by_pk(pk):
         raise NotFoundError({'organisation': 'Organisation not found - ' + str(pk)})
 
 
-def get_organisation_by_user(user: ExporterUser):
-    if not user.organisation:
-        raise Http404
-
+def get_organisation_by_user(user):
     return user.organisation

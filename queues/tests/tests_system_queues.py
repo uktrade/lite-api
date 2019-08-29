@@ -17,9 +17,9 @@ class RetrieveAllCases(DataTestClient):
         self.queue1 = self.create_queue('queue1', self.team)
         self.queue2 = self.create_queue('queue2', self.team)
 
-        self.case1 = self.create_standard_application_case(self.exporter_user.organisation)
-        self.case2 = self.create_standard_application_case(self.exporter_user.organisation)
-        self.case3 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case1 = self.create_standard_application_case(self.organisation)
+        self.case2 = self.create_standard_application_case(self.organisation)
+        self.case3 = self.create_standard_application_case(self.organisation)
 
         self.case3.application.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
         self.case3.application.save(update_fields=['status'])

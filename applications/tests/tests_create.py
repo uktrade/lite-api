@@ -15,7 +15,7 @@ class ApplicationsTests(DataTestClient):
         """
         Test whether we can create a draft first and then submit it as an application
         """
-        draft = self.create_standard_draft(self.exporter_user.organisation)
+        draft = self.create_standard_draft(self.organisation)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
 
@@ -34,7 +34,7 @@ class ApplicationsTests(DataTestClient):
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
 
-        self.create_standard_draft(self.exporter_user.organisation)
+        self.create_standard_draft(self.organisation)
 
         data = {'id': draft_id}
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -44,8 +44,8 @@ class ApplicationsTests(DataTestClient):
         """
         TODO: Add description
         """
-        draft = self.create_draft(self.exporter_user.organisation, ApplicationLicenceType.STANDARD_LICENCE)
-        draft.end_user = self.create_end_user("End user", self.exporter_user.organisation)
+        draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        draft.end_user = self.create_end_user("End user", self.organisation)
         draft.save()
 
         self.create_document_for_end_user(draft.end_user)
@@ -85,7 +85,7 @@ class ApplicationsTests(DataTestClient):
         And the response contains a message saying that the document is still being processed
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
+        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
@@ -107,7 +107,7 @@ class ApplicationsTests(DataTestClient):
         And the response contains a message saying that the document is infected
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.exporter_user.organisation, 'test')
+        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
