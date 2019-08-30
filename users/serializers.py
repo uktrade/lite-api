@@ -2,10 +2,12 @@ from rest_framework import serializers
 
 from cases.models import Notification
 from conf.exceptions import NotFoundError
+from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 
@@ -166,3 +168,11 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email')
+
+
+class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
+    status = KeyValueChoiceField(choices=UserStatuses.choices)
+
+    class Meta:
+        model = UserOrganisationRelationship
+        fields = ['status']
