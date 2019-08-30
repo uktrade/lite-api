@@ -47,6 +47,30 @@ class CaseSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
+class TinyCaseSerializer(serializers.Serializer):
+    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    queue_names = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    id = serializers.UUIDField()
+    type = serializers.CharField(max_length=50)
+
+    def get_queue_names(self, instance):
+        return list(instance.queues.values_list('name', flat=True))
+
+    def get_organisation(self, instance):
+        if instance.clc_query:
+            return instance.clc_query.good.organisation.name
+        else:
+            return instance.application.organisation.name
+
+    def get_status(self, instance):
+        if instance.clc_query:
+            return instance.clc_query.status.status
+        else:
+            return instance.application.status.status
+
+
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()

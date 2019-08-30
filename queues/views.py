@@ -12,11 +12,10 @@ from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from gov_users.libraries.get_gov_user import get_gov_user_by_pk
 from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases, get_all_my_team_cases_queue
 from queues.models import Queue
 from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
-from queues.tests.tests_consts import ALL_MY_QUEUES_ID
+from users.libraries.get_user import get_user_by_pk
 
 
 @permission_classes((permissions.AllowAny,))
