@@ -3,9 +3,10 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from conf.settings import TEST_S3_KEY
 from end_user.document.models import EndUserDocument
 from test_helpers.clients import DataTestClient
+
+test_file = "dog.jpg"
 
 
 class EndUserDocumentTests(DataTestClient):
@@ -19,8 +20,8 @@ class EndUserDocumentTests(DataTestClient):
         self.draft_no_user = self.create_draft(self.organisation, 'Dafty daft')
         self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
-        self.data = {"name": "file123.pdf",
-                 "s3_key": TEST_S3_KEY,
+        self.data = {"name": test_file,
+                 "s3_key": test_file,
                  "size": 476}
 
     @mock.patch('documents.tasks.prepare_document.now')

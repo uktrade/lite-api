@@ -4,8 +4,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from conf.settings import TEST_S3_KEY
 from end_user.document.models import EndUserDocument
+from end_user.document.tests import test_file
 from end_user.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -106,8 +106,8 @@ class EndUserOnDraftTests(DataTestClient):
         """
         # assemble
         end_user_1_id = self.draft.end_user.id
-        self.document_data = {"name": "file689.pdf",
-                 "s3_key": TEST_S3_KEY,
+        self.document_data = {"name": test_file,
+                 "s3_key": test_file,
                  "size": 476,
                  "description": "Description 7538564"}
         self.client.post(reverse('drafts:end_user_document', kwargs={'pk': self.draft.id}),

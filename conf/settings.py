@@ -150,7 +150,6 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
-TEST_S3_KEY = env('TEST_S3_KEY')
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
