@@ -63,7 +63,7 @@ class UserDetail(APIView):
 
     def get(self, request, org_pk, user_pk):
         """
-        List all users from the specified organisation
+        Return a user from the specified organisation
         """
         view_serializer = ExporterUserViewSerializer(self.user)
         return JsonResponse(data={'user': view_serializer.data})
