@@ -72,13 +72,12 @@ class OrganisationUsersCreateTests(DataTestClient):
         """
         Ensure that a user can be added to multiple organisations
         """
-        organisation_2 = self.create_organisation()
-        user = get_users_from_organisation(organisation_2)[0]
+        exporter_user_2 = self.create_exporter_user()
 
         data = {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email,
+            'first_name': exporter_user_2.first_name,
+            'last_name': exporter_user_2.last_name,
+            'email': exporter_user_2.email,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
