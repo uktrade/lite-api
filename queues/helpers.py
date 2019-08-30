@@ -59,11 +59,11 @@ def get_sorted_cases(request, queue_id, cases):
 
 def get_filtered_case_from_queryset(request, cases):
     kwargs = {}
-    case_type = request.GET.get('case_type', None)
+    case_type = request.query_params.get('case_type', None)
     if case_type:
         kwargs['type'] = case_type
 
-    status = request.GET.get('status', None)
+    status = request.query_params.get('status', None)
     if status:
         cases = _coalesce_case_status_priority(cases)
         priority = get_case_status_from_status(status).priority
