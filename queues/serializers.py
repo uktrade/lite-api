@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from cases.serializers import CaseSerializer, CaseDetailSerializer, TinyCaseSerializer
+from cases.serializers import CaseSerializer, TinyCaseSerializer
 from content_strings.strings import get_string
 from queues.models import Queue
 from teams.models import Team
@@ -31,7 +31,7 @@ class QueueViewSerializer(QueueSerializer):
             # System queues already has a cases count variable - use that
             # instead of doing a db lookup
             return instance.cases_count
-        except Exception:
+        except AttributeError:
             return instance.cases.count()
 
     class Meta:
