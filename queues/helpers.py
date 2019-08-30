@@ -8,6 +8,7 @@ from conf.constants import SystemLimits
 from conf.exceptions import NotFoundError
 from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
+from queues.tests.tests_consts import ALL_MY_QUEUES_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from teams.models import Team
@@ -112,6 +113,14 @@ def get_open_cases_queue(return_cases=False):
                   name='Open cases',
                   team=Team.objects.get(name='Admin'))
 
+    cases = Case.objects.annotate(
+        status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+    )
+
+    queue.cases_count = cases.filter(~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
+                                     ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
+                                     ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])).count()
+
     if return_cases:
         # coalesce on status priority so that we can filter/sort later if needed
         cases = Case.objects.annotate(
@@ -135,6 +144,8 @@ def get_all_cases_queue(return_cases=False):
                   name='All cases',
                   team=Team.objects.get(name='Admin'))
 
+    queue.cases_count = Case.objects.count()
+
     if return_cases:
         # coalesce on status priority so that we can filter/sort later if needed
         cases = Case.objects.annotate(
@@ -148,10 +159,26 @@ def get_all_cases_queue(return_cases=False):
         return queue
 
 
-def get_queue(pk, return_cases=False):
+def get_all_my_team_cases_queue(team, return_cases=False):
+    queue = Queue(id=ALL_MY_QUEUES_ID,
+                  name='All my queues',
+                  team=team)
+    my_team_queues = Queue.objects.filter(team=team)
+    cases = Case.objects.filter(queues__in=my_team_queues).distinct()
+    queue.cases_count = cases.count()
+
+    if return_cases:
+        return queue, cases
+    else:
+        return queue
+
+
+def get_queue(pk, team=None, return_cases=False):
     if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
         return get_all_cases_queue(return_cases)
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
         return get_open_cases_queue(return_cases)
+    elif ALL_MY_QUEUES_ID == str(pk):
+        return get_all_my_team_cases_queue(return_cases=return_cases, team=team)
     else:
         return get_non_system_queue(pk, return_cases)

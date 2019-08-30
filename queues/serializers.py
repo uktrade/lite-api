@@ -24,13 +24,20 @@ class QueueSerializer(serializers.ModelSerializer):
 
 class QueueViewSerializer(QueueSerializer):
     team = TeamSerializer(required=False)
+    cases_count = serializers.SerializerMethodField()
+
+    def get_cases_count(self, instance):
+        try:
+            return instance.cases_count
+        except Exception:
+            return instance.cases.count()
 
     class Meta:
         model = Queue
         fields = ('id',
                   'name',
                   'team',
-                  'cases',)
+                  'cases_count',)
 
 
 class QueueViewCaseDetailSerializer(QueueViewSerializer):
