@@ -324,6 +324,10 @@ class EcjuQueryDetail(APIView):
         return JsonResponse(data={'ecju_query': serializer.data})
 
     def put(self, request, pk, ecju_pk):
+        """
+        If not validate only Will update the ecju query instance, with a response, and return the data details.
+        If validate only, this will return if the data is acceptable or not.
+        """
         ecju_query = get_ecju_query(ecju_pk)
 
         data = {

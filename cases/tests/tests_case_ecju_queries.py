@@ -21,7 +21,8 @@ class CaseEcjuQueriesTests(DataTestClient):
         ecju_query.save()
 
         self.team_2 = self.create_team('TAU')
-        self.gov_user_2 = self.create_gov_user('bob@slob.com', self.team_2)
+        self.gov_user2_email = 'bob@slob.com'
+        self.gov_user_2 = self.create_gov_user(self.gov_user2_email, self.team_2)
 
         ecju_query = EcjuQuery(question='ECJU Query 2', case=self.case, response='I have a response',
                                raised_by_user=self.gov_user_2, responded_by_user=self.exporter_user)

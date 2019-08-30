@@ -151,6 +151,9 @@ class ApplicationDetail(APIView):
 
 class CLCList(APIView):
     def post(self, request):
+        """
+        Create a new CLC query case instance
+        """
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
 
