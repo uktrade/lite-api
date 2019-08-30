@@ -76,11 +76,11 @@ def get_filtered_case_from_queryset(request, cases):
 
 
 def filter_in_memory(request, cases):
-    case_type = request.GET.get('case_type', None)
+    case_type = request.query_params.get('case_type', None)
     if case_type:
         cases = list(filter(lambda case: case.type == case_type, cases))
 
-    status = request.GET.get('status', None)
+    status = request.query_params.get('status', None)
     if status:
         priority = get_case_status_from_status(status).priority
         cases = list(filter(lambda case: case.status__priority == priority, cases))
