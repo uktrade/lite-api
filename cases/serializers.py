@@ -54,12 +54,20 @@ class CaseSerializer(serializers.ModelSerializer):
 
 
 class TinyCaseSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    type = serializers.SerializerMethodField()
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    id = serializers.UUIDField()
-    type = serializers.CharField(max_length=50)
+
+    def get_type(self, instance):
+        if instance.type == 'clc_query':
+            case_type = 'CLC Query'
+        else:
+            case_type = instance.type.title()
+        return case_type
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
@@ -70,11 +78,16 @@ class TinyCaseSerializer(serializers.Serializer):
         else:
             return instance.application.organisation.name
 
+    def get_users(self, instance):
+        return [[y for y in x.users.values_list('first_name', 'last_name', 'email')] for x in CaseAssignment.objects.filter(case=instance)]
+
     def get_status(self, instance):
         if instance.clc_query:
             return instance.clc_query.status.status
         else:
             return instance.application.status.status
+
+
 
 
 class CaseDetailSerializer(CaseSerializer):

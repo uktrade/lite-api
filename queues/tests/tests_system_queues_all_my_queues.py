@@ -15,10 +15,10 @@ class RetrieveAllMyCases(DataTestClient):
         self.queue2 = self.create_queue('queue2', self.team)
         self.queue3 = self.create_queue('queue3', team_2)
 
-        self.case1 = self.create_standard_application_case(self.exporter_user.organisation)
-        self.case2 = self.create_standard_application_case(self.exporter_user.organisation)
-        self.case3 = self.create_standard_application_case(self.exporter_user.organisation)
-        self.case4 = self.create_standard_application_case(self.exporter_user.organisation)
+        self.case1 = self.create_standard_application_case(self.organisation)
+        self.case2 = self.create_standard_application_case(self.organisation)
+        self.case3 = self.create_standard_application_case(self.organisation)
+        self.case4 = self.create_standard_application_case(self.organisation)
 
         self.case1.queues.set([self.queue1.id])
         self.case2.queues.set([self.queue1.id, self.queue2.id])
@@ -36,7 +36,6 @@ class RetrieveAllMyCases(DataTestClient):
     def test_queues_return_number_of_contents(self):
         response = self.client.get(reverse('queues:queues') + '?include_system_queues=True', **self.gov_headers)
         response_data = response.json()['queues']
-        print(response_data)
 
         i = 0
         for queue in response_data:

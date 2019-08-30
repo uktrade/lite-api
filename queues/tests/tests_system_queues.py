@@ -124,23 +124,6 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
         self.assertEqual(3, len(response_data['queue']['cases']))
 
-    def test_get_all_cases_system_queue_limits_to_200_cases(self):
-        """
-        Given that in excess of 200 cases exist
-        When a user gets the all cases system queue
-        Then only 200 cases are returned
-        """
-        cases = [Case(type=CaseType.APPLICATION) for i in range(201)]
-        Case.objects.bulk_create(cases)
-
-        response = self.client.get(self.all_cases_system_queue_url, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
-        self.assertEqual(200, len(response_data['queue']['cases']))
-
     def test_get_open_cases_system_queue_returns_expected_cases(self):
         """
         Given that a number of open and closed cases exist
