@@ -1,6 +1,7 @@
 from django.http import Http404
 
 from applications.models import Application, GoodOnApplication
+from clc_queries.models import ClcQuery
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 
@@ -26,7 +27,7 @@ def get_good_document(good: Good, pk):
 
 def get_goods_from_case(case):
     if case.clc_query:
-        pass
+        return [ClcQuery.objects.get(case=case).good.id]
     else:
         application = Application.objects.get(case=case)
         goods_on_applications = GoodOnApplication.objects.filter(application=application)
