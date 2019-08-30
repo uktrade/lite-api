@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
-from users.libraries.get_user import get_users_from_organisation
+from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
@@ -125,10 +125,10 @@ class OrganisationUsersUpdateTests(DataTestClient):
         }
 
         response = self.client.put(url, data, **self.exporter_headers)
-        exporter_user_2 = self.organisation.get_users()[1]
+        exporter_user_2_relationship = self.organisation.get_user_relationship(exporter_user_2)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(exporter_user_2.status, data['status'])
+        self.assertEqual(exporter_user_2_relationship.status, data['status'])
 
     def test_user_cannot_deactivate_themselves(self):
         """

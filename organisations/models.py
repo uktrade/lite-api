@@ -21,7 +21,7 @@ class Organisation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
 
-    def has_user(self, user):
+    def get_user_relationship(self, user):
         from users.models import UserOrganisationRelationship
         try:
             user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user,

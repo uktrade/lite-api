@@ -56,7 +56,7 @@ class UserDetail(APIView):
         organisation = get_organisation_by_pk(kwargs['org_pk'])
 
         # Set the user's status in that org
-        self.user_relationship = organisation.has_user(self.user)
+        self.user_relationship = organisation.get_user_relationship(self.user)
         self.user.status = self.user_relationship.status
 
         return super(UserDetail, self).dispatch(request, *args, **kwargs)
