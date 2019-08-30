@@ -60,7 +60,7 @@ class TinyCaseSerializer(serializers.Serializer):
         if instance.type == 'clc_query':
             case_type = 'CLC Query'
         else:
-            case_type = 'Application'
+            case_type = instance.type.title()
         return case_type
 
     def get_queue_names(self, instance):
