@@ -13,7 +13,7 @@ urlpatterns = [
     # ex: /organisations/<uuid:org_pk>/users/ - View all users for that organisation
     path('<uuid:org_pk>/users/', users.UsersList.as_view(), name='users'),
     # ex: /organisations/<uuid:org_pk>/users/<uuid:user_pk> - View all users for that organisation
-    path('<uuid:org_pk>/users/<uuid:user_pk>', users.UserDetail.as_view(), name='user'),
+    path('<uuid:org_pk>/users/<uuid:user_pk>/', users.UserDetail.as_view(), name='user'),
 
     # ex: /organisations/<uuid:pk>/sites/ - View all sites belonging to an organisation
     path('<uuid:org_pk>/sites/', sites.SitesList.as_view(), name='sites'),
