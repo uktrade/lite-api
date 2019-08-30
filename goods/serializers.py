@@ -159,7 +159,7 @@ class FullGoodSerializer(GoodSerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values('id', 'name'))
+        return list(instance.flags.values('id', 'name'))
 
     class Meta:
         model = Good

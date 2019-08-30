@@ -119,7 +119,8 @@ class AssignFlags(APIView):
         previously_assigned_deactivated_team_flags = object.flags.filter(level=level, team=user.team, status=FlagStatuses.DEACTIVATED)
         previously_assigned_not_team_flags = object.flags.exclude(level=level, team=user.team)
         add_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
-        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in validated_data or previously_assigned_deactivated_team_flags]
+        ignored_flags = validated_data + [x for x in previously_assigned_deactivated_team_flags]
+        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
         with reversion.create_revision():
             reversion.set_comment(
