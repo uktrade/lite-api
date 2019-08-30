@@ -54,6 +54,7 @@ class TinyCaseSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     id = serializers.UUIDField()
     type = serializers.CharField(max_length=50)
+    users = serializers.SerializerMethodField()
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
@@ -69,6 +70,9 @@ class TinyCaseSerializer(serializers.Serializer):
             return instance.clc_query.status.status
         else:
             return instance.application.status.status
+
+    def get_users(self, instance):
+        return [[y for y in x.users.values_list('first_name', 'last_name', 'email')] for x in CaseAssignment.objects.filter(case=instance)]
 
 
 class CaseDetailSerializer(CaseSerializer):
