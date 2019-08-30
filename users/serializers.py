@@ -1,10 +1,12 @@
 from rest_framework import serializers
 
 from conf.exceptions import NotFoundError
+from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
 from cases.models import Notification
@@ -175,3 +177,11 @@ def _get_notification_case(notification):
         return notification.ecju_query.case
     else:
         raise Exception('Unexpected error, Notification object with no link to originating object')
+
+
+class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
+    status = KeyValueChoiceField(choices=UserStatuses.choices)
+
+    class Meta:
+        model = UserOrganisationRelationship
+        fields = ['status']
