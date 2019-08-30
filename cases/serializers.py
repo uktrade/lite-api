@@ -21,6 +21,12 @@ from users.models import BaseUser, GovUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
 
 
+class SimpleTestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = ['id']
+
+
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
