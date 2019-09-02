@@ -16,9 +16,9 @@ class LoggingMiddleware:
         request.correlation = correlation or uuid.uuid4().hex
         response = self.get_response(request)
         logging.info({
-            "message": "liteolog",
+            "message": "liteolog api",
             "corrID": request.correlation,
-            "type": "http",
+            "type": "http response",
             "method": request.method,
             "url": request.path,
             "elapsed_time": time.time() - start
