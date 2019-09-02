@@ -4,9 +4,9 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodControlled
 from goods.models import Good
-from gov_users.libraries.user_to_token import user_to_token
+from users.libraries.user_to_token import user_to_token
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
+from users.libraries.get_user import get_users_from_organisation
 
 
 class GoodViewTests(DataTestClient):
@@ -15,7 +15,7 @@ class GoodViewTests(DataTestClient):
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.exporter_user.organisation)
+                    organisation=self.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
@@ -24,20 +24,20 @@ class GoodViewTests(DataTestClient):
 
     def test_fail_view_other_organisations_goods_details(self):
         organisation_2 = self.create_organisation()
-        organisation_2_admin = ExporterUser.objects.get(organisation=organisation_2)
+        organisation_2_admin = get_users_from_organisation(organisation_2)[0]
 
         good = Good(description='thing',
                     is_good_controlled=GoodControlled.NO,
                     is_good_end_product=True,
-                    organisation=self.exporter_user.organisation)
+                    organisation=self.organisation)
         good.save()
 
         url = reverse('goods:good', kwargs={'pk': good.id})
-        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(organisation_2_admin)})
+        response = self.client.get(url, **{'HTTP_EXPORTER_USER_TOKEN': user_to_token(organisation_2_admin), 'HTTP_ORGANISATION_ID': str(organisation_2.id)})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_view_good__query_filter_by_description(self):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         self.create_controlled_good('thing1', org)
         self.create_controlled_good('Thing2', org)
@@ -62,7 +62,7 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         # create a set of Goods for the test
         Good.objects.create(description='car1',
@@ -117,7 +117,7 @@ class GoodViewTests(DataTestClient):
         ('ML3a', 1),
     ])
     def test_view_good__query_filter_by_control_rating(self, control_rating, size):
-        org = self.exporter_user.organisation
+        org = self.organisation
 
         self.create_controlled_good('thing1', org, 'ML3a')
         self.create_controlled_good('Thing2', org, 'ML3b')

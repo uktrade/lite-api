@@ -60,9 +60,14 @@ class BaseUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True)
-    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+    password = None
+    is_superuser = None
+    last_login = None
+    is_staff = None
+    is_active = None
 
-    # Set this to use id as email cannot be unique in the base user model (and we couldn't think of anything else to use instead)
+    # Set this to use id as email cannot be unique in the base user model
+    # (and we couldn't think of anything else to use instead)
     USERNAME_FIELD = 'id'
     REQUIRED_FIELDS = []
 
@@ -73,14 +78,20 @@ class BaseUser(AbstractUser):
 
 
 class ExporterUser(BaseUser):
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
-
     def send_notification(self, case):
         from cases.models import Notification
         Notification.objects.create(user=self, note=case)
 
 
+class UserOrganisationRelationship(models.Model):
+    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+
+
 class GovUser(BaseUser):
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
     role = models.ForeignKey(Role, related_name='role', default='00000000-0000-0000-0000-000000000001', on_delete=models.PROTECT)
 

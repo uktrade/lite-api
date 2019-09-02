@@ -9,10 +9,9 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
-from gov_users.libraries.get_gov_user import get_gov_user_by_pk
-from gov_users.libraries.user_to_token import user_to_token
+from users.libraries.user_to_token import user_to_token
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
-from users.libraries.user_is_trying_to_change_own_status import user_is_trying_to_change_own_status
+from users.libraries.get_user import get_user_by_pk
 from users.models import GovUser
 
 
@@ -111,7 +110,7 @@ class GovUserDetail(APIView):
         """
         Get user from pk
         """
-        gov_user = get_gov_user_by_pk(pk)
+        gov_user = get_user_by_pk(pk)
 
         serializer = GovUserViewSerializer(gov_user)
         return JsonResponse(data={'user': serializer.data})
@@ -125,19 +124,15 @@ class GovUserDetail(APIView):
         """
         Edit user from pk
         """
-        gov_user = get_gov_user_by_pk(pk)
+        gov_user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
         if 'status' in data.keys():
-            if user_is_trying_to_change_own_status(gov_user.id, GovUser.objects.get(email=request.user.email).id):
+            if gov_user.id == request.user.id:
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
-            for key in list(data.keys()):
-                if data[key] is '':
-                    del data[key]
-
             serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -150,7 +145,7 @@ class GovUserDetail(APIView):
                                     status=status.HTTP_200_OK)
 
             return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+                                status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):

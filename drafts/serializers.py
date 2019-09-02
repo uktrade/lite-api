@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
 from end_user.serializers import EndUserSerializer
@@ -13,6 +14,10 @@ from static.units.enums import Units
 
 
 class DraftBaseSerializer(serializers.ModelSerializer):
+    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+                                              'required': get_string('applications.generic.no_licence_type')})
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
+                                              'required': get_string('applications.generic.no_export_type')})
     created_at = serializers.DateTimeField(read_only=True)
     last_modified_at = serializers.DateTimeField(read_only=True)
     end_user = EndUserSerializer()
@@ -36,11 +41,11 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 class DraftCreateSerializer(DraftBaseSerializer):
     name = serializers.CharField(max_length=100,
                                  error_messages={'blank': get_string('goods.error_messages.ref_name')})
-    licence_type = serializers.ChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                                'required': get_string('applications.generic.no_licence_type')})
-    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': get_string('applications.generic.no_export_type')})
-    have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
+    have_you_been_informed = KeyValueChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
     reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -60,7 +65,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
-    export_type = serializers.ChoiceField(choices=ApplicationExportType.choices, error_messages={
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': get_string('applications.generic.no_export_type')})
     have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
@@ -105,7 +110,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
 
 class GoodOnDraftViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
-    unit = serializers.CharField()
+    unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
         model = GoodOnDraft

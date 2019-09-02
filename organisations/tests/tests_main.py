@@ -3,7 +3,8 @@ from rest_framework.reverse import reverse
 
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
-from users.models import ExporterUser
+from users.libraries.get_user import get_users_from_organisation
+from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
@@ -12,7 +13,7 @@ class OrganisationCreateTests(DataTestClient):
 
     def test_create_organisation_with_first_user(self):
         data = {
-            'name': 'New Organisation',
+            'name': 'Lemonworld Co',
             'eori_number': 'GB123456789000',
             'sic_number': '2765',
             'vat_number': '123456789',
@@ -37,8 +38,8 @@ class OrganisationCreateTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        organisation = Organisation.objects.filter(name=data['name'])[0]
-        exporter_user = ExporterUser.objects.filter(organisation=organisation)[0]
+        organisation = Organisation.objects.get(name=data['name'])
+        exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
