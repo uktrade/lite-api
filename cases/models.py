@@ -125,7 +125,7 @@ class EcjuQuery(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
-    response = models.CharField(null=True, blank=False, max_length=5000)
+    response = models.CharField(null=True, blank=False, max_length=2200)
     case = models.ForeignKey(Case, related_name='case_ecju_query', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
