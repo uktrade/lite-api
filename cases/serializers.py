@@ -7,9 +7,8 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, E
 from clc_queries.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
-from documents.tasks import prepare_document
+from documents.libraries.process_document import process_document
 from end_user.models import EndUser
 from flags.models import Flag
 from goods.models import Good
@@ -122,15 +121,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
         case_document.save()
-
-        if BACKGROUND_TASK_ENABLED:
-            prepare_document(str(case_document.id))
-        else:
-            try:
-                prepare_document.now(str(case_document.id))
-            except Exception:
-                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
-
+        process_document(case_document)
         return case_document
 
 

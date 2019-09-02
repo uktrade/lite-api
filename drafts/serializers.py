@@ -1,5 +1,6 @@
-from rest_framework import serializers
+from rest_framework.fields import DateTimeField, CharField, ChoiceField, DecimalField
 from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
@@ -13,13 +14,13 @@ from organisations.serializers import SiteViewSerializer
 from static.units.enums import Units
 
 
-class DraftBaseSerializer(serializers.ModelSerializer):
+class DraftBaseSerializer(ModelSerializer):
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                               'required': get_string('applications.generic.no_licence_type')})
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': get_string('applications.generic.no_export_type')})
-    created_at = serializers.DateTimeField(read_only=True)
-    last_modified_at = serializers.DateTimeField(read_only=True)
+    created_at = DateTimeField(read_only=True)
+    last_modified_at = DateTimeField(read_only=True)
     end_user = EndUserSerializer()
 
     class Meta:
@@ -39,7 +40,7 @@ class DraftBaseSerializer(serializers.ModelSerializer):
 
 
 class DraftCreateSerializer(DraftBaseSerializer):
-    name = serializers.CharField(max_length=100,
+    name = CharField(max_length=100,
                                  error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
                                                'required': get_string('applications.generic.no_licence_type')})
@@ -47,7 +48,7 @@ class DraftCreateSerializer(DraftBaseSerializer):
                                               'required': get_string('applications.generic.no_export_type')})
     have_you_been_informed = KeyValueChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
-    reference_number_on_information_form = serializers.CharField(required=True, allow_blank=True)
+    reference_number_on_information_form = CharField(required=True, allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
@@ -62,14 +63,14 @@ class DraftCreateSerializer(DraftBaseSerializer):
 
 
 class DraftUpdateSerializer(DraftBaseSerializer):
-    name = serializers.CharField()
-    usage = serializers.CharField()
-    activity = serializers.CharField()
+    name = CharField()
+    usage = CharField()
+    activity = CharField()
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
                                               'required': get_string('applications.generic.no_export_type')})
-    have_you_been_informed = serializers.ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
+    have_you_been_informed = ChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                      error_messages={'required': get_string('goods.error_messages.informed')})
-    reference_number_on_information_form = serializers.CharField()
+    reference_number_on_information_form = CharField()
 
     def update(self, instance, validated_data):
         """
@@ -87,14 +88,14 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         return instance
 
 
-class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
+class GoodOnDraftBaseSerializer(ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
-    quantity = serializers.DecimalField(max_digits=256, decimal_places=6,
+    quantity = DecimalField(max_digits=256, decimal_places=6,
                                         error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
-    value = serializers.DecimalField(max_digits=256, decimal_places=2,
+    value = DecimalField(max_digits=256, decimal_places=2,
                                      error_messages={'invalid': get_string('goods.error_messages.invalid_value')}),
-    unit = serializers.ChoiceField(choices=Units.choices, error_messages={
+    unit = ChoiceField(choices=Units.choices, error_messages={
         'required': get_string('goods.error_messages.required_unit'),
         'invalid_choice': get_string('goods.error_messages.required_unit')})
 
@@ -108,7 +109,7 @@ class GoodOnDraftBaseSerializer(serializers.ModelSerializer):
                   'value')
 
 
-class GoodOnDraftViewSerializer(serializers.ModelSerializer):
+class GoodOnDraftViewSerializer(ModelSerializer):
     good = GoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
 
@@ -122,7 +123,7 @@ class GoodOnDraftViewSerializer(serializers.ModelSerializer):
                   'value')
 
 
-class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
+class SiteOnDraftBaseSerializer(ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
@@ -133,7 +134,7 @@ class SiteOnDraftBaseSerializer(serializers.ModelSerializer):
                   'draft')
 
 
-class SiteOnDraftViewSerializer(serializers.ModelSerializer):
+class SiteOnDraftViewSerializer(ModelSerializer):
     site = SiteViewSerializer(read_only=True)
     draft = DraftBaseSerializer(read_only=True)
 
@@ -144,7 +145,7 @@ class SiteOnDraftViewSerializer(serializers.ModelSerializer):
                   'draft')
 
 
-class ExternalLocationOnDraftSerializer(serializers.ModelSerializer):
+class ExternalLocationOnDraftSerializer(ModelSerializer):
     draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
     external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
 
