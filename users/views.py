@@ -1,4 +1,5 @@
 import reversion
+from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -7,12 +8,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from cases.models import Notification
 from users.serializers import NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
 
@@ -128,9 +129,13 @@ class NotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
-        # join to Case Note table join to Cases table and see if clc_query is null)
-        queryset = Notification.objects.filter(user=self.request.user, note__case__clc_query_id__isnull=True)
+        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
+        # queries
+        queryset = Notification.objects.filter(Q(user=self.request.user,
+                                                 case_note__case__application_id__isnull=False)
+                                               | Q(user=self.request.user,
+                                                   ecju_query__case__application_id__isnull=False))
+
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
 
@@ -145,9 +150,13 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get queryset using dunder expression to go across relationships (so note_id on Notification table
-        # join to Case Note table join to Cases table and see if application_id is null)
-        queryset = Notification.objects.filter(user=self.request.user, note__case__application_id__isnull=True)
+        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
+        # queries
+        queryset = Notification.objects.filter(Q(user=self.request.user,
+                                                 case_note__case__clc_query_id__isnull=False)
+                                               | Q(user=self.request.user,
+                                                   ecju_query__case__clc_query_id__isnull=False))
+
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
 

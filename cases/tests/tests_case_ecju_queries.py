@@ -3,7 +3,6 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case
 from cases.models import EcjuQuery
 from test_helpers.clients import DataTestClient
 
@@ -20,17 +19,22 @@ class CaseEcjuQueriesTests(DataTestClient):
 
         ecju_query = EcjuQuery(question='ECJU Query 1', case=self.case, raised_by_user=self.gov_user)
         ecju_query.save()
+
+        self.team_2 = self.create_team('TAU')
+        self.gov_user2_email = 'bob@slob.com'
+        self.gov_user_2 = self.create_gov_user(self.gov_user2_email, self.team_2)
+
         ecju_query = EcjuQuery(question='ECJU Query 2', case=self.case, response='I have a response',
-                               raised_by_user=self.gov_user, responded_by_user=self.exporter_user)
+                               raised_by_user=self.gov_user_2, responded_by_user=self.exporter_user)
         ecju_query.save()
         ecju_query = EcjuQuery(question='ECJU Query 3', case=self.case2, raised_by_user=self.gov_user)
         ecju_query.save()
 
-    def test_view_case_with_ecju_queries_successful(self):
+    def test_view_case_with_ecju_queries_as_gov_user_successful(self):
         """
         Given a case with ECJU queries on it
         When a gov user requests the ECJU queries for the case
-        Then the request is successful and the expected number of ECJU queries are returned
+        Then the request is successful
         """
         # Act
         response = self.client.get(self.url, **self.gov_headers)
@@ -38,7 +42,19 @@ class CaseEcjuQueriesTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_correct_ecju_query_details_are_returned(self):
+    def test_view_case_with_ecju_queries_as_exporter_user_successful(self):
+        """
+        Given a case with ECJU queries on it
+        When an exporter user requests the ECJU queries for the case
+        Then the request is successful
+        """
+        # Act
+        response = self.client.get(self.url, **self.exporter_headers)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_correct_ecju_query_details_are_returned_to_gov_user(self):
         """
         Given a case with ECJU queries
         When a gov user requests the ECJU queries for the case
@@ -60,6 +76,35 @@ class CaseEcjuQueriesTests(DataTestClient):
         returned_ecju_query_2 = response_json.get('ecju_queries')[1]
         self.assertEqual(returned_ecju_query_2.get('question'), 'ECJU Query 2')
         self.assertEqual(returned_ecju_query_2.get('response'), 'I have a response')
+
+    def test_correct_ecju_query_details_are_returned_to_exporter_user(self):
+        """
+        Given a case with ECJU queries
+        When an exporter user requests the ECJU queries for the case
+        Then the expected ECJU queries and properties are returned
+        """
+        # Act
+        response = self.client.get(self.url, **self.exporter_headers)
+
+        # Assert
+        response_json = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_json.get('ecju_queries')), 2)
+
+        returned_ecju_query_1 = response_json.get('ecju_queries')[0]
+        self.assertEqual(returned_ecju_query_1.get('question'), 'ECJU Query 1')
+        self.assertEqual(returned_ecju_query_1.get('response'), None)
+        self.assertEqual(returned_ecju_query_1.get('team')['name'], 'Admin')
+        # We can't predict exactly when the query is created so we settle for the fact that its set
+        self.assertIsNotNone(returned_ecju_query_1.get('created_at'))
+
+        returned_ecju_query_2 = response_json.get('ecju_queries')[1]
+        self.assertEqual(returned_ecju_query_2.get('question'), 'ECJU Query 2')
+        self.assertEqual(returned_ecju_query_2.get('response'), 'I have a response')
+        self.assertEqual(returned_ecju_query_2.get('team')['name'], 'TAU')
+        # We can't predict exactly when the query is created so we settle for the fact that its set
+        self.assertIsNotNone(returned_ecju_query_1.get('created_at'))
 
     def test_view_case_without_ecju_queries(self):
         """

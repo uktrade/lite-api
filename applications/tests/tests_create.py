@@ -42,7 +42,7 @@ class ApplicationsTests(DataTestClient):
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
         """
-        TODO: Add description
+        Ensure we cannot create a new application without a site
         """
         draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
         draft.end_user = self.create_end_user("End user", self.organisation)
