@@ -23,7 +23,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('applications/', include('applications.urls')),
     path('cases/', include('cases.urls')),
-    path('clc_queries/', include('clc_queries.urls')),
+    path('clc-queries/', include('clc_queries.urls')),
     path('drafts/', include('drafts.urls')),
     path('goods/', include('goods.urls')),
     path('goodstype/', include('goodstype.urls')),

@@ -17,8 +17,9 @@ from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from users.models import BaseUser, GovUser
-from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
+from teams.serializers import TeamSerializer
+from users.models import BaseUser, GovUser, ExporterUser
+from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -224,13 +225,37 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class EcjuQuerySerializer(serializers.ModelSerializer):
+class EcjuQueryGovSerializer(serializers.ModelSerializer):
     class Meta:
         model = EcjuQuery
         fields = ('id',
                   'question',
                   'response',
-                  'case',)
+                  'case',
+                  'responded_by_user',
+                  'created_at',
+                  'responded_at')
+
+
+class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+    responded_by_user = PrimaryKeyRelatedSerializerField(queryset=ExporterUser.objects.all(),
+                                                         serializer=ExporterUserViewSerializer)
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+
+    def get_team(self, instance):
+        return TeamSerializer(instance.raised_by_user.team).data
+
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',
+                  'responded_by_user',
+                  'team',
+                  'created_at',
+                  'responded_at')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

@@ -4,8 +4,8 @@ import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from reversion.models import Revision
 
+from reversion.models import Revision
 from organisations.models import Organisation
 from teams.models import Team
 from users.enums import UserStatuses
@@ -76,11 +76,17 @@ class BaseUser(AbstractUser):
 
     objects = CustomUserManager()
 
+    def send_notification(self, case_note=None, ecju_query=None):
+        from cases.models import Notification
+        # circular import prevention
+        if case_note or ecju_query:
+            Notification.objects.create(user=self, case_note=case_note, ecju_query=ecju_query)
+        else:
+            raise Exception("BaseUser.send_notification: objects expected have not been added.")
+
 
 class ExporterUser(BaseUser):
-    def send_notification(self, case):
-        from cases.models import Notification
-        Notification.objects.create(user=self, note=case)
+    pass
 
 
 class UserOrganisationRelationship(models.Model):
