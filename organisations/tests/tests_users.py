@@ -83,7 +83,7 @@ class OrganisationUsersCreateTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(len(get_users_from_organisation(self.organisation)), 2)
+        self.assertEqual(len(get_users_from_organisation(self.organisation)), 2)
 
     def test_add_existing_user_to_organisation_failure(self):
         """
