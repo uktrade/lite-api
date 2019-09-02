@@ -1,10 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import CaseType
-from cases.models import CaseAssignment, Case
-from conf.settings import OPEN_CASES_SYSTEM_QUEUE_ID
-from queues.tests.tests_consts import ALL_CASES_SYSTEM_QUEUE_ID
+from cases.models import CaseAssignment
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
@@ -122,7 +120,7 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
-        self.assertEqual(3, len(response_data['queue']['cases']))
+        self.assertEqual(response_data['queue']['cases_count'], 3)
 
     def test_get_open_cases_system_queue_returns_expected_cases(self):
         """
@@ -136,4 +134,4 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(OPEN_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
-        self.assertEqual(2, len(response_data['queue']['cases']))
+        self.assertEqual(response_data['queue']['cases_count'], 2)

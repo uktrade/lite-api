@@ -1,14 +1,11 @@
-from json import loads
-
 from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 from cases.models import Case
 from conf.constants import SystemLimits
 from conf.exceptions import NotFoundError
-from conf.settings import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
-from queues.tests.tests_consts import ALL_MY_QUEUES_ID
+from queues.constants import ALL_MY_QUEUES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from teams.models import Team
@@ -29,13 +26,10 @@ def _coalesce_case_status_priority(cases):
 def sort_in_queryset(request, cases):
     sort = request.GET.get('sort', None)
     if sort:
-        kwargs = []
-        sort = loads(sort)
-        if 'status' in sort:
+        if sort == 'status' or sort == '-status':
             cases = _coalesce_case_status_priority(cases)
-            order = '-' if sort['status'] == 'desc' else ''
-            kwargs.append(order + 'status__priority')
-            return cases.order_by(*kwargs)
+            order = '-' if '-' in sort else ''
+            return cases.order_by(order + 'status__priority')
     else:
         return cases
 
@@ -43,9 +37,9 @@ def sort_in_queryset(request, cases):
 def sort_in_memory(request, cases):
     sort = request.GET.get('sort', None)
     if sort:
-        sort = loads(sort)
-        if 'status' in sort:
-            return sorted(cases, key=lambda k: k.status__priority, reverse=sort['status'] == 'desc')
+        if sort == 'status' or sort == '-status':
+            cases = _coalesce_case_status_priority(cases)
+            return sorted(cases, key=lambda k: k.status__priority, reverse='-' in sort)
     else:
         return cases
 
@@ -112,7 +106,7 @@ def get_open_cases_queue(return_cases=False):
     queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
                   name='Open cases',
                   team=Team.objects.get(name='Admin'))
-
+    queue.is_system_queue = True
     cases = Case.objects.annotate(
         status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
     )
@@ -143,7 +137,7 @@ def get_all_cases_queue(return_cases=False):
     queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
                   name='All cases',
                   team=Team.objects.get(name='Admin'))
-
+    queue.is_system_queue = True
     queue.cases_count = Case.objects.count()
 
     if return_cases:
@@ -163,6 +157,7 @@ def get_all_my_team_cases_queue(team, return_cases=False):
     queue = Queue(id=ALL_MY_QUEUES_ID,
                   name='All my queues',
                   team=team)
+    queue.is_system_queue = True
     my_team_queues = Queue.objects.filter(team=team)
     cases = Case.objects.filter(queues__in=my_team_queues).distinct()
     queue.cases_count = cases.count()

@@ -1,35 +1,26 @@
 from rest_framework import serializers
 
-from cases.serializers import CaseSerializer, TinyCaseSerializer
+from cases.serializers import CaseSerializer
 from content_strings.strings import get_string
 from queues.models import Queue
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
-class QueueSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages={
-        'blank': get_string('queues.blank_name'),
-    })
-    cases = CaseSerializer(many=True, read_only=True, required=False)
-    team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
-
-    class Meta:
-        model = Queue
-        fields = ('id',
-                  'name',
-                  'team',
-                  'cases',)
-
-
-class QueueViewSerializer(QueueSerializer):
+class QueueViewSerializer(serializers.ModelSerializer):
     team = TeamSerializer(required=False)
     cases_count = serializers.SerializerMethodField()
+    is_system_queue = serializers.SerializerMethodField()
+
+    def get_is_system_queue(self, instance):
+        # System queues have the attribute 'is_system_queue',
+        # hence return whether it has the attribute or not
+        return hasattr(instance, 'is_system_queue')
 
     def get_cases_count(self, instance):
+        # System queues have a cases count attribute - use that
+        # instead of doing a database lookup
         try:
-            # System queues already has a cases count variable - use that
-            # instead of doing a db lookup
             return instance.cases_count
         except AttributeError:
             return instance.cases.count()
@@ -39,11 +30,16 @@ class QueueViewSerializer(QueueSerializer):
         fields = ('id',
                   'name',
                   'team',
-                  'cases_count',)
+                  'cases_count',
+                  'is_system_queue')
 
 
-class QueueViewCaseDetailSerializer(QueueViewSerializer):
-    cases = TinyCaseSerializer(many=True)
+class QueueCreateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(error_messages={
+        'blank': get_string('queues.blank_name'),
+    })
+    cases = CaseSerializer(many=True, read_only=True, required=False)
+    team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 
     class Meta:
         model = Queue

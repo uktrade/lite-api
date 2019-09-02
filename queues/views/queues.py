@@ -1,23 +1,15 @@
-from django.conf import settings
-from django.db import transaction
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status, generics
+from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.libraries.get_case import get_case
-from cases.models import CaseAssignment, Case
-from cases.serializers import CaseAssignmentSerializer, CaseDetailSerializer, CaseSerializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_filtered_cases, get_sorted_cases, \
-    get_all_my_team_cases_queue
+from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_all_my_team_cases_queue
 from queues.models import Queue
-from queues.serializers import QueueSerializer, QueueViewSerializer, QueueViewCaseDetailSerializer
-from users.libraries.get_user import get_user_by_pk
+from queues.serializers import QueueCreateSerializer, QueueViewSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -45,7 +37,7 @@ class QueuesList(APIView):
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = QueueSerializer(data=data)
+        serializer = QueueCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -65,22 +57,19 @@ class QueueDetail(APIView):
         Retrieve a queue instance
         """
         team = request.user.team
-        queue, cases = get_queue(pk=pk, return_cases=True, team=team)
-        cases = get_filtered_cases(request, queue.id, cases)
-        cases = get_sorted_cases(request, queue.id, cases)
-
-        queue = queue.__dict__
-        queue['cases'] = cases
-        serializer = QueueViewCaseDetailSerializer(queue)
+        queue = get_queue(pk=pk, team=team)
+        serializer = QueueViewSerializer(queue)
         return JsonResponse(data={'queue': serializer.data})
 
-    @swagger_auto_schema(request_body=QueueSerializer)
+    @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):
         queue = get_queue(pk)
-        data = request.data.copy()
-        serializer = QueueSerializer(instance=queue, data=data, partial=True)
+        data = request.data
+
+        serializer = QueueCreateSerializer(instance=queue, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={'queue': serializer.data})
+
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
