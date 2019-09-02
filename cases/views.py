@@ -275,14 +275,14 @@ class CaseEcjuQueries(APIView):
         """
         Returns the list of ECJU Queries on a case
         """
-        if isinstance(request.user, ExporterUser):
-            serializer = EcjuQueryExporterSerializer
-        else:
-            serializer = EcjuQueryGovSerializer
-
         case = get_case(pk)
         case_ecju_queries = EcjuQuery.objects.filter(case=case)
-        serializer = serializer(case_ecju_queries, many=True)
+
+        if isinstance(request.user, ExporterUser):
+            serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
+        else:
+            serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
+
         mark_notifications_as_viewed(request.user, case_ecju_queries)
 
         return JsonResponse({'ecju_queries': serializer.data})
