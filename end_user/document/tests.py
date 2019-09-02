@@ -185,7 +185,7 @@ class EndUserDocumentTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)'''
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    '''@mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_get_document_exists(self, mock_obj):
         """
         Given a standard draft has been created
@@ -201,7 +201,7 @@ class EndUserDocumentTests(DataTestClient):
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)'''
 
     '''@mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
