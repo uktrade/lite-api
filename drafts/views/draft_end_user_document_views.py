@@ -8,6 +8,7 @@ from conf.authentication import ExporterAuthentication
 from documents.libraries.check_if_s3_key_exists import s3_key_exists
 from drafts.libraries.get_draft import get_draft
 from end_user.document.models import EndUserDocument
+from end_user.models import EndUser
 from end_user.serializers import EndUserDocumentSerializer
 
 
@@ -38,7 +39,9 @@ class EndUserDocuments(APIView):
         Adds a document to the specified end user
         """
         if 'ueu_pk' in kwargs:
-            end_user = kwargs['ueu_pk']
+            end_users = EndUser.objects.filter(end_user=kwargs['ueu_pk'])
+            assert len(end_users) == 1
+            end_user = end_users.first()
         else:
             draft = get_draft(pk)
             end_user = draft.end_user
