@@ -33,13 +33,15 @@ class EndUserDocuments(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def post(self, request, pk):
+    def post(self, request, pk, **kwargs):
         """
         Adds a document to the specified end user
         """
-
-        draft = get_draft(pk)
-        end_user = draft.end_user
+        if 'ueu_pk' in kwargs:
+            end_user = kwargs['ueu_pk']
+        else:
+            draft = get_draft(pk)
+            end_user = draft.end_user
 
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
