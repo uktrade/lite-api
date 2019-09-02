@@ -1,7 +1,6 @@
-import json
 import logging
-import uuid
 import time
+import uuid
 
 
 class LoggingMiddleware:
