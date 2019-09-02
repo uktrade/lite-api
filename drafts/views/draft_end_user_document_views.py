@@ -39,7 +39,7 @@ class EndUserDocuments(APIView):
         Adds a document to the specified end user
         """
         if 'ueu_pk' in kwargs:
-            end_users = EndUser.objects.filter(end_user=kwargs['ueu_pk'])
+            end_users = EndUser.objects.filter(id=str(kwargs['ueu_pk']))
             assert len(end_users) == 1
             end_user = end_users.first()
         else:
