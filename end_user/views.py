@@ -17,10 +17,12 @@ class EUAEQueryList(APIView):
         data = JSONParser().parse(request)
         end_user = get_end_user(data['end_user_id'])
 
+
         euae_query = EUAEQuery(details=data['details'],
                                raised_reason=data['raised_reason'],
                                end_user=end_user,
                                status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+
         euae_query.save()
 
         # # Should be added to enforcement unit queue in the future
