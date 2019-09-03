@@ -104,6 +104,7 @@ def convert_good_reversion_to_activity(version: Version, good: Good):
             activity_type = CHANGE_GOOD_FLAGS
     except ValueError:
         return None
+
     return _activity_item(activity_type,
                           revision_object.date_created,
                           BaseUserViewSerializer(user).data,
