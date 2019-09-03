@@ -5,6 +5,7 @@ from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
 from clc_queries.serializers import ClcQuerySerializer
+from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from conf.settings import BACKGROUND_TASK_ENABLED
@@ -79,15 +80,18 @@ class TinyCaseSerializer(serializers.Serializer):
             return instance.application.organisation.name
 
     def get_users(self, instance):
-        return [[y for y in x.users.values_list('first_name', 'last_name', 'email')] for x in CaseAssignment.objects.filter(case=instance)]
+        try:
+            case_assignment = CaseAssignment.objects.get(case=instance)
+            users = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]} for x in case_assignment.users.values_list('first_name', 'last_name', 'email')]
+            return users
+        except Exception:
+            return []
 
     def get_status(self, instance):
         if instance.clc_query:
             return instance.clc_query.status.status
         else:
             return instance.application.status.status
-
-
 
 
 class CaseDetailSerializer(CaseSerializer):
