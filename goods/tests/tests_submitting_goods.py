@@ -60,7 +60,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be deleted after submission
         """
-        draft = self.create_standard_draft(self.organisation)
+        self.create_standard_draft(self.organisation)
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
         response = self.client.delete(url, **self.exporter_headers)

@@ -8,9 +8,8 @@ from clc_queries.serializers import ClcQuerySerializer
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from conf.settings import BACKGROUND_TASK_ENABLED
 from content_strings.strings import get_string
-from documents.tasks import prepare_document
+from documents.libraries.process_document import process_document
 from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -18,8 +17,9 @@ from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from users.models import BaseUser, GovUser
-from users.serializers import BaseUserViewSerializer, GovUserViewSerializer
+from teams.serializers import TeamSerializer
+from users.models import BaseUser, GovUser, ExporterUser
+from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
 
 
 class SimpleTestSerializer(serializers.ModelSerializer):
@@ -150,15 +150,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
         case_document.save()
-
-        if BACKGROUND_TASK_ENABLED:
-            prepare_document(str(case_document.id))
-        else:
-            try:
-                prepare_document.now(str(case_document.id))
-            except Exception:
-                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
-
+        process_document(case_document)
         return case_document
 
 
@@ -262,13 +254,37 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class EcjuQuerySerializer(serializers.ModelSerializer):
+class EcjuQueryGovSerializer(serializers.ModelSerializer):
     class Meta:
         model = EcjuQuery
         fields = ('id',
                   'question',
                   'response',
-                  'case',)
+                  'case',
+                  'responded_by_user',
+                  'created_at',
+                  'responded_at')
+
+
+class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+    responded_by_user = PrimaryKeyRelatedSerializerField(queryset=ExporterUser.objects.all(),
+                                                         serializer=ExporterUserViewSerializer)
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+
+    def get_team(self, instance):
+        return TeamSerializer(instance.raised_by_user.team).data
+
+    class Meta:
+        model = EcjuQuery
+        fields = ('id',
+                  'question',
+                  'response',
+                  'case',
+                  'responded_by_user',
+                  'team',
+                  'created_at',
+                  'responded_at')
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

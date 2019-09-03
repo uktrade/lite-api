@@ -12,10 +12,11 @@ from cases.libraries.activity_helpers import convert_case_reversion_to_activity,
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
+from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
-from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, EcjuQuerySerializer, \
-    EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer
+from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
+    EcjuQueryCreateSerializer, CaseFlagsAssignmentSerializer, CaseNoteSerializer, CaseDetailSerializer, \
+    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goods.libraries.get_good import get_good, get_goods_from_case
@@ -71,9 +72,9 @@ class CaseNoteList(APIView):
         Gets all case notes
         """
         case = get_case(pk)
-
         case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
         serializer = CaseNoteSerializer(case_notes, many=True)
+        mark_notifications_as_viewed(request.user, case_notes)
         return JsonResponse(data={'case_notes': serializer.data})
 
     def post(self, request, pk):
@@ -243,7 +244,7 @@ class CaseAdvice(APIView):
 
 
 class CaseEcjuQueries(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
         """
@@ -251,7 +252,13 @@ class CaseEcjuQueries(APIView):
         """
         case = get_case(pk)
         case_ecju_queries = EcjuQuery.objects.filter(case=case)
-        serializer = EcjuQuerySerializer(case_ecju_queries, many=True)
+
+        if isinstance(request.user, ExporterUser):
+            serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
+        else:
+            serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
+
+        mark_notifications_as_viewed(request.user, case_ecju_queries)
 
         return JsonResponse({'ecju_queries': serializer.data})
 
@@ -281,12 +288,37 @@ class EcjuQueryDetail(APIView):
     """
     Details of a specific ECJU query
     """
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk, ecju_pk):
         """
         Returns details of an ecju query
         """
         ecju_query = get_ecju_query(ecju_pk)
-        serializer = EcjuQuerySerializer(ecju_query)
+        serializer = EcjuQueryExporterSerializer(ecju_query)
         return JsonResponse(data={'ecju_query': serializer.data})
+
+    def put(self, request, pk, ecju_pk):
+        """
+        If not validate only Will update the ecju query instance, with a response, and return the data details.
+        If validate only, this will return if the data is acceptable or not.
+        """
+        ecju_query = get_ecju_query(ecju_pk)
+
+        data = {
+            'response': request.data['response'],
+            'responded_by_user': str(request.user.id)
+        }
+
+        serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
+
+        if serializer.is_valid():
+            if 'validate_only' not in request.data or not request.data['validate_only']:
+                serializer.save()
+
+                return JsonResponse(data={'ecju_query': serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)

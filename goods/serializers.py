@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case, CaseNote
+from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.settings import BACKGROUND_TASK_ENABLED
-from documents.tasks import prepare_document
+from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
@@ -14,7 +13,6 @@ from users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodSerializer(serializers.ModelSerializer):
-
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     control_code = serializers.CharField(required=False, default="", allow_blank=True)
@@ -24,7 +22,6 @@ class GoodSerializer(serializers.ModelSerializer):
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     clc_query_case_id = serializers.SerializerMethodField()
     clc_query_id = serializers.SerializerMethodField()
-    notes = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -39,7 +36,6 @@ class GoodSerializer(serializers.ModelSerializer):
                   'organisation',
                   'status',
                   'not_sure_details_details',
-                  'notes',
                   'clc_query_id',
                   'documents',
                   )
@@ -64,17 +60,6 @@ class GoodSerializer(serializers.ModelSerializer):
         try:
             clc_query = ClcQuery.objects.filter(good=instance)[0]
             return clc_query.id
-        except Exception:
-            return None
-
-    def get_notes(self, instance):
-        from cases.serializers import CaseNoteSerializer  # circular import prevention
-        try:
-            clc_query = ClcQuery.objects.get(good=instance)
-            case = Case.objects.get(clc_query=clc_query)
-            case_notes = CaseNote.objects.filter(case=case)
-
-            return CaseNoteSerializer(case_notes, many=True).data
         except Exception:
             return None
 
@@ -119,16 +104,7 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         good_document = super(GoodDocumentCreateSerializer, self).create(validated_data)
         good_document.save()
-
-        if BACKGROUND_TASK_ENABLED:
-            prepare_document(str(good_document.id))
-        else:
-            # pylint: disable=W0703
-            try:
-                prepare_document.now(str(good_document.id))
-            except Exception:
-                raise serializers.ValidationError({'errors': {'document': 'Failed to upload'}})
-
+        process_document(good_document)
         return good_document
 
 

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'background_task',
     'clc_queries',
     'picklists',
+    'end_user.document',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'conf.middleware.LoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'conf.urls'

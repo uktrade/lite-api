@@ -10,6 +10,7 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from flags.models import Flag
@@ -136,6 +137,7 @@ class DataTestClient(BaseTestClient):
                            type=EndUserType.GOVERNMENT,
                            country=get_country('GB'))
         end_user.save()
+        
         return end_user
 
     def create_clc_query_case(self, name, status=None):
@@ -202,6 +204,19 @@ class DataTestClient(BaseTestClient):
                                 safe=None)
         good_doc.save()
         return good_doc
+
+    @staticmethod
+    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
+        end_user_document = EndUserDocument(
+            end_user=end_user,
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
+        )
+        end_user_document.save()
+        return end_user_document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
@@ -271,7 +286,7 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -291,6 +306,13 @@ class DataTestClient(BaseTestClient):
         SiteOnDraft(site=organisation.primary_site, draft=draft).save()
 
         draft.save()
+        return draft
+
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
+
+        self.create_document_for_end_user(draft.end_user)
+
         return draft
 
     def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
@@ -335,6 +357,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
+        
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 

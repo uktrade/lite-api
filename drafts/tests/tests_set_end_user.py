@@ -1,7 +1,12 @@
+from unittest import mock
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from end_user.document.models import EndUserDocument
+from end_user.document.tests import test_file
+from end_user.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -10,8 +15,15 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_draft_without_end_user_document(self.organisation)
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
+        self.new_end_user_data = {
+            'name': 'Government of Paraguay',
+            'address': 'Asuncion',
+            'country': 'PY',
+            'type': 'government',
+            'website': 'https://www.gov.py'
+        }
 
     @parameterized.expand([
         'government',
@@ -60,3 +72,53 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
+
+    def test_end_user_is_deleted_when_new_one_added(self):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        When a new end user is added
+        Then the old one is removed
+        """
+        # assemble
+        end_user_1_id = self.draft.end_user.id
+
+        # act
+        self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
+
+        # assert
+        self.draft.refresh_from_db()
+        end_user_2_id = self.draft.end_user.id
+
+        self.assertNotEqual(end_user_1_id, end_user_2_id)
+        with self.assertRaises(EndUser.DoesNotExist):
+            EndUser.objects.get(id=end_user_1_id)
+
+    '''@mock.patch('documents.models.Document.delete_s3')
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_end_user_document_is_deleted_when_associated_end_user_is_deleted(self, prep_doc_mock, delete_s3_mock):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document
+        When a new end user is added
+        Then the previous old user's associated document is deleted
+        """
+        # assemble
+        end_user_1_id = self.draft.end_user.id
+        self.document_data = {"name": test_file,
+                 "s3_key": test_file,
+                 "size": 476,
+                 "description": "Description 7538564"}
+        self.client.post(reverse('drafts:end_user_document', kwargs={'pk': self.draft.id}),
+                         self.document_data, **self.exporter_headers)
+
+        # act
+        self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
+
+        # assert
+        with self.assertRaises(EndUserDocument.DoesNotExist):
+            EndUserDocument.objects.get(end_user=end_user_1_id)
+
+        delete_s3_mock.assert_called_once()'''
+

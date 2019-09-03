@@ -3,7 +3,6 @@ import json
 import reversion
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
@@ -13,11 +12,11 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationCaseNotesSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.enums import CaseType
 from cases.models import Case
 from clc_queries.models import ClcQuery
-from conf.authentication import ExporterAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from content_strings.strings import get_string
@@ -109,7 +108,7 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
-    authentication_classes = [GovAuthentication]
+    authentication_classes = [SharedAuthentication]
     serializer_class = ApplicationBaseSerializer
 
     """
@@ -150,24 +149,11 @@ class ApplicationDetail(APIView):
             return JsonResponse(data={'errors': serializer.errors}, status=400)
 
 
-class ApplicationDetailUser(ApplicationDetail):
-    authentication_classes = [ExporterAuthentication]
-    serializer_class = ApplicationCaseNotesSerializer
-
-    def get(self, request, pk):
-        """
-        Retrieve an application instance.
-        """
-        application = get_application_by_pk(pk)
-        request.user.notification_set.filter(note__case__application=application).update(
-            viewed_at=timezone.now()
-        )
-
-        return super(ApplicationDetailUser, self).get(request, pk)
-
-
 class CLCList(APIView):
     def post(self, request):
+        """
+        Create a new CLC query case instance
+        """
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
 
@@ -193,4 +179,4 @@ class CLCList(APIView):
         queue.cases.add(case)
         queue.save()
 
-        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id }, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id}, status=status.HTTP_201_CREATED)
