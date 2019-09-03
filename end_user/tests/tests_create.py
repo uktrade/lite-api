@@ -34,21 +34,10 @@ class EUAETests(DataTestClient):
             'raised_reason': raised_reason
         }
         response = self.client.post(self.url, data, **self.exporter_headers)
+
         self.assertEquals(response.status_code, expected_status)
 
         if response.status_code == status.HTTP_201_CREATED:
             response_data = response.json()
             self.assertIn('id', response_data)
 
-    def test_create_EUAE_query_POST(self):
-        data = {
-            'end_user_id': self.end_user.id,
-            'details': 'These are the details',
-            'raised_reason': 'I don\'t know'
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-
-        response_data = response.json()
-        self.assertIn('id', response_data)
