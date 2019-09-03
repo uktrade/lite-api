@@ -128,7 +128,7 @@ class GoodFlagsManagementTests(DataTestClient):
     def test_given_good_type_has_been_modified_then_appropriate_audit_is_in_place(self):
         """
         Given a Good with no Flags assigned
-        When a user attempts to add a non-good-level Flag owned by their Team to the Good
+        When a user attempts to add a good-level Flag owned by their Team to the Good
         And the Flag is successfully added
         And an audit record is created
         And the user requests the activity on the Good
