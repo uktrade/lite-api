@@ -146,19 +146,19 @@ class GoodFlagsManagementTests(DataTestClient):
         And the user requests the activity on the Good
         Then the activity is returned showing the Flag which was added
         """
-        flags = {
+        data = {
             'level': 'goods',
             'objects': [self.goods_type.pk],
             'flags': [self.team_good_flag_1.pk],
             'note': 'A reason for changing the flags'
         }
 
-        self.client.put(self.good_flag_url, flags, **self.gov_headers)
+        self.client.put(self.good_flag_url, data, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
 
         response_data = response.json()
         activity = response_data['activity']
-        self.assertEquals(len(flags['flags']), len(activity))
+        self.assertEquals(len(data['flags']), len(activity))
         self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])
 
     def test_setting_flags_on_two_goods(self):
