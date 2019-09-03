@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from documents.libraries.check_if_s3_key_exists import s3_key_exists
-from drafts.libraries.get_document import get_document
+from drafts.libraries.get_document import get_end_user_document, get_ultimate_end_user_document
 from drafts.libraries.get_draft import get_draft
 from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
@@ -16,11 +16,14 @@ from end_user.serializers import EndUserDocumentSerializer
 class EndUserDocuments(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk, doc_pk):
+    def get(self, request, pk, **kwargs):
         """
         Returns document for the specified end user
         """
-        return get_document(document_id=doc_pk, draft_id=pk)
+        if 'ultimate-end-user' in request.path:
+            return get_ultimate_end_user_document(kwargs['ueu_pk'])
+        else:
+            return get_end_user_document(pk)
 
     @swagger_auto_schema(
         request_body=EndUserDocumentSerializer,
