@@ -36,5 +36,5 @@ class EUAEQuery(models.Model):
     details = models.TextField(default=None, blank=True, null=True)
     status = models.ForeignKey(CaseStatus, related_name='euae_query_status', on_delete=models.CASCADE,
                                blank=True, null=True)
-    raised_reason = models.TextField(null=False)
+    raised_reason = models.TextField(default=None, blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
