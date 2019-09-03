@@ -85,9 +85,14 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a good-level Flag not owned by their Team to the Good
         Then the Flag is not added
         """
-        flags_to_add = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.other_team_good_flag.pk], 'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.goods_type.pk],
+            'flags': [self.other_team_good_flag.pk],
+            'note': 'A reason for changing the flags'
+        }
 
-        response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
+        response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
         self.assertEquals(0, len(self.goods_type.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
@@ -98,9 +103,14 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a non-good-level Flag owned by their Team to the Good
         Then the Flag is not added
         """
-        flags_to_add = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.team_org_flag.pk], 'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.goods_type.pk],
+            'flags': [self.team_org_flag.pk],
+            'note': 'A reason for changing the flags'
+        }
 
-        response = self.client.put(self.good_flag_url, flags_to_add, **self.gov_headers)
+        response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
         self.assertEquals(0, len(self.goods_type.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
@@ -113,10 +123,12 @@ class GoodFlagsManagementTests(DataTestClient):
         """
         self.all_flags.remove(self.team_org_flag)
         self.goods_type.flags.set(self.all_flags)
-        data = {'level': 'goods',
-                         'objects': [self.goods_type.pk],
-                         'flags': [self.team_good_flag_2.pk],
-                         'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.goods_type.pk],
+            'flags': [self.team_good_flag_2.pk],
+            'note': 'A reason for changing the flags'
+        }
         self.all_flags.remove(self.team_good_flag_1)
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
@@ -134,7 +146,12 @@ class GoodFlagsManagementTests(DataTestClient):
         And the user requests the activity on the Good
         Then the activity is returned showing the Flag which was added
         """
-        flags = {'level': 'goods', 'objects': [self.goods_type.pk], 'flags': [self.team_good_flag_1.pk], 'note': 'A reason for changing the flags'}
+        flags = {
+            'level': 'goods',
+            'objects': [self.goods_type.pk],
+            'flags': [self.team_good_flag_1.pk],
+            'note': 'A reason for changing the flags'
+        }
 
         self.client.put(self.good_flag_url, flags, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
