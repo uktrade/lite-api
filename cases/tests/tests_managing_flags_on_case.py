@@ -38,13 +38,8 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user requests the Case
         Then the correct Case with an empty Flag list is returned
         """
-
-        # Arrange
-
-        # Act
         response = self.client.get(self.case_url, **self.gov_headers)
 
-        # Assert
         self.assertEqual([], response.json()['case']['flags'])
 
     def test_all_flags_for_case_are_returned(self):
@@ -53,15 +48,11 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user requests the Case
         Then the correct Case with all assigned Flags are returned
         """
-
-        # Arrange
         self.case.flags.set(self.all_flags)
 
-        # Act
         response = self.client.get(self.case_url, **self.gov_headers)
         returned_case = response.json()['case']
 
-        # Assert
         self.assertEquals(len(self.case.flags.all()), len(returned_case['flags']))
 
     def test_user_can_add_case_level_flags_from_their_own_team(self):
@@ -70,16 +61,14 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user attempts to add a case-level Flag owned by their Team to the Case
         Then the Flag is successfully added
         """
+        flags_to_add = {
+            'level': 'cases',
+            'objects': [self.case.id],
+            'flags': [self.team_case_flag_1.pk]
+        }
 
-        # Arrange
-        flags_to_add = {'level': 'cases',
-                        'objects': [self.case.id],
-                        'flags': [self.team_case_flag_1.pk]}
-
-        # Act
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        # Assert
         self.assertEquals(len(flags_to_add['flags']), len(self.case.flags.all()))
         self.assertTrue(self.team_case_flag_1 in self.case.flags.all())
 
@@ -89,16 +78,14 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user attempts to add a case-level Flag not owned by their Team to the Case
         Then the Flag is not added
         """
+        flags_to_add = {
+            'level': 'cases',
+            'objects': [self.case.id],
+            'flags': [self.other_team_case_flag.pk]
+        }
 
-        # Arrange
-        flags_to_add = {'level': 'cases',
-                        'objects': [self.case.id],
-                        'flags': [self.other_team_case_flag.pk]}
-
-        # Act
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        # Assert
         self.assertEquals(0, len(self.case.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
@@ -108,16 +95,14 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user attempts to add a non-case-level Flag owned by their Team to the Case
         Then the Flag is not added
         """
+        flags_to_add = {
+            'level': 'cases',
+            'objects': [self.case.id],
+            'flags': [self.team_org_flag.pk]
+        }
 
-        # Arrange
-        flags_to_add = {'level': 'cases',
-                        'objects': [self.case.id],
-                        'flags': [self.team_org_flag.pk]}
-
-        # Act
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
 
-        # Assert
         self.assertEquals(0, len(self.case.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
@@ -128,18 +113,16 @@ class CaseFlagsManagementTests(DataTestClient):
         Then only that Flag is removed
         """
 
-        # Arrange (note that the endpoint expects flags being PUT to the case, therefore the flag being removed is not
-        # included in the request body)
+        # Note that the endpoint expects flags being PUT to the case, therefore the flag being removed is not
+        # included in the request body
         self.case.flags.set(self.all_flags)
         flags_to_keep = {'level': 'cases',
                          'objects': [self.case.id],
                          'flags': [self.team_case_flag_2.pk]}
         self.all_flags.remove(self.team_case_flag_1)
 
-        # Act
         self.client.put(self.case_flag_url, flags_to_keep, **self.gov_headers)
 
-        # Assert
         self.assertEquals(len(self.all_flags), len(self.case.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.case.flags.all())
@@ -153,17 +136,15 @@ class CaseFlagsManagementTests(DataTestClient):
         And the user requests the activity on the Case
         Then the activity is returned showing the Flag which was added
         """
+        flags = {
+            'level': 'cases',
+            'objects': [self.case.id],
+            'flags': [self.team_case_flag_1.pk]
+        }
 
-        # Arrange
-        flags = {'level': 'cases',
-                 'objects': [self.case.id],
-                 'flags': [self.team_case_flag_1.pk]}
-
-        # Act
         self.client.put(self.case_flag_url, flags, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
 
-        # Assert
         response_data = response.json()
         activity = response_data['activity']
         self.assertEquals(len(flags['flags']), len(activity))
