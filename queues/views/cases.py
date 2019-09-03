@@ -3,7 +3,7 @@ from rest_framework import generics
 from cases.serializers import TinyCaseSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
-from queues.helpers import get_queue, sort_cases, filter_cases
+from queues.helpers import sort_cases, filter_cases, get_queue_cases
 
 
 class CasesList(generics.ListAPIView):
@@ -12,10 +12,10 @@ class CasesList(generics.ListAPIView):
     pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
-        pk = self.kwargs['pk']
+        queue_pk = self.kwargs['pk']
         team = self.request.user.team
 
-        queue, cases = get_queue(pk=pk, return_cases=True, team=team)
+        cases = get_queue_cases(queue_pk, team)
         cases = filter_cases(cases, self.request.query_params)
         cases = sort_cases(cases, self.request.query_params.get('sort'))
 

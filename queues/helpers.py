@@ -145,3 +145,16 @@ def sort_cases(cases, sort_by: str):
             raise Http404
 
     return cases
+
+
+def get_queue_cases(queue_pk, team=None):
+    if ALL_CASES_SYSTEM_QUEUE_ID == str(queue_pk):
+        queue, cases = get_all_cases_queue(True)
+    elif OPEN_CASES_SYSTEM_QUEUE_ID == str(queue_pk):
+        queue, cases = get_open_cases_queue(True)
+    elif ALL_MY_QUEUES_ID == str(queue_pk):
+        queue, cases = get_all_my_team_cases_queue(return_cases=True, team=team)
+    else:
+        queue, cases = get_non_system_queue(queue_pk, True)
+
+    return cases
