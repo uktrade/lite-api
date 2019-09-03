@@ -2,7 +2,6 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 from cases.models import Case
-from conf.constants import SystemLimits
 from conf.exceptions import NotFoundError
 from queues.models import Queue
 from queues.constants import ALL_MY_QUEUES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
@@ -126,7 +125,7 @@ def get_open_cases_queue(return_cases=False):
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
             ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
-        ).order_by('-created_at')[:SystemLimits.MAX_OPEN_CASES_RESULTS]
+        ).order_by('-created_at')
 
         return queue, cases
     else:
@@ -144,7 +143,7 @@ def get_all_cases_queue(return_cases=False):
         # coalesce on status priority so that we can filter/sort later if needed
         cases = Case.objects.annotate(
             created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at')
-        ).order_by('-created_at')[:SystemLimits.MAX_ALL_CASES_RESULTS].annotate(
+        ).order_by('-created_at').annotate(
             status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
         )
 

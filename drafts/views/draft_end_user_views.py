@@ -126,5 +126,4 @@ class RemoveDraftUltimateEndUsers(APIView):
 
             end_user.delete()
 
-            return JsonResponse(data={'ultimate_end_user': 'deleted'},
-                                status=200)
+            return JsonResponse(data={'ultimate_end_user': 'deleted'})
