@@ -39,12 +39,8 @@ class GoodFlagsManagementTests(DataTestClient):
         Then the correct Good with an empty Flag list is returned
         """
 
-        # Arrange
-
-        # Act
         response = self.client.get(self.good_url, **self.gov_headers)
 
-        # Assert
         self.assertEqual([], response.json()['good']['flags'])
 
     def test_all_flags_for_good_are_returned(self):
@@ -138,7 +134,7 @@ class GoodFlagsManagementTests(DataTestClient):
         response_data = response.json()
         activity = response_data['activity']
         self.assertEquals(len(flags['flags']), len(activity))
-        self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])
+        self.assertEquals([self.team_good_flag_1.name], activity[0]['data']['flags']['added'])
 
     def test_setting_flags_on_two_goods(self):
         data = {
