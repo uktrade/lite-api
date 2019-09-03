@@ -16,7 +16,7 @@ def get_document(end_user):
         if len(documents) > 1:
             return JsonResponse(data={'error': 'Multiple documents found for one end user'},
                                 status=status.HTTP_400_BAD_REQUEST)
-        elif len(documents) == 0:
+        elif not documents:
             return JsonResponse(data={'error': 'No document found'},
                                 status=status.HTTP_404_NOT_FOUND)
         else:
