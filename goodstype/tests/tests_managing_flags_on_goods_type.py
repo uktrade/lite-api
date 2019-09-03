@@ -145,6 +145,9 @@ class GoodFlagsManagementTests(DataTestClient):
         self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])
 
     def test_setting_flags_on_two_goods(self):
+        """
+        Tests setting multiple flags on multiple goods simultaneously
+        """
         data = {
             'level': 'goods',
             'objects': [self.goods_type.id, self.goods_type_2.id],
