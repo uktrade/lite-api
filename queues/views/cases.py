@@ -15,7 +15,7 @@ class CasesList(generics.ListAPIView):
         pk = self.kwargs['pk']
         team = self.request.user.team
 
-        queue, cases = get_queue(pk=pk, return_cases=True, team=team)
+        _, cases = get_queue(pk=pk, return_cases=True, team=team)
         cases = filter_cases(cases, self.request.query_params)
         cases = sort_cases(cases, self.request.query_params.get('sort'))
 
