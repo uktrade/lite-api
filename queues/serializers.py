@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from cases.models import Case
 from cases.serializers import CaseSerializer
 from content_strings.strings import get_string
 from queues.models import Queue
@@ -21,7 +22,7 @@ class QueueViewSerializer(serializers.ModelSerializer):
         # System queues have a cases count attribute - use that
         # instead of doing a database lookup
         try:
-            return instance.cases_count
+            return Case.objects.filter(instance.query).distinct().count()
         except AttributeError:
             return instance.cases.count()
 

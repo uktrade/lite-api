@@ -4,9 +4,8 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 from django.http import Http404
 
-from cases.models import Case
 from conf.exceptions import NotFoundError
-from queues.constants import ALL_MY_QUEUES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
@@ -14,8 +13,8 @@ from teams.models import Team
 
 
 def _coalesce_case_status_priority(cases):
-    if len(cases):
-        case = cases[0]
+    if cases.count():
+        case = cases.first()
         case = case.__dict__
         if 'status__priority' not in case:
             return cases.annotate(
@@ -25,89 +24,69 @@ def _coalesce_case_status_priority(cases):
     return cases
 
 
-def get_non_system_queue(pk, return_cases=False):
-    try:
-        if return_cases:
-            # get the cases separately so they can be sorted and re-assigned to the queue queryset object
-            queue = Queue.objects.defer('cases').get(pk=pk)
-            cases = Case.objects.filter(queues=queue)
-            return queue, cases
-        else:
-            return Queue.objects.get(pk=pk)
-    except Queue.DoesNotExist:
-        raise NotFoundError({'queue': 'Queue not found'})
-
-
-def get_open_cases_queue(return_cases=False):
-    queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
-                  name='Open cases',
-                  team=Team.objects.get(name='Admin'))
-    queue.is_system_queue = True
-    cases = Case.objects.annotate(
-        status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
-    )
-
-    queue.cases_count = cases.filter(~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
-                                     ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
-                                     ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])).count()
-
-    if return_cases:
-        # coalesce on status priority so that we can filter/sort later if needed
-        cases = Case.objects.annotate(
-            created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
-            status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
-        )
-
-        cases = cases.filter(
-            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.WITHDRAWN]) &
-            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.DECLINED]) &
-            ~Q(status__priority=CaseStatusEnum.priorities[CaseStatusEnum.APPROVED])
-        ).order_by('-created_at')
-
-        return queue, cases
-    else:
-        return queue
-
-
-def get_all_cases_queue(return_cases=False):
+def _all_cases_queue():
     queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
                   name='All cases',
                   team=Team.objects.get(name='Admin'))
     queue.is_system_queue = True
-    queue.cases_count = Case.objects.count()
+    queue.query = Q()
 
-    if return_cases:
-        # coalesce on status priority so that we can filter/sort later if needed
-        cases = Case.objects.all()
-        return queue, cases
-    else:
-        return queue
+    return queue
 
 
-def get_all_my_team_cases_queue(team, return_cases=False):
-    queue = Queue(id=ALL_MY_QUEUES_ID,
+def _open_cases_queue():
+    queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
+                  name='Open cases',
+                  team=Team.objects.get(name='Admin'))
+    queue.is_system_queue = True
+    queue.query = (~Q(application__status__status=CaseStatusEnum.WITHDRAWN) &
+                   ~Q(application__status__status=CaseStatusEnum.DECLINED) &
+                   ~Q(application__status__status=CaseStatusEnum.APPROVED) &
+                   ~Q(clc_query__status__status=CaseStatusEnum.WITHDRAWN) &
+                   ~Q(clc_query__status__status=CaseStatusEnum.DECLINED) &
+                   ~Q(clc_query__status__status=CaseStatusEnum.APPROVED))
+
+    return queue
+
+
+def _all_my_team_cases_queue(team):
+    queue = Queue(id=MY_TEAMS_QUEUES_CASES_ID,
                   name='All my queues',
                   team=team)
     queue.is_system_queue = True
     my_team_queues = Queue.objects.filter(team=team)
-    cases = Case.objects.filter(queues__in=my_team_queues).distinct()
-    queue.cases_count = cases.count()
+    queue.query = Q(queues__in=my_team_queues)
 
-    if return_cases:
-        return queue, cases
+    return queue
+
+
+def get_queues(team: Team, include_system_queues=False):
+    """
+    Returns all queues
+    Optionally returns system queues
+    """
+    queues = Queue.objects.all()
+
+    if include_system_queues:
+        queues = list(queues)
+        queues.insert(0, _all_cases_queue())
+        queues.insert(1, _open_cases_queue())
+        queues.insert(2, _all_my_team_cases_queue(team))
+
+    return queues
+
+
+def get_queue(pk, team=None):
+    """
+    Returns the specified queue
+    """
+    queues = get_queues(team, True)
+    queue = [queue for queue in queues if str(queue.id) == str(pk)]
+
+    if queue:
+        return queue[0]
     else:
-        return queue
-
-
-def get_queue(pk, team=None, return_cases=False):
-    if ALL_CASES_SYSTEM_QUEUE_ID == str(pk):
-        return get_all_cases_queue(return_cases)
-    elif OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
-        return get_open_cases_queue(return_cases)
-    elif ALL_MY_QUEUES_ID == str(pk):
-        return get_all_my_team_cases_queue(return_cases=return_cases, team=team)
-    else:
-        return get_non_system_queue(pk, return_cases)
+        raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
 
 
 def filter_cases(cases, filter_by: Dict[str, str]):
@@ -127,8 +106,8 @@ def filter_cases(cases, filter_by: Dict[str, str]):
 
     if kwargs:
         return cases.filter(**kwargs)
-    else:
-        return cases
+
+    return cases.all()
 
 
 def sort_cases(cases, sort_by: str):
@@ -144,4 +123,4 @@ def sort_cases(cases, sort_by: str):
         else:
             raise Http404
 
-    return cases
+    return cases.all()

@@ -1,8 +1,9 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from cases.models import CaseAssignment
-from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
@@ -25,6 +26,7 @@ class RetrieveAllCases(DataTestClient):
         self.url = reverse('queues:queues')
         self.all_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID})
         self.open_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': OPEN_CASES_SYSTEM_QUEUE_ID})
+        self.my_team_queues_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': MY_TEAMS_QUEUES_CASES_ID})
 
     def test_get_all_case_assignments(self):
         """
@@ -133,5 +135,30 @@ class RetrieveAllCases(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(OPEN_CASES_SYSTEM_QUEUE_ID, response_data['queue']['id'])
+        self.assertEqual(response_data['queue']['id'], OPEN_CASES_SYSTEM_QUEUE_ID)
         self.assertEqual(response_data['queue']['cases_count'], 2)
+
+    def test_get_all_my_team_queues_cases(self):
+        """
+        Tests that only a team's queue's cases are returned
+        when calling that system queue
+        """
+        team_2 = self.create_team('team 2')
+
+        self.queue1 = self.create_queue('queue1', self.team)
+        self.queue2 = self.create_queue('queue2', self.team)
+        self.queue3 = self.create_queue('queue3', team_2)
+
+        # Cases 1, 2 and 3 belong to the user's team's queues,
+        # whereas case 4 does not
+        self.case4 = self.create_standard_application_case(self.organisation)
+
+        self.case1.queues.set([self.queue1.id])
+        self.case2.queues.set([self.queue1.id, self.queue2.id])
+        self.case3.queues.set([self.queue2.id])
+        self.case4.queues.set([self.queue3.id])
+
+        response = self.client.get(self.my_team_queues_cases_system_queue_url, **self.gov_headers)
+        response_data = response.json()['queue']
+
+        self.assertEqual(response_data['cases_count'], 3)

@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -10,6 +11,7 @@ class QueuesViewTests(DataTestClient):
 
     url = reverse('queues:queues') + '?include_system_queues=True'
 
+    @tag('only')
     def tests_list_queue(self):
         """
         Tests that all queues are returned

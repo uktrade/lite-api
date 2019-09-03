@@ -7,8 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from queues.helpers import get_queue, get_all_cases_queue, get_open_cases_queue, get_all_my_team_cases_queue
-from queues.models import Queue
+from queues.helpers import get_queue, get_queues
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer
 
 
@@ -21,18 +20,9 @@ class QueuesList(APIView):
         Gets all queues.
         Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
         """
-        include_system_queues = str_to_bool(request.GET.get('include_system_queues', False))
-
-        queues = Queue.objects.all().order_by('name')
-
-        if include_system_queues:
-            queues = list(queues)
-            queues.insert(0, get_all_my_team_cases_queue(request.user.team))
-            queues.insert(0, get_open_cases_queue())
-            queues.insert(0, get_all_cases_queue())
+        queues = get_queues(request.user.team, str_to_bool(request.GET.get('include_system_queues', False)))
 
         serializer = QueueViewSerializer(queues, many=True)
-
         return JsonResponse(data={'queues': serializer.data})
 
     def post(self, request):

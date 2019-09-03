@@ -12,11 +12,11 @@ class CasesList(generics.ListAPIView):
     pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
-        pk = self.kwargs['pk']
+        queue_pk = self.kwargs['pk']
         team = self.request.user.team
 
-        _, cases = get_queue(pk=pk, return_cases=True, team=team)
-        cases = filter_cases(cases, self.request.query_params)
+        queue = get_queue(queue_pk, team)
+        cases = filter_cases(queue.get_cases(), self.request.query_params)
         cases = sort_cases(cases, self.request.query_params.get('sort'))
 
-        return cases
+        return cases.distinct()
