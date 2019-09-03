@@ -148,6 +148,9 @@ def sort_cases(cases, sort_by: str):
 
 
 def get_queue_cases(queue_pk, team=None):
+    """
+    Return all cases belonging to a queue
+    """
     if ALL_CASES_SYSTEM_QUEUE_ID == str(queue_pk):
         queue, cases = get_all_cases_queue(True)
     elif OPEN_CASES_SYSTEM_QUEUE_ID == str(queue_pk):
