@@ -68,8 +68,10 @@ class DataTestClient(BaseTestClient):
 
         self.queue = Queue.objects.get(team=self.team)
 
-    def create_exporter_user(self, organisation=None):
-        first_name, last_name = random_name()
+    def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
+        if not first_name and not last_name:
+            first_name, last_name = random_name()
+            
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')

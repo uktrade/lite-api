@@ -20,7 +20,7 @@ from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelati
 @reversion.register()
 class Case(models.Model):
     """
-    Wrapper for application model intended for internal users.
+    Wrapper for application and query model intended for internal users.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=20)
@@ -28,6 +28,9 @@ class Case(models.Model):
     clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')
+
+    class Meta:
+        ordering = ['application__submitted_at', 'clc_query__submitted_at']
 
 
 @reversion.register()

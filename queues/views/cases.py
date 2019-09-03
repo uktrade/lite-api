@@ -3,7 +3,7 @@ from rest_framework import generics
 from cases.serializers import TinyCaseSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
-from queues.helpers import get_queue, get_filtered_cases, get_sorted_cases
+from queues.helpers import get_queue, sort_cases, filter_cases
 
 
 class CasesList(generics.ListAPIView):
@@ -14,7 +14,9 @@ class CasesList(generics.ListAPIView):
     def get_queryset(self):
         pk = self.kwargs['pk']
         team = self.request.user.team
+
         queue, cases = get_queue(pk=pk, return_cases=True, team=team)
-        cases = get_filtered_cases(self.request, queue.id, cases)
-        cases = get_sorted_cases(self.request, queue.id, cases)
+        cases = filter_cases(cases, self.request.query_params)
+        cases = sort_cases(cases, self.request.query_params.get('sort'))
+
         return cases
