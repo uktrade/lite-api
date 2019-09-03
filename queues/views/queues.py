@@ -27,9 +27,9 @@ class QueuesList(APIView):
 
         if include_system_queues:
             queues = list(queues)
+            queues.insert(0, get_all_my_team_cases_queue(request.user.team))
             queues.insert(0, get_open_cases_queue())
             queues.insert(0, get_all_cases_queue())
-            queues.insert(0, get_all_my_team_cases_queue(request.user.team))
 
         serializer = QueueViewSerializer(queues, many=True)
 
