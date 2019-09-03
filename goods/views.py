@@ -1,22 +1,25 @@
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
+from cases.libraries.activity_helpers import convert_good_reversion_to_activity
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.models import CaseNote
-from conf.authentication import ExporterAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
-from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, FullGoodSerializer
+from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
+    FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.models import ExporterUser
 
@@ -66,13 +69,11 @@ class GoodDetail(APIView):
                 raise Http404
 
             serializer = GoodSerializer(good)
-            request.user.notification_set.filter(note__case__clc_query__good=good).update(
+            request.user.notification_set.filter(case_note__case__clc_query__good=good).update(
                 viewed_at=timezone.now()
             )
         else:
             serializer = FullGoodSerializer(good)
-
-        serializer = GoodSerializer(good)
 
         case_notes = CaseNote.objects.filter(case__clc_query__good=good)
         mark_notifications_as_viewed(request.user, case_notes)
@@ -174,7 +175,6 @@ class GoodDocuments(APIView):
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class GoodDocumentDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
 
@@ -200,10 +200,6 @@ class GoodDocumentDetail(APIView):
     def delete(self, request, pk, doc_pk):
         """
         Deletes good document
-        :param request:
-        :param pk:
-        :param doc_pk:
-        :return:
         """
 
         good = get_good(pk)

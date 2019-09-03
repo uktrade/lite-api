@@ -5,7 +5,6 @@ from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
 from clc_queries.serializers import ClcQuerySerializer
-from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -20,12 +19,6 @@ from static.denial_reasons.models import DenialReason
 from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser, ExporterUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
-
-
-class SimpleTestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = ['id']
 
 
 class CaseSerializer(serializers.ModelSerializer):
