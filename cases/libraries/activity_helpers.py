@@ -96,11 +96,6 @@ def convert_good_reversion_to_activity(version: Version, good: Good):
     activity_type = CHANGE
     data = {}
 
-    # # Ignore the exporter user's `submitted` status and `case-created` audits
-    # # (these are created when a case has first been made)
-    # if isinstance(user, ExporterUser) and ('type' in activity or activity['status'] == str(
-    #         get_case_status_from_status(CaseStatusEnum.SUBMITTED).pk)):
-    #     return None
     try:
         comment = json.loads(revision_object.comment)
         if 'flags' in comment:
