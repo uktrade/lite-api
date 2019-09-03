@@ -16,6 +16,15 @@ from end_user.serializers import EndUserDocumentSerializer
 class EndUserDocuments(APIView):
     authentication_classes = (ExporterAuthentication,)
 
+    def _get_end_user(self, kwargs, pk):
+        if 'ueu_pk' in kwargs:
+            end_users = EndUser.objects.filter(id=str(kwargs['ueu_pk']))
+            assert len(end_users) == 1
+            return end_users.first()
+        else:
+            draft = get_draft(pk)
+            return draft.end_user
+
     def get(self, request, pk, **kwargs):
         """
         Returns document for the specified end user
@@ -35,13 +44,7 @@ class EndUserDocuments(APIView):
         """
         Adds a document to the specified end user
         """
-        if 'ueu_pk' in kwargs:
-            end_users = EndUser.objects.filter(id=str(kwargs['ueu_pk']))
-            assert len(end_users) == 1
-            end_user = end_users.first()
-        else:
-            draft = get_draft(pk)
-            end_user = draft.end_user
+        end_user = self._get_end_user(kwargs, pk)
 
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
@@ -76,12 +79,11 @@ class EndUserDocuments(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def delete(self, request, pk):
+    def delete(self, request, pk, **kwargs):
         """
         Deletes a document from the specified end user
         """
-        draft = get_draft(pk)
-        end_user = draft.end_user
+        end_user = self._get_end_user(kwargs, pk)
 
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
