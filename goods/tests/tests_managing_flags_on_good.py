@@ -80,10 +80,12 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a good-level Flag not owned by their Team to the Good
         Then the Flag is not added
         """
-        data = {'level': 'goods',
-                'objects': [self.good.pk],
-                'flags': [self.other_team_good_flag.pk],
-                'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.good.pk],
+            'flags': [self.other_team_good_flag.pk],
+            'note': 'A reason for changing the flags'
+        }
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
@@ -96,10 +98,12 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a non-good-level Flag owned by their Team to the Good
         Then the Flag is not added
         """
-        data = {'level': 'goods',
-                'objects': [self.good.pk],
-                'flags': [self.team_org_flag.pk],
-                'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.good.pk],
+            'flags': [self.team_org_flag.pk],
+            'note': 'A reason for changing the flags'
+        }
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
@@ -114,10 +118,12 @@ class GoodFlagsManagementTests(DataTestClient):
         """
         self.all_flags.remove(self.team_org_flag)
         self.good.flags.set(self.all_flags)
-        data = {'level': 'goods',
-                'objects': [self.good.pk],
-                'flags': [self.team_good_flag_2.pk],
-                'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.good.pk],
+            'flags': [self.team_good_flag_2.pk],
+            'note': 'A reason for changing the flags'
+        }
         self.all_flags.remove(self.team_good_flag_1)
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
@@ -135,10 +141,12 @@ class GoodFlagsManagementTests(DataTestClient):
         And the user requests the activity on the Good
         Then the activity is returned showing the Flag which was added
         """
-        data = {'level': 'goods',
-                'objects': [self.good.pk],
-                'flags': [self.team_good_flag_1.pk],
-                'note': 'A reason for changing the flags'}
+        data = {
+            'level': 'goods',
+            'objects': [self.good.pk],
+            'flags': [self.team_good_flag_1.pk],
+            'note': 'A reason for changing the flags'
+        }
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
         response = self.client.get(self.audit_url, **self.gov_headers)
