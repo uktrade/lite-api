@@ -18,12 +18,11 @@ class QueuesList(APIView):
 
     def get(self, request):
         """
-        Gets all queues.
-        Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
+        Lists all queues
+        Optionally includes system queues
         """
+        queues = Queue.objects.all()
         include_system_queues = str_to_bool(request.GET.get('include_system_queues', False))
-
-        queues = Queue.objects.all().order_by('name')
 
         if include_system_queues:
             queues = list(queues)
