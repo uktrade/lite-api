@@ -15,7 +15,7 @@ from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
