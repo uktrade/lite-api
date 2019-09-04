@@ -2,6 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import Application
@@ -31,7 +32,7 @@ class Case(models.Model):
     flags = models.ManyToManyField(Flag, related_name='cases')
 
     class Meta:
-        ordering = ['application__submitted_at', 'clc_query__submitted_at']
+        ordering = [Coalesce('application__submitted_at', 'clc_query__submitted_at')]
 
 
 @reversion.register()
