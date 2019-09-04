@@ -1,3 +1,4 @@
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -53,8 +54,26 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
         self.assertEqual(end_user_data['country']['id'], data['end_user']['country'])
 
-    def test_create_end_user_advisory_query_failure(self):
-        data = {}
+    @parameterized.expand([
+        ('com', 'person', 'http://gov.co.uk', 'place street', 'GB', '', ''),  # invalid end user type
+        ('commercial', '', '', 'nowhere', 'GB', '', ''),  # name is empty
+        ('government', 'abc', 'abc', 'nowhere', 'GB', '', ''),  # invalid web address
+        ('government', 'abc', '', '', 'GB', '', ''),  # empty address
+        ('government', 'abc', '', 'nowhere', 'ALP', '', ''),  # invalid country code
+        ('', '', '', '', '', '', ''),  # empty dataset
+    ])
+    def test_create_end_user_advisory_query_failure(self, end_user_type, name, website, address, country, note, reasoning):
+        data = {
+            'end_user': {
+                'type': end_user_type,
+                'name': name,
+                'website': website,
+                'address': address,
+                'country': country,
+            },
+            'note': note,
+            'reasoning': reasoning,
+        }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
