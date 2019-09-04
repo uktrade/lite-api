@@ -1,7 +1,6 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from test_helpers.clients import DataTestClient
 
 
@@ -58,6 +57,5 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         data = {}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
-        response_data = response.json()['errors']
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
