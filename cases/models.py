@@ -32,7 +32,7 @@ class Case(models.Model):
     flags = models.ManyToManyField(Flag, related_name='cases')
 
     class Meta:
-        ordering = [Coalesce('application__submitted_at', 'clc_query__submitted_at')]
+        ordering = [Coalesce('application__submitted_at', 'query__submitted_at')]
 
 
 @reversion.register()
