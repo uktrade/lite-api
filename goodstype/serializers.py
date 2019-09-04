@@ -4,6 +4,7 @@ from rest_framework import serializers
 from applications.models import Application
 from conf.helpers import str_to_bool
 from drafts.serializers import DraftBaseSerializer
+from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 
 
@@ -60,3 +61,14 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         instance.is_good_end_product = validated_data.get('is_good_end_product', instance.is_good_end_product)
         instance.save()
         return instance
+
+
+class FullGoodsTypeSerializer(GoodsTypeSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values('id', 'name'))
+
+    class Meta:
+        model = GoodsType
+        fields = '__all__'

@@ -15,7 +15,7 @@ from users.serializers import ExporterUserSimpleSerializer
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    control_code = serializers.CharField(required=False, default="", allow_blank=True)
+    control_code = serializers.CharField(required=False, default='', allow_blank=True)
     is_good_end_product = serializers.BooleanField()
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = serializers.ChoiceField(choices=GoodStatus.choices)
@@ -128,3 +128,14 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
         fields = ('id', 'name', 'description', 'size', 'safe')
+
+
+class FullGoodSerializer(GoodSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values('id', 'name'))
+
+    class Meta:
+        model = Good
+        fields = '__all__'

@@ -1,21 +1,27 @@
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+from reversion.models import Version
 
+from cases.libraries.activity_helpers import convert_good_reversion_to_activity
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.models import CaseNote
-from conf.authentication import ExporterAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
-from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer
+from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
+    FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
+from users.models import ExporterUser
 
 
 class GoodList(APIView):
@@ -52,16 +58,22 @@ class GoodList(APIView):
 
 
 class GoodDetail(APIView):
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
         good = get_good(pk)
+        if isinstance(request.user, ExporterUser):
+            organisation = get_organisation_by_user(request.user)
 
-        if good.organisation != organisation:
-            raise Http404
+            if good.organisation != organisation:
+                raise Http404
 
-        serializer = GoodSerializer(good)
+            serializer = GoodSerializer(good)
+            request.user.notification_set.filter(case_note__case__clc_query__good=good).update(
+                viewed_at=timezone.now()
+            )
+        else:
+            serializer = FullGoodSerializer(good)
 
         case_notes = CaseNote.objects.filter(case__clc_query__good=good)
         mark_notifications_as_viewed(request.user, case_notes)
@@ -188,10 +200,6 @@ class GoodDocumentDetail(APIView):
     def delete(self, request, pk, doc_pk):
         """
         Deletes good document
-        :param request:
-        :param pk:
-        :param doc_pk:
-        :return:
         """
 
         good = get_good(pk)
@@ -214,3 +222,28 @@ class GoodDocumentDetail(APIView):
                 good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})
+
+
+class GoodActivity(APIView):
+    authentication_classes = (GovAuthentication,)
+    """
+    Retrieves all activity related to a good
+    * Good Updates
+    * Good Notes
+    * ECJU Queries
+    """
+
+    def get(self, request, pk):
+        good = get_good(pk)
+
+        version_records = Version.objects.filter(Q(object_id=good.pk))
+        activity = []
+        for version in version_records:
+            activity_item = convert_good_reversion_to_activity(version, good)
+            if activity_item:
+                activity.append(activity_item)
+
+        # Sort the activity based on date (newest first)
+        activity.sort(key=lambda x: x['date'], reverse=True)
+
+        return JsonResponse(data={'activity': activity})

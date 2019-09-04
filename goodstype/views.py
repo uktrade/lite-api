@@ -1,11 +1,16 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+from reversion.models import Version
 
-from conf.authentication import ExporterAuthentication
+from cases.libraries.activity_helpers import convert_good_reversion_to_activity
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from users.models import GovUser
 
 
 class GoodsTypeList(APIView):
@@ -36,12 +41,40 @@ class GoodsTypeList(APIView):
 
 
 class GoodsTypeDetail(APIView):
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
         """
         Gets a single Goods Type
         """
         good = GoodsType.objects.get(pk=pk)
-        serializer = GoodsTypeSerializer(good)
+        if isinstance(request.user, GovUser):
+            serializer = FullGoodsTypeSerializer(good)
+        else:
+            serializer = GoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
+
+
+class GoodsTypeActivity(APIView):
+    authentication_classes = (GovAuthentication,)
+    """
+    Retrieves all activity related to a good
+    * Good Updates
+    * Good Notes
+    * ECJU Queries
+    """
+
+    def get(self, request, pk):
+        good = get_goods_type(pk)
+
+        version_records = Version.objects.filter(Q(object_id=good.pk))
+        activity = []
+        for version in version_records:
+            activity_item = convert_good_reversion_to_activity(version, good)
+            if activity_item:
+                activity.append(activity_item)
+
+        # Sort the activity based on date (newest first)
+        activity.sort(key=lambda x: x['date'], reverse=True)
+
+        return JsonResponse(data={'activity': activity})
