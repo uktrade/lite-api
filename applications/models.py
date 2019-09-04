@@ -19,7 +19,7 @@ class Application(models.Model):
     name = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
+    organisation: Organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)

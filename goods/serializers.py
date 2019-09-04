@@ -2,12 +2,12 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case
-from clc_queries.models import ClcQuery
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -58,7 +58,7 @@ class GoodSerializer(serializers.ModelSerializer):
 
     def get_clc_query_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.filter(good=instance)[0]
+            clc_query = ControlListClassificationQuery.objects.filter(good=instance)[0]
             return clc_query.id
         except Exception:
             return None

@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
-from clc_queries.serializers import ClcQuerySerializer
+from queries.control_list_classifications.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string

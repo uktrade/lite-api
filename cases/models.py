@@ -6,12 +6,12 @@ from django.utils import timezone
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
-from clc_queries.models import ClcQuery
 from documents.models import Document
 from end_user.models import EndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
+from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -26,12 +26,12 @@ class Case(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=20)
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
-    clc_query = models.ForeignKey(ClcQuery, related_name='case', on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')
 
     class Meta:
-        ordering = ['application__submitted_at', 'clc_query__submitted_at']
+        ordering = ['application__submitted_at', 'query__submitted_at']
 
 
 @reversion.register()
@@ -158,4 +158,3 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
-

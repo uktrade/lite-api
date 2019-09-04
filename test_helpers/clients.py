@@ -7,7 +7,6 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from applications.models import Application
 from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument
-from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from end_user.document.models import EndUserDocument
@@ -17,6 +16,7 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
@@ -72,7 +72,7 @@ class DataTestClient(BaseTestClient):
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
-            
+
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')
@@ -137,7 +137,7 @@ class DataTestClient(BaseTestClient):
                            type=EndUserType.GOVERNMENT,
                            country=get_country('GB'))
         end_user.save()
-        
+
         return end_user
 
     def create_clc_query_case(self, name, status=None):
@@ -265,9 +265,9 @@ class DataTestClient(BaseTestClient):
                     )
         good.save()
 
-        clc_query = ClcQuery(details='this is a test text',
-                             good=good,
-                             status=status)
+        clc_query = ControlListClassificationQuery(details='this is a test text',
+                                                   good=good,
+                                                   status=status)
         clc_query.save()
         return clc_query
 
@@ -286,7 +286,8 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -357,7 +358,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
-        
+
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 

@@ -1,11 +1,11 @@
 from django.http import Http404
 
 from applications.models import Application, GoodOnApplication
-from clc_queries.models import ClcQuery
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 
 from goods.models import Good, GoodDocument
+from queries.control_list_classifications.models import ControlListClassificationQuery
 
 
 def get_good(pk):
@@ -27,7 +27,7 @@ def get_good_document(good: Good, pk):
 
 def get_goods_from_case(case):
     if case.clc_query:
-        return [ClcQuery.objects.get(case=case).good.id]
+        return [ControlListClassificationQuery.objects.get(case=case).good.id]
     else:
         application = Application.objects.get(case=case)
         goods_on_applications = GoodOnApplication.objects.filter(application=application)

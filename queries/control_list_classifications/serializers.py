@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from clc_queries.models import ClcQuery
 from goods.serializers import FullGoodSerializer
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.models import CaseStatus
 
 
@@ -12,7 +12,7 @@ class ClcQuerySerializer(serializers.ModelSerializer):
     submitted_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
-        model = ClcQuery
+        model = ControlListClassificationQuery
         fields = (
             'id',
             'details',
@@ -32,7 +32,7 @@ class ClcQueryUpdateSerializer(serializers.ModelSerializer):
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
     class Meta:
-        model = ClcQuery
+        model = ControlListClassificationQuery
         fields = (
             'id',
             'status')

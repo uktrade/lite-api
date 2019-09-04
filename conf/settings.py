@@ -63,9 +63,10 @@ INSTALLED_APPS = [
     'flags.apps.FlagsConfig',
     'documents.apps.DocumentsConfig',
     'background_task',
-    'clc_queries',
     'picklists',
     'end_user.document',
+    'queries',
+    'queries.end_user_advisories'
 ]
 
 MIDDLEWARE = [
