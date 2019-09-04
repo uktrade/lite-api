@@ -40,5 +40,5 @@ class NotificationTests(DataTestClient):
         self.create_case_note(clc_case, 'This is a test note 3', self.gov_user, True)
 
         self.assertEqual(Notification.objects.all().count(), 7)
-        self.assertEqual(Notification.objects.filter(case_note__case__clc_query_id__isnull=True).count(), 4)
+        self.assertEqual(Notification.objects.filter(case_note__case__query_id__isnull=True).count(), 4)
         self.assertEqual(Notification.objects.filter(case_note__case__application_id__isnull=True).count(), 3)

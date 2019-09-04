@@ -18,8 +18,8 @@ class Queue(models.Model):
         from cases.models import Case
         if hasattr(self, 'query'):
             cases = Case.objects.annotate(
-                created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
-                status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+                created_at=Coalesce('application__submitted_at', 'query__submitted_at'),
+                status__priority=Coalesce('application__status__priority', 'query__status__priority')
             ).filter(self.query)
             return cases
         else:

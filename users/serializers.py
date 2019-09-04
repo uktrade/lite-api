@@ -153,7 +153,7 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
 
     def get_clc_query(self, obj):
         case = _get_notification_case(obj)
-        clc_query = case.clc_query
+        clc_query = case.query
         return clc_query.id
 
     class Meta:

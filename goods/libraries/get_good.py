@@ -26,7 +26,7 @@ def get_good_document(good: Good, pk):
 
 
 def get_goods_from_case(case):
-    if case.clc_query:
+    if case.query:
         return [ControlListClassificationQuery.objects.get(case=case).good.id]
     else:
         application = Application.objects.get(case=case)

@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from end_user.libraries.get_end_user import get_end_user
+from end_user.helpers import get_end_user
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer

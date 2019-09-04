@@ -26,24 +26,24 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    clc_query = ClcQuerySerializer(read_only=True)
+    query = ClcQuerySerializer(read_only=True)
     application = ApplicationBaseSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'application', 'clc_query',)
+        fields = ('id', 'type', 'application', 'query',)
 
     # pylint: disable=W0221
     def to_representation(self, value):
         """
         Only show 'application' if it has an application inside,
-        and only show 'clc_query' if it has a CLC query inside
+        and only show 'query' if it has a CLC query inside
         """
         repr_dict = super(CaseSerializer, self).to_representation(value)
         if not repr_dict['application']:
             del repr_dict['application']
-        if not repr_dict['clc_query']:
-            del repr_dict['clc_query']
+        if not repr_dict['query']:
+            del repr_dict['query']
         return repr_dict
 
 
@@ -57,7 +57,7 @@ class TinyCaseSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
 
     def get_type(self, instance):
-        if instance.type == 'clc_query':
+        if instance.type == 'query':
             case_type = 'CLC Query'
         else:
             case_type = instance.type.title()
@@ -67,8 +67,8 @@ class TinyCaseSerializer(serializers.Serializer):
         return list(instance.queues.values_list('name', flat=True))
 
     def get_organisation(self, instance):
-        if instance.clc_query:
-            return instance.clc_query.good.organisation.name
+        if instance.query:
+            return instance.query.good.organisation.name
         else:
             return instance.application.organisation.name
 
@@ -81,8 +81,8 @@ class TinyCaseSerializer(serializers.Serializer):
             return []
 
     def get_status(self, instance):
-        if instance.clc_query:
-            return instance.clc_query.status.status
+        if instance.query:
+            return instance.query.status.status
         else:
             return instance.application.status.status
 
@@ -91,11 +91,11 @@ class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    clc_query = ClcQuerySerializer(read_only=True)
+    query = ClcQuerySerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'clc_query',)
+        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'query',)
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))

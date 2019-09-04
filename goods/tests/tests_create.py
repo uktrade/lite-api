@@ -72,4 +72,4 @@ class GoodsCreateTests(DataTestClient):
             case = Case.objects.get()
             # If a good is an 'unsure' good, then a case should have been created with a clc query and the clc query's good should be
             # the good that was created.
-            self.assertEqual(case.clc_query.good.description, description)
+            self.assertEqual(case.query.good.description, description)

@@ -144,7 +144,7 @@ class DataTestClient(BaseTestClient):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
         clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
+        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
 

@@ -118,9 +118,9 @@ class CaseActivity(APIView):
             version_records = Version.objects.filter(
                 Q(object_id=case.application.pk) | Q(object_id=case.pk)
             )
-        elif case.clc_query_id:
+        elif case.query_id:
             version_records = Version.objects.filter(
-                Q(object_id=case.clc_query.pk) | Q(object_id=case.pk)
+                Q(object_id=case.query.pk) | Q(object_id=case.pk)
             )
 
         activity = []
