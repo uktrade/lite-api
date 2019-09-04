@@ -17,6 +17,7 @@ from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
@@ -155,6 +156,14 @@ class DataTestClient(BaseTestClient):
                              is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
+
+    def create_end_user_advisory(self, note: str, reasoning: str):
+        end_user = self.create_end_user("name", self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
+                                                       note=note,
+                                                       reasoning=reasoning)
+        end_user_advisory_query.save()
+        return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,

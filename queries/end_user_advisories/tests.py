@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from test_helpers.clients import DataTestClient
 
 
@@ -10,14 +11,14 @@ class EndUserAdvisoryViewTests(DataTestClient):
         super().setUp()
         self.url = reverse('queries:end_user_advisories:end_user_advisories')
 
-    def test_create_end_user_advisory_query(self):
-        # TODO: Create an end user advisory query
+    def test_view_end_user_advisory_query(self):
+        self.create_end_user_advisory('a note', 'because I\'m unsure')
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()['end_user_advisories']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response_data['end_user_advisories'], 1)
+        self.assertEquals(len(response_data), 1)
 
 
 class EndUserAdvisoryCreateTests(DataTestClient):
