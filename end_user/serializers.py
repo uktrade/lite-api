@@ -1,19 +1,21 @@
 from rest_framework import serializers, relations
 
+from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from organisations.models import Organisation
 from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class EndUserSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    address = serializers.CharField()
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    name = serializers.CharField(required=True, max_length=50)
+    address = serializers.CharField(required=True)
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), required=True, serializer=CountrySerializer)
     website = serializers.URLField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=EndUserType.choices)
+    type = KeyValueChoiceField(choices=EndUserType.choices, required=True, allow_blank=False, allow_null=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
 

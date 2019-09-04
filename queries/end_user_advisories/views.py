@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -21,20 +21,25 @@ class EndUserAdvisoriesList(APIView):
         Create a new End User Advisory Enquiry query case instance
         """
         data = JSONParser().parse(request)
-        data['end_user']['organisation'] = request.user.organisation.id
 
-        print(data)
+        if not data.get('end_user'):
+            data['end_user'] = {}
+
+        data['end_user']['organisation'] = request.user.organisation.id
 
         serializer = EndUserAdvisorySerializer(data=data)
 
-        if serializer.is_valid():
-            if 'validate_only' not in data or not data['validate_only']:
-                serializer.save()
+        try:
+            if serializer.is_valid():
+                if 'validate_only' not in data or data['validate_only'] == 'False':
+                    serializer.save()
+                    return JsonResponse(data={'end_user_advisory': serializer.data},
+                                        status=status.HTTP_201_CREATED)
+                else:
+                    return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-                return JsonResponse(data={'end_user_advisory': serializer.data},
-                                    status=status.HTTP_201_CREATED)
-            else:
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError as e:
+            return JsonResponse(data={'errors': e},
+                                status=status.HTTP_400_BAD_REQUEST)

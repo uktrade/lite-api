@@ -6,12 +6,12 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
     end_user = EndUserSerializer()
-    reasoning = serializers.CharField()
-    note = serializers.CharField()
+    reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = ['end_user', 'reasoning', 'note']
+        fields = ['id', 'end_user', 'reasoning', 'note']
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')
@@ -25,7 +25,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         if end_user_serializer.is_valid():
             end_user = end_user_serializer.save()
         else:
-            raise serializers.ValidationError(end_user_serializer.errors)
+            raise serializers.ValidationError({'errors': end_user_serializer.errors})
 
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
