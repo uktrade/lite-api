@@ -6,8 +6,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from documents.libraries.check_if_s3_key_exists import s3_key_exists
-from drafts.libraries.get_document import get_end_user_document, get_ultimate_end_user_document
-from drafts.libraries.get_draft import get_draft
+from drafts.libraries.get_document import get_document
 from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
 from end_user.serializers import EndUserDocumentSerializer
@@ -16,23 +15,17 @@ from end_user.serializers import EndUserDocumentSerializer
 class EndUserDocuments(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def _get_end_user(self, kwargs, pk):
-        if 'ueu_pk' in kwargs:
-            end_users = EndUser.objects.filter(id=str(kwargs['ueu_pk']))
-            assert len(end_users) == 1
-            return end_users.first()
-        else:
-            draft = get_draft(pk)
-            return draft.end_user
+    def _get_end_user(self, eu_pk):
+        end_users = EndUser.objects.filter(id=eu_pk)
+        assert len(end_users) == 1
+        return end_users.first()
 
-    def get(self, request, pk, **kwargs):
+    def get(self, request, pk, eu_pk):
         """
         Returns document for the specified end user
         """
-        if 'ultimate-end-user' in request.path:
-            return get_ultimate_end_user_document(kwargs['ueu_pk'])
-        else:
-            return get_end_user_document(pk)
+        end_user = self._get_end_user(eu_pk)
+        return get_document(end_user)
 
     @swagger_auto_schema(
         request_body=EndUserDocumentSerializer,
@@ -40,11 +33,11 @@ class EndUserDocuments(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def post(self, request, pk, **kwargs):
+    def post(self, request, pk, eu_pk):
         """
         Adds a document to the specified end user
         """
-        end_user = self._get_end_user(kwargs, pk)
+        end_user = self._get_end_user(eu_pk)
 
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},

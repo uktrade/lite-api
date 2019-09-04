@@ -25,14 +25,3 @@ def get_document(end_user):
 
     except EndUserDocument.DoesNotExist:
         raise Http404
-
-
-def get_end_user_document(draft_id):
-    draft = get_draft(draft_id)
-    end_user = draft.end_user
-    return get_document(end_user)
-
-
-def get_ultimate_end_user_document(ueu_id):
-    end_user = EndUser.objects.filter(id=str(ueu_id)).first()
-    return get_document(end_user)
