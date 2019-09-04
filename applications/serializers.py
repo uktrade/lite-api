@@ -15,7 +15,7 @@ from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
@@ -95,7 +95,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(object_id=application.id)
-        serializer = GoodsTypeSerializer(goods_types, many=True)
+        serializer = FullGoodsTypeSerializer(goods_types, many=True)
         return serializer.data
 
     def get_destinations(self, application):
