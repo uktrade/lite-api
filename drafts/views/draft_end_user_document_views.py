@@ -55,10 +55,6 @@ class EndUserDocuments(APIView):
 
         data['end_user'] = end_user_id
 
-        if not s3_key_exists(data['s3_key']):
-            return JsonResponse(data={'error': 'Document S3 key not found'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
         serializer = EndUserDocumentSerializer(data=data)
 
         if serializer.is_valid():

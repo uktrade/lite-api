@@ -103,7 +103,7 @@ class EndUserDocumentTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(None, response.json()['document'])
 
-    '''@mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_post_document_not_exist(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -116,7 +116,7 @@ class EndUserDocumentTests(DataTestClient):
         response = self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)'''
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_status_code_delete_document_not_exist(self):
         """
@@ -131,7 +131,7 @@ class EndUserDocumentTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    '''@mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_post_document_exists(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -147,9 +147,9 @@ class EndUserDocumentTests(DataTestClient):
         response = self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)'''
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    '''@mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.tasks.prepare_document.now')
     def test_only_one_document_exists_even_when_posting_multiple_documents(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -165,9 +165,9 @@ class EndUserDocumentTests(DataTestClient):
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(1, len(EndUserDocument.objects.all()))'''
+        self.assertEqual(1, len(EndUserDocument.objects.all()))
 
-    '''@mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
     def test_status_code_delete_document_exists(self, delete_s3_function, prepare_document_function):
         """
@@ -184,9 +184,9 @@ class EndUserDocumentTests(DataTestClient):
         response = self.client.delete(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)'''
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    '''@mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.tasks.prepare_document.now')
     def test_status_code_get_document_exists(self, mock_obj):
         """
         Given a standard draft has been created
@@ -202,9 +202,9 @@ class EndUserDocumentTests(DataTestClient):
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)'''
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    '''@mock.patch('documents.models.Document.delete_s3')
+    @mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
     def test_delete_end_user_document_calls_delete_s3(self, prepare_document_function, delete_s3_function):
         """
@@ -221,4 +221,4 @@ class EndUserDocumentTests(DataTestClient):
         self.client.delete(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        delete_s3_function.assert_called_once()'''
+        delete_s3_function.assert_called_once()
