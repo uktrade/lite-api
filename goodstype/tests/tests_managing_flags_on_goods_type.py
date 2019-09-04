@@ -163,7 +163,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def test_setting_flags_on_two_goods(self):
         """
-        Tests setting multiple flags on multiple goods simultaneously
+        Tests setting multiple flags on multiple goods types simultaneously
         """
         data = {
             'level': 'goods',
