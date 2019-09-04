@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from documents.libraries.check_if_s3_key_exists import s3_key_exists
 from drafts.libraries.get_draft import get_draft
 from end_user.document.models import EndUserDocument
 from end_user.serializers import EndUserDocumentSerializer
@@ -54,10 +53,6 @@ class EndUserDocuments(APIView):
         data = request.data
 
         data['end_user'] = end_user_id
-
-        if not s3_key_exists(data['s3_key']):
-            return JsonResponse(data={'error': 'Document S3 key not found'},
-                                status=status.HTTP_400_BAD_REQUEST)
 
         serializer = EndUserDocumentSerializer(data=data)
 
