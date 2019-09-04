@@ -16,7 +16,8 @@ class EndUserDocuments(APIView):
 
     def _get_end_user(self, eu_pk):
         end_users = EndUser.objects.filter(id=eu_pk)
-        assert len(end_users) == 1
+        if len(end_users) != 1:
+            return None
         return end_users.first()
 
     def get(self, request, pk, eu_pk):
@@ -24,6 +25,9 @@ class EndUserDocuments(APIView):
         Returns document for the specified end user
         """
         end_user = self._get_end_user(eu_pk)
+        if not end_user:
+            return JsonResponse(data={'error': 'No such user'},
+                                status=status.HTTP_400_BAD_REQUEST)
         return get_document(end_user)
 
     @swagger_auto_schema(
@@ -37,7 +41,6 @@ class EndUserDocuments(APIView):
         Adds a document to the specified end user
         """
         end_user = self._get_end_user(eu_pk)
-
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -72,7 +75,6 @@ class EndUserDocuments(APIView):
         Deletes a document from the specified end user
         """
         end_user = self._get_end_user(eu_pk)
-
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
