@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from cases.models import Case
 from goods.enums import GoodControlled
 from goods.models import Good
+from queries.helpers import get_exporter_query
 from test_helpers.clients import DataTestClient
 
 
@@ -62,7 +63,7 @@ class GoodsCreateTests(DataTestClient):
                     'good_id': response_data['id']
                 }
 
-                url = reverse('applications:clcs')
+                url = reverse('queries:control_list_classifications:control_list_classifications')
                 response = self.client.post(url, data, **self.exporter_headers)
 
                 self.assertEquals(response.status_code, expected_status)
@@ -70,6 +71,8 @@ class GoodsCreateTests(DataTestClient):
         # Assert
         if is_good_controlled == GoodControlled.UNSURE:
             case = Case.objects.get()
-            # If a good is an 'unsure' good, then a case should have been created with a clc query and the clc query's good should be
+            query = get_exporter_query(case.query)
+            # If a good is an 'unsure' good, then a case should have been
+            # created with a clc query and the clc query's good should be
             # the good that was created.
-            self.assertEqual(case.query.good.description, description)
+            self.assertEqual(query.good.description, description)

@@ -13,6 +13,7 @@ from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
+from queries.helpers import get_exporter_query
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -68,7 +69,8 @@ class TinyCaseSerializer(serializers.Serializer):
 
     def get_organisation(self, instance):
         if instance.query:
-            return instance.query.good.organisation.name
+            query = get_exporter_query(instance.query)
+            return query.good.organisation.name
         else:
             return instance.application.organisation.name
 

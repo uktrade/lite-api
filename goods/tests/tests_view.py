@@ -20,6 +20,7 @@ class GoodViewTests(DataTestClient):
 
         url = reverse('goods:good', kwargs={'pk': good.id})
         response = self.client.get(url, **self.exporter_headers)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_fail_view_other_organisations_goods_details(self):

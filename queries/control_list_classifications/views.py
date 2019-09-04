@@ -12,9 +12,9 @@ from cases.models import Case
 from conf.authentication import GovAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
-from queries.control_list_classifications.helpers import get_clc_query_by_pk
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.control_list_classifications.serializers import ClcQueryUpdateSerializer
+from queries.helpers import get_exporter_query
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
@@ -42,7 +42,7 @@ class ControlListClassificationsList(APIView):
         clc_query.save()
 
         # Create a case
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
+        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
 
         # Add said case to default queue
@@ -63,7 +63,7 @@ class ControlListClassificationDetail(APIView):
         with reversion.create_revision():
             data = json.loads(request.body)
             data['status'] = str(get_case_status_from_status(data.get('status')).pk)
-            serializer = ClcQueryUpdateSerializer(get_clc_query_by_pk(pk), data=data, partial=True)
+            serializer = ClcQueryUpdateSerializer(get_exporter_query(pk), data=data, partial=True)
 
             if serializer.is_valid():
                 with reversion.create_revision():

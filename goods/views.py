@@ -9,8 +9,6 @@ from rest_framework.views import APIView
 from reversion.models import Version
 
 from cases.libraries.activity_helpers import convert_good_reversion_to_activity
-from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
-from cases.models import CaseNote
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -21,6 +19,7 @@ from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
+from queries.control_list_classifications.helpers import get_clc_query_by_good
 from users.models import ExporterUser
 
 
@@ -62,6 +61,7 @@ class GoodDetail(APIView):
 
     def get(self, request, pk):
         good = get_good(pk)
+
         if isinstance(request.user, ExporterUser):
             organisation = get_organisation_by_user(request.user)
 
@@ -69,14 +69,13 @@ class GoodDetail(APIView):
                 raise Http404
 
             serializer = GoodSerializer(good)
-            request.user.notification_set.filter(case_note__case__query__good=good).update(
+
+            query = get_clc_query_by_good(good)
+            request.user.notification_set.filter(case_note__case__query=query).update(
                 viewed_at=timezone.now()
             )
         else:
             serializer = FullGoodSerializer(good)
-
-        case_notes = CaseNote.objects.filter(case__query__good=good)
-        mark_notifications_as_viewed(request.user, case_notes)
 
         return JsonResponse(data={'good': serializer.data})
 
