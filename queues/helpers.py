@@ -30,6 +30,7 @@ def _all_cases_queue():
                   team=Team.objects.get(name='Admin'))
     queue.is_system_queue = True
     queue.query = Q()
+    queue.reverse_ordering = True
 
     return queue
 
