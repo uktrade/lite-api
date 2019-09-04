@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from documents.models import Document
+from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled
 from organisations.models import Organisation
 from users.models import ExporterUser
@@ -19,6 +20,7 @@ class Good(models.Model):
     part_number = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
+    flags = models.ManyToManyField(Flag, related_name='goods')
 
 
 # TODO: This model is going to be part of the Application/Draft rewrite - it'll replace goodstype

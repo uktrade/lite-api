@@ -10,7 +10,6 @@ from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerFie
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from end_user.models import EndUser
-from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -46,6 +45,46 @@ class CaseSerializer(serializers.ModelSerializer):
         if not repr_dict['clc_query']:
             del repr_dict['clc_query']
         return repr_dict
+
+
+class TinyCaseSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    type = serializers.SerializerMethodField()
+    queue_names = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_type(self, instance):
+        if instance.type == 'clc_query':
+            case_type = 'CLC Query'
+        else:
+            case_type = instance.type.title()
+        return case_type
+
+    def get_queue_names(self, instance):
+        return list(instance.queues.values_list('name', flat=True))
+
+    def get_organisation(self, instance):
+        if instance.clc_query:
+            return instance.clc_query.good.organisation.name
+        else:
+            return instance.application.organisation.name
+
+    def get_users(self, instance):
+        try:
+            case_assignment = CaseAssignment.objects.get(case=instance)
+            users = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]} for x in case_assignment.users.values_list('first_name', 'last_name', 'email')]
+            return users
+        except CaseAssignment.DoesNotExist:
+            return []
+
+    def get_status(self, instance):
+        if instance.clc_query:
+            return instance.clc_query.status.status
+        else:
+            return instance.application.status.status
 
 
 class CaseDetailSerializer(CaseSerializer):
@@ -91,23 +130,6 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseAssignment
         fields = ('case', 'users')
-
-
-class CaseFlagsAssignmentSerializer(serializers.ModelSerializer):
-    """
-    Serializes flags on case
-    """
-    flags = serializers.PrimaryKeyRelatedField(queryset=Flag.objects.all(), many=True)
-
-    class Meta:
-        model = Case
-        fields = ('id', 'flags')
-
-    def validate_flags(self, flags):
-        team_case_level_flags = list(Flag.objects.filter(level='Case', team=self.context['team']))
-        if not set(flags).issubset(list(team_case_level_flags)):
-            raise serializers.ValidationError('You can only assign case-level flags that are available to your team.')
-        return flags
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):

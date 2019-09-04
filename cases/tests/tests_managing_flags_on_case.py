@@ -29,7 +29,7 @@ class CaseFlagsManagementTests(DataTestClient):
         self.all_flags = [self.team_case_flag_1, self.team_org_flag, self.team_case_flag_2, self.other_team_case_flag]
 
         self.case_url = reverse('cases:case', kwargs={'pk': self.case.id})
-        self.case_flag_url = reverse('cases:case_flags', kwargs={'pk': self.case.id})
+        self.case_flag_url = reverse('flags:assign_flags')
         self.audit_url = reverse('cases:activity', kwargs={'pk': self.case.id})
 
     def test_no_flags_for_case_are_returned(self):
@@ -72,7 +72,9 @@ class CaseFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_case_flag_1.pk]}
+        flags_to_add = {'level': 'cases',
+                        'objects': [self.case.id],
+                        'flags': [self.team_case_flag_1.pk]}
 
         # Act
         self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
@@ -89,7 +91,9 @@ class CaseFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.other_team_case_flag.pk]}
+        flags_to_add = {'level': 'cases',
+                        'objects': [self.case.id],
+                        'flags': [self.other_team_case_flag.pk]}
 
         # Act
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
@@ -106,7 +110,9 @@ class CaseFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags_to_add = {'flags': [self.team_org_flag.pk]}
+        flags_to_add = {'level': 'cases',
+                        'objects': [self.case.id],
+                        'flags': [self.team_org_flag.pk]}
 
         # Act
         response = self.client.put(self.case_flag_url, flags_to_add, **self.gov_headers)
@@ -125,7 +131,9 @@ class CaseFlagsManagementTests(DataTestClient):
         # Arrange (note that the endpoint expects flags being PUT to the case, therefore the flag being removed is not
         # included in the request body)
         self.case.flags.set(self.all_flags)
-        flags_to_keep = {'flags': [self.team_case_flag_2.pk]}
+        flags_to_keep = {'level': 'cases',
+                         'objects': [self.case.id],
+                         'flags': [self.team_case_flag_2.pk]}
         self.all_flags.remove(self.team_case_flag_1)
 
         # Act
@@ -147,7 +155,9 @@ class CaseFlagsManagementTests(DataTestClient):
         """
 
         # Arrange
-        flags = {'flags': [self.team_case_flag_1.pk]}
+        flags = {'level': 'cases',
+                 'objects': [self.case.id],
+                 'flags': [self.team_case_flag_1.pk]}
 
         # Act
         self.client.put(self.case_flag_url, flags, **self.gov_headers)
