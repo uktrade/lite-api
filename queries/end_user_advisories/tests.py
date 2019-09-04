@@ -47,11 +47,11 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], data['reasoning'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['type'], data['end_user']['type'])
+        self.assertEqual(end_user_data['type']['key'], data['end_user']['type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
-        self.assertEqual(end_user_data['country'], data['end_user']['country'])
+        self.assertEqual(end_user_data['country']['id'], data['end_user']['country'])
 
     def test_create_end_user_advisory_query_failure(self):
         data = {}
