@@ -67,11 +67,11 @@ class EndUserDocuments(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def delete(self, request, pk, **kwargs):
+    def delete(self, request, pk, eu_pk):
         """
         Deletes a document from the specified end user
         """
-        end_user = self._get_end_user(kwargs, pk)
+        end_user = self._get_end_user(eu_pk)
 
         if not end_user:
             return JsonResponse(data={'error': 'No such user'},
