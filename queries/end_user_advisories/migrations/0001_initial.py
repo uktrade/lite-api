@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
             name='EndUserAdvisoryQuery',
             fields=[
                 ('query_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='queries.Query')),
-                ('details', models.TextField(blank=True, default=None, null=True)),
-                ('raised_reason', models.TextField(blank=True, default=None, null=True)),
+                ('note', models.TextField(blank=True, default=None, null=True)),
+                ('reasoning', models.TextField(blank=True, default=None, null=True)),
                 ('end_user', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='euae_query', to='end_user.EndUser')),
                 ('status', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='euae_query_status', to='statuses.CaseStatus')),
             ],

@@ -1,0 +1,33 @@
+from rest_framework import serializers
+
+from end_user.serializers import EndUserSerializer
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
+
+
+class EndUserAdvisorySerializer(serializers.ModelSerializer):
+    end_user = EndUserSerializer()
+    reasoning = serializers.CharField()
+    note = serializers.CharField()
+
+    class Meta:
+        model = EndUserAdvisoryQuery
+        fields = ['end_user', 'reasoning', 'note']
+
+    def create(self, validated_data):
+        end_user_data = validated_data.pop('end_user')
+
+        # We set the country and organisation back to their string IDs, otherwise
+        # the end_user serializer struggles to save them
+        end_user_data['country'] = end_user_data['country'].id
+        end_user_data['organisation'] = end_user_data['organisation'].id
+
+        end_user_serializer = EndUserSerializer(data=end_user_data)
+        if end_user_serializer.is_valid():
+            end_user = end_user_serializer.save()
+        else:
+            raise serializers.ValidationError(end_user_serializer.errors)
+
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
+        end_user_advisory_query.save()
+
+        return end_user_advisory_query

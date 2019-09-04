@@ -3,18 +3,17 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from end_user.helpers import get_end_user
+from conf.authentication import ExporterAuthentication
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from static.countries.models import Country
-from static.countries.serializers import CountrySerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 
 
 class EndUserAdvisoriesList(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     def get(self, request):
-        countries = Country.objects.all()
-        serializer = CountrySerializer(countries, many=True)
+        end_user_advisories = EndUserAdvisoryQuery.objects.filter(end_user__organisation=request.user.organisation)
+        serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
         return JsonResponse(data={'end_user_advisories': serializer.data})
 
     def post(self, request):
@@ -22,18 +21,20 @@ class EndUserAdvisoriesList(APIView):
         Create a new End User Advisory Enquiry query case instance
         """
         data = JSONParser().parse(request)
-        end_user = get_end_user(data['end_user_id'])
+        data['end_user']['organisation'] = request.user.organisation.id
 
-        euae_query = EndUserAdvisoryQuery(details=data['details'],
-                                          raised_reason=data['raised_reason'],
-                                          end_user=end_user,
-                                          status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+        print(data)
 
-        euae_query.save()
+        serializer = EndUserAdvisorySerializer(data=data)
 
-        # # Should be added to enforcement unit queue in the future
-        # queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-        # queue.cases.add(case)
-        # queue.save()
+        if serializer.is_valid():
+            if 'validate_only' not in data or not data['validate_only']:
+                serializer.save()
 
-        return JsonResponse(data={'id': euae_query.id}, status=status.HTTP_201_CREATED)
+                return JsonResponse(data={'end_user_advisory': serializer.data},
+                                    status=status.HTTP_201_CREATED)
+            else:
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
