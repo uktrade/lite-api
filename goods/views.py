@@ -20,6 +20,7 @@ from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDo
     FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.helpers import get_clc_query_by_good
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 
 
@@ -70,10 +71,14 @@ class GoodDetail(APIView):
 
             serializer = GoodSerializer(good)
 
-            query = get_clc_query_by_good(good)
-            request.user.notification_set.filter(case_note__case__query=query).update(
-                viewed_at=timezone.now()
-            )
+            # If there's a CLC Query with this good, update the notification on it
+            try:
+                query = ControlListClassificationQuery.objects.get(good=good)
+                request.user.notification_set.filter(case_note__case__query=query).update(
+                    viewed_at=timezone.now()
+                )
+            except ControlListClassificationQuery.DoesNotExist:
+                pass
         else:
             serializer = FullGoodSerializer(good)
 
