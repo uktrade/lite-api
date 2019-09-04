@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from documents.libraries.check_if_s3_key_exists import s3_key_exists
 from drafts.libraries.get_draft import get_draft
 from end_user.document.models import EndUserDocument
 from end_user.serializers import EndUserDocumentSerializer
