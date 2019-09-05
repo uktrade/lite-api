@@ -36,6 +36,7 @@ class Query(models.Model):
     class Meta:
         ordering = ['-submitted_at']
 
+    # pylint: disable=W0221
     def save(self, **kwargs):
         if not self.pk:
             is_unique = False
