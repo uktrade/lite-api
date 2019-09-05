@@ -9,6 +9,20 @@ from static.statuses.models import CaseStatus
 from users.models import GovUser, ExporterUser, UserOrganisationRelationship
 
 
+class QueryManager(models.Manager):
+    def create(self, **obj_data):
+        from cases.enums import CaseType
+        from cases.models import Case
+
+        query = super().create(**obj_data)
+
+        # Create a case with this query
+        case = Case(query=query, type=CaseType.END_USER_ADVISORY_QUERY)
+        case.save()
+
+        return query
+
+
 @reversion.register()
 class Query(models.Model):
     """
@@ -21,3 +35,5 @@ class Query(models.Model):
 
     class Meta:
         ordering = ['-submitted_at']
+
+    objects = QueryManager()

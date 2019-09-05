@@ -4,7 +4,6 @@ from rest_framework.exceptions import ValidationError
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
-from queries.control_list_classifications.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -13,7 +12,7 @@ from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
-from queries.helpers import get_exporter_query
+from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -27,8 +26,8 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    query = ClcQuerySerializer(read_only=True)
     application = ApplicationBaseSerializer(read_only=True)
+    query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
@@ -51,28 +50,26 @@ class CaseSerializer(serializers.ModelSerializer):
 class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = serializers.SerializerMethodField()
+    type = KeyValueChoiceField(choices=CaseType.choices)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
-    def get_type(self, instance):
-        if instance.type == 'query':
-            case_type = 'CLC Query'
-        else:
-            case_type = instance.type.title()
-        return case_type
-
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
 
     def get_organisation(self, instance):
-        if instance.query:
-            query = get_exporter_query(instance.query)
-            return query.good.organisation.name
-        else:
-            return instance.application.organisation.name
+        # TODO
+        return 'to fill!'
+        # if instance.query:
+        #     query = get_exporter_query(instance.query)
+        #     if isinstance(query, EndUserAdvisoryQuery):
+        #         return 'This needs to be replaced'
+        #     else:
+        #         return query.good.organisation.name
+        # else:
+        #     return instance.application.organisation.name
 
     def get_users(self, instance):
         try:
@@ -83,17 +80,23 @@ class TinyCaseSerializer(serializers.Serializer):
             return []
 
     def get_status(self, instance):
-        if instance.query:
-            return instance.query.status.status
-        else:
-            return instance.application.status.status
+        # TODO
+        return 'to fill!'
+        # if instance.query:
+        #     query = get_exporter_query(instance.query)
+        #     if isinstance(query, EndUserAdvisoryQuery):
+        #         return 'This needs to be replaced'
+        #     else:
+        #         return instance.query.status.status
+        # else:
+        #     return instance.application.status.status
 
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    query = ClcQuerySerializer(read_only=True)
+    query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case

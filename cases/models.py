@@ -25,7 +25,7 @@ class Case(models.Model):
     Wrapper for application and query model intended for internal users.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=20)
+    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
     application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
