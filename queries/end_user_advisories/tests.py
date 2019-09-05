@@ -41,6 +41,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+
         response_data = response.json()['end_user_advisory']
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

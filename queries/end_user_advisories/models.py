@@ -1,6 +1,5 @@
 from django.db import models
 
-from cases.models import Case
 from end_user.models import EndUser
 from queries.models import Query
 from static.statuses.models import CaseStatus

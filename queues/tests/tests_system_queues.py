@@ -21,7 +21,7 @@ class RetrieveAllCases(DataTestClient):
         self.case3 = self.create_standard_application_case(self.organisation)
 
         self.case3.application.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
-        self.case3.application.save(update_fields=['status'])
+        self.case3.application.save()
 
         self.url = reverse('queues:queues')
         self.all_cases_system_queue_url = reverse('queues:queue', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID})

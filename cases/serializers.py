@@ -55,6 +55,7 @@ class TinyCaseSerializer(serializers.Serializer):
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    query = QueryViewSerializer()
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
