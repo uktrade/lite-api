@@ -50,7 +50,7 @@ class GoodSerializer(serializers.ModelSerializer):
     # pylint: disable=W0703
     def get_clc_query_case_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.filter(good=instance)[0]
+            clc_query = ControlListClassificationQuery.objects.filter(good=instance)[0]
             case = Case.objects.filter(clc_query=clc_query)[0]
             return case.id
         except Exception:

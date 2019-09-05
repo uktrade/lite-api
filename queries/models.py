@@ -3,10 +3,7 @@ from random import randint
 import reversion
 from django.db import models
 
-from end_user.models import EndUser
-from goods.models import Good
 from static.statuses.models import CaseStatus
-from users.models import GovUser, ExporterUser, UserOrganisationRelationship
 
 
 class QueryManager(models.Manager):

@@ -2,7 +2,6 @@ from django.db import models
 
 from end_user.models import EndUser
 from queries.models import Query
-from static.statuses.models import CaseStatus
 
 
 class EndUserAdvisoryQuery(Query):
