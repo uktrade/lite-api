@@ -15,7 +15,6 @@ from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.control_list_classifications.serializers import ClcQueryUpdateSerializer
 from queries.helpers import get_exporter_query
-from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 
@@ -33,6 +32,7 @@ class ControlListClassificationsList(APIView):
             return JsonResponse(data={'errors': {
                 'not_sure_details_control_code': [ErrorDetail('This field may not be blank.', code='blank')]
             }}, status=status.HTTP_400_BAD_REQUEST)
+
         good.control_code = data['not_sure_details_control_code']
         good.save()
 
@@ -41,11 +41,7 @@ class ControlListClassificationsList(APIView):
                                                    status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
         clc_query.save()
 
-        # Create a case
-        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-
-        return JsonResponse(data={'id': clc_query.id, 'case_id': case.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': clc_query.id}, status=status.HTTP_201_CREATED)
 
 
 class ControlListClassificationDetail(APIView):
@@ -62,7 +58,7 @@ class ControlListClassificationDetail(APIView):
 
             if serializer.is_valid():
                 with reversion.create_revision():
-                    reversion.set_comment("Updated CLC Query Details")
+                    reversion.set_comment('Updated CLC Query Details')
                     reversion.set_user(request.user)
                     serializer.save()
                 return JsonResponse(data={'clc_query': serializer.data})

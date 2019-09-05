@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'picklists',
     'end_user.document',
     'queries',
-    'queries.end_user_advisories'
+    'queries.end_user_advisories',
+    'queries.control_list_classifications'
 ]
 
 MIDDLEWARE = [

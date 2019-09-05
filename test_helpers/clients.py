@@ -253,7 +253,7 @@ class DataTestClient(BaseTestClient):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description, org, control_code='ML1'):
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> object:
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,
@@ -270,8 +270,7 @@ class DataTestClient(BaseTestClient):
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=org
-                    )
+                    organisation=org)
         good.save()
 
         clc_query = ControlListClassificationQuery(details='this is a test text',
