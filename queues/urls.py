@@ -1,16 +1,16 @@
 from django.urls import path
 
-from queues import views
+from queues.views import queues, cases, case_assignments
 
 app_name = 'queues'
 
 urlpatterns = [
     # ex: /queues/ - View all queues
-    path('', views.QueuesList.as_view(), name='queues'),
+    path('', queues.QueuesList.as_view(), name='queues'),
     # ex: /queues/<uuid:pk>/ - View a specific queue
-    path('<uuid:pk>/', views.QueueDetail.as_view(), name='queue'),
-    # ex: /queues/<uuid:pk>/case-assignments/ -
-    # Get user's case assignments, on that particular queue
-    # Assign users to cases, on that particular queue
-    path('<uuid:pk>/case-assignments/', views.CaseAssignments.as_view(), name='case_assignments')
+    path('<uuid:pk>/', queues.QueueDetail.as_view(), name='queue'),
+    # ex: /queues/<uuid:pk>/cases/ - View all cases pertaining to a queue
+    path('<uuid:pk>/cases/', cases.CasesList.as_view(), name='cases'),
+    # ex: /queues/<uuid:pk>/case-assignments/ - Assign users to a case on that queue
+    path('<uuid:pk>/case-assignments/', case_assignments.CaseAssignments.as_view(), name='case_assignments')
 ]
