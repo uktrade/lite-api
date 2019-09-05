@@ -18,9 +18,9 @@ class ApplicationsTests(DataTestClient):
 
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
-        draft.end_user = self.create_end_user('test', self.organisation)
-        self.create_document_for_end_user(draft.end_user)
         draft.save()
+        end_user = self.create_end_user('test', draft, self.organisation)
+        self.create_document_for_end_user(end_user)
 
         data = {
             'id': draft.id

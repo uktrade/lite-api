@@ -11,8 +11,8 @@ from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from parties.document.models import EndUserDocument
-from parties.enums import PartyType
-from parties.models import Party
+from parties.enums import PartyType, EndUserOrUltimateEndUserSubType
+from parties.models import Party, EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -127,16 +127,32 @@ class DataTestClient(BaseTestClient):
         return external_location
 
     @staticmethod
-    def create_end_user(name, organisation):
-        end_user = Party(name=name,
-                         organisation=organisation,
-                         address='42 Road, London, Buckinghamshire',
-                         website='www.' + name + '.com',
-                         type=PartyType.GOVERNMENT,
-                         country=get_country('GB'))
+    def create_end_user(name, draft, organisation):
+        end_user = EndUser(name=name,
+                           organisation=organisation,
+                           address='42 Road, London, Buckinghamshire',
+                           website='www.' + name + '.com',
+                           type=PartyType.END,
+                           sub_type=EndUserOrUltimateEndUserSubType.GOVERNMENT,
+                           country=get_country('GB'),
+                           draft=draft)
         end_user.save()
-        
+
         return end_user
+
+    @staticmethod
+    def create_ultimate_end_user(name, draft, organisation):
+        ultimate_end_user = UltimateEndUser(name=name,
+                                            organisation=organisation,
+                                            address='42 Road, London, Buckinghamshire',
+                                            website='www.' + name + '.com',
+                                            type=PartyType.END,
+                                            sub_type=EndUserOrUltimateEndUserSubType.GOVERNMENT,
+                                            country=get_country('GB'),
+                                            draft=draft)
+        ultimate_end_user.save()
+
+        return ultimate_end_user
 
     def create_clc_query_case(self, name, status=None):
         if not status:
@@ -206,7 +222,7 @@ class DataTestClient(BaseTestClient):
     @staticmethod
     def create_document_for_end_user(end_user: Party, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
-            end_user=end_user,
+            party=end_user,
             name=name,
             s3_key='s3_keykey.pdf',
             size=123456,
@@ -284,7 +300,8 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -297,19 +314,34 @@ class DataTestClient(BaseTestClient):
                     unit=Units.NAR,
                     value=500).save()
 
-        # Set the draft's end user
-        draft.end_user = self.create_end_user('test', organisation)
+        # Add a site to the draft
+        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+
+        draft.save()
+
+        return draft
+
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        """
+               Creates a standard draft application
+               """
+        draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
+
+        # Add a good to the standard draft
+        GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
+                    draft=draft,
+                    quantity=10,
+                    unit=Units.NAR,
+                    value=500).save()
 
         # Add a site to the draft
         SiteOnDraft(site=organisation.primary_site, draft=draft).save()
 
         draft.save()
-        return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
-        draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
-
-        self.create_document_for_end_user(draft.end_user)
+        # Set the draft's end user
+        end_user = self.create_end_user('test', draft, organisation)
+        self.create_document_for_end_user(end_user)
 
         return draft
 
@@ -354,7 +386,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
-        
+
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 

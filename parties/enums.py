@@ -1,4 +1,16 @@
 class PartyType:
+    END = 'end'
+    ULTIMATE = 'ultimate'
+    THIRD = 'third'
+
+    choices = [
+        (END, 'End User'),
+        (ULTIMATE, 'Ultimate End User'),
+        (THIRD, 'Third Party'),
+    ]
+
+
+class EndUserOrUltimateEndUserSubType:
     GOVERNMENT = 'government'
     COMMERCIAL = 'commercial'
     INDIVIDUAL = 'individual'
@@ -12,7 +24,7 @@ class PartyType:
     ]
 
 
-class ThirdPartyType:
+class ThirdPartySubType:
     INTERMEDIATE = 'intermediate_consignee'
     AGENT = 'agent'
     SUBMITTER = 'submitter'

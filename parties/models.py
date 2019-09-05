@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from applications.models import Application
 from drafts.models import Draft
-from parties.enums import PartyType, ThirdPartyType
+from parties.enums import PartyType, EndUserOrUltimateEndUserSubType, ThirdPartySubType
 from organisations.models import Organisation
 from static.countries.models import Country
 
@@ -14,7 +14,7 @@ class Party(models.Model):
     address = models.TextField(default=None, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True)
-    party_type = models.CharField(choices=PartyType.choices, default=PartyType.OTHER, max_length=20)
+    type = models.CharField(choices=PartyType.choices, max_length=20)
     organisation = models.ForeignKey(Organisation, blank=True,
                                      null=True, related_name='organisation_party', on_delete=models.DO_NOTHING)
     application = models.ForeignKey(Application, blank=True,
@@ -24,4 +24,14 @@ class Party(models.Model):
 
 
 class ThirdParty(Party):
-    third_party_type = models.CharField(choices=ThirdPartyType.choices, default=PartyType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=20)
+
+
+class EndUser(Party):
+    sub_type = models.CharField(choices=EndUserOrUltimateEndUserSubType.choices,
+                                default=EndUserOrUltimateEndUserSubType.OTHER, max_length=20)
+
+
+class UltimateEndUser(Party):
+    sub_type = models.CharField(choices=EndUserOrUltimateEndUserSubType.choices,
+                                default=EndUserOrUltimateEndUserSubType.OTHER, max_length=20)

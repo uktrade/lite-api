@@ -45,10 +45,10 @@ class ApplicationsTests(DataTestClient):
         Ensure we cannot create a new application without a site
         """
         draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
-        draft.end_user = self.create_end_user("End user", self.organisation)
+        end_user = self.create_end_user("End user", self.organisation, draft)
         draft.save()
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_end_user(end_user)
 
         data = {'id': draft.id}
 

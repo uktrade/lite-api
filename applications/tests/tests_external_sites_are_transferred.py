@@ -19,11 +19,10 @@ class ApplicationsTests(DataTestClient):
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=unit1, value=400).save()
         ExternalLocationOnDraft(external_location=site1, draft=draft).save()
         ExternalLocationOnDraft(external_location=site2, draft=draft).save()
-        draft.end_user = self.create_end_user('test', self.organisation)
         self.create_document_for_end_user(draft.end_user)
         draft.activity = 'Brokering'
         draft.save()
-
+        self.create_end_user('test', draft, self.organisation)
         url = reverse('applications:applications')
         data = {'id': draft.id}
         response = self.client.post(url, data, **self.exporter_headers)

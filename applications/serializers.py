@@ -100,7 +100,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
-        if application.party:
+        party = Party.objects.get(application=application)
+        if party.application:
             try:
                 serializer = PartySerializer(application.party)
                 return {'type': 'parties', 'data': serializer.data}

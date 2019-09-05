@@ -8,6 +8,7 @@ from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, 
 from parties.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
+from parties.models import Party, EndUser, UltimateEndUser
 
 
 def create_goods_for_applications(draft, application):
@@ -55,10 +56,11 @@ def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
     """
-    if not draft.end_user:
-        errors['parties'] = get_string('applications.standard.no_end_user_set')
+    end_user = EndUser.objects.get(draft=draft)
+    if not end_user:
+        errors['end_user'] = get_string('applications.standard.no_end_user_set')
 
-    end_user_documents_error = check_party_document(draft.end_user)
+    end_user_documents_error = check_party_document(end_user)
     if end_user_documents_error:
         errors['end_user_document'] = end_user_documents_error
 
@@ -70,21 +72,25 @@ def create_standard_licence(draft, application, errors):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
-        if len(draft.ultimate_end_users.values_list()) == 0:
+        ultimate_end_users = UltimateEndUser.objects.filter(draft=draft)
+        if len(ultimate_end_users.values_list()) == 0:
             errors['ultimate_end_users'] = get_string('applications.standard.no_ultimate_end_users_set')
         else:
             # We make sure that an ultimate end user is not also the end user
-            for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
-                if 'parties' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
+            for ultimate_end_user in ultimate_end_users.values_list('id', flat=True):
+                if 'end_user' not in errors and str(ultimate_end_user) == str(end_user.id):
                     errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
     # Save associated end users, goods and sites
-    application.end_user = draft.end_user
-    application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
-    application.save()
+    end_user.application = application
+    end_user.save()
+    if ultimate_end_user_required:
+        for ultimate_end_user in ultimate_end_users:
+            ultimate_end_user.application = application
+            ultimate_end_user.save()
 
     create_goods_for_applications(draft, application)
     create_site_for_application(draft, application)
