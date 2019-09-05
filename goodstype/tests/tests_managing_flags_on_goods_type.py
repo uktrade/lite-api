@@ -12,8 +12,6 @@ class GoodFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.open_application = self.create_open_application(self.organisation)
-        self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
-        self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         self.goods_types = GoodsType.objects.filter(object_id=self.open_application.id)
         self.goods_type = self.goods_types[0]
@@ -39,9 +37,6 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user requests the Good
         Then the correct Good with an empty Flag list is returned
         """
-
-        # Arrange
-
         # Act
         response = self.client.get(self.good_url, **self.gov_headers)
 

@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case
-from queues.models import Queue
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 
@@ -12,8 +10,6 @@ class CaseFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
-        self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         # Cases
         self.case = Case.objects.get(application=self.standard_application)
@@ -38,9 +34,6 @@ class CaseFlagsManagementTests(DataTestClient):
         When a user requests the Case
         Then the correct Case with an empty Flag list is returned
         """
-
-        # Arrange
-
         # Act
         response = self.client.get(self.case_url, **self.gov_headers)
 

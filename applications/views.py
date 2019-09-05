@@ -90,11 +90,6 @@ class ApplicationList(APIView):
             case = Case(application=application)
             case.save()
 
-            # Add said case to default queue
-            queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-            queue.cases.add(case)
-            queue.save()
-
             serializer = ApplicationBaseSerializer(application)
             return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
                                 status=status.HTTP_201_CREATED)

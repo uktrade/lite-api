@@ -68,7 +68,7 @@ class DataTestClient(BaseTestClient):
         self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
                                  'HTTP_ORGANISATION_ID': self.organisation.id}
 
-        self.queue = Queue.objects.get(team=self.team)
+        self.queue = self.create_queue('Initial Queue', self.team)
 
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:

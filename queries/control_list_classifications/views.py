@@ -45,11 +45,6 @@ class ControlListClassificationsList(APIView):
         case = Case(query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
 
-        # Add said case to default queue
-        queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
-        queue.cases.add(case)
-        queue.save()
-
         return JsonResponse(data={'id': clc_query.id, 'case_id': case.id}, status=status.HTTP_201_CREATED)
 
 

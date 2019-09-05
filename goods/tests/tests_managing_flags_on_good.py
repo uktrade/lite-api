@@ -11,8 +11,6 @@ class GoodFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
-        self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         # Cases
         self.good = self.create_controlled_good('a good', self.organisation)
