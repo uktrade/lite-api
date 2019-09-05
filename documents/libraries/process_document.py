@@ -1,5 +1,6 @@
-from conf.settings import BACKGROUND_TASK_ENABLED
 from rest_framework import serializers
+
+from conf.settings import BACKGROUND_TASK_ENABLED
 from documents.tasks import prepare_document
 
 

@@ -19,7 +19,6 @@ from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
-from queries.control_list_classifications.helpers import get_clc_query_by_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 

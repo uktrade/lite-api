@@ -1,5 +1,6 @@
-from documents.models import Document
 from rest_framework import serializers
+
+from documents.models import Document
 
 
 class DocumentViewSerializer(serializers.ModelSerializer):

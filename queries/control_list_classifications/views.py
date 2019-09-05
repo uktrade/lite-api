@@ -7,8 +7,6 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.enums import CaseType
-from cases.models import Case
 from conf.authentication import GovAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good

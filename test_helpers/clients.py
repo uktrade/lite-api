@@ -16,12 +16,10 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
-from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from users.enums import UserStatuses
-from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
+from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
@@ -30,6 +28,8 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers.helpers import random_name
+from users.enums import UserStatuses
+from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 

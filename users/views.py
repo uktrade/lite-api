@@ -8,12 +8,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
-from users.libraries.user_to_token import user_to_token
 from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
+from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
-from cases.models import Notification
 from users.serializers import NotificationsSerializer, \
     ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
 

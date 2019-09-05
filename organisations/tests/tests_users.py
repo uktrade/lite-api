@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
-from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
+from users.libraries.get_user import get_users_from_organisation
 from users.models import UserOrganisationRelationship, ExporterUser
 
 

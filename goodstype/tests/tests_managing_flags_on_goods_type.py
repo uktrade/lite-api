@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from goodstype.models import GoodsType
-from queues.models import Queue
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 

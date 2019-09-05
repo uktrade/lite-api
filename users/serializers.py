@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from cases.models import Notification
 from conf.exceptions import NotFoundError
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
@@ -9,7 +10,6 @@ from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
-from cases.models import Notification
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):

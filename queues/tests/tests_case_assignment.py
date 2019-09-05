@@ -3,7 +3,6 @@ from rest_framework import status
 
 from cases.models import Case, CaseAssignment
 from queues.models import Queue
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 

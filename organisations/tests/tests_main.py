@@ -4,7 +4,6 @@ from rest_framework.reverse import reverse
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
-from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
