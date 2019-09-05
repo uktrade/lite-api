@@ -58,7 +58,7 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = self.case.query.good.organisation if self.case.query else self.case.application.organisation
+            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(case_note=self)
 
