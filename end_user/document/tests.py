@@ -17,12 +17,10 @@ class EndUserDocumentTests(DataTestClient):
         super().setUp()
 
         self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Drafty Draft')
-        self.url_draft_with_user = reverse('drafts:end_user_document',
-                                           kwargs={'pk': self.draft.id, 'eu_pk': self.draft.end_user.id})
+        self.url_draft_with_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
         self.draft_no_user = self.create_draft(self.organisation, 'Dafty daft')
-        self.url_no_user = reverse('drafts:end_user_document',
-                                   kwargs={'pk': self.draft_no_user.id, 'eu_pk': uuid4()})
+        self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
         self.data = {"name": test_file,
                  "s3_key": test_file,

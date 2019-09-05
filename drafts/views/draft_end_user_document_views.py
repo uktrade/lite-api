@@ -17,8 +17,10 @@ class EndUserDocuments(APIView):
 
     def _get_end_user(self, pk, kwargs):
         eu_pk = self._get_end_user_id(pk, kwargs)
+        if not eu_pk:
+            return None
         end_users = EndUser.objects.filter(id=eu_pk)
-        if len(end_users) != 1:
+        if not end_users or len(end_users) != 1:
             return None
         return end_users.first()
 
@@ -27,7 +29,10 @@ class EndUserDocuments(APIView):
             return kwargs['eu_pk']
         else:
             draft = get_draft(pk)
-            return draft.end_user
+            if draft.end_user:
+                return str(draft.end_user.id)
+            else:
+                return None
 
     def get(self, request, pk, **kwargs):
         """

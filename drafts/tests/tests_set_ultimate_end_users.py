@@ -27,7 +27,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         id = self.draft.ultimate_end_users.values_list()[0][0]
 
-        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'ueu_pk': str(id)})
+        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'eu_pk': str(id)})
 
         response = self.client.delete(url, **self.exporter_headers)
 
