@@ -26,7 +26,7 @@ class ApplicationsTests(DataTestClient):
         application = Application.objects.get(pk=draft.id)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
-        self.assertEqual(application.end_user, draft.end_user)
+        self.assertEqual(application.pk, draft.pk)
 
     def test_create_application_with_invalid_id(self):
         """
@@ -45,7 +45,7 @@ class ApplicationsTests(DataTestClient):
         Ensure we cannot create a new application without a site
         """
         draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
-        end_user = self.create_end_user("End user", self.organisation, draft)
+        end_user = self.create_end_user("End user", draft, self.organisation)
         draft.save()
 
         self.create_document_for_end_user(end_user)
@@ -85,8 +85,7 @@ class ApplicationsTests(DataTestClient):
         And the response contains a message saying that the document is still being processed
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
+        draft = self.create_standard_draft(self.organisation, 'test', safe_document=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -107,8 +106,7 @@ class ApplicationsTests(DataTestClient):
         And the response contains a message saying that the document is infected
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        draft = self.create_standard_draft(self.organisation, 'test', safe_document=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 

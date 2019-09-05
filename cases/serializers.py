@@ -9,7 +9,7 @@ from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from parties.models import Party
+from parties.models import EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -166,13 +166,13 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all(), required=False)
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all(), required=False)
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
 
     class Meta:
         model = Advice
         fields = ('case', 'user', 'text', 'note', 'type', 'proviso', 'denial_reasons',
-                  'good', 'goods_type', 'country', 'parties', 'ultimate_end_user', 'created_at')
+                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user', 'created_at')
 
     def validate_denial_reasons(self, value):
         """
@@ -200,14 +200,14 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         application_fields = ['good',
                               'goods_type',
                               'country',
-                              'parties',
+                              'end_user',
                               'ultimate_end_user']
 
         # Ensure only one item is provided
         if hasattr(self, 'initial_data'):
             for data in self.initial_data:
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError('Only one item (such as an parties) can be given at a time')
+                    raise ValidationError('Only one item (such as an end_user) can be given at a time')
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)

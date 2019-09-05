@@ -319,9 +319,12 @@ class DataTestClient(BaseTestClient):
 
         draft.save()
 
+        # Set the draft's end user
+        self.create_end_user('test', draft, organisation)
+
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         """
                Creates a standard draft application
                """
@@ -341,7 +344,7 @@ class DataTestClient(BaseTestClient):
 
         # Set the draft's end user
         end_user = self.create_end_user('test', draft, organisation)
-        self.create_document_for_end_user(end_user)
+        self.create_document_for_end_user(end_user, safe=safe_document)
 
         return draft
 

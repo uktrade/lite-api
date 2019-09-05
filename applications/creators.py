@@ -114,8 +114,6 @@ def create_open_licence(draft, application, errors):
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Save associated end users, goods and sites
-    application.end_user = draft.end_user
     application.save()
 
     for goods_types_on_draft in results:

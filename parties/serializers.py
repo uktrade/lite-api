@@ -5,7 +5,7 @@ from documents.libraries.process_document import process_document
 from drafts.models import Draft
 from parties.document.models import EndUserDocument
 from parties.enums import PartyType
-from parties.models import Party
+from parties.models import Party, EndUser, UltimateEndUser, Consignee
 from organisations.models import Organisation
 from static.countries.models import Country
 
@@ -37,6 +37,27 @@ class PartySerializer(serializers.ModelSerializer):
     def get_document(self, instance):
         docs = EndUserDocument.objects.filter(party=instance).values()
         return docs[0] if docs else None
+
+
+class EndUserSerializer(PartySerializer):
+    class Meta:
+        model = EndUser
+
+        fields = '__all__'
+
+
+class UltimateEndUserSerializer(PartySerializer):
+    class Meta:
+        model = UltimateEndUser
+
+        fields = '__all__'
+
+
+class ConsigneeSerializer(PartySerializer):
+    class Meta:
+        model = Consignee
+
+        fields = '__all__'
 
 
 class PartyDocumentSerializer(serializers.ModelSerializer):

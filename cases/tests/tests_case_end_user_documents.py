@@ -21,11 +21,7 @@ class CaseEndUserDocumentTests(DataTestClient):
         And the data in the document is the same as the data in original draft's end user document
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.organisation,
-                                                                     'Example Application 854957')
-        self.create_document_for_end_user(end_user=draft.end_user,
-                                          name='file343.pdf',
-                                          safe=True)
+        draft = self.create_standard_draft(self.organisation, 'Example Application 854957', safe_document=True)
         application = self.submit_draft(draft)
         case = Case.objects.get(application=application)
 
@@ -36,7 +32,7 @@ class CaseEndUserDocumentTests(DataTestClient):
         data = response.json()
 
         self.assertIsNotNone(data['case']['application']['destinations']['data']['document'])
-        self.assertEquals('file343.pdf',
+        self.assertEquals('document_name.pdf',
                           data['case']['application']['destinations']['data']['document']['name'])
         self.assertEquals(True,
                           data['case']['application']['destinations']['data']['document']['safe'])

@@ -30,4 +30,4 @@ class ApplicationsTests(DataTestClient):
         application = Application.objects.get(pk=draft.id)
 
         self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
-        self.assertEqual(application.end_user, draft.end_user)
+        self.assertEqual(application.pk, draft.pk)

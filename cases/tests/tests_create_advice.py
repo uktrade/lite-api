@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -6,6 +5,7 @@ from rest_framework import status
 from cases.enums import AdviceType
 from cases.models import Case, Advice
 from conf.helpers import convert_queryset_to_str
+from parties.models import EndUser
 from test_helpers.clients import DataTestClient
 
 
@@ -14,6 +14,7 @@ class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application_end_user = EndUser.objects.get(application=self.standard_application).pk
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         self.open_application = self.create_open_application(self.organisation)
@@ -38,7 +39,7 @@ class CreateCaseAdviceTests(DataTestClient):
             'text': 'I Am Easy to Find',
             'note': 'I Am Easy to Find',
             'type': advice_type,
-            'parties': str(self.standard_application.end_user.id),
+            'end_user': str(self.standard_application_end_user),
         }
 
         if advice_type == AdviceType.PROVISO:
@@ -55,7 +56,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response_data['text'], data['text'])
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['type']['key'], data['type'])
-        self.assertEqual(response_data['parties'], data['parties'])
+        self.assertEqual(response_data['end_user'], data['end_user'])
 
         advice_object = Advice.objects.get()
 
@@ -93,11 +94,12 @@ class CreateCaseAdviceTests(DataTestClient):
         """
         Tests that a gov user cannot create a piece of advice for more than one item
         """
+
         data = {
             'text': 'I Am Easy to Find',
             'note': 'I Am Easy to Find',
             'type': AdviceType.APPROVE,
-            'parties': str(self.standard_application.end_user.id),
+            'end_user': str(self.standard_application_end_user),
             'good': str(self.standard_application.goods.first().id)
         }
 
