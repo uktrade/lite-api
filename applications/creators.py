@@ -55,14 +55,9 @@ def check_end_user_document(end_user):
 def check_ultimate_end_user_documents(draft):
     ultimate_end_users = get_ultimate_end_users(draft)
     for ultimate_end_user in ultimate_end_users:
-        try:
-            end_user_document = EndUserDocument.objects.get(end_user=ultimate_end_user)
-            if end_user_document.safe is None:
-                return get_string('applications.standard.ultimate_end_user_document_processing')
-            elif not end_user_document.safe:
-                return get_string('applications.standard.ultimate_end_user_document_infected')
-        except EndUserDocument.DoesNotExist:
-            return get_string('applications.standard.no_ultimate_end_user_document_set')
+        error = check_end_user_document(ultimate_end_user)
+        if error:
+            return error
     return None
 
 
