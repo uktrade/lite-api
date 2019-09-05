@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
@@ -11,7 +12,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.url = reverse('queues:queue', kwargs={'pk': self.queue.pk})
+        self.url = reverse('queues:cases', kwargs={'pk': self.queue.pk})
 
         self.application_cases = []
         for app_status in CaseStatusEnum.choices:
@@ -43,7 +44,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -61,7 +62,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -83,7 +84,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,7 +107,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -118,20 +119,20 @@ class CasesFilterAndSortTests(DataTestClient):
 
     def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
         """
-        Given multiple Cases exist with different statuses and case-types
+        Given multiple cases exist with different statuses and case-types
         When a user requests to view All Cases of type 'CLC query'
-        Then only Cases of that type are returned
+        Then only cases of that type are returned
         """
 
         # Arrange
         case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
-        url = reverse('queues:queue', kwargs={'pk': 'de13c40a-b330-4d77-8304-57ac12326e5a'}
-                      ) + '?case_type=clc_query&status=' + case_status.status + '&sort={"status":"asc"}'
+        clc_submitted_cases = list(filter(lambda c: c.clc_query.status == case_status, self.clc_cases))
+        url = reverse('queues:cases', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID}) + \
+              '?case_type=clc_query&status=' + case_status.status + '&sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -155,7 +156,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -179,15 +180,15 @@ class CasesFilterAndSortTests(DataTestClient):
                 'case': str(case.id),
                 'status': case.application.status.priority if case.application is not None else
                 case.clc_query.status.priority
-             }
+            }
             for case in all_cases
         ]
         all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
-        url = self.url + '?sort={"status":"asc"}'
+        url = self.url + '?sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -210,11 +211,11 @@ class CasesFilterAndSortTests(DataTestClient):
             reverse=True
         )
 
-        url = self.url + '?case_type=application&sort={"status":"desc"}'
+        url = self.url + '?case_type=application&sort=-status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['queue']['cases']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
