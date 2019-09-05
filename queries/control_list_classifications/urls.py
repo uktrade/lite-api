@@ -8,5 +8,5 @@ urlpatterns = [
     # ex: /queries/control-list-classifications/ - List all queries of this type
     path('', views.ControlListClassificationsList.as_view(), name='control_list_classifications'),
     # ex: /queries/control-list-classifications/<uuid:pk>/ - Retrieve details about a specific query
-    path('<uuid:pk>/', views.ControlListClassificationDetail.as_view(), name='control_list_classifications'),
+    path('<uuid:pk>/', views.ControlListClassificationDetail.as_view(), name='control_list_classification'),
 ]

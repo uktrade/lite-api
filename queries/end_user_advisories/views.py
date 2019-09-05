@@ -25,6 +25,7 @@ class EndUserAdvisoriesList(APIView):
         if not data.get('end_user'):
             data['end_user'] = {}
 
+        data['organisation'] = request.user.organisation.id
         data['end_user']['organisation'] = request.user.organisation.id
 
         serializer = EndUserAdvisorySerializer(data=data)

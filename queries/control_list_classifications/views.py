@@ -7,7 +7,7 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from conf.authentication import GovAuthentication, ExporterAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -18,12 +18,15 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 
 
 class ControlListClassificationsList(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     def post(self, request):
         """
         Create a new CLC query case instance
         """
         data = JSONParser().parse(request)
         good = get_good(data['good_id'])
+        data['organisation'] = request.user.organisation
 
         good.status = GoodStatus.SUBMITTED
         if data['not_sure_details_control_code'] == '':
@@ -36,7 +39,8 @@ class ControlListClassificationsList(APIView):
 
         clc_query = ControlListClassificationQuery(details=data['not_sure_details_details'],
                                                    good=good,
-                                                   status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+                                                   status=get_case_status_from_status(CaseStatusEnum.SUBMITTED),
+                                                   organisation=data['organisation'])
         clc_query.save()
 
         return JsonResponse(data={'id': clc_query.id}, status=status.HTTP_201_CREATED)

@@ -1,17 +1,22 @@
 from rest_framework import serializers
 
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from end_user.serializers import EndUserSerializer
+from organisations.models import Organisation
+from organisations.serializers import TinyOrganisationViewSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
+    organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
+                                                    serializer=TinyOrganisationViewSerializer)
     end_user = EndUserSerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = ['id', 'end_user', 'reasoning', 'note']
+        fields = ['id', 'end_user', 'reasoning', 'note', 'organisation']
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')

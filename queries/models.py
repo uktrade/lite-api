@@ -3,6 +3,9 @@ from random import randint
 import reversion
 from django.db import models
 
+from organisations.models import Organisation
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.statuses.models import CaseStatus
 
 
@@ -12,7 +15,7 @@ class QueryManager(models.Manager):
         from cases.enums import CaseType
         from cases.models import Case
 
-        query = super().create(**obj_data)
+        query = super().create(**obj_data, status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
 
         # Create a case with this query
         case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) \
@@ -32,6 +35,7 @@ class Query(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
     status = models.ForeignKey(CaseStatus, related_name='query_status', on_delete=models.CASCADE,
                                blank=True, null=True)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-submitted_at']

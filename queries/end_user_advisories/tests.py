@@ -12,7 +12,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         self.url = reverse('queries:end_user_advisories:end_user_advisories')
 
     def test_view_end_user_advisory_query(self):
-        self.create_end_user_advisory('a note', 'because I\'m unsure')
+        self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()['end_user_advisories']

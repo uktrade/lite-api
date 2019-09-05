@@ -157,11 +157,12 @@ class DataTestClient(BaseTestClient):
         case_note.save()
         return case_note
 
-    def create_end_user_advisory(self, note: str, reasoning: str):
+    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_end_user("name", self.organisation)
         end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
                                                        note=note,
-                                                       reasoning=reasoning)
+                                                       reasoning=reasoning,
+                                                       organisation=organisation)
         end_user_advisory_query.save()
         return end_user_advisory_query
 
@@ -264,18 +265,19 @@ class DataTestClient(BaseTestClient):
         return good
 
     @staticmethod
-    def create_clc_query(description, org, status):
+    def create_clc_query(description, organisation, status):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=org)
+                    organisation=organisation)
         good.save()
 
         clc_query = ControlListClassificationQuery(details='this is a test text',
                                                    good=good,
-                                                   status=status)
+                                                   status=status,
+                                                   organisation=organisation)
         clc_query.save()
         return clc_query
 

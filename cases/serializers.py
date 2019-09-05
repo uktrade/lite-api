@@ -12,6 +12,7 @@ from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
+from queries.helpers import get_exporter_query
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -61,16 +62,10 @@ class TinyCaseSerializer(serializers.Serializer):
         return list(instance.queues.values_list('name', flat=True))
 
     def get_organisation(self, instance):
-        # TODO
-        return 'to fill!'
-        # if instance.query:
-        #     query = get_exporter_query(instance.query)
-        #     if isinstance(query, EndUserAdvisoryQuery):
-        #         return 'This needs to be replaced'
-        #     else:
-        #         return query.good.organisation.name
-        # else:
-        #     return instance.application.organisation.name
+        if instance.query:
+            return instance.query.organisation.name
+        else:
+            return instance.application.organisation.name
 
     def get_users(self, instance):
         try:
@@ -81,16 +76,10 @@ class TinyCaseSerializer(serializers.Serializer):
             return []
 
     def get_status(self, instance):
-        # TODO
-        return 'to fill!'
-        # if instance.query:
-        #     query = get_exporter_query(instance.query)
-        #     if isinstance(query, EndUserAdvisoryQuery):
-        #         return 'This needs to be replaced'
-        #     else:
-        #         return instance.query.status.status
-        # else:
-        #     return instance.application.status.status
+        if instance.query:
+            return instance.query.status.status
+        else:
+            return instance.application.status.status
 
 
 class CaseDetailSerializer(CaseSerializer):

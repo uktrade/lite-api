@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,9 +8,9 @@ from test_helpers.clients import DataTestClient
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
+
     url = reverse('queries:control_list_classifications:control_list_classifications')
 
-    @tag('only')
     def test_create_control_list_classification_query(self):
         good = Good(description='Good description',
                     is_good_controlled=GoodControlled.UNSURE,
