@@ -12,7 +12,6 @@ from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
-from queries.helpers import get_exporter_query
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
