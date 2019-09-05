@@ -1,6 +1,8 @@
 from rest_framework import serializers, relations
 
+from applications.models import Application
 from documents.libraries.process_document import process_document
+from drafts.models import Draft
 from parties.document.models import EndUserDocument
 from parties.enums import PartyType
 from parties.models import Party
@@ -15,6 +17,8 @@ class PartySerializer(serializers.ModelSerializer):
     website = serializers.URLField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    application = relations.PrimaryKeyRelatedField(queryset=Application.objects.all())
+    draft = relations.PrimaryKeyRelatedField(queryset=Draft.objects.all())
     document = serializers.SerializerMethodField()
 
     class Meta:
@@ -26,10 +30,12 @@ class PartySerializer(serializers.ModelSerializer):
                   'website',
                   'type',
                   'organisation',
-                  'document')
+                  'document',
+                  'application',
+                  'draft')
 
     def get_document(self, instance):
-        docs = EndUserDocument.objects.filter(end_user=instance).values()
+        docs = EndUserDocument.objects.filter(party=instance).values()
         return docs[0] if docs else None
 
 

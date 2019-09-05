@@ -84,6 +84,8 @@ def create_standard_licence(draft, application, errors):
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    application.save()
+    
     # Save associated end users, goods and sites
     end_user.application = application
     end_user.save()

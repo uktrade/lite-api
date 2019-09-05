@@ -11,7 +11,7 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from parties.models import Party
+from parties.models import Party, EndUser
 from parties.serializers import PartySerializer
 from goods.serializers import GoodSerializer
 from goodstype.models import GoodsType
@@ -100,13 +100,14 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
-        party = Party.objects.get(application=application)
-        if party.application:
+        party = Party.objects.filter(application=application)
+        if party:
             try:
-                serializer = PartySerializer(application.party)
-                return {'type': 'parties', 'data': serializer.data}
+                party = EndUser.objects.get(application=application)
+                serializer = PartySerializer(party)
+                return {'type': 'end_user', 'data': serializer.data}
             except Party.DoesNotExist:
-                return {'type': 'parties', 'data': ''}
+                return {'type': 'end_user', 'data': ''}
         else:
             countries = Country.objects.filter(id__in=countries_ids)
             serializer = CountrySerializer(countries, many=True)

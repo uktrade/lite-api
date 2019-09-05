@@ -24,7 +24,8 @@ class Party(models.Model):
 
 
 class ThirdParty(Party):
-    sub_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=ThirdPartySubType.choices,
+                                default=ThirdPartySubType.OTHER, max_length=20)
 
 
 class EndUser(Party):
