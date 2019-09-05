@@ -6,7 +6,7 @@ from queries.models import Query
 
 class EndUserAdvisoryQuery(Query):
     """
-    TODO: Provide comment
+    Query into ensuring that an end user is valid
     """
     end_user = models.ForeignKey(EndUser, on_delete=models.DO_NOTHING, null=False, related_name='euae_query')
     note = models.TextField(default=None, blank=True, null=True)

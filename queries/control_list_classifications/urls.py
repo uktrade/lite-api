@@ -5,8 +5,8 @@ from queries.control_list_classifications import views
 app_name = 'control_list_classifications'
 
 urlpatterns = [
-    # ex: TODO: Fill in
+    # ex: /queries/control-list-classifications/ - List all queries of this type
     path('', views.ControlListClassificationsList.as_view(), name='control_list_classifications'),
-    # ex: TODO: Fill in
+    # ex: /queries/control-list-classifications/<uuid:pk>/ - Retrieve details about a specific query
     path('<uuid:pk>/', views.ControlListClassificationDetail.as_view(), name='control_list_classifications'),
 ]
