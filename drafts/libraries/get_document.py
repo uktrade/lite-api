@@ -1,9 +1,7 @@
 from django.http import Http404, JsonResponse
 from rest_framework import status
 
-from drafts.libraries.get_draft import get_draft
 from end_user.document.models import EndUserDocument
-from end_user.models import EndUser
 
 
 def get_document(end_user):
