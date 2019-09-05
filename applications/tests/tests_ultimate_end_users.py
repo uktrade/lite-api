@@ -29,17 +29,18 @@ class ApplicationUltimateEndUserTests(DataTestClient):
                     quantity=17,
                     value=18).save()
 
-        self.end_user = self.create_end_user('ultimate end user', self.organisation)
+        self.party = self.create_end_user('ultimate end user', self.organisation)
 
     def test_submit_draft_with_ultimate_end_users_success(self):
-        self.draft.ultimate_end_users.add(str(self.end_user.id))
+        self.draft.ultimate_end_users.add(str(self.party.id))
 
         data = {'id': self.draft.id}
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(str(Application.objects.get().ultimate_end_users.values_list('id', flat=True)[0]), str(self.end_user.id))
+        self.assertEqual(str(Application.objects.get().ultimate_end_users.values_list('id', flat=True)[0]),
+                         str(self.party.id))
 
     def test_submit_draft_with_no_ultimate_end_users_unsuccessful(self):
         """

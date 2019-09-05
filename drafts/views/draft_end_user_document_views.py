@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.document.models import EndUserDocument
-from end_user.serializers import EndUserDocumentSerializer
+from parties.document.models import EndUserDocument
+from parties.serializers import PartyDocumentSerializer
 
 
 class EndUserDocuments(APIView):
@@ -27,7 +27,7 @@ class EndUserDocuments(APIView):
         return JsonResponse({'document': end_user_document[0] if end_user_document else None})
 
     @swagger_auto_schema(
-        request_body=EndUserDocumentSerializer,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -54,7 +54,7 @@ class EndUserDocuments(APIView):
 
         data['end_user'] = end_user_id
 
-        serializer = EndUserDocumentSerializer(data=data)
+        serializer = PartyDocumentSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -64,7 +64,7 @@ class EndUserDocuments(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        request_body=EndUserDocumentSerializer,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })

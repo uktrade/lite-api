@@ -5,7 +5,7 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
     GoodOnApplication
 from content_strings.strings import get_string
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from end_user.document.models import EndUserDocument
+from parties.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
@@ -39,9 +39,9 @@ def create_external_location_for_application(draft, application):
         external_location_on_application.save()
 
 
-def check_end_user_document(end_user):
+def check_party_document(end_user):
     try:
-        end_user_document = EndUserDocument.objects.get(end_user=end_user)
+        end_user_document = EndUserDocument.objects.get(party=end_user)
         if end_user_document.safe is None:
             return get_string('applications.standard.end_user_document_processing')
         elif not end_user_document.safe:
@@ -56,9 +56,9 @@ def create_standard_licence(draft, application, errors):
     Create a standard licence application
     """
     if not draft.end_user:
-        errors['end_user'] = get_string('applications.standard.no_end_user_set')
+        errors['parties'] = get_string('applications.standard.no_end_user_set')
 
-    end_user_documents_error = check_end_user_document(draft.end_user)
+    end_user_documents_error = check_party_document(draft.end_user)
     if end_user_documents_error:
         errors['end_user_document'] = end_user_documents_error
 
@@ -75,7 +75,7 @@ def create_standard_licence(draft, application, errors):
         else:
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
-                if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
+                if 'parties' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
                     errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):

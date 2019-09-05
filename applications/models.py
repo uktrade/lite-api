@@ -4,7 +4,6 @@ import reversion
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
@@ -28,12 +27,6 @@ class Application(models.Model):
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50) # this is open or standard lincences
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
-    # the person whos buying + they'll be ultimate users too who this end user is selling too
-    end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
-                                 default=None, blank=True, null=True)
-    #  destination = models to be a list of countries
-    # plus there maybe a consignee too - the person moving the cargo
-    ultimate_end_users = models.ManyToManyField(EndUser, related_name='application_ultimate_end_users')
 
 
 @reversion.register()

@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from end_user.document.models import EndUserDocument
+from parties.document.models import EndUserDocument
 from test_helpers.clients import DataTestClient
 
 test_file = "dog.jpg"

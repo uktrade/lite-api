@@ -10,9 +10,9 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from end_user.document.models import EndUserDocument
-from end_user.enums import EndUserType
-from end_user.models import EndUser
+from parties.document.models import EndUserDocument
+from parties.enums import PartyType
+from parties.models import Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -128,12 +128,12 @@ class DataTestClient(BaseTestClient):
 
     @staticmethod
     def create_end_user(name, organisation):
-        end_user = EndUser(name=name,
-                           organisation=organisation,
-                           address='42 Road, London, Buckinghamshire',
-                           website='www.' + name + '.com',
-                           type=EndUserType.GOVERNMENT,
-                           country=get_country('GB'))
+        end_user = Party(name=name,
+                         organisation=organisation,
+                         address='42 Road, London, Buckinghamshire',
+                         website='www.' + name + '.com',
+                         type=PartyType.GOVERNMENT,
+                         country=get_country('GB'))
         end_user.save()
         
         return end_user
@@ -204,7 +204,7 @@ class DataTestClient(BaseTestClient):
         return good_doc
 
     @staticmethod
-    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
+    def create_document_for_end_user(end_user: Party, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
             end_user=end_user,
             name=name,

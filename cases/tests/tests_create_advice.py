@@ -38,7 +38,7 @@ class CreateCaseAdviceTests(DataTestClient):
             'text': 'I Am Easy to Find',
             'note': 'I Am Easy to Find',
             'type': advice_type,
-            'end_user': str(self.standard_application.end_user.id),
+            'parties': str(self.standard_application.end_user.id),
         }
 
         if advice_type == AdviceType.PROVISO:
@@ -55,7 +55,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response_data['text'], data['text'])
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['type']['key'], data['type'])
-        self.assertEqual(response_data['end_user'], data['end_user'])
+        self.assertEqual(response_data['parties'], data['parties'])
 
         advice_object = Advice.objects.get()
 
@@ -97,7 +97,7 @@ class CreateCaseAdviceTests(DataTestClient):
             'text': 'I Am Easy to Find',
             'note': 'I Am Easy to Find',
             'type': AdviceType.APPROVE,
-            'end_user': str(self.standard_application.end_user.id),
+            'parties': str(self.standard_application.end_user.id),
             'good': str(self.standard_application.goods.first().id)
         }
 

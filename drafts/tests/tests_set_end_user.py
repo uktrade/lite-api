@@ -4,9 +4,9 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from end_user.document.models import EndUserDocument
-from end_user.document.tests import test_file
-from end_user.models import EndUser
+from parties.document.models import EndUserDocument
+from parties.document.tests import test_file
+from parties.models import Party
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -91,8 +91,8 @@ class EndUserOnDraftTests(DataTestClient):
         end_user_2_id = self.draft.end_user.id
 
         self.assertNotEqual(end_user_1_id, end_user_2_id)
-        with self.assertRaises(EndUser.DoesNotExist):
-            EndUser.objects.get(id=end_user_1_id)
+        with self.assertRaises(Party.DoesNotExist):
+            Party.objects.get(id=end_user_1_id)
 
     '''@mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
@@ -105,7 +105,7 @@ class EndUserOnDraftTests(DataTestClient):
         Then the previous old user's associated document is deleted
         """
         # assemble
-        end_user_1_id = self.draft.end_user.id
+        end_user_1_id = self.draft.parties.id
         self.document_data = {"name": test_file,
                  "s3_key": test_file,
                  "size": 476,
@@ -118,7 +118,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         # assert
         with self.assertRaises(EndUserDocument.DoesNotExist):
-            EndUserDocument.objects.get(end_user=end_user_1_id)
+            EndUserDocument.objects.get(parties=end_user_1_id)
 
         delete_s3_mock.assert_called_once()'''
 

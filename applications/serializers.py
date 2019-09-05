@@ -11,8 +11,8 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from end_user.models import EndUser
-from end_user.serializers import EndUserSerializer
+from parties.models import Party
+from parties.serializers import PartySerializer
 from goods.serializers import GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
@@ -100,12 +100,12 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
-        if application.end_user:
+        if application.party:
             try:
-                serializer = EndUserSerializer(application.end_user)
-                return {'type': 'end_user', 'data': serializer.data}
-            except EndUser.DoesNotExist:
-                return {'type': 'end_user', 'data': ''}
+                serializer = PartySerializer(application.party)
+                return {'type': 'parties', 'data': serializer.data}
+            except Party.DoesNotExist:
+                return {'type': 'parties', 'data': ''}
         else:
             countries = Country.objects.filter(id__in=countries_ids)
             serializer = CountrySerializer(countries, many=True)
@@ -113,7 +113,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_ultimate_end_users(self, application):
         ultimate_end_users = get_ultimate_end_users(application)
-        serializer = EndUserSerializer(ultimate_end_users, many=True)
+        serializer = PartySerializer(ultimate_end_users, many=True)
         return serializer.data
 
     def get_goods_locations(self, obj):

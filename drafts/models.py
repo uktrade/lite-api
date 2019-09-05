@@ -3,7 +3,6 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from end_user.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
@@ -20,11 +19,9 @@ class Draft(models.Model):
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50)
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50)
+    have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
+                                              max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
-    end_user = models.ForeignKey(EndUser, related_name='draft_end_user', on_delete=models.CASCADE,
-                                 default=None, blank=True, null=True)
-    ultimate_end_users = models.ManyToManyField(EndUser, related_name='drafts')
 
 
 class GoodOnDraft(models.Model):

@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from end_user.helpers import delete_end_user_document_if_exists
-from end_user.models import EndUser
-from end_user.serializers import EndUserSerializer
+from parties.helpers import delete_end_user_document_if_exists
+from parties.models import Party
+from parties.serializers import PartySerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -28,7 +28,7 @@ class DraftEndUser(APIView):
         data['organisation'] = str(organisation.id)
 
         with reversion.create_revision():
-            serializer = EndUserSerializer(data=data)
+            serializer = PartySerializer(data=data)
             if serializer.is_valid():
                 new_end_user = serializer.save()
 
@@ -45,7 +45,7 @@ class DraftEndUser(APIView):
                 draft.end_user = new_end_user
                 draft.save()
 
-                return JsonResponse(data={'end_user': serializer.data},
+                return JsonResponse(data={'parties': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},
@@ -65,7 +65,7 @@ class DraftUltimateEndUsers(APIView):
         draft = get_draft(pk)
         ultimate_end_users = get_ultimate_end_users(draft)
 
-        serializer = EndUserSerializer(ultimate_end_users, many=True)
+        serializer = PartySerializer(ultimate_end_users, many=True)
 
         return JsonResponse(data={'ultimate_end_users': serializer.data})
 
@@ -79,7 +79,7 @@ class DraftUltimateEndUsers(APIView):
         data['organisation'] = str(organisation.id)
 
         with reversion.create_revision():
-            serializer = EndUserSerializer(data=data)
+            serializer = PartySerializer(data=data)
             if serializer.is_valid():
                 end_user = serializer.save()
 
@@ -92,7 +92,7 @@ class DraftUltimateEndUsers(APIView):
 
                 draft.save()
 
-                return JsonResponse(data={'end_user': serializer.data},
+                return JsonResponse(data={'parties': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},
@@ -113,11 +113,11 @@ class RemoveDraftUltimateEndUsers(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft(pk)
         try:
-            end_user = EndUser.objects.get(id=ueu_pk)
+            end_user = Party.objects.get(id=ueu_pk)
             if end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)
-        except EndUser.DoesNotExist:
+        except Party.DoesNotExist:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 

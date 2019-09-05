@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'cases.apps.CasesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
-    'end_user.apps.EndUserConfig',
+    'parties.apps.EndUserConfig',
     'teams.apps.TeamsConfig',
     'queues.apps.QueuesConfig',
     'gov_users',
@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'background_task',
     'clc_queries',
     'picklists',
-    'end_user.document',
+    'parties.document',
 ]
 
 MIDDLEWARE = [
