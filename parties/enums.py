@@ -1,16 +1,18 @@
 class PartyType:
+    CONSIGNEE = 'consignee'
     END = 'end'
     ULTIMATE = 'ultimate'
     THIRD = 'third'
 
     choices = [
+        (CONSIGNEE, 'Consignee'),
         (END, 'End User'),
         (ULTIMATE, 'Ultimate End User'),
         (THIRD, 'Third Party'),
     ]
 
 
-class EndUserOrUltimateEndUserSubType:
+class SubType:
     GOVERNMENT = 'government'
     COMMERCIAL = 'commercial'
     INDIVIDUAL = 'individual'

@@ -11,7 +11,7 @@ from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from parties.document.models import EndUserDocument
-from parties.enums import PartyType, EndUserOrUltimateEndUserSubType
+from parties.enums import PartyType, SubType
 from parties.models import Party, EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
@@ -133,7 +133,7 @@ class DataTestClient(BaseTestClient):
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
                            type=PartyType.END,
-                           sub_type=EndUserOrUltimateEndUserSubType.GOVERNMENT,
+                           sub_type=SubType.GOVERNMENT,
                            country=get_country('GB'),
                            draft=draft)
         end_user.save()
@@ -147,7 +147,7 @@ class DataTestClient(BaseTestClient):
                                             address='42 Road, London, Buckinghamshire',
                                             website='www.' + name + '.com',
                                             type=PartyType.END,
-                                            sub_type=EndUserOrUltimateEndUserSubType.GOVERNMENT,
+                                            sub_type=SubType.GOVERNMENT,
                                             country=get_country('GB'),
                                             draft=draft)
         ultimate_end_user.save()

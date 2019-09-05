@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from applications.models import Application
 from drafts.models import Draft
-from parties.enums import PartyType, EndUserOrUltimateEndUserSubType, ThirdPartySubType
+from parties.enums import PartyType, SubType, ThirdPartySubType
 from organisations.models import Organisation
 from static.countries.models import Country
 
@@ -23,16 +23,21 @@ class Party(models.Model):
                               null=True, related_name='draft_party', on_delete=models.DO_NOTHING)
 
 
-class ThirdParty(Party):
-    sub_type = models.CharField(choices=ThirdPartySubType.choices,
-                                default=ThirdPartySubType.OTHER, max_length=20)
+class Consignee(Party):
+    sub_type = models.CharField(choices=SubType.choices,
+                                default=SubType.OTHER, max_length=20)
 
 
 class EndUser(Party):
-    sub_type = models.CharField(choices=EndUserOrUltimateEndUserSubType.choices,
-                                default=EndUserOrUltimateEndUserSubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=SubType.choices,
+                                default=SubType.OTHER, max_length=20)
 
 
 class UltimateEndUser(Party):
-    sub_type = models.CharField(choices=EndUserOrUltimateEndUserSubType.choices,
-                                default=EndUserOrUltimateEndUserSubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=SubType.choices,
+                                default=SubType.OTHER, max_length=20)
+
+
+class ThirdParty(Party):
+    sub_type = models.CharField(choices=ThirdPartySubType.choices,
+                                default=ThirdPartySubType.OTHER, max_length=20)
