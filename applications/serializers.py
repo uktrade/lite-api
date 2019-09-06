@@ -13,9 +13,9 @@ from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from end_user.models import EndUser
 from end_user.serializers import EndUserSerializer
-from goods.serializers import GoodSerializer
+from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
@@ -28,7 +28,7 @@ from static.units.enums import Units
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
-    good = GoodSerializer(read_only=True)
+    good = FullGoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
@@ -84,13 +84,18 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
+    case = serializers.SerializerMethodField()
+
+    def get_case(self, instance):
+        return Case.objects.get(application=instance).id
+
     # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(object_id=application.id)
-        serializer = GoodsTypeSerializer(goods_types, many=True)
+        serializer = FullGoodsTypeSerializer(goods_types, many=True)
         return serializer.data
 
     def get_destinations(self, application):
@@ -130,6 +135,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         model = Application
         fields = ('id',
                   'name',
+                  'case',
                   'organisation',
                   'activity',
                   'usage',
@@ -264,10 +270,6 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
 class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
     case = serializers.SerializerMethodField()
     case_notes = serializers.SerializerMethodField()
-
-    def get_case(self, obj):
-        case = Case.objects.get(application=obj)
-        return case.id
 
     def get_case_notes(self, obj):
         from cases.serializers import CaseNoteSerializer

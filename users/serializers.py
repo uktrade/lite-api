@@ -1,13 +1,15 @@
 from rest_framework import serializers
 
-from cases.models import Notification
 from conf.exceptions import NotFoundError
+from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.serializers import TeamSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
+from cases.models import Notification
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -137,7 +139,7 @@ class NotificationsSerializer(serializers.ModelSerializer):
     application = serializers.SerializerMethodField()
 
     def get_application(self, obj):
-        case = obj.note.case
+        case = _get_notification_case(obj)
         application = case.application
         return application.id
 
@@ -150,7 +152,7 @@ class ClcNotificationsSerializer(serializers.ModelSerializer):
     clc_query = serializers.SerializerMethodField()
 
     def get_clc_query(self, obj):
-        case = obj.note.case
+        case = _get_notification_case(obj)
         clc_query = case.clc_query
         return clc_query.id
 
@@ -166,3 +168,20 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email')
+
+
+def _get_notification_case(notification):
+    if notification.case_note:
+        return notification.case_note.case
+    elif notification.ecju_query:
+        return notification.ecju_query.case
+    else:
+        raise Exception('Unexpected error, Notification object with no link to originating object')
+
+
+class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
+    status = KeyValueChoiceField(choices=UserStatuses.choices)
+
+    class Meta:
+        model = UserOrganisationRelationship
+        fields = ['status']

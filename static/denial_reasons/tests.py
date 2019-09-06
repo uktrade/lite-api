@@ -6,7 +6,7 @@ from test_helpers.clients import BaseTestClient
 
 class DenialReasonsTests(BaseTestClient):
 
-    url = reverse('static:denial_reasons:denial_reasons')
+    url = reverse('static:denial-reasons:denial-reasons')
 
     def test_get_denial_reasons(self):
         response = self.client.get(self.url)

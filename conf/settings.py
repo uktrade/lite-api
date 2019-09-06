@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'background_task',
     'clc_queries',
     'picklists',
+    'end_user.document',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'conf.middleware.LoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'conf.urls'
@@ -108,7 +110,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 4,
+    'PAGE_SIZE': 25,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
@@ -192,6 +194,4 @@ else:
         'disable_existing_loggers': True,
     }
 
-ALL_CASES_SYSTEM_QUEUE_ID = 'de13c40a-b330-4d77-8304-57ac12326e5a'
-OPEN_CASES_SYSTEM_QUEUE_ID = 'f1a0631d-7abd-4152-a184-5e8557da8d49'
 ADMIN_TEAM_ID = '00000000-0000-0000-0000-000000000001'

@@ -10,12 +10,14 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from end_user.document.models import EndUserDocument
 from end_user.enums import EndUserType
 from end_user.models import EndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
+from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
@@ -67,8 +69,24 @@ class DataTestClient(BaseTestClient):
 
         self.queue = Queue.objects.get(team=self.team)
 
+    def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
+        if not first_name and not last_name:
+            first_name, last_name = random_name()
+            
+        exporter_user = ExporterUser(first_name=first_name,
+                                     last_name=last_name,
+                                     email=f'{first_name}@{last_name}.com')
+        exporter_user.organisation = organisation
+        exporter_user.save()
+
+        if organisation:
+            UserOrganisationRelationship(user=exporter_user,
+                                         organisation=organisation).save()
+            exporter_user.status = UserStatuses.ACTIVE
+
+        return exporter_user
+
     def create_organisation(self, name='Organisation'):
-        first_name, last_name = random_name()
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
@@ -82,14 +100,7 @@ class DataTestClient(BaseTestClient):
         organisation.primary_site = site
         organisation.save()
 
-        exporter_user = ExporterUser(first_name=first_name,
-                                     last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com')
-        exporter_user.organisation = organisation
-        exporter_user.save()
-
-        UserOrganisationRelationship(user=exporter_user,
-                                     organisation=organisation).save()
+        self.create_exporter_user(organisation)
 
         return organisation
 
@@ -126,6 +137,7 @@ class DataTestClient(BaseTestClient):
                            type=EndUserType.GOVERNMENT,
                            country=get_country('GB'))
         end_user.save()
+        
         return end_user
 
     def create_clc_query_case(self, name, status=None):
@@ -192,6 +204,19 @@ class DataTestClient(BaseTestClient):
                                 safe=None)
         good_doc.save()
         return good_doc
+
+    @staticmethod
+    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
+        end_user_document = EndUserDocument(
+            end_user=end_user,
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
+        )
+        end_user_document.save()
+        return end_user_document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
@@ -261,7 +286,7 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -283,6 +308,13 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+        draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
+
+        self.create_document_for_end_user(draft.end_user)
+
+        return draft
+
     def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
         """
         Creates an open draft application
@@ -290,6 +322,7 @@ class DataTestClient(BaseTestClient):
         draft = self.create_draft(organisation, ApplicationLicenceType.OPEN_LICENCE, reference_name)
 
         # Add a goods description
+        self.create_goods_type('draft', draft)
         self.create_goods_type('draft', draft)
 
         # Add a country to the draft
@@ -324,6 +357,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
+        
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 
