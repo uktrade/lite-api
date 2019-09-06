@@ -37,10 +37,9 @@ class ControlListClassificationsList(APIView):
         good.control_code = data['not_sure_details_control_code']
         good.save()
 
-        clc_query = ControlListClassificationQuery(details=data['not_sure_details_details'],
-                                                   good=good,
-                                                   status=get_case_status_from_status(CaseStatusEnum.SUBMITTED),
-                                                   organisation=data['organisation'])
+        clc_query = ControlListClassificationQuery.objects.create(details=data['not_sure_details_details'],
+                                                                  good=good,
+                                                                  organisation=data['organisation'])
         clc_query.save()
 
         return JsonResponse(data={'id': clc_query.id}, status=status.HTTP_201_CREATED)
