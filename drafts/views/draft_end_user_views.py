@@ -10,8 +10,8 @@ from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.enums import PartyType
 from parties.helpers import delete_end_user_and_document_document_if_exists
-from parties.models import Party, EndUser, UltimateEndUser
-from parties.serializers import PartySerializer, EndUserSerializer, UltimateEndUserSerializer
+from parties.models import UltimateEndUser
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 

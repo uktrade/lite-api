@@ -72,7 +72,7 @@ class OrganisationUsersCreateTests(DataTestClient):
         """
         Ensure that a user can be added to multiple organisations
         """
-        exporter_user_2 = self.create_exporter_user()
+        exporter_user_2 = self.create_exporter_user(first_name='Jon', last_name='Smith')
 
         data = {
             'first_name': exporter_user_2.first_name,

@@ -5,6 +5,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from flags.models import Flag
+
 
 @reversion.register()
 class GoodsType(models.Model):
@@ -18,3 +20,5 @@ class GoodsType(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
+    flags = models.ManyToManyField(Flag, related_name='goods_type')
+
