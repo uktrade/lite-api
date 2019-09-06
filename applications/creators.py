@@ -88,10 +88,12 @@ def create_standard_licence(draft, application, errors):
     
     # Save associated end users, goods and sites
     end_user.application = application
+    end_user.draft = None
     end_user.save()
     if ultimate_end_user_required:
         for ultimate_end_user in ultimate_end_users:
             ultimate_end_user.application = application
+            ultimate_end_user.draft = None
             ultimate_end_user.save()
 
     create_goods_for_applications(draft, application)

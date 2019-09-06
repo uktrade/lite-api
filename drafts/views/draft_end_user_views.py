@@ -8,7 +8,8 @@ from rest_framework.views import APIView
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from parties.helpers import delete_end_user_document_if_exists
+from parties.enums import PartyType
+from parties.helpers import delete_end_user_and_document_document_if_exists
 from parties.models import Party, EndUser, UltimateEndUser
 from parties.serializers import PartySerializer, EndUserSerializer, UltimateEndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -26,21 +27,22 @@ class DraftEndUser(APIView):
         data = JSONParser().parse(request)
         draft = get_draft(pk)
         data['organisation'] = str(organisation.id)
-        data['draft'] = draft
+        data['draft'] = pk
+        if 'type' in data:
+            data['sub_type'] = data['type']
+        data['type'] = PartyType.END
 
         with reversion.create_revision():
             serializer = EndUserSerializer(data=data)
             if serializer.is_valid():
+                # Delete previous end user and its document
+                delete_end_user_and_document_document_if_exists(draft)
+
                 serializer.save()
 
                 # Reversion
                 reversion.set_user(request.user)
                 reversion.set_comment('Created End User')
-
-                # Delete previous end user and its document
-                old_end_user = EndUser.objects.filter(draft=draft)
-                delete_end_user_document_if_exists(old_end_user)
-                old_end_user.delete()
 
                 return JsonResponse(data={'parties': serializer.data},
                                     status=status.HTTP_201_CREATED)
@@ -73,7 +75,7 @@ class DraftUltimateEndUsers(APIView):
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         data['organisation'] = str(organisation.id)
-        data['draft'] = get_draft(pk)
+        data['draft'] = pk
 
         with reversion.create_revision():
             serializer = UltimateEndUserSerializer(data=data)

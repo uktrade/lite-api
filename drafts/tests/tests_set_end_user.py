@@ -41,13 +41,13 @@ class EndUserOnDraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
-        self.draft.refresh_from_db()
+        end_user = EndUser.objects.get(draft=self.draft)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.end_user.name, data['name'])
-        self.assertEqual(self.draft.end_user.address, data['address'])
-        self.assertEqual(self.draft.end_user.country, get_country(data['country']))
-        self.assertEqual(self.draft.end_user.type, data_type)
-        self.assertEqual(self.draft.end_user.website, data['website'])
+        self.assertEqual(end_user.name, data['name'])
+        self.assertEqual(end_user.address, data['address'])
+        self.assertEqual(end_user.country, get_country(data['country']))
+        self.assertEqual(end_user.sub_type, data_type)
+        self.assertEqual(end_user.website, data['website'])
 
     @parameterized.expand([
         [{}],
@@ -82,14 +82,13 @@ class EndUserOnDraftTests(DataTestClient):
         Then the old one is removed
         """
         # assemble
-        end_user_1_id = EndUser.objects.get(draft=self.draft)
+        end_user_1_id = EndUser.objects.get(draft=self.draft).id
 
         # act
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
 
         # assert
-        self.draft.refresh_from_db()
-        end_user_2_id = EndUser.objects.get(draft=self.draft)
+        end_user_2_id = EndUser.objects.get(draft=self.draft).id
 
         self.assertNotEqual(end_user_1_id, end_user_2_id)
         with self.assertRaises(EndUser.DoesNotExist):
