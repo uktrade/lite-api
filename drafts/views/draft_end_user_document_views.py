@@ -19,8 +19,9 @@ class EndUserDocuments(APIView):
         Returns document for the specified end user
         """
         draft = get_draft(pk)
-        end_user = draft.end_user
-        if end_user is None:
+        try:
+            end_user = EndUser.objects.get(draft=draft)
+        except EndUser.DoesNotExist:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -76,9 +77,10 @@ class EndUserDocuments(APIView):
         Deletes a document from the specified end user
         """
         draft = get_draft(pk)
-        end_user = draft.end_user
 
-        if not end_user:
+        try:
+            end_user = EndUser.objects.get(draft=draft)
+        except EndUser.DoesNotExist:
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 

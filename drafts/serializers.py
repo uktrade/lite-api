@@ -11,6 +11,7 @@ from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
+from parties.serializers import EndUserSerializer
 from static.units.enums import Units
 
 
@@ -40,7 +41,7 @@ class DraftBaseSerializer(ModelSerializer):
 
     def get_end_user(self, instance):
         try:
-            return EndUser.objects.get(draft=instance)
+            return EndUserSerializer(EndUser.objects.get(draft=instance)).data
         except EndUser.DoesNotExist:
             return None
 

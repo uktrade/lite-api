@@ -12,7 +12,7 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import Party, EndUser
-from parties.serializers import PartySerializer
+from parties.serializers import PartySerializer, UltimateEndUserSerializer
 from goods.serializers import GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
@@ -94,9 +94,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         return instance.status.status
 
     def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(object_id=application.id)
-        serializer = GoodsTypeSerializer(goods_types, many=True)
-        return serializer.data
+        return list(GoodsType.objects.filter(object_id=application.id).values())
 
     def get_destinations(self, application):
         countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
@@ -115,7 +113,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_ultimate_end_users(self, application):
         ultimate_end_users = get_ultimate_end_users(application)
-        serializer = PartySerializer(ultimate_end_users, many=True)
+        serializer = UltimateEndUserSerializer(ultimate_end_users, many=True)
         return serializer.data
 
     def get_goods_locations(self, obj):

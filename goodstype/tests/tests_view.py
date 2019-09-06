@@ -2,13 +2,18 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from applications.models import Application
+from cases.models import Case
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from test_helpers.clients import DataTestClient
+from static.statuses.enums import CaseStatusEnum
 
 
 class GoodViewTests(DataTestClient):
 
     def test_view_goodstype_details(self):
-        application = Application.objects.create(name='test', licence_type='open_licence', export_type='temporary')
+        application = Application.objects.create(name='test', licence_type='open_licence', export_type='temporary',
+                                                 status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+        Case.objects.create(application=application)
         goods_type = self.create_goods_type(content_type_model='application', obj=application)
 
         url = reverse('goodstype:goodstypes-detail', kwargs={'pk': goods_type.id})

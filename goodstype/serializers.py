@@ -18,14 +18,14 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     def validate_content_type(self, value):
         return ContentType.objects.get(model=value)
 
-    def get_content_object(self, obj):
+    def get_content_object(self, instance):
         """
         Gets the content object of draft or application
         """
         from applications.serializers import ApplicationBaseSerializer
-        if type(obj) == Application:
-            return ApplicationBaseSerializer(obj.content_object).data
-        return DraftBaseSerializer(obj.content_object).data
+        if type(instance.content_object) == Application:
+            return ApplicationBaseSerializer(instance.content_object).data
+        return DraftBaseSerializer(instance.content_object).data
 
     class Meta:
         model = GoodsType

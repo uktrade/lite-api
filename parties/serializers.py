@@ -17,8 +17,8 @@ class PartySerializer(serializers.ModelSerializer):
     website = serializers.URLField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    application = relations.PrimaryKeyRelatedField(queryset=Application.objects.all())
-    draft = relations.PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    application = relations.PrimaryKeyRelatedField(queryset=Application.objects.all(), required=False)
+    draft = relations.PrimaryKeyRelatedField(queryset=Draft.objects.all(), required=False)
     document = serializers.SerializerMethodField()
 
     class Meta:
