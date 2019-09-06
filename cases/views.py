@@ -13,10 +13,10 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
+    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goods.libraries.get_good import get_good, get_goods_from_case
@@ -233,6 +233,48 @@ class CaseAdvice(APIView):
         for advice in data:
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
+
+        serializer = self.serializer_object(data=data, many=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CaseTeamAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    case = None
+    advice = None
+    serializer_object = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.case = get_case(kwargs['pk'])
+        self.advice = TeamAdvice.objects.filter(case=self.case)
+        self.serializer_object = CaseTeamAdviceSerializer
+
+        return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
+
+    # def get(self, request, pk):
+    #     """
+    #     Returns all advice for a case
+    #     """
+    #     serializer = self.serializer_object(self.advice, many=True)
+    #     return JsonResponse({'advice': serializer.data})
+    #
+    def post(self, request, pk):
+        """
+        Creates advice for a case
+        """
+        data = request.data
+
+        # Update the case and user in each piece of advice
+        for advice in data:
+            advice['case'] = str(self.case.id)
+            advice['user'] = str(request.user.id)
+            advice['team'] = str(request.user.team.id)
 
         serializer = self.serializer_object(data=data, many=True)
 

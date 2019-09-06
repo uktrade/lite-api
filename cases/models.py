@@ -16,6 +16,7 @@ from goodstype.models import GoodsType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.models import Team
 from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
 
 
@@ -123,6 +124,29 @@ class Advice(models.Model):
         super(Advice, self).save(*args, **kwargs)
 
 
+class TeamAdvice(Advice):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    # pylint: disable=W0221
+    def save(self, *args, **kwargs):
+        if self.type is not AdviceType.PROVISO:
+            self.proviso = None
+
+        try:
+            existing_object = TeamAdvice.objects.get(case=self.case,
+                                                     team=self.team,
+                                                     good=self.good,
+                                                     goods_type=self.goods_type,
+                                                     country=self.country,
+                                                     end_user=self.end_user,
+                                                     ultimate_end_user=self.ultimate_end_user)
+            existing_object.delete()
+        except TeamAdvice.DoesNotExist:
+            pass
+
+        super(TeamAdvice, self).save(*args, **kwargs)
+
+
 class EcjuQuery(models.Model):
     """
     Query from ECJU to exporters
@@ -159,4 +183,3 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
-

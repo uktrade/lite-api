@@ -17,6 +17,8 @@ urlpatterns = [
     path('<uuid:pk>/documents/<str:s3_key>/', views.CaseDocumentDetail.as_view(), name='document'),
     # ex: /cases/<uuid:pk>/advice/
     path('<uuid:pk>/advice/', views.CaseAdvice.as_view(), name='case_advice'),
+    # ex: /cases/<uuid:pk>/team-advice/
+    path('<uuid:pk>/team-advice/', views.CaseTeamAdvice.as_view(), name='case_team_advice'),
     # ex: /cases/<uuid:pk>/ecju-queries/
     path('<uuid:pk>/ecju-queries/', views.CaseEcjuQueries.as_view(), name='case_ecju_queries'),
     # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/

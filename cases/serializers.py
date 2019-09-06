@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, TeamAdvice
 from clc_queries.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -16,6 +16,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser, ExporterUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
@@ -245,6 +246,15 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             del repr_dict['denial_reasons']
 
         return repr_dict
+
+
+class CaseTeamAdviceSerializer(CaseAdviceSerializer):
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(),
+                                            serializer=TeamSerializer)
+
+    class Meta:
+        model = TeamAdvice
+        fields = '__all__'
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
