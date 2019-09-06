@@ -9,7 +9,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from parties.models import Party, EndUser, UltimateEndUser
+from parties.models import EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -58,7 +58,8 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = self.case.clc_query.good.organisation if self.case.clc_query else self.case.application.organisation
+            organisation = self.case.clc_query.good.organisation \
+                if self.case.clc_query else self.case.application.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(case_note=self)
 
@@ -159,4 +160,3 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
-

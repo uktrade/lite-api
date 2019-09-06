@@ -8,7 +8,7 @@ from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, 
 from parties.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
-from parties.models import Party, EndUser, UltimateEndUser
+from parties.models import EndUser, UltimateEndUser
 
 
 def create_goods_for_applications(draft, application):
