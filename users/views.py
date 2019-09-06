@@ -129,12 +129,26 @@ class NotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
-        # queries
-        queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__application_id__isnull=False)
-                                               | Q(user=self.request.user,
-                                                   ecju_query__case__application_id__isnull=False))
+        if 'HTTP_ORGANISATION_ID' in self.request.META:
+            organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
+        # Get all notifications on License Application cases, both those arising from case notes and those arising
+        # from ECJU queries
+        case_note_notifications_query = Q(user=self.request.user, case_note__case__application_id__isnull=False)
+
+        if organisation_id:
+            case_note_notifications_query = case_note_notifications_query\
+                                            & Q(case_note__case__application__organisation_id=
+                                                self.request.META['HTTP_ORGANISATION_ID'])
+
+        ecju_query_notifications_query = Q(user=self.request.user, ecju_query__case__application_id__isnull=False)
+
+        if organisation_id:
+            ecju_query_notifications_query = ecju_query_notifications_query\
+                                             & Q(ecju_query__case__application__organisation_id=
+                                                 self.request.META['HTTP_ORGANISATION_ID'])
+
+        queryset = Notification.objects.filter(case_note_notifications_query | ecju_query_notifications_query)
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
@@ -150,12 +164,26 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
+        if 'HTTP_ORGANISATION_ID' in self.request.META:
+            organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
         # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
         # queries
-        queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__clc_query_id__isnull=False)
-                                               | Q(user=self.request.user,
-                                                   ecju_query__case__clc_query_id__isnull=False))
+        case_note_notifications_query = Q(user=self.request.user, case_note__case__clc_query_id__isnull=False)
+
+        if organisation_id:
+            case_note_notifications_query = case_note_notifications_query\
+                                            & Q(case_note__case__clc_query__good__organisation_id=
+                                                self.request.META['HTTP_ORGANISATION_ID'])
+
+        ecju_query_notifications_query = Q(user=self.request.user, ecju_query__case__clc_query_id__isnull=False)
+
+        if organisation_id:
+            ecju_query_notifications_query = ecju_query_notifications_query\
+                                             & Q(ecju_query__case__clc_query__good__organisation_id=
+                                                 self.request.META['HTTP_ORGANISATION_ID'])
+
+        queryset = Notification.objects.filter(case_note_notifications_query | ecju_query_notifications_query)
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
