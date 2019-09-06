@@ -77,6 +77,10 @@ class DraftUltimateEndUsers(APIView):
         data['organisation'] = str(organisation.id)
         data['draft'] = pk
 
+        if 'type' in data:
+            data['sub_type'] = data['type']
+        data['type'] = PartyType.ULTIMATE
+
         with reversion.create_revision():
             serializer = UltimateEndUserSerializer(data=data)
             if serializer.is_valid():
@@ -102,7 +106,7 @@ class RemoveDraftUltimateEndUsers(APIView):
     @transaction.atomic
     def delete(self, request, pk, ueu_pk):
         """
-        delete the ultimate end user from the draft
+        Delete the ultimate end user from the draft
         """
         organisation = get_organisation_by_user(request.user)
         try:
@@ -112,6 +116,8 @@ class RemoveDraftUltimateEndUsers(APIView):
                                     status=400)
             else:
                 with reversion.create_revision():
+                    ultimate_end_user.delete()
+
                     # Reversion
                     reversion.set_user(request.user)
                     reversion.set_comment("Deleted End User")

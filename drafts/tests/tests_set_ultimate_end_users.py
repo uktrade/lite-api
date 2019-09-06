@@ -10,7 +10,6 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
-        self.ultimate_end_user = self.create_ultimate_end_user('Ultimate End User', self.draft, self.organisation)
         self.url = reverse('drafts:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
@@ -23,36 +22,36 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        ultimate_end_user = UltimateEndUser.objects.get(draft=self.draft)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue('UK Government' in self.draft.ultimate_end_users.values_list()[0])
+        self.assertEqual('UK Government', ultimate_end_user.name)
 
-        id = self.ultimate_end_user.id
-
-        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'ueu_pk': str(id)})
+        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id,
+                                                                  'ueu_pk': str(ultimate_end_user.id)})
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(UltimateEndUser.objects.filter(draft=self.draft), 0))
+        self.assertEqual(len(UltimateEndUser.objects.filter(draft=self.draft)), 0)
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
         data = [
-                {
-                    'name': 'UK Government',
-                    'address': 'Westminster, London SW1A 0AA',
-                    'country': 'GB',
-                    'type': 'commercial',
-                    'website': 'https://www.gov.uk'
-                },
-                {
-                    'name': 'French Government',
-                    'address': 'Paris',
-                    'country': 'FR',
-                    'type': 'government',
-                    'website': 'https://www.gov.fr'
-                }
-            ]
+            {
+                'name': 'UK Government',
+                'address': 'Westminster, London SW1A 0AA',
+                'country': 'GB',
+                'type': 'commercial',
+                'website': 'https://www.gov.uk'
+            },
+            {
+                'name': 'French Government',
+                'address': 'Paris',
+                'country': 'FR',
+                'type': 'government',
+                'website': 'https://www.gov.fr'
+            }
+        ]
 
         for ultimate_end_user in data:
             self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
@@ -71,4 +70,4 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {'errors': {'type': ['This field is required.']}})
+        self.assertEqual(response_data, {'errors': {"sub_type": ['This field is required.']}})
