@@ -71,8 +71,8 @@ def create_standard_licence(draft, application, errors):
     if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnDraft.objects.filter(draft=draft)), None):
         ultimate_end_user_required = True
 
+    ultimate_end_users = UltimateEndUser.objects.filter(draft=draft)
     if ultimate_end_user_required:
-        ultimate_end_users = UltimateEndUser.objects.filter(draft=draft)
         if len(ultimate_end_users.values_list()) == 0:
             errors['ultimate_end_users'] = get_string('applications.standard.no_ultimate_end_users_set')
         else:
@@ -90,11 +90,10 @@ def create_standard_licence(draft, application, errors):
     end_user.application = application
     end_user.draft = None
     end_user.save()
-    if ultimate_end_user_required:
-        for ultimate_end_user in ultimate_end_users:
-            ultimate_end_user.application = application
-            ultimate_end_user.draft = None
-            ultimate_end_user.save()
+    for ultimate_end_user in ultimate_end_users:
+        ultimate_end_user.application = application
+        ultimate_end_user.draft = None
+        ultimate_end_user.save()
 
     create_goods_for_applications(draft, application)
     create_site_for_application(draft, application)
