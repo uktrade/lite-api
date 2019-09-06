@@ -1,4 +1,4 @@
-from rest_framework.fields import DateTimeField, CharField, ChoiceField, DecimalField
+from rest_framework.fields import DateTimeField, CharField, ChoiceField, DecimalField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 
@@ -6,7 +6,7 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
-from parties.serializers import EndUserSerializer
+from parties.models import EndUser
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
@@ -21,7 +21,7 @@ class DraftBaseSerializer(ModelSerializer):
         'required': get_string('applications.generic.no_export_type')})
     created_at = DateTimeField(read_only=True)
     last_modified_at = DateTimeField(read_only=True)
-    end_user = EndUserSerializer()
+    end_user = SerializerMethodField()
 
     class Meta:
         model = Draft
@@ -37,6 +37,12 @@ class DraftBaseSerializer(ModelSerializer):
                   'have_you_been_informed',
                   'reference_number_on_information_form',
                   'end_user')
+
+    def get_end_user(self, instance):
+        try:
+            return EndUser.objects.get(draft=instance)
+        except EndUser.DoesNotExist:
+            return None
 
 
 class DraftCreateSerializer(DraftBaseSerializer):

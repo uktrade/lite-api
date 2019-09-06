@@ -8,7 +8,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from parties.models import Party
+from parties.models import Party, EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -91,8 +91,8 @@ class Advice(models.Model):
     good = models.ForeignKey(Good, on_delete=models.CASCADE, null=True)
     goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
-    party = models.ForeignKey(Party, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='ultimate_end_user',
+    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
+    ultimate_end_user = models.ForeignKey(UltimateEndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
                                           null=True)
 
     # Optional depending on type of advice
@@ -110,7 +110,7 @@ class Advice(models.Model):
                                                  good=self.good,
                                                  goods_type=self.goods_type,
                                                  country=self.country,
-                                                 party=self.party,
+                                                 end_user=self.end_user,
                                                  ultimate_end_user=self.ultimate_end_user)
             existing_object.delete()
         except Advice.DoesNotExist:

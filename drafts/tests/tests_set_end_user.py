@@ -6,7 +6,7 @@ from rest_framework import status
 
 from parties.document.models import EndUserDocument
 from parties.document.tests import test_file
-from parties.models import Party
+from parties.models import Party, EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -67,11 +67,12 @@ class EndUserOnDraftTests(DataTestClient):
     ])
     def test_set_end_user_on_draft_failure(self, data):
         self.draft = self.create_draft(self.organisation)
+        end_user = len(EndUser.objects.filter(draft=self.draft))
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.draft.end_user, None)
+        self.assertEqual(end_user, 0)
 
     def test_end_user_is_deleted_when_new_one_added(self):
         """
@@ -81,18 +82,18 @@ class EndUserOnDraftTests(DataTestClient):
         Then the old one is removed
         """
         # assemble
-        end_user_1_id = self.draft.end_user.id
+        end_user_1_id = EndUser.objects.get(draft=self.draft)
 
         # act
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
 
         # assert
         self.draft.refresh_from_db()
-        end_user_2_id = self.draft.end_user.id
+        end_user_2_id = EndUser.objects.get(draft=self.draft)
 
         self.assertNotEqual(end_user_1_id, end_user_2_id)
-        with self.assertRaises(Party.DoesNotExist):
-            Party.objects.get(id=end_user_1_id)
+        with self.assertRaises(EndUser.DoesNotExist):
+            EndUser.objects.get(id=end_user_1_id)
 
     '''@mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')

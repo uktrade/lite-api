@@ -9,8 +9,8 @@ from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
-from parties.models import Party
-from parties.serializers import PartySerializer
+from parties.models import Party, EndUser, UltimateEndUser
+from parties.serializers import PartySerializer, EndUserSerializer, UltimateEndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -26,24 +26,21 @@ class DraftEndUser(APIView):
         data = JSONParser().parse(request)
         draft = get_draft(pk)
         data['organisation'] = str(organisation.id)
+        data['draft'] = draft
 
         with reversion.create_revision():
-            serializer = PartySerializer(data=data)
+            serializer = EndUserSerializer(data=data)
             if serializer.is_valid():
-                new_end_user = serializer.save()
+                serializer.save()
 
                 # Reversion
                 reversion.set_user(request.user)
                 reversion.set_comment('Created End User')
 
                 # Delete previous end user and its document
-                if draft.end_user:
-                    delete_end_user_document_if_exists(draft.end_user)
-                    draft.end_user.delete()
-
-                # Set the end user of the draft application
-                draft.end_user = new_end_user
-                draft.save()
+                old_end_user = EndUser.objects.filter(draft=draft)
+                delete_end_user_document_if_exists(old_end_user)
+                old_end_user.delete()
 
                 return JsonResponse(data={'parties': serializer.data},
                                     status=status.HTTP_201_CREATED)
@@ -65,7 +62,7 @@ class DraftUltimateEndUsers(APIView):
         draft = get_draft(pk)
         ultimate_end_users = get_ultimate_end_users(draft)
 
-        serializer = PartySerializer(ultimate_end_users, many=True)
+        serializer = UltimateEndUserSerializer(ultimate_end_users, many=True)
 
         return JsonResponse(data={'ultimate_end_users': serializer.data})
 
@@ -75,22 +72,17 @@ class DraftUltimateEndUsers(APIView):
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_draft(pk)
         data['organisation'] = str(organisation.id)
+        data['draft'] = get_draft(pk)
 
         with reversion.create_revision():
-            serializer = PartySerializer(data=data)
+            serializer = UltimateEndUserSerializer(data=data)
             if serializer.is_valid():
-                end_user = serializer.save()
+                serializer.save()
 
                 # Reversion
                 reversion.set_user(request.user)
                 reversion.set_comment("Created End User")
-
-                # Set the end user of the draft application
-                draft.ultimate_end_users.add(str(end_user.id))
-
-                draft.save()
 
                 return JsonResponse(data={'parties': serializer.data},
                                     status=status.HTTP_201_CREATED)
@@ -111,26 +103,19 @@ class RemoveDraftUltimateEndUsers(APIView):
         delete the ultimate end user from the draft
         """
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft(pk)
         try:
-            end_user = Party.objects.get(id=ueu_pk)
-            if end_user.organisation != organisation:
+            ultimate_end_user = UltimateEndUser.objects.get(pk=ueu_pk)
+            if ultimate_end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)
-        except Party.DoesNotExist:
+            else:
+                with reversion.create_revision():
+                    # Reversion
+                    reversion.set_user(request.user)
+                    reversion.set_comment("Deleted End User")
+
+                    return JsonResponse(data={'ultimate_end_user': 'deleted'},
+                                        status=200)
+        except UltimateEndUser.DoesNotExist:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
-
-        with reversion.create_revision():
-            # Reversion
-            reversion.set_user(request.user)
-            reversion.set_comment("Deleted End User")
-
-            # Set the end user of the draft application
-            draft.ultimate_end_users.remove(str(end_user.id))
-            draft.save()
-
-            end_user.delete()
-
-            return JsonResponse(data={'ultimate_end_user': 'deleted'},
-                                status=200)

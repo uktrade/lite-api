@@ -42,7 +42,7 @@ def create_external_location_for_application(draft, application):
 
 def check_party_document(end_user):
     try:
-        end_user_document = EndUserDocument.objects.get(party=end_user)
+        end_user_document = EndUserDocument.objects.get(end_user=end_user)
         if end_user_document.safe is None:
             return get_string('applications.standard.end_user_document_processing')
         elif not end_user_document.safe:

@@ -220,9 +220,9 @@ class DataTestClient(BaseTestClient):
         return good_doc
 
     @staticmethod
-    def create_document_for_end_user(end_user: Party, name='document_name.pdf', safe=True):
+    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
-            party=end_user,
+            end_user=end_user,
             name=name,
             s3_key='s3_keykey.pdf',
             size=123456,

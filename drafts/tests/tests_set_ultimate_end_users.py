@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.models import UltimateEndUser
 from test_helpers.clients import DataTestClient
 
 
@@ -9,6 +10,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
+        self.ultimate_end_user = self.create_ultimate_end_user('Ultimate End User', self.draft, self.organisation)
         self.url = reverse('drafts:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
@@ -25,14 +27,14 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue('UK Government' in self.draft.ultimate_end_users.values_list()[0])
 
-        id = self.draft.ultimate_end_users.values_list()[0][0]
+        id = self.ultimate_end_user.id
 
         url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'ueu_pk': str(id)})
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 0)
+        self.assertEqual(len(UltimateEndUser.objects.filter(draft=self.draft), 0))
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
         data = [
@@ -55,7 +57,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         for ultimate_end_user in data:
             self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
 
-        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 2)
+        self.assertEqual(len(UltimateEndUser.objects.filter(draft=self.draft)), 2)
 
     def test_unsuccessful_add_ultimate_end_user(self):
         data = {

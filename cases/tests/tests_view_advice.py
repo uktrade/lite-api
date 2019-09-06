@@ -3,6 +3,7 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.models import Case, Advice
+from parties.models import EndUser
 from test_helpers.clients import DataTestClient
 
 
@@ -11,6 +12,7 @@ class ViewCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.end_user = EndUser.objects.get(application=self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)
         self.standard_case_url = reverse('cases:case_advice', kwargs={'pk': self.standard_case.id})
 
@@ -24,7 +26,7 @@ class ViewCaseAdviceTests(DataTestClient):
                         proviso='I Am Easy to Proviso',
                         text='This is advice',
                         note='This is a note',
-                        end_user=self.standard_application.end_user)
+                        end_user=self.end_user)
         advice.save()
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)

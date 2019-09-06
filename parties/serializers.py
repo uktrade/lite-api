@@ -35,7 +35,7 @@ class PartySerializer(serializers.ModelSerializer):
                   'draft')
 
     def get_document(self, instance):
-        docs = EndUserDocument.objects.filter(party=instance).values()
+        docs = EndUserDocument.objects.filter(end_user=instance).values()
         return docs[0] if docs else None
 
 
@@ -60,15 +60,15 @@ class ConsigneeSerializer(PartySerializer):
         fields = '__all__'
 
 
-class PartyDocumentSerializer(serializers.ModelSerializer):
-    party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
+class EndUserDocumentSerializer(serializers.ModelSerializer):
+    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
 
     class Meta:
         model = EndUserDocument
-        fields = ('id', 'name', 's3_key', 'size', 'parties', 'safe')
+        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'safe')
 
     def create(self, validated_data):
-        party_document = super(PartyDocumentSerializer, self).create(validated_data)
-        party_document.save()
-        process_document(party_document)
-        return party_document
+        end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)
+        end_user_document.save()
+        process_document(end_user_document)
+        return end_user_document

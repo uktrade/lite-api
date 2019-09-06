@@ -8,6 +8,7 @@ from test_helpers.clients import DataTestClient
 
 test_file = "dog.jpg"
 
+
 # TODO: Fix S3 mocking for running tests in CircleCI
 
 class EndUserDocumentTests(DataTestClient):
@@ -22,8 +23,8 @@ class EndUserDocumentTests(DataTestClient):
         self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
         self.data = {"name": test_file,
-                 "s3_key": test_file,
-                 "size": 476}
+                     "s3_key": test_file,
+                     "size": 476}
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_correct_data_get_document(self, prepare_document_function):
