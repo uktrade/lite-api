@@ -55,8 +55,8 @@ class NotificationTests(DataTestClient):
         Then the notifications specific to that user and org combination are returned
         """
         # Assemble
-        org2 = self.create_organisation_with_exporter_user('Org 2')
-        self.add_exporter_user_to_org(org2, self.exporter_user)
+        org_2 = self.create_organisation_with_exporter_user('Org 2')
+        self.add_exporter_user_to_org(org_2, self.exporter_user)
 
         application1 = self.create_standard_application(self.organisation)
         case1 = Case.objects.get(application=application1)
@@ -64,10 +64,12 @@ class NotificationTests(DataTestClient):
         self.create_case_note(case1, 'This is a test note 1', self.gov_user, True)
         self.create_case_note(case1, 'This is a test note 2', self.gov_user, True)
 
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
-                                 'HTTP_ORGANISATION_ID': org2.id}
+        self.exporter_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+            'HTTP_ORGANISATION_ID': org_2.id
+        }
 
-        application2 = self.create_standard_application(org2)
+        application2 = self.create_standard_application(org_2)
         case2 = Case.objects.get(application=application2)
 
         self.create_case_note(case2, 'This is a test note 3', self.gov_user, True)
@@ -80,9 +82,9 @@ class NotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()['results']
         # Expecting to only get two of the 4 total notifications created, given that the org in the exporter headers
-        # is org2
+        # is org_2
         self.assertEqual(len(response_data), 2)
         # Check that the 2 notifications we got are the ones arising from notes on application 2, i.e. the application
-        # created while org2 is the currently selected org
+        # created while org_2 is the currently selected org
         self.assertEqual(response_data[0]['application'], str(application2.id))
         self.assertEqual(response_data[1]['application'], str(application2.id))
