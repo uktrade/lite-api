@@ -4,7 +4,7 @@ import reversion
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
@@ -33,7 +33,7 @@ class Application(models.Model):
                                  default=None, blank=True, null=True)
     #  destination = models to be a list of countries
     # plus there maybe a consignee too - the person moving the cargo
-    ultimate_end_users = models.ManyToManyField(EndUser, related_name='application_ultimate_end_users')
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='application_ultimate_end_users')
 
 
 @reversion.register()

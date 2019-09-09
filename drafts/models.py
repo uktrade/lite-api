@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
@@ -24,7 +24,7 @@ class Draft(models.Model):
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     end_user = models.ForeignKey(EndUser, related_name='draft_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
-    ultimate_end_users = models.ManyToManyField(EndUser, related_name='drafts')
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='drafts')
 
 
 class GoodOnDraft(models.Model):

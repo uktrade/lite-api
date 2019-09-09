@@ -10,7 +10,7 @@ from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
 from parties.models import EndUser
-from parties.serializers import EndUserSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -79,16 +79,16 @@ class DraftUltimateEndUsers(APIView):
         data['organisation'] = str(organisation.id)
 
         with reversion.create_revision():
-            serializer = EndUserSerializer(data=data)
+            serializer = UltimateEndUserSerializer(data=data)
             if serializer.is_valid():
-                end_user = serializer.save()
+                ultimate_end_user = serializer.save()
 
                 # Reversion
                 reversion.set_user(request.user)
                 reversion.set_comment("Created End User")
 
                 # Set the end user of the draft application
-                draft.ultimate_end_users.add(str(end_user.id))
+                draft.ultimate_end_users.add(str(ultimate_end_user.id))
 
                 draft.save()
 
