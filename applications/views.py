@@ -90,9 +90,6 @@ class ApplicationList(APIView):
             reversion.set_user(request.user)
             reversion.set_comment("Created Application Revision")
 
-            # Delete draft
-            draft.delete()
-
             # Create a case
             case = Case(application=application)
             case.save()
@@ -101,6 +98,9 @@ class ApplicationList(APIView):
             queue = Queue.objects.get(pk='00000000-0000-0000-0000-000000000001')
             queue.cases.add(case)
             queue.save()
+            
+            # Delete draft
+            draft.delete()
 
             serializer = ApplicationBaseSerializer(application)
             return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},

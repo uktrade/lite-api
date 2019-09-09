@@ -12,7 +12,7 @@ from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from parties.document.models import EndUserDocument
 from parties.enums import SubType, PartyType
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -140,6 +140,19 @@ class DataTestClient(BaseTestClient):
         end_user.save()
 
         return end_user
+
+    @staticmethod
+    def create_ultimate_end_user(name, organisation):
+        ultimate_end_user = UltimateEndUser(name=name,
+                                            organisation=organisation,
+                                            address='42 Road, London, Buckinghamshire',
+                                            website='www.' + name + '.com',
+                                            sub_type=SubType.GOVERNMENT,
+                                            type=PartyType.ULTIMATE,
+                                            country=get_country('GB'))
+        ultimate_end_user.save()
+
+        return ultimate_end_user
 
     def create_clc_query_case(self, name, status=None):
         if not status:

@@ -9,7 +9,7 @@ from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
@@ -113,8 +113,8 @@ class RemoveDraftUltimateEndUsers(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft(pk)
         try:
-            end_user = EndUser.objects.get(id=ueu_pk)
-            if end_user.organisation != organisation:
+            ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
+            if ultimate_end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)
         except EndUser.DoesNotExist:
@@ -127,9 +127,9 @@ class RemoveDraftUltimateEndUsers(APIView):
             reversion.set_comment("Deleted End User")
 
             # Set the end user of the draft application
-            draft.ultimate_end_users.remove(str(end_user.id))
+            draft.ultimate_end_users.remove(str(ultimate_end_user.id))
             draft.save()
 
-            end_user.delete()
+            ultimate_end_user.delete()
 
             return JsonResponse(data={'ultimate_end_user': 'deleted'})
