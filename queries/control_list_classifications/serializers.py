@@ -23,7 +23,7 @@ class ClcQuerySerializer(serializers.ModelSerializer):
 
 
 class ClcQueryResponseSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(allow_blank=False, max_length=20, required=True, write_only=True)
+    control_code = serializers.CharField(allow_blank=True, allow_null=True, max_length=20, required=True, write_only=True)
     is_good_controlled = serializers.BooleanField(allow_null=False, required=False, write_only=True)
     comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
     report_summary = serializers.CharField(allow_blank=False, max_length=5000, required=True)

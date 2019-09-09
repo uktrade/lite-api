@@ -13,7 +13,6 @@ from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.control_list_classifications.serializers import ClcQueryResponseSerializer
 from queries.helpers import get_exporter_query
-from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class ControlListClassificationsList(APIView):
@@ -57,9 +56,12 @@ class ControlListClassificationDetail(APIView):
             serializer = ClcQueryResponseSerializer(get_exporter_query(pk), data=data, partial=True)
 
             if serializer.is_valid():
-                reversion.set_comment('Updated CLC Query Details')
-                reversion.set_user(request.user)
-                serializer.save()
-                return JsonResponse(data={'clc_query': serializer.data})
+                if 'validate_only' not in data or data['validate_only'] == 'False':
+                    reversion.set_comment('Updated CLC Query Details')
+                    reversion.set_user(request.user)
+                    serializer.save()
+                    return JsonResponse(data={'control_list_classification_query': serializer.data})
+                else:
+                    return JsonResponse(data={}, status=status.HTTP_200_OK)
 
             return JsonResponse(data={'errors': serializer.errors}, status=400)
