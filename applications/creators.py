@@ -5,7 +5,7 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
     GoodOnApplication
 from content_strings.strings import get_string
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from end_user.document.models import EndUserDocument
+from parties.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
@@ -76,7 +76,8 @@ def create_standard_licence(draft, application, errors):
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
                 if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                    errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
+                    errors['ultimate_end_users'] = get_string(
+                        'applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)

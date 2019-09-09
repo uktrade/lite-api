@@ -1,8 +1,8 @@
 from django.http import Http404
 
 from conf.exceptions import NotFoundError
-from end_user.document.models import EndUserDocument
-from end_user.models import EndUser
+from parties.document.models import EndUserDocument
+from parties.models import EndUser
 
 
 def get_end_user_with_organisation(pk, organisation):

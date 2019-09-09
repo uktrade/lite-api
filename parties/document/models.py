@@ -1,7 +1,7 @@
 from django.db import models
 
 from documents.models import Document
-from end_user.models import EndUser
+from parties.models import EndUser
 
 
 class EndUserDocument(Document):

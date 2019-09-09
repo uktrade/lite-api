@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from end_user.models import EndUser
+from parties.models import EndUser
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country

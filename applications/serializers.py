@@ -11,8 +11,8 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from end_user.models import EndUser
-from end_user.serializers import EndUserSerializer
+from parties.models import EndUser
+from parties.serializers import EndUserSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer

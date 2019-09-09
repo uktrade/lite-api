@@ -9,7 +9,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from end_user.models import EndUser
+from parties.models import EndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType

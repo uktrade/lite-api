@@ -9,7 +9,7 @@ from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from end_user.models import EndUser
+from parties.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -229,7 +229,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         if hasattr(self, 'initial_data'):
             for data in self.initial_data:
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError('Only one item (such as an end_user) can be given at a time')
+                    raise ValidationError('Only one item (such as an parties) can be given at a time')
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)

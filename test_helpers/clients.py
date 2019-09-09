@@ -10,9 +10,9 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from end_user.document.models import EndUserDocument
-from end_user.enums import EndUserType
-from end_user.models import EndUser
+from parties.document.models import EndUserDocument
+from parties.enums import SubType, PartyType
+from parties.models import EndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -72,7 +72,7 @@ class DataTestClient(BaseTestClient):
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
-            
+
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')
@@ -134,10 +134,11 @@ class DataTestClient(BaseTestClient):
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
-                           type=EndUserType.GOVERNMENT,
+                           sub_type=SubType.GOVERNMENT,
+                           type=PartyType.END,
                            country=get_country('GB'))
         end_user.save()
-        
+
         return end_user
 
     def create_clc_query_case(self, name, status=None):
@@ -286,7 +287,8 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -357,7 +359,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
-        
+
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 
