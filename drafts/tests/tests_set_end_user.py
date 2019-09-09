@@ -21,7 +21,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
             'country': 'PY',
-            'type': 'government',
+            'sub_type': 'government',
             'website': 'https://www.gov.py'
         }
 
@@ -35,7 +35,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
             'country': 'GB',
-            'type': data_type,
+            'sub_type': data_type,
             'website': 'https://www.gov.uk'
         }
 
@@ -61,7 +61,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Lemonworld Org',
             'address': '3730 Martinsburg Rd, Gambier, Ohio',
             'country': 'US',
-            'type': 'business',
+            'sub_type': 'business',
             'website': 'https://www.americanmary.com'
         }],
     ])

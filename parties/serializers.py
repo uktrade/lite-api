@@ -15,7 +15,7 @@ class PartySerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
     website = serializers.URLField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=PartyType.choices)
+    type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     application = relations.PrimaryKeyRelatedField(queryset=Application.objects.all(), required=False)
     draft = relations.PrimaryKeyRelatedField(queryset=Draft.objects.all(), required=False)
@@ -52,6 +52,12 @@ class EndUserSerializer(PartySerializer):
 
         fields = '__all__'
 
+    def create(self, validated_data):
+        end_user = super(EndUserSerializer, self).create(validated_data)
+        end_user.type = PartyType.END
+        end_user.save()
+        return end_user
+
 
 class UltimateEndUserSerializer(PartySerializer):
 
@@ -61,6 +67,12 @@ class UltimateEndUserSerializer(PartySerializer):
         model = UltimateEndUser
 
         fields = '__all__'
+        
+    def create(self, validated_data):
+        ultimate_end_user = super(UltimateEndUserSerializer, self).create(validated_data)
+        ultimate_end_user.type = PartyType.ULTIMATE
+        ultimate_end_user.save()
+        return ultimate_end_user
 
 
 class ConsigneeSerializer(PartySerializer):
@@ -71,6 +83,12 @@ class ConsigneeSerializer(PartySerializer):
         model = Consignee
 
         fields = '__all__'
+
+    def create(self, validated_data):
+        consignee = super(ConsigneeSerializer, self).create(validated_data)
+        consignee.type = PartyType.CONSIGNEE
+        consignee.save()
+        return consignee
 
 
 class EndUserDocumentSerializer(serializers.ModelSerializer):

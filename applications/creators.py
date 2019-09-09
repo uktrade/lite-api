@@ -79,13 +79,14 @@ def create_standard_licence(draft, application, errors):
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in ultimate_end_users.values_list('id', flat=True):
                 if 'end_user' not in errors and str(ultimate_end_user) == str(end_user.id):
-                    errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
+                    errors['ultimate_end_users'] = get_string(
+                        'applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
     application.save()
-    
+
     # Save associated end users, goods and sites
     end_user.application = application
     end_user.draft = None

@@ -28,9 +28,6 @@ class DraftEndUser(APIView):
         draft = get_draft(pk)
         data['organisation'] = str(organisation.id)
         data['draft'] = pk
-        if 'type' in data:
-            data['sub_type'] = data['type']
-        data['type'] = PartyType.END
 
         with reversion.create_revision():
             serializer = EndUserSerializer(data=data)
@@ -76,10 +73,6 @@ class DraftUltimateEndUsers(APIView):
         data = JSONParser().parse(request)
         data['organisation'] = str(organisation.id)
         data['draft'] = pk
-
-        if 'type' in data:
-            data['sub_type'] = data['type']
-        data['type'] = PartyType.ULTIMATE
 
         with reversion.create_revision():
             serializer = UltimateEndUserSerializer(data=data)

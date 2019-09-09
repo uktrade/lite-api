@@ -17,7 +17,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
             'country': 'GB',
-            'type': 'commercial',
+            'sub_type': 'commercial',
             'website': 'https://www.gov.uk'
         }
 
@@ -41,14 +41,14 @@ class UltimateEndUsersOnDraft(DataTestClient):
                 'name': 'UK Government',
                 'address': 'Westminster, London SW1A 0AA',
                 'country': 'GB',
-                'type': 'commercial',
+                'sub_type': 'commercial',
                 'website': 'https://www.gov.uk'
             },
             {
                 'name': 'French Government',
                 'address': 'Paris',
                 'country': 'FR',
-                'type': 'government',
+                'sub_type': 'government',
                 'website': 'https://www.gov.fr'
             }
         ]
