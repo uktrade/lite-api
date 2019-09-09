@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Case, Advice
+from cases.models import Advice
 from conf.helpers import convert_queryset_to_str
 from test_helpers.clients import DataTestClient
 
@@ -13,10 +13,10 @@ class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.standard_application.case.get()
 
         self.open_application = self.create_open_application(self.organisation)
-        self.open_case = Case.objects.get(application=self.open_application)
+        self.open_case = self.open_application.case.get()
 
         self.standard_case_url = reverse('cases:case_advice', kwargs={'pk': self.standard_case.id})
         self.open_case_url = reverse('cases:case_advice', kwargs={'pk': self.open_case.id})

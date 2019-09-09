@@ -9,7 +9,7 @@ class TeamListTests(DataTestClient):
 
     url = reverse('teams:teams')
 
-    def tests_team_list(self):
+    def test_team_list(self):
         existing_teams_count = Team.objects.all().count()
         Team(name='name 1').save()
         Team(name='name 2').save()

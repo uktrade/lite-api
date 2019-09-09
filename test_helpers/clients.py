@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
@@ -5,8 +7,8 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
-from cases.enums import CaseType
-from cases.models import CaseNote, Case, CaseDocument
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
+from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from end_user.document.models import EndUserDocument
@@ -22,37 +24,24 @@ from queries.control_list_classifications.models import ControlListClassificatio
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
+from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 
-class BaseTestClient(APITestCase, URLPatternsTestCase):
+class DataTestClient(APITestCase, URLPatternsTestCase):
     """
-    Base test client which provides only URL patterns and client
+    Test client which creates an initial organisation and user
     """
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
-
-class DataTestClient(BaseTestClient):
-    """
-    Test client which creates an initial organisation and user
-    """
-
     def setUp(self):
-        super().setUp()
-
         # Gov User Setup
         self.team = Team.objects.get(name='Admin')
         self.gov_user = GovUser(email='test@mail.com',
@@ -69,6 +58,33 @@ class DataTestClient(BaseTestClient):
                                  'HTTP_ORGANISATION_ID': self.organisation.id}
 
         self.queue = self.create_queue('Initial Queue', self.team)
+
+        if settings.TIME_TESTS:
+            self.tick = datetime.now()
+
+    def tearDown(self):
+        """
+        Print output time for tests if settings.TIME_TESTS is set to True
+        """
+        if settings.TIME_TESTS:
+            self.tock = datetime.now()
+
+            diff = self.tock - self.tick
+            time = round(diff.microseconds / 1000, 2)
+            colour = colours.green
+            emoji = ''
+
+            if time > 100:
+                colour = colours.orange
+            if time > 300:
+                colour = colours.red
+                emoji = ' 🔥'
+
+            print(self._testMethodName + emoji + ' ' + colour(str(time) + 'ms') + emoji)
+
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
 
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
@@ -141,14 +157,6 @@ class DataTestClient(BaseTestClient):
 
         return end_user
 
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
-
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
@@ -217,14 +225,12 @@ class DataTestClient(BaseTestClient):
 
     @staticmethod
     def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
-        end_user_document = EndUserDocument(
-            end_user=end_user,
-            name=name,
-            s3_key='s3_keykey.pdf',
-            size=123456,
-            virus_scanned_at=None,
-            safe=safe
-        )
+        end_user_document = EndUserDocument(end_user=end_user,
+                                            name=name,
+                                            s3_key='s3_keykey.pdf',
+                                            size=123456,
+                                            virus_scanned_at=None,
+                                            safe=safe)
         end_user_document.save()
         return end_user_document
 
@@ -233,16 +239,22 @@ class DataTestClient(BaseTestClient):
         flag.save()
         return flag
 
+    def create_case_assignment(self, queue, case, users):
+        case_assignment = CaseAssignment(queue=queue,
+                                         case=case)
+        case_assignment.users.set(users)
+        case_assignment.save()
+        return case_assignment
+
     def create_goods_type(self, content_type_model, obj):
-        goodstype = GoodsType(description='thing',
-                              is_good_controlled=False,
-                              control_code='ML1a',
-                              is_good_end_product=True,
-                              content_type=ContentType.objects.get(model=content_type_model),
-                              object_id=obj.pk,
-                              )
-        goodstype.save()
-        return goodstype
+        goods_type = GoodsType(description='thing',
+                               is_good_controlled=False,
+                               control_code='ML1a',
+                               is_good_end_product=True,
+                               content_type=ContentType.objects.get(model=content_type_model),
+                               object_id=obj.pk)
+        goods_type.save()
+        return goods_type
 
     def create_picklist_item(self, name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(team=team,
@@ -250,7 +262,6 @@ class DataTestClient(BaseTestClient):
                                      text='This is a string of text, please do not disturb the milk argument',
                                      type=picklist_type,
                                      status=status)
-
         picklist_item.save()
         return picklist_item
 
@@ -265,7 +276,7 @@ class DataTestClient(BaseTestClient):
         return good
 
     @staticmethod
-    def create_clc_query(description, organisation, status):
+    def create_clc_query(description, organisation):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
@@ -274,11 +285,9 @@ class DataTestClient(BaseTestClient):
                     organisation=organisation)
         good.save()
 
-        clc_query = ControlListClassificationQuery(details='this is a test text',
-                                                   good=good,
-                                                   status=status,
-                                                   organisation=organisation)
-        clc_query.save()
+        clc_query = ControlListClassificationQuery.objects.create(details='this is a test text',
+                                                                  good=good,
+                                                                  organisation=organisation)
         return clc_query
 
     # Drafts

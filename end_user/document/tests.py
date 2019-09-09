@@ -10,6 +10,7 @@ test_file = "dog.jpg"
 
 # TODO: Fix S3 mocking for running tests in CircleCI
 
+
 class EndUserDocumentTests(DataTestClient):
 
     def setUp(self):

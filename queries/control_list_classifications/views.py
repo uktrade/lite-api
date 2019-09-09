@@ -11,7 +11,7 @@ from conf.authentication import GovAuthentication, ExporterAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.control_list_classifications.serializers import ClcQueryUpdateSerializer
+from queries.control_list_classifications.serializers import ClcQueryResponseSerializer
 from queries.helpers import get_exporter_query
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 
@@ -49,19 +49,17 @@ class ControlListClassificationDetail(APIView):
 
     def put(self, request, pk):
         """
-        Update a clc query instance.
+        Respond to a control list classification.
         """
+        data = json.loads(request.body)
+
         with reversion.create_revision():
-            data = json.loads(request.body)
-            data['status'] = str(get_case_status_from_status(data.get('status')).pk)
-            serializer = ClcQueryUpdateSerializer(get_exporter_query(pk), data=data, partial=True)
+            serializer = ClcQueryResponseSerializer(get_exporter_query(pk), data=data, partial=True)
 
             if serializer.is_valid():
-                with reversion.create_revision():
-                    reversion.set_comment('Updated CLC Query Details')
-                    reversion.set_user(request.user)
-                    serializer.save()
+                reversion.set_comment('Updated CLC Query Details')
+                reversion.set_user(request.user)
+                serializer.save()
                 return JsonResponse(data={'clc_query': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=400)

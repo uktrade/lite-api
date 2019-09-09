@@ -8,9 +8,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
-
-        # Cases
+        # Goods
         self.good = self.create_controlled_good('a good', self.organisation)
         self.good_2 = self.create_controlled_good('a second good', self.organisation)
 

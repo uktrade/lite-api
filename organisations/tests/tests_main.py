@@ -61,7 +61,7 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(site.address.city, data['site']['address']['city'])
         self.assertEqual(str(site.address.country.id), data['site']['address']['country'])
 
-    def tests_errors_are_send_from_failed_create(self):
+    def test_cannot_create_organisation_with_invalid_data(self):
         data = {
             'name': None,
             'eori_number': None,

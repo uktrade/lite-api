@@ -25,12 +25,12 @@ class CasesFilterAndSortTests(DataTestClient):
 
         self.clc_cases = []
         for clc_status in CaseStatusEnum.choices:
-            case = self.create_clc_query_case('Example CLC Query', get_case_status_from_status(clc_status))
-            self.queue.cases.add(case)
+            clc_query = self.create_clc_query('Example CLC Query', self.organisation)
+            clc_query.status = get_case_status_from_status(clc_status)
+            clc_query.save()
+            self.queue.cases.add(clc_query.case.get())
             self.queue.save()
-            self.clc_cases.append(case)
-
-        return
+            self.clc_cases.append(clc_query.case.get())
 
     def test_get_cases_no_filter(self):
         """

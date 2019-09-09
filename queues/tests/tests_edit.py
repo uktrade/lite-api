@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 
 class QueueEditTests(DataTestClient):
 
-    def tests_edit_queue(self):
+    def test_edit_queue(self):
         data = {
             'id': self.queue.id,
             'name': 'Modified queue',

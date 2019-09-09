@@ -1,12 +1,14 @@
 class GoodStatus:
     DRAFT = 'draft'
     SUBMITTED = 'submitted'
-    CLCQUERY = 'clcquery'
+    CLC_QUERY = 'clcquery'
+    FINAL = 'final'
 
     choices = [
-        (DRAFT, 'draft'),
-        (SUBMITTED, 'submitted'),
-        (CLCQUERY, 'clcquery')
+        (DRAFT, 'Draft'),
+        (SUBMITTED, 'Submitted'),
+        (CLC_QUERY, 'Control List Classification Query'),
+        (FINAL, 'Final')
     ]
 
 

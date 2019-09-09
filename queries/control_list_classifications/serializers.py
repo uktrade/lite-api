@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from goods.enums import GoodStatus
 from goods.serializers import FullGoodSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
+from picklists.helpers import get_picklist_item
 from queries.control_list_classifications.models import ControlListClassificationQuery
-from static.statuses.models import CaseStatus
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
 class ClcQuerySerializer(serializers.ModelSerializer):
@@ -16,27 +19,33 @@ class ClcQuerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = (
-            'id',
-            'details',
-            'good',
-            'submitted_at',
-            'organisation')
+        fields = ['id', 'details', 'good', 'submitted_at', 'organisation']
 
 
-class ClcQueryUpdateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
+class ClcQueryResponseSerializer(serializers.ModelSerializer):
+    control_code = serializers.CharField(allow_blank=False, max_length=20, required=True, write_only=True)
+    is_good_controlled = serializers.BooleanField(allow_null=False, required=False, write_only=True)
+    comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
+    report_summary = serializers.CharField(allow_blank=False, max_length=5000, required=True)
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = (
-            'id',
-            'status',
-            'organisation')
+        fields = ['comment', 'report_summary', 'control_code', 'is_good_controlled']
 
     # pylint: disable = W0221
-    def update(self, instance, partial):
-        instance.status = partial.get('status', instance.status)
+    def update(self, instance, validated_data):
+        instance.comment = validated_data.get('comment')
+        instance.report_summary = get_picklist_item(validated_data.get('report_summary')).text
+        instance.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
+
+        # Update the good's details
+        instance.good.is_good_controlled = validated_data.get('is_good_controlled')
+        if instance.good.is_good_controlled:
+            instance.good.control_code = validated_data.get('control_code')
+        else:
+            instance.good.control_code = ''
+        instance.good.status = GoodStatus.FINAL
+        instance.good.save()
+
         instance.save()
         return instance

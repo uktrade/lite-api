@@ -16,7 +16,6 @@ USER_DEACTIVATED_ERROR = 'User has been deactivated'
 
 
 class ExporterAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token and an organisation id, validate that the user belongs to the
@@ -43,7 +42,6 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 
 
 class ExporterOnlyAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token, validate that the user exists
@@ -55,7 +53,6 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
 
 
 class GovAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token token validate that they're a government user

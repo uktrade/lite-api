@@ -4,9 +4,9 @@ from test_helpers.clients import DataTestClient
 
 class NotificationTests(DataTestClient):
 
-    def tests_create_new_clc_query_notification(self):
+    def test_create_new_clc_query_notification(self):
 
-        clc_case = self.create_clc_query_case('Case Ref')
+        clc_case = self.create_clc_query('Example CLC Query', self.organisation).case.get()
 
         self.create_case_note(clc_case, 'This is a test note 1', self.gov_user, True)
         self.create_case_note(clc_case, 'This is a test note 2', self.gov_user, True)
@@ -15,7 +15,7 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(Notification.objects.all().count(), 3)
 
-    def tests_create_new_application_notification(self):
+    def test_create_new_application_notification(self):
         application = self.create_standard_application(self.organisation)
         case = Case.objects.get(application=application)
 
@@ -24,11 +24,11 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(Notification.objects.all().count(), 1)
 
-    def tests_create_both_clc_and_application_notifications(self):
+    def test_create_both_clc_and_application_notifications(self):
         application = self.create_standard_application(self.organisation)
         case = Case.objects.get(application=application)
 
-        clc_case = self.create_clc_query_case('Case Ref')
+        clc_case = self.create_clc_query('Example CLC Query', self.organisation).case.get()
 
         self.create_case_note(case, 'This is a test note 1', self.gov_user, True)
         self.create_case_note(case, 'This is a test note 2', self.gov_user, True)

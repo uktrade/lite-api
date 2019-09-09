@@ -14,7 +14,7 @@ class TeamCreateTests(DataTestClient):
         super().setUp()
         self.team_preexisting_count = Team.objects.all().count()
 
-    def tests_create_team(self):
+    def test_create_team(self):
         data = {
             'name': 'new team'
         }
@@ -35,7 +35,7 @@ class TeamCreateTests(DataTestClient):
             'name': ' this is a name    '
         }],
     ])
-    def tests_team_name_must_be_unique(self, data):
+    def test_team_name_must_be_unique(self, data):
         Team(name='this is a name').save()
 
         response = self.client.post(self.url, data, **self.gov_headers)

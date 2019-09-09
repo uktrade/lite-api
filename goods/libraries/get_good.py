@@ -29,7 +29,7 @@ def get_goods_from_case(case):
     if case.query:
         query = get_exporter_query(case.query.id)
         if isinstance(query, ControlListClassificationQuery):
-            return [ControlListClassificationQuery.objects.get(case=case).good.id]
+            return [query.good.id]
         else:
             return []
     else:
