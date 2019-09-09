@@ -1,4 +1,4 @@
-from django.urls import reverse
+from django.urls import reverse_lazy
 from rest_framework import status
 
 from cases.models import Case, Notification
@@ -7,7 +7,7 @@ from users.libraries.user_to_token import user_to_token
 
 
 class NotificationTests(DataTestClient):
-    url = '/users/notifications/'
+    url = reverse_lazy('users:notifications')
 
     def tests_create_new_clc_query_notification(self):
 
@@ -54,7 +54,6 @@ class NotificationTests(DataTestClient):
         When an API user gets notifications for the exporter user and one of their orgs
         Then the notifications specific to that user and org combination are returned
         """
-        # Assemble
         org_2 = self.create_organisation_with_exporter_user('Org 2')
         self.add_exporter_user_to_org(org_2, self.exporter_user)
 
@@ -75,12 +74,10 @@ class NotificationTests(DataTestClient):
         self.create_case_note(case2, 'This is a test note 3', self.gov_user, True)
         self.create_case_note(case2, 'This is a test note 4', self.gov_user, True)
 
-        # Act
         response = self.client.get(self.url, **self.exporter_headers)
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()['results']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expecting to only get two of the 4 total notifications created, given that the org in the exporter headers
         # is org_2
         self.assertEqual(len(response_data), 2)
