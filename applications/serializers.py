@@ -12,7 +12,7 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import EndUser
-from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -70,6 +70,9 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         'required': get_string('applications.generic.no_export_type')})
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
+    ultimate_end_users = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
+    consignee = ConsigneeSerializer()
 
     # Goods
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
@@ -78,13 +81,31 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     # End User, Countries
     destinations = serializers.SerializerMethodField()
 
-    # Ultimate End Users
-    ultimate_end_users = serializers.SerializerMethodField()
-
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
 
-    case = serializers.SerializerMethodField()
+    class Meta:
+        model = Application
+        fields = ('id',
+                  'name',
+                  'case',
+                  'organisation',
+                  'activity',
+                  'usage',
+                  'goods',
+                  'created_at',
+                  'last_modified_at',
+                  'submitted_at',
+                  'status',
+                  'licence_type',
+                  'export_type',
+                  'reference_number_on_information_form',
+                  'application_denial_reason',
+                  'destinations',
+                  'ultimate_end_users',
+                  'goods_locations',
+                  'goods_types',
+                  'consignee',)
 
     def get_case(self, instance):
         return Case.objects.get(application=instance).id
@@ -130,28 +151,6 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
         else:
             serializer = ExternalLocationSerializer(external_locations, many=True)
             return {'type': 'external_locations', 'data': serializer.data}
-
-    class Meta:
-        model = Application
-        fields = ('id',
-                  'name',
-                  'case',
-                  'organisation',
-                  'activity',
-                  'usage',
-                  'goods',
-                  'created_at',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status',
-                  'licence_type',
-                  'export_type',
-                  'reference_number_on_information_form',
-                  'application_denial_reason',
-                  'destinations',
-                  'ultimate_end_users',
-                  'goods_locations',
-                  'goods_types')
 
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):

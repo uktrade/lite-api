@@ -9,7 +9,7 @@ from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from parties.models import EndUser, UltimateEndUser
+from parties.models import EndUser, UltimateEndUser, Consignee
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -190,11 +190,12 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
     ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
+    consignee = serializers.PrimaryKeyRelatedField(queryset=Consignee.objects.all(), required=False)
 
     class Meta:
         model = Advice
         fields = ('case', 'user', 'text', 'note', 'type', 'proviso', 'denial_reasons',
-                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user', 'created_at')
+                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user', 'created_at', 'consignee',)
 
     def validate_denial_reasons(self, value):
         """
@@ -223,7 +224,8 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                               'goods_type',
                               'country',
                               'end_user',
-                              'ultimate_end_user']
+                              'ultimate_end_user',
+                              'consignee']
 
         # Ensure only one item is provided
         if hasattr(self, 'initial_data'):

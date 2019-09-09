@@ -6,7 +6,7 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
-from parties.serializers import EndUserSerializer
+from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
@@ -22,6 +22,7 @@ class DraftBaseSerializer(ModelSerializer):
     created_at = DateTimeField(read_only=True)
     last_modified_at = DateTimeField(read_only=True)
     end_user = EndUserSerializer()
+    consignee = ConsigneeSerializer()
 
     class Meta:
         model = Draft
@@ -36,7 +37,8 @@ class DraftBaseSerializer(ModelSerializer):
                   'export_type',
                   'have_you_been_informed',
                   'reference_number_on_information_form',
-                  'end_user')
+                  'end_user',
+                  'consignee',)
 
 
 class DraftCreateSerializer(DraftBaseSerializer):

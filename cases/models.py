@@ -9,7 +9,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from parties.models import EndUser, UltimateEndUser
+from parties.models import EndUser, UltimateEndUser, Consignee
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -98,6 +98,8 @@ class Advice(models.Model):
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(UltimateEndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
                                           null=True)
+    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name='consignee',
+                                  null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -115,7 +117,8 @@ class Advice(models.Model):
                                                  goods_type=self.goods_type,
                                                  country=self.country,
                                                  end_user=self.end_user,
-                                                 ultimate_end_user=self.ultimate_end_user)
+                                                 ultimate_end_user=self.ultimate_end_user,
+                                                 consignee=self.consignee)
             existing_object.delete()
         except Advice.DoesNotExist:
             pass
@@ -159,4 +162,3 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
-
