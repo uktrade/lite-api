@@ -11,7 +11,6 @@ class QueuesViewTests(DataTestClient):
 
     url = reverse('queues:queues') + '?include_system_queues=True'
 
-    @tag('only')
     def tests_list_queue(self):
         """
         Tests that all queues are returned

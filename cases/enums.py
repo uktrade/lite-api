@@ -14,6 +14,7 @@ class AdviceType:
     REFUSE = 'refuse'
     NO_LICENCE_REQUIRED = 'no_licence_required'
     NOT_APPLICABLE = 'not_applicable'
+    CONFLICTING = 'conflicting'
 
     choices = [
         (APPROVE, 'Approve'),
@@ -21,4 +22,5 @@ class AdviceType:
         (REFUSE, 'Refuse'),
         (NO_LICENCE_REQUIRED, 'No Licence Required'),
         (NOT_APPLICABLE, 'Not Applicable'),
+        (CONFLICTING, 'Conflicting')
     ]

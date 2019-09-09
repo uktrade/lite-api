@@ -106,7 +106,7 @@ class Advice(models.Model):
 
     # pylint: disable=W0221
     def save(self, *args, **kwargs):
-        if self.type is not AdviceType.PROVISO:
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
 
         try:
@@ -129,7 +129,8 @@ class TeamAdvice(Advice):
 
     # pylint: disable=W0221
     def save(self, *args, **kwargs):
-        if self.type is not AdviceType.PROVISO:
+
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
 
         try:
@@ -145,6 +146,10 @@ class TeamAdvice(Advice):
             pass
 
         super(TeamAdvice, self).save(*args, **kwargs)
+
+
+class FinalAdvice(Advice):
+    pass
 
 
 class EcjuQuery(models.Model):

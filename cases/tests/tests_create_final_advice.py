@@ -1,39 +1,43 @@
 from django.test import tag
 from django.urls import reverse
-from rest_framework import status
 from parameterized import parameterized
+from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Case, Advice, TeamAdvice
+from cases.models import Case, TeamAdvice, FinalAdvice
 from conf.helpers import convert_queryset_to_str
+from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import GovUser
-from teams.models import Team
 
 
-class CreateCaseTeamAdviceTests(DataTestClient):
+class CreateCaseFinalAdviceTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
-        self.gov_user_2 = GovUser(email='user@email.com', team=self.team)
-        self.gov_user_3 = GovUser(email='users@email.com', team=self.team)
+        team2 = Team(name='2')
+        team3 = Team(name='3')
+        team2.save()
+        team3.save()
+        self.gov_user_2 = GovUser(email='user@email.com', team=team2)
+        self.gov_user_3 = GovUser(email='users@email.com', team=team3)
         self.gov_user_2.save()
         self.gov_user_3.save()
 
         self.open_application = self.create_open_application(self.organisation)
         self.open_case = Case.objects.get(application=self.open_application)
 
-        self.standard_case_url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})
-        self.open_case_url = reverse('cases:case_team_advice', kwargs={'pk': self.open_case.id})
+        self.standard_case_url = reverse('cases:case_final_advice', kwargs={'pk': self.standard_case.id})
+        self.open_case_url = reverse('cases:case_final_advice', kwargs={'pk': self.open_case.id})
 
-    def test_advice_is_concatenated_when_team_advice_first_created(self):
-        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, Advice)
-        self.create_advice(self.gov_user_2, self.standard_case, 'end_user', AdviceType.PROVISO, Advice)
-        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, Advice)
-        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, Advice)
+    def test_advice_is_concatenated_when_final_advice_first_created(self):
+        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()['advice']
@@ -43,10 +47,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response_data[0].get('type').get('key'), 'proviso')
         self.assertEqual(response_data[1].get('type').get('key'), 'no_licence_required')
 
-    def test_create_conflicting_team_advice_shows_all_fields(self):
-        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, Advice)
-        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, Advice)
-        self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, Advice)
+    def test_create_conflicting_final_advice_shows_all_fields(self):
+        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()['advice'][0]
@@ -63,7 +67,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         [AdviceType.NO_LICENCE_REQUIRED],
         [AdviceType.NOT_APPLICABLE],
     ])
-    def test_create_end_user_case_team_advice(self, advice_type):
+    def test_create_end_user_case_final_advice(self, advice_type):
         """
         Tests that a gov user can create an approval/proviso/refuse/nlr/not_applicable
         piece of team level advice for an end user
@@ -91,7 +95,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response_data['type']['key'], data['type'])
         self.assertEqual(response_data['end_user'], data['end_user'])
 
-        advice_object = TeamAdvice.objects.get()
+        advice_object = FinalAdvice.objects.get()
 
         # Ensure that proviso details aren't added unless the type sent is PROVISO
         if advice_type != AdviceType.PROVISO:
@@ -110,27 +114,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
                              data['denial_reasons'])
 
-    # User must have permission to create team advice
-    def test_user_cannot_create_team_level_advice_without_permissions(self):
+    # User must have permission to create final advice
+    def test_user_cannot_create_final_advice_without_permissions(self):
         pass
 
-    def test_advice_from_another_team_not_collated(self):
-        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, Advice)
-        team_2 = Team(name='2')
-        team_2.save()
-        self.gov_user_2.team = team_2
-        self.gov_user_2.save()
-        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, Advice)
-
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()['advice']
-
-        # Team 2's advice would conflict with team 1's if both were brought in
-        self.assertNotEqual(response_data[0].get('type').get('key'), 'conflicting')
-        self.assertEqual(response_data[0].get('type').get('key'), 'proviso')
-
-    def test_cannot_submit_user_level_advice_if_team_advice_exists_for_that_team_on_that_case(self):
-        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
+    def test_cannot_submit_user_level_advice_if_final_advice_exists_for_that_team_on_that_case(self):
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
 
         data = {
             'text': 'I Am Easy to Find',
@@ -143,8 +132,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(self):
-        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
+    def test_can_submit_user_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(self):
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -159,8 +148,32 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    # LIST OF THINGS TO TEST
-    # If any team advice exists on case, unable to modify all user-belonging-to-that-team advice on that case
-    # If no team advice exists on case, able to modify all user-belonging-to-that-team advice on that case
-    # Create team advice with appropriate audit + timeline
-    # Edit and delete has some form of audit + timeline
+    def test_cannot_submit_team_level_advice_if_final_advice_exists_for_that_team_on_that_case(self):
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
+
+        data = {
+            'text': 'I Am Easy to Find',
+            'note': 'I Am Easy to Find',
+            'type': AdviceType.APPROVE,
+            'end_user': str(self.standard_application.end_user.id)
+        }
+
+        response = self.client.post(reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_can_submit_team_level_advice_if_final_advice_has_been_cleared_for_that_team_on_that_case(self):
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
+
+        self.client.delete(self.standard_case_url, **self.gov_headers)
+
+        data = {
+            'text': 'I Am Easy to Find',
+            'note': 'I Am Easy to Find',
+            'type': AdviceType.APPROVE,
+            'end_user': str(self.standard_application.end_user.id)
+        }
+
+        response = self.client.post(reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, TeamAdvice
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, TeamAdvice, FinalAdvice
 from clc_queries.serializers import ClcQuerySerializer
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -234,16 +234,16 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
+        if instance.type != AdviceType.CONFLICTING:
+            if instance.type == AdviceType.PROVISO:
+                repr_dict['proviso'] = instance.proviso
+            else:
+                del repr_dict['proviso']
 
-        if instance.type == AdviceType.PROVISO:
-            repr_dict['proviso'] = instance.proviso
-        else:
-            del repr_dict['proviso']
-
-        if instance.type == AdviceType.REFUSE:
-            repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
-        else:
-            del repr_dict['denial_reasons']
+            if instance.type == AdviceType.REFUSE:
+                repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+            else:
+                del repr_dict['denial_reasons']
 
         return repr_dict
 
@@ -254,6 +254,12 @@ class CaseTeamAdviceSerializer(CaseAdviceSerializer):
 
     class Meta:
         model = TeamAdvice
+        fields = '__all__'
+
+
+class CaseFinalAdviceSerializer(CaseAdviceSerializer):
+    class Meta:
+        model = FinalAdvice
         fields = '__all__'
 
 

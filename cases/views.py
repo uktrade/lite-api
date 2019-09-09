@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db import transaction
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -7,19 +9,23 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
+from cases.enums import AdviceType
+from cases.helpers import collate_advice, create_grouped_advice
 from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
     convert_ecju_query_to_activity, add_items_to_activity
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer
+    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, CaseFinalAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
+from end_user.models import EndUser
 from goods.libraries.get_good import get_good, get_goods_from_case
+from goods.models import Good
 from goodstype.helpers import get_goods_types_from_case
 from users.models import ExporterUser
 
@@ -227,6 +233,14 @@ class CaseAdvice(APIView):
         """
         Creates advice for a case
         """
+        if FinalAdvice.objects.filter(case=self.case):
+            return JsonResponse({'errors': 'Final advice already exists for this case'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        if TeamAdvice.objects.filter(case=self.case, team=self.request.user.team):
+            return JsonResponse({'errors': 'Team advice from your team already exists for this case'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
         data = request.data
 
         # Update the case and user in each piece of advice
@@ -248,22 +262,93 @@ class CaseTeamAdvice(APIView):
 
     case = None
     advice = None
+    team_advice = None
     serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
-        self.advice = TeamAdvice.objects.filter(case=self.case)
+        self.advice = Advice.objects.filter(case=self.case)
+        self.team_advice = TeamAdvice.objects.filter(case=self.case)
         self.serializer_object = CaseTeamAdviceSerializer
 
         return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
 
-    # def get(self, request, pk):
-    #     """
-    #     Returns all advice for a case
-    #     """
-    #     serializer = self.serializer_object(self.advice, many=True)
-    #     return JsonResponse({'advice': serializer.data})
-    #
+    def get(self, request, pk):
+        """
+        Concatenates all advice for a case and returns it or just returns if team advice already exists
+        """
+        if len(self.team_advice) == 0:
+            # We pass in the class of advice we are creating
+            team = self.request.user.team
+            advice = self.advice.filter(user__team=team)
+            create_grouped_advice(self.case, self.request, advice, TeamAdvice)
+            team_advice = TeamAdvice.objects.filter(case=self.case, team=team)
+        else:
+            team_advice = self.team_advice
+        serializer = self.serializer_object(team_advice, many=True)
+        return JsonResponse({'advice': serializer.data})
+
+    def post(self, request, pk):
+        """
+        Creates advice for a case
+        """
+        if FinalAdvice.objects.filter(case=self.case):
+            return JsonResponse({'errors': 'Final advice already exists for this case'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+
+        # Update the case and user in each piece of advice
+        for advice in data:
+            advice['case'] = str(self.case.id)
+            advice['user'] = str(request.user.id)
+            advice['team'] = str(request.user.team.id)
+
+        serializer = self.serializer_object(data=data, many=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """
+        Clears team level advice and reopens the advice for user level for that team
+        """
+        self.team_advice.filter(team=self.request.user.team).delete()
+        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
+
+
+class CaseFinalAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    case = None
+    team_advice = None
+    final_advice = None
+    serializer_object = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.case = get_case(kwargs['pk'])
+        self.team_advice = TeamAdvice.objects.filter(case=self.case)
+        self.final_advice = FinalAdvice.objects.filter(case=self.case)
+        self.serializer_object = CaseFinalAdviceSerializer
+
+        return super(CaseFinalAdvice, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        """
+        Concatenates all advice for a case and returns it or just returns if team advice already exists
+        """
+        if len(self.final_advice) == 0:
+            # We pass in the class of advice we are creating
+            create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
+            final_advice = FinalAdvice.objects.filter(case=self.case)
+        else:
+            final_advice = self.final_advice
+        serializer = self.serializer_object(final_advice, many=True)
+        return JsonResponse({'advice': serializer.data})
+
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -283,6 +368,13 @@ class CaseTeamAdvice(APIView):
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """
+        Clears team level advice and reopens the advice for user level for that team
+        """
+        self.final_advice.delete()
+        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 
 class CaseEcjuQueries(APIView):
