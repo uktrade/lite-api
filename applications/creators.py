@@ -56,9 +56,11 @@ def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
     """
-    end_user = EndUser.objects.get(draft=draft)
-    if not end_user:
+    try:
+        end_user = EndUser.objects.get(draft=draft)
+    except EndUser.DoesNotExist:
         errors['end_user'] = get_string('applications.standard.no_end_user_set')
+        end_user = None
 
     end_user_documents_error = check_party_document(end_user)
     if end_user_documents_error:

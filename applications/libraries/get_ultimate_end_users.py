@@ -4,9 +4,9 @@ from parties.models import UltimateEndUser
 
 
 def get_ultimate_end_users(obj):
-    if isinstance(object, Application):
+    if isinstance(obj, Application):
         return UltimateEndUser.objects.filter(application=obj)
-    elif isinstance(object, Draft):
+    elif isinstance(obj, Draft):
         return UltimateEndUser.objects.filter(draft=obj)
     else:
         return list()
