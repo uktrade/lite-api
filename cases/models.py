@@ -9,7 +9,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -96,7 +96,7 @@ class Advice(models.Model):
     goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
+    ultimate_end_user = models.ForeignKey(UltimateEndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
                                           null=True)
 
     # Optional depending on type of advice

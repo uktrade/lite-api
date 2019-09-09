@@ -9,7 +9,7 @@ from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from parties.models import EndUser
+from parties.models import EndUser, UltimateEndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -189,7 +189,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
 
     class Meta:
         model = Advice

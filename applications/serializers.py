@@ -12,7 +12,7 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import EndUser
-from parties.serializers import EndUserSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -113,7 +113,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
     def get_ultimate_end_users(self, application):
         ultimate_end_users = get_ultimate_end_users(application)
-        serializer = EndUserSerializer(ultimate_end_users, many=True)
+        serializer = UltimateEndUserSerializer(ultimate_end_users, many=True)
         return serializer.data
 
     def get_goods_locations(self, obj):
