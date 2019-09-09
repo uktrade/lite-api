@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from django.db import transaction
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -9,8 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
-from cases.enums import AdviceType
-from cases.helpers import collate_advice, create_grouped_advice
+from cases.helpers import create_grouped_advice
 from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
     convert_ecju_query_to_activity, add_items_to_activity
 from cases.libraries.get_case import get_case, get_case_document
@@ -25,9 +22,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from end_user.models import EndUser
 from goods.libraries.get_good import get_good, get_goods_from_case
-from goods.models import Good
 from goodstype.helpers import get_goods_types_from_case
 from users.models import ExporterUser
 
