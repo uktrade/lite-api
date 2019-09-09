@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from parties.enums import PartyType
 from parties.helpers import delete_end_user_and_document_document_if_exists
 from parties.models import UltimateEndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer

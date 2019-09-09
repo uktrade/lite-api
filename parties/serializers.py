@@ -44,7 +44,6 @@ class PartySerializer(serializers.ModelSerializer):
 
 
 class EndUserSerializer(PartySerializer):
-
     sub_type = serializers.ChoiceField(choices=SubType.choices)
 
     class Meta:
@@ -60,7 +59,6 @@ class EndUserSerializer(PartySerializer):
 
 
 class UltimateEndUserSerializer(PartySerializer):
-
     sub_type = serializers.ChoiceField(choices=SubType.choices)
 
     class Meta:
@@ -76,7 +74,6 @@ class UltimateEndUserSerializer(PartySerializer):
 
 
 class ConsigneeSerializer(PartySerializer):
-
     sub_type = serializers.ChoiceField(choices=SubType.choices)
 
     class Meta:
