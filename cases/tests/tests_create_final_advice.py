@@ -5,10 +5,11 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.models import Case, TeamAdvice, FinalAdvice
+from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
 from teams.models import Team
 from test_helpers.clients import DataTestClient
-from users.models import GovUser
+from users.models import GovUser, Role
 
 
 class CreateCaseFinalAdviceTests(DataTestClient):
@@ -18,20 +19,26 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.standard_application = self.create_standard_application(self.organisation)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
-        team2 = Team(name='2')
-        team3 = Team(name='3')
-        team2.save()
-        team3.save()
-        self.gov_user_2 = GovUser(email='user@email.com', team=team2)
-        self.gov_user_3 = GovUser(email='users@email.com', team=team3)
+        team_2 = Team(name='2')
+        team_3 = Team(name='3')
+
+        team_2.save()
+        team_3.save()
+
+        role = Role(name='team_level')
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
+        role.save()
+
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.gov_user_2 = GovUser(email='user@email.com', team=team_2, role=role)
+        self.gov_user_3 = GovUser(email='users@email.com', team=team_3, role=role)
+
         self.gov_user_2.save()
         self.gov_user_3.save()
 
-        self.open_application = self.create_open_application(self.organisation)
-        self.open_case = Case.objects.get(application=self.open_application)
-
         self.standard_case_url = reverse('cases:case_final_advice', kwargs={'pk': self.standard_case.id})
-        self.open_case_url = reverse('cases:case_final_advice', kwargs={'pk': self.open_case.id})
 
     def test_advice_is_concatenated_when_final_advice_first_created(self):
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
@@ -116,7 +123,27 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
     # User must have permission to create final advice
     def test_user_cannot_create_final_advice_without_permissions(self):
-        pass
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        response= self.client.post(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        response= self.client.delete(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_user_can_see_already_created_final_advice_without_additional_permissions(self):
+        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_submit_user_level_advice_if_final_advice_exists_for_that_team_on_that_case(self):
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)

@@ -7,7 +7,8 @@ from cases.enums import AdviceType
 from cases.models import Case, Advice, TeamAdvice
 from conf.helpers import convert_queryset_to_str
 from test_helpers.clients import DataTestClient
-from users.models import GovUser
+from users.models import GovUser, Role, Permission
+from conf.constants import Permissions
 from teams.models import Team
 
 
@@ -18,8 +19,15 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.standard_application = self.create_standard_application(self.organisation)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
-        self.gov_user_2 = GovUser(email='user@email.com', team=self.team)
-        self.gov_user_3 = GovUser(email='users@email.com', team=self.team)
+        role = Role(name='team_level')
+        role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        role.save()
+
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.gov_user_2 = GovUser(email='user@email.com', team=self.team, role=role)
+        self.gov_user_3 = GovUser(email='users@email.com', team=self.team, role=role)
         self.gov_user_2.save()
         self.gov_user_3.save()
 
@@ -112,7 +120,27 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
     # User must have permission to create team advice
     def test_user_cannot_create_team_level_advice_without_permissions(self):
-        pass
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        response = self.client.delete(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_user_can_see_already_created_team_advice_without_additional_permissions(self):
+        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_advice_from_another_team_not_collated(self):
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, Advice)

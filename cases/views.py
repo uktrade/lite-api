@@ -22,6 +22,8 @@ from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSeri
     EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, CaseFinalAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.constants import Permissions
+from conf.permissions import has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from end_user.models import EndUser
 from goods.libraries.get_good import get_good, get_goods_from_case
@@ -279,6 +281,7 @@ class CaseTeamAdvice(APIView):
         """
         if len(self.team_advice) == 0:
             # We pass in the class of advice we are creating
+            has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
@@ -292,6 +295,7 @@ class CaseTeamAdvice(APIView):
         """
         Creates advice for a case
         """
+        has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         if FinalAdvice.objects.filter(case=self.case):
             return JsonResponse({'errors': 'Final advice already exists for this case'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -316,6 +320,7 @@ class CaseTeamAdvice(APIView):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
+        has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         self.team_advice.filter(team=self.request.user.team).delete()
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
@@ -341,6 +346,7 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
+            has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
             final_advice = FinalAdvice.objects.filter(case=self.case)
@@ -353,6 +359,7 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
+        has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         data = request.data
 
         # Update the case and user in each piece of advice
@@ -373,6 +380,7 @@ class CaseFinalAdvice(APIView):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
+        has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
