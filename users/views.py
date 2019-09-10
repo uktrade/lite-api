@@ -159,11 +159,11 @@ class ClcNotificationViewset(generics.ListAPIView):
         # Get all notifications for the current user and organisation on CLC Query cases,
         # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__clc_query_id__isnull=False,
-                                                 case_note__case__clc_query__good__organisation_id=organisation_id)
+                                                 case_note__case__query_id__isnull=False,
+                                                 case_note__case__query__organisation_id=organisation_id)
                                                | Q(user=self.request.user,
-                                                   ecju_query__case__clc_query_id__isnull=False,
-                                                   ecju_query__case__clc_query__good__organisation_id=organisation_id))
+                                                   ecju_query__case__query_id__isnull=False,
+                                                   ecju_query__case__query__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
