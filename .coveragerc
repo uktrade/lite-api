@@ -7,4 +7,6 @@ omit =
     ./*/models.py
     ./*/migrations/*.py
     ./conf/settings.py
+    ./static/management/*
     *test*
+branch = True

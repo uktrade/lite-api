@@ -78,4 +78,4 @@ jobs:
       # Coverage
       - run:
           name: Run Code Coverage
-          command: pipenv run ./manage.py coverage --html=False
+          command: pipenv run ./manage.py coverage

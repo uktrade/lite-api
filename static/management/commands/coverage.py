@@ -19,26 +19,43 @@ class Command(BaseCommand):
         # Named (optional) arguments
         parser.add_argument(
             '--html',
-            help='Open coverage report after it has been collected',
+            help='Specify an HTML format for the report',
+            type=bool
+        )
+
+        parser.add_argument(
+            '--fail-under',
+            help='Value representing what the coverage must exceed in order to pass',
             type=str
         )
 
     def handle(self, *args, **options):
-        bash_script = ['pipenv', 'run', 'coverage', 'run', '--branch', '--source=./', 'manage.py', 'test']
+        self._gather_coverage(options)
+        self._show_report(options)
 
+    def _gather_coverage(self, options):
+        gather_coverage_script = ['pipenv', 'run', 'coverage', 'run', '--source=./', 'manage.py', 'test']
         if options['coverage_to_collect']:
-            bash_script[5] = '--source=./' + options['coverage_to_collect'] + '/'
+            gather_coverage_script[4] = '--source=./' + options['coverage_to_collect'] + '/'
             if options['tests_to_run']:
-                if str(options['tests_to_run']) != 'all':
-                    bash_script.append(options['tests_to_run'])
+                if options['tests_to_run'] != 'all':
+                    gather_coverage_script.append(options['tests_to_run'])
             else:
-                bash_script.append(options['coverage_to_collect'])
+                gather_coverage_script.append(options['coverage_to_collect'])
 
-        print(' '.join(bash_script))
+        print('\n%s%s%s' % ('`', ' '.join(gather_coverage_script), '`\n'))
+        subprocess.call(gather_coverage_script)
 
-        subprocess.call(bash_script)
-        if options['html'] != "False":
-            subprocess.call(['pipenv', 'run', 'coverage', 'html'])
-            subprocess.call(['open', 'htmlcov/index.html'])
+    def _show_report(self, options):
+        report_type = 'html' if options['html'] else 'report'
+        fail_under = options['fail_under'] if options['fail_under'] else '80'
+        report_coverage_script = ['pipenv', 'run', 'coverage', report_type,  '--fail-under=' + fail_under]
+        print('\n%s%s%s' % ('`', ' '.join(report_coverage_script), '`\n'))
+
+        if subprocess.call(report_coverage_script) == 2:
+            print('\n\n--FAILURE--\nCoverage was less than ' + fail_under + '%\n')
         else:
-            subprocess.call(['pipenv', 'run', 'coverage', 'report'])
+            print('\n\n--SUCCESS--\nCoverage was more than ' + fail_under + '%\n')
+
+        if 'html' in report_coverage_script:
+            subprocess.call(['open', 'htmlcov/index.html'])
