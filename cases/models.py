@@ -150,6 +150,7 @@ class TeamAdvice(Advice):
 
 
 class FinalAdvice(Advice):
+    # pylint: disable=W0221
     def save(self, *args, **kwargs):
 
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
