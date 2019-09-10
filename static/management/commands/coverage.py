@@ -45,14 +45,14 @@ class Command(BaseCommand):
             else:
                 gather_coverage_script.append(options['coverage_to_collect'])
 
-        print('\n%s%s%s' % ('`', ' '.join(gather_coverage_script), '`\n'))
+        print('\n`' + (' '.join(gather_coverage_script)) + '`\n')
         subprocess.call(gather_coverage_script)
 
     def _show_report(self, options):
         report_type = 'html' if options['html'] else 'report'
         fail_under = options['fail_under'] if options['fail_under'] else '80'
         report_coverage_script = ['pipenv', 'run', 'coverage', report_type,  '--fail-under=' + fail_under]
-        print('\n%s%s%s' % ('`', ' '.join(report_coverage_script), '`\n'))
+        print('\n`' + (' '.join(report_coverage_script)) + '`\n')
 
         status = subprocess.call(report_coverage_script)
 
