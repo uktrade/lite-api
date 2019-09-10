@@ -99,7 +99,10 @@ def create_grouped_advice(case, request, advice, level):
 def create_advice_audit(case, user, level, action):
     with reversion.create_revision():
         reversion.set_comment(
-            ('{"advice": "' + str(user.first_name) + ' ' + str(user.last_name) + ' ' + action + ' ' + level + ' ' + 'advice"}')
+            ('{"advice": "' + action + ' ' + level + ' ' + 'advice"}')
         )
         reversion.set_user(user)
+
+        # We call save on the case with no changes in order to create our audit comment attached to the
+        # case, not to any individual piece of advice
         case.save()
