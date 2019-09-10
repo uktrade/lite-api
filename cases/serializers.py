@@ -151,14 +151,14 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
-    document_id = serializers.SerializerMethodField()
+    metadata_id = serializers.SerializerMethodField()
 
-    def get_document_id(self, instance):
+    def get_metadata_id(self, instance):
         return instance.id if instance.safe else 'File not ready'
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 'document_id', 'user', 'size', 'case', 'created_at', 'safe', 'description')
+        fields = ('name', 'metadata_id', 'user', 'size', 'case', 'created_at', 'safe', 'description')
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):
