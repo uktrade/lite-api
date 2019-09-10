@@ -1,15 +1,13 @@
 from django.core.management import BaseCommand
 import subprocess
 
-"""
-1. The first argument implies the coverage to be collected
-2. The second argument implies the tests to be run in order to collect that coverage
-3. If a second argument is not supplied, it will default to the same value as the first argument
--- Examples --
-1. `pipenv run ./manage.py cases` will collect coverage on the `cases` app and only run the `cases` tests
-2. `pipenv run ./manage.py cases all` will collect coverage on the `cases` app and and run all tests
-3. `pipenv run ./manage.py cases queues` will collect coverage on the `cases` app and only run the `queues` tests
-"""
+# 1. The first argument implies the coverage to be collected
+# 2. The second argument implies the tests to be run in order to collect that coverage
+# 3. If a second argument is not supplied, it will default to the same value as the first argument
+# -- Examples --
+# 1. `pipenv run ./manage.py cases` will collect coverage on the `cases` app and only run the `cases` tests
+# 2. `pipenv run ./manage.py cases all` will collect coverage on the `cases` app and and run all tests
+# 3. `pipenv run ./manage.py cases queues` will collect coverage on the `cases` app and only run the `queues` tests
 
 
 class Command(BaseCommand):
