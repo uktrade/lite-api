@@ -9,4 +9,5 @@ omit =
     ./conf/settings.py
     ./static/management/*
     *test*
+    .venv/*
 branch = True

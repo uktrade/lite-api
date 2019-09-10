@@ -1,3 +1,5 @@
+import sys
+
 from django.core.management import BaseCommand
 import subprocess
 
@@ -54,6 +56,7 @@ class Command(BaseCommand):
 
         if subprocess.call(report_coverage_script) == 2:
             print('\n\n--FAILURE--\nCoverage was less than ' + fail_under + '%\n')
+            sys.exit(2)
         else:
             print('\n\n--SUCCESS--\nCoverage was more than ' + fail_under + '%\n')
 
