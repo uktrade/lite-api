@@ -83,7 +83,7 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.good:
             goods[advice.good.id].append(advice)
         elif advice.country:
-            countries[advice.coutnry.id].append(advice)
+            countries[advice.country.id].append(advice)
         elif advice.ultimate_end_user:
             ultimate_end_users[advice.coutnry.id].append(advice)
         elif advice.goods_type:

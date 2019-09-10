@@ -333,6 +333,15 @@ class CaseTeamAdvice(APIView):
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 
+class ViewFinalAdvice(APIView):
+    def get(self, request, pk):
+        case = get_case(pk)
+        final_advice = TeamAdvice.objects.filter(case=case)
+
+        serializer = CaseFinalAdviceSerializer(final_advice, many=True)
+        return JsonResponse({'advice': serializer.data})
+
+
 class CaseFinalAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
