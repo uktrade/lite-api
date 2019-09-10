@@ -145,7 +145,7 @@ class TeamAdvice(Advice):
         except TeamAdvice.DoesNotExist:
             pass
 
-        # We override the parent class save() method
+        # We override the parent class save() method so we only delete existing team level objects
         super(Advice, self).save(*args, **kwargs)
 
 
@@ -166,7 +166,7 @@ class FinalAdvice(Advice):
         except FinalAdvice.DoesNotExist:
             pass
 
-        # We override the parent class save() method
+        # We override the parent class save() method so we only delete existing final level objects
         super(Advice, self).save(*args, **kwargs)
 
 
