@@ -52,7 +52,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
-        
+
         if application_field == 'good':
             advice.good = Good.objects.get(pk=key)
         elif application_field == 'end_user':
