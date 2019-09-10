@@ -46,7 +46,7 @@ Service for handling backend calls in LITE.
 2. The second positional argument implies what tests to run in order to collect coverage for the given module:
     - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module from running all tests
     - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module from running the `queues` tests
-3. Providing no positional arguements implies that you want to collect coverage for all modules from running all tests:
+3. Providing no positional arguments implies that you want to collect coverage for all modules from running all tests:
     - `pipenv run ./manage.py coverage`
 
 ## LITE Repositories

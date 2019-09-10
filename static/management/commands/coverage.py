@@ -1,7 +1,7 @@
-import sys
+from subprocess import call as execute_bash_command
+from sys import exit as sys_exit
 
 from django.core.management import BaseCommand
-import subprocess
 
 
 class Command(BaseCommand):
@@ -45,18 +45,18 @@ class Command(BaseCommand):
             gather_coverage_script.append(tests_to_run)
 
         print('\n`' + (' '.join(gather_coverage_script)) + '`\n')
-        subprocess.call(gather_coverage_script)
+        execute_bash_command(gather_coverage_script)
 
     def _show_report(self, report_type, threshold):
         report_coverage_script = ['pipenv', 'run', 'coverage', report_type, '--fail-under=' + threshold]
         print('\n`' + (' '.join(report_coverage_script)) + '`\n')
-        status = subprocess.call(report_coverage_script)
+        status = execute_bash_command(report_coverage_script)
 
         if report_type == 'html':
-            subprocess.call(['open', 'htmlcov/index.html'])
+            execute_bash_command(['open', 'htmlcov/index.html'])
 
         if status == 2:
             print('\n\n--FAILURE--\nCoverage was less than ' + threshold + '%\n')
-            sys.exit(status)
+            sys_exit(status)
         else:
             print('\n\n--SUCCESS--\nCoverage was more than ' + threshold + '%\n')
