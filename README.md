@@ -32,6 +32,23 @@ Service for handling backend calls in LITE.
 
 [Running locally without Docker](docs/without-docker.md)
 
+## Running Tests
+
+- `pipenv run ./manage.py test` will run all tests
+- `pipenv run ./manage.py test cases` will run the `cases` module tests
+
+## Running Code Coverage
+
+- `pipenv run ./manage.py coverage <positional_arg_1> <positional_arg_2>`
+
+1. The first positional argument implies what module you want to collect coverage for:
+    - `pipenv run ./manage.py coverage cases` will collect coverage on the `cases` module from running the `cases` tests
+2. The second positional argument implies what tests to run in order to collect coverage for the given module:
+    - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module from running all tests
+    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module from running the `queues` tests
+3. Providing no positional arguements implies that you want to collect coverage for all modules from running all tests:
+    - `pipenv run ./manage.py coverage`
+
 ## LITE Repositories
 
 **[lite-api](https://github.com/uktrade/lite-api)** - Service for handling backend calls in LITE.
