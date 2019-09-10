@@ -53,7 +53,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response_data["sites"]), 2)
 
     def test_user_cannot_add_another_organisations_site_to_a_draft(self):
-        org2 = self.create_organisation()
+        org2 = self.create_organisation_with_exporter_user()
         site_org2 = org2.primary_site
 
         data = {

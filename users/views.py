@@ -129,12 +129,16 @@ class NotificationViewset(generics.ListAPIView):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
-        # queries
+        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
+        # Get all notifications for the current user and organisation on License Application cases,
+        # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__application_id__isnull=False)
+                                                 case_note__case__application_id__isnull=False,
+                                                 case_note__case__application__organisation_id=organisation_id)
                                                | Q(user=self.request.user,
-                                                   ecju_query__case__application_id__isnull=False))
+                                                   ecju_query__case__application_id__isnull=False,
+                                                   ecju_query__case__application__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
@@ -150,12 +154,16 @@ class ClcNotificationViewset(generics.ListAPIView):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
-        # queries
+        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
+        # Get all notifications for the current user and organisation on CLC Query cases,
+        # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__query_id__isnull=False)
+                                                 case_note__case__query_id__isnull=False,
+                                                 case_note__case__query__good__organisation_id=organisation_id)
                                                | Q(user=self.request.user,
-                                                   ecju_query__case__query_id__isnull=False))
+                                                   ecju_query__case__clc_query_id__isnull=False,
+                                                   ecju_query__case__clc_query__good__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
