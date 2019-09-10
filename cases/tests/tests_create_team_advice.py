@@ -1,15 +1,15 @@
 from django.test import tag
 from django.urls import reverse
-from rest_framework import status
 from parameterized import parameterized
+from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.models import Case, Advice, TeamAdvice
-from conf.helpers import convert_queryset_to_str
-from test_helpers.clients import DataTestClient
-from users.models import GovUser, Role, Permission
 from conf.constants import Permissions
+from conf.helpers import convert_queryset_to_str
 from teams.models import Team
+from test_helpers.clients import DataTestClient
+from users.models import GovUser, Role
 
 
 class CreateCaseTeamAdviceTests(DataTestClient):
