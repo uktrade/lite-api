@@ -7,6 +7,7 @@ from users.libraries.user_to_token import user_to_token
 
 
 class NotificationTests(DataTestClient):
+
     url = reverse_lazy('users:notifications')
 
     def tests_create_new_clc_query_notification(self):
