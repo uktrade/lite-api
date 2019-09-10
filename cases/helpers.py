@@ -22,10 +22,12 @@ def collate_advice(application_field, collection, case, user, advice_class):
                 text += '\n-------\n' + advice.text
             else:
                 text = advice.text
+
             if note:
                 note += '\n-------\n' + advice.note
             else:
                 note = advice.note
+
             if advice.proviso:
                 if proviso:
                     proviso += '\n-------\n' + advice.proviso
@@ -51,13 +53,13 @@ def collate_advice(application_field, collection, case, user, advice_class):
         advice.team = user.team
         if application_field == 'good':
             advice.good = Good.objects.get(pk=key)
-        if application_field == 'end_user':
+        elif application_field == 'end_user':
             advice.end_user = EndUser.objects.get(pk=key)
-        if application_field == 'country':
+        elif application_field == 'country':
             advice.country = Country.objects.get(pk=key)
-        if application_field == 'ultimate_end_user':
+        elif application_field == 'ultimate_end_user':
             advice.ultimate_end_user = EndUser.objects.get(pk=key)
-        if application_field == 'goods_type':
+        elif application_field == 'goods_type':
             advice.goods_type = GoodsType.objects.get(pk=key)
 
         advice.save()
