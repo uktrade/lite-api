@@ -54,11 +54,13 @@ class Command(BaseCommand):
         report_coverage_script = ['pipenv', 'run', 'coverage', report_type,  '--fail-under=' + fail_under]
         print('\n%s%s%s' % ('`', ' '.join(report_coverage_script), '`\n'))
 
-        if subprocess.call(report_coverage_script) == 2:
+        status = subprocess.call(report_coverage_script)
+
+        if options['html']:
+            subprocess.call(['open', 'htmlcov/index.html'])
+
+        if status == 2:
             print('\n\n--FAILURE--\nCoverage was less than ' + fail_under + '%\n')
             sys.exit(2)
         else:
             print('\n\n--SUCCESS--\nCoverage was more than ' + fail_under + '%\n')
-
-        if 'html' in report_coverage_script:
-            subprocess.call(['open', 'htmlcov/index.html'])
