@@ -1,13 +1,12 @@
 import json
 
 import reversion
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication, ExporterAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -26,12 +25,18 @@ class ControlListClassificationsList(APIView):
         good = get_good(data['good_id'])
         data['organisation'] = request.user.organisation
 
-        good.status = GoodStatus.SUBMITTED
-        if data['not_sure_details_control_code'] == '':
-            return JsonResponse(data={'errors': {
-                'not_sure_details_control_code': [ErrorDetail('This field may not be blank.', code='blank')]
-            }}, status=status.HTTP_400_BAD_REQUEST)
+        # A CLC Query can only be created if the good is in draft status
+        if good.status != GoodStatus.DRAFT:
+            raise Http404
 
+        if data['not_sure_details_control_code'] == '':
+            return JsonResponse(data={
+                'errors': {
+                    'not_sure_details_control_code': ['This field may not be blank.']
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        good.status = GoodStatus.CLC_QUERY
         good.control_code = data['not_sure_details_control_code']
         good.save()
 
@@ -44,7 +49,7 @@ class ControlListClassificationsList(APIView):
 
 
 class ControlListClassificationDetail(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def put(self, request, pk):
         """

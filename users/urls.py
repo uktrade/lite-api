@@ -1,13 +1,8 @@
 from django.urls import path
-from rest_framework import routers
 
 from users import views
 
 app_name = 'users'
-
-router = routers.SimpleRouter()
-router.register(r'notifications', views.NotificationViewset,)
-router.register(r'clc_notifications', views.ClcNotificationViewset,)
 
 urlpatterns = [
     # ex: /users/
@@ -18,4 +13,8 @@ urlpatterns = [
     path('<uuid:pk>/', views.UserDetail.as_view(), name='user'),
     # ex: /users/me/
     path('me/', views.UserMeDetail.as_view(), name='me'),
-] + router.urls
+    # ex: /notifications/
+    path('notifications/', views.NotificationViewset.as_view(), name='notifications'),
+    # ex: /clc_notifications/
+    path('clc_notifications/', views.ClcNotificationViewset.as_view(), name='clc_notifications'),
+]

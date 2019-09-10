@@ -19,7 +19,8 @@ class ClcQuerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ['id', 'details', 'good', 'submitted_at', 'organisation']
+        fields = ['id', 'details', 'good', 'submitted_at', 'organisation',
+                  'comment', 'report_summary']
 
 
 class ClcQueryResponseSerializer(serializers.ModelSerializer):
@@ -44,7 +45,7 @@ class ClcQueryResponseSerializer(serializers.ModelSerializer):
             instance.good.control_code = validated_data.get('control_code')
         else:
             instance.good.control_code = ''
-        instance.good.status = GoodStatus.FINAL
+        instance.good.status = GoodStatus.VERIFIED
         instance.good.save()
 
         instance.save()

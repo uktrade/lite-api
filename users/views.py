@@ -2,7 +2,7 @@ import reversion
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -121,7 +121,7 @@ class UserDetail(APIView):
                                 status=400)
 
 
-class NotificationViewset(viewsets.ModelViewSet):
+class NotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = NotificationsSerializer
     authentication_classes = (ExporterAuthentication,)
@@ -142,7 +142,7 @@ class NotificationViewset(viewsets.ModelViewSet):
         return queryset
 
 
-class ClcNotificationViewset(viewsets.ModelViewSet):
+class ClcNotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = ClcNotificationsSerializer
     authentication_classes = (ExporterAuthentication,)

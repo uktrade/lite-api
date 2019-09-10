@@ -77,7 +77,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.report_summary, self.report_summary.text)
         self.assertEqual(self.query.good.control_code, data['control_code'])
         self.assertEqual(self.query.good.is_good_controlled, str(data['is_good_controlled']))
-        self.assertEqual(self.query.good.status, GoodStatus.FINAL)
+        self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
@@ -98,7 +98,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.report_summary, self.report_summary.text)
         self.assertEqual(self.query.good.control_code, '')
         self.assertEqual(self.query.good.is_good_controlled, str(data['is_good_controlled']))
-        self.assertEqual(self.query.good.status, GoodStatus.FINAL)
+        self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """

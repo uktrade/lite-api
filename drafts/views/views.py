@@ -30,6 +30,7 @@ class DraftList(APIView):
         serializer = DraftCreateSerializer(data=data)
 
         if serializer.is_valid():
+            print(data)
             serializer.save()
             return JsonResponse(data={'draft': serializer.data},
                                 status=status.HTTP_201_CREATED)

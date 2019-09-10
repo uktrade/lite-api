@@ -25,7 +25,7 @@ from users.models import ExporterUser
 
 
 class CaseDetail(APIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
         """
