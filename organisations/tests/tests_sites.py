@@ -13,7 +13,7 @@ class OrganisationSitesTests(DataTestClient):
 
         # Create an additional organisation and site to ensure
         # that only sites from the first organisation are shown
-        self.create_organisation('New Org')
+        self.create_organisation_with_exporter_user('New Org')
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()

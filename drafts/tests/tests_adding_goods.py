@@ -30,7 +30,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data['goods']), 1)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
-        organisation_2 = self.create_organisation()
+        organisation_2 = self.create_organisation_with_exporter_user()
         draft = self.create_draft(self.organisation)
         good = self.create_controlled_good('test', organisation_2)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1', s3_key='doc3')
