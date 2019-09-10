@@ -204,3 +204,16 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         response = self.client.post(reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @tag('only')
+    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self):
+        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
+
+        self.client.get(self.standard_case_url, **self.gov_headers)
+        self.client.delete(self.standard_case_url, **self.gov_headers)
+
+        response = self.client.get(reverse('cases:activity', kwargs={'pk': self.standard_case.id}), **self.gov_headers)
+
+        self.assertEqual(len(response.json()['activity']), 2)

@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+import reversion
+
 from cases.enums import AdviceType
 from end_user.models import EndUser
 from goods.models import Good
@@ -31,17 +33,21 @@ def collate_advice(application_field, collection, case, user, advice_class):
                     proviso = advice.proviso
             for denial_reason in advice.denial_reasons.values_list('id', flat=True):
                 denial_reasons.append(denial_reason)
+
             if type:
                 if type != advice.type:
                     type = AdviceType.CONFLICTING
             else:
                 type = advice.type
+
         advice = advice_class(text=text,
                               case=case,
                               note=note,
                               proviso=proviso,
                               user=user,
                               type=type)
+
+        # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
         if application_field == 'good':
             advice.good = Good.objects.get(pk=key)
@@ -53,6 +59,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
             advice.ultimate_end_user = EndUser.objects.get(pk=key)
         if application_field == 'goods_type':
             advice.goods_type = GoodsType.objects.get(pk=key)
+
         advice.save()
         advice.denial_reasons.set(denial_reasons)
 
@@ -83,3 +90,12 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice('country', countries.items(), case, request.user, level)
     collate_advice('ultimate_end_user', ultimate_end_users.items(), case, request.user, level)
     collate_advice('goods_type', goods_types.items(), case, request.user, level)
+
+
+def create_advice_audit(case, user, level, action):
+    with reversion.create_revision():
+        reversion.set_comment(
+            ('{"advice": "' + str(user.first_name) + ' ' + str(user.last_name) + ' ' + action + ' ' + level + ' ' + 'advice"}')
+        )
+        reversion.set_user(user)
+        case.save()

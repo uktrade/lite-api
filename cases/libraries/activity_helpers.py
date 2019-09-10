@@ -17,6 +17,7 @@ CASE_NOTE = 'case_note'
 ECJU_QUERY = 'ecju_query'
 CHANGE_CASE_FLAGS = 'change_case_flags'
 CHANGE_GOOD_FLAGS = 'change_good_flags'
+UPDATE_CASE_ADVICE = 'update_case_advice'
 
 
 def _activity_item(activity_type, date, user, data, status=None):
@@ -77,6 +78,9 @@ def convert_case_reversion_to_activity(version: Version):
         if 'flags' in comment:
             data['flags'] = comment['flags']
             activity_type = CHANGE_CASE_FLAGS
+        elif 'advice' in comment:
+            data['advice'] = comment['advice']
+            activity_type = UPDATE_CASE_ADVICE
     except ValueError:
         if activity_type == CHANGE and 'status' in activity:
             data['status'] = get_case_status_from_pk(activity['status']).status

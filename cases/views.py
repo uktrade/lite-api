@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
-from cases.helpers import create_grouped_advice
+from cases.helpers import create_grouped_advice, create_advice_audit
 from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
     convert_ecju_query_to_activity, add_items_to_activity
 from cases.libraries.get_case import get_case, get_case_document
@@ -291,6 +291,7 @@ class CaseTeamAdvice(APIView):
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
+            create_advice_audit(self.case, self.request.user, 'team', 'created')
             team_advice = TeamAdvice.objects.filter(case=self.case, team=team)
         else:
             team_advice = self.team_advice
@@ -328,6 +329,7 @@ class CaseTeamAdvice(APIView):
         """
         has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         self.team_advice.filter(team=self.request.user.team).delete()
+        create_advice_audit(self.case, self.request.user, 'team', 'cleared')
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 
@@ -355,6 +357,7 @@ class CaseFinalAdvice(APIView):
             has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
+            create_advice_audit(self.case, self.request.user, 'final', 'created')
             final_advice = FinalAdvice.objects.filter(case=self.case)
         else:
             final_advice = self.final_advice
@@ -388,6 +391,7 @@ class CaseFinalAdvice(APIView):
         """
         has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
+        create_advice_audit(self.case, self.request.user, 'final', 'cleared')
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 
