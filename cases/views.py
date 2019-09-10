@@ -215,7 +215,10 @@ class CaseAdvice(APIView):
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
-        self.advice = Advice.objects.filter(case=self.case)
+        # We exclude any team of final level advice objects
+        self.advice = Advice.objects.filter(case=self.case)\
+            .exclude(teamadvice__isnull=False)\
+            .exclude(finaladvice__isnull=False)
         self.serializer_object = CaseAdviceSerializer
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
@@ -336,7 +339,7 @@ class CaseTeamAdvice(APIView):
 class ViewFinalAdvice(APIView):
     def get(self, request, pk):
         case = get_case(pk)
-        final_advice = TeamAdvice.objects.filter(case=case)
+        final_advice = FinalAdvice.objects.filter(case=case)
 
         serializer = CaseFinalAdviceSerializer(final_advice, many=True)
         return JsonResponse({'advice': serializer.data})

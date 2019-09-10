@@ -205,7 +205,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @tag('only')
     def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self):
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, Advice)
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, Advice)
@@ -217,3 +216,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response = self.client.get(reverse('cases:activity', kwargs={'pk': self.standard_case.id}), **self.gov_headers)
 
         self.assertEqual(len(response.json()['activity']), 2)
+
+    def test_creating_team_advice_does_not_overwrite_user_level_advice(self):
+        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+
+        self.client.get(self.standard_case_url, **self.gov_headers)
+
+        self.assertEqual(Advice.objects.count(), 2)

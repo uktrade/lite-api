@@ -145,11 +145,29 @@ class TeamAdvice(Advice):
         except TeamAdvice.DoesNotExist:
             pass
 
-        super(TeamAdvice, self).save(*args, **kwargs)
+        # We override the parent class save() method
+        super(Advice, self).save(*args, **kwargs)
 
 
 class FinalAdvice(Advice):
-    pass
+    def save(self, *args, **kwargs):
+
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
+            self.proviso = None
+
+        try:
+            existing_object = FinalAdvice.objects.get(case=self.case,
+                                                      good=self.good,
+                                                      goods_type=self.goods_type,
+                                                      country=self.country,
+                                                      end_user=self.end_user,
+                                                      ultimate_end_user=self.ultimate_end_user)
+            existing_object.delete()
+        except FinalAdvice.DoesNotExist:
+            pass
+
+        # We override the parent class save() method
+        super(Advice, self).save(*args, **kwargs)
 
 
 class EcjuQuery(models.Model):

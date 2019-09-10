@@ -85,9 +85,9 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.country:
             countries[advice.country.id].append(advice)
         elif advice.ultimate_end_user:
-            ultimate_end_users[advice.coutnry.id].append(advice)
+            ultimate_end_users[advice.ultimate_end_user.id].append(advice)
         elif advice.goods_type:
-            goods_types[advice.coutnry.id].append(advice)
+            goods_types[advice.goods_type.id].append(advice)
 
     collate_advice('end_user', end_users.items(), case, request.user, level)
     collate_advice('good', goods.items(), case, request.user, level)
