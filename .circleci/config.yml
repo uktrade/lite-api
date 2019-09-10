@@ -78,6 +78,4 @@ jobs:
       # Coverage
       - run:
           name: Run Code Coverage
-          command: pipenv run ./manage.py coverage --open=False
-      - store_artifacts:
-          path: htmlcov
+          command: pipenv run ./manage.py coverage --html=False

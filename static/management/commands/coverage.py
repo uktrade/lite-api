@@ -18,14 +18,13 @@ class Command(BaseCommand):
 
         # Named (optional) arguments
         parser.add_argument(
-            '--open',
+            '--html',
             help='Open coverage report after it has been collected',
             type=str
         )
 
     def handle(self, *args, **options):
         bash_script = ['pipenv', 'run', 'coverage', 'run', '--branch', '--source=./', 'manage.py', 'test']
-        print(options['open'])
 
         if options['coverage_to_collect']:
             bash_script[5] = '--source=./' + options['coverage_to_collect'] + '/'
@@ -38,6 +37,8 @@ class Command(BaseCommand):
         print(' '.join(bash_script))
 
         subprocess.call(bash_script)
-        subprocess.call(['pipenv', 'run', 'coverage', 'html'])
-        if options['open'] != "False":
+        if options['html'] != "False":
+            subprocess.call(['pipenv', 'run', 'coverage', 'html'])
             subprocess.call(['open', 'htmlcov/index.html'])
+        else:
+            subprocess.call(['pipenv', 'run', 'coverage', 'report'])
