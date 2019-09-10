@@ -61,7 +61,12 @@ jobs:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
         
-      # run tests!
+      # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
+      - run:
+          name: Run Linting
+          command: pipenv run prospector
+
+      # Tests
       # this example uses Django's built-in test-runner
       # other common Python testing frameworks include pytest and nose
       # https://pytest.org
@@ -70,7 +75,7 @@ jobs:
           name: Run Unit Tests
           command: pipenv run ./manage.py test --parallel
 
-      # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
+      # Coverage
       - run:
-          name: Run Linting
-          command: pipenv run prospector
+          name: Run Code Coverage
+          command: pipenv run ./manage.py coverage --open=False

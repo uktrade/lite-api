@@ -1,7 +1,4 @@
 [run]
-include =
-    ./*/*.py
-
 omit =
     ./*/apps.py
     ./*/admin.py
