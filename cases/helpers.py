@@ -17,6 +17,8 @@ def collate_advice(application_field, collection, case, user, advice_class):
         denial_reasons = []
         type = None
 
+        # TODO: matching advice remove duplicates
+
         for advice in value:
             if text:
                 text += '\n-------\n' + advice.text
