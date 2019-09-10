@@ -24,6 +24,7 @@ from conf.permissions import has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goods.libraries.get_good import get_good, get_goods_from_case
 from goodstype.helpers import get_goods_types_from_case
+from teams.helpers import get_team_by_pk
 from users.models import ExporterUser
 
 
@@ -252,6 +253,16 @@ class CaseAdvice(APIView):
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ViewTeamAdvice(APIView):
+    def get(self, request, pk, team_pk):
+        case = get_case(pk)
+        team = get_team_by_pk(team_pk)
+        team_advice = TeamAdvice.objects.filter(case=case, team=team)
+
+        serializer = CaseTeamAdviceSerializer(team_advice, many=True)
+        return JsonResponse({'advice': serializer.data})
 
 
 class CaseTeamAdvice(APIView):

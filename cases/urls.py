@@ -19,6 +19,8 @@ urlpatterns = [
     path('<uuid:pk>/advice/', views.CaseAdvice.as_view(), name='case_advice'),
     # ex: /cases/<uuid:pk>/team-advice/
     path('<uuid:pk>/team-advice/', views.CaseTeamAdvice.as_view(), name='case_team_advice'),
+    # ex: /cases/<uuid:pk>/team-advice/<uuid:team_pk>/
+    path('<uuid:pk>/team-advice/<uuid:team_pk>', views.ViewTeamAdvice.as_view(), name='view_team_advice'),
     # ex: /cases/<uuid:pk>/final-advice/
     path('<uuid:pk>/final-advice/', views.CaseFinalAdvice.as_view(), name='case_final_advice'),
     # ex: /cases/<uuid:pk>/ecju-queries/

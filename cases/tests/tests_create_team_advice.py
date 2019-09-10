@@ -142,6 +142,24 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_user_can_view_other_teams_advice(self):
+        self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, TeamAdvice)
+
+        team_2 = Team(name='2')
+        team_2.save()
+        self.gov_user.team = team_2
+        self.gov_user.save()
+
+        # Looks at the advice from the created which created it, using a user from another team
+        url = reverse('cases:view_team_advice', kwargs={'pk': self.standard_case.id, 'team_pk': self.team.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response.json()['advice']), 2)
+
     def test_advice_from_another_team_not_collated(self):
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, Advice)
         team_2 = Team(name='2')
@@ -186,9 +204,3 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response = self.client.post(reverse('cases:case_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    # LIST OF THINGS TO TEST
-    # If any team advice exists on case, unable to modify all user-belonging-to-that-team advice on that case
-    # If no team advice exists on case, able to modify all user-belonging-to-that-team advice on that case
-    # Create team advice with appropriate audit + timeline
-    # Edit and delete has some form of audit + timeline
