@@ -4,7 +4,7 @@ from rest_framework import status
 
 from conf.constants import Permissions
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from users.models import Role, Permission
 
 
 class RolesAndPermissionsTests(DataTestClient):
@@ -51,7 +51,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['permissions']), 1)
+        self.assertEqual(len(response_data['permissions']), Permission.objects.count())
 
     def tests_edit_a_role(self):
         role_id = '00000000-0000-0000-0000-000000000001'
