@@ -33,6 +33,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
                     proviso += '\n-------\n' + advice.proviso
                 else:
                     proviso = advice.proviso
+
             for denial_reason in advice.denial_reasons.values_list('id', flat=True):
                 denial_reasons.append(denial_reason)
 
