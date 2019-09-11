@@ -40,7 +40,7 @@ class GovUserEditTests(DataTestClient):
 
     def tests_change_role_of_a_gov_user(self):
         role = Role(name='some role')
-        role.permissions.set([Permission.objects.get(name='Make final decisions').id])
+        role.permissions.set([Permission.objects.get(name='Manage final advice').id])
         role.save()
         data = {
             'role': role.id

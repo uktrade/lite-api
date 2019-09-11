@@ -131,7 +131,7 @@ class ApplicationDetail(APIView):
             data = json.loads(request.body)
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-            if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
+            if data.get('status') == CaseStatusEnum.FINALISED:
                 has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
             request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)

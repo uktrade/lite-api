@@ -17,7 +17,7 @@ class CaseActivityTests(DataTestClient):
 
     def test_cannot_make_final_decision_without_permission(self):
         data = {
-            'status': CaseStatusEnum.APPROVED,
+            'status': CaseStatusEnum.FINALISED,
         }
 
         response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
@@ -32,7 +32,7 @@ class CaseActivityTests(DataTestClient):
         self.gov_user.save()
 
         data = {
-            'status': CaseStatusEnum.APPROVED,
+            'status': CaseStatusEnum.FINALISED,
         }
 
         response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
