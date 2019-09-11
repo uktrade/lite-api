@@ -26,7 +26,7 @@ class CaseActivityTests(DataTestClient):
 
     def tests_can_record_final_decision_with_correct_permissions(self):
         role = Role(name='some')
-        role.permissions.set([Permission.objects.get(id='MAKE_FINAL_DECISIONS').id])
+        role.permissions.set([Permission.objects.get(id='MANAGE_FINAL_ADVICE').id])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

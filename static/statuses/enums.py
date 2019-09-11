@@ -15,8 +15,7 @@ class CaseStatusEnum:
     UNDER_FINAL_REVIEW = 'under_final_review'
     RESUBMITTED = 'resubmitted'
     WITHDRAWN = 'withdrawn'
-    APPROVED = 'approved'
-    DECLINED = 'declined'
+    FINALISED = 'finalised'
 
     choices = [
         (SUBMITTED, 'Submitted'),
@@ -25,8 +24,7 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, 'Under final review'),
         (RESUBMITTED, 'Resubmitted'),
         (WITHDRAWN, 'Withdrawn'),
-        (APPROVED, 'Approved'),
-        (DECLINED, 'Declined'),
+        (FINALISED, 'finalised'),
     ]
 
     priorities = {
@@ -36,6 +34,5 @@ class CaseStatusEnum:
         UNDER_REVIEW: 4,
         UNDER_FINAL_REVIEW: 5,
         WITHDRAWN: 6,
-        APPROVED: 7,
-        DECLINED: 8,
+        FINALISED: 7
     }
