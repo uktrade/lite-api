@@ -254,6 +254,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
                   'question',
                   'response',
                   'case',
+                  'raised_by_user',
                   'responded_by_user',
                   'created_at',
                   'responded_at')
