@@ -106,14 +106,14 @@ class RemoveDraftUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    def delete(self, request, pk, ueu_pk):
+    def delete(self, request, pk, eu_pk):
         """
         delete the ultimate end user from the draft
         """
         organisation = get_organisation_by_user(request.user)
         draft = get_draft(pk)
         try:
-            end_user = EndUser.objects.get(id=ueu_pk)
+            end_user = EndUser.objects.get(id=eu_pk)
             if end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)

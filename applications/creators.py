@@ -5,6 +5,7 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
     GoodOnApplication
 from content_strings.strings import get_string
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
+from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
 from end_user.document.models import EndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
@@ -51,6 +52,15 @@ def check_end_user_document(end_user):
     return None
 
 
+def check_ultimate_end_user_documents(draft):
+    ultimate_end_users = get_ultimate_end_users(draft)
+    for ultimate_end_user in ultimate_end_users:
+        error = check_end_user_document(ultimate_end_user)
+        if error:
+            return error
+    return None
+
+
 def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
@@ -61,6 +71,10 @@ def create_standard_licence(draft, application, errors):
     end_user_documents_error = check_end_user_document(draft.end_user)
     if end_user_documents_error:
         errors['end_user_document'] = end_user_documents_error
+
+    ultimate_end_user_documents_error = check_ultimate_end_user_documents(draft)
+    if ultimate_end_user_documents_error:
+        errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
