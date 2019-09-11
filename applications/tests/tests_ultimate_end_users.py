@@ -33,10 +33,12 @@ class ApplicationUltimateEndUserTests(DataTestClient):
 
     def test_submit_draft_with_ultimate_end_users_success(self):
         self.draft.ultimate_end_users.add(str(self.end_user.id))
+        self.create_document_for_end_user(end_user=self.end_user,
+                                          name='file343.pdf',
+                                          safe=True)
 
         data = {'id': self.draft.id}
         response = self.client.post(self.url, data, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(str(Application.objects.get().ultimate_end_users.values_list('id', flat=True)[0]), str(self.end_user.id))

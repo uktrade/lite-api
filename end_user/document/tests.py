@@ -1,4 +1,5 @@
 from unittest import mock
+from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework import status
@@ -94,14 +95,14 @@ class EndUserDocumentTests(DataTestClient):
         And the draft contains an end user
         And the end user does not have a document attached
         When there is an attempt to get a document
-        Then a 200 OK is returned
+        Then a 404 NOT FOUND is returned
         And the response contains a null document
         """
         # act
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
         self.assertEqual(None, response.json()['document'])
 
     @mock.patch('documents.tasks.prepare_document.now')
