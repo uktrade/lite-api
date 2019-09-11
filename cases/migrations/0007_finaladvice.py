@@ -11,6 +11,7 @@ def init(apps, schema_editor):
         permission = Permission(id='MANAGE_FINAL_ADVICE',
                                 name='Manage final advice')
         permission.save()
+        Permission.objects.get(id='MAKE_FINAL_DECISIONS').delete()
 
 
 class Migration(migrations.Migration):
