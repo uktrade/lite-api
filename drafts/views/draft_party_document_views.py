@@ -11,7 +11,7 @@ from parties.serializers import EndUserDocumentSerializer, UltimateEndUserDocume
 from drafts.libraries.get_party import get_end_user, get_ultimate_end_user
 
 
-def _return_post_repsonse(serializer):
+def _return_post_response(serializer):
     if serializer.is_valid():
         serializer.save()
         return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
@@ -58,7 +58,7 @@ class EndUserDocumentView(APIView):
         data['end_user'] = end_user.id
         serializer = EndUserDocumentSerializer(data=data)
 
-        return _return_post_repsonse(serializer)
+        return _return_post_response(serializer)
 
     @swagger_auto_schema(
         request_body=EndUserDocumentSerializer,
@@ -103,24 +103,23 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def post(self, request, pk):
+    def post(self, request, pk, ueu_pk):
         """
         Adds a document to the specified end user
         """
-        end_user = get_end_user(pk)
-        if not end_user:
-            return JsonResponse(data={'error': 'No such user'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        ultimate_end_user = get_ultimate_end_user(ueu_pk)
+        if not ultimate_end_user:
+            return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
-        if end_user_documents:
+        documents = UltimateEndUserDocument.objects.filter(ultimate_end_user=ultimate_end_user)
+        if documents:
             return JsonResponse(data={'error': 'Document already exists'},
                                 status=status.HTTP_400_BAD_REQUEST)
         data = request.data
-        data['end_user'] = end_user.id
+        data['ultimate_end_user'] = ultimate_end_user.id
         serializer = UltimateEndUserDocumentSerializer(data=data)
 
-        return _return_post_repsonse(serializer)
+        return _return_post_response(serializer)
 
     @swagger_auto_schema(
         request_body=UltimateEndUserDocument,

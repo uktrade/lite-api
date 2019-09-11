@@ -52,8 +52,8 @@ urlpatterns = [
         name='remove_ultimate_end_user'
     ),
     path(
-        '<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
-        draft_party_document_views.UltimateEndUserDocumentsView.as_view(),
+        route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
+        view=draft_party_document_views.UltimateEndUserDocumentsView.as_view(),
         name='ultimate_end_user_document'
     ),
     path(
