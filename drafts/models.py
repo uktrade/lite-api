@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from parties.models import EndUser, UltimateEndUser, Consignee
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
@@ -28,6 +28,7 @@ class Draft(models.Model):
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='draft_ultimate_end_users')
     consignee = models.ForeignKey(Consignee, related_name='draft_consignee', on_delete=models.CASCADE,
                                   default=None, blank=True, null=True)
+    third_parties = models.ManyToManyField(ThirdParty, related_name='draft_third_parties')
 
 
 class GoodOnDraft(models.Model):
