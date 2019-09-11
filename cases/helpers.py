@@ -98,7 +98,6 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice('goods_type', goods_types.items(), case, request.user, level)
 
 
-# TODO: update audit trail message to fit with standards and how it will be displayed on the frontend
 def create_advice_audit(case, user, level, action):
     with reversion.create_revision():
         reversion.set_comment(
