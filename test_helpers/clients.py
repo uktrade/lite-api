@@ -63,10 +63,12 @@ class DataTestClient(BaseTestClient):
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        self.organisation = self.create_organisation()
+        self.organisation = self.create_organisation_with_exporter_user()
         self.exporter_user = ExporterUser.objects.get()
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
-                                 'HTTP_ORGANISATION_ID': self.organisation.id}
+        self.exporter_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+            'HTTP_ORGANISATION_ID': self.organisation.id
+        }
 
         self.queue = Queue.objects.get(team=self.team)
 
@@ -87,7 +89,7 @@ class DataTestClient(BaseTestClient):
 
         return exporter_user
 
-    def create_organisation(self, name='Organisation'):
+    def create_organisation_with_exporter_user(self, name='Organisation'):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
@@ -104,6 +106,11 @@ class DataTestClient(BaseTestClient):
         self.create_exporter_user(organisation)
 
         return organisation
+
+    @staticmethod
+    def add_exporter_user_to_org(organisation, exporter_user):
+        UserOrganisationRelationship(user=exporter_user,
+                                     organisation=organisation).save()
 
     @staticmethod
     def create_site(name, org):
@@ -174,7 +181,7 @@ class DataTestClient(BaseTestClient):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft):
+    def submit_draft(self, draft: Draft, headers=None):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}

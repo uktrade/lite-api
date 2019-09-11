@@ -166,14 +166,14 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
-    s3_key = serializers.SerializerMethodField()
+    metadata_id = serializers.SerializerMethodField()
 
-    def get_s3_key(self, instance):
-        return instance.s3_key if instance.safe else 'File not ready'
+    def get_metadata_id(self, instance):
+        return instance.id if instance.safe else 'File not ready'
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 's3_key', 'user', 'size', 'case', 'created_at', 'safe', 'description')
+        fields = ('name', 'metadata_id', 'user', 'size', 'case', 'created_at', 'safe', 'description')
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):

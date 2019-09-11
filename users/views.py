@@ -2,7 +2,7 @@ import reversion
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -121,7 +121,7 @@ class UserDetail(APIView):
                                 status=400)
 
 
-class NotificationViewset(viewsets.ModelViewSet):
+class NotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = NotificationsSerializer
     authentication_classes = (ExporterAuthentication,)
@@ -129,12 +129,16 @@ class NotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
-        # queries
+        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
+        # Get all notifications for the current user and organisation on License Application cases,
+        # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__application_id__isnull=False)
+                                                 case_note__case__application_id__isnull=False,
+                                                 case_note__case__application__organisation_id=organisation_id)
                                                | Q(user=self.request.user,
-                                                   ecju_query__case__application_id__isnull=False))
+                                                   ecju_query__case__application_id__isnull=False,
+                                                   ecju_query__case__application__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
@@ -142,7 +146,7 @@ class NotificationViewset(viewsets.ModelViewSet):
         return queryset
 
 
-class ClcNotificationViewset(viewsets.ModelViewSet):
+class ClcNotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = ClcNotificationsSerializer
     authentication_classes = (ExporterAuthentication,)
@@ -150,12 +154,16 @@ class ClcNotificationViewset(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        # Get all notifications on CLC Query cases, both those arising from case notes and those arising from ECJU
-        # queries
+        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+
+        # Get all notifications for the current user and organisation on CLC Query cases,
+        # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__clc_query_id__isnull=False)
+                                                 case_note__case__clc_query_id__isnull=False,
+                                                 case_note__case__clc_query__good__organisation_id=organisation_id)
                                                | Q(user=self.request.user,
-                                                   ecju_query__case__clc_query_id__isnull=False))
+                                                   ecju_query__case__clc_query_id__isnull=False,
+                                                   ecju_query__case__clc_query__good__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
