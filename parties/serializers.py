@@ -3,7 +3,7 @@ from rest_framework import serializers, relations
 from documents.libraries.process_document import process_document
 from parties.document.models import EndUserDocument
 from parties.enums import PartyType, SubType
-from parties.models import Party, EndUser, UltimateEndUser, Consignee
+from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 from organisations.models import Organisation
 from static.countries.models import Country
 
@@ -79,6 +79,21 @@ class ConsigneeSerializer(PartySerializer):
         consignee.type = PartyType.CONSIGNEE
         consignee.save()
         return consignee
+
+
+class ThirdPartySerializer(PartySerializer):
+    sub_type = serializers.ChoiceField(choices=SubType.choices)
+
+    class Meta:
+        model = ThirdParty
+
+        fields = '__all__'
+
+    def create(self, validated_data):
+        third_party = super(ThirdPartySerializer, self).create(validated_data)
+        third_party.type = PartyType.THIRD
+        third_party.save()
+        return third_party
 
 
 class EndUserDocumentSerializer(serializers.ModelSerializer):

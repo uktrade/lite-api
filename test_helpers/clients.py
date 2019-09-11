@@ -323,10 +323,10 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_end_user(draft.end_user, safe=safe_document)
 
         return draft
 

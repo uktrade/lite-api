@@ -23,16 +23,16 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue('UK Government' in self.draft.ultimate_end_users.values_list()[0])
+        self.assertEqual(self.draft.ultimate_end_users.first().name, 'UK Government')
 
-        id = self.draft.ultimate_end_users.values_list()[0][0]
+        ueu_id = self.draft.ultimate_end_users.first().id
 
-        url = reverse('drafts:remove_ultimate_end_users', kwargs={'pk': self.draft.id, 'ueu_pk': str(id)})
+        url = reverse('drafts:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 0)
+        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
         data = [
@@ -55,7 +55,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         for ultimate_end_user in data:
             self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
 
-        self.assertEqual(len(self.draft.ultimate_end_users.values_list()), 2)
+        self.assertEqual(self.draft.ultimate_end_users.count(), 2)
 
     def test_unsuccessful_add_ultimate_end_user(self):
         data = {

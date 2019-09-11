@@ -40,8 +40,7 @@ class ApplicationUltimateEndUserTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(str(Application.objects.get().ultimate_end_users.values_list('id', flat=True)[0]),
-                         str(ultimate_end_user.id))
+        self.assertEqual(Application.objects.get().ultimate_end_users.first(), ultimate_end_user)
 
     def test_submit_draft_with_no_ultimate_end_users_unsuccessful(self):
         """

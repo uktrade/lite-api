@@ -10,7 +10,7 @@ from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
 from parties.models import EndUser, UltimateEndUser
-from parties.serializers import EndUserSerializer, UltimateEndUserSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -54,7 +54,7 @@ class DraftEndUser(APIView):
 
 class DraftUltimateEndUsers(APIView):
     """
-    Set and remove ultimate end users from the draft
+    Set/Get ultimate end users to/from a draft
     """
     authentication_classes = (ExporterAuthentication,)
 
@@ -133,3 +133,76 @@ class RemoveDraftUltimateEndUsers(APIView):
             ultimate_end_user.delete()
 
             return JsonResponse(data={'ultimate_end_user': 'deleted'})
+
+
+class DraftConsignee(APIView):
+    """
+    Set the consignee of a draft application
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    def post(self, request, pk):
+        organisation = get_organisation_by_user(request.user)
+        data = JSONParser().parse(request)
+        draft = get_draft(pk)
+        data['organisation'] = str(organisation.id)
+
+        with reversion.create_revision():
+            serializer = ConsigneeSerializer(data=data)
+            if serializer.is_valid():
+                new_consignee = serializer.save()
+
+                # Reversion
+                reversion.set_user(request.user)
+                reversion.set_comment('Created Consignee User')
+
+                # Delete previous consignee
+                if draft.new_consignee:
+                    draft.new_consignee.delete()
+
+                # Set the end user of the draft application
+                draft.consignee = new_consignee
+                draft.save()
+
+                return JsonResponse(data={'consignee': serializer.data},
+                                    status=status.HTTP_201_CREATED)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=400)
+
+
+class DraftThirdParties(APIView):
+    """
+    Set the third parties of a draft application
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    def post(self, request, pk):
+        """
+        Create and add a third party to a draft
+        """
+        organisation = get_organisation_by_user(request.user)
+        data = JSONParser().parse(request)
+        draft = get_draft(pk)
+        data['organisation'] = str(organisation.id)
+
+        with reversion.create_revision():
+            serializer = ThirdPartySerializer(data=data)
+            if serializer.is_valid():
+                third_party = serializer.save()
+
+                # Reversion
+                reversion.set_user(request.user)
+                reversion.set_comment("Created Third Party")
+
+                # Set the end user of the draft application
+                draft.third_parties.add(str(third_party.id))
+
+                draft.save()
+
+                return JsonResponse(data={'third_party': serializer.data},
+                                    status=status.HTTP_201_CREATED)
+
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
