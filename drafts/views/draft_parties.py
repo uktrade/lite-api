@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
-from parties.models import UltimateEndUser
+from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
@@ -121,9 +121,9 @@ class RemoveDraftUltimateEndUser(APIView):
         with reversion.create_revision():
             # Reversion
             reversion.set_user(request.user)
-            reversion.set_comment("Deleted End User")
+            reversion.set_comment("Deleted Ultimate End User")
 
-            # Set the end user of the draft application
+            # Set the ultimate end user of the draft application
             draft.ultimate_end_users.remove(str(ultimate_end_user.id))
             draft.save()
 
@@ -155,8 +155,8 @@ class DraftConsignee(APIView):
                 reversion.set_comment('Created Consignee User')
 
                 # Delete previous consignee
-                if draft.new_consignee:
-                    draft.new_consignee.delete()
+                if draft.consignee:
+                    draft.consignee.delete()
 
                 # Set the end user of the draft application
                 draft.consignee = new_consignee
@@ -203,3 +203,39 @@ class DraftThirdParties(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+
+class RemoveThirdParty(APIView):
+    """
+    Remove a third party from a draft and delete the record (deletion won't happen in the future)
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    def delete(self, request, pk, tp_pk):
+        """
+        Delete the third party from the draft
+        """
+        organisation = get_organisation_by_user(request.user)
+        draft = get_draft(pk)
+        try:
+            third_party = ThirdParty.objects.get(pk=tp_pk)
+            if third_party.organisation != organisation:
+                return JsonResponse(data={'errors': 'request invalid'},
+                                    status=400)
+        except ThirdParty.DoesNotExist:
+            return JsonResponse(data={'errors': 'request invalid'},
+                                status=400)
+
+        with reversion.create_revision():
+            # Reversion
+            reversion.set_user(request.user)
+            reversion.set_comment("Deleted Third Party")
+
+            # Set the third party of the draft application
+            draft.third_parties.remove(str(third_party.id))
+            draft.save()
+
+            third_party.delete()
+
+            return JsonResponse(data={'third_party': 'deleted'})

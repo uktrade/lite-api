@@ -11,8 +11,8 @@ from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from parties.document.models import EndUserDocument, UltimateEndUserDocument
-from parties.enums import SubType, PartyType
-from parties.models import EndUser, UltimateEndUser
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -161,6 +161,31 @@ class DataTestClient(BaseTestClient):
 
         return ultimate_end_user
 
+    @staticmethod
+    def create_consignee(name, organisation):
+        consignee = Consignee(name=name,
+                              organisation=organisation,
+                              address='42 Road, London, Buckinghamshire',
+                              website='www.' + name + '.com',
+                              sub_type=SubType.GOVERNMENT,
+                              type=PartyType.CONSIGNEE,
+                              country=get_country('GB'))
+        consignee.save()
+
+        return consignee
+
+    @staticmethod
+    def create_third_party(name, organisation):
+        third_party = ThirdParty(name=name,
+                                 organisation=organisation,
+                                 address='42 Road, London, Buckinghamshire',
+                                 website='www.' + name + '.com',
+                                 sub_type=ThirdPartySubType.AGENT,
+                                 type=PartyType.THIRD,
+                                 country=get_country('GB'))
+        third_party.save()
+        return third_party
+
     def create_clc_query_case(self, name, status=None):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
@@ -307,7 +332,7 @@ class DataTestClient(BaseTestClient):
 
     # Drafts
 
-    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+    def create_draft(self, organisation=None, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                      reference_name='Standard Draft'):
         draft = Draft(name=reference_name,
                       licence_type=licence_type,

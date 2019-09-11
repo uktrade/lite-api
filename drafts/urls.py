@@ -67,6 +67,11 @@ urlpatterns = [
         name='third_parties'
     ),
     path(
+        route='<uuid:pk>/third-parties/<uuid:tp_pk>',
+        view=draft_parties.RemoveThirdParty.as_view(),
+        name='remove_third_party'
+    ),
+    path(
         '<uuid:pk>/sites/',
         draft_sites_views.DraftSites.as_view(),
         name='draft_sites'
