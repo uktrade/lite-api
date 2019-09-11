@@ -44,7 +44,7 @@ class CountriesOnDraftTests(DataTestClient):
         """
         Ensure that a user cannot add countries to another organisation's draft
         """
-        organisation_2 = self.create_organisation()
+        organisation_2 = self.create_organisation_with_exporter_user()
         self.draft = self.create_standard_draft(organisation_2)
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 

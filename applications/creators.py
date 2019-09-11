@@ -4,10 +4,12 @@ from rest_framework import status
 from applications.models import CountryOnApplication, SiteOnApplication, ExternalLocationOnApplication, \
     GoodOnApplication
 from content_strings.strings import get_string
+from documents.models import Document
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from parties.document.models import EndUserDocument
+from parties.document.models import EndUserDocument, UltimateEndUserDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
+from parties.models import UltimateEndUser, EndUser
 
 
 def create_goods_for_applications(draft, application):
@@ -39,15 +41,31 @@ def create_external_location_for_application(draft, application):
         external_location_on_application.save()
 
 
-def check_end_user_document(end_user):
+def check_party_document(party):
     try:
-        end_user_document = EndUserDocument.objects.get(end_user=end_user)
-        if end_user_document.safe is None:
+        document = None
+        if isinstance(party, EndUser):
+            document = EndUserDocument.objects.get(end_user=party)
+        elif isinstance(party, UltimateEndUser):
+            document = UltimateEndUserDocument.objects.get(ultimate_end_user=party)
+
+        if not document:
+            return get_string('applications.standard.no_end_user_document_set')
+        elif document.safe is None:
             return get_string('applications.standard.end_user_document_processing')
-        elif not end_user_document.safe:
+        elif not document.safe:
             return get_string('applications.standard.end_user_document_infected')
-    except EndUserDocument.DoesNotExist:
+    except Document.DoesNotExist:
         return get_string('applications.standard.no_end_user_document_set')
+    return None
+
+
+def check_ultimate_end_user_documents_for_draft(draft):
+    ultimate_end_users = draft.ultimate_end_users.all()
+    for ultimate_end_user in ultimate_end_users:
+        error = check_party_document(ultimate_end_user)
+        if error:
+            return error
     return None
 
 
@@ -58,9 +76,13 @@ def create_standard_licence(draft, application, errors):
     if not draft.end_user:
         errors['end_user'] = get_string('applications.standard.no_end_user_set')
 
-    end_user_documents_error = check_end_user_document(draft.end_user)
+    end_user_documents_error = check_party_document(draft.end_user)
     if end_user_documents_error:
         errors['end_user_document'] = end_user_documents_error
+
+    ultimate_end_user_documents_error = check_ultimate_end_user_documents_for_draft(draft)
+    if ultimate_end_user_documents_error:
+        errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')

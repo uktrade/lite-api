@@ -10,7 +10,7 @@ from cases.models import CaseNote, Case, CaseDocument
 from clc_queries.models import ClcQuery
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from parties.document.models import EndUserDocument
+from parties.document.models import EndUserDocument, UltimateEndUserDocument
 from parties.enums import SubType, PartyType
 from parties.models import EndUser, UltimateEndUser
 from flags.models import Flag
@@ -62,10 +62,12 @@ class DataTestClient(BaseTestClient):
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        self.organisation = self.create_organisation()
+        self.organisation = self.create_organisation_with_exporter_user()
         self.exporter_user = ExporterUser.objects.get()
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
-                                 'HTTP_ORGANISATION_ID': self.organisation.id}
+        self.exporter_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+            'HTTP_ORGANISATION_ID': self.organisation.id
+        }
 
         self.queue = Queue.objects.get(team=self.team)
 
@@ -86,7 +88,7 @@ class DataTestClient(BaseTestClient):
 
         return exporter_user
 
-    def create_organisation(self, name='Organisation'):
+    def create_organisation_with_exporter_user(self, name='Organisation'):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
@@ -103,6 +105,11 @@ class DataTestClient(BaseTestClient):
         self.create_exporter_user(organisation)
 
         return organisation
+
+    @staticmethod
+    def add_exporter_user_to_org(organisation, exporter_user):
+        UserOrganisationRelationship(user=exporter_user,
+                                     organisation=organisation).save()
 
     @staticmethod
     def create_site(name, org):
@@ -187,7 +194,7 @@ class DataTestClient(BaseTestClient):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft):
+    def submit_draft(self, draft: Draft, headers=None):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
@@ -223,6 +230,19 @@ class DataTestClient(BaseTestClient):
     def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
         end_user_document = EndUserDocument(
             end_user=end_user,
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
+        )
+        end_user_document.save()
+        return end_user_document
+
+    @staticmethod
+    def create_document_for_ultimate_end_user(ultimate_end_user: UltimateEndUser, name='document_name.pdf', safe=True):
+        end_user_document = UltimateEndUserDocument(
+            ultimate_end_user=ultimate_end_user,
             name=name,
             s3_key='s3_keykey.pdf',
             size=123456,

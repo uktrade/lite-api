@@ -1,7 +1,7 @@
 from django.urls import path
 
-from drafts.views import draft_sites_views, draft_end_user_views, views, draft_external_locations_views, draft_goods, \
-    draft_countries, draft_end_user_document_views
+from drafts.views import draft_sites_views, draft_parties, views, draft_external_locations_views, draft_goods, \
+    draft_countries, draft_party_document_views
 
 app_name = 'drafts'
 
@@ -33,32 +33,37 @@ urlpatterns = [
     ),
     path(
         route='<uuid:pk>/end-user/',
-        view=draft_end_user_views.DraftEndUser.as_view(),
+        view=draft_parties.DraftEndUser.as_view(),
         name='end_user'
     ),
     path(
         route='<uuid:pk>/end-user/document/',
-        view=draft_end_user_document_views.EndUserDocuments.as_view(),
+        view=draft_party_document_views.EndUserDocumentView.as_view(),
         name='end_user_document'
     ),
     path(
         route='<uuid:pk>/ultimate-end-users/',
-        view=draft_end_user_views.DraftUltimateEndUsers.as_view(),
+        view=draft_parties.DraftUltimateEndUsers.as_view(),
         name='ultimate_end_users'
     ),
     path(
         route='<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>',
-        view=draft_end_user_views.RemoveDraftUltimateEndUsers.as_view(),
+        view=draft_parties.RemoveDraftUltimateEndUser.as_view(),
         name='remove_ultimate_end_user'
     ),
     path(
+        '<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
+        draft_party_document_views.UltimateEndUserDocumentsView.as_view(),
+        name='ultimate_end_user_document'
+    ),
+    path(
         route='<uuid:pk>/consignee/',
-        view=draft_end_user_views.DraftConsignee.as_view(),
+        view=draft_parties.DraftConsignee.as_view(),
         name='consignee'
     ),
     path(
         route='<uuid:pk>/third-parties/',
-        view=draft_end_user_views.DraftThirdParties.as_view(),
+        view=draft_parties.DraftThirdParties.as_view(),
         name='third_parties'
     ),
     path(
@@ -75,5 +80,5 @@ urlpatterns = [
         route='<uuid:pk>/countries/',
         view=draft_countries.DraftCountries.as_view(),
         name='countries'
-    ),
+    )
 ]

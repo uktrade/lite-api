@@ -1,4 +1,5 @@
 from unittest import mock
+from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework import status
@@ -7,6 +8,7 @@ from parties.document.models import EndUserDocument
 from test_helpers.clients import DataTestClient
 
 test_file = "dog.jpg"
+
 
 # TODO: Fix S3 mocking for running tests in CircleCI
 
@@ -22,8 +24,8 @@ class EndUserDocumentTests(DataTestClient):
         self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
 
         self.data = {"name": test_file,
-                 "s3_key": test_file,
-                 "size": 476}
+                     "s3_key": test_file,
+                     "size": 476}
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_correct_data_get_document(self, prepare_document_function):
@@ -93,14 +95,14 @@ class EndUserDocumentTests(DataTestClient):
         And the draft contains an end user
         And the end user does not have a document attached
         When there is an attempt to get a document
-        Then a 200 OK is returned
+        Then a 404 NOT FOUND is returned
         And the response contains a null document
         """
         # act
         response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
 
         # assert
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
         self.assertEqual(None, response.json()['document'])
 
     @mock.patch('documents.tasks.prepare_document.now')
@@ -118,7 +120,7 @@ class EndUserDocumentTests(DataTestClient):
         # assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_status_code_delete_document_not_exist(self):
+    def test_status_code_delete_document_user_does_not_exist(self):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
@@ -126,7 +128,7 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # act
-        response = self.client.delete(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.delete(self.url_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

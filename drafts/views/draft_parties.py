@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
 from parties.helpers import delete_end_user_document_if_exists
-from parties.models import EndUser, UltimateEndUser
+from parties.models import UltimateEndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
@@ -47,7 +47,7 @@ class DraftEndUser(APIView):
                 return JsonResponse(data={'end_user': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
-            return JsonResponse(data={'errors': serializer.errors},
+            return JsonResponse(data={'errodrafts/urls.pyrs': serializer.errors},
                                 status=400)
 
 
@@ -96,9 +96,9 @@ class DraftUltimateEndUsers(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
 
-class RemoveDraftUltimateEndUsers(APIView):
+class RemoveDraftUltimateEndUser(APIView):
     """
-    Remove ultimate end users from a draft and delete the record (deletion won't happen in the future)
+    Remove an ultimate end user from a draft and delete the record (deletion won't happen in the future)
     """
     authentication_classes = (ExporterAuthentication,)
 
@@ -114,7 +114,7 @@ class RemoveDraftUltimateEndUsers(APIView):
             if ultimate_end_user.organisation != organisation:
                 return JsonResponse(data={'errors': 'request invalid'},
                                     status=400)
-        except EndUser.DoesNotExist:
+        except UltimateEndUser.DoesNotExist:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 

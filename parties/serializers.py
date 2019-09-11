@@ -1,7 +1,7 @@
 from rest_framework import serializers, relations
 
 from documents.libraries.process_document import process_document
-from parties.document.models import EndUserDocument
+from parties.document.models import EndUserDocument, UltimateEndUserDocument
 from parties.enums import PartyType, SubType
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 from organisations.models import Organisation
@@ -101,10 +101,24 @@ class EndUserDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EndUserDocument
-        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'safe')
+        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'safe',)
 
     def create(self, validated_data):
         end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)
         end_user_document.save()
         process_document(end_user_document)
         return end_user_document
+
+
+class UltimateEndUserDocumentSerializer(serializers.ModelSerializer):
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all())
+
+    class Meta:
+        model = UltimateEndUserDocument
+        fields = ('id', 'name', 's3_key', 'size', 'ultimate_end_user', 'safe',)
+
+    def create(self, validated_data):
+        ultimate_end_user_document = super(UltimateEndUserDocumentSerializer, self).create(validated_data)
+        ultimate_end_user_document.save()
+        process_document(ultimate_end_user_document)
+        return ultimate_end_user_document
