@@ -224,3 +224,21 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.client.get(self.standard_case_url, **self.gov_headers)
 
         self.assertEqual(Advice.objects.count(), 2)
+
+
+    @parameterized.expand([
+        [AdviceType.APPROVE],
+        [AdviceType.PROVISO],
+        [AdviceType.REFUSE],
+        [AdviceType.NO_LICENCE_REQUIRED],
+        [AdviceType.NOT_APPLICABLE],
+    ])
+    @tag('only')
+    def test_coalesce_merges_duplicate_advice_instead_of_appending_it_simple(self, advice_type):
+        self.create_advice(self.gov_user_2, self.standard_case, 'good', advice_type, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, 'good', advice_type, Advice)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()['advice']
+
+        self.assertNotIn('\n-------\n', response_data[0]['text'])

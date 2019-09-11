@@ -9,6 +9,25 @@ from goodstype.models import GoodsType
 from static.countries.models import Country
 
 
+def filter_out_duplicates(advice_list):
+    matches = False
+    filtered_items = []
+    for advice in advice_list:
+        for item in filtered_items:
+            if advice.type == item.type \
+                    and advice.text == item.text \
+                    and advice.note == item.note \
+                    and advice.proviso == item.proviso \
+                    and [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]:
+                matches = True
+            else:
+                matches = False
+        if matches is False:
+            filtered_items.append(advice)
+
+    return filtered_items
+
+
 def collate_advice(application_field, collection, case, user, advice_class):
     for key, value in collection:
         text = None
@@ -17,9 +36,9 @@ def collate_advice(application_field, collection, case, user, advice_class):
         denial_reasons = []
         type = None
 
-        # TODO: matching advice remove duplicates
+        filtered_items = filter_out_duplicates(value)
 
-        for advice in value:
+        for advice in filtered_items:
             if text:
                 text += '\n-------\n' + advice.text
             else:

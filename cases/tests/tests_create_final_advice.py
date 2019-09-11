@@ -217,7 +217,6 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.assertEqual(len(response.json()['activity']), 2)
 
-    @tag('only')
     def test_creating_final_advice_does_not_overwrite_user_level_advice_or_team_level_advice(self):
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, Advice)
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
