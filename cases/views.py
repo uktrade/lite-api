@@ -36,7 +36,8 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case)
+        serializer = CaseDetailSerializer(case, context=request)
+
         return JsonResponse(data={'case': serializer.data})
 
     @swagger_auto_schema(
@@ -288,7 +289,7 @@ class CaseTeamAdvice(APIView):
         """
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
-        if len(self.team_advice) == 0:
+        if len(self.team_advice.filter(team=request.user.team)) == 0:
             # We pass in the class of advice we are creating
             has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
             team = self.request.user.team

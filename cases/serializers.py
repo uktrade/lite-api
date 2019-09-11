@@ -90,19 +90,30 @@ class TinyCaseSerializer(serializers.Serializer):
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
+    clc_query = ClcQuerySerializer(read_only=True)
     queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    clc_query = ClcQuerySerializer(read_only=True)
+    has_advice = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'clc_query',)
+        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'clc_query', 'has_advice')
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
+
+    def get_has_advice(self, instance):
+        has_advice = {'team': False, 'my_team': False, 'final': False}
+        if TeamAdvice.objects.filter(case=instance).first():
+            has_advice['team'] = True
+        if TeamAdvice.objects.filter(case=instance, team=self.context.user.team).first():
+            has_advice['my_team'] = True
+        if FinalAdvice.objects.filter(case=instance).first():
+            has_advice['final'] = True
+        return has_advice
 
     def validate_queues(self, attrs):
         if not attrs:
