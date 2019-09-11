@@ -49,7 +49,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         super().setUp()
         self.report_summary = self.create_picklist_item('Report Summary',
                                                         self.team,
-                                                        PicklistType.ANNUAL_REPORT_SUMMARY,
+                                                        PicklistType.REPORT_SUMMARY,
                                                         PickListStatus.ACTIVE)
 
         self.query = self.create_clc_query('This is a widget', self.organisation)
