@@ -46,7 +46,8 @@ class ControlListClassificationsList(APIView):
                                                                   organisation=data['organisation'])
         clc_query.save()
 
-        return JsonResponse(data={'id': clc_query.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': clc_query.id, 'case_id': clc_query.case.get().id},
+                            status=status.HTTP_201_CREATED)
 
 
 class ControlListClassificationDetail(APIView):
