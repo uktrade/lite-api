@@ -107,6 +107,8 @@ def create_standard_licence(draft, application, errors):
     # Save associated end users, goods and sites
     application.end_user = draft.end_user
     application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
+    application.consignee = draft.consignee
+    application.third_parties.set(draft.third_parties.values_list('id', flat=True))
     application.save()
 
     create_goods_for_applications(draft, application)
