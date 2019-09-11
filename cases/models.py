@@ -128,6 +128,7 @@ class TeamAdvice(Advice):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
 
     # pylint: disable=W0221
+    # pylint: disable=E1003
     def save(self, *args, **kwargs):
 
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
@@ -151,6 +152,7 @@ class TeamAdvice(Advice):
 
 class FinalAdvice(Advice):
     # pylint: disable=W0221
+    # pylint: disable=E1003
     def save(self, *args, **kwargs):
 
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
