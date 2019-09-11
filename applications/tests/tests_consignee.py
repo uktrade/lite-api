@@ -36,7 +36,7 @@ class ApplicationConsigneeTests(DataTestClient):
                                                    name='file343.pdf',
                                                    safe=True)
 
-        consignee = self.create_consignee("Third party", self.organisation)
+        consignee = self.create_consignee("Consignee", self.organisation)
         self.draft.consignee = consignee
         self.draft.save()
 
