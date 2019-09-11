@@ -12,6 +12,7 @@ from end_user.models import EndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
@@ -158,4 +159,5 @@ class Notification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    clc_query = models.ForeignKey(ControlListClassificationQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
