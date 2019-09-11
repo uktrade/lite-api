@@ -145,7 +145,7 @@ class EcjuQuery(models.Model):
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = self.case.query.good.organisation \
+            organisation = self.case.query.organisation \
                 if self.case.query else self.case.application.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(ecju_query=self)

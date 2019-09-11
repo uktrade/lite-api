@@ -1,5 +1,6 @@
 import json
 
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -151,6 +152,28 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data['ecju_query_id'])
         self.assertEqual('Test ECJU Query question?', ecju_query.question)
+
+    @tag('only')
+    def test_gov_user_can_create_ecju_queries_on_query_cases(self):
+        """
+        Given a query case
+        When a gov user adds an ECJU query to the case with valid data
+        Then the request is successful and the ECJU query is saved
+        """
+        case = self.create_clc_query('Query', self.organisation).case.get()
+        post_url = reverse('cases:case_ecju_queries', kwargs={'pk': case.id})
+        data = {
+            'question': 'Test ECJU Query question?'
+        }
+
+        # Act
+        response = self.client.post(post_url, data, **self.gov_headers)
+        response_data = json.loads(response.content)
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(str(ecju_query.id), response_data['ecju_query_id'])
+        self.assertEqual(ecju_query.question, data['question'])
 
     def test_bad_data_create_fail(self):
         """
