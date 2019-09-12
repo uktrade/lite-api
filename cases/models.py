@@ -1,3 +1,4 @@
+import re
 import uuid
 
 import reversion
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
+from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from documents.models import Document
 from end_user.models import EndUser
 from flags.models import Flag
@@ -161,3 +163,58 @@ class Notification(models.Model):
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     clc_query = models.ForeignKey(ControlListClassificationQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+
+class BaseActivity(models.Model):
+    text = models.TextField()
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    type = models.CharField(max_length=50)
+
+    @classmethod
+    def _replace_placeholders(cls, activity_type, activity_types, **kwargs):
+        """
+        Replaces placeholders in activity_type with parameters given
+        """
+        # Get the placeholder for the supplied activity_type
+        text = activity_types.get_text(activity_type)
+        placeholders = re.findall('{(.*)}', text)
+
+        # Raise an exception if the wrong amount of kwargs are given
+        if len(placeholders) != len(kwargs):
+            raise Exception('Incorrect number of values for activity_type, expected ' +
+                            str(len(placeholders)) + ', got ' + str(len(kwargs)))
+
+        # Raise an exception if all the placeholder parameters are not provided
+        for placeholder in placeholders:
+            if placeholder not in kwargs:
+                raise Exception(f'{placeholder} not provided in parameters for activity type: {activity_type}')
+
+        # Loop over kwargs, if type is list, convert to comma delimited string
+        for key, value in kwargs.items():
+            if isinstance(value, list):
+                kwargs[key] = ', '.join(value)
+
+        # Format text by replacing the placeholders with values using kwargs given
+        text = text.format(**kwargs)
+
+        return text + '.'
+
+
+class CaseActivity(BaseActivity):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
+
+    @classmethod
+    def create(cls, activity_type, case, user, **kwargs):
+        # If activity_type isn't valid, raise an exception
+        if activity_type not in [x[0] for x in CaseActivityType.choices]:
+            raise Exception(f'{activity_type} isn\'t in CaseActivityType')
+
+        text = cls._replace_placeholders(activity_type, CaseActivityType, **kwargs)
+
+        activity = cls(type=activity_type,
+                       text=text,
+                       user=user,
+                       case=case)
+        activity.save()
+        return activity
