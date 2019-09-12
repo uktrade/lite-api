@@ -87,7 +87,7 @@ class UltimateEndUserDocumentsView(APIView):
 
     def get(self, request, pk, ueu_pk):
         """
-        Returns document for the specified end user
+        Returns document for the specified ultimate end user
         """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         if not ultimate_end_user:
@@ -105,7 +105,7 @@ class UltimateEndUserDocumentsView(APIView):
     @transaction.atomic()
     def post(self, request, pk, ueu_pk):
         """
-        Adds a document to the specified end user
+        Adds a document to the specified ultimate end user
         """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         if not ultimate_end_user:
@@ -129,7 +129,7 @@ class UltimateEndUserDocumentsView(APIView):
     @transaction.atomic()
     def delete(self, request, pk):
         """
-        Deletes a document from the specified end user
+        Deletes a document from the specified ultimate end user
         """
         ultimate_end_user = get_ultimate_end_user(pk)
         if not ultimate_end_user:
