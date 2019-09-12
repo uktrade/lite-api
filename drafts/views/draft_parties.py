@@ -175,6 +175,15 @@ class DraftThirdParties(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
+    def get(self, request, pk):
+        """
+        Get ultimate end users associated with a draft
+        """
+        draft = get_draft(pk)
+
+        serializer = ThirdPartySerializer(draft.third_parties, many=True)
+        return JsonResponse(data={'third_parties': serializer.data})
+
     def post(self, request, pk):
         """
         Create and add a third party to a draft
