@@ -37,7 +37,6 @@ class ClcQueryUpdateSerializer(serializers.ModelSerializer):
             'id',
             'status')
 
-    # pylint: disable = W0221
     def update(self, instance, partial):
         instance.status = partial.get('status', instance.status)
         instance.save()
