@@ -1,0 +1,6 @@
+inherits:
+  - strictness_medium
+
+pylint:
+  disable:
+    - W0221
