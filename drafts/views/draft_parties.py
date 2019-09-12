@@ -84,12 +84,12 @@ class DraftUltimateEndUsers(APIView):
                 reversion.set_user(request.user)
                 reversion.set_comment("Created End User")
 
-                # Set the end user of the draft application
+                # Set the ultimate end user of the draft application
                 draft.ultimate_end_users.add(str(ultimate_end_user.id))
 
                 draft.save()
 
-                return JsonResponse(data={'end_user': serializer.data},
+                return JsonResponse(data={'ultimate_end_user': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
             return JsonResponse(data={'errors': serializer.errors},
