@@ -47,7 +47,6 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
-    # pylint: disable=W0221
     def save(self, *args, **kwargs):
         try:
             ExporterUser.objects.get(id=self.user.id)
@@ -103,7 +102,6 @@ class Advice(models.Model):
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
 
-    # pylint: disable=W0221
     def save(self, *args, **kwargs):
         if self.type is not AdviceType.PROVISO:
             self.proviso = None
@@ -138,7 +136,6 @@ class EcjuQuery(models.Model):
     responded_by_user = models.ForeignKey(ExporterUser, related_name='exportuser_ecju_query', on_delete=models.CASCADE,
                                           default=None, null=True)
 
-    # pylint: disable=W0221
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
 
