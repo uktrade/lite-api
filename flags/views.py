@@ -25,8 +25,8 @@ class FlagsList(APIView):
         """
         Returns list of all flags
         """
-        level = request.GET.get('level', None)
-        team = request.GET.get('team', None)
+        level = request.GET.get('level', None)  # Case, Good
+        team = request.GET.get('team', None)  # True, False
 
         flags = Flag.objects.all()
 
