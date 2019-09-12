@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.exceptions import NotFoundError
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
 
@@ -11,8 +12,12 @@ class DocumentDetail(APIView):
 
     def get(self, request, pk):
         """
-        Returns a list of documents on the specified good
+        Returns document metadata
         """
-        document = Document.objects.get(id=pk)
-        serializer = DocumentViewSerializer(document)
-        return JsonResponse({'document': serializer.data})
+        try:
+            document = Document.objects.get(id=pk)
+            serializer = DocumentViewSerializer(document)
+            return JsonResponse({'document': serializer.data})
+        except Document.DoesNotExist:
+            raise NotFoundError({'document': 'Document not found'})
+
