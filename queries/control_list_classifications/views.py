@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
@@ -65,9 +67,10 @@ class ControlListClassificationDetail(APIView):
 
             if serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
-                    reversion.set_comment('Updated CLC Query Details')
-                    reversion.set_user(request.user)
-                    serializer.save()
+                    # Add an activity item for the query's case
+                    CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
+                                        case=query.case.get(),
+                                        user=request.user)
 
                     # Send a notification to the user
                     for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
