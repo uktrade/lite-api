@@ -32,6 +32,8 @@ class PartySerializer(serializers.ModelSerializer):
         docs = None
         if instance.type == PartyType.END:
             docs = EndUserDocument.objects.filter(end_user=instance).values()
+        elif instance.type == PartyType.ULTIMATE:
+            docs = UltimateEndUserDocument.objects.filter(ultimate_end_user=instance).values()
 
         return docs[0] if docs else None
 
