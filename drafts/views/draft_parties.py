@@ -14,10 +14,10 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 class DraftEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Create an end user and add it to a draft
-    """
     def post(self, request, pk):
+        """
+        Create an end user and add it to a draft
+        """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         draft = get_draft(pk)
@@ -45,19 +45,19 @@ class DraftEndUser(APIView):
 class DraftUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Get ultimate end users associated with a draft
-    """
     def get(self, request, pk):
+        """
+        Get ultimate end users associated with a draft
+        """
         draft = get_draft(pk)
         serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
 
         return JsonResponse(data={'ultimate_end_users': serializer.data})
 
-    """
-    Create an ultimate end user and add it to a draft
-    """
     def post(self, request, pk):
+        """
+        Create an ultimate end user and add it to a draft
+        """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         draft = get_draft(pk)
@@ -79,10 +79,10 @@ class DraftUltimateEndUsers(APIView):
 class DraftConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Create a consignee and add it to a draft
-    """
     def post(self, request, pk):
+        """
+        Create a consignee and add it to a draft
+        """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         draft = get_draft(pk)
@@ -110,19 +110,19 @@ class DraftConsignee(APIView):
 class DraftThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Get third parties associated with a draft
-    """
     def get(self, request, pk):
+        """
+        Get third parties associated with a draft
+        """
         draft = get_draft(pk)
         serializer = ThirdPartySerializer(draft.third_parties, many=True)
 
         return JsonResponse(data={'third_parties': serializer.data})
 
-    """
-    Create a third party and add it to a draft
-    """
     def post(self, request, pk):
+        """
+        Create a third party and add it to a draft
+        """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         draft = get_draft(pk)
@@ -144,11 +144,10 @@ class DraftThirdParties(APIView):
 class RemoveDraftUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Delete an ultimate end user and remove it from the draft
-    """
     def delete(self, request, pk, ueu_pk):
-
+        """
+        Delete an ultimate end user and remove it from the draft
+        """
         organisation = get_organisation_by_user(request.user)
         draft = get_draft(pk)
 
@@ -172,10 +171,10 @@ class RemoveDraftUltimateEndUser(APIView):
 class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    """
-    Delete a third party and remove it from the draft
-    """
     def delete(self, request, pk, tp_pk):
+        """
+        Delete a third party and remove it from the draft
+        """
         organisation = get_organisation_by_user(request.user)
         draft = get_draft(pk)
 
