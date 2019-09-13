@@ -1,26 +1,21 @@
 from django.db import transaction
-from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from reversion.models import Version
 
-from cases.libraries.activity_helpers import convert_case_reversion_to_activity, convert_case_note_to_activity, \
-    convert_ecju_query_to_activity, add_items_to_activity
+from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.libraries.get_ecju_queries import get_ecju_query, get_ecju_queries_from_case
+from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, CaseActivity
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from goods.libraries.get_good import get_good, get_goods_from_case
-from goodstype.helpers import get_goods_types_from_case
 from users.models import ExporterUser
 
 
@@ -52,8 +47,13 @@ class CaseDetail(APIView):
             for initial_queue in initial_queues:
                 if str(initial_queue) not in request.data['queues']:
                     CaseAssignment.objects.filter(queue=initial_queue).delete()
-
             serializer.save()
+
+            # Add an activity item for the query's case
+            CaseActivity.create(activity_type=CaseActivityType.MOVE_CASE,
+                                case=case,
+                                user=request.user,
+                                queues=[x.name for x in serializer.validated_data['queues']])
 
             return JsonResponse(data={'case': serializer.data})
 
@@ -95,57 +95,6 @@ class CaseNoteList(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
-
-class CaseActivity(APIView):
-    authentication_classes = (GovAuthentication,)
-    """
-    Retrieves all activity related to a case
-    * Case Updates
-    * Case Notes
-    * ECJU Queries
-    """
-
-    def get(self, request, pk):
-        case = get_case(pk)
-        case_notes = get_case_notes_from_case(case, False)
-        ecju_queries = get_ecju_queries_from_case(case)
-        goods = get_goods_from_case(case)
-        goods_types = get_goods_types_from_case(case)
-
-        version_records = {}
-        if case.application_id:
-            version_records = Version.objects.filter(
-                Q(object_id=case.application.pk) | Q(object_id=case.pk)
-            )
-        elif case.query_id:
-            version_records = Version.objects.filter(
-                Q(object_id=case.query.pk) | Q(object_id=case.pk)
-            )
-
-        activity = []
-        for version in version_records:
-            activity_item = convert_case_reversion_to_activity(version)
-            if activity_item:
-                activity.append(activity_item)
-
-        for case_note in case_notes:
-            activity.append(convert_case_note_to_activity(case_note))
-
-        for ecju_query in ecju_queries:
-            activity.append(convert_ecju_query_to_activity(ecju_query))
-
-        for good in goods:
-            good = get_good(good)
-            add_items_to_activity(activity, good)
-
-        for good in goods_types:
-            add_items_to_activity(activity, good)
-
-        # Sort the activity based on date (newest first)
-        activity.sort(key=lambda x: x['date'], reverse=True)
-
-        return JsonResponse(data={'activity': activity})
 
 
 class CaseDocuments(APIView):

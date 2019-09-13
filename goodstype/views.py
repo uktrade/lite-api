@@ -5,7 +5,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from reversion.models import Version
 
-from cases.libraries.activity_helpers import convert_good_reversion_to_activity
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
@@ -67,14 +66,15 @@ class GoodsTypeActivity(APIView):
     def get(self, request, pk):
         good = get_goods_type(pk)
 
-        version_records = Version.objects.filter(Q(object_id=good.pk))
-        activity = []
-        for version in version_records:
-            activity_item = convert_good_reversion_to_activity(version, good)
-            if activity_item:
-                activity.append(activity_item)
+        # TODO
+        # version_records = Version.objects.filter(Q(object_id=good.pk))
+        # activity = []
+        # for version in version_records:
+        #     activity_item = convert_good_reversion_to_activity(version, good)
+        #     if activity_item:
+        #         activity.append(activity_item)
+        #
+        # # Sort the activity based on date (newest first)
+        # activity.sort(key=lambda x: x['date'], reverse=True)
 
-        # Sort the activity based on date (newest first)
-        activity.sort(key=lambda x: x['date'], reverse=True)
-
-        return JsonResponse(data={'activity': activity})
+        return JsonResponse(data={'activity': {}})

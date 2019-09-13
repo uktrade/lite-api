@@ -5,6 +5,8 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
 from flags.enums import FlagStatuses
@@ -112,7 +114,8 @@ class AssignFlags(APIView):
         # Loop through all objects provided and append flags to them
         for pk in objects:
             obj = get_object_of_level(level, pk)
-            serializer = FlagAssignmentSerializer(data=data, context={'team': request.user.team, 'level': level.title()})
+            serializer = FlagAssignmentSerializer(data=data,
+                                                  context={'team': request.user.team, 'level': level.title()})
 
             if serializer.is_valid():
                 self._assign_flags(flags=serializer.validated_data.get('flags'),
@@ -129,17 +132,37 @@ class AssignFlags(APIView):
     def _assign_flags(self, flags, level, note, obj, user):
         level = level.title()
         previously_assigned_team_flags = obj.flags.filter(level=level, team=user.team)
-        previously_assigned_deactivated_team_flags = obj.flags.filter(level=level, team=user.team, status=FlagStatuses.DEACTIVATED)
+        previously_assigned_deactivated_team_flags = obj.flags.filter(level=level, team=user.team,
+                                                                      status=FlagStatuses.DEACTIVATED)
         previously_assigned_not_team_flags = obj.flags.exclude(level=level, team=user.team)
-        add_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
+
+        added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
-        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
+        removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
-        with reversion.create_revision():
-            reversion.set_comment(
-                ('{"flags": {"removed": ' + str(remove_flags) + ', "added": ' + str(add_flags) + ', "note": "' + str(note) + '"}}')
-                .replace('\'', '"')
-            )
-            reversion.set_user(user)
+        if isinstance(obj, Case):
+            # Add an activity item for the case
+            if added_flags and removed_flags:
+                CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
+                                    case=obj,
+                                    user=user,
+                                    added_flags=added_flags,
+                                    removed_flags=removed_flags,
+                                    additional_text=note)
 
-            obj.flags.set(flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
+            if added_flags:
+                CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
+                                    case=obj,
+                                    user=user,
+                                    added_flags=added_flags,
+                                    additional_text=note)
+
+            if removed_flags:
+                CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
+                                    case=obj,
+                                    user=user,
+                                    removed_flags=removed_flags,
+                                    additional_text=note)
+
+        obj.flags.set(
+            flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))

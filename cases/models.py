@@ -166,7 +166,8 @@ class Notification(models.Model):
 
 
 class BaseActivity(models.Model):
-    text = models.TextField()
+    text = models.TextField(default=None)
+    additional_text = models.TextField(default=None, null=True)
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     type = models.CharField(max_length=50)
@@ -198,14 +199,18 @@ class BaseActivity(models.Model):
         # Format text by replacing the placeholders with values using kwargs given
         text = text.format(**kwargs)
 
-        return text + '.'
+        # Add a full stop unless the text ends with a colon
+        if not text.endswith(':'):
+            text = text + '.'
+
+        return text
 
 
 class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
 
     @classmethod
-    def create(cls, activity_type, case, user, **kwargs):
+    def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
         # If activity_type isn't valid, raise an exception
         if activity_type not in [x[0] for x in CaseActivityType.choices]:
             raise Exception(f'{activity_type} isn\'t in CaseActivityType')
@@ -215,6 +220,9 @@ class CaseActivity(BaseActivity):
         activity = cls(type=activity_type,
                        text=text,
                        user=user,
-                       case=case)
-        activity.save()
+                       case=case,
+                       additional_text=additional_text,
+                       created_at=created_at)
+        if save_object:
+            activity.save()
         return activity

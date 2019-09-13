@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -287,3 +287,11 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
                   'question',
                   'case',
                   'raised_by_user',)
+
+
+class CaseActivitySerializer(serializers.ModelSerializer):
+    user = BaseUserViewSerializer()
+
+    class Meta:
+        model = CaseActivity
+        fields = '__all__'
