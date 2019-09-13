@@ -248,14 +248,23 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
+    raised_by_user_name = serializers.SerializerMethodField()
+    responded_by_user_name = serializers.SerializerMethodField()
+
+    def get_raised_by_user_name(self, instance):
+        return instance.raised_by_user.get_full_name()
+
+    def get_responded_by_user_name(self, instance):
+        return instance.responded_by_user.get_full_name()
+
     class Meta:
         model = EcjuQuery
         fields = ('id',
                   'question',
                   'response',
                   'case',
-                  'raised_by_user',
-                  'responded_by_user',
+                  'responded_by_user_name',
+                  'raised_by_user_name',
                   'created_at',
                   'responded_at')
 
