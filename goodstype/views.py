@@ -1,9 +1,7 @@
-from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from reversion.models import Version
 
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from goodstype.helpers import get_goods_type

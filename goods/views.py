@@ -1,12 +1,10 @@
 from django.db import transaction
-from django.db.models import Q
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from reversion.models import Version
 
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
