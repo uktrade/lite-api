@@ -1,9 +1,7 @@
-from datetime import datetime
-
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
+from cases.libraries.get_case import get_case_activity
 from cases.models import Case
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
@@ -78,6 +76,9 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.control_code, data['control_code'])
         self.assertEqual(self.query.good.is_good_controlled, str(data['is_good_controlled']))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
+
+        # Check that an activity item has been added
+        self.assertEqual(len(get_case_activity(self.query.case)), 1)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
