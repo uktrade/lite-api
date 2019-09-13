@@ -48,7 +48,7 @@ class ApplicationsTests(DataTestClient):
         draft.end_user = self.create_end_user("End user", self.organisation)
         draft.save()
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_party(draft.end_user)
 
         data = {'id': draft.id}
 
@@ -86,7 +86,7 @@ class ApplicationsTests(DataTestClient):
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
+        self.create_document_for_party(party=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -108,7 +108,7 @@ class ApplicationsTests(DataTestClient):
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        self.create_document_for_party(party=draft.end_user, name='blah', safe=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 

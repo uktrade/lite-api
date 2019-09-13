@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_document import get_document
-from parties.document.models import EndUserDocument, UltimateEndUserDocument
-from parties.serializers import EndUserDocumentSerializer, UltimateEndUserDocumentSerializer
+from parties.document.models import PartyDocument
+from parties.document.serializers import PartyDocumentSerializer
 from drafts.libraries.get_party import get_end_user, get_ultimate_end_user
 
 
@@ -31,12 +31,12 @@ class EndUserDocumentView(APIView):
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        documents = EndUserDocument.objects.filter(end_user=end_user)
+        documents = PartyDocument.objects.filter(party=end_user)
 
         return get_document(documents)
 
     @swagger_auto_schema(
-        request_body=EndUserDocumentSerializer,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -50,18 +50,18 @@ class EndUserDocumentView(APIView):
             return JsonResponse(data={'error': 'No such user'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        end_user_documents = EndUserDocument.objects.filter(end_user=end_user)
+        end_user_documents = PartyDocument.objects.filter(party=end_user)
         if end_user_documents:
             return JsonResponse(data={'error': 'Document already exists'},
                                 status=status.HTTP_400_BAD_REQUEST)
         data = request.data
-        data['end_user'] = end_user.id
-        serializer = EndUserDocumentSerializer(data=data)
+        data['party'] = end_user.id
+        serializer = PartyDocumentSerializer(data=data)
 
         return _return_post_response(serializer)
 
     @swagger_auto_schema(
-        request_body=EndUserDocumentSerializer,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -74,7 +74,7 @@ class EndUserDocumentView(APIView):
         if not end_user:
             return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        documents = EndUserDocument.objects.filter(end_user=end_user)
+        documents = PartyDocument.objects.filter(party=end_user)
         for document in documents:
             document.delete_s3()
             document.delete()
@@ -93,12 +93,12 @@ class UltimateEndUserDocumentsView(APIView):
         if not ultimate_end_user:
             return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        documents = UltimateEndUserDocument.objects.filter(ultimate_end_user=ultimate_end_user)
+        documents = PartyDocument.objects.filter(party=ultimate_end_user)
 
         return get_document(documents)
 
     @swagger_auto_schema(
-        request_body=EndUserDocumentSerializer,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -111,18 +111,18 @@ class UltimateEndUserDocumentsView(APIView):
         if not ultimate_end_user:
             return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        documents = UltimateEndUserDocument.objects.filter(ultimate_end_user=ultimate_end_user)
+        documents = PartyDocument.objects.filter(party=ultimate_end_user)
         if documents:
             return JsonResponse(data={'error': 'Document already exists'},
                                 status=status.HTTP_400_BAD_REQUEST)
         data = request.data
-        data['ultimate_end_user'] = ultimate_end_user.id
-        serializer = UltimateEndUserDocumentSerializer(data=data)
+        data['party'] = ultimate_end_user.id
+        serializer = PartyDocumentSerializer(data=data)
 
         return _return_post_response(serializer)
 
     @swagger_auto_schema(
-        request_body=UltimateEndUserDocument,
+        request_body=PartyDocumentSerializer,
         responses={
             400: 'JSON parse error'
         })
@@ -135,7 +135,7 @@ class UltimateEndUserDocumentsView(APIView):
         if not ultimate_end_user:
             return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        documents = UltimateEndUserDocument.objects.filter(ultimate_end_user=ultimate_end_user)
+        documents = PartyDocument.objects.filter(party=ultimate_end_user)
         for document in documents:
             document.delete_s3()
             document.delete()

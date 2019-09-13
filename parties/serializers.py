@@ -1,7 +1,5 @@
 from rest_framework import serializers, relations
-
-from documents.libraries.process_document import process_document
-from parties.document.models import EndUserDocument, UltimateEndUserDocument
+from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 from organisations.models import Organisation
@@ -29,12 +27,7 @@ class PartySerializer(serializers.ModelSerializer):
                   'document',)
 
     def get_document(self, instance):
-        docs = None
-        if instance.type == PartyType.END:
-            docs = EndUserDocument.objects.filter(end_user=instance).values()
-        elif instance.type == PartyType.ULTIMATE:
-            docs = UltimateEndUserDocument.objects.filter(ultimate_end_user=instance).values()
-
+        docs = PartyDocument.objects.filter(party=instance).values()
         return docs[0] if docs else None
 
 
@@ -96,31 +89,3 @@ class ThirdPartySerializer(PartySerializer):
         third_party.type = PartyType.THIRD
         third_party.save()
         return third_party
-
-
-class EndUserDocumentSerializer(serializers.ModelSerializer):
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all())
-
-    class Meta:
-        model = EndUserDocument
-        fields = ('id', 'name', 's3_key', 'size', 'end_user', 'safe',)
-
-    def create(self, validated_data):
-        end_user_document = super(EndUserDocumentSerializer, self).create(validated_data)
-        end_user_document.save()
-        process_document(end_user_document)
-        return end_user_document
-
-
-class UltimateEndUserDocumentSerializer(serializers.ModelSerializer):
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all())
-
-    class Meta:
-        model = UltimateEndUserDocument
-        fields = ('id', 'name', 's3_key', 'size', 'ultimate_end_user', 'safe',)
-
-    def create(self, validated_data):
-        ultimate_end_user_document = super(UltimateEndUserDocumentSerializer, self).create(validated_data)
-        ultimate_end_user_document.save()
-        process_document(ultimate_end_user_document)
-        return ultimate_end_user_document

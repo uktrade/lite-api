@@ -32,9 +32,9 @@ class ApplicationConsigneeTests(DataTestClient):
     def test_submit_draft_with_consignee_success(self):
         ultimate_end_user = self.create_ultimate_end_user("UEU", self.organisation)
         self.draft.ultimate_end_users.add(ultimate_end_user)
-        self.create_document_for_ultimate_end_user(ultimate_end_user=ultimate_end_user,
-                                                   name='file343.pdf',
-                                                   safe=True)
+        self.create_document_for_party(party=ultimate_end_user,
+                                       name='file343.pdf',
+                                       safe=True)
 
         consignee = self.create_consignee("Consignee", self.organisation)
         self.draft.consignee = consignee

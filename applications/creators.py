@@ -6,7 +6,7 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
 from content_strings.strings import get_string
 from documents.models import Document
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from parties.document.models import EndUserDocument, UltimateEndUserDocument
+from parties.document.models import PartyDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 from parties.models import UltimateEndUser, EndUser
@@ -43,21 +43,18 @@ def create_external_location_for_application(draft, application):
 
 def check_party_document(party):
     try:
-        document = None
-        if isinstance(party, EndUser):
-            document = EndUserDocument.objects.get(end_user=party)
-        elif isinstance(party, UltimateEndUser):
-            document = UltimateEndUserDocument.objects.get(ultimate_end_user=party)
-
-        if not document:
-            return get_string('applications.standard.no_end_user_document_set')
-        elif document.safe is None:
-            return get_string('applications.standard.end_user_document_processing')
-        elif not document.safe:
-            return get_string('applications.standard.end_user_document_infected')
+        document = PartyDocument.objects.get(party=party)
     except Document.DoesNotExist:
         return get_string('applications.standard.no_end_user_document_set')
-    return None
+
+    if not document:
+        return get_string('applications.standard.no_end_user_document_set')
+    elif document.safe is None:
+        return get_string('applications.standard.end_user_document_processing')
+    elif not document.safe:
+        return get_string('applications.standard.end_user_document_infected')
+    else:
+        return None
 
 
 def check_ultimate_end_user_documents_for_draft(draft):
