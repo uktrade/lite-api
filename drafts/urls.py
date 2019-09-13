@@ -64,7 +64,7 @@ urlpatterns = [
     path(
         route='<uuid:pk>/consignee/document/',
         view=draft_party_document_views.ConsigneeDocumentView.as_view(),
-        name='consignee_user_document'
+        name='consignee_document'
     ),
     path(
         route='<uuid:pk>/third-parties/',

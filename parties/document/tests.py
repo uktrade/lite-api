@@ -51,13 +51,13 @@ class PartyDocumentTests(DataTestClient):
         self.assertEqual(response_data['size'], expected['size'])
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_correct_data_get_document_ultimate_end_user(self, prepare_document_function):
+    def test_correct_data_document_ultimate_end_user(self, prepare_document_function):
         """
         Given a standard draft has been created
-        And the draft contains an end user
-        And the end user has a document attached
+        And the draft contains an ultimate end user
+        And the ultimate end user has a document attached
         When the document is retrieved
-        Then the data in the document is the same as the data in the attached end user document
+        Then the data in the document is the same as the data in the attached ultimate end user document
         """
         # assemble
         self.draft.ultimate_end_users.add(
@@ -83,19 +83,23 @@ class PartyDocumentTests(DataTestClient):
         self.assertEqual(response_data['size'], expected['size'])
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_correct_data_get_document_end_user(self, prepare_document_function):
+    def test_correct_data_document_consignee(self, prepare_document_function):
         """
         Given a standard draft has been created
-        And the draft contains an end user
-        And the end user has a document attached
+        And the draft contains a consignee
+        And the consignee has a document attached
         When the document is retrieved
-        Then the data in the document is the same as the data in the attached end user document
+        Then the data in the document is the same as the data in the attached consignee document
         """
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.draft.consignee = self.create_consignee('Consignee', self.organisation)
+        self.draft.save()
+
+        url_consignee_doc = reverse('drafts:consignee_document', kwargs={'pk': self.draft.id})
+        self.client.post(url_consignee_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.get(url_consignee_doc, **self.exporter_headers)
 
         # assert
         response_data = response.json()['document']
@@ -105,19 +109,29 @@ class PartyDocumentTests(DataTestClient):
         self.assertEqual(response_data['size'], expected['size'])
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_correct_data_get_document_end_user(self, prepare_document_function):
+    def test_correct_data_document_third_party(self, prepare_document_function):
         """
         Given a standard draft has been created
-        And the draft contains an end user
-        And the end user has a document attached
+        And the draft contains a third party
+        And the third party has a document attached
         When the document is retrieved
-        Then the data in the document is the same as the data in the attached end user document
+        Then the data in the document is the same as the data in the attached third party document
         """
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.draft.third_parties.add(
+            self.create_third_party('TP', self.organisation)
+        )
+        url_third_party_doc = reverse(
+            'drafts:third_party_document',
+            kwargs={
+                'pk': self.draft.id,
+                'tp_pk': self.draft.third_parties.first().id
+            }
+        )
+        self.client.post(url_third_party_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.get(url_third_party_doc, **self.exporter_headers)
 
         # assert
         response_data = response.json()['document']
