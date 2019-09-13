@@ -127,11 +127,11 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def delete(self, request, pk):
+    def delete(self, request, pk, ueu_pk):
         """
         Deletes a document from the specified ultimate end user
         """
-        ultimate_end_user = get_ultimate_end_user(pk)
+        ultimate_end_user = get_ultimate_end_user(ueu_pk)
         if not ultimate_end_user:
             return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
