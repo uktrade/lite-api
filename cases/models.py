@@ -9,7 +9,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from clc_queries.models import ClcQuery
 from documents.models import Document
-from parties.models import EndUser, UltimateEndUser, Consignee
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -100,6 +100,8 @@ class Advice(models.Model):
                                           null=True)
     consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name='consignee',
                                   null=True)
+    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name='third_party',
+                                    null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -118,7 +120,8 @@ class Advice(models.Model):
                                                  country=self.country,
                                                  end_user=self.end_user,
                                                  ultimate_end_user=self.ultimate_end_user,
-                                                 consignee=self.consignee)
+                                                 consignee=self.consignee,
+                                                 third_party=self.third_party)
             existing_object.delete()
         except Advice.DoesNotExist:
             pass
