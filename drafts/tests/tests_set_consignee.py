@@ -20,6 +20,12 @@ class ConsigneeOnDraftTests(DataTestClient):
         'other'
     ])
     def test_set_consignee_on_draft_successful(self, data_type):
+        """
+        Given a standard draft has been created
+        And the draft does not yet contain a consignee
+        When a new consignee is added
+        Then the consignee is successfully added to the draft
+        """
         data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -55,6 +61,13 @@ class ConsigneeOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_consignee_on_draft_failure(self, data):
+        """
+         Given a standard draft has been created
+         And the draft does not yet contain a consignee
+         When attempting to add an invalid consignee
+         Then the consignee is not added to the draft
+         """
+
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

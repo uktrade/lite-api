@@ -99,7 +99,6 @@ class ApplicationList(APIView):
             queue.cases.add(case)
             queue.save()
             
-            # Delete draft
             draft.delete()
 
             serializer = ApplicationBaseSerializer(application)

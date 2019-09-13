@@ -12,6 +12,13 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.url = reverse('drafts:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
+        """
+        Given a standard draft has been created
+        And the draft does not yet contain a third party
+        When a new third party is added
+        Then the third party is successfully added to the draft
+        """
+
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -35,6 +42,13 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_set_multiple_third_parties_on_draft_successful(self):
+        """
+        Given a standard draft has been created
+        And the draft does not yet contain a third party
+        When multiple third parties are added
+        Then all third parties are successfully added to the draft
+        """
+
         data = [
                 {
                     'name': 'UK Government',
@@ -58,6 +72,13 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(self.draft.third_parties.count(), 2)
 
     def test_unsuccessful_add_third_party(self):
+        """
+         Given a standard draft has been created
+         And the draft does not yet contain a third party
+         When attempting to add an invalid third party
+         Then the third party is not added to the draft
+         """
+
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',

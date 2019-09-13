@@ -21,17 +21,33 @@ class Consignee(Party):
     sub_type = models.CharField(choices=SubType.choices,
                                 default=SubType.OTHER, max_length=20)
 
+    def save(self, *args, **kwargs):
+        self.type = PartyType.CONSIGNEE
+        super(Consignee, self).save(*args, **kwargs)
+
 
 class EndUser(Party):
     sub_type = models.CharField(choices=SubType.choices,
                                 default=SubType.OTHER, max_length=20)
+
+    def save(self, *args, **kwargs):
+        self.type = PartyType.END
+        super(EndUser, self).save(*args, **kwargs)
 
 
 class UltimateEndUser(Party):
     sub_type = models.CharField(choices=SubType.choices,
                                 default=SubType.OTHER, max_length=20)
 
+    def save(self, *args, **kwargs):
+        self.type = PartyType.ULTIMATE
+        super(UltimateEndUser, self).save(*args, **kwargs)
+
 
 class ThirdParty(Party):
     sub_type = models.CharField(choices=ThirdPartySubType.choices,
                                 default=ThirdPartySubType.OTHER, max_length=20)
+
+    def save(self, *args, **kwargs):
+        self.type = PartyType.THIRD
+        super(ThirdParty, self).save(*args, **kwargs)

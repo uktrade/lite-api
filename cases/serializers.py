@@ -233,7 +233,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         if hasattr(self, 'initial_data'):
             for data in self.initial_data:
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError('Only one item (such as an parties) can be given at a time')
+                    raise ValidationError('Only one item (such as an end_user) can be given at a time')
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)

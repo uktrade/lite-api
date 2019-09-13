@@ -1,5 +1,4 @@
 from unittest import mock
-from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework import status
@@ -23,10 +22,11 @@ class PartyDocumentTests(DataTestClient):
         self.draft_no_end_user = self.create_draft(self.organisation, 'Dafty daft')
         self.url_end_user_doc_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
 
-        self.data = {"name": test_file,
-                     "s3_key": test_file,
-                     "size": 476
-                     }
+        self.data = {
+            'name': test_file,
+            's3_key': test_file,
+            'size': 476
+        }
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_correct_data_get_document_end_user(self, prepare_document_function):
@@ -258,7 +258,7 @@ class PartyDocumentTests(DataTestClient):
         self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(1, len(PartyDocument.objects.all()))
+        self.assertEqual(len(PartyDocument.objects.all()), 1)
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')

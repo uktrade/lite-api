@@ -39,12 +39,6 @@ class EndUserSerializer(PartySerializer):
 
         fields = '__all__'
 
-    def create(self, validated_data):
-        end_user = super(EndUserSerializer, self).create(validated_data)
-        end_user.type = PartyType.END
-        end_user.save()
-        return end_user
-
 
 class UltimateEndUserSerializer(PartySerializer):
     sub_type = serializers.ChoiceField(choices=SubType.choices)
@@ -53,12 +47,6 @@ class UltimateEndUserSerializer(PartySerializer):
         model = UltimateEndUser
 
         fields = '__all__'
-
-    def create(self, validated_data):
-        ultimate_end_user = super(UltimateEndUserSerializer, self).create(validated_data)
-        ultimate_end_user.type = PartyType.ULTIMATE
-        ultimate_end_user.save()
-        return ultimate_end_user
 
 
 class ConsigneeSerializer(PartySerializer):
@@ -69,12 +57,6 @@ class ConsigneeSerializer(PartySerializer):
 
         fields = '__all__'
 
-    def create(self, validated_data):
-        consignee = super(ConsigneeSerializer, self).create(validated_data)
-        consignee.type = PartyType.CONSIGNEE
-        consignee.save()
-        return consignee
-
 
 class ThirdPartySerializer(PartySerializer):
     sub_type = serializers.ChoiceField(choices=ThirdPartySubType.choices)
@@ -83,9 +65,3 @@ class ThirdPartySerializer(PartySerializer):
         model = ThirdParty
 
         fields = '__all__'
-
-    def create(self, validated_data):
-        third_party = super(ThirdPartySerializer, self).create(validated_data)
-        third_party.type = PartyType.THIRD
-        third_party.save()
-        return third_party
