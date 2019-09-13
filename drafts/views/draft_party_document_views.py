@@ -13,8 +13,7 @@ from drafts.libraries.get_party import get_end_user, get_ultimate_end_user, get_
 
 def _get_party_document(party):
     if not party:
-        return JsonResponse(data={'error': 'No such user'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
     documents = PartyDocument.objects.filter(party=party)
     return get_document(documents)
@@ -22,13 +21,11 @@ def _get_party_document(party):
 
 def _upload_party_document(party, data):
     if not party:
-        return JsonResponse(data={'error': 'No such user'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
     documents = PartyDocument.objects.filter(party=party)
     if documents:
-        return JsonResponse(data={'error': 'Document already exists'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'error': 'Document already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
     data['party'] = party.id
     serializer = PartyDocumentSerializer(data=data)
@@ -97,7 +94,7 @@ class UltimateEndUserDocumentsView(APIView):
         Returns document for the specified ultimate end user
         """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
-        return get_document(ultimate_end_user)
+        return _get_party_document(ultimate_end_user)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -134,7 +131,7 @@ class ConsigneeDocumentView(APIView):
         Returns document for the specified consignee
         """
         consignee = get_consignee(pk)
-        return get_document(consignee)
+        return _get_party_document(consignee)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -171,7 +168,7 @@ class ThirdPartyDocumentView(APIView):
         Returns document for the specified third party
         """
         third_party = get_third_party(pk)
-        return get_document(third_party)
+        return _get_party_document(third_party)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
