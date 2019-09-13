@@ -122,26 +122,3 @@ class CaseFlagsManagementTests(DataTestClient):
         self.assertEquals(len(self.all_flags), len(self.case.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.case.flags.all())
-
-    def test_given_case_has_been_modified_then_appropriate_audit_is_in_place(self):
-        """
-        Given a Case with no Flags assigned
-        When a user attempts to add a non-case-level Flag owned by their Team to the Case
-        And the Flag is successfully added
-        And an audit record is created
-        And the user requests the activity on the Case
-        Then the activity is returned showing the Flag which was added
-        """
-        flags = {
-            'level': 'cases',
-            'objects': [self.case.id],
-            'flags': [self.team_case_flag_1.pk]
-        }
-
-        self.client.put(self.case_flag_url, flags, **self.gov_headers)
-
-        response = self.client.get(self.audit_url, **self.gov_headers)
-        response_data = response.json()['activity']
-
-        self.assertEquals(len(flags['flags']), len(response_data))
-        self.assertEquals([self.team_case_flag_1.__dict__['name']], response_data[0]['data']['flags']['added'])

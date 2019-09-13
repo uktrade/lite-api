@@ -126,30 +126,6 @@ class GoodFlagsManagementTests(DataTestClient):
         for flag in self.all_flags:
             self.assertTrue(flag in self.good.flags.all())
 
-    def test_given_good_has_been_modified_then_appropriate_audit_is_in_place(self):
-        """
-        Given a Good with no Flags assigned
-        When a user attempts to add a good-level Flag owned by their Team to the Good
-        And the Flag is successfully added
-        And an audit record is created
-        And the user requests the activity on the Good
-        Then the activity is returned showing the Flag which was added
-        """
-        data = {
-            'level': 'goods',
-            'objects': [self.good.pk],
-            'flags': [self.team_good_flag_1.pk],
-            'note': 'A reason for changing the flags'
-        }
-
-        self.client.put(self.good_flag_url, data, **self.gov_headers)
-        response = self.client.get(self.audit_url, **self.gov_headers)
-
-        response_data = response.json()
-        activity = response_data['activity']
-        self.assertEquals(len(data['flags']), len(activity))
-        self.assertEquals([self.team_good_flag_1.name], activity[0]['data']['flags']['added'])
-
     def test_setting_flags_on_two_goods(self):
         """
         Tests setting multiple flags on multiple goods types simultaneously
