@@ -207,7 +207,7 @@ class BaseActivity(models.Model):
     def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
         # If activity_type isn't valid, raise an exception
         if activity_type not in [x[0] for x in cls.activity_types.choices]:
-            raise Exception(f'{activity_type} isn\'t in GoodActivityType')
+            raise Exception(f'{activity_type} isn\'t in ' + cls.activity_types.__name__)
 
         text = cls._replace_placeholders(activity_type, cls.activity_types, **kwargs)
 

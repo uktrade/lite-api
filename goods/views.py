@@ -222,27 +222,3 @@ class GoodDocumentDetail(APIView):
                 good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})
-
-
-class GoodActivity(APIView):
-    authentication_classes = (GovAuthentication,)
-    """
-    Retrieves all activity related to a good
-    * Good Updates
-    * Good Notes
-    * ECJU Queries
-    """
-
-    def get(self, request, pk):
-        good = get_good(pk)
-        version_records = Version.objects.filter(Q(object_id=good.pk))
-        activity = []
-        for version in version_records:
-            activity_item = convert_good_reversion_to_activity(version, good)
-            if activity_item:
-                activity.append(activity_item)
-
-        # Sort the activity based on date (newest first)
-        activity.sort(key=lambda x: x['date'], reverse=True)
-
-        return JsonResponse(data={'activity': activity})
