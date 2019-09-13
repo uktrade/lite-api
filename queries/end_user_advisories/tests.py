@@ -2,6 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -54,6 +55,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
         self.assertEqual(end_user_data['country']['id'], data['end_user']['country'])
+        self.assertEqual(Case.objects.count(), 1)
 
     @parameterized.expand([
         ('com', 'person', 'http://gov.co.uk', 'place street', 'GB', '', ''),  # invalid end user type

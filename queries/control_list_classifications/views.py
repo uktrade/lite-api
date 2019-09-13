@@ -82,4 +82,4 @@ class ControlListClassificationDetail(APIView):
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={'errors': serializer.errors}, status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
