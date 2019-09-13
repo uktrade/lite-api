@@ -1,6 +1,12 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
+from applications.models import GoodOnApplication
+from cases.enums import CaseType
+from cases.libraries.get_case import get_case_activity
+from cases.models import Case
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
@@ -140,3 +146,32 @@ class GoodFlagsManagementTests(DataTestClient):
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 2)
+
+    def test_flagging_a_good_creates_timeline_entries(self):
+        """
+        When a user adds a flag to a good, it should add a timeline entry
+        to whatever case that good is on (if any)
+        """
+        query = self.create_clc_query('Query', self.organisation)
+        application = self.create_standard_application(self.organisation)
+
+        # Set the query and application's good
+        query.good = self.good
+        query.save()
+        GoodOnApplication(good=self.good,
+                          application=application,
+                          quantity=1,
+                          unit=Units.GRM,
+                          value=10).save()
+
+        data = {
+            'level': 'goods',
+            'objects': [self.good.pk],
+            'flags': [self.team_good_flag_1.pk],
+            'note': 'A reason for changing the flags'
+        }
+
+        self.client.put(self.good_flag_url, data, **self.gov_headers)
+
+        self.assertEqual(len(get_case_activity(query.case.get())), 1)
+        self.assertEqual(len(get_case_activity(application.case.get())), 1)

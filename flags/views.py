@@ -4,6 +4,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.enums import CaseType
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
@@ -13,6 +14,8 @@ from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag
 from flags.models import Flag
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer
+from goods.models import Good
+from queries.control_list_classifications.models import ControlListClassificationQuery
 
 
 @permission_classes((permissions.AllowAny,))
@@ -139,29 +142,44 @@ class AssignFlags(APIView):
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
         removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
+        # Add activity item
+        cases = []
+
         if isinstance(obj, Case):
-            # Add an activity item for the case
-            if added_flags and removed_flags:
-                CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
-                                    case=obj,
-                                    user=user,
-                                    added_flags=added_flags,
-                                    removed_flags=removed_flags,
-                                    additional_text=note)
+            cases.append(obj)
 
-            if added_flags:
-                CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
-                                    case=obj,
-                                    user=user,
-                                    added_flags=added_flags,
-                                    additional_text=note)
+        if isinstance(obj, Good):
+            cases.extend(Case.objects.filter(query__id__in=
+                                             ControlListClassificationQuery.objects.filter(good=obj)
+                                             .values_list('id', flat=True)))
+            cases.extend(Case.objects.filter(application__goods__good=obj))
 
-            if removed_flags:
-                CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
-                                    case=obj,
-                                    user=user,
-                                    removed_flags=removed_flags,
-                                    additional_text=note)
+        for case in cases:
+            self._set_case_activity(added_flags, removed_flags, case, user, note)
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
+
+    def _set_case_activity(self, added_flags, removed_flags, case, user, note):
+        # Add an activity item for the case
+        if added_flags and removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                removed_flags=removed_flags,
+                                additional_text=note)
+
+        if added_flags:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                additional_text=note)
+
+        if removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                removed_flags=removed_flags,
+                                additional_text=note)
