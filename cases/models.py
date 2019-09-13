@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
-from cases.libraries.activity_types import CaseActivityType
+from cases.libraries.activity_types import CaseActivityType, GoodActivityType, BaseActivityType
 from documents.models import Document
 from end_user.models import EndUser
 from flags.models import Flag
@@ -168,6 +168,7 @@ class BaseActivity(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     type = models.CharField(max_length=50)
+    activity_types = BaseActivityType
 
     @classmethod
     def _replace_placeholders(cls, activity_type, activity_types, **kwargs):
@@ -202,17 +203,13 @@ class BaseActivity(models.Model):
 
         return text
 
-
-class CaseActivity(BaseActivity):
-    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
-
     @classmethod
     def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
         # If activity_type isn't valid, raise an exception
-        if activity_type not in [x[0] for x in CaseActivityType.choices]:
-            raise Exception(f'{activity_type} isn\'t in CaseActivityType')
+        if activity_type not in [x[0] for x in cls.activity_types.choices]:
+            raise Exception(f'{activity_type} isn\'t in GoodActivityType')
 
-        text = cls._replace_placeholders(activity_type, CaseActivityType, **kwargs)
+        text = cls._replace_placeholders(activity_type, cls.activity_types, **kwargs)
 
         activity = cls(type=activity_type,
                        text=text,
@@ -223,3 +220,13 @@ class CaseActivity(BaseActivity):
         if save_object:
             activity.save()
         return activity
+
+
+class CaseActivity(BaseActivity):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
+    activity_types = CaseActivityType
+
+
+class GoodActivity(BaseActivity):
+    good = models.ForeignKey(Good, on_delete=models.CASCADE, null=False)
+    activity_types = GoodActivityType
