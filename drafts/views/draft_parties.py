@@ -47,7 +47,7 @@ class DraftEndUser(APIView):
                 return JsonResponse(data={'end_user': serializer.data},
                                     status=status.HTTP_201_CREATED)
 
-            return JsonResponse(data={'errodrafts/urls.pyrs': serializer.errors},
+            return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
 
 
