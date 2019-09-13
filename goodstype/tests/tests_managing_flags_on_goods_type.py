@@ -27,7 +27,6 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.good_url = reverse('goodstype:goodstypes-detail', kwargs={'pk': self.goods_type.id})
         self.good_flag_url = reverse('flags:assign_flags')
-        self.audit_url = reverse('goodstype:activity', kwargs={'pk': self.goods_type.id})
 
     def test_no_flags_for_goods_type_are_returned(self):
         """
