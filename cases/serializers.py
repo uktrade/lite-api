@@ -255,7 +255,10 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
         return instance.raised_by_user.get_full_name()
 
     def get_responded_by_user_name(self, instance):
-        return instance.responded_by_user.get_full_name()
+        if instance.responded_by_user:
+            return instance.responded_by_user.get_full_name()
+        else:
+            return None
 
     class Meta:
         model = EcjuQuery
