@@ -67,6 +67,8 @@ class ControlListClassificationDetail(APIView):
 
             if serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
+                    serializer.save()
+
                     # Add an activity item for the query's case
                     CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
                                         case=query.case.get(),
