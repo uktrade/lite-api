@@ -179,11 +179,11 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def post(self, request, pk):
+    def post(self, request, pk, tp_pk):
         """
         Adds a document to the specified consignee
         """
-        third_party = get_third_party(pk)
+        third_party = get_third_party(tp_pk)
         return _upload_party_document(third_party, request.data)
 
     @swagger_auto_schema(

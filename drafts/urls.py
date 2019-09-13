@@ -82,8 +82,8 @@ urlpatterns = [
         name='third_party_document'
     ),
     path(
-        '<uuid:pk>/sites/',
-        draft_sites_views.DraftSites.as_view(),
+        route='<uuid:pk>/sites/',
+        view=draft_sites_views.DraftSites.as_view(),
         name='draft_sites'
     ),
     path(
