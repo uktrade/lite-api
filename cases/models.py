@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from applications.models import Application
 from cases.enums import CaseType, AdviceType
-from cases.libraries.activity_types import CaseActivityType, GoodActivityType, BaseActivityType
+from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from documents.models import Document
 from end_user.models import EndUser
 from flags.models import Flag

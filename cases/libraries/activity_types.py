@@ -24,17 +24,3 @@ class CaseActivityType(BaseActivityType):
             (CASE_NOTE, 'added a case note:'),
         ]
     )
-
-
-class GoodActivityType(BaseActivityType):
-    ADD_FLAGS = 'add_flags'
-    REMOVE_FLAGS = 'remove_flags'
-    ADD_REMOVE_FLAGS = 'add_remove_flags'
-
-    BaseActivityType.choices.extend(
-        [
-            (ADD_FLAGS, 'added flags: {added_flags}'),
-            (REMOVE_FLAGS, 'removed flags: {removed_flags}'),
-            (ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags}'),
-        ]
-    )
