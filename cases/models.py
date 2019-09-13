@@ -225,8 +225,3 @@ class BaseActivity(models.Model):
 class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
-
-
-class GoodActivity(BaseActivity):
-    good = models.ForeignKey(Good, on_delete=models.CASCADE, null=False)
-    activity_types = GoodActivityType
