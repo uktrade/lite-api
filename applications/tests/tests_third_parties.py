@@ -32,9 +32,9 @@ class ApplicationThirdPartyTests(DataTestClient):
     def test_submit_draft_with_third_party_success(self):
         ultimate_end_user = self.create_ultimate_end_user("UEU", self.organisation)
         self.draft.ultimate_end_users.add(ultimate_end_user)
-        self.create_document_for_ultimate_end_user(ultimate_end_user=ultimate_end_user,
-                                                   name='file343.pdf',
-                                                   safe=True)
+        self.create_document_for_party(party=ultimate_end_user,
+                                       name='file343.pdf',
+                                       safe=True)
 
         third_party = self.create_third_party("Third party", self.organisation)
         self.draft.third_parties.add(third_party)

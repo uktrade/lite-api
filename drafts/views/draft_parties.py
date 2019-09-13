@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_draft import get_draft
-from parties.helpers import delete_end_user_document_if_exists
+from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -37,7 +37,7 @@ class DraftEndUser(APIView):
 
                 # Delete previous end user and its document
                 if draft.end_user:
-                    delete_end_user_document_if_exists(draft.end_user)
+                    delete_party_document_if_exists(draft.end_user)
                     draft.end_user.delete()
 
                 # Set the end user of the draft application

@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.urls import reverse
 from rest_framework import status
 
-from parties.document.models import EndUserDocument
+from parties.document.models import PartyDocument
 from test_helpers.clients import DataTestClient
 
 test_file = "dog.jpg"
@@ -167,7 +167,7 @@ class EndUserDocumentTests(DataTestClient):
         self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(1, len(EndUserDocument.objects.all()))
+        self.assertEqual(1, len(PartyDocument.objects.all()))
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')

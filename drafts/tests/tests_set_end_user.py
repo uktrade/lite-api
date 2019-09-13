@@ -4,7 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.document.models import EndUserDocument
+from parties.document.models import PartyDocument
 from parties.document.tests import test_file
 from parties.models import EndUser
 from static.countries.helpers import get_country
