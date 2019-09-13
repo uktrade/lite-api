@@ -70,3 +70,21 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_data, {'errors': {'sub_type': ['This field is required.']}})
+
+    def test_get_ultimate_end_users(self):
+        ultimate_end_user = self.create_ultimate_end_user('ultimate end user', self.organisation)
+        ultimate_end_user.save()
+        self.draft.ultimate_end_users.add(ultimate_end_user)
+        self.draft.save()
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        ultimate_end_users = response.json()['ultimate_end_users']
+
+        self.assertEqual(len(ultimate_end_users), 1)
+        self.assertEqual(ultimate_end_users[0]['id'], str(ultimate_end_user.id))
+        self.assertEqual(ultimate_end_users[0]['name'], str(ultimate_end_user.name))
+        self.assertEqual(ultimate_end_users[0]['country'], str(ultimate_end_user.country.id))
+        self.assertEqual(ultimate_end_users[0]['website'], str(ultimate_end_user.website))
+        self.assertEqual(ultimate_end_users[0]['type'], str(ultimate_end_user.type))
+        self.assertEqual(ultimate_end_users[0]['organisation'], str(ultimate_end_user.organisation.id))
+        self.assertEqual(ultimate_end_users[0]['sub_type'], str(ultimate_end_user.sub_type))

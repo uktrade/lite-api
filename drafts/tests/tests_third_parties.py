@@ -91,3 +91,21 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_data, {'errors': {'sub_type': ['This field is required.']}})
+
+    def test_get_third_parties(self):
+        third_party = self.create_third_party('third party', self.organisation)
+        third_party.save()
+        self.draft.third_parties.add(third_party)
+        self.draft.save()
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        third_parties = response.json()['third_parties']
+
+        self.assertEqual(len(third_parties), 1)
+        self.assertEqual(third_parties[0]['id'], str(third_party.id))
+        self.assertEqual(third_parties[0]['name'], str(third_party.name))
+        self.assertEqual(third_parties[0]['country'], str(third_party.country.id))
+        self.assertEqual(third_parties[0]['website'], str(third_party.website))
+        self.assertEqual(third_parties[0]['type'], str(third_party.type))
+        self.assertEqual(third_parties[0]['organisation'], str(third_party.organisation.id))
+        self.assertEqual(third_parties[0]['sub_type'], str(third_party.sub_type))
