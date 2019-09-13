@@ -171,13 +171,13 @@ class BaseActivity(models.Model):
     activity_types = BaseActivityType
 
     @classmethod
-    def _replace_placeholders(cls, activity_type, activity_types, **kwargs):
+    def _replace_placeholders(cls, activity_type, **kwargs):
         """
         Replaces placeholders in activity_type with parameters given
         """
         # Get the placeholder for the supplied activity_type
-        text = activity_types.get_text(activity_type)
-        placeholders = re.findall('{(.*)}', text)
+        text = cls.activity_types.get_text(activity_type)
+        placeholders = re.findall('{(.+?)}', text)
 
         # Raise an exception if the wrong amount of kwargs are given
         if len(placeholders) != len(kwargs):
@@ -209,7 +209,7 @@ class BaseActivity(models.Model):
         if activity_type not in [x[0] for x in cls.activity_types.choices]:
             raise Exception(f'{activity_type} isn\'t in ' + cls.activity_types.__name__)
 
-        text = cls._replace_placeholders(activity_type, cls.activity_types, **kwargs)
+        text = cls._replace_placeholders(activity_type, **kwargs)
 
         activity = cls(type=activity_type,
                        text=text,

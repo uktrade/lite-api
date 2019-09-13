@@ -143,19 +143,20 @@ class AssignFlags(APIView):
         removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
         # Add activity item
-        cases = []
 
         if isinstance(obj, Case):
-            cases.append(obj)
+            self._set_case_activity(added_flags, removed_flags, obj, user, note)
 
         if isinstance(obj, Good):
+            cases = []
+
             cases.extend(Case.objects.filter(query__id__in=
                                              ControlListClassificationQuery.objects.filter(good=obj)
                                              .values_list('id', flat=True)))
             cases.extend(Case.objects.filter(application__goods__good=obj))
 
-        for case in cases:
-            self._set_case_activity(added_flags, removed_flags, case, user, note)
+            for case in cases:
+                self._set_case_activity_to_goods(added_flags, removed_flags, case, user, note, obj)
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
@@ -183,3 +184,30 @@ class AssignFlags(APIView):
                                 user=user,
                                 removed_flags=removed_flags,
                                 additional_text=note)
+
+    def _set_case_activity_to_goods(self, added_flags, removed_flags, case, user, note, good):
+        # Add an activity item for the case
+        if added_flags and removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                good_name=good.description)
+
+        if added_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                additional_text=note,
+                                good_name=good.description)
+
+        if removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                good_name=good.description)
