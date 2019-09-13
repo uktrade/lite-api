@@ -89,7 +89,6 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return Case.objects.get(application=instance).id
 
-    # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
 
@@ -276,7 +275,6 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
         return CaseNoteSerializer(data, many=True).data
 
-    # pylint: disable=W0221
     def get_status(self, instance):
         return instance.status.status
 
