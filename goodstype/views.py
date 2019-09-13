@@ -3,8 +3,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
-from goodstype.helpers import get_goods_type
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
 from users.models import GovUser
