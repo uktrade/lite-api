@@ -62,6 +62,11 @@ urlpatterns = [
         name='consignee'
     ),
     path(
+        route='<uuid:pk>/consignee/document/',
+        view=draft_party_document_views.ConsigneeDocumentView.as_view(),
+        name='consignee_user_document'
+    ),
+    path(
         route='<uuid:pk>/third-parties/',
         view=draft_parties.DraftThirdParties.as_view(),
         name='third_parties'
@@ -70,6 +75,11 @@ urlpatterns = [
         route='<uuid:pk>/third-parties/<uuid:tp_pk>',
         view=draft_parties.RemoveThirdParty.as_view(),
         name='remove_third_party'
+    ),
+    path(
+        route='<uuid:pk>/third-party/<uuid:tp_pk>/document/',
+        view=draft_party_document_views.ThirdPartyDocumentView.as_view(),
+        name='third_party_document'
     ),
     path(
         '<uuid:pk>/sites/',
