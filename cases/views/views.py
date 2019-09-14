@@ -61,42 +61,6 @@ class CaseDetail(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class CaseNoteList(APIView):
-    authentication_classes = (SharedAuthentication,)
-    """
-    Retrieve/create case notes.
-    """
-
-    def get(self, request, pk):
-        """
-        Gets all case notes
-        """
-        case = get_case(pk)
-        case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
-        serializer = CaseNoteSerializer(case_notes, many=True)
-        mark_notifications_as_viewed(request.user, case_notes)
-        return JsonResponse(data={'case_notes': serializer.data})
-
-    def post(self, request, pk):
-        """
-        Creates a case note on a case
-        """
-        case = get_case(pk)
-        data = request.data
-        data['case'] = str(case.id)
-        data['user'] = str(request.user.id)
-
-        serializer = CaseNoteSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'case_note': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
 class CaseDocuments(APIView):
     authentication_classes = (GovAuthentication,)
 

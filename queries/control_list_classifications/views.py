@@ -76,7 +76,7 @@ class ControlListClassificationDetail(APIView):
 
                     # Send a notification to the user
                     for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
-                        user_relationship.user.send_notification(clc_query=query)
+                        user_relationship.user.send_notification(query=query)
 
                     return JsonResponse(data={'control_list_classification_query': serializer.data})
                 else:

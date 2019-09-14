@@ -157,8 +157,8 @@ class EcjuQuery(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
-    clc_query = models.ForeignKey(ControlListClassificationQuery, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
 
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from cases.views import views, activity
+from cases.views import views, activity, case_notes
 
 app_name = 'cases'
 
@@ -8,7 +8,7 @@ urlpatterns = [
     # ex: /cases/<uuid:pk>/
     path('<uuid:pk>/', views.CaseDetail.as_view(), name='case'),
     # ex: /cases/<uuid:pk>/case-notes/
-    path('<uuid:pk>/case-notes/', views.CaseNoteList.as_view(), name='case_notes'),
+    path('<uuid:pk>/case-notes/', case_notes.CaseNoteList.as_view(), name='case_notes'),
     # ex: /cases/<uuid:pk>/activity/
     path('<uuid:pk>/activity/', activity.Activity.as_view(), name='activity'),
     # ex: /cases/<uuid:pk>/documents/

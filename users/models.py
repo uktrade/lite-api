@@ -4,9 +4,9 @@ import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from reversion.models import Revision
 
 from organisations.models import Organisation
+from queries.models import Query
 from teams.models import Team
 from users.enums import UserStatuses
 
@@ -76,11 +76,16 @@ class BaseUser(AbstractUser):
 
     objects = CustomUserManager()
 
-    def send_notification(self, case_note=None, ecju_query=None, clc_query=None):
+    def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
         # circular import prevention
-        if case_note or ecju_query or clc_query:
-            Notification.objects.create(user=self, case_note=case_note, ecju_query=ecju_query, clc_query=clc_query)
+        if case_note:
+            Notification.objects.create(user=self, case_note=case_note)
+        elif query:
+            actual_query = Query.objects.get(id=query.id)
+            Notification.objects.create(user=self, query=actual_query)
+        elif ecju_query:
+            Notification.objects.create(user=self, ecju_query=ecju_query)
         else:
             raise Exception("BaseUser.send_notification: objects expected have not been added.")
 
@@ -106,8 +111,3 @@ class GovUser(BaseUser):
         Remove gov user from all cases
         """
         self.case_assignments.clear()
-
-
-class GovUserRevisionMeta(models.Model):
-    revision = models.OneToOneField(Revision, on_delete=models.CASCADE)
-    gov_user = models.ForeignKey(GovUser, on_delete=models.CASCADE)

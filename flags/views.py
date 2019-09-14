@@ -155,12 +155,12 @@ class AssignFlags(APIView):
             cases.extend(Case.objects.filter(application__goods__good=obj))
 
             for case in cases:
-                self._set_case_activity_to_goods(added_flags, removed_flags, case, user, note, obj)
+                self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
 
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
 
-    def _set_case_activity(self, added_flags, removed_flags, case, user, note):
+    def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
         # Add an activity item for the case
         if added_flags and removed_flags:
             CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
@@ -168,23 +168,26 @@ class AssignFlags(APIView):
                                 user=user,
                                 added_flags=added_flags,
                                 removed_flags=removed_flags,
-                                additional_text=note)
+                                additional_text=note,
+                                **kwargs)
 
         if added_flags:
             CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
                                 case=case,
                                 user=user,
                                 added_flags=added_flags,
-                                additional_text=note)
+                                additional_text=note,
+                                **kwargs)
 
         if removed_flags:
             CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
                                 case=case,
                                 user=user,
                                 removed_flags=removed_flags,
-                                additional_text=note)
+                                additional_text=note,
+                                **kwargs)
 
-    def _set_case_activity_to_goods(self, added_flags, removed_flags, case, user, note, good):
+    def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case
         if added_flags and removed_flags:
             CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,

@@ -67,10 +67,13 @@ class GoodDetail(APIView):
 
             serializer = GoodSerializer(good)
 
-            # If there's a CLC Query with this good, update the notification on it
+            # If there's a query with this good, update the notifications on it
             try:
                 query = ControlListClassificationQuery.objects.get(good=good)
                 request.user.notification_set.filter(case_note__case__query=query).update(
+                    viewed_at=timezone.now()
+                )
+                request.user.notification_set.filter(query=query.id).update(
                     viewed_at=timezone.now()
                 )
             except ControlListClassificationQuery.DoesNotExist:

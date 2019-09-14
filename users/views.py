@@ -14,8 +14,7 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
-from users.serializers import NotificationsSerializer, \
-    ExporterUserViewSerializer, ClcNotificationsSerializer, ExporterUserCreateUpdateSerializer
+from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer
 
 
 class AuthenticateExporterUser(APIView):
@@ -123,7 +122,7 @@ class UserDetail(APIView):
 
 class NotificationViewset(generics.ListAPIView):
     model = Notification
-    serializer_class = NotificationsSerializer
+    serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated, )
     queryset = Notification.objects.all()
@@ -133,37 +132,11 @@ class NotificationViewset(generics.ListAPIView):
 
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__application_id__isnull=False,
-                                                 case_note__case__application__organisation_id=organisation_id)
-                                               | Q(user=self.request.user,
-                                                   ecju_query__case__application_id__isnull=False,
-                                                   ecju_query__case__application__organisation_id=organisation_id))
-
-        if self.request.GET.get('unviewed'):
-            queryset = queryset.filter(viewed_at__isnull=True)
-
-        return queryset
-
-
-class ClcNotificationViewset(generics.ListAPIView):
-    model = Notification
-    serializer_class = ClcNotificationsSerializer
-    authentication_classes = (ExporterAuthentication,)
-    permission_classes = (IsAuthenticated, )
-    queryset = Notification.objects.all()
-
-    def get_queryset(self):
-        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
-
-        # Get all notifications for the current user and organisation on CLC Query cases,
-        # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects.filter(Q(user=self.request.user,
-                                                 case_note__case__query_id__isnull=False,
-                                                 case_note__case__query__organisation_id=organisation_id)
-                                               | Q(user=self.request.user,
-                                                   ecju_query__case__query_id__isnull=False,
-                                                   ecju_query__case__query__organisation_id=organisation_id))
+        queryset = Notification.objects\
+            .filter(user=self.request.user)\
+            .filter(Q(case_note__case__application__organisation_id=organisation_id) |
+                    Q(case_note__case__query__organisation_id=organisation_id) |
+                    Q(query__organisation__id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
