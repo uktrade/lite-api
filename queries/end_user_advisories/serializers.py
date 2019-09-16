@@ -11,8 +11,8 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
                                                     serializer=TinyOrganisationViewSerializer)
     end_user = EndUserSerializer()
-    reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:
         model = EndUserAdvisoryQuery
