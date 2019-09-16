@@ -113,7 +113,7 @@ class ConsigneeDocumentView(APIView):
     @transaction.atomic()
     def delete(self, request, pk):
         """
-        Deletes a document from the specified end user
+        Deletes a document from the specified consignee
         """
         consignee = get_consignee(pk)
         return delete_party_document(consignee)
@@ -150,7 +150,7 @@ class ThirdPartyDocumentView(APIView):
     @transaction.atomic()
     def delete(self, request, pk, tp_pk):
         """
-        Deletes a document from the specified consignee
+        Deletes a document from the specified third party
         """
         third_party = get_third_party(tp_pk)
         return delete_party_document(third_party)
