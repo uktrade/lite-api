@@ -289,7 +289,7 @@ class CaseTeamAdvice(APIView):
         """
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
-        if len(self.team_advice.filter(team=request.user.team)) == 0:
+        if self.team_advice.filter(team=request.user.team).count() == 0:
             # We pass in the class of advice we are creating
             has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
             team = self.request.user.team
