@@ -2,11 +2,10 @@ from rest_framework import serializers
 
 from conf.helpers import str_to_bool
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus
 from goods.serializers import FullGoodSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
@@ -26,7 +25,7 @@ class ClcQuerySerializer(serializers.ModelSerializer):
 
 
 class ClcQueryResponseSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(allow_blank=True, allow_null=True, max_length=20, required=True,
+    control_code = serializers.CharField(allow_blank=True, allow_null=True, max_length=20, required=False,
                                          write_only=True)
     is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
     comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
@@ -42,20 +41,18 @@ class ClcQueryResponseSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(ClcQueryResponseSerializer, self).__init__(*args, **kwargs)
 
-        print(self.get_initial())
-
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')):
-            self.fields['control_code'] = serializers.CharField(required=True)
+            self.fields['control_code'] = serializers.CharField(allow_blank=False,
+                                                                allow_null=False,
+                                                                max_length=20,
+                                                                required=True,
+                                                                write_only=True)
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):
-        print('\n')
-        print(validated_data)
-        print('\n')
-
         instance.comment = validated_data.get('comment')
-        instance.report_summary = get_picklist_item(validated_data.get('report_summary')).text
+        instance.report_summary = validated_data.get('report_summary').text
         instance.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
 
         # Update the good's details

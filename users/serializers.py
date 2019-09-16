@@ -1,14 +1,12 @@
 from rest_framework import serializers
 
-from cases.models import Notification, CaseNote
+from cases.models import Notification
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer

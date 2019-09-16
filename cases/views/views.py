@@ -7,12 +7,11 @@ from rest_framework.views import APIView
 
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
-from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, CaseActivity
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
-    EcjuQueryCreateSerializer, CaseNoteSerializer, CaseDetailSerializer, \
+    EcjuQueryCreateSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request

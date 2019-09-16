@@ -14,7 +14,6 @@ from end_user.models import EndUser
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
-from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country

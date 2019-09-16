@@ -64,11 +64,6 @@ class ControlListClassificationDetail(APIView):
 
         with reversion.create_revision():
             serializer = ClcQueryResponseSerializer(query, data=data)
-
-            print('\n')
-            print(data)
-            print('\n')
-
             if serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
                     serializer.save()
