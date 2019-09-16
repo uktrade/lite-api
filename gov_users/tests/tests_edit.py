@@ -1,9 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import Permissions
 from teams.models import Team
 from test_helpers.clients import DataTestClient
-from users.models import Permission, Role
+from users.models import Role
 
 
 class GovUserEditTests(DataTestClient):
@@ -40,7 +41,7 @@ class GovUserEditTests(DataTestClient):
 
     def tests_change_role_of_a_gov_user(self):
         role = Role(name='some role')
-        role.permissions.set([Permission.objects.get(name='Manage final advice').id])
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
         data = {
             'role': role.id
