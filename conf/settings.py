@@ -63,9 +63,11 @@ INSTALLED_APPS = [
     'flags.apps.FlagsConfig',
     'documents.apps.DocumentsConfig',
     'background_task',
-    'clc_queries',
     'picklists',
     'end_user.document',
+    'queries',
+    'queries.end_user_advisories',
+    'queries.control_list_classifications'
 ]
 
 MIDDLEWARE = [
@@ -151,6 +153,9 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
+
+# If True, print the length of time it takes to run each test
+TIME_TESTS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

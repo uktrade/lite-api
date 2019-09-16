@@ -4,7 +4,6 @@ from rest_framework.reverse import reverse
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
-from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
@@ -62,7 +61,7 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(site.address.city, data['site']['address']['city'])
         self.assertEqual(str(site.address.country.id), data['site']['address']['country'])
 
-    def tests_errors_are_send_from_failed_create(self):
+    def test_cannot_create_organisation_with_invalid_data(self):
         data = {
             'name': None,
             'eori_number': None,

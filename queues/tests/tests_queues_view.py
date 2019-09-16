@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,20 +8,31 @@ from test_helpers.clients import DataTestClient
 
 class QueuesViewTests(DataTestClient):
 
-    url = reverse('queues:queues') + '?include_system_queues=True'
-
-    @tag('only')
-    def tests_list_queue(self):
+    def test_list_all_queues(self):
         """
         Tests that all queues are returned
         """
-        response = self.client.get(self.url, **self.gov_headers)
+        url = reverse('queues:queues') + '?include_system_queues=True'
+
+        response = self.client.get(url, **self.gov_headers)
         data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(data['queues']), 4)
 
-    def tests_detail_system_queue(self):
+    def test_list_queues(self):
+        """
+        Tests that all queues are returned
+        """
+        url = reverse('queues:queues')
+
+        response = self.client.get(url, **self.gov_headers)
+        data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data['queues']), 1)
+
+    def test_detail_system_queue(self):
         """
         View an individual system queue
         """
@@ -38,7 +48,7 @@ class QueuesViewTests(DataTestClient):
         self.assertEqual(response_data['team']['id'], str(queue.team.id))
         self.assertEqual(response_data['cases_count'], 0)
 
-    def tests_detail_queue(self):
+    def test_detail_queue(self):
         """
         View an individual queue
         """

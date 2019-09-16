@@ -18,19 +18,19 @@ class CasesFilterAndSortTests(DataTestClient):
         for app_status in CaseStatusEnum.choices:
             case = self.create_standard_application_case(self.organisation, 'Example Application')
             case.application.status = get_case_status_from_status(app_status)
-            case.application.save(update_fields=['status'])
+            case.application.save()
             self.queue.cases.add(case)
             self.queue.save()
             self.application_cases.append(case)
 
         self.clc_cases = []
         for clc_status in CaseStatusEnum.choices:
-            case = self.create_clc_query_case('Example CLC Query', get_case_status_from_status(clc_status))
-            self.queue.cases.add(case)
+            clc_query = self.create_clc_query('Example CLC Query', self.organisation)
+            clc_query.status = get_case_status_from_status(clc_status)
+            clc_query.save()
+            self.queue.cases.add(clc_query.case.get())
             self.queue.save()
-            self.clc_cases.append(case)
-
-        return
+            self.clc_cases.append(clc_query.case.get())
 
     def test_get_cases_no_filter(self):
         """
@@ -126,7 +126,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Arrange
         case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda c: c.clc_query.status == case_status, self.clc_cases))
+        clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
         url = reverse('queues:cases', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID}) + \
               '?case_type=clc_query&status=' + case_status.status + '&sort=status'
 
@@ -151,7 +151,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Arrange
         case_status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda case: case.clc_query.status == case_status, self.clc_cases))
+        clc_submitted_cases = list(filter(lambda case: case.query.status == case_status, self.clc_cases))
         url = self.url + '?case_type=clc_query&status=' + case_status.status
 
         # Act
@@ -179,7 +179,7 @@ class CasesFilterAndSortTests(DataTestClient):
             {
                 'case': str(case.id),
                 'status': case.application.status.priority if case.application is not None else
-                case.clc_query.status.priority
+                case.query.status.priority
             }
             for case in all_cases
         ]

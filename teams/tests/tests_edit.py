@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 
 class TeamEditTests(DataTestClient):
 
-    def tests_edit_team_name_successful(self):
+    def test_edit_team_name_successful(self):
         """
         Test that a valid gov user can edit their team name
         """
@@ -25,7 +25,7 @@ class TeamEditTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(team.name, data['name'])
 
-    def tests_cannot_rename_to_an_already_used_name_case_insensitive(self):
+    def test_cannot_rename_to_an_already_used_name_case_insensitive(self):
         """
         Test that a valid gov user cannot edit their team name
         to the same as another teams

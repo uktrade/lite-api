@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from goodstype.models import GoodsType
-from queues.models import Queue
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 
 
@@ -12,8 +10,6 @@ class GoodFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.open_application = self.create_open_application(self.organisation)
-        self.default_queue = Queue.objects.get(id='00000000-0000-0000-0000-000000000001')
-        self.default_team = Team.objects.get(id='00000000-0000-0000-0000-000000000001')
 
         self.goods_types = GoodsType.objects.filter(object_id=self.open_application.id)
         self.goods_type = self.goods_types[0]
@@ -31,7 +27,6 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.good_url = reverse('goodstype:goodstypes-detail', kwargs={'pk': self.goods_type.id})
         self.good_flag_url = reverse('flags:assign_flags')
-        self.audit_url = reverse('goodstype:activity', kwargs={'pk': self.goods_type.id})
 
     def test_no_flags_for_goods_type_are_returned(self):
         """
@@ -39,9 +34,6 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user requests the Good
         Then the correct Good with an empty Flag list is returned
         """
-
-        # Arrange
-
         # Act
         response = self.client.get(self.good_url, **self.gov_headers)
 
@@ -136,30 +128,6 @@ class GoodFlagsManagementTests(DataTestClient):
         self.assertEquals(len(self.all_flags), len(self.goods_type.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.goods_type.flags.all())
-
-    def test_given_good_type_has_been_modified_then_appropriate_audit_is_in_place(self):
-        """
-        Given a Good with no Flags assigned
-        When a user attempts to add a good-level Flag owned by their Team to the Good
-        And the Flag is successfully added
-        And an audit record is created
-        And the user requests the activity on the Good
-        Then the activity is returned showing the Flag which was added
-        """
-        data = {
-            'level': 'goods',
-            'objects': [self.goods_type.pk],
-            'flags': [self.team_good_flag_1.pk],
-            'note': 'A reason for changing the flags'
-        }
-
-        self.client.put(self.good_flag_url, data, **self.gov_headers)
-        response = self.client.get(self.audit_url, **self.gov_headers)
-
-        response_data = response.json()
-        activity = response_data['activity']
-        self.assertEquals(len(data['flags']), len(activity))
-        self.assertEquals([self.team_good_flag_1.__dict__['name']], activity[0]['data']['flags']['added'])
 
     def test_setting_flags_on_two_goods(self):
         """

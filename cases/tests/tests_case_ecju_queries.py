@@ -125,32 +125,46 @@ class CaseEcjuQueriesTests(DataTestClient):
 
 class EcjuQueriesCreateTest(DataTestClient):
 
-    def setUp(self):
-        super().setUp()
-        self.case = self.create_standard_application_case(self.organisation)
-        self.post_url = reverse('cases:case_ecju_queries', kwargs={'pk': self.case.id})
-
     def test_gov_user_can_create_ecju_queries(self):
         """
         Given a Case
         When a gov user adds an ECJU query to the case with valid data
         Then the request is successful and the ECJU query is saved
         """
-        # Assemble
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse('cases:case_ecju_queries', kwargs={'pk': case.id})
+        data = {
+            'question': 'Test ECJU Query question?'
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = json.loads(response.content)
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data['ecju_query_id'], str(ecju_query.id))
+        self.assertEqual('Test ECJU Query question?', ecju_query.question)
+
+    def test_gov_user_can_create_ecju_queries_on_query_cases(self):
+        """
+        Given a query case
+        When a gov user adds an ECJU query to the case with valid data
+        Then the request is successful and the ECJU query is saved
+        """
+        case = self.create_clc_query('Query', self.organisation).case.get()
+        url = reverse('cases:case_ecju_queries', kwargs={'pk': case.id})
         data = {
             'question': 'Test ECJU Query question?'
         }
 
         # Act
-        response = self.client.post(self.post_url, data, **self.gov_headers)
-
-        # Assert
-        ecju_query = EcjuQuery.objects.get(case=self.case)
+        response = self.client.post(url, data, **self.gov_headers)
         response_data = json.loads(response.content)
+        ecju_query = EcjuQuery.objects.get(case=case)
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data['ecju_query_id'])
-        self.assertEqual('Test ECJU Query question?', ecju_query.question)
+        self.assertEqual(ecju_query.question, data['question'])
 
     def test_bad_data_create_fail(self):
         """
@@ -158,8 +172,9 @@ class EcjuQueriesCreateTest(DataTestClient):
         When a gov user adds an ECJU query to the case with invalid data
         Then the request fails
         """
-        # Assemble
         # Not possible to parameterize due to need to refer to self.case
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse('cases:case_ecju_queries', kwargs={'pk': case.id})
         test_data_list = [
             {'question': ''},
             {'question': None},
@@ -168,7 +183,7 @@ class EcjuQueriesCreateTest(DataTestClient):
 
         for test_data in test_data_list:
             # Act
-            response = self.client.post(self.post_url, test_data, **self.gov_headers)
+            response = self.client.post(url, test_data, **self.gov_headers)
 
             # Assert
             self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
@@ -179,14 +194,14 @@ class EcjuQueriesCreateTest(DataTestClient):
         When a gov user requests the ECJU query by ID
         Then the request is successful and the details of the ECJU query are returned
         """
-        # Assemble
-        ecju_query = EcjuQuery(question='Ble', case=self.case, raised_by_user=self.gov_user)
+        case = self.create_standard_application_case(self.organisation)
+        ecju_query = EcjuQuery(question='Ble', case=case, raised_by_user=self.gov_user)
         ecju_query.save()
 
-        get_url = reverse('cases:case_ecju_query', kwargs={'pk': self.case.id, 'ecju_pk': ecju_query.id})
+        url = reverse('cases:case_ecju_query', kwargs={'pk': case.id, 'ecju_pk': ecju_query.id})
 
         # Act
-        response = self.client.get(get_url, **self.gov_headers)
+        response = self.client.get(url, **self.gov_headers)
 
         # Assert
         response_data = json.loads(response.content)
@@ -196,27 +211,3 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(str(ecju_query.question), response_data['ecju_query']['question'])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data['ecju_query']['case'])
-
-    def test_raise_ecju_queries_creates_audit(self):
-        """
-        Given a case with no ECJU queries
-        When a gov user raises an ECJU query for the case
-        And the request is successful
-        Then an audit entry can be retrieved
-        """
-        # Assemble
-        ecju_query = EcjuQuery(question='Bleh', case=self.case, raised_by_user=self.gov_user)
-        ecju_query.save()
-        audit_url = reverse('cases:activity', kwargs={'pk': self.case.pk})
-
-        # Act
-        response = self.client.get(audit_url, **self.gov_headers)
-        activity = response.json().get('activity')
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(activity), 1)
-        self.assertEqual('ecju_query', activity[0]['type'])
-        self.assertEqual(ecju_query.question, activity[0]['data'])
-        self.assertEqual(ecju_query.raised_by_user.get_full_name(), activity[0]['user']['first_name'] + ' '
-                         + activity[0]['user']['last_name'])

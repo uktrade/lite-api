@@ -2,15 +2,14 @@ from django.urls import reverse
 from rest_framework import status
 
 from queues.models import Queue
-from queues.constants import EXISTING_QUEUE_ID
 from test_helpers.clients import DataTestClient
 
 
 class QueueEditTests(DataTestClient):
 
-    def tests_edit_queue(self):
+    def test_edit_queue(self):
         data = {
-            'id': EXISTING_QUEUE_ID,
+            'id': self.queue.id,
             'name': 'Modified queue',
         }
 

@@ -1,11 +1,7 @@
-from unittest import mock
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from end_user.document.models import EndUserDocument
-from end_user.document.tests import test_file
 from end_user.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient

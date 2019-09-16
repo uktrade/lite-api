@@ -2,7 +2,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -10,8 +9,7 @@ class MoveCasesTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
-        self.case = Case.objects.get(application=self.standard_application)
+        self.case = self.create_clc_query('Query', self.organisation).case.get()
         self.url = reverse('cases:case', kwargs={'pk': self.case.id})
         self.queues = [
             self.create_queue('Queue 1', self.team),
