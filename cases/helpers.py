@@ -35,23 +35,24 @@ def collate_advice(application_field, collection, case, user, advice_class):
         proviso = None
         denial_reasons = []
         type = None
+        break_text = '\n-------\n'
 
         filtered_items = filter_out_duplicates(value)
 
         for advice in filtered_items:
             if text:
-                text += '\n-------\n' + advice.text
+                text += break_text + advice.text
             else:
                 text = advice.text
 
             if note:
-                note += '\n-------\n' + advice.note
+                note += break_text + advice.note
             else:
                 note = advice.note
 
             if advice.proviso:
                 if proviso:
-                    proviso += '\n-------\n' + advice.proviso
+                    proviso += break_text + advice.proviso
                 else:
                     proviso = advice.proviso
 
