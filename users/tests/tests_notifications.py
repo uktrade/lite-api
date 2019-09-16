@@ -83,5 +83,5 @@ class NotificationTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         # Check that the 2 notifications we got are the ones arising from notes on application 2, i.e. the application
         # created while org_2 is the currently selected org
-        self.assertEqual(response_data[0]['application'], str(application2.id))
-        self.assertEqual(response_data[1]['application'], str(application2.id))
+        self.assertEqual(response_data[0]['parent'], str(application2.id))
+        self.assertEqual(response_data[1]['parent'], str(application2.id))
