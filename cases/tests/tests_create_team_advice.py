@@ -38,6 +38,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.open_case_url = reverse('cases:case_team_advice', kwargs={'pk': self.open_case.id})
 
     def test_advice_is_concatenated_when_team_advice_first_created(self):
+        """
+        Team advice is created on first call
+        """
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, Advice)
         self.create_advice(self.gov_user_2, self.standard_case, 'end_user', AdviceType.PROVISO, Advice)
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, Advice)
@@ -52,6 +55,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response_data[1].get('type').get('key'), 'no_licence_required')
 
     def test_create_conflicting_team_advice_shows_all_fields(self):
+        """
+        The type should show conflicting if there are conflicting types in the advice on a single object
+        """
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, Advice)
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, Advice)
         self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, Advice)
@@ -120,6 +126,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
     # User must have permission to create team advice
     def test_user_cannot_create_team_level_advice_without_permissions(self):
+        """
+        Tests that the right level of permissions are required
+        """
         self.gov_user.role.permissions.set([])
         self.gov_user.save()
         response = self.client.get(self.standard_case_url, **self.gov_headers)
@@ -135,6 +144,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_can_see_already_created_team_advice_without_additional_permissions(self):
+        """
+        No permissions are required to view any tier of advice
+        """
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
         self.gov_user.role.permissions.set([])
         self.gov_user.save()
@@ -143,6 +155,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_can_view_other_teams_advice(self):
+        """
+        Advice is visible to all users, no matter which team it belongs to
+        """
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, TeamAdvice)
 
@@ -161,6 +176,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(len(response.json()['advice']), 2)
 
     def test_advice_from_another_team_not_collated(self):
+        """
+        When collating advice, only the user's team's advice should be collated
+        """
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.PROVISO, Advice)
         team_2 = Team(name='2')
         team_2.save()
@@ -176,6 +194,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response_data[0].get('type').get('key'), 'proviso')
 
     def test_cannot_submit_user_level_advice_if_team_advice_exists_for_that_team_on_that_case(self):
+        """
+        Logically blocks the submission of lower tier advice if higher tier advice exists
+        """
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
 
         data = {
@@ -190,6 +211,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(self):
+        """
+        No residual data is left to block lower tier advice being submitted after a clear
+        """
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
@@ -206,6 +230,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self):
+        """
+        Audit trail is created when clearing or combining advice
+        """
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, Advice)
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, Advice)
         self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, Advice)
@@ -218,6 +245,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(len(response.json()['activity']), 2)
 
     def test_creating_team_advice_does_not_overwrite_user_level_advice(self):
+        """
+        Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
+        """
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, Advice)
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
 
@@ -233,8 +263,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         [AdviceType.NO_LICENCE_REQUIRED],
         [AdviceType.NOT_APPLICABLE],
     ])
-    @tag('only')
     def test_coalesce_merges_duplicate_advice_instead_of_appending_it_simple(self, advice_type):
+        """
+        Makes sure we strip out duplicates of advice on the same object
+        """
         self.create_advice(self.gov_user_2, self.standard_case, 'good', advice_type, Advice)
         self.create_advice(self.gov_user_3, self.standard_case, 'good', advice_type, Advice)
 

@@ -41,6 +41,9 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.standard_case_url = reverse('cases:case_final_advice', kwargs={'pk': self.standard_case.id})
 
     def test_advice_is_concatenated_when_final_advice_first_created(self):
+        """
+        Final advice is created on first call
+        """
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
         self.create_advice(self.gov_user_2, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
@@ -55,6 +58,9 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.assertEqual(response_data[1].get('type').get('key'), 'no_licence_required')
 
     def test_create_conflicting_final_advice_shows_all_fields(self):
+        """
+        The type should show conflicting if there are conflicting types in the advice on a single object
+        """
         self.create_advice(self.gov_user, self.standard_case, 'good', AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.REFUSE, TeamAdvice)
         self.create_advice(self.gov_user_3, self.standard_case, 'good', AdviceType.PROVISO, TeamAdvice)
