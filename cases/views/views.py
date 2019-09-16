@@ -187,6 +187,8 @@ class CaseEcjuQueries(APIView):
             if 'validate_only' not in data or not data['validate_only']:
                 serializer.save()
 
+
+
                 return JsonResponse(data={'ecju_query_id': serializer.data['id']},
                                     status=status.HTTP_201_CREATED)
             else:

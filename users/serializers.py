@@ -165,6 +165,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.case_note:
             object = next(item for item in [obj.case_note.case.application,
                                             obj.case_note.case.query] if item is not None)
+        if obj.ecju_query:
+            object = next(item for item in [obj.ecju_query.case.application,
+                                            obj.ecju_query.case.query] if item is not None)
 
         if obj.query:
             return None
@@ -175,6 +178,10 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.case_note:
             object = next(item for item in [obj.case_note.case.application,
                                             obj.case_note.case.query] if item is not None)
+        if obj.ecju_query:
+            object = next(item for item in [obj.ecju_query.case.application,
+                                            obj.ecju_query.case.query] if item is not None)
+
         if obj.query:
             return None
 

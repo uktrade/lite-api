@@ -136,7 +136,9 @@ class NotificationViewset(generics.ListAPIView):
             .filter(user=self.request.user)\
             .filter(Q(case_note__case__application__organisation_id=organisation_id) |
                     Q(case_note__case__query__organisation_id=organisation_id) |
-                    Q(query__organisation__id=organisation_id))
+                    Q(query__organisation__id=organisation_id) |
+                    Q(ecju_query__case__application__organisation_id=organisation_id) |
+                    Q(ecju_query__case__query__organisation_id=organisation_id))
 
         if self.request.GET.get('unviewed'):
             queryset = queryset.filter(viewed_at__isnull=True)
