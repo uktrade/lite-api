@@ -394,7 +394,7 @@ class DataTestClient(BaseTestClient):
             advice.end_user = case.application.end_user
 
         if advice_field == 'good':
-            advice.good = GoodOnApplication.objects.filter(application=case.application)[0].good
+            advice.good = GoodOnApplication.objects.filter(application=case.application).first().good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = 'I am easy to proviso'

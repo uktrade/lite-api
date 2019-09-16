@@ -10,10 +10,15 @@ from static.countries.models import Country
 
 
 def filter_out_duplicates(advice_list):
+    """
+    This examines each piece of data in a set of advice for an object
+    and if there are any exact duplicates it only returns one of them.
+    """
     matches = False
     filtered_items = []
     for advice in advice_list:
         for item in filtered_items:
+            # Compare each piece of unique advice against the new piece of advice being introduced
             if advice.type == item.type \
                     and advice.text == item.text \
                     and advice.note == item.note \
@@ -91,6 +96,9 @@ def collate_advice(application_field, collection, case, user, advice_class):
 
 
 def create_grouped_advice(case, request, advice, level):
+    """
+    Takes the advice from a case and combines it against each field to the level specified (team or final)
+    """
     end_users = defaultdict(list)
     ultimate_end_users = defaultdict(list)
     goods = defaultdict(list)
