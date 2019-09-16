@@ -67,13 +67,12 @@ class ConsigneeOnDraftTests(DataTestClient):
          When attempting to add an invalid consignee
          Then the consignee is not added to the draft
          """
-        draft = self.create_draft(self.organisation)
-        url = reverse('drafts:consignee', kwargs={'pk': draft.id})
+        self.draft = self.create_draft(self.organisation)
+        response = self.client.post(self.url, data, **self.exporter_headers)
 
-        response = self.client.post(url, data, **self.exporter_headers)
-
+        self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(draft.consignee, None)
+        self.assertEqual(self.draft.consignee, None)
 
     def test_consignee_deleted_when_new_one_added(self):
         """
