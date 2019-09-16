@@ -67,6 +67,8 @@ class ConsigneeOnDraftTests(DataTestClient):
          When attempting to add an invalid consignee
          Then the consignee is not added to the draft
          """
+        self.draft.consignee = None
+        self.draft.save()
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 

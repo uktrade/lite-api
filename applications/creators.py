@@ -44,14 +44,14 @@ def check_party_document(party):
     try:
         document = PartyDocument.objects.get(party=party)
     except Document.DoesNotExist:
-        return get_string('applications.standard.no_end_user_document_set')
+        return get_string('applications.standard.no_{}_document_set'.format(party.type))
 
     if not document:
-        return get_string('applications.standard.no_end_user_document_set')
+        return get_string('applications.standard.no_{}_document_set'.format(party.type))
     elif document.safe is None:
-        return get_string('applications.standard.end_user_document_processing')
+        return get_string('applications.standard.{}_document_processing'.format(party.type))
     elif not document.safe:
-        return get_string('applications.standard.end_user_document_infected')
+        return get_string('applications.standard.{}_document_infected'.format(party.type))
     else:
         return None
 
@@ -72,9 +72,16 @@ def create_standard_licence(draft, application, errors):
     if not draft.end_user:
         errors['end_user'] = get_string('applications.standard.no_end_user_set')
 
-    end_user_documents_error = check_party_document(draft.end_user)
-    if end_user_documents_error:
-        errors['end_user_document'] = end_user_documents_error
+    end_user_document_error = check_party_document(draft.end_user)
+    if end_user_document_error:
+        errors['end_user_document'] = end_user_document_error
+
+    if not draft.consignee:
+        errors['consignee'] = get_string('applications.standard.no_consignee_set')
+
+    consignee_document_error = check_party_document(draft.end_user)
+    if consignee_document_error:
+        errors['consignee_document'] = consignee_document_error
 
     ultimate_end_user_documents_error = check_ultimate_end_user_documents_for_draft(draft)
     if ultimate_end_user_documents_error:

@@ -1,8 +1,8 @@
 class PartyType:
     CONSIGNEE = 'consignee'
-    END = 'end'
-    ULTIMATE = 'ultimate'
-    THIRD = 'third'
+    END = 'end_user'
+    ULTIMATE = 'ultimate_end_user'
+    THIRD = 'third_party'
 
     choices = [
         (CONSIGNEE, 'Consignee'),

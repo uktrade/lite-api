@@ -253,7 +253,7 @@ class DataTestClient(BaseTestClient):
 
     @staticmethod
     def create_document_for_party(party: Party, name='document_name.pdf', safe=True):
-        end_user_document = PartyDocument(
+        document = PartyDocument(
             party=party,
             name=name,
             s3_key='s3_keykey.pdf',
@@ -261,8 +261,8 @@ class DataTestClient(BaseTestClient):
             virus_scanned_at=None,
             safe=safe
         )
-        end_user_document.save()
-        return end_user_document
+        document.save()
+        return document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
@@ -359,6 +359,10 @@ class DataTestClient(BaseTestClient):
         draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
 
         self.create_document_for_party(draft.end_user, safe=safe_document)
+
+        draft.consignee = self.create_consignee('consignee', organisation)
+        draft.save()
+        self.create_document_for_party(draft.consignee, safe=safe_document)
 
         return draft
 

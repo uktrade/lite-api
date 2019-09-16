@@ -20,7 +20,9 @@ class ApplicationsTests(DataTestClient):
         ExternalLocationOnDraft(external_location=site1, draft=draft).save()
         ExternalLocationOnDraft(external_location=site2, draft=draft).save()
         draft.end_user = self.create_end_user('test', self.organisation)
+        draft.consignee = self.create_consignee('test', self.organisation)
         self.create_document_for_party(draft.end_user)
+        self.create_document_for_party(draft.consignee)
         draft.activity = 'Brokering'
         draft.save()
 
