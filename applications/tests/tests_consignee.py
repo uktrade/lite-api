@@ -30,6 +30,12 @@ class ApplicationConsigneeTests(DataTestClient):
         self.end_user = self.create_end_user('end user', self.organisation)
 
     def test_submit_draft_with_consignee_success(self):
+        """
+        Given a standard draft has been created with a consignee
+        When the draft is submitted
+        Then the draft is converted to an application
+        """
+
         ultimate_end_user = self.create_ultimate_end_user("UEU", self.organisation)
         self.draft.ultimate_end_users.add(ultimate_end_user)
         self.create_document_for_party(party=ultimate_end_user,

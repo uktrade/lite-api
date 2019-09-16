@@ -14,6 +14,12 @@ class CaseGetTests(DataTestClient):
         self.url = reverse('cases:case', kwargs={'pk': self.case.id})
 
     def test_case_returns_expected_third_party(self):
+        """
+        Given a case with a third party exists
+        When the case is retrieved
+        Then the third party is present in the json data
+        """
+
         self.standard_application.third_parties.set([self.create_third_party('third party', self.organisation)])
         self.standard_application.save()
 
@@ -28,6 +34,12 @@ class CaseGetTests(DataTestClient):
         self._assert_party(expected_third_party, actual_third_party)
 
     def test_case_returns_expected_consignee(self):
+        """
+        Given a case with a consignee exists
+        When the case is retrieved
+        Then the consignee is present in the json data
+        """
+
         self.standard_application.consignee = self.create_consignee('consignee', self.organisation)
         self.standard_application.save()
 
@@ -44,7 +56,7 @@ class CaseGetTests(DataTestClient):
     def _assert_party(self, expected, actual):
         self.assertEqual(str(expected.id), actual['id'])
         self.assertEqual(str(expected.name), actual['name'])
-        self.assertEqual(str(expected.country.id), actual['country'])
+        self.assertEqual(str(expected.country.name), actual['country']['name'])
         self.assertEqual(str(expected.website), actual['website'])
         self.assertEqual(str(expected.type), actual['type'])
         self.assertEqual(str(expected.organisation.id), actual['organisation'])

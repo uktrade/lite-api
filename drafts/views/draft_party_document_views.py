@@ -10,11 +10,11 @@ from drafts.libraries.get_party import get_end_user, get_ultimate_end_user, get_
 
 class EndUserDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
+    """
+    Retrieve, add or delete an end user document from a draft
+    """
 
     def get(self, request, pk):
-        """
-        Returns document for the specified end user
-        """
         end_user = get_end_user(pk)
         return get_party_document(end_user)
 
@@ -25,9 +25,6 @@ class EndUserDocumentView(APIView):
         })
     @transaction.atomic()
     def post(self, request, pk):
-        """
-        Adds a document to the specified end user
-        """
         end_user = get_end_user(pk)
         return upload_party_document(end_user, request.data)
 
@@ -38,20 +35,17 @@ class EndUserDocumentView(APIView):
         })
     @transaction.atomic()
     def delete(self, request, pk):
-        """
-        Deletes a document from the specified end user
-        """
         end_user = get_end_user(pk)
         return delete_party_document(end_user)
 
 
 class UltimateEndUserDocumentsView(APIView):
     authentication_classes = (ExporterAuthentication,)
+    """
+    Retrieve, add or delete an ultimate end user document from a draft
+    """
 
     def get(self, request, pk, ueu_pk):
-        """
-        Returns document for the specified ultimate end user
-        """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return get_party_document(ultimate_end_user)
 
@@ -62,9 +56,6 @@ class UltimateEndUserDocumentsView(APIView):
         })
     @transaction.atomic()
     def post(self, request, pk, ueu_pk):
-        """
-        Adds a document to the specified ultimate end user
-        """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return upload_party_document(ultimate_end_user, request.data)
 
@@ -75,20 +66,17 @@ class UltimateEndUserDocumentsView(APIView):
         })
     @transaction.atomic()
     def delete(self, request, pk, ueu_pk):
-        """
-        Deletes a document from the specified ultimate end user
-        """
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return delete_party_document(ultimate_end_user)
 
 
 class ConsigneeDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
+    """
+    Retrieve, add or delete a consignee document from a draft
+    """
 
     def get(self, request, pk):
-        """
-        Returns document for the specified consignee
-        """
         consignee = get_consignee(pk)
         return get_party_document(consignee)
 
@@ -99,9 +87,6 @@ class ConsigneeDocumentView(APIView):
         })
     @transaction.atomic()
     def post(self, request, pk):
-        """
-        Adds a document to the specified consignee
-        """
         consignee = get_consignee(pk)
         return upload_party_document(consignee, request.data)
 
@@ -112,20 +97,17 @@ class ConsigneeDocumentView(APIView):
         })
     @transaction.atomic()
     def delete(self, request, pk):
-        """
-        Deletes a document from the specified consignee
-        """
         consignee = get_consignee(pk)
         return delete_party_document(consignee)
 
 
 class ThirdPartyDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
+    """
+    Retrieve, add or delete a third party document from a draft
+    """
 
     def get(self, request, pk, tp_pk):
-        """
-        Returns document for the specified third party
-        """
         third_party = get_third_party(tp_pk)
         return get_party_document(third_party)
 
@@ -136,9 +118,6 @@ class ThirdPartyDocumentView(APIView):
         })
     @transaction.atomic()
     def post(self, request, pk, tp_pk):
-        """
-        Adds a document to the specified consignee
-        """
         third_party = get_third_party(tp_pk)
         return upload_party_document(third_party, request.data)
 
@@ -149,8 +128,5 @@ class ThirdPartyDocumentView(APIView):
         })
     @transaction.atomic()
     def delete(self, request, pk, tp_pk):
-        """
-        Deletes a document from the specified third party
-        """
         third_party = get_third_party(tp_pk)
         return delete_party_document(third_party)

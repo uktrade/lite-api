@@ -319,7 +319,7 @@ class DataTestClient(BaseTestClient):
 
     # Drafts
 
-    def create_draft(self, organisation=None, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                      reference_name='Standard Draft'):
         draft = Draft(name=reference_name,
                       licence_type=licence_type,

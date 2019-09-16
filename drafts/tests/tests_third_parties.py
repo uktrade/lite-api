@@ -104,7 +104,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(len(third_parties), 1)
         self.assertEqual(third_parties[0]['id'], str(third_party.id))
         self.assertEqual(third_parties[0]['name'], str(third_party.name))
-        self.assertEqual(third_parties[0]['country'], str(third_party.country.id))
+        self.assertEqual(third_parties[0]['country']['name'], str(third_party.country.name))
         self.assertEqual(third_parties[0]['website'], str(third_party.website))
         self.assertEqual(third_parties[0]['type'], str(third_party.type))
         self.assertEqual(third_parties[0]['organisation'], str(third_party.organisation.id))

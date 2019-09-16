@@ -1,15 +1,19 @@
 from rest_framework import serializers, relations
+
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 from organisations.models import Organisation
 from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), required=True,
+                                               serializer=CountrySerializer)
     website = serializers.URLField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
