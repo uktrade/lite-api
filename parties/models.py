@@ -46,7 +46,7 @@ class UltimateEndUser(Party):
 
 class ThirdParty(Party):
     sub_type = models.CharField(choices=ThirdPartySubType.choices,
-                                default=ThirdPartySubType.OTHER, max_length=20)
+                                default=ThirdPartySubType.OTHER, max_length=22)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.THIRD
