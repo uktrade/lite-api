@@ -24,6 +24,9 @@ class GoodList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
+        """
+        Returns a list of all goods belonging to an organisation
+        """
         organisation = get_organisation_by_user(request.user)
         description = request.GET.get('description', '')
         part_number = request.GET.get('part_number', '')
@@ -36,6 +39,9 @@ class GoodList(APIView):
         return JsonResponse(data={'goods': serializer.data})
 
     def post(self, request):
+        """
+        Returns a list of all goods belonging to an organisation
+        """
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
