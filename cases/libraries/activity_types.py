@@ -19,6 +19,8 @@ class CaseActivityType(BaseActivityType):
     CLC_RESPONSE = 'clc_response'
     CASE_NOTE = 'case_note'
 
+    ECJU_QUERY = 'ecju_query'
+
     UPDATED_STATUS = 'update_status'
 
     BaseActivityType.choices.extend(
@@ -34,6 +36,8 @@ class CaseActivityType(BaseActivityType):
             (MOVE_CASE, 'moved the case to: {queues}'),
             (CLC_RESPONSE, 'responded to the case'),
             (CASE_NOTE, 'added a case note:'),
+
+            (ECJU_QUERY, ' added an ECJU Query: {ecju_query}'),
 
             (UPDATED_STATUS, 'updated the status to {status}'),
         ]

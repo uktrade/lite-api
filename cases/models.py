@@ -196,7 +196,7 @@ class BaseActivity(models.Model):
         text = text.format(**kwargs)
 
         # Add a full stop unless the text ends with a colon
-        if not text.endswith(':'):
+        if not text.endswith(':') and not text.endswith('?'):
             text = text + '.'
 
         return text
