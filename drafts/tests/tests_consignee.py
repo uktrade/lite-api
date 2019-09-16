@@ -11,7 +11,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_draft(self.organisation)
         self.url = reverse('drafts:consignee', kwargs={'pk': self.draft.id})
 
     @parameterized.expand([
@@ -62,12 +62,11 @@ class ConsigneeOnDraftTests(DataTestClient):
     ])
     def test_set_consignee_on_draft_failure(self, data):
         """
-         Given a standard draft has been created
-         And the draft does not yet contain a consignee
-         When attempting to add an invalid consignee
-         Then the consignee is not added to the draft
-         """
-        self.draft = self.create_draft(self.organisation)
+        Given a standard draft has been created
+        And the draft does not yet contain a consignee
+        When attempting to add an invalid consignee
+        Then the consignee is not added to the draft
+        """
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
@@ -81,7 +80,6 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a new consignee is added
         Then the old one is removed
         """
-        # assemble
         consignee1 = self.create_consignee('old consignee', self.organisation)
         self.draft.consignee = consignee1
         self.draft.save()
@@ -93,10 +91,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             'website': 'https://www.gov.py'
         }
 
-        # act
         self.client.post(self.url, new_consignee, **self.exporter_headers)
-
-        # assert
         self.draft.refresh_from_db()
         consignee2 = self.draft.consignee
 
