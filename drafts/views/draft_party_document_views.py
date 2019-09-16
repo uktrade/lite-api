@@ -148,9 +148,9 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic()
-    def delete(self, request, pk):
+    def delete(self, request, pk, tp_pk):
         """
         Deletes a document from the specified consignee
         """
-        third_party = get_third_party(pk)
+        third_party = get_third_party(tp_pk)
         return delete_party_document(third_party)

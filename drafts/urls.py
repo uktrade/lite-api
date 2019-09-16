@@ -77,7 +77,7 @@ urlpatterns = [
         name='remove_third_party'
     ),
     path(
-        route='<uuid:pk>/third-party/<uuid:tp_pk>/document/',
+        route='<uuid:pk>/third-parties/<uuid:tp_pk>/document/',
         view=draft_party_document_views.ThirdPartyDocumentView.as_view(),
         name='third_party_document'
     ),
