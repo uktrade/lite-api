@@ -11,7 +11,8 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
-from cases.models import Case
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import has_permission
@@ -114,6 +115,8 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
+        application = get_application_by_pk(pk)
+
         with reversion.create_revision():
             data = json.loads(request.body)
 
@@ -126,9 +129,10 @@ class ApplicationDetail(APIView):
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
-                # Set audit information
-                reversion.set_comment("Updated Application Details")
-                reversion.set_user(self.request.user)
+                CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                                    case=application.case.get(),
+                                    user=request.user,
+                                    status=data.get('status'))
 
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
