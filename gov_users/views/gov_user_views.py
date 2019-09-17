@@ -9,9 +9,9 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from gov_users.enums import GovUserStatuses
-from users.libraries.user_to_token import user_to_token
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
+from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
 
 

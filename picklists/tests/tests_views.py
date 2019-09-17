@@ -13,8 +13,8 @@ class PicklistsViews(DataTestClient):
         super().setUp()
         other_team = self.create_team('Team')
         self.create_picklist_item('#1', self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
-        self.create_picklist_item('#2', self.team, PicklistType.ANNUAL_REPORT_SUMMARY, PickListStatus.ACTIVE)
-        self.create_picklist_item('#3', self.team, PicklistType.ANNUAL_REPORT_SUMMARY, PickListStatus.DEACTIVATED)
+        self.create_picklist_item('#2', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE)
+        self.create_picklist_item('#3', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.DEACTIVATED)
         self.create_picklist_item('#4', other_team, PicklistType.ECJU, PickListStatus.ACTIVE)
 
     def test_gov_user_can_see_all_their_teams_picklist_items(self):
@@ -32,14 +32,14 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(len(response_data['picklist_items']), 2)
 
     def test_gov_user_can_see_filtered_picklist_items(self):
-        response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY + '?show_deactivated=True', **self.gov_headers)
+        response = self.client.get(self.url + '?type=' + PicklistType.REPORT_SUMMARY + '?show_deactivated=True', **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['picklist_items']), 1)
 
     def test_gov_user_can_see_filtered_picklist_items_excluding_deactivated(self):
-        response = self.client.get(self.url + '?type=' + PicklistType.ANNUAL_REPORT_SUMMARY, **self.gov_headers)
+        response = self.client.get(self.url + '?type=' + PicklistType.REPORT_SUMMARY, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

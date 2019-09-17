@@ -2,7 +2,7 @@ class PicklistType:
     PROVISO = 'proviso'
     ECJU = 'ecju_query'
     LETTER_PARAGRAPH = 'letter_paragraph'
-    ANNUAL_REPORT_SUMMARY = 'annual_report_summary'
+    REPORT_SUMMARY = 'report_summary'
     STANDARD_ADVICE = 'standard_advice'
     FOOTNOTES = 'footnotes'
 
@@ -10,7 +10,7 @@ class PicklistType:
         (PROVISO, 'Proviso'),
         (ECJU, 'ECJU Query'),
         (LETTER_PARAGRAPH, 'Letter Paragraph'),
-        (ANNUAL_REPORT_SUMMARY, 'Annual Report Summary'),
+        (REPORT_SUMMARY, 'Report Summary'),
         (STANDARD_ADVICE, 'Standard Advice'),
         (FOOTNOTES, 'Footnotes'),
     ]

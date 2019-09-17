@@ -5,6 +5,13 @@ from parties.document.models import PartyDocument
 from parties.models import EndUser, Party
 
 
+def get_end_user(pk):
+    try:
+        return EndUser.objects.get(pk=pk)
+    except EndUser.DoesNotExist:
+        raise Http404
+
+
 def get_end_user_with_organisation(pk, organisation):
     try:
         end_user = EndUser.objects.get(pk=pk)

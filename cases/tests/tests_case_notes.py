@@ -72,8 +72,7 @@ class CaseNotesViewTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
-        self.case = Case.objects.get(application=self.standard_application)
+        self.case = self.create_clc_query('Query', self.organisation).case.get()
 
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 

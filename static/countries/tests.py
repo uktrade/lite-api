@@ -1,10 +1,10 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from test_helpers.clients import BaseTestClient
+from test_helpers.clients import DataTestClient
 
 
-class CountriesTests(BaseTestClient):
+class CountriesTests(DataTestClient):
 
     url = reverse('static:countries:countries')
 

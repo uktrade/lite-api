@@ -1,17 +1,12 @@
 from django.db import transaction
-from django.db.models import Q
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from reversion.models import Version
 
-from cases.libraries.activity_helpers import convert_good_reversion_to_activity
-from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
-from cases.models import CaseNote
-from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
@@ -21,6 +16,7 @@ from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 
 
@@ -28,6 +24,9 @@ class GoodList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
+        """
+        Returns a list of all goods belonging to an organisation
+        """
         organisation = get_organisation_by_user(request.user)
         description = request.GET.get('description', '')
         part_number = request.GET.get('part_number', '')
@@ -40,6 +39,9 @@ class GoodList(APIView):
         return JsonResponse(data={'goods': serializer.data})
 
     def post(self, request):
+        """
+        Returns a list of all goods belonging to an organisation
+        """
         organisation = get_organisation_by_user(request.user)
 
         data = JSONParser().parse(request)
@@ -62,6 +64,7 @@ class GoodDetail(APIView):
 
     def get(self, request, pk):
         good = get_good(pk)
+
         if isinstance(request.user, ExporterUser):
             organisation = get_organisation_by_user(request.user)
 
@@ -69,14 +72,20 @@ class GoodDetail(APIView):
                 raise Http404
 
             serializer = GoodSerializer(good)
-            request.user.notification_set.filter(case_note__case__clc_query__good=good).update(
-                viewed_at=timezone.now()
-            )
+
+            # If there's a query with this good, update the notifications on it
+            try:
+                query = ControlListClassificationQuery.objects.get(good=good)
+                request.user.notification_set.filter(case_note__case__query=query).update(
+                    viewed_at=timezone.now()
+                )
+                request.user.notification_set.filter(query=query.id).update(
+                    viewed_at=timezone.now()
+                )
+            except ControlListClassificationQuery.DoesNotExist:
+                pass
         else:
             serializer = FullGoodSerializer(good)
-
-        case_notes = CaseNote.objects.filter(case__clc_query__good=good)
-        mark_notifications_as_viewed(request.user, case_notes)
 
         return JsonResponse(data={'good': serializer.data})
 
@@ -222,28 +231,3 @@ class GoodDocumentDetail(APIView):
                 good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})
-
-
-class GoodActivity(APIView):
-    authentication_classes = (GovAuthentication,)
-    """
-    Retrieves all activity related to a good
-    * Good Updates
-    * Good Notes
-    * ECJU Queries
-    """
-
-    def get(self, request, pk):
-        good = get_good(pk)
-
-        version_records = Version.objects.filter(Q(object_id=good.pk))
-        activity = []
-        for version in version_records:
-            activity_item = convert_good_reversion_to_activity(version, good)
-            if activity_item:
-                activity.append(activity_item)
-
-        # Sort the activity based on date (newest first)
-        activity.sort(key=lambda x: x['date'], reverse=True)
-
-        return JsonResponse(data={'activity': activity})

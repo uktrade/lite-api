@@ -1,10 +1,11 @@
-import reversion
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
 from flags.enums import FlagStatuses
@@ -12,6 +13,8 @@ from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag
 from flags.models import Flag
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer
+from goods.models import Good
+from queries.control_list_classifications.models import ControlListClassificationQuery
 
 
 @permission_classes((permissions.AllowAny,))
@@ -25,17 +28,16 @@ class FlagsList(APIView):
         """
         Returns list of all flags
         """
-        level = request.GET.get('level', None)
-        if level:
-            level = level[:-1].title()
-            flags = Flag.objects.filter(level=level)
-        else:
-            flags = Flag.objects.all()
+        level = request.GET.get('level', None)  # Case, Good
+        team = request.GET.get('team', None)  # True, False
 
-        team = request.GET.get('team', None)
+        flags = Flag.objects.all()
+
+        if level:
+            flags = flags.filter(level=level)
+
         if team:
-            team_id = request.user.team.id
-            flags = flags.filter(team=team_id)
+            flags = flags.filter(team=request.user.team.id)
 
         flags = flags.order_by('name')
         serializer = FlagSerializer(flags, many=True)
@@ -98,35 +100,116 @@ class AssignFlags(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request):
+        """
+        Assigns flags to goods and cases
+        """
         data = JSONParser().parse(request)
-        level = data.get('level')[:-1].title()
+        level = data.get('level')[:-1].lower()
         response_data = []
 
-        for pk in data.get('objects'):
-            object = get_object_of_level(level, pk)
-            serializer = FlagAssignmentSerializer(data=data, context={'team': request.user.team, 'level': level})
+        # If the data provided isn't in a list format, append it to a list
+        objects = data.get('objects')
+        if not isinstance(objects, list):
+            objects = [objects]
+
+        # Loop through all objects provided and append flags to them
+        for pk in objects:
+            obj = get_object_of_level(level, pk)
+            serializer = FlagAssignmentSerializer(data=data,
+                                                  context={'team': request.user.team, 'level': level.title()})
 
             if serializer.is_valid():
-                self._assign_flags(serializer.validated_data.get('flags'), level, serializer.validated_data.get('note'), object, request.user)
+                self._assign_flags(flags=serializer.validated_data.get('flags'),
+                                   level=level.title(),
+                                   note=serializer.validated_data.get('note'),
+                                   obj=obj,
+                                   user=request.user)
                 response_data.append({level.lower(): serializer.data})
             else:
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
 
-    def _assign_flags(self, validated_data, level, note, object, user):
-        previously_assigned_team_flags = object.flags.filter(level=level, team=user.team)
-        previously_assigned_deactivated_team_flags = object.flags.filter(level=level, team=user.team, status=FlagStatuses.DEACTIVATED)
-        previously_assigned_not_team_flags = object.flags.exclude(level=level, team=user.team)
-        add_flags = [flag.name for flag in validated_data if flag not in previously_assigned_team_flags]
-        ignored_flags = validated_data + [x for x in previously_assigned_deactivated_team_flags]
-        remove_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
+    def _assign_flags(self, flags, level, note, obj, user):
+        level = level.title()
+        previously_assigned_team_flags = obj.flags.filter(level=level, team=user.team)
+        previously_assigned_deactivated_team_flags = obj.flags.filter(level=level, team=user.team,
+                                                                      status=FlagStatuses.DEACTIVATED)
+        previously_assigned_not_team_flags = obj.flags.exclude(level=level, team=user.team)
 
-        with reversion.create_revision():
-            reversion.set_comment(
-                ('{"flags": {"removed": ' + str(remove_flags) + ', "added": ' + str(add_flags) + ', "note": "' + str(note) + '"}}')
-                .replace('\'', '"')
-            )
-            reversion.set_user(user)
+        added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
+        ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
+        removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
-            object.flags.set(validated_data + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
+        # Add activity item
+
+        if isinstance(obj, Case):
+            self._set_case_activity(added_flags, removed_flags, obj, user, note)
+
+        if isinstance(obj, Good):
+            cases = []
+
+            cases.extend(Case.objects.filter(query__id__in=
+                                             ControlListClassificationQuery.objects.filter(good=obj)
+                                             .values_list('id', flat=True)))
+            cases.extend(Case.objects.filter(application__goods__good=obj))
+
+            for case in cases:
+                self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
+
+        obj.flags.set(
+            flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
+
+    def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
+        # Add an activity item for the case
+        if added_flags and removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                **kwargs)
+
+        if added_flags:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                additional_text=note,
+                                **kwargs)
+
+        if removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                **kwargs)
+
+    def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
+        # Add an activity item for the case
+        if added_flags and removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                good_name=good.description)
+
+        if added_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_FLAGS,
+                                case=case,
+                                user=user,
+                                added_flags=added_flags,
+                                additional_text=note,
+                                good_name=good.description)
+
+        if removed_flags:
+            CaseActivity.create(activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
+                                case=case,
+                                user=user,
+                                removed_flags=removed_flags,
+                                additional_text=note,
+                                good_name=good.description)

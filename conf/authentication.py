@@ -1,10 +1,10 @@
 from rest_framework import authentication, exceptions
 
 from gov_users.enums import GovUserStatuses
-from users.libraries.token_to_user import token_to_user_pk
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisations
+from users.libraries.token_to_user import token_to_user_pk
 from users.models import UserOrganisationRelationship
 
 GOV_USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'
@@ -16,7 +16,6 @@ USER_DEACTIVATED_ERROR = 'User has been deactivated'
 
 
 class ExporterAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token and an organisation id, validate that the user belongs to the
@@ -43,7 +42,6 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 
 
 class ExporterOnlyAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token, validate that the user exists
@@ -55,7 +53,6 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
 
 
 class GovAuthentication(authentication.BaseAuthentication):
-
     def authenticate(self, request):
         """
         When given a user token token validate that they're a government user
