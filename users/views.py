@@ -1,8 +1,6 @@
-import json
-
 import reversion
 from django.db.models import Q
-from django.http.response import JsonResponse, Http404
+from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
@@ -10,17 +8,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from addresses.models import Address
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
-from conf.settings import env
 from organisations.libraries.get_organisation import get_organisation_by_user
-from organisations.models import Organisation, Site
-from static.countries.helpers import get_country
-from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, UserOrganisationRelationship
+from users.models import ExporterUser
 from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer
 
 
