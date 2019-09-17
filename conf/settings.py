@@ -22,7 +22,7 @@ env = Env(
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'  # noqa
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 DEBUG = env('DEBUG')
 
