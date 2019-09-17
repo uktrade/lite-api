@@ -1,6 +1,8 @@
+import json
+
 import reversion
 from django.db.models import Q
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
@@ -8,12 +10,17 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from addresses.models import Address
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
+from conf.settings import env
 from organisations.libraries.get_organisation import get_organisation_by_user
+from organisations.models import Organisation, Site
+from static.countries.helpers import get_country
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer
 
 
@@ -120,11 +127,22 @@ class UserDetail(APIView):
                                 status=400)
 
 
+class UserMeDetail(APIView):
+    authentication_classes = (ExporterOnlyAuthentication,)
+    """
+    Get the user from request
+    """
+
+    def get(self, request):
+        serializer = ExporterUserViewSerializer(request.user)
+        return JsonResponse(data={'user': serializer.data})
+
+
 class NotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     queryset = Notification.objects.all()
 
     def get_queryset(self):
@@ -132,8 +150,8 @@ class NotificationViewset(generics.ListAPIView):
 
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects\
-            .filter(user=self.request.user)\
+        queryset = Notification.objects \
+            .filter(user=self.request.user) \
             .filter(Q(case_note__case__application__organisation_id=organisation_id) |
                     Q(case_note__case__query__organisation_id=organisation_id) |
                     Q(query__organisation__id=organisation_id) |
@@ -146,11 +164,53 @@ class NotificationViewset(generics.ListAPIView):
         return queryset
 
 
-class UserMeDetail(APIView):
-    authentication_classes = (ExporterOnlyAuthentication,)
-    """
-    Get the user from request
-    """
+class TestData(APIView):
+
     def get(self, request):
-        serializer = ExporterUserViewSerializer(request.user)
-        return JsonResponse(data={'user': serializer.data})
+        """
+        Generate test data
+        """
+        if not env('DEBUG'):
+            raise Http404
+
+        if Organisation.objects.count() == 0:
+            organisation = Organisation(name='Lemonworld Co',
+                                        eori_number='123',
+                                        sic_number='123',
+                                        vat_number='123',
+                                        registration_number='123')
+            organisation.save()
+
+            address = Address(address_line_1='42 Road',
+                              address_line_2='',
+                              country=get_country('GB'),
+                              city='London',
+                              region='Buckinghamshire',
+                              postcode='E14QW')
+            address.save()
+            site = Site(name='Lemonworld HQ',
+                        organisation=organisation,
+                        address=address)
+            site.save()
+
+            organisation.primary_site = site
+            organisation.save()
+        else:
+            organisation = Organisation.objects.all().first()
+
+        for email in json.loads(env('SEED_USERS')):
+            if ExporterUser.objects.filter(email=email).count() == 0:
+                first_name = email.split('.')[0]
+                last_name = email.split('.')[1].split('@')[0]
+
+                exporter_user = ExporterUser(email=email,
+                                             first_name=first_name,
+                                             last_name=last_name)
+                exporter_user.save()
+
+                UserOrganisationRelationship(user=exporter_user,
+                                             organisation=organisation).save()
+                exporter_user.status = UserStatuses.ACTIVE
+
+        return JsonResponse({'status': 'success',
+                             'report': str(ExporterUser.objects.count()) + ' in the system.'})

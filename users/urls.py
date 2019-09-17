@@ -15,4 +15,7 @@ urlpatterns = [
     path('me/', views.UserMeDetail.as_view(), name='me'),
     # ex: /users/notifications/
     path('notifications/', views.NotificationViewset.as_view(), name='notifications'),
+
+    # ex: /test-data/
+    path('test-data/', views.TestData.as_view(), name='test_data')
 ]
