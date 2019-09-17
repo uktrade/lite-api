@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='enduseradvisoryquery',
-            name='copied_from',
+            name='copy_of',
             field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='end_user_advisories.EndUserAdvisoryQuery'),
         ),
     ]

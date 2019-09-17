@@ -72,7 +72,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
             },
             'note': 'I Am Easy to Find',
             'reasoning': 'Lack of hairpin turns',
-            'copied_from': query.id,
+            'copy_of': query.id,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -81,7 +81,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['reasoning'], data['reasoning'])
-        self.assertEqual(response_data['copied_from'], data['copied_from'])
+        self.assertEqual(response_data['copy_of'], data['copy_of'])
 
         end_user_data = response_data['end_user']
         self.assertEqual(end_user_data['type']['key'], data['end_user']['type'])

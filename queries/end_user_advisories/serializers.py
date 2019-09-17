@@ -13,11 +13,11 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     end_user = EndUserSerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
-    copied_from = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
+    copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
 
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = ['id', 'end_user', 'reasoning', 'note', 'organisation', 'copied_from']
+        fields = ['id', 'end_user', 'reasoning', 'note', 'organisation', 'copy_of']
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')
