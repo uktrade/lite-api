@@ -120,11 +120,22 @@ class UserDetail(APIView):
                                 status=400)
 
 
+class UserMeDetail(APIView):
+    authentication_classes = (ExporterOnlyAuthentication,)
+    """
+    Get the user from request
+    """
+
+    def get(self, request):
+        serializer = ExporterUserViewSerializer(request.user)
+        return JsonResponse(data={'user': serializer.data})
+
+
 class NotificationViewset(generics.ListAPIView):
     model = Notification
     serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     queryset = Notification.objects.all()
 
     def get_queryset(self):
@@ -132,8 +143,8 @@ class NotificationViewset(generics.ListAPIView):
 
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects\
-            .filter(user=self.request.user)\
+        queryset = Notification.objects \
+            .filter(user=self.request.user) \
             .filter(Q(case_note__case__application__organisation_id=organisation_id) |
                     Q(case_note__case__query__organisation_id=organisation_id) |
                     Q(query__organisation__id=organisation_id) |
@@ -144,13 +155,3 @@ class NotificationViewset(generics.ListAPIView):
             queryset = queryset.filter(viewed_at__isnull=True)
 
         return queryset
-
-
-class UserMeDetail(APIView):
-    authentication_classes = (ExporterOnlyAuthentication,)
-    """
-    Get the user from request
-    """
-    def get(self, request):
-        serializer = ExporterUserViewSerializer(request.user)
-        return JsonResponse(data={'user': serializer.data})
