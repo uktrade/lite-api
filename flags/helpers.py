@@ -4,11 +4,11 @@ from goodstype.helpers import get_goods_type
 
 
 def get_object_of_level(level, pk):
-    if level == 'Good':
+    if level == 'good':
         try:
             good = Good.objects.get(pk=pk)
         except Good.DoesNotExist:
             good = get_goods_type(pk)
         return good
-    elif level == 'Case':
+    elif level == 'case':
         return get_case(pk)

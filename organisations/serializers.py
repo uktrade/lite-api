@@ -127,6 +127,13 @@ class SiteViewSerializer(serializers.ModelSerializer):
                   'address')
 
 
+class TinyOrganisationViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organisation
+        fields = ('id',
+                  'name')
+
+
 class OrganisationViewSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
 

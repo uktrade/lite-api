@@ -10,10 +10,6 @@ class DraftTests(DataTestClient):
 
     url = reverse('drafts:drafts')
 
-    def setUp(self):
-        super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
-
     def test_view_drafts(self):
         """
         Ensure we can get a list of drafts.
@@ -23,13 +19,15 @@ class DraftTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['drafts']), 2)
+        self.assertEqual(len(response.json()['drafts']), 1)
 
     def test_view_draft(self):
         """
-        Ensure we can view a draft.
+        Ensure we can view an individual draft.
         """
-        url = reverse('drafts:draft', kwargs={'pk': self.draft.id})
+        draft = self.create_standard_draft(self.organisation)
+
+        url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -42,20 +40,21 @@ class DraftTests(DataTestClient):
 
         url = reverse('drafts:draft', kwargs={'pk': invalid_id})
         response = self.client.put(url, **self.exporter_headers)
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
-        organisation_2 = self.create_organisation()
+        organisation_2 = self.create_organisation_with_exporter_user()
         self.create_standard_draft(organisation_2)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['drafts']), 1)
+        self.assertEqual(len(response_data['drafts']), 0)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
-        organisation_2 = self.create_organisation()
+        organisation_2 = self.create_organisation_with_exporter_user()
         draft = self.create_standard_draft(organisation_2)
 
         url = reverse('drafts:draft', kwargs={'pk': draft.id})

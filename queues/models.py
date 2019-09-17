@@ -19,8 +19,8 @@ class Queue(models.Model):
         if hasattr(self, 'query'):
             ordering = '-created_at' if hasattr(self, 'reverse_ordering') else 'created_at'
             cases = Case.objects.annotate(
-                created_at=Coalesce('application__submitted_at', 'clc_query__submitted_at'),
-                status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+                created_at=Coalesce('application__submitted_at', 'query__submitted_at'),
+                status__priority=Coalesce('application__status__priority', 'query__status__priority')
             ).filter(self.query).order_by(ordering)
 
             return cases

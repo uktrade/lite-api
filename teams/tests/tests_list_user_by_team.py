@@ -13,7 +13,7 @@ class UserByTeamListTests(DataTestClient):
         self.gov_user_preexisting_count = GovUser.objects.all().count()
         self.team = self.gov_user.team
 
-    def tests_view_user_by_team(self):
+    def test_view_user_by_team(self):
         """
         Tests that a valid gov user can see a specific team's members
         """

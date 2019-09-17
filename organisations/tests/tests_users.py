@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
-from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
+from users.libraries.get_user import get_users_from_organisation
 from users.models import UserOrganisationRelationship, ExporterUser
 
 
@@ -19,7 +19,7 @@ class OrganisationUsersViewTests(DataTestClient):
         """
         # Create an additional organisation and user to ensure
         # that only users from the first organisation are shown
-        self.create_organisation('New Org')
+        self.create_organisation_with_exporter_user('New Org')
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()['users']

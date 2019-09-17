@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
@@ -5,9 +7,8 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
-from cases.enums import CaseType
-from cases.models import CaseNote, Case, CaseDocument
-from clc_queries.models import ClcQuery
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
+from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from end_user.document.models import EndUserDocument
@@ -17,41 +18,30 @@ from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
-from users.enums import UserStatuses
-from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
 from picklists.models import PicklistItem
+from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
+from test_helpers import colours
 from test_helpers.helpers import random_name
+from users.enums import UserStatuses
+from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 
-class BaseTestClient(APITestCase, URLPatternsTestCase):
+class DataTestClient(APITestCase, URLPatternsTestCase):
     """
-    Base test client which provides only URL patterns and client
+    Test client which creates an initial organisation and user
     """
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
-
-class DataTestClient(BaseTestClient):
-    """
-    Test client which creates an initial organisation and user
-    """
-
     def setUp(self):
-        super().setUp()
-
         # Gov User Setup
         self.team = Team.objects.get(name='Admin')
         self.gov_user = GovUser(email='test@mail.com',
@@ -62,17 +52,46 @@ class DataTestClient(BaseTestClient):
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        self.organisation = self.create_organisation()
+        self.organisation = self.create_organisation_with_exporter_user()
         self.exporter_user = ExporterUser.objects.get()
-        self.exporter_headers = {'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
-                                 'HTTP_ORGANISATION_ID': self.organisation.id}
+        self.exporter_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
+            'HTTP_ORGANISATION_ID': self.organisation.id
+        }
 
-        self.queue = Queue.objects.get(team=self.team)
+        self.queue = self.create_queue('Initial Queue', self.team)
+
+        if settings.TIME_TESTS:
+            self.tick = datetime.now()
+
+    def tearDown(self):
+        """
+        Print output time for tests if settings.TIME_TESTS is set to True
+        """
+        if settings.TIME_TESTS:
+            self.tock = datetime.now()
+
+            diff = self.tock - self.tick
+            time = round(diff.microseconds / 1000, 2)
+            colour = colours.green
+            emoji = ''
+
+            if time > 100:
+                colour = colours.orange
+            if time > 300:
+                colour = colours.red
+                emoji = ' 🔥'
+
+            print(self._testMethodName + emoji + ' ' + colour(str(time) + 'ms') + emoji)
+
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
 
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
-            
+
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')
@@ -86,7 +105,7 @@ class DataTestClient(BaseTestClient):
 
         return exporter_user
 
-    def create_organisation(self, name='Organisation'):
+    def create_organisation_with_exporter_user(self, name='Organisation'):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
@@ -103,6 +122,11 @@ class DataTestClient(BaseTestClient):
         self.create_exporter_user(organisation)
 
         return organisation
+
+    @staticmethod
+    def add_exporter_user_to_org(organisation, exporter_user):
+        UserOrganisationRelationship(user=exporter_user,
+                                     organisation=organisation).save()
 
     @staticmethod
     def create_site(name, org):
@@ -137,16 +161,8 @@ class DataTestClient(BaseTestClient):
                            type=EndUserType.GOVERNMENT,
                            country=get_country('GB'))
         end_user.save()
-        
-        return end_user
 
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
+        return end_user
 
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
@@ -155,6 +171,15 @@ class DataTestClient(BaseTestClient):
                              is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
+
+    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
+        end_user = self.create_end_user("name", self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
+                                                       note=note,
+                                                       reasoning=reasoning,
+                                                       organisation=organisation)
+        end_user_advisory_query.save()
+        return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,
@@ -173,7 +198,7 @@ class DataTestClient(BaseTestClient):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft):
+    def submit_draft(self, draft: Draft, headers=None):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
@@ -207,14 +232,12 @@ class DataTestClient(BaseTestClient):
 
     @staticmethod
     def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
-        end_user_document = EndUserDocument(
-            end_user=end_user,
-            name=name,
-            s3_key='s3_keykey.pdf',
-            size=123456,
-            virus_scanned_at=None,
-            safe=safe
-        )
+        end_user_document = EndUserDocument(end_user=end_user,
+                                            name=name,
+                                            s3_key='s3_keykey.pdf',
+                                            size=123456,
+                                            virus_scanned_at=None,
+                                            safe=safe)
         end_user_document.save()
         return end_user_document
 
@@ -223,16 +246,22 @@ class DataTestClient(BaseTestClient):
         flag.save()
         return flag
 
+    def create_case_assignment(self, queue, case, users):
+        case_assignment = CaseAssignment(queue=queue,
+                                         case=case)
+        case_assignment.users.set(users)
+        case_assignment.save()
+        return case_assignment
+
     def create_goods_type(self, content_type_model, obj):
-        goodstype = GoodsType(description='thing',
-                              is_good_controlled=False,
-                              control_code='ML1a',
-                              is_good_end_product=True,
-                              content_type=ContentType.objects.get(model=content_type_model),
-                              object_id=obj.pk,
-                              )
-        goodstype.save()
-        return goodstype
+        goods_type = GoodsType(description='thing',
+                               is_good_controlled=False,
+                               control_code='ML1a',
+                               is_good_end_product=True,
+                               content_type=ContentType.objects.get(model=content_type_model),
+                               object_id=obj.pk)
+        goods_type.save()
+        return goods_type
 
     def create_picklist_item(self, name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(team=team,
@@ -240,11 +269,10 @@ class DataTestClient(BaseTestClient):
                                      text='This is a string of text, please do not disturb the milk argument',
                                      type=picklist_type,
                                      status=status)
-
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description, org, control_code='ML1'):
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> object:
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,
@@ -255,20 +283,18 @@ class DataTestClient(BaseTestClient):
         return good
 
     @staticmethod
-    def create_clc_query(description, org, status):
+    def create_clc_query(description, organisation):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=org
-                    )
+                    organisation=organisation)
         good.save()
 
-        clc_query = ClcQuery(details='this is a test text',
-                             good=good,
-                             status=status)
-        clc_query.save()
+        clc_query = ControlListClassificationQuery.objects.create(details='this is a test text',
+                                                                  good=good,
+                                                                  organisation=organisation)
         return clc_query
 
     # Drafts
@@ -286,7 +312,8 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -357,7 +384,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
-        
+
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 

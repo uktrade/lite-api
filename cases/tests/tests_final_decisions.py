@@ -24,7 +24,7 @@ class CaseActivityTests(DataTestClient):
                                    data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def tests_can_record_final_decision_with_correct_permissions(self):
+    def test_can_record_final_decision_with_correct_permissions(self):
         role = Role(name='some')
         role.permissions.set([Permission.objects.get(id='MAKE_FINAL_DECISIONS').id])
         role.save()
