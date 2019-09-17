@@ -2,12 +2,13 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case
-from clc_queries.models import ClcQuery
+from conf.serializers import KeyValueChoiceField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
+from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -18,10 +19,10 @@ class GoodSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, default='', allow_blank=True)
     is_good_end_product = serializers.BooleanField()
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    status = serializers.ChoiceField(choices=GoodStatus.choices)
+    status = KeyValueChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
-    clc_query_case_id = serializers.SerializerMethodField()
-    clc_query_id = serializers.SerializerMethodField()
+    case_id = serializers.SerializerMethodField()
+    query_id = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -29,14 +30,14 @@ class GoodSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'description',
                   'is_good_controlled',
-                  'clc_query_case_id',
+                  'case_id',
                   'control_code',
                   'is_good_end_product',
                   'part_number',
                   'organisation',
                   'status',
                   'not_sure_details_details',
-                  'clc_query_id',
+                  'query_id',
                   'documents',
                   )
 
@@ -48,17 +49,17 @@ class GoodSerializer(serializers.ModelSerializer):
             self.fields['control_code'] = serializers.CharField(required=True)
 
     # pylint: disable=W0703
-    def get_clc_query_case_id(self, instance):
+    def get_case_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.filter(good=instance)[0]
-            case = Case.objects.filter(clc_query=clc_query)[0]
+            clc_query = ControlListClassificationQuery.objects.get(good=instance)
+            case = Case.objects.get(query=clc_query)
             return case.id
         except Exception:
             return None
 
-    def get_clc_query_id(self, instance):
+    def get_query_id(self, instance):
         try:
-            clc_query = ClcQuery.objects.filter(good=instance)[0]
+            clc_query = ControlListClassificationQuery.objects.get(good=instance)
             return clc_query.id
         except Exception:
             return None

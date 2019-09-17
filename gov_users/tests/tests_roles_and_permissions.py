@@ -33,7 +33,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.get(name='some role').name, 'some role')
 
-    def tests_get_list_of_all_roles(self):
+    def test_get_list_of_all_roles(self):
         role = Role(name='some')
         role.permissions.set([Permissions.MAKE_FINAL_DECISIONS])
         role.save()
@@ -44,7 +44,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['roles']), 2)
 
-    def tests_get_list_of_all_permissions(self):
+    def test_get_list_of_all_permissions(self):
         url = reverse('gov_users:permissions')
 
         response = self.client.get(url, **self.gov_headers)
@@ -53,7 +53,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data['permissions']), 1)
 
-    def tests_edit_a_role(self):
+    def test_edit_a_role(self):
         role_id = '00000000-0000-0000-0000-000000000001'
         url = reverse('gov_users:role', kwargs={'pk': role_id})
 
@@ -81,7 +81,7 @@ class RolesAndPermissionsTests(DataTestClient):
             'permissions': []
         }],
     ])
-    def tests_role_name_must_be_unique(self, data):
+    def test_role_name_must_be_unique(self, data):
         Role(name='this is a name').save()
 
         response = self.client.post(self.url, data, **self.gov_headers)

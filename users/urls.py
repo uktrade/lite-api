@@ -15,6 +15,4 @@ urlpatterns = [
     path('me/', views.UserMeDetail.as_view(), name='me'),
     # ex: /users/notifications/
     path('notifications/', views.NotificationViewset.as_view(), name='notifications'),
-    # ex: /users/clc_notifications/
-    path('clc_notifications/', views.ClcNotificationViewset.as_view(), name='clc_notifications'),
 ]

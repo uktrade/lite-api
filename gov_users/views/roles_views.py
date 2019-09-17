@@ -5,8 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from users.libraries.get_role import get_role_by_pk
 from gov_users.serializers import RoleSerializer, PermissionSerializer
+from users.libraries.get_role import get_role_by_pk
 from users.models import Role, Permission
 
 
