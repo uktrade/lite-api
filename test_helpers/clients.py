@@ -11,14 +11,14 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from parties.document.models import PartyDocument
-from parties.enums import SubType, PartyType, ThirdPartySubType
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -199,14 +199,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                  country=get_country('GB'))
         third_party.save()
         return third_party
-
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
 
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
