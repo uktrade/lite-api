@@ -5,6 +5,7 @@ from end_user.serializers import EndUserSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.helpers import get_exporter_query
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
@@ -18,6 +19,18 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     class Meta:
         model = EndUserAdvisoryQuery
         fields = ['id', 'end_user', 'reasoning', 'note', 'organisation', 'copy_of']
+
+    def to_representation(self, value):
+        """
+        Return both reference code and case ID for the copy of field
+        """
+        repr_dict = super(EndUserAdvisorySerializer, self).to_representation(value)
+        if repr_dict['copy_of']:
+            repr_dict['copy_of'] = {
+                'reference_code': repr_dict['copy_of'],
+                'case_id': get_exporter_query(repr_dict['copy_of']).case.get().id
+            }
+        return repr_dict
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')

@@ -89,7 +89,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['reasoning'], data['reasoning'])
-        self.assertEqual(response_data['copy_of'], data['copy_of'])
+        self.assertEqual(response_data['copy_of']['reference_code'], data['copy_of'])
 
         end_user_data = response_data['end_user']
         self.assertEqual(end_user_data['type']['key'], data['end_user']['type'])
@@ -97,7 +97,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
         self.assertEqual(end_user_data['country']['id'], data['end_user']['country'])
-        self.assertEqual(Case.objects.count(), 1)
+        self.assertEqual(Case.objects.count(), 2)
 
     @parameterized.expand([
         ('com', 'person', 'http://gov.co.uk', 'place street', 'GB', '', ''),  # invalid end user type
