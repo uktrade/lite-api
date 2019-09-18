@@ -1,11 +1,11 @@
 from collections import defaultdict
 
-import reversion
-
 from cases.enums import AdviceType
-from end_user.models import EndUser
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity
 from goods.models import Good
 from goodstype.models import GoodsType
+from parties.models import UltimateEndUser, EndUser
 from static.countries.models import Country
 
 
@@ -87,7 +87,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
         elif application_field == 'country':
             advice.country = Country.objects.get(pk=key)
         elif application_field == 'ultimate_end_user':
-            advice.ultimate_end_user = EndUser.objects.get(pk=key)
+            advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
         elif application_field == 'goods_type':
             advice.goods_type = GoodsType.objects.get(pk=key)
 
@@ -127,12 +127,8 @@ def create_grouped_advice(case, request, advice, level):
 
 
 def create_advice_audit(case, user, level, action):
-    with reversion.create_revision():
-        reversion.set_comment(
-            ('{"advice": "' + action + ' ' + level + ' ' + 'advice"}')
-        )
-        reversion.set_user(user)
-
-        # We call save on the case with no changes in order to create our audit comment attached to the
-        # case, not to any individual piece of advice
-        case.save()
+    CaseActivity.create(activity_type=CaseActivityType.ADVICE,
+                        case=case,
+                        user=user,
+                        action=action,
+                        level=level)

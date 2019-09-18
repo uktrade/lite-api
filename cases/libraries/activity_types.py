@@ -23,6 +23,8 @@ class CaseActivityType(BaseActivityType):
 
     UPDATED_STATUS = 'update_status'
 
+    ADVICE = 'advice'
+
     BaseActivityType.choices.extend(
         [
             (ADD_FLAGS, 'added flags: {added_flags}'),
@@ -40,5 +42,8 @@ class CaseActivityType(BaseActivityType):
             (ECJU_QUERY, ' added an ECJU Query: {ecju_query}'),
 
             (UPDATED_STATUS, 'updated the status to {status}'),
+
+            (ADVICE, '{action} {level} advice'),
+
         ]
     )

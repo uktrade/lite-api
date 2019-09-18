@@ -17,6 +17,7 @@ def init(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('cases', '0002_auto_20190918_0838'),
         ('teams', '0001_initial')
     ]
 
