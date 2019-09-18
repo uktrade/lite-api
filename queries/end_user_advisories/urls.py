@@ -5,5 +5,6 @@ from queries.end_user_advisories import views
 app_name = 'end_user_advisories'
 
 urlpatterns = [
-    path('', views.EndUserAdvisoriesList.as_view(), name='end_user_advisories')
+    path('', views.EndUserAdvisoriesList.as_view(), name='end_user_advisories'),
+    path('<int:pk>/', views.EndUserAdvisoriesDetail.as_view(), name='end_user_advisory'),
 ]
