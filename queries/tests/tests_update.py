@@ -7,7 +7,6 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.libraries.get_case_status import get_case_status_from_status
 
 
-
 class EndUserAdvisoryUpdate(DataTestClient):
 
     def setUp(self):
