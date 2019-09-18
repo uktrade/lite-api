@@ -44,3 +44,12 @@ class EndUserAdvisoriesList(APIView):
         except serializers.ValidationError as e:
             return JsonResponse(data={'errors': e},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+
+class EndUserAdvisoryDetail(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, pk):
+        end_user_advisories = EndUserAdvisoryQuery.objects.get(pk=pk)
+        serializer = EndUserAdvisorySerializer(end_user_advisories)
+        return JsonResponse(data={'end_user_advisory': serializer.data})

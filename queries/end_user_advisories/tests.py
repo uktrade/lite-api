@@ -10,7 +10,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
 
     url = reverse('queries:end_user_advisories:end_user_advisories')
 
-    def test_view_end_user_advisory_query(self):
+    def test_view_end_user_advisory_queries(self):
         self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -18,6 +18,14 @@ class EndUserAdvisoryViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response_data), 1)
+
+    def test_view_end_user_advisory_query(self):
+        query = self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
+
+        response = self.client.get(reverse('queries:end_user_advisories:end_user_advisory',
+                                           kwargs={'pk': query.id}), **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class EndUserAdvisoryCreateTests(DataTestClient):
