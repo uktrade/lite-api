@@ -175,9 +175,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_end_user("name", self.organisation)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
-                                                              note=note,
-                                                              reasoning=reasoning,
-                                                              organisation=organisation)
+                                                                      note=note,
+                                                                      reasoning=reasoning,
+                                                                      organisation=organisation)
         return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
@@ -197,7 +197,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft, headers=None):
+    def submit_draft(self, draft: Draft):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
