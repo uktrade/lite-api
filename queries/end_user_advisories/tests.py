@@ -49,7 +49,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], data['reasoning'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['type']['key'], data['end_user']['type'])
+        self.assertEqual(end_user_data['sub_type'], data['end_user']['sub_type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
@@ -64,7 +64,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         query = self.create_end_user_advisory('Advisory', '', self.organisation)
         data = {
             'end_user': {
-                'type': 'government',
+                'sub_type': 'government',
                 'name': 'Ada',
                 'website': 'https://gov.uk',
                 'address': '123',

@@ -4,6 +4,7 @@ from rest_framework import status
 from applications.models import Application
 from drafts.models import GoodOnDraft
 from goods.models import Good
+from parties.document.models import PartyDocument
 from test_helpers.clients import DataTestClient
 
 
@@ -45,6 +46,7 @@ class ApplicationConsigneeTests(DataTestClient):
         consignee = self.create_consignee("Consignee", self.organisation)
         self.draft.consignee = consignee
         self.draft.save()
+        self.create_document_for_party(consignee)
 
         data = {'id': self.draft.id}
         response = self.client.post(self.url, data, **self.exporter_headers)
