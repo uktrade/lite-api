@@ -217,7 +217,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user("name", self.organisation)
+        end_user = self.create_end_user('name', self.organisation)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
                                                                       note=note,
                                                                       reasoning=reasoning,
