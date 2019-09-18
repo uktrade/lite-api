@@ -5,7 +5,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from goods.models import Good
 from goodstype.models import GoodsType
-from parties.models import UltimateEndUser, EndUser
+from parties.models import UltimateEndUser, EndUser, Consignee, ThirdParty
 from static.countries.models import Country
 
 
@@ -90,6 +90,10 @@ def collate_advice(application_field, collection, case, user, advice_class):
             advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
         elif application_field == 'goods_type':
             advice.goods_type = GoodsType.objects.get(pk=key)
+        elif application_field == 'consignee':
+            advice.goods_type = Consignee.objects.get(pk=key)
+        elif application_field == 'third_party':
+            advice.goods_type = ThirdParty.objects.get(pk=key)
 
         advice.save()
         advice.denial_reasons.set(denial_reasons)
@@ -104,6 +108,8 @@ def create_grouped_advice(case, request, advice, level):
     goods = defaultdict(list)
     goods_types = defaultdict(list)
     countries = defaultdict(list)
+    consignees = defaultdict(list)
+    third_parties = defaultdict(list)
 
     for advice in advice:
         if advice.end_user:
@@ -118,12 +124,18 @@ def create_grouped_advice(case, request, advice, level):
             ultimate_end_users[advice.ultimate_end_user.id].append(advice)
         elif advice.goods_type:
             goods_types[advice.goods_type.id].append(advice)
+        elif advice.consignee:
+            consignees[advice.goods_type.id].append(advice)
+        elif advice.third_party:
+            third_parties[advice.goods_type.id].append(advice)
 
     collate_advice('end_user', end_users.items(), case, request.user, level)
     collate_advice('good', goods.items(), case, request.user, level)
     collate_advice('country', countries.items(), case, request.user, level)
     collate_advice('ultimate_end_user', ultimate_end_users.items(), case, request.user, level)
     collate_advice('goods_type', goods_types.items(), case, request.user, level)
+    collate_advice('consignee', consignees.items(), case, request.user, level)
+    collate_advice('third_party', third_parties.items(), case, request.user, level)
 
 
 def create_advice_audit(case, user, level, action):
