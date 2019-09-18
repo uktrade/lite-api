@@ -72,7 +72,7 @@ class EndUserAdvisoriesDetail(APIView):
             if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
-            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
+            request.data['status'] = get_case_status_from_status(data.get('status'))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
@@ -82,7 +82,7 @@ class EndUserAdvisoriesDetail(APIView):
                                     user=request.user,
                                     status=data.get('status'))
 
-                serializer.save()
+                serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={'end_user_advisory': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=400)
