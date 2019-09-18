@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application
+from cases.enums import CaseType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
@@ -24,6 +25,8 @@ from queries.control_list_classifications.models import ControlListClassificatio
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -204,7 +207,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not status:
             status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
         clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
+        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
         return case
 
@@ -224,6 +227,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                                        organisation=organisation)
         end_user_advisory_query.save()
         return end_user_advisory_query
+
+    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
+        eua_query = self.create_end_user_advisory(note, reasoning, organisation)
+        case = Case(query=eua_query, type=CaseType.END_USER_ADVISORY_QUERY)
+        case.save()
+        return case, eua_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,
