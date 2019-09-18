@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from end_user.serializers import EndUserSerializer
+from parties.serializers import EndUserSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery

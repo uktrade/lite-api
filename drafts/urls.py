@@ -1,22 +1,99 @@
 from django.urls import path
 
-from drafts.views import draft_sites_views, draft_end_user_views, views, draft_external_locations_views, draft_goods, \
-    draft_countries, draft_end_user_document_views
+from drafts.views import draft_sites_views, draft_parties, views, draft_external_locations_views, draft_goods, \
+    draft_countries, draft_party_document_views
 
 app_name = 'drafts'
 
 urlpatterns = [
-    path('', views.DraftList.as_view(), name='drafts'),
-    path('<uuid:pk>/', views.DraftDetail.as_view(), name='draft'),
-    path('<uuid:pk>/goods/', draft_goods.DraftGoods.as_view(), name='draft_goods'),
-    path('<uuid:pk>/goods/<uuid:good_pk>/', draft_goods.DraftGoods.as_view(), name='draft_good'),
-    path('<uuid:pk>/goodstype/', draft_goods.DraftGoodsType.as_view(), name='draft_goodstype'),
-    path('<uuid:pk>/end-user/', draft_end_user_views.DraftEndUser.as_view(), name='end_user'),
-    path('<uuid:pk>/end-user/document/', draft_end_user_document_views.EndUserDocuments.as_view(), name='end_user_document'),
-    path('<uuid:pk>/ultimate-end-users/', draft_end_user_views.DraftUltimateEndUsers.as_view(), name='ultimate_end_users'),
-    path('<uuid:pk>/ultimate-end-user/<uuid:eu_pk>/document/', draft_end_user_document_views.EndUserDocuments.as_view(), name='ultimate_end_user_document'),
-    path('<uuid:pk>/ultimate-end-users/<uuid:eu_pk>', draft_end_user_views.RemoveDraftUltimateEndUsers.as_view(), name='remove_ultimate_end_users'),
-    path('<uuid:pk>/sites/', draft_sites_views.DraftSites.as_view(), name='draft_sites'),
-    path('<uuid:pk>/external_locations/', draft_external_locations_views.DraftExternalLocations.as_view(), name='draft_external_locations'),
-    path('<uuid:pk>/countries/', draft_countries.DraftCountries.as_view(), name='countries'),
+    path(
+        route='',
+        view=views.DraftList.as_view(),
+        name='drafts'
+    ),
+    path(
+        route='<uuid:pk>/',
+        view=views.DraftDetail.as_view(),
+        name='draft'
+    ),
+    path(
+        route='<uuid:pk>/goods/',
+        view=draft_goods.DraftGoods.as_view(),
+        name='draft_goods'
+    ),
+    path(
+        route='<uuid:pk>/goods/<uuid:good_pk>/',
+        view=draft_goods.DraftGoods.as_view(),
+        name='draft_good'
+    ),
+    path(
+        route='<uuid:pk>/goodstype/',
+        view=draft_goods.DraftGoodsType.as_view(),
+        name='draft_goodstype'
+    ),
+    path(
+        route='<uuid:pk>/end-user/',
+        view=draft_parties.DraftEndUser.as_view(),
+        name='end_user'
+    ),
+    path(
+        route='<uuid:pk>/end-user/document/',
+        view=draft_party_document_views.EndUserDocumentView.as_view(),
+        name='end_user_document'
+    ),
+    path(
+        route='<uuid:pk>/ultimate-end-users/',
+        view=draft_parties.DraftUltimateEndUsers.as_view(),
+        name='ultimate_end_users'
+    ),
+    path(
+        route='<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>',
+        view=draft_parties.RemoveDraftUltimateEndUser.as_view(),
+        name='remove_ultimate_end_user'
+    ),
+    path(
+        route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
+        view=draft_party_document_views.UltimateEndUserDocumentsView.as_view(),
+        name='ultimate_end_user_document'
+    ),
+    path(
+        route='<uuid:pk>/consignee/',
+        view=draft_parties.DraftConsignee.as_view(),
+        name='consignee'
+    ),
+    path(
+        route='<uuid:pk>/consignee/document/',
+        view=draft_party_document_views.ConsigneeDocumentView.as_view(),
+        name='consignee_document'
+    ),
+    path(
+        route='<uuid:pk>/third-parties/',
+        view=draft_parties.DraftThirdParties.as_view(),
+        name='third_parties'
+    ),
+    path(
+        route='<uuid:pk>/third-parties/<uuid:tp_pk>',
+        view=draft_parties.RemoveThirdParty.as_view(),
+        name='remove_third_party'
+    ),
+    path(
+        route='<uuid:pk>/third-parties/<uuid:tp_pk>/document/',
+        view=draft_party_document_views.ThirdPartyDocumentView.as_view(),
+        name='third_party_document'
+    ),
+    path(
+        route='<uuid:pk>/sites/',
+        view=draft_sites_views.DraftSites.as_view(),
+        name='draft_sites'
+    ),
+    path(
+        route='<uuid:pk>/external_locations/',
+        view=draft_external_locations_views.DraftExternalLocations.as_view(),
+        name='draft_external_locations'
+    ),
+    path(
+        route='<uuid:pk>/countries/',
+        view=draft_countries.DraftCountries.as_view(),
+        name='countries'
+    )
 ]

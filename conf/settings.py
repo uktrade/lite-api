@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'cases.apps.CasesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
-    'end_user.apps.EndUserConfig',
+    'parties.apps.PartiesConfig',
     'teams.apps.TeamsConfig',
     'queues.apps.QueuesConfig',
     'gov_users',
@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'documents.apps.DocumentsConfig',
     'background_task',
     'picklists',
-    'end_user.document',
+    'parties.document',
     'queries',
     'queries.end_user_advisories',
     'queries.control_list_classifications'

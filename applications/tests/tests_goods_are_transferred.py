@@ -19,7 +19,9 @@ class ApplicationsTests(DataTestClient):
         GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
         GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
         draft.end_user = self.create_end_user('test', self.organisation)
-        self.create_document_for_end_user(draft.end_user)
+        draft.consignee = self.create_consignee('test', self.organisation)
+        self.create_document_for_party(draft.end_user)
+        self.create_document_for_party(draft.consignee)
         draft.save()
 
         data = {
@@ -37,7 +39,7 @@ class ApplicationsTests(DataTestClient):
         draft.end_user = self.create_end_user("End user", self.organisation)
         draft.save()
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_party(draft.end_user)
 
         site_on_draft_1 = SiteOnDraft(site=self.organisation.primary_site, draft=draft)
         site_on_draft_1.save()

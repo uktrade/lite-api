@@ -4,9 +4,9 @@ from rest_framework import status
 from applications.models import CountryOnApplication, SiteOnApplication, ExternalLocationOnApplication, \
     GoodOnApplication
 from content_strings.strings import get_string
+from documents.models import Document
 from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
-from applications.libraries.get_ultimate_end_users import get_ultimate_end_users
-from end_user.document.models import EndUserDocument
+from parties.document.models import PartyDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
@@ -40,22 +40,26 @@ def create_external_location_for_application(draft, application):
         external_location_on_application.save()
 
 
-def check_end_user_document(end_user):
+def check_party_document(party):
     try:
-        end_user_document = EndUserDocument.objects.get(end_user=end_user)
-        if end_user_document.safe is None:
-            return get_string('applications.standard.end_user_document_processing')
-        elif not end_user_document.safe:
-            return get_string('applications.standard.end_user_document_infected')
-    except EndUserDocument.DoesNotExist:
-        return get_string('applications.standard.no_end_user_document_set')
-    return None
+        document = PartyDocument.objects.get(party=party)
+    except Document.DoesNotExist:
+        return get_string('applications.standard.no_{}_document_set'.format(party.type))
+
+    if not document:
+        return get_string('applications.standard.no_{}_document_set'.format(party.type))
+    elif document.safe is None:
+        return get_string('applications.standard.{}_document_processing'.format(party.type))
+    elif not document.safe:
+        return get_string('applications.standard.{}_document_infected'.format(party.type))
+    else:
+        return None
 
 
-def check_ultimate_end_user_documents(draft):
-    ultimate_end_users = get_ultimate_end_users(draft)
+def check_ultimate_end_user_documents_for_draft(draft):
+    ultimate_end_users = draft.ultimate_end_users.all()
     for ultimate_end_user in ultimate_end_users:
-        error = check_end_user_document(ultimate_end_user)
+        error = check_party_document(ultimate_end_user)
         if error:
             return error
     return None
@@ -67,12 +71,19 @@ def create_standard_licence(draft, application, errors):
     """
     if not draft.end_user:
         errors['end_user'] = get_string('applications.standard.no_end_user_set')
+    else:
+        end_user_document_error = check_party_document(draft.end_user)
+        if end_user_document_error:
+            errors['end_user_document'] = end_user_document_error
 
-    end_user_documents_error = check_end_user_document(draft.end_user)
-    if end_user_documents_error:
-        errors['end_user_document'] = end_user_documents_error
+    if not draft.consignee:
+        errors['consignee'] = get_string('applications.standard.no_consignee_set')
+    else:
+        consignee_document_error = check_party_document(draft.consignee)
+        if consignee_document_error:
+            errors['consignee_document'] = consignee_document_error
 
-    ultimate_end_user_documents_error = check_ultimate_end_user_documents(draft)
+    ultimate_end_user_documents_error = check_ultimate_end_user_documents_for_draft(draft)
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
@@ -90,7 +101,8 @@ def create_standard_licence(draft, application, errors):
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list('id', flat=True):
                 if 'end_user' not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                    errors['ultimate_end_users'] = get_string('applications.standard.matching_end_user_and_ultimate_end_user')
+                    errors['ultimate_end_users'] = get_string(
+                        'applications.standard.matching_end_user_and_ultimate_end_user')
 
     if len(errors):
         return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -98,6 +110,8 @@ def create_standard_licence(draft, application, errors):
     # Save associated end users, goods and sites
     application.end_user = draft.end_user
     application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
+    application.consignee = draft.consignee
+    application.third_parties.set(draft.third_parties.values_list('id', flat=True))
     application.save()
 
     create_goods_for_applications(draft, application)
