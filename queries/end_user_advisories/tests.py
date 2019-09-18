@@ -8,19 +8,24 @@ from test_helpers.clients import DataTestClient
 
 class EndUserAdvisoryViewTests(DataTestClient):
 
-    url = reverse('queries:end_user_advisories:end_user_advisories')
-
     def test_view_end_user_advisory_queries(self):
-        self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
+        """
+        Ensure that the user can view all end user advisory queries
+        """
+        self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
 
-        response = self.client.get(self.url, **self.exporter_headers)
+        response = self.client.get(reverse('queries:end_user_advisories:end_user_advisories'),
+                                   **self.exporter_headers)
         response_data = response.json()['end_user_advisories']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response_data), 1)
 
     def test_view_end_user_advisory_query(self):
-        query = self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
+        """
+        Ensure that the user can view an end user advisory query
+        """
+        query = self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
 
         response = self.client.get(reverse('queries:end_user_advisories:end_user_advisory',
                                            kwargs={'pk': query.id}), **self.exporter_headers)
