@@ -28,6 +28,7 @@ class SubType:
 
 class ThirdPartySubType:
     INTERMEDIATE = 'intermediate_consignee'
+    END = 'additional_end_user'
     AGENT = 'agent'
     SUBMITTER = 'submitter'
     CONSULTANT = 'consultant'
@@ -37,6 +38,7 @@ class ThirdPartySubType:
 
     choices = [
         (INTERMEDIATE, 'Intermediate Consignee'),
+        (END, 'Additional End User'),
         (AGENT, 'Agent'),
         (SUBMITTER, 'Authorised Submitter'),
         (CONSULTANT, 'Consultant'),
