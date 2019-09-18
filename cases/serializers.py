@@ -249,15 +249,6 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
 
-    def get_raised_by_user_name(self, instance):
-        return instance.raised_by_user.get_full_name()
-
-    def get_responded_by_user_name(self, instance):
-        if instance.responded_by_user:
-            return instance.responded_by_user.get_full_name()
-        else:
-            return None
-
     class Meta:
         model = EcjuQuery
         fields = ('id',
@@ -268,6 +259,15 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
                   'raised_by_user_name',
                   'created_at',
                   'responded_at',)
+
+    def get_raised_by_user_name(self, instance):
+        return instance.raised_by_user.get_full_name()
+
+    def get_responded_by_user_name(self, instance):
+        if instance.responded_by_user:
+            return instance.responded_by_user.get_full_name()
+        else:
+            return None
 
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
