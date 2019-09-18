@@ -147,7 +147,9 @@ class TeamAdvice(Advice):
                                                      goods_type=self.goods_type,
                                                      country=self.country,
                                                      end_user=self.end_user,
-                                                     ultimate_end_user=self.ultimate_end_user)
+                                                     ultimate_end_user=self.ultimate_end_user,
+                                                     consignee=self.consignee,
+                                                     third_party=self.third_party)
             existing_object.delete()
         except TeamAdvice.DoesNotExist:
             pass
@@ -170,7 +172,9 @@ class FinalAdvice(Advice):
                                                       goods_type=self.goods_type,
                                                       country=self.country,
                                                       end_user=self.end_user,
-                                                      ultimate_end_user=self.ultimate_end_user)
+                                                      ultimate_end_user=self.ultimate_end_user,
+                                                      consignee=self.consignee,
+                                                      third_party=self.third_party)
             existing_object.delete()
         except FinalAdvice.DoesNotExist:
             pass

@@ -92,9 +92,9 @@ def collate_advice(application_field, collection, case, user, advice_class):
         elif application_field == 'goods_type':
             advice.goods_type = GoodsType.objects.get(pk=key)
         elif application_field == 'consignee':
-            advice.goods_type = Consignee.objects.get(pk=key)
+            advice.consignee = Consignee.objects.get(pk=key)
         elif application_field == 'third_party':
-            advice.goods_type = ThirdParty.objects.get(pk=key)
+            advice.third_party = ThirdParty.objects.get(pk=key)
 
         advice.save()
         advice.denial_reasons.set(denial_reasons)
@@ -126,9 +126,9 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.goods_type:
             goods_types[advice.goods_type.id].append(advice)
         elif advice.consignee:
-            consignees[advice.goods_type.id].append(advice)
+            consignees[advice.consignee.id].append(advice)
         elif advice.third_party:
-            third_parties[advice.goods_type.id].append(advice)
+            third_parties[advice.third_party.id].append(advice)
 
     collate_advice('end_user', end_users.items(), case, request.user, level)
     collate_advice('good', goods.items(), case, request.user, level)
