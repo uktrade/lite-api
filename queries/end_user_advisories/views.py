@@ -13,7 +13,7 @@ class EndUserAdvisoriesList(APIView):
 
     def get(self, request):
         """
-        View a single end user advisory's details
+        View all end user advisories belonging to an organisation.
         """
         end_user_advisories = EndUserAdvisoryQuery.objects.filter(end_user__organisation=request.user.organisation)
         serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
@@ -53,6 +53,9 @@ class EndUserAdvisoryDetail(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
+        """
+        View a single end user advisory's details
+        """
         end_user_advisories = EndUserAdvisoryQuery.objects.get(pk=pk)
         serializer = EndUserAdvisorySerializer(end_user_advisories)
         return JsonResponse(data={'end_user_advisory': serializer.data})
