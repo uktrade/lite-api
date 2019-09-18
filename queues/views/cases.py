@@ -3,6 +3,7 @@ from rest_framework import generics
 from cases.serializers import TinyCaseSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID
 from queues.helpers import get_queue, sort_cases, filter_cases
 
 
@@ -20,3 +21,12 @@ class CasesList(generics.ListAPIView):
         cases = sort_cases(cases, self.request.query_params.get('sort'))
 
         return cases.distinct()
+
+    def get_serializer_context(self):
+        # Identify the queue meta here so it is not called multiple times in the serializer
+        print(self.kwargs['pk'], [ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID])
+        is_system_queue = True if str(self.kwargs['pk']) in [ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID] else False
+        return {
+            'queue': get_queue(self.kwargs['pk']).name,
+            'is_system_queue': is_system_queue
+        }
