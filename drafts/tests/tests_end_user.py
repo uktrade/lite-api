@@ -2,7 +2,9 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from end_user.models import EndUser
+from parties.document.models import PartyDocument
+from parties.document.tests import test_file
+from parties.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -17,7 +19,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
             'country': 'PY',
-            'type': 'government',
+            'sub_type': 'government',
             'website': 'https://www.gov.py'
         }
 
@@ -31,7 +33,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
             'country': 'GB',
-            'type': data_type,
+            'sub_type': data_type,
             'website': 'https://www.gov.uk'
         }
 
@@ -42,7 +44,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(self.draft.end_user.name, data['name'])
         self.assertEqual(self.draft.end_user.address, data['address'])
         self.assertEqual(self.draft.end_user.country, get_country(data['country']))
-        self.assertEqual(self.draft.end_user.type, data_type)
+        self.assertEqual(self.draft.end_user.sub_type, data_type)
         self.assertEqual(self.draft.end_user.website, data['website'])
 
     @parameterized.expand([
@@ -57,7 +59,7 @@ class EndUserOnDraftTests(DataTestClient):
             'name': 'Lemonworld Org',
             'address': '3730 Martinsburg Rd, Gambier, Ohio',
             'country': 'US',
-            'type': 'business',
+            'sub_type': 'business',
             'website': 'https://www.americanmary.com'
         }],
     ])

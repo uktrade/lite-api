@@ -1,34 +1,35 @@
 from unittest import mock
-from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework import status
 
-from end_user.document.models import EndUserDocument
+from parties.document.models import PartyDocument
 from test_helpers.clients import DataTestClient
 
 test_file = "dog.jpg"
 
+
 # TODO: Fix S3 mocking for running tests in CircleCI
 
-
-class EndUserDocumentTests(DataTestClient):
+class PartyDocumentTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
 
         self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Drafty Draft')
-        self.url_draft_with_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
+        self.url_end_user_doc = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
-        self.draft_no_user = self.create_draft(self.organisation, 'Dafty daft')
-        self.url_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_user.id})
+        self.draft_no_end_user = self.create_draft(self.organisation, 'Dafty daft')
+        self.url_end_user_doc_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
 
-        self.data = {"name": test_file,
-                 "s3_key": test_file,
-                 "size": 476}
+        self.data = {
+            'name': test_file,
+            's3_key': test_file,
+            'size': 476
+        }
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_correct_data_get_document(self, prepare_document_function):
+    def test_correct_data_get_document_end_user(self, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -37,10 +38,100 @@ class EndUserDocumentTests(DataTestClient):
         Then the data in the document is the same as the data in the attached end user document
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+
+        # assert
+        response_data = response.json()['document']
+        expected = self.data
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_correct_data_document_ultimate_end_user(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the ultimate end user has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached ultimate end user document
+        """
+        # assemble
+        self.draft.ultimate_end_users.add(
+            self.create_ultimate_end_user('UEU', self.organisation)
+        )
+        url_ultimate_end_user_doc = reverse(
+            'drafts:ultimate_end_user_document',
+            kwargs={
+                'pk': self.draft.id,
+                'ueu_pk': self.draft.ultimate_end_users.first().id
+            }
+        )
+        self.client.post(url_ultimate_end_user_doc, data=self.data, **self.exporter_headers)
+
+        # act
+        response = self.client.get(url_ultimate_end_user_doc, **self.exporter_headers)
+
+        # assert
+        response_data = response.json()['document']
+        expected = self.data
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_correct_data_document_consignee(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a consignee
+        And the consignee has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached consignee document
+        """
+        # assemble
+        self.draft.consignee = self.create_consignee('Consignee', self.organisation)
+        self.draft.save()
+
+        url_consignee_doc = reverse('drafts:consignee_document', kwargs={'pk': self.draft.id})
+        self.client.post(url_consignee_doc, data=self.data, **self.exporter_headers)
+
+        # act
+        response = self.client.get(url_consignee_doc, **self.exporter_headers)
+
+        # assert
+        response_data = response.json()['document']
+        expected = self.data
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_correct_data_document_third_party(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the third party has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached third party document
+        """
+        # assemble
+        self.draft.third_parties.add(
+            self.create_third_party('TP', self.organisation)
+        )
+        url_third_party_doc = reverse(
+            'drafts:third_party_document',
+            kwargs={
+                'pk': self.draft.id,
+                'tp_pk': self.draft.third_parties.first().id
+            }
+        )
+        self.client.post(url_third_party_doc, data=self.data, **self.exporter_headers)
+
+        # act
+        response = self.client.get(url_third_party_doc, **self.exporter_headers)
 
         # assert
         response_data = response.json()['document']
@@ -57,7 +148,7 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # act
-        response = self.client.get(self.url_no_user, **self.exporter_headers)
+        response = self.client.get(self.url_end_user_doc_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -71,7 +162,7 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # act
-        response = self.client.post(self.url_no_user, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_end_user_doc_no_user, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -84,7 +175,7 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # act
-        response = self.client.delete(self.url_no_user, **self.exporter_headers)
+        response = self.client.delete(self.url_end_user_doc_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -99,7 +190,7 @@ class EndUserDocumentTests(DataTestClient):
         And the response contains a null document
         """
         # act
-        response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
 
         # assert
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
@@ -115,12 +206,12 @@ class EndUserDocumentTests(DataTestClient):
         Then a 201 CREATED is returned
         """
         # act
-        response = self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_status_code_delete_document_not_exist(self):
+    def test_status_code_delete_document_user_does_not_exist(self):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
@@ -128,7 +219,7 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # act
-        response = self.client.delete(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.delete(self.url_end_user_doc_no_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -143,10 +234,10 @@ class EndUserDocumentTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -161,13 +252,13 @@ class EndUserDocumentTests(DataTestClient):
         Then only a single document exists
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(1, len(EndUserDocument.objects.all()))
+        self.assertEqual(len(PartyDocument.objects.all()), 1)
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
@@ -180,10 +271,10 @@ class EndUserDocumentTests(DataTestClient):
         Then 204 NO CONTENT is returned
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.delete(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.delete(self.url_end_user_doc, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -198,10 +289,10 @@ class EndUserDocumentTests(DataTestClient):
         Then 200 OK is returned
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_draft_with_user, **self.exporter_headers)
+        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -217,10 +308,10 @@ class EndUserDocumentTests(DataTestClient):
         Then the function to delete document from S3 is called
         """
         # assemble
-        self.client.post(self.url_draft_with_user, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        self.client.delete(self.url_draft_with_user, **self.exporter_headers)
+        self.client.delete(self.url_end_user_doc, **self.exporter_headers)
 
         # assert
         delete_s3_function.assert_called_once()

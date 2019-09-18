@@ -1,6 +1,6 @@
 from django.db import models
 
-from end_user.models import EndUser
+from parties.models import EndUser
 from queries.models import Query
 
 

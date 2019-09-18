@@ -11,9 +11,9 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from end_user.document.models import EndUserDocument
-from end_user.enums import EndUserType
-from end_user.models import EndUser
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -158,11 +158,55 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
-                           type=EndUserType.GOVERNMENT,
+                           sub_type=SubType.GOVERNMENT,
+                           type=PartyType.END,
                            country=get_country('GB'))
         end_user.save()
-
         return end_user
+
+    @staticmethod
+    def create_ultimate_end_user(name, organisation):
+        ultimate_end_user = UltimateEndUser(name=name,
+                                            organisation=organisation,
+                                            address='42 Road, London, Buckinghamshire',
+                                            website='www.' + name + '.com',
+                                            sub_type=SubType.GOVERNMENT,
+                                            type=PartyType.ULTIMATE,
+                                            country=get_country('GB'))
+        ultimate_end_user.save()
+        return ultimate_end_user
+
+    @staticmethod
+    def create_consignee(name, organisation):
+        consignee = Consignee(name=name,
+                              organisation=organisation,
+                              address='42 Road, London, Buckinghamshire',
+                              website='www.' + name + '.com',
+                              sub_type=SubType.GOVERNMENT,
+                              type=PartyType.CONSIGNEE,
+                              country=get_country('GB'))
+        consignee.save()
+        return consignee
+
+    @staticmethod
+    def create_third_party(name, organisation):
+        third_party = ThirdParty(name=name,
+                                 organisation=organisation,
+                                 address='42 Road, London, Buckinghamshire',
+                                 website='www.' + name + '.com',
+                                 sub_type=ThirdPartySubType.AGENT,
+                                 type=PartyType.THIRD,
+                                 country=get_country('GB'))
+        third_party.save()
+        return third_party
+
+    def create_clc_query_case(self, name, status=None):
+        if not status:
+            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
+        clc_query = self.create_clc_query(name, self.organisation, status)
+        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
+        case.save()
+        return case
 
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
@@ -231,15 +275,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return good_doc
 
     @staticmethod
-    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
-        end_user_document = EndUserDocument(end_user=end_user,
-                                            name=name,
-                                            s3_key='s3_keykey.pdf',
-                                            size=123456,
-                                            virus_scanned_at=None,
-                                            safe=safe)
-        end_user_document.save()
-        return end_user_document
+    def create_document_for_party(party: Party, name='document_name.pdf', safe=True):
+        document = PartyDocument(
+            party=party,
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
+        )
+        document.save()
+        return document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
@@ -335,10 +381,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_party(draft.end_user, safe=safe_document)
+
+        draft.consignee = self.create_consignee('consignee', organisation)
+        draft.save()
+        self.create_document_for_party(draft.consignee, safe=safe_document)
 
         return draft
 

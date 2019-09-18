@@ -1,8 +1,8 @@
 from django.http import Http404
 
 from conf.exceptions import NotFoundError
-from end_user.document.models import EndUserDocument
-from end_user.models import EndUser
+from parties.document.models import PartyDocument
+from parties.models import EndUser, Party
 
 
 def get_end_user(pk):
@@ -24,10 +24,10 @@ def get_end_user_with_organisation(pk, organisation):
         raise NotFoundError({'end_user': 'End User not found - ' + str(pk)})
 
 
-def delete_end_user_document_if_exists(end_user: EndUser):
+def delete_party_document_if_exists(party: Party):
     try:
-        end_user_document = EndUserDocument.objects.get(end_user=end_user)
-        end_user_document.delete_s3()
-        end_user_document.delete()
-    except EndUserDocument.DoesNotExist:
+        document = PartyDocument.objects.get(party=party)
+        document.delete_s3()
+        document.delete()
+    except PartyDocument.DoesNotExist:
         pass
