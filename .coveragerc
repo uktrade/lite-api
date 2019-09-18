@@ -1,7 +1,4 @@
 [run]
-include =
-    ./*/*.py
-
 omit =
     ./*/apps.py
     ./*/admin.py
@@ -10,4 +7,7 @@ omit =
     ./*/models.py
     ./*/migrations/*.py
     ./conf/settings.py
+    ./static/management/*
     *test*
+    .venv/*
+branch = True

@@ -18,7 +18,7 @@ def _coalesce_case_status_priority(cases):
         case = case.__dict__
         if 'status__priority' not in case:
             return cases.annotate(
-                status__priority=Coalesce('application__status__priority', 'clc_query__status__priority')
+                status__priority=Coalesce('application__status__priority', 'query__status__priority')
             )
 
     return cases
@@ -43,9 +43,9 @@ def _open_cases_queue():
     queue.query = (~Q(application__status__status=CaseStatusEnum.WITHDRAWN) &
                    ~Q(application__status__status=CaseStatusEnum.DECLINED) &
                    ~Q(application__status__status=CaseStatusEnum.APPROVED) &
-                   ~Q(clc_query__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(clc_query__status__status=CaseStatusEnum.DECLINED) &
-                   ~Q(clc_query__status__status=CaseStatusEnum.APPROVED))
+                   ~Q(query__status__status=CaseStatusEnum.WITHDRAWN) &
+                   ~Q(query__status__status=CaseStatusEnum.DECLINED) &
+                   ~Q(query__status__status=CaseStatusEnum.APPROVED))
 
     return queue
 

@@ -5,6 +5,13 @@ from end_user.document.models import EndUserDocument
 from end_user.models import EndUser
 
 
+def get_end_user(pk):
+    try:
+        return EndUser.objects.get(pk=pk)
+    except EndUser.DoesNotExist:
+        raise Http404
+
+
 def get_end_user_with_organisation(pk, organisation):
     try:
         end_user = EndUser.objects.get(pk=pk)

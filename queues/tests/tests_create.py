@@ -8,7 +8,7 @@ class QueuesCreateTests(DataTestClient):
 
     url = reverse('queues:queues')
 
-    def tests_create_queue(self):
+    def test_create_queue(self):
         data = {
             'name': 'new_queue',
             'team': self.team.id,

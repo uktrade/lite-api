@@ -28,7 +28,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_empty(self):
+    def test_cannot_authenticate_user_with_empty_data(self):
         data = {
             'email': None,
         }
@@ -36,7 +36,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_login_incorrect_details(self):
+    def test_cannot_authenticate_user_with_incorrect_details(self):
         data = {
             'email': 'something@random.com',
         }

@@ -3,8 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery
-from clc_queries.serializers import ClcQuerySerializer
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -13,6 +12,7 @@ from end_user.models import EndUser
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
+from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -26,48 +26,42 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    clc_query = ClcQuerySerializer(read_only=True)
     application = ApplicationBaseSerializer(read_only=True)
+    query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'application', 'clc_query',)
+        fields = ('id', 'type', 'application', 'query',)
 
     def to_representation(self, value):
         """
         Only show 'application' if it has an application inside,
-        and only show 'clc_query' if it has a CLC query inside
+        and only show 'query' if it has a CLC query inside
         """
         repr_dict = super(CaseSerializer, self).to_representation(value)
         if not repr_dict['application']:
             del repr_dict['application']
-        if not repr_dict['clc_query']:
-            del repr_dict['clc_query']
+        if not repr_dict['query']:
+            del repr_dict['query']
         return repr_dict
 
 
 class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = serializers.SerializerMethodField()
+    type = KeyValueChoiceField(choices=CaseType.choices)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-
-    def get_type(self, instance):
-        if instance.type == 'clc_query':
-            case_type = 'CLC Query'
-        else:
-            case_type = instance.type.title()
-        return case_type
+    query = QueryViewSerializer()
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
 
     def get_organisation(self, instance):
-        if instance.clc_query:
-            return instance.clc_query.good.organisation.name
+        if instance.query:
+            return instance.query.organisation.name
         else:
             return instance.application.organisation.name
 
@@ -80,8 +74,8 @@ class TinyCaseSerializer(serializers.Serializer):
             return []
 
     def get_status(self, instance):
-        if instance.clc_query:
-            return instance.clc_query.status.status
+        if instance.query:
+            return instance.query.status.status
         else:
             return instance.application.status.status
 
@@ -90,11 +84,11 @@ class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    clc_query = ClcQuerySerializer(read_only=True)
+    query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'clc_query',)
+        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'query',)
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))
@@ -305,3 +299,11 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
                   'question',
                   'case',
                   'raised_by_user',)
+
+
+class CaseActivitySerializer(serializers.ModelSerializer):
+    user = BaseUserViewSerializer()
+
+    class Meta:
+        model = CaseActivity
+        fields = '__all__'

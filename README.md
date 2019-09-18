@@ -32,10 +32,39 @@ Service for handling backend calls in LITE.
 
 [Running locally without Docker](docs/without-docker.md)
 
-## LITE Repositories
+## Running Tests
+
+- `pipenv run ./manage.py test` will run all tests
+- `pipenv run ./manage.py test cases` will run the `cases` module tests
+
+## Running Code Coverage
+
+- `pipenv run ./manage.py coverage <module_to_run_coverage_on> <tests_to_run>`
+
+1. Providing no positional arguments implies that you want to run all tests and collect the coverage:
+    - `pipenv run ./manage.py coverage`
+2. The first positional argument implies what module you want to collect coverage for:
+    - `pipenv run ./manage.py coverage cases` will collect coverage on the `cases` module and run only the `cases` tests
+3. The second positional argument implies what tests to run in order to collect coverage for the given module:
+    - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module and run all tests
+    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only the `queues` tests
+
+## LITE Repositorieså
 
 **[lite-api](https://github.com/uktrade/lite-api)** - Service for handling backend calls in LITE.
 
 [lite-exporter-frontend](https://github.com/uktrade/lite-exporter-frontend) - Application for handling exporter related activity in LITE.
 
 [lite-internal-frontend](https://github.com/uktrade/lite-internal-frontend) - Application for handling internal information in LITE.
+
+## Running API tests
+
+`pipenv run ./manage.py test` 
+
+with option `--parallel` to run them in parallel
+
+To run a specific folder:
+
+`pipenv run ./manage.py test <folder_name>`
+
+
