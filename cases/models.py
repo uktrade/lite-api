@@ -10,7 +10,7 @@ from applications.models import Application
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from documents.models import Document
-from end_user.models import EndUser
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -97,8 +97,12 @@ class Advice(models.Model):
     goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
+    ultimate_end_user = models.ForeignKey(UltimateEndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
                                           null=True)
+    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name='consignee',
+                                  null=True)
+    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name='third_party',
+                                    null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -115,7 +119,9 @@ class Advice(models.Model):
                                                  goods_type=self.goods_type,
                                                  country=self.country,
                                                  end_user=self.end_user,
-                                                 ultimate_end_user=self.ultimate_end_user)
+                                                 ultimate_end_user=self.ultimate_end_user,
+                                                 consignee=self.consignee,
+                                                 third_party=self.third_party)
             existing_object.delete()
         except Advice.DoesNotExist:
             pass
