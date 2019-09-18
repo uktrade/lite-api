@@ -12,7 +12,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         """
         Ensure that the user can view all end user advisory queries
         """
-        self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
+        query = self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
 
         response = self.client.get(reverse('queries:end_user_advisories:end_user_advisories'),
                                    **self.exporter_headers)
@@ -20,6 +20,17 @@ class EndUserAdvisoryViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response_data), 1)
+
+        response_data = response_data[0]
+        self.assertEqual(response_data['note'], query.note)
+        self.assertEqual(response_data['reasoning'], query.reasoning)
+
+        end_user_data = response_data['end_user']
+        self.assertEqual(end_user_data['sub_type'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['name'], query.end_user.name)
+        self.assertEqual(end_user_data['website'], query.end_user.website)
+        self.assertEqual(end_user_data['address'], query.end_user.address)
+        self.assertEqual(end_user_data['country']['id'], query.end_user.country.id)
 
     def test_view_end_user_advisory_query(self):
         """
@@ -29,8 +40,18 @@ class EndUserAdvisoryViewTests(DataTestClient):
 
         response = self.client.get(reverse('queries:end_user_advisories:end_user_advisory',
                                            kwargs={'pk': query.id}), **self.exporter_headers)
+        response_data = response.json()['end_user_advisory']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data['note'], query.note)
+        self.assertEqual(response_data['reasoning'], query.reasoning)
+
+        end_user_data = response_data['end_user']
+        self.assertEqual(end_user_data['sub_type'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['name'], query.end_user.name)
+        self.assertEqual(end_user_data['website'], query.end_user.website)
+        self.assertEqual(end_user_data['address'], query.end_user.address)
+        self.assertEqual(end_user_data['country']['id'], query.end_user.country.id)
 
 
 class EndUserAdvisoryCreateTests(DataTestClient):
