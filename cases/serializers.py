@@ -79,7 +79,9 @@ class TinyCaseSerializer(serializers.Serializer):
             for case_assignment in case_assignments:
                 if self.context['is_system_queue'] or case_assignment.queue.name == self.context['queue']:
                     queue_users = {'queue': case_assignment.queue.name}
-                    queue_users['users'] = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]} for x in case_assignment.users.values_list('first_name', 'last_name', 'email')]
+                    queue_users['users'] = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]}
+                                            for x
+                                            in case_assignment.users.values_list('first_name', 'last_name', 'email')]
                     users.append(queue_users)
             return users
         except CaseAssignment.DoesNotExist:
