@@ -12,6 +12,9 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
