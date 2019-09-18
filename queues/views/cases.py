@@ -24,7 +24,6 @@ class CasesList(generics.ListAPIView):
 
     def get_serializer_context(self):
         # Identify the queue meta here so it is not called multiple times in the serializer
-        print(self.kwargs['pk'], [ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID])
         is_system_queue = True if str(self.kwargs['pk']) in [ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID] else False
         return {
             'queue': get_queue(self.kwargs['pk']).name,
