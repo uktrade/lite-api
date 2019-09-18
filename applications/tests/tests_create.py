@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationLicenceType
-from applications.models import Application
-from queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 
@@ -11,22 +9,16 @@ class ApplicationsTests(DataTestClient):
 
     url = reverse('applications:applications')
 
-    def test_create_application_case_and_addition_to_queue(self):
+    def test_create_application_case(self):
         """
         Test whether we can create a draft first and then submit it as an application
         """
         draft = self.create_standard_draft(self.organisation)
-
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 0)
-
         data = {'id': draft.id}
+
         response = self.client.post(self.url, data, **self.exporter_headers)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        application = Application.objects.get(pk=draft.id)
-
-        self.assertEqual(Queue.objects.get(pk='00000000-0000-0000-0000-000000000001').cases.count(), 1)
-        self.assertEqual(application.end_user, draft.end_user)
 
     def test_create_application_with_invalid_id(self):
         """
@@ -48,7 +40,7 @@ class ApplicationsTests(DataTestClient):
         draft.end_user = self.create_end_user("End user", self.organisation)
         draft.save()
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_party(draft.end_user)
 
         data = {'id': draft.id}
 
@@ -86,7 +78,7 @@ class ApplicationsTests(DataTestClient):
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=None)
+        self.create_document_for_party(party=draft.end_user, name='blah', safe=None)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 
@@ -108,7 +100,7 @@ class ApplicationsTests(DataTestClient):
         """
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        self.create_document_for_end_user(end_user=draft.end_user, name='blah', safe=False)
+        self.create_document_for_party(party=draft.end_user, name='blah', safe=False)
         url = reverse('applications:applications')
         data = {'id': draft.id}
 

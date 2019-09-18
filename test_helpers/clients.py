@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
@@ -6,53 +8,41 @@ from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application, GoodOnApplication
 from cases.enums import CaseType, AdviceType
-from cases.models import CaseNote, Case, CaseDocument, Advice
-from clc_queries.models import ClcQuery
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
+from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from end_user.document.models import EndUserDocument
-from end_user.enums import EndUserType
-from end_user.models import EndUser
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
-from static.denial_reasons.models import DenialReason
-from users.enums import UserStatuses
-from users.libraries.user_to_token import user_to_token
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
+from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
+from test_helpers import colours
 from test_helpers.helpers import random_name
+from users.enums import UserStatuses
+from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
 
 
-class BaseTestClient(APITestCase, URLPatternsTestCase):
+class DataTestClient(APITestCase, URLPatternsTestCase):
     """
-    Base test client which provides only URL patterns and client
+    Test client which creates an initial organisation and user
     """
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
-
-class DataTestClient(BaseTestClient):
-    """
-    Test client which creates an initial organisation and user
-    """
-
     def setUp(self):
-        super().setUp()
-
         # Gov User Setup
         self.team = Team.objects.get(name='Admin')
         self.gov_user = GovUser(email='test@mail.com',
@@ -70,12 +60,39 @@ class DataTestClient(BaseTestClient):
             'HTTP_ORGANISATION_ID': self.organisation.id
         }
 
-        self.queue = Queue.objects.get(team=self.team)
+        self.queue = self.create_queue('Initial Queue', self.team)
+
+        if settings.TIME_TESTS:
+            self.tick = datetime.now()
+
+    def tearDown(self):
+        """
+        Print output time for tests if settings.TIME_TESTS is set to True
+        """
+        if settings.TIME_TESTS:
+            self.tock = datetime.now()
+
+            diff = self.tock - self.tick
+            time = round(diff.microseconds / 1000, 2)
+            colour = colours.green
+            emoji = ''
+
+            if time > 100:
+                colour = colours.orange
+            if time > 300:
+                colour = colours.red
+                emoji = ' 🔥'
+
+            print(self._testMethodName + emoji + ' ' + colour(str(time) + 'ms') + emoji)
+
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
 
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
-            
+
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
                                      email=f'{first_name}@{last_name}.com')
@@ -142,11 +159,47 @@ class DataTestClient(BaseTestClient):
                            organisation=organisation,
                            address='42 Road, London, Buckinghamshire',
                            website='www.' + name + '.com',
-                           type=EndUserType.GOVERNMENT,
+                           sub_type=SubType.GOVERNMENT,
+                           type=PartyType.END,
                            country=get_country('GB'))
         end_user.save()
-        
         return end_user
+
+    @staticmethod
+    def create_ultimate_end_user(name, organisation):
+        ultimate_end_user = UltimateEndUser(name=name,
+                                            organisation=organisation,
+                                            address='42 Road, London, Buckinghamshire',
+                                            website='www.' + name + '.com',
+                                            sub_type=SubType.GOVERNMENT,
+                                            type=PartyType.ULTIMATE,
+                                            country=get_country('GB'))
+        ultimate_end_user.save()
+        return ultimate_end_user
+
+    @staticmethod
+    def create_consignee(name, organisation):
+        consignee = Consignee(name=name,
+                              organisation=organisation,
+                              address='42 Road, London, Buckinghamshire',
+                              website='www.' + name + '.com',
+                              sub_type=SubType.GOVERNMENT,
+                              type=PartyType.CONSIGNEE,
+                              country=get_country('GB'))
+        consignee.save()
+        return consignee
+
+    @staticmethod
+    def create_third_party(name, organisation):
+        third_party = ThirdParty(name=name,
+                                 organisation=organisation,
+                                 address='42 Road, London, Buckinghamshire',
+                                 website='www.' + name + '.com',
+                                 sub_type=ThirdPartySubType.AGENT,
+                                 type=PartyType.THIRD,
+                                 country=get_country('GB'))
+        third_party.save()
+        return third_party
 
     def create_clc_query_case(self, name, status=None):
         if not status:
@@ -163,6 +216,15 @@ class DataTestClient(BaseTestClient):
                              is_visible_to_exporter=is_visible_to_exporter)
         case_note.save()
         return case_note
+
+    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
+        end_user = self.create_end_user("name", self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
+                                                       note=note,
+                                                       reasoning=reasoning,
+                                                       organisation=organisation)
+        end_user_advisory_query.save()
+        return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,
@@ -214,33 +276,39 @@ class DataTestClient(BaseTestClient):
         return good_doc
 
     @staticmethod
-    def create_document_for_end_user(end_user: EndUser, name='document_name.pdf', safe=True):
-        end_user_document = EndUserDocument(
-            end_user=end_user,
+    def create_document_for_party(party: Party, name='document_name.pdf', safe=True):
+        document = PartyDocument(
+            party=party,
             name=name,
             s3_key='s3_keykey.pdf',
             size=123456,
             virus_scanned_at=None,
             safe=safe
         )
-        end_user_document.save()
-        return end_user_document
+        document.save()
+        return document
 
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
 
+    def create_case_assignment(self, queue, case, users):
+        case_assignment = CaseAssignment(queue=queue,
+                                         case=case)
+        case_assignment.users.set(users)
+        case_assignment.save()
+        return case_assignment
+
     def create_goods_type(self, content_type_model, obj):
-        goodstype = GoodsType(description='thing',
-                              is_good_controlled=False,
-                              control_code='ML1a',
-                              is_good_end_product=True,
-                              content_type=ContentType.objects.get(model=content_type_model),
-                              object_id=obj.pk,
-                              )
-        goodstype.save()
-        return goodstype
+        goods_type = GoodsType(description='thing',
+                               is_good_controlled=False,
+                               control_code='ML1a',
+                               is_good_end_product=True,
+                               content_type=ContentType.objects.get(model=content_type_model),
+                               object_id=obj.pk)
+        goods_type.save()
+        return goods_type
 
     def create_picklist_item(self, name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(team=team,
@@ -248,11 +316,10 @@ class DataTestClient(BaseTestClient):
                                      text='This is a string of text, please do not disturb the milk argument',
                                      type=picklist_type,
                                      status=status)
-
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description, org, control_code='ML1'):
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> object:
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,
@@ -263,20 +330,18 @@ class DataTestClient(BaseTestClient):
         return good
 
     @staticmethod
-    def create_clc_query(description, org, status):
+    def create_clc_query(description, organisation):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.UNSURE,
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=org
-                    )
+                    organisation=organisation)
         good.save()
 
-        clc_query = ClcQuery(details='this is a test text',
-                             good=good,
-                             status=status)
-        clc_query.save()
+        clc_query = ControlListClassificationQuery.objects.create(details='this is a test text',
+                                                                  good=good,
+                                                                  organisation=organisation)
         return clc_query
 
     # Drafts
@@ -294,7 +359,8 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
@@ -316,10 +382,14 @@ class DataTestClient(BaseTestClient):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
 
-        self.create_document_for_end_user(draft.end_user)
+        self.create_document_for_party(draft.end_user, safe=safe_document)
+
+        draft.consignee = self.create_consignee('consignee', organisation)
+        draft.save()
+        self.create_document_for_party(draft.consignee, safe=safe_document)
 
         return draft
 
@@ -365,7 +435,7 @@ class DataTestClient(BaseTestClient):
         Creates a complete standard application case
         """
         draft = self.create_standard_draft(organisation, reference_name)
-        
+
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
 

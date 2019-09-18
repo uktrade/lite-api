@@ -23,7 +23,6 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('applications/', include('applications.urls')),
     path('cases/', include('cases.urls')),
-    path('clc-queries/', include('clc_queries.urls')),
     path('drafts/', include('drafts.urls')),
     path('goods/', include('goods.urls')),
     path('goodstype/', include('goodstype.urls')),
@@ -36,6 +35,7 @@ urlpatterns = [
     path('flags/', include('flags.urls')),
     path('picklist/', include('picklists.urls')),
     path('documents/', include('documents.urls')),
+    path('queries/', include('queries.urls')),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
 

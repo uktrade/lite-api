@@ -17,8 +17,7 @@ def init(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teams', '0001_initial'),
-        ('cases', '0004_notification'),
+        ('teams', '0001_initial')
     ]
 
     operations = [

@@ -22,7 +22,7 @@ env = Env(
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(%0hafx7+lsw4m6n(t)h!#sje$n$er9&z4hrfewm%&64=4mhy9'  # noqa
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 DEBUG = env('DEBUG')
 
@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'cases.apps.CasesConfig',
     'drafts.apps.DraftsConfig',
     'goods.apps.GoodsConfig',
-    'end_user.apps.EndUserConfig',
+    'parties.apps.PartiesConfig',
     'teams.apps.TeamsConfig',
     'queues.apps.QueuesConfig',
     'gov_users',
@@ -63,9 +63,11 @@ INSTALLED_APPS = [
     'flags.apps.FlagsConfig',
     'documents.apps.DocumentsConfig',
     'background_task',
-    'clc_queries',
     'picklists',
-    'end_user.document',
+    'parties.document',
+    'queries',
+    'queries.end_user_advisories',
+    'queries.control_list_classifications'
 ]
 
 MIDDLEWARE = [
@@ -151,6 +153,9 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
+
+# If True, print the length of time it takes to run each test
+TIME_TESTS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
