@@ -26,7 +26,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], query.reasoning)
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['sub_type']['key'], query.end_user.sub_type)
         self.assertEqual(end_user_data['name'], query.end_user.name)
         self.assertEqual(end_user_data['website'], query.end_user.website)
         self.assertEqual(end_user_data['address'], query.end_user.address)
@@ -47,7 +47,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], query.reasoning)
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['sub_type']['key'], query.end_user.sub_type)
         self.assertEqual(end_user_data['name'], query.end_user.name)
         self.assertEqual(end_user_data['website'], query.end_user.website)
         self.assertEqual(end_user_data['address'], query.end_user.address)
@@ -83,7 +83,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], data['reasoning'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], data['end_user']['sub_type'])
+        self.assertEqual(end_user_data['sub_type']['key'], data['end_user']['sub_type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
@@ -118,7 +118,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response_data['copy_of']['reference_code'], data['copy_of'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], data['end_user']['sub_type'])
+        self.assertEqual(end_user_data['sub_type']['key'], data['end_user']['sub_type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
