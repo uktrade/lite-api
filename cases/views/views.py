@@ -16,7 +16,7 @@ from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSeri
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, CaseFinalAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.permissions import asser_user_has_permission
+from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from teams.helpers import get_team_by_pk
 from users.models import ExporterUser
@@ -203,7 +203,7 @@ class CaseTeamAdvice(APIView):
         """
         if self.team_advice.filter(team=request.user.team).count() == 0:
             # We pass in the class of advice we are creating
-            asser_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+            assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
@@ -220,7 +220,7 @@ class CaseTeamAdvice(APIView):
         """
         Creates advice for a case
         """
-        asser_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         if FinalAdvice.objects.filter(case=self.case):
             return JsonResponse({'errors': 'Final advice already exists for this case'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -245,7 +245,7 @@ class CaseTeamAdvice(APIView):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        asser_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         self.team_advice.filter(team=self.request.user.team).delete()
         CaseActivity.create(activity_type=CaseActivityType.CLEARED_TEAM_ADVICE,
                             case=self.case,
@@ -283,7 +283,7 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
-            asser_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
             CaseActivity.create(activity_type=CaseActivityType.CREATED_FINAL_ADVICE,
@@ -299,7 +299,7 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        asser_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         data = request.data
 
         # Update the case and user in each piece of advice
@@ -320,7 +320,7 @@ class CaseFinalAdvice(APIView):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        asser_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
         CaseActivity.create(activity_type=CaseActivityType.CLEARED_FINAL_ADVICE,
                             case=self.case,
