@@ -12,9 +12,6 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from parties.document.models import PartyDocument
-from parties.enums import SubType, PartyType, ThirdPartySubType
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -204,14 +201,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         third_party.save()
         return third_party
 
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
-
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
@@ -221,12 +210,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user("name", self.organisation)
-        end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
-                                                       note=note,
-                                                       reasoning=reasoning,
-                                                       organisation=organisation)
-        end_user_advisory_query.save()
+        end_user = self.create_end_user('name', self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
+                                                                      note=note,
+                                                                      reasoning=reasoning,
+                                                                      organisation=organisation)
         return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
@@ -246,7 +234,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft, headers=None):
+    def submit_draft(self, draft: Draft):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
