@@ -4,11 +4,10 @@ from rest_framework.reverse import reverse
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class EndUserAdvisoryUpdate(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.end_user_advisory_case, self.end_user_advisory = \
@@ -26,5 +25,5 @@ class EndUserAdvisoryUpdate(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         new_end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=self.end_user_advisory.id)
-        casestatus = get_case_status_from_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        casestatus = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         self.assertEqual(new_end_user_advisory.status, casestatus)

@@ -15,7 +15,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class EndUserAdvisoriesList(APIView):
@@ -72,7 +72,7 @@ class EndUserAdvisoriesDetail(APIView):
             if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
-            request.data['status'] = get_case_status_from_status(data.get('status'))
+            request.data['status'] = get_case_status_from_status_enum(data.get('status'))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
@@ -85,4 +85,4 @@ class EndUserAdvisoriesDetail(APIView):
                 serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={'end_user_advisory': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors}, status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

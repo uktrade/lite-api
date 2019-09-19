@@ -21,7 +21,7 @@ from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class ApplicationList(APIView):
@@ -61,7 +61,7 @@ class ApplicationList(APIView):
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
-                                      status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+                                      status=get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
             errors = {}
 
@@ -123,7 +123,7 @@ class ApplicationDetail(APIView):
             if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
                 has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
 
-            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
+            request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
@@ -136,4 +136,4 @@ class ApplicationDetail(APIView):
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors}, status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

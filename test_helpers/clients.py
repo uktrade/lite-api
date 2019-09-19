@@ -26,7 +26,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -205,7 +205,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_clc_query_case(self, name, status=None):
         if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
+            status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         clc_query = self.create_clc_query(name, self.organisation, status)
         case = Case(query=clc_query, type=CaseType.CLC_QUERY)
         case.save()
