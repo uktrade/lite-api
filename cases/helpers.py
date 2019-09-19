@@ -33,7 +33,7 @@ def filter_out_duplicates(advice_list):
     return filtered_items
 
 
-# mccabe: disable = MC0001
+# pylint: disable = MC0001
 def collate_advice(application_field, collection, case, user, advice_class):
     for key, value in collection:
         text = None
