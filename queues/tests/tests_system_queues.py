@@ -19,7 +19,7 @@ class RetrieveAllCases(DataTestClient):
         self.case_2 = self.create_clc_query('Query', self.organisation).case.get()
         self.case_3 = self.create_clc_query('Query', self.organisation).case.get()
 
-        self.case_3.query.status = get_case_status_from_status(CaseStatusEnum.APPROVED)
+        self.case_3.query.status = get_case_status_from_status(CaseStatusEnum.FINALISED)
         self.case_3.query.save()
 
         self.url = reverse('queues:queues')

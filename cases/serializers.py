@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, FinalAdvice
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -16,6 +16,7 @@ from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser, ExporterUser
 from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
@@ -67,8 +68,15 @@ class TinyCaseSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         try:
-            case_assignment = CaseAssignment.objects.get(case=instance)
-            users = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]} for x in case_assignment.users.values_list('first_name', 'last_name', 'email')]
+            case_assignments = CaseAssignment.objects.filter(case=instance)
+            users = []
+            for case_assignment in case_assignments:
+                if self.context['is_system_queue'] or case_assignment.queue.name == self.context['queue']:
+                    queue_users = {'queue': case_assignment.queue.name}
+                    queue_users['users'] = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]}
+                                            for x
+                                            in case_assignment.users.values_list('first_name', 'last_name', 'email')]
+                    users.append(queue_users)
             return users
         except CaseAssignment.DoesNotExist:
             return []
@@ -83,18 +91,32 @@ class TinyCaseSerializer(serializers.Serializer):
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
+    has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'query',)
+        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'query', 'has_advice')
 
     def get_flags(self, instance):
         return list(instance.flags.all().values('id', 'name'))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
+
+    def get_has_advice(self, instance):
+        has_advice = {'team': False, 'my_team': False, 'final': False}
+        if TeamAdvice.objects.filter(case=instance).first():
+            has_advice['team'] = True
+        if FinalAdvice.objects.filter(case=instance).first():
+            has_advice['final'] = True
+        try:
+            if TeamAdvice.objects.filter(case=instance, team=self.context.user.team).first():
+                has_advice['my_team'] = True
+        except AttributeError:
+            pass
+        return has_advice
 
     def validate_queues(self, attrs):
         if not attrs:
@@ -231,18 +253,33 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
+        if instance.type != AdviceType.CONFLICTING:
+            if instance.type == AdviceType.PROVISO:
+                repr_dict['proviso'] = instance.proviso
+            else:
+                del repr_dict['proviso']
 
-        if instance.type == AdviceType.PROVISO:
-            repr_dict['proviso'] = instance.proviso
-        else:
-            del repr_dict['proviso']
-
-        if instance.type == AdviceType.REFUSE:
-            repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
-        else:
-            del repr_dict['denial_reasons']
+            if instance.type == AdviceType.REFUSE:
+                repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+            else:
+                del repr_dict['denial_reasons']
 
         return repr_dict
+
+
+class CaseTeamAdviceSerializer(CaseAdviceSerializer):
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(),
+                                            serializer=TeamSerializer)
+
+    class Meta:
+        model = TeamAdvice
+        fields = '__all__'
+
+
+class CaseFinalAdviceSerializer(CaseAdviceSerializer):
+    class Meta:
+        model = FinalAdvice
+        fields = '__all__'
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):

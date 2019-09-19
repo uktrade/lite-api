@@ -17,7 +17,7 @@ class CaseActivityTests(DataTestClient):
 
     def test_cannot_make_final_decision_without_permission(self):
         data = {
-            'status': CaseStatusEnum.APPROVED,
+            'status': CaseStatusEnum.FINALISED,
         }
 
         response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
@@ -26,13 +26,13 @@ class CaseActivityTests(DataTestClient):
 
     def test_can_record_final_decision_with_correct_permissions(self):
         role = Role(name='some')
-        role.permissions.set([Permission.objects.get(id='MAKE_FINAL_DECISIONS').id])
+        role.permissions.set([Permission.objects.get(id='MANAGE_FINAL_ADVICE').id])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()
 
         data = {
-            'status': CaseStatusEnum.APPROVED,
+            'status': CaseStatusEnum.FINALISED,
         }
 
         response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
