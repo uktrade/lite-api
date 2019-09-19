@@ -2,6 +2,7 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -145,9 +146,11 @@ class CaseAdvice(APIView):
         for advice in data:
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
+            if advice['type'].lower() == 'refuse' and not advice['text']:
+                return JsonResponse({'errors': [{'text': [ErrorDetail(string='Enter some advice', code='blank')]}]},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_object(data=data, many=True)
-
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
