@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.helpers import create_grouped_advice, create_advice_audit
+from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
@@ -207,7 +207,9 @@ class CaseTeamAdvice(APIView):
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
-            create_advice_audit(self.case, self.request.user, 'team', 'created')
+            CaseActivity.create(activity_type=CaseActivityType.CREATED_TEAM_ADVICE,
+                                case=self.case,
+                                user=request.user)
             team_advice = TeamAdvice.objects.filter(case=self.case, team=team)
         else:
             team_advice = self.team_advice
@@ -245,7 +247,9 @@ class CaseTeamAdvice(APIView):
         """
         has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         self.team_advice.filter(team=self.request.user.team).delete()
-        create_advice_audit(self.case, self.request.user, 'team', 'cleared')
+        CaseActivity.create(activity_type=CaseActivityType.CLEARED_TEAM_ADVICE,
+                            case=self.case,
+                            user=request.user)
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 
@@ -282,6 +286,9 @@ class CaseFinalAdvice(APIView):
             has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
+            CaseActivity.create(activity_type=CaseActivityType.CREATED_FINAL_ADVICE,
+                                case=self.case,
+                                user=request.user)
             create_advice_audit(self.case, self.request.user, 'final', 'created')
             final_advice = FinalAdvice.objects.filter(case=self.case)
         else:
@@ -317,6 +324,9 @@ class CaseFinalAdvice(APIView):
         has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
         create_advice_audit(self.case, self.request.user, 'final', 'cleared')
+        CaseActivity.create(activity_type=CaseActivityType.CLEARED_FINAL_ADVICE,
+                            case=self.case,
+                            user=request.user)
         return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
 
 

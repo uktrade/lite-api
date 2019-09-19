@@ -23,7 +23,10 @@ class CaseActivityType(BaseActivityType):
 
     UPDATED_STATUS = 'update_status'
 
-    ADVICE = 'advice'
+    CREATED_FINAL_ADVICE = 'created_final_advice'
+    CLEARED_FINAL_ADVICE = 'cleared_final_advice'
+    CREATED_TEAM_ADVICE = 'created_team_advice'
+    CLEARED_TEAM_ADVICE = 'cleared_team_advice'
 
     BaseActivityType.choices.extend(
         [
@@ -43,7 +46,10 @@ class CaseActivityType(BaseActivityType):
 
             (UPDATED_STATUS, 'updated the status to {status}'),
 
-            (ADVICE, '{action} {level} advice'),
+            (CREATED_FINAL_ADVICE, 'created final advice'),
+            (CLEARED_FINAL_ADVICE, 'cleared final advice'),
+            (CREATED_TEAM_ADVICE, 'created team advice'),
+            (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
         ]
     )

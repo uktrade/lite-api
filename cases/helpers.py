@@ -1,8 +1,6 @@
 from collections import defaultdict
 
 from cases.enums import AdviceType
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
 from goods.models import Good
 from goodstype.models import GoodsType
 from parties.models import UltimateEndUser, EndUser, Consignee, ThirdParty
@@ -40,7 +38,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
         note = None
         proviso = None
         denial_reasons = []
-        type = None
+        advice_type = None
         break_text = '\n-------\n'
 
         filtered_items = filter_out_duplicates(value)
@@ -65,18 +63,18 @@ def collate_advice(application_field, collection, case, user, advice_class):
             for denial_reason in advice.denial_reasons.values_list('id', flat=True):
                 denial_reasons.append(denial_reason)
 
-            if type:
-                if type != advice.type:
-                    type = AdviceType.CONFLICTING
+            if advice_type:
+                if advice_type != advice.type:
+                    advice_type = AdviceType.CONFLICTING
             else:
-                type = advice.type
+                advice_type = advice.type
 
         advice = advice_class(text=text,
                               case=case,
                               note=note,
                               proviso=proviso,
                               user=user,
-                              type=type)
+                              type=advice_type)
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
@@ -137,11 +135,3 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice('goods_type', goods_types.items(), case, request.user, level)
     collate_advice('consignee', consignees.items(), case, request.user, level)
     collate_advice('third_party', third_parties.items(), case, request.user, level)
-
-
-def create_advice_audit(case, user, level, action):
-    CaseActivity.create(activity_type=CaseActivityType.ADVICE,
-                        case=case,
-                        user=user,
-                        action=action,
-                        level=level)
