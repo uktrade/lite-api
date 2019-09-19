@@ -31,7 +31,52 @@ def filter_out_duplicates(advice_list):
     return filtered_items
 
 
-# pylint: disable = C901
+def construct_coalesced_advice(filtered_items, text, note, proviso, denial_reasons, advice_type):
+    break_text = '\n-------\n'
+    for advice in filtered_items:
+        if text:
+            text += break_text + advice.text
+        else:
+            text = advice.text
+
+        if note:
+            note += break_text + advice.note
+        else:
+            note = advice.note
+
+        if advice.proviso:
+            if proviso:
+                proviso += break_text + advice.proviso
+            else:
+                proviso = advice.proviso
+
+        for denial_reason in advice.denial_reasons.values_list('id', flat=True):
+            denial_reasons.append(denial_reason)
+
+        if advice_type:
+            if advice_type != advice.type:
+                advice_type = AdviceType.CONFLICTING
+        else:
+            advice_type = advice.type
+
+
+def assign_field(application_field, advice, key):
+    if application_field == 'good':
+        advice.good = Good.objects.get(pk=key)
+    elif application_field == 'end_user':
+        advice.end_user = EndUser.objects.get(pk=key)
+    elif application_field == 'country':
+        advice.country = Country.objects.get(pk=key)
+    elif application_field == 'ultimate_end_user':
+        advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
+    elif application_field == 'goods_type':
+        advice.goods_type = GoodsType.objects.get(pk=key)
+    elif application_field == 'consignee':
+        advice.consignee = Consignee.objects.get(pk=key)
+    elif application_field == 'third_party':
+        advice.third_party = ThirdParty.objects.get(pk=key)
+
+
 def collate_advice(application_field, collection, case, user, advice_class):
     for key, value in collection:
         text = None
@@ -39,35 +84,10 @@ def collate_advice(application_field, collection, case, user, advice_class):
         proviso = None
         denial_reasons = []
         advice_type = None
-        break_text = '\n-------\n'
 
         filtered_items = filter_out_duplicates(value)
 
-        for advice in filtered_items:
-            if text:
-                text += break_text + advice.text
-            else:
-                text = advice.text
-
-            if note:
-                note += break_text + advice.note
-            else:
-                note = advice.note
-
-            if advice.proviso:
-                if proviso:
-                    proviso += break_text + advice.proviso
-                else:
-                    proviso = advice.proviso
-
-            for denial_reason in advice.denial_reasons.values_list('id', flat=True):
-                denial_reasons.append(denial_reason)
-
-            if advice_type:
-                if advice_type != advice.type:
-                    advice_type = AdviceType.CONFLICTING
-            else:
-                advice_type = advice.type
+        construct_coalesced_advice(filtered_items, text, note, proviso, denial_reasons, advice_type)
 
         advice = advice_class(text=text,
                               case=case,
@@ -79,20 +99,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
 
-        if application_field == 'good':
-            advice.good = Good.objects.get(pk=key)
-        elif application_field == 'end_user':
-            advice.end_user = EndUser.objects.get(pk=key)
-        elif application_field == 'country':
-            advice.country = Country.objects.get(pk=key)
-        elif application_field == 'ultimate_end_user':
-            advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
-        elif application_field == 'goods_type':
-            advice.goods_type = GoodsType.objects.get(pk=key)
-        elif application_field == 'consignee':
-            advice.consignee = Consignee.objects.get(pk=key)
-        elif application_field == 'third_party':
-            advice.third_party = ThirdParty.objects.get(pk=key)
+        assign_field(application_field, advice, key)
 
         advice.save()
         advice.denial_reasons.set(denial_reasons)
