@@ -6,7 +6,8 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import Application
+from applications.models import Application, GoodOnApplication
+from cases.enums import CaseType, AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
@@ -19,6 +20,9 @@ from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -445,3 +449,31 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft = self.create_open_draft(organisation, reference_name)
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
+
+    @staticmethod
+    def create_advice(user, case, advice_field, advice_type, advice_level):
+        advice = advice_level(
+            user=user,
+            case=case,
+            type=advice_type,
+            note='This is a note to the exporter',
+            text='This is some text',
+        )
+
+        advice.team = user.team
+        advice.save()
+
+        if advice_field == 'end_user':
+            advice.end_user = case.application.end_user
+
+        if advice_field == 'good':
+            advice.good = GoodOnApplication.objects.filter(application=case.application).first().good
+
+        if advice_type == AdviceType.PROVISO:
+            advice.proviso = 'I am easy to proviso'
+
+        if advice_type == AdviceType.REFUSE:
+            advice.denial_reasons.set(['1a', '1b', '1c'])
+
+        advice.save()
+        return advice

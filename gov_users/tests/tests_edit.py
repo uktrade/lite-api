@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import Permissions
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import Role
@@ -30,6 +31,7 @@ class GovUserEditTests(DataTestClient):
 
     def test_change_role_of_a_gov_user(self):
         role = Role(name='some role')
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
         data = {
             'role': role.id
@@ -41,4 +43,3 @@ class GovUserEditTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data['gov_user']['role'], str(role.id))
-

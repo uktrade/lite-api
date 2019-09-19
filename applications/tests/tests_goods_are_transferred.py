@@ -37,9 +37,8 @@ class ApplicationsTests(DataTestClient):
     def test_that_cannot_submit_with_no_goods(self):
         draft = self.create_draft(self.organisation)
         draft.end_user = self.create_end_user("End user", self.organisation)
-        draft.save()
-
         self.create_document_for_party(draft.end_user)
+        draft.save()
 
         site_on_draft_1 = SiteOnDraft(site=self.organisation.primary_site, draft=draft)
         site_on_draft_1.save()
