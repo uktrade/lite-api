@@ -15,6 +15,7 @@ from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSeri
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
+from content_strings.strings import get_string
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from users.models import ExporterUser
 
@@ -147,8 +148,10 @@ class CaseAdvice(APIView):
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
             if advice['type'].lower() == 'refuse' and not advice['text']:
-                return JsonResponse({'errors': [{'text': [ErrorDetail(string='Enter some advice', code='blank')]}]},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(
+                    {'errors': [
+                        {'text': [ErrorDetail(string=get_string('cases.advice_refusal_error'), code='blank')]}
+                    ]}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_object(data=data, many=True)
         if serializer.is_valid():
