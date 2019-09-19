@@ -289,7 +289,6 @@ class CaseFinalAdvice(APIView):
             CaseActivity.create(activity_type=CaseActivityType.CREATED_FINAL_ADVICE,
                                 case=self.case,
                                 user=request.user)
-            create_advice_audit(self.case, self.request.user, 'final', 'created')
             final_advice = FinalAdvice.objects.filter(case=self.case)
         else:
             final_advice = self.final_advice
@@ -323,7 +322,6 @@ class CaseFinalAdvice(APIView):
         """
         has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
-        create_advice_audit(self.case, self.request.user, 'final', 'cleared')
         CaseActivity.create(activity_type=CaseActivityType.CLEARED_FINAL_ADVICE,
                             case=self.case,
                             user=request.user)
