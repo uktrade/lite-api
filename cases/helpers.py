@@ -31,7 +31,7 @@ def filter_out_duplicates(advice_list):
     return filtered_items
 
 
-def construct_coalesced_advice(filtered_items, text, note, proviso, denial_reasons, advice_type):
+def construct_coalesced_advice_values(filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user):
     break_text = '\n-------\n'
     for advice in filtered_items:
         if text:
@@ -58,6 +58,15 @@ def construct_coalesced_advice(filtered_items, text, note, proviso, denial_reaso
                 advice_type = AdviceType.CONFLICTING
         else:
             advice_type = advice.type
+
+    advice = advice_class(text=text,
+                          case=case,
+                          note=note,
+                          proviso=proviso,
+                          user=user,
+                          type=advice_type)
+
+    return advice
 
 
 def assign_field(application_field, advice, key):
@@ -87,14 +96,15 @@ def collate_advice(application_field, collection, case, user, advice_class):
 
         filtered_items = filter_out_duplicates(value)
 
-        construct_coalesced_advice(filtered_items, text, note, proviso, denial_reasons, advice_type)
-
-        advice = advice_class(text=text,
-                              case=case,
-                              note=note,
-                              proviso=proviso,
-                              user=user,
-                              type=advice_type)
+        advice = construct_coalesced_advice_values(filtered_items,
+                                                   text,
+                                                   note,
+                                                   proviso,
+                                                   denial_reasons,
+                                                   advice_type,
+                                                   case,
+                                                   advice_class,
+                                                   user)
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
