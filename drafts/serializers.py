@@ -5,6 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
+from documents.libraries.process_document import process_document
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, DraftDocuments
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
@@ -168,5 +169,5 @@ class DraftDocumentsSerializer(ModelSerializer):
     def create(self, validated_data):
         document = super(DraftDocumentsSerializer, self).create(validated_data)
         document.save()
-        # process_document(document)
+        process_document(document)
         return document
