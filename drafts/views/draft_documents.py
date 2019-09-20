@@ -3,7 +3,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.document_helpers import upload_draft_document, delete_draft_document
+from drafts.libraries.document_helpers import upload_draft_document, delete_draft_document, get_draft_document
 from drafts.serializers import DraftDocumentsSerializer
 from drafts.libraries.document_helpers import get_draft_documents
 
@@ -35,8 +35,8 @@ class DraftDocumentDetailView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        return get_draft_documents(pk)
+    def get(self, request, pk, doc_pk):
+        return get_draft_document(pk, doc_pk)
 
     @swagger_auto_schema(
         request_body=DraftDocumentsSerializer,

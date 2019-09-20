@@ -3,7 +3,7 @@ from rest_framework import status
 
 from drafts.serializers import DraftDocumentsSerializer
 from parties.document.models import PartyDocument
-from drafts.models import DraftDocuments
+from drafts.models import DraftDocuments, Draft
 from parties.document.serializers import PartyDocumentSerializer
 
 
@@ -37,15 +37,15 @@ def get_party_document(party):
 
 
 def get_draft_documents(draft_id):
-    if not draft_id:
-        return JsonResponse(data={'error': 'No such draft'}, status=status.HTTP_400_BAD_REQUEST)
-
     return _get_draft_documents(DraftDocuments.objects.filter(draft=draft_id))
 
 
+def get_draft_document(draft_id, doc_pk):
+    return _get_document(DraftDocuments.objects.filter(draft=draft_id, id=doc_pk))
+
+
 def upload_draft_document(draft_id, data):
-    if not draft_id:
-        return JsonResponse(data={'error': 'No such draft'}, status=status.HTTP_400_BAD_REQUEST)
+    data['draft'] = draft_id
 
     serializer = DraftDocumentsSerializer(data=data)
 
