@@ -297,6 +297,11 @@ class CaseFinalAdvice(APIView):
         serializer = self.serializer_object(final_advice, many=True)
         return JsonResponse({'advice': serializer.data})
 
+    @swagger_auto_schema(
+        request_body=CaseFinalAdviceSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request, pk):
         """
         Creates advice for a case
