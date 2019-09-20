@@ -41,11 +41,9 @@ def _open_cases_queue():
                   team=Team.objects.get(name='Admin'))
     queue.is_system_queue = True
     queue.query = (~Q(application__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(application__status__status=CaseStatusEnum.DECLINED) &
-                   ~Q(application__status__status=CaseStatusEnum.APPROVED) &
+                   ~Q(application__status__status=CaseStatusEnum.FINALISED) &
                    ~Q(query__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(query__status__status=CaseStatusEnum.DECLINED) &
-                   ~Q(query__status__status=CaseStatusEnum.APPROVED))
+                   ~Q(query__status__status=CaseStatusEnum.FINALISED))
 
     return queue
 

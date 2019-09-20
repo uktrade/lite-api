@@ -8,16 +8,50 @@ from test_helpers.clients import DataTestClient
 
 class EndUserAdvisoryViewTests(DataTestClient):
 
-    url = reverse('queries:end_user_advisories:end_user_advisories')
+    def test_view_end_user_advisory_queries(self):
+        """
+        Ensure that the user can view all end user advisory queries
+        """
+        query = self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
 
-    def test_view_end_user_advisory_query(self):
-        self.create_end_user_advisory('a note', 'because I\'m unsure', self.organisation)
-
-        response = self.client.get(self.url, **self.exporter_headers)
+        response = self.client.get(reverse('queries:end_user_advisories:end_user_advisories'),
+                                   **self.exporter_headers)
         response_data = response.json()['end_user_advisories']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response_data), 1)
+
+        response_data = response_data[0]
+        self.assertEqual(response_data['note'], query.note)
+        self.assertEqual(response_data['reasoning'], query.reasoning)
+
+        end_user_data = response_data['end_user']
+        self.assertEqual(end_user_data['sub_type']['key'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['name'], query.end_user.name)
+        self.assertEqual(end_user_data['website'], query.end_user.website)
+        self.assertEqual(end_user_data['address'], query.end_user.address)
+        self.assertEqual(end_user_data['country']['id'], query.end_user.country.id)
+
+    def test_view_end_user_advisory_query(self):
+        """
+        Ensure that the user can view an end user advisory query
+        """
+        query = self.create_end_user_advisory('a note', 'because I am unsure', self.organisation)
+
+        response = self.client.get(reverse('queries:end_user_advisories:end_user_advisory',
+                                           kwargs={'pk': query.id}), **self.exporter_headers)
+        response_data = response.json()['end_user_advisory']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data['note'], query.note)
+        self.assertEqual(response_data['reasoning'], query.reasoning)
+
+        end_user_data = response_data['end_user']
+        self.assertEqual(end_user_data['sub_type']['key'], query.end_user.sub_type)
+        self.assertEqual(end_user_data['name'], query.end_user.name)
+        self.assertEqual(end_user_data['website'], query.end_user.website)
+        self.assertEqual(end_user_data['address'], query.end_user.address)
+        self.assertEqual(end_user_data['country']['id'], query.end_user.country.id)
 
 
 class EndUserAdvisoryCreateTests(DataTestClient):
@@ -49,7 +83,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response_data['reasoning'], data['reasoning'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], data['end_user']['sub_type'])
+        self.assertEqual(end_user_data['sub_type']['key'], data['end_user']['sub_type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
@@ -81,15 +115,15 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['reasoning'], data['reasoning'])
-        self.assertEqual(response_data['copy_of'], data['copy_of'])
+        self.assertEqual(response_data['copy_of']['reference_code'], data['copy_of'])
 
         end_user_data = response_data['end_user']
-        self.assertEqual(end_user_data['sub_type'], data['end_user']['sub_type'])
+        self.assertEqual(end_user_data['sub_type']['key'], data['end_user']['sub_type'])
         self.assertEqual(end_user_data['name'], data['end_user']['name'])
         self.assertEqual(end_user_data['website'], data['end_user']['website'])
         self.assertEqual(end_user_data['address'], data['end_user']['address'])
         self.assertEqual(end_user_data['country']['id'], data['end_user']['country'])
-        self.assertEqual(Case.objects.count(), 1)
+        self.assertEqual(Case.objects.count(), 2)
 
     @parameterized.expand([
         ('com', 'person', 'http://gov.co.uk', 'place street', 'GB', '', ''),  # invalid end user type

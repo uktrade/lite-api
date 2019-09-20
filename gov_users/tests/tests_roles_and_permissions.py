@@ -4,7 +4,7 @@ from rest_framework import status
 
 from conf.constants import Permissions
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from users.models import Role, Permission
 
 
 class RolesAndPermissionsTests(DataTestClient):
@@ -14,7 +14,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_create_new_role_with_permission_to_make_final_decisions(self):
         data = {
             'name': 'some role',
-            'permissions': [Permissions.MAKE_FINAL_DECISIONS],
+            'permissions': [Permissions.MANAGE_FINAL_ADVICE],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -35,7 +35,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
     def test_get_list_of_all_roles(self):
         role = Role(name='some')
-        role.permissions.set([Permissions.MAKE_FINAL_DECISIONS])
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -51,20 +51,20 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['permissions']), 1)
+        self.assertEqual(len(response_data['permissions']), Permission.objects.count())
 
     def test_edit_a_role(self):
         role_id = '00000000-0000-0000-0000-000000000001'
         url = reverse('gov_users:role', kwargs={'pk': role_id})
 
         data = {
-            'permissions': [Permissions.MAKE_FINAL_DECISIONS]
+            'permissions': [Permissions.MANAGE_FINAL_ADVICE]
         }
 
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(Permissions.MAKE_FINAL_DECISIONS in
+        self.assertTrue(Permissions.MANAGE_FINAL_ADVICE in
                         Role.objects.get(id=role_id).permissions.values_list('id', flat=True))
 
     @parameterized.expand([

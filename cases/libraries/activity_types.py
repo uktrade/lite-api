@@ -23,6 +23,11 @@ class CaseActivityType(BaseActivityType):
 
     UPDATED_STATUS = 'update_status'
 
+    CREATED_FINAL_ADVICE = 'created_final_advice'
+    CLEARED_FINAL_ADVICE = 'cleared_final_advice'
+    CREATED_TEAM_ADVICE = 'created_team_advice'
+    CLEARED_TEAM_ADVICE = 'cleared_team_advice'
+
     BaseActivityType.choices.extend(
         [
             (ADD_FLAGS, 'added flags: {added_flags}'),
@@ -40,5 +45,11 @@ class CaseActivityType(BaseActivityType):
             (ECJU_QUERY, ' added an ECJU Query: {ecju_query}'),
 
             (UPDATED_STATUS, 'updated the status to {status}'),
+
+            (CREATED_FINAL_ADVICE, 'created final advice'),
+            (CLEARED_FINAL_ADVICE, 'cleared final advice'),
+            (CREATED_TEAM_ADVICE, 'created team advice'),
+            (CLEARED_TEAM_ADVICE, 'cleared team advice'),
+
         ]
     )

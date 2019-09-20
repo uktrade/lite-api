@@ -6,19 +6,20 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import Application
+from applications.models import Application, GoodOnApplication
+from cases.enums import CaseType, AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
-from parties.document.models import PartyDocument
-from parties.enums import SubType, PartyType, ThirdPartySubType
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.document.models import PartyDocument
+from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -200,14 +201,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         third_party.save()
         return third_party
 
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(clc_query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
-
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
@@ -217,12 +210,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_note
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user("name", self.organisation)
-        end_user_advisory_query = EndUserAdvisoryQuery(end_user=end_user,
-                                                       note=note,
-                                                       reasoning=reasoning,
-                                                       organisation=organisation)
-        end_user_advisory_query.save()
+        end_user = self.create_end_user('name', self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
+                                                                      note=note,
+                                                                      reasoning=reasoning,
+                                                                      organisation=organisation)
         return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
@@ -242,7 +234,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft, headers=None):
+    def submit_draft(self, draft: Draft):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
@@ -445,3 +437,31 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft = self.create_open_draft(organisation, reference_name)
         application = self.submit_draft(draft)
         return Case.objects.get(application=application)
+
+    @staticmethod
+    def create_advice(user, case, advice_field, advice_type, advice_level):
+        advice = advice_level(
+            user=user,
+            case=case,
+            type=advice_type,
+            note='This is a note to the exporter',
+            text='This is some text',
+        )
+
+        advice.team = user.team
+        advice.save()
+
+        if advice_field == 'end_user':
+            advice.end_user = case.application.end_user
+
+        if advice_field == 'good':
+            advice.good = GoodOnApplication.objects.filter(application=case.application).first().good
+
+        if advice_type == AdviceType.PROVISO:
+            advice.proviso = 'I am easy to proviso'
+
+        if advice_type == AdviceType.REFUSE:
+            advice.denial_reasons.set(['1a', '1b', '1c'])
+
+        advice.save()
+        return advice
