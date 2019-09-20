@@ -2,7 +2,6 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -15,9 +14,9 @@ from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_v
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
-    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, CaseFinalAdviceSerializer
+    CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, \
+    CaseFinalAdviceSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
-from content_strings.strings import get_string
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
