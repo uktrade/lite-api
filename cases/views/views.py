@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
+from cases.libraries.advice_errors import check_refusal_errors
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
@@ -145,6 +146,11 @@ class CaseAdvice(APIView):
         serializer = self.serializer_object(self.advice, many=True)
         return JsonResponse({'advice': serializer.data})
 
+    @swagger_auto_schema(
+        request_body=CaseAdviceSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -163,6 +169,9 @@ class CaseAdvice(APIView):
         for advice in data:
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
+            refusal_error = check_refusal_errors(advice)
+            if refusal_error:
+                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_object(data=data, many=True)
 
@@ -218,6 +227,11 @@ class CaseTeamAdvice(APIView):
         serializer = self.serializer_object(team_advice, many=True)
         return JsonResponse({'advice': serializer.data})
 
+    @swagger_auto_schema(
+        request_body=CaseTeamAdviceSerializer,
+        responses={
+            400: 'JSON parse error'
+        })
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -234,6 +248,9 @@ class CaseTeamAdvice(APIView):
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
             advice['team'] = str(request.user.team.id)
+            refusal_error = check_refusal_errors(advice)
+            if refusal_error:
+                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_object(data=data, many=True)
 
@@ -313,12 +330,10 @@ class CaseFinalAdvice(APIView):
         for advice in data:
             advice['case'] = str(self.case.id)
             advice['user'] = str(request.user.id)
-            if advice['type'].lower() == 'refuse' and not advice['text']:
-                return JsonResponse(
-                    {'errors': [
-                        {'text': [ErrorDetail(string=get_string('cases.advice_refusal_error'), code='blank')]}
-                    ]}, status=status.HTTP_400_BAD_REQUEST)
             advice['team'] = str(request.user.team.id)
+            refusal_error = check_refusal_errors(advice)
+            if refusal_error:
+                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_object(data=data, many=True)
         if serializer.is_valid():
