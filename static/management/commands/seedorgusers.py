@@ -11,7 +11,7 @@ from users.models import ExporterUser, UserOrganisationRelationship
 
 class Command(BaseCommand):
     """
-    pipenv run ./manage.py seedorganisation
+    pipenv run ./manage.py seedorgusers
     """
 
     def handle(self, *args, **options):
