@@ -53,7 +53,7 @@ class ClcQueryResponseSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.comment = validated_data.get('comment')
         instance.report_summary = validated_data.get('report_summary').text
-        instance.status = get_case_status_from_status(CaseStatusEnum.FINALISED)
+        instance.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
 
         # Update the good's details
         instance.good.is_good_controlled = validated_data.get('is_good_controlled')

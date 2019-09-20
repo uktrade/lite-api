@@ -216,7 +216,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.FINALISED):
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
