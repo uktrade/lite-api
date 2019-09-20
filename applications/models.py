@@ -15,6 +15,11 @@ from static.units.enums import Units
 
 
 @reversion.register()
+class ApplicationDocuments(Document):
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+
+
+@reversion.register()
 class Application(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True, null=True)
@@ -35,6 +40,7 @@ class Application(models.Model):
     consignee = models.ForeignKey(Consignee, related_name='application_consignee', on_delete=models.CASCADE,
                                   default=None, blank=True, null=True)
     third_parties = models.ManyToManyField(ThirdParty, related_name='application_third_parties')
+    additional_documents = models.ManyToManyField(ApplicationDocuments, related_name='additional_documents')
 
 
 @reversion.register()
@@ -77,8 +83,3 @@ class CountryOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name='countries_on_application', on_delete=models.CASCADE)
-
-
-class ApplicationDocuments(Document):
-    application = models.ForeignKey(Application, on_delete=models.CASCADE)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)

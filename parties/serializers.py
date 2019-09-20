@@ -1,5 +1,6 @@
 from rest_framework import serializers, relations
 
+from applications.models import ApplicationDocuments
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
@@ -68,4 +69,10 @@ class ThirdPartySerializer(PartySerializer):
     class Meta:
         model = ThirdParty
 
+        fields = '__all__'
+
+
+class AdditionalDocumentsSerializer(serializers.Serializer):
+    class Meta:
+        model = ApplicationDocuments
         fields = '__all__'
