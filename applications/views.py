@@ -15,7 +15,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.permissions import has_permission
+from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
 from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
@@ -119,9 +119,9 @@ class ApplicationDetail(APIView):
         with reversion.create_revision():
             data = json.loads(request.body)
 
-            # Only allow the final decision if the user has the MAKE_FINAL_DECISIONS permission
-            if data.get('status') == CaseStatusEnum.APPROVED or data.get('status') == CaseStatusEnum.DECLINED:
-                has_permission(request.user, Permissions.MAKE_FINAL_DECISIONS)
+            # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+            if data.get('status') == CaseStatusEnum.FINALISED:
+                assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
             request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 

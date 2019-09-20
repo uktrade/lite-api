@@ -18,6 +18,7 @@ from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.models import Team
 from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
 
 
@@ -109,7 +110,7 @@ class Advice(models.Model):
     denial_reasons = models.ManyToManyField(DenialReason)
 
     def save(self, *args, **kwargs):
-        if self.type is not AdviceType.PROVISO:
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
 
         try:
@@ -126,6 +127,59 @@ class Advice(models.Model):
         except Advice.DoesNotExist:
             pass
 
+        super(Advice, self).save(*args, **kwargs)
+
+
+class TeamAdvice(Advice):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    # pylint: disable=W0221
+    # pylint: disable=E1003
+    def save(self, *args, **kwargs):
+
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
+            self.proviso = None
+
+        try:
+            existing_object = TeamAdvice.objects.get(case=self.case,
+                                                     team=self.team,
+                                                     good=self.good,
+                                                     goods_type=self.goods_type,
+                                                     country=self.country,
+                                                     end_user=self.end_user,
+                                                     ultimate_end_user=self.ultimate_end_user,
+                                                     consignee=self.consignee,
+                                                     third_party=self.third_party)
+            existing_object.delete()
+        except TeamAdvice.DoesNotExist:
+            pass
+
+        # We override the parent class save() method so we only delete existing team level objects
+        super(Advice, self).save(*args, **kwargs)
+
+
+class FinalAdvice(Advice):
+    # pylint: disable=W0221
+    # pylint: disable=E1003
+    def save(self, *args, **kwargs):
+
+        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
+            self.proviso = None
+
+        try:
+            existing_object = FinalAdvice.objects.get(case=self.case,
+                                                      good=self.good,
+                                                      goods_type=self.goods_type,
+                                                      country=self.country,
+                                                      end_user=self.end_user,
+                                                      ultimate_end_user=self.ultimate_end_user,
+                                                      consignee=self.consignee,
+                                                      third_party=self.third_party)
+            existing_object.delete()
+        except FinalAdvice.DoesNotExist:
+            pass
+
+        # We override the parent class save() method so we only delete existing final level objects
         super(Advice, self).save(*args, **kwargs)
 
 

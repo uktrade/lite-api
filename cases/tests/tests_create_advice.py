@@ -73,7 +73,7 @@ class CreateCaseAdviceTests(DataTestClient):
         else:
             self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
             self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
-                             data['denial_reasons'])
+                                    data['denial_reasons'])
 
     def test_cannot_create_empty_advice(self):
         """
