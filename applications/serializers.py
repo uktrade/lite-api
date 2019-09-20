@@ -10,7 +10,6 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from drafts.serializers import DraftDocumentsSerializer
 from parties.models import EndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer, \
     AdditionalDocumentsSerializer
