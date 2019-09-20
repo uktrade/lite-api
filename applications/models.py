@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
+from documents.models import Document
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -76,3 +77,8 @@ class CountryOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, related_name='application_countries', on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name='countries_on_application', on_delete=models.CASCADE)
+
+
+class ApplicationDocuments(Document):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)

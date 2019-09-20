@@ -1,7 +1,7 @@
 from django.urls import path
 
 from drafts.views import draft_sites_views, draft_parties, views, draft_external_locations_views, draft_goods, \
-    draft_countries, draft_party_document_views
+    draft_countries, draft_party_document_views, draft_documents
 
 app_name = 'drafts'
 
@@ -95,5 +95,15 @@ urlpatterns = [
         route='<uuid:pk>/countries/',
         view=draft_countries.DraftCountries.as_view(),
         name='countries'
+    ),
+    path(
+        route='<uuid:pk>/documents/',
+        view=draft_documents.DraftDocumentView.as_view(),
+        name='draft_documents'
+    ),
+    path(
+        route='<uuid:pk>/documents/<uuid:doc_pk>/',
+        view=draft_documents.DraftDocumentDetailView.as_view(),
+        name='draft_document'
     )
 ]

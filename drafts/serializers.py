@@ -5,13 +5,14 @@ from rest_framework.serializers import ModelSerializer
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, DraftDocuments
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 from static.units.enums import Units
+from documents.libraries.process_document import process_document
 
 
 class DraftBaseSerializer(ModelSerializer):
@@ -157,3 +158,16 @@ class ExternalLocationOnDraftSerializer(ModelSerializer):
         fields = ('id',
                   'external_location',
                   'draft')
+
+
+class DraftDocumentsSerializer(ModelSerializer):
+
+    class Meta:
+        model = DraftDocuments
+        fields = '__all__'
+
+    def create(self, validated_data):
+        document = super(DraftDocumentsSerializer, self).create(validated_data)
+        document.save()
+        # process_document(document)
+        return document

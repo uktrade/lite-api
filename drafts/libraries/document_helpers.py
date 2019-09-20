@@ -1,11 +1,13 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
+from drafts.serializers import DraftDocumentsSerializer
 from parties.document.models import PartyDocument
+from drafts.models import DraftDocuments
 from parties.document.serializers import PartyDocumentSerializer
 
 
-def _get_document(documents):
+def _get_documents(documents):
     if len(documents) > 1:
         return JsonResponse(data={'error': 'Multiple documents found for one user'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -17,12 +19,52 @@ def _get_document(documents):
         return JsonResponse({'document': document})
 
 
+def _get_draft_documents(documents):
+    if not documents:
+        return JsonResponse(data={'documents': None},
+                            status=status.HTTP_404_NOT_FOUND)
+    else:
+        document = list(documents.values())
+        return JsonResponse({'documents': document})
+
+
 def get_party_document(party):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
     documents = PartyDocument.objects.filter(party=party)
-    return _get_document(documents)
+    return _get_documents(documents)
+
+
+def get_draft_documents(draft_id):
+    if not draft_id:
+        return JsonResponse(data={'error': 'No such draft'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return _get_draft_documents(DraftDocuments.objects.filter(draft=draft_id))
+
+
+def upload_draft_document(draft_id, data):
+    if not draft_id:
+        return JsonResponse(data={'error': 'No such draft'}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = DraftDocumentsSerializer(data=data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
+    else:
+        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def delete_draft_document(document_id):
+    try:
+        document = DraftDocuments.objects.get(id=document_id)
+        document.delete_s3()
+        document.delete()
+    except DraftDocuments.DoesNotExist:
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 def upload_party_document(party, data):
