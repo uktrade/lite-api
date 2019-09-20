@@ -78,4 +78,5 @@ def _seed_exporter_users(organisation: Organisation):
                 status=UserStatuses.ACTIVE
             ).save()
 
-            print('{"email: "' + email + '", "first_name": "' + first_name + '", "last_name": "' + last_name + '"}')
+            print('{"email: "' + email + '", "first_name": "' + first_name + '", "last_name": "' + last_name +
+                  '", "id": "' + str(exporter_user.id) + '"}')
