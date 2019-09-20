@@ -11,6 +11,7 @@ from cases.libraries.advice_errors import check_refusal_errors
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
+from cases.libraries.post_advice import post_advice, check_if_final_advice_exists, check_if_team_advice_exists
 from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
@@ -154,31 +155,14 @@ class CaseAdvice(APIView):
         """
         Creates advice for a case
         """
-        if FinalAdvice.objects.filter(case=self.case):
-            return JsonResponse({'errors': 'Final advice already exists for this case'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        if TeamAdvice.objects.filter(case=self.case, team=self.request.user.team):
-            return JsonResponse({'errors': 'Team advice from your team already exists for this case'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        data = request.data
-
-        # Update the case and user in each piece of advice
-        for advice in data:
-            advice['case'] = str(self.case.id)
-            advice['user'] = str(request.user.id)
-            refusal_error = check_refusal_errors(advice)
-            if refusal_error:
-                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = self.serializer_object(data=data, many=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        final_advice_exists = check_if_final_advice_exists(self.case)
+        team_advice_exists = check_if_team_advice_exists(self.case, self.request.user)
+        if final_advice_exists:
+            return final_advice_exists
+        elif team_advice_exists:
+            return team_advice_exists
+        else:
+            return post_advice(request, self.case, self.serializer_object, team=False)
 
 
 class ViewTeamAdvice(APIView):
@@ -236,28 +220,11 @@ class CaseTeamAdvice(APIView):
         Creates advice for a case
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
-        if FinalAdvice.objects.filter(case=self.case):
-            return JsonResponse({'errors': 'Final advice already exists for this case'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        data = request.data
-
-        # Update the case and user in each piece of advice
-        for advice in data:
-            advice['case'] = str(self.case.id)
-            advice['user'] = str(request.user.id)
-            advice['team'] = str(request.user.team.id)
-            refusal_error = check_refusal_errors(advice)
-            if refusal_error:
-                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = self.serializer_object(data=data, many=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        final_advice_exists = check_if_final_advice_exists(self.case)
+        if final_advice_exists:
+            return final_advice_exists
+        else:
+            return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
@@ -323,23 +290,7 @@ class CaseFinalAdvice(APIView):
         Creates advice for a case
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
-        data = request.data
-
-        # Update the case and user in each piece of advice
-        for advice in data:
-            advice['case'] = str(self.case.id)
-            advice['user'] = str(request.user.id)
-            advice['team'] = str(request.user.team.id)
-            refusal_error = check_refusal_errors(advice)
-            if refusal_error:
-                return JsonResponse(refusal_error, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = self.serializer_object(data=data, many=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse({'advice': serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
