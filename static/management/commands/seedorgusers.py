@@ -1,4 +1,3 @@
-from subprocess import call as execute_bash_command
 from django.core.management import BaseCommand
 from json import loads as serialize
 
@@ -16,39 +15,34 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        _execute_bash_command(['pipenv', 'run', './manage.py', 'makemigrations'])
-        _execute_bash_command(['pipenv', 'run', './manage.py', 'migrate'])
         _seed_exporter_users(_get_organisation())
 
 
-def _execute_bash_command(command: []):
-    print('\n`' + (' '.join(command)) + '`\n')
-    execute_bash_command(command)
-
-
 def _get_organisation():
-    if Organisation.objects.count() == 0:
+    if Organisation.objects.count() > 0:
+        return Organisation.objects.all().first()
+    else:
         organisation = Organisation(
-            name='Lemonworld Co',
-            eori_number='123',
-            sic_number='123',
-            vat_number='123',
-            registration_number='123'
+            name='Test Org',
+            eori_number='1234567890AAA',
+            sic_number='2345',
+            vat_number='GB1234567',
+            registration_number='09876543'
         )
         organisation.save()
 
         address = Address(
-            address_line_1='42 Road',
+            address_line_1='42 Question Road',
             address_line_2='',
             country=get_country('GB'),
             city='London',
-            region='Buckinghamshire',
-            postcode='E14QW'
+            region='London',
+            postcode='Islington'
         )
         address.save()
 
         site = Site(
-            name='Lemonworld HQ',
+            name='Headquarters',
             organisation=organisation,
             address=address
         )
@@ -58,8 +52,6 @@ def _get_organisation():
         organisation.save()
 
         return organisation
-    else:
-        return Organisation.objects.all().first()
 
 
 def _seed_exporter_users(organisation: Organisation):
