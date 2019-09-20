@@ -7,7 +7,7 @@ from drafts.models import DraftDocuments
 from parties.document.serializers import PartyDocumentSerializer
 
 
-def _get_documents(documents):
+def _get_document(documents):
     if len(documents) > 1:
         return JsonResponse(data={'error': 'Multiple documents found for one user'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -33,7 +33,7 @@ def get_party_document(party):
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
     documents = PartyDocument.objects.filter(party=party)
-    return _get_documents(documents)
+    return _get_document(documents)
 
 
 def get_draft_documents(draft_id):
