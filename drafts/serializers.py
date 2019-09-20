@@ -12,7 +12,6 @@ from goods.serializers import GoodSerializer
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 from static.units.enums import Units
-from documents.libraries.process_document import process_document
 
 
 class DraftBaseSerializer(ModelSerializer):

@@ -9,7 +9,6 @@ from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.models import Country
 from static.units.enums import Units
-from users.models import ExporterUser
 
 
 class Draft(models.Model):
