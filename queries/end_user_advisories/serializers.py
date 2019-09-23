@@ -49,14 +49,17 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     def validate_nature_of_business(self, attrs):
         if self.initial_data.get('end_user').get('sub_type') == SubType.COMMERCIAL and not attrs:
             raise serializers.ValidationError(self.standard_blank_error_message)
+        return attrs
 
     def validate_contact_name(self, attrs):
         if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not attrs:
             raise serializers.ValidationError(self.standard_blank_error_message)
+        return attrs
 
     def validate_contact_job_title(self, attrs):
         if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not attrs:
             raise serializers.ValidationError(self.standard_blank_error_message)
+        return attrs
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')
@@ -71,7 +74,6 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({'errors': end_user_serializer.errors})
-
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 

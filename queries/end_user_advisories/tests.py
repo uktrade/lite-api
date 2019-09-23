@@ -64,6 +64,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
 class EndUserAdvisoryCreateTests(DataTestClient):
     url = reverse('queries:end_user_advisories:end_user_advisories')
 
+    @tag('only')
     def test_create_end_user_advisory_query(self):
         """
         Ensure that a user can create an end user advisory, and that it creates a case
@@ -92,6 +93,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data['note'], data['note'])
         self.assertEqual(response_data['reasoning'], data['reasoning'])
+        self.assertEqual(response_data['contact_email'], data['contact_email'])
+        self.assertEqual(response_data['contact_telephone'], data['contact_telephone'])
+        self.assertEqual(response_data['contact_job_title'], data['contact_job_title'])
 
         end_user_data = response_data['end_user']
         self.assertEqual(end_user_data['sub_type']['key'], data['end_user']['sub_type'])
