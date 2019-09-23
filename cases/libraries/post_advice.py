@@ -46,6 +46,7 @@ def post_advice(request, case, serializer_object, team=False):
     errors = [{}]
     if serializer.errors:
         errors[0].update(serializer.errors[0])
+        
     if refusal_error:
         errors[0].update(refusal_error)
     return JsonResponse({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
