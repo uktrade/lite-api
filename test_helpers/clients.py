@@ -229,9 +229,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
         eua_query = self.create_end_user_advisory(note, reasoning, organisation)
-        case = Case(query=eua_query, type=CaseType.END_USER_ADVISORY_QUERY)
-        case.save()
-        return case, eua_query
+        return eua_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,

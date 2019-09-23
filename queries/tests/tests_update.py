@@ -10,7 +10,7 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 class EndUserAdvisoryUpdate(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.end_user_advisory_case, self.end_user_advisory = \
+        self.end_user_advisory = \
             self.create_end_user_advisory_case('end_user_advisory',
                                                'my reasons',
                                                organisation=self.organisation)
