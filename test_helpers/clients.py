@@ -214,7 +214,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
                                                                       note=note,
                                                                       reasoning=reasoning,
-                                                                      organisation=organisation)
+                                                                      organisation=organisation,
+                                                                      contact_telephone='1234567890',
+                                                                      contact_name='Joe',
+                                                                      contact_email='joe@something.com',
+                                                                      contact_job_title='director',
+                                                                      nature_of_business='guns'
+                                                                      )
         return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
