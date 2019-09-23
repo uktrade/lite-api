@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
 
-from cases.libraries.advice_errors import check_refusal_errors
 from cases.models import FinalAdvice, TeamAdvice
+from content_strings.strings import get_string
 
 
 def check_if_final_advice_exists(case):
@@ -15,6 +16,12 @@ def check_if_team_advice_exists(case, user):
     if TeamAdvice.objects.filter(case=case, team=user.team):
         return JsonResponse({'errors': 'Team advice from your team already exists for this case'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+def check_refusal_errors(advice):
+    if advice['type'].lower() == 'refuse' and not advice['text']:
+        return {'text': [ErrorDetail(string=get_string('cases.advice_refusal_error'), code='blank')]}
+    return None
 
 
 def post_advice(request, case, serializer_object, team=False):
