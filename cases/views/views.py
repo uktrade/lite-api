@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 
 from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
-from cases.libraries.advice_errors import check_refusal_errors
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
