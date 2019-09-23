@@ -72,11 +72,12 @@ def _add_site_to_organisation(organisation: Organisation):
 def _seed_exporter_users_to_organisation(organisation: Organisation):
     print('\nSeeding exporter users...')
 
-    # We do not add this email to SEED_USERS because we do not want to give it GOV permissions
+    # Do add combine the TEST_EXPORTER_USERS and SEED_USERS env variables in `.env`;
+    # this would grant GOV user permissions to the exporter test-user accounts.
     # See `users/migrations/0001_initial.py`
-    test_exporter_user = env('TEST_EXPORTER_SSO_EMAIL')
-    exporter_users = serialize(env('SEED_USERS'))
-    exporter_users.insert(0, test_exporter_user)
+    test_exporter_users = serialize(env('TEST_EXPORTER_USERS'))
+    seed_users = serialize(env('SEED_USERS'))
+    exporter_users = test_exporter_users + seed_users
 
     for email in exporter_users:
         exporter_user = _get_exporter_user(email)
