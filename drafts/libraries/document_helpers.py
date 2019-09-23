@@ -20,12 +20,8 @@ def _get_document(documents):
 
 
 def _get_draft_documents(documents):
-    if not documents:
-        return JsonResponse(data={'documents': None},
-                            status=status.HTTP_404_NOT_FOUND)
-    else:
-        document = list(documents.values())
-        return JsonResponse({'documents': document})
+    docs = [document for document in documents.values()]
+    return JsonResponse({'documents': docs})
 
 
 def get_party_document(party):
