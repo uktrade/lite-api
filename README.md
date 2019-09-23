@@ -49,7 +49,7 @@ Service for handling backend calls in LITE.
     - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module and run all tests
     - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only the `queues` tests
 
-## LITE Repositorieså
+## LITE Repositories
 
 **[lite-api](https://github.com/uktrade/lite-api)** - Service for handling backend calls in LITE.
 
