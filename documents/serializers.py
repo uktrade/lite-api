@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from documents.models import Document
+from conf.serializers import PrimaryKeyRelatedSerializerField
+from documents.models import Document, Letter, LetterTemplate
+from static.letter_templates.serializers import LetterTemplateSerializer
 
 
 class DocumentViewSerializer(serializers.ModelSerializer):
@@ -13,3 +15,12 @@ class DocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = ('name', 's3_key', 'size', 'created_at', 'safe')
+
+
+class LetterSerializer(serializers.ModelSerializer):
+    template = PrimaryKeyRelatedSerializerField(queryset=LetterTemplate.objects.all(),
+                                                serializer=LetterTemplateSerializer)
+
+    class Meta:
+        model = Letter
+        fields = '__all__'
