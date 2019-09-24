@@ -90,25 +90,25 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
     standard_blank_error_message = 'This field may not be blank'
 
-    def validate_eori_number(self, attrs):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_eori_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
-    def validate_sic_number(self, attrs):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_sic_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
-    def validate_vat_number(self, attrs):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_vat_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
-    def validate_registration_number(self, attrs):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_registration_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
     @transaction.atomic
     def create(self, validated_data):
