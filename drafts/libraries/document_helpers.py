@@ -1,9 +1,9 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
+from drafts.models import DraftDocuments
 from drafts.serializers import DraftDocumentsSerializer
 from parties.document.models import PartyDocument
-from drafts.models import DraftDocuments, Draft
 from parties.document.serializers import PartyDocumentSerializer
 
 
