@@ -65,7 +65,6 @@ class ApplicationList(APIView):
 
             additional_documents = draft.draftdocuments_set.all()
             for document in additional_documents:
-
                 application_document = ApplicationDocuments.objects.create(
                     description=document.description,
                     name=document.name,
@@ -81,8 +80,7 @@ class ApplicationList(APIView):
             errors = {}
 
             # Generic errors
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+            if not SiteOnDraft.objects.filter(draft=draft) and not ExternalLocationOnDraft.objects.filter(draft=draft):
                 errors['location'] = get_string('applications.generic.no_location_set')
 
             # Create the application depending on type

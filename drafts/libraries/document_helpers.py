@@ -19,11 +19,6 @@ def _get_document(documents):
         return JsonResponse({'document': document})
 
 
-def _get_draft_documents(documents):
-    docs = [document for document in documents.values()]
-    return JsonResponse({'documents': docs})
-
-
 def get_party_document(party):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -33,7 +28,8 @@ def get_party_document(party):
 
 
 def get_draft_documents(draft_id):
-    return _get_draft_documents(DraftDocuments.objects.filter(draft=draft_id))
+    documents = DraftDocuments.objects.filter(draft=draft_id)
+    return JsonResponse({'documents': documents.values()})
 
 
 def get_draft_document(draft_id, doc_pk):
