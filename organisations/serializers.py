@@ -160,11 +160,13 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
 
 class OrganisationViewSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
+    sub_type = KeyValueChoiceField(SubType.choices)
 
     class Meta:
         model = Organisation
         fields = ('id',
                   'name',
+                  'sub_type',
                   'eori_number',
                   'sic_number',
                   'vat_number',
