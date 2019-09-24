@@ -66,9 +66,10 @@ class EndUserAdvisoriesDetail(APIView):
         """
         View a single end user advisory's details
         """
-        end_user_advisories = EndUserAdvisoryQuery.objects.get(pk=pk)
-        serializer = EndUserAdvisorySerializer(end_user_advisories)
-        return JsonResponse(data={'end_user_advisory': serializer.data})
+        end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=pk)
+        case_id = end_user_advisory.case.get().id
+        serializer = EndUserAdvisorySerializer(end_user_advisory)
+        return JsonResponse(data={'end_user_advisory': serializer.data, 'case_id': case_id })
 
     def put(self, request, pk):
         """
