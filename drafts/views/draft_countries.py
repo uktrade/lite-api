@@ -22,7 +22,7 @@ class DraftCountries(APIView):
         """
         draft = get_draft(pk)
 
-        countries_ids = CountryOnApplication.objects.filter(draft=draft).values_list('country', flat=True)
+        countries_ids = CountryOnApplication.objects.filter(application=draft).values_list('country', flat=True)
         countries = Country.objects.filter(id__in=countries_ids)
         serializer = CountrySerializer(countries, many=True)
         return JsonResponse(data={'countries': serializer.data})
@@ -46,11 +46,11 @@ class DraftCountries(APIView):
             }}, status=400)
 
         # Delete existing SitesOnDrafts
-        CountryOnApplication.objects.filter(draft=draft).delete()
+        CountryOnApplication.objects.filter(application=draft).delete()
 
         # Append new SitesOnDrafts
         for country in countries:
-            CountryOnApplication(country=get_country(country), draft=draft).save()
+            CountryOnApplication(country=get_country(country), application=draft).save()
 
         response = self.get(request, pk)
         response.status_code = status.HTTP_201_CREATED

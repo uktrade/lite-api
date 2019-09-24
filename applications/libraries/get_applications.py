@@ -4,6 +4,14 @@ from applications.models import Application
 from goods.models import Good
 
 
+def get_applications():
+    return Application.objects.filter(submitted_at__isnull=False)
+
+
+def get_applications_with_organisation(organisation):
+    return Application.objects.filter(organisation=organisation, submitted_at__isnull=False)
+
+
 def get_application(pk):
     try:
         return Application.objects.get(pk=pk, submitted_at__isnull=False)
@@ -13,7 +21,7 @@ def get_application(pk):
 
 def get_application_with_organisation(pk, organisation):
     try:
-        draft = Application.objects.get(pk=pk, submitted_at__isnull=True)
+        draft = Application.objects.get(pk=pk, submitted_at__isnull=False)
 
         if draft.organisation.pk != organisation.pk:
             raise Http404

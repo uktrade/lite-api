@@ -20,7 +20,7 @@ class Application(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
-    submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    submitted_at = models.DateTimeField(blank=True, null=True)
     status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
                                null=True)
     licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50)

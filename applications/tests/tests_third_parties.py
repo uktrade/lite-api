@@ -1,8 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import Application
-from drafts.models import GoodOnDraft
+from applications.models import Application, GoodOnApplication
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -22,10 +21,10 @@ class ApplicationThirdPartyTests(DataTestClient):
                          part_number='123456')
         part_good.save()
 
-        GoodOnDraft(good=part_good,
-                    draft=self.draft,
-                    quantity=17,
-                    value=18).save()
+        GoodOnApplication(good=part_good,
+                          application=self.draft,
+                          quantity=17,
+                          value=18).save()
 
         self.end_user = self.create_end_user('end user', self.organisation)
 

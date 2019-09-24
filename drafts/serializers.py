@@ -93,7 +93,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 
 class GoodOnDraftBaseSerializer(ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
-    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
+    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
     quantity = DecimalField(max_digits=256, decimal_places=6,
                             error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
     value = DecimalField(max_digits=256, decimal_places=2,
@@ -106,7 +106,7 @@ class GoodOnDraftBaseSerializer(ModelSerializer):
         model = GoodOnApplication
         fields = ('id',
                   'good',
-                  'draft',
+                  'application',
                   'quantity',
                   'unit',
                   'value')
@@ -120,40 +120,40 @@ class GoodOnDraftViewSerializer(ModelSerializer):
         model = GoodOnApplication
         fields = ('id',
                   'good',
-                  'draft',
+                  'application',
                   'quantity',
                   'unit',
                   'value')
 
 
 class SiteOnDraftBaseSerializer(ModelSerializer):
-    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
+    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
         model = SiteOnApplication
         fields = ('id',
                   'site',
-                  'draft')
+                  'application')
 
 
 class SiteOnDraftViewSerializer(ModelSerializer):
     site = SiteViewSerializer(read_only=True)
-    draft = DraftBaseSerializer(read_only=True)
+    application = DraftBaseSerializer(read_only=True)
 
     class Meta:
         model = SiteOnApplication
         fields = ('id',
                   'site',
-                  'draft')
+                  'application')
 
 
 class ExternalLocationOnDraftSerializer(ModelSerializer):
-    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
+    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
     external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
 
     class Meta:
         model = ExternalLocationOnApplication
         fields = ('id',
                   'external_location',
-                  'draft')
+                  'application')

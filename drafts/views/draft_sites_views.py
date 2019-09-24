@@ -23,7 +23,7 @@ class DraftSites(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_ids = SiteOnApplication.objects.filter(draft=draft).values_list('site', flat=True)
+        sites_ids = SiteOnApplication.objects.filter(application=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data})
@@ -60,7 +60,7 @@ class DraftSites(APIView):
         draft.save()
 
         # Delete existing SitesOnDrafts
-        SiteOnApplication.objects.filter(draft=draft).delete()
+        SiteOnApplication.objects.filter(application=draft).delete()
 
         # Append new SitesOnDrafts
         response_data = []
@@ -74,7 +74,7 @@ class DraftSites(APIView):
                                     status=400)
 
         # Deletes any external sites on the draft if a site is being added
-        ExternalLocationOnApplication.objects.filter(draft=draft).delete()
+        ExternalLocationOnApplication.objects.filter(application=draft).delete()
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)

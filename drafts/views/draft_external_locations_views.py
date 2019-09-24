@@ -23,7 +23,8 @@ class DraftExternalLocations(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        external_locations_ids = ExternalLocationOnApplication.objects.filter(draft=draft).values_list('external_location', flat=True)
+        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=draft).values_list(
+            'external_location', flat=True)
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
         serializer = ExternalLocationSerializer(external_locations, many=True)
         return JsonResponse(data={'external_locations': serializer.data})
@@ -58,7 +59,8 @@ class DraftExternalLocations(APIView):
         # Append new ExternalLocationOnDrafts
         response_data = []
         for external_location in external_locations:
-            serializer = ExternalLocationOnDraftSerializer(data={'external_location': external_location, 'draft': str(pk)})
+            serializer = ExternalLocationOnDraftSerializer(
+                data={'external_location': external_location, 'draft': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

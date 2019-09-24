@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from applications.libraries.get_applications import get_application_by_pk
+from applications.libraries.get_applications import get_application
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
@@ -217,7 +217,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
         # Remove any previous denial reasons
         if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
         if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
@@ -228,7 +228,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
             application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
-                ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
+                ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
                 # Create a new ApplicationDenialReasons
                 application_denial_reason_serializer.save()

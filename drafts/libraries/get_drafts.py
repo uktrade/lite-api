@@ -9,7 +9,7 @@ def get_drafts():
 
 
 def get_drafts_with_organisation(organisation):
-    return Application.objects.filter(submitted_at__isnull=True, organisation=organisation)
+    return Application.objects.filter(organisation=organisation, submitted_at__isnull=True)
 
 
 def get_draft(pk):

@@ -6,12 +6,11 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import Application, GoodOnApplication
 from cases.enums import CaseType, AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
+from applications.models import Application, GoodOnApplication, SiteOnApplication, CountryOnApplication
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -234,7 +233,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft):
+    def submit_draft(self, draft: Application):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
@@ -339,14 +338,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                      reference_name='Standard Draft'):
-        draft = Draft(name=reference_name,
-                      licence_type=licence_type,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Trade',
-                      organisation=organisation)
+        draft = Application(name=reference_name,
+                            licence_type=licence_type,
+                            export_type=ApplicationExportType.PERMANENT,
+                            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                            reference_number_on_information_form='',
+                            activity='Trade',
+                            usage='Trade',
+                            organisation=organisation)
         draft.save()
         return draft
 
@@ -358,17 +357,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
 
         # Add a good to the standard draft
-        GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
-                    draft=draft,
-                    quantity=10,
-                    unit=Units.NAR,
-                    value=500).save()
+        GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
+                          application=draft,
+                          quantity=10,
+                          unit=Units.NAR,
+                          value=500).save()
 
         # Set the draft's end user
         draft.end_user = self.create_end_user('test', organisation)
 
         # Add a site to the draft
-        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+        SiteOnApplication(site=organisation.primary_site, application=draft).save()
 
         draft.save()
         return draft
@@ -395,10 +394,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_goods_type('draft', draft)
 
         # Add a country to the draft
-        CountryOnDraft(draft=draft, country=get_country('GB')).save()
+        CountryOnApplication(application=draft, country=get_country('GB')).save()
 
         # Add a site to the draft
-        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+        SiteOnApplication(site=organisation.primary_site, application=draft).save()
 
         draft.save()
         return draft

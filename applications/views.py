@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_application_by_pk
+from applications.libraries.get_applications import get_application, get_applications_with_organisation
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
@@ -33,7 +33,7 @@ class ApplicationList(APIView):
         """
         organisation = get_organisation_by_user(request.user)
 
-        applications = Application.objects.filter(organisation=organisation, submitted_at__is_null=False).order_by(
+        applications = get_applications_with_organisation(organisation=organisation).order_by(
             'created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
 
@@ -107,7 +107,7 @@ class ApplicationDetail(APIView):
         """
         Retrieve an application instance.
         """
-        application = get_application_by_pk(pk)
+        application = get_application(pk)
         serializer = self.serializer_class(application)
         return JsonResponse(data={'application': serializer.data})
 
@@ -115,7 +115,7 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
-        application = get_application_by_pk(pk)
+        application = get_application(pk)
 
         with reversion.create_revision():
             data = json.loads(request.body)
@@ -126,7 +126,7 @@ class ApplicationDetail(APIView):
 
             request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
 
-            serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
+            serializer = ApplicationUpdateSerializer(get_application(pk), data=request.data, partial=True)
 
             if serializer.is_valid():
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,

@@ -38,7 +38,7 @@ class DraftGoods(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)
 
-        goods = GoodOnApplication.objects.filter(draft=draft)
+        goods = GoodOnApplication.objects.filter(application=draft)
         serializer = GoodOnDraftViewSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data})
 
