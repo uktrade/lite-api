@@ -185,10 +185,9 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                                     allow_null=False,
                                     error_messages={'blank': 'Enter a proviso'},
                                     max_length=5000)
-    text = serializers.CharField(required=True,
-                                 allow_blank=False,
-                                 allow_null=False,
-                                 error_messages={'blank': 'Enter some advice'},
+    text = serializers.CharField(required=False,
+                                 allow_blank=True,
+                                 allow_null=True,
                                  max_length=5000)
     note = serializers.CharField(required=False,
                                  allow_blank=True,
