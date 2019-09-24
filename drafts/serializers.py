@@ -6,7 +6,7 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, DraftDocuments
+from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft, DraftDocument
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
@@ -160,14 +160,14 @@ class ExternalLocationOnDraftSerializer(ModelSerializer):
                   'draft')
 
 
-class DraftDocumentsSerializer(ModelSerializer):
+class DraftDocumentSerializer(ModelSerializer):
 
     class Meta:
-        model = DraftDocuments
+        model = DraftDocument
         fields = '__all__'
 
     def create(self, validated_data):
-        document = super(DraftDocumentsSerializer, self).create(validated_data)
+        document = super(DraftDocumentSerializer, self).create(validated_data)
         document.save()
         process_document(document)
         return document
