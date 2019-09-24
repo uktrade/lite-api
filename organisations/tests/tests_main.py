@@ -66,6 +66,7 @@ class OrganisationCreateTests(DataTestClient):
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
             'name': None,
+            'sub_type': 'commercial',
             'eori_number': None,
             'sic_number': None,
             'vat_number': None,
@@ -102,6 +103,7 @@ class OrganisationCreateTests(DataTestClient):
     def test_create_organisation_missing_fields_failure(self, eori_number, vat_number, sic_number, registration_number):
         data = {
             'name': 'Lemonworld Co',
+            'sub_type': 'commercial',
             'eori_number': eori_number,
             'sic_number': sic_number,
             'vat_number': vat_number,
@@ -135,7 +137,6 @@ class OrganisationCreateTests(DataTestClient):
     ])
     def test_create_organisation_as_a_private_individual(self, eori_number, vat_number):
         data = {
-            'name': 'Lemonworld Co',
             'sub_type': 'individual',
             'eori_number': eori_number,
             'vat_number': vat_number,
