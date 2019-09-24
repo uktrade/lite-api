@@ -29,7 +29,7 @@ def get_party_document(party):
 
 def get_draft_documents(draft_id):
     documents = DraftDocuments.objects.filter(draft=draft_id)
-    return JsonResponse({'documents': documents.values()})
+    return JsonResponse({'documents': list(documents.values())})
 
 
 def get_draft_document(draft_id, doc_pk):
