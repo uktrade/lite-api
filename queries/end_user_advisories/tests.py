@@ -64,7 +64,6 @@ class EndUserAdvisoryViewTests(DataTestClient):
 class EndUserAdvisoryCreateTests(DataTestClient):
     url = reverse('queries:end_user_advisories:end_user_advisories')
 
-    @tag('only')
     def test_create_end_user_advisory_query(self):
         """
         Ensure that a user can create an end user advisory, and that it creates a case
@@ -171,6 +170,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_end_user_advisory_query_for_organisation_failure(self):
+        """
+        Fail to create organisation advisory with missing fields
+        """
         data = {
             'end_user': {
                 'sub_type': 'commercial',
@@ -198,6 +200,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(errors.get('contact_job_title'), ['This field may not be blank'])
 
     def test_create_end_user_advisory_query_for_government_failure(self):
+        """
+        Fail to create gov advisory with missing fields
+        """
         data = {
             'end_user': {
                 'sub_type': 'commercial',
@@ -223,6 +228,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(errors.get('contact_job_title'), ['This field may not be blank'])
 
     def test_create_end_user_advisory_query_for_government(self):
+        """
+        Successfully creates gov advisory
+        """
         data = {
             'end_user': {
                 'sub_type': 'government',
@@ -243,6 +251,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_end_user_advisory_query_for_individual(self):
+        """
+        Successfully create individual advisory
+        """
         data = {
             'end_user': {
                 'sub_type': 'individual',
