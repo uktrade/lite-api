@@ -1,15 +1,15 @@
 from conf.exceptions import NotFoundError
-from static.control_list_entries.models import ControlRating
+from static.control_list_entries.models import ControlListEntry
 
 
-def get_rating(rating):
+def get_control_list_entry(rating):
     try:
-        return ControlRating.objects.get(rating=rating)
-    except ControlRating.DoesNotExist:
-        raise NotFoundError({'control_rating': 'Control Rating Not found'})
+        return ControlListEntry.objects.get(rating=rating)
+    except ControlListEntry.DoesNotExist:
+        raise NotFoundError({'control_list_entry': 'Control List Entry Not found'})
 
 
-def get_parent(parent):
+def get_control_list_entry_parent_dict(parent):
     if not parent:
         return {}
 
@@ -17,5 +17,5 @@ def get_parent(parent):
         'id': parent.id,
         'rating': parent.rating,
         'text': parent.text,
-        'parent': get_parent(parent.parent)
+        'parent': get_control_list_entry_parent_dict(parent.parent)
     }

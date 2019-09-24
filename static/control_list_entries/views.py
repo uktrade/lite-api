@@ -1,17 +1,12 @@
-import csv
-
-import openpyxl
 from django.http import JsonResponse
-from openpyxl.cell import Cell
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from conf.helpers import convert_queryset_to_str
-from static.control_list_entries.helpers import get_rating
-from static.control_list_entries.models import ControlRating
-from static.control_list_entries.parser import parse_list_into_control_ratings
-from static.control_list_entries.serializers import ControlRatingSerializer
+from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.models import ControlListEntry
+from static.control_list_entries.serializers import ControlListEntrySerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -19,32 +14,34 @@ class ControlListEntriesList(APIView):
     """
     List all Control Ratings
     """
+
     def get(self, request):
         """
-        Returns list of all Control Ratings
+        Returns list of all Control List Entries
         """
         if request.GET.get('flatten'):
-            return JsonResponse(data={
-                'control_ratings': convert_queryset_to_str(ControlRating.objects.values_list('rating', flat=True))
-            })
+            return JsonResponse(data={'control_list_entries': convert_queryset_to_str(ControlListEntry.objects
+                                                                                      .filter(is_decontrolled=False)
+                                                                                      .values_list('rating',
+                                                                                                   flat=True))})
 
-        serializer = ControlRatingSerializer(ControlRating.objects.filter(parent=None), many=True)
-        return JsonResponse(data={'control_ratings': serializer.data})
+        serializer = ControlListEntrySerializer(ControlListEntry.objects.filter(parent=None), many=True)
+        return JsonResponse(data={'control_list_entries': serializer.data})
 
     def post(self, request):
         """
-        Add a new control rating
+        Add a new control list entry
         """
 
         # Update the parent of the data
         data = request.data
         data['parent'] = None
 
-        serializer = ControlRatingSerializer(data=data)
+        serializer = ControlListEntrySerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_rating': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -52,43 +49,32 @@ class ControlListEntriesList(APIView):
 
 class ControlListEntryDetail(APIView):
     """
-    Parse lists
+    Details of a specific control list entry
     """
-    def get(self, request):
-        wb = openpyxl.load_workbook('lite-content/lite-permissions-finder/spreadsheet.xlsx')
-        worksheet = wb["UK Military List"]
-        parse_list_into_control_ratings(worksheet)
 
-        return JsonResponse(data={'control-ratings': ControlRatingSerializer(ControlRating.objects.all(), many=True).data})
-
-
-class UploadData(APIView):
-    """
-    Details of a specific control rating
-    """
     def get(self, request, rating):
         """
         Returns details of a specific control ratings
         """
-        control_rating = get_rating(rating)
-        serializer = ControlRatingSerializer(control_rating)
-        return JsonResponse(data={'control_rating': serializer.data})
+        control_list_entry = get_control_list_entry(rating)
+        serializer = ControlListEntrySerializer(control_list_entry)
+        return JsonResponse(data={'control_list_entry': serializer.data})
 
     def post(self, request, rating):
         """
         Add a new control rating
         """
-        control_rating = get_rating(rating)
+        control_list_entry = get_control_list_entry(rating)
 
         # Update the parent of the data
         data = request.data
-        data['parent'] = str(control_rating.id)
+        data['parent'] = str(control_list_entry.id)
 
-        serializer = ControlRatingSerializer(data=data)
+        serializer = ControlListEntrySerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_rating': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -97,13 +83,13 @@ class UploadData(APIView):
         """
         Update a control rating
         """
-        control_rating = get_rating(rating)
+        control_list_entry = get_control_list_entry(rating)
 
-        serializer = ControlRatingSerializer(instance=control_rating, data=request.data, partial=True)
+        serializer = ControlListEntrySerializer(instance=control_list_entry, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_rating': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
