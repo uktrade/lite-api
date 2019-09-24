@@ -219,8 +219,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                                                       contact_name='Joe',
                                                                       contact_email='joe@something.com',
                                                                       contact_job_title='director',
-                                                                      nature_of_business='guns'
-                                                                      )
+                                                                      nature_of_business='guns')
         return end_user_advisory_query
 
     def create_queue(self, name: str, team: Team):
