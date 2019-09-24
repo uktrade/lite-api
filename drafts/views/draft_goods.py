@@ -45,7 +45,7 @@ class DraftGoods(APIView):
     def post(self, request, pk):
         data = JSONParser().parse(request)
         data['good'] = data['good_id']
-        data['draft'] = str(pk)
+        data['application'] = str(pk)
 
         organisation = get_organisation_by_user(request.user)
         get_draft_with_organisation(pk, organisation)
