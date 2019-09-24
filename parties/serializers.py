@@ -72,7 +72,7 @@ class ThirdPartySerializer(PartySerializer):
         fields = '__all__'
 
 
-class AdditionalDocumentsSerializer(serializers.Serializer):
+class AdditionalDocumentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDocuments
         fields = '__all__'
