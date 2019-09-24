@@ -93,9 +93,22 @@ def _get_exporter_user(exporter_user_email: str):
 
 
 def _create_exporter_user(exporter_user_email: str):
-    exporter_user = ExporterUser(email=exporter_user_email)
+    first_name, last_name = _extract_names_from_email(exporter_user_email)
+    exporter_user = ExporterUser(
+        email=exporter_user_email,
+        first_name=first_name,
+        last_name=last_name
+    )
     exporter_user.save()
     return exporter_user
+
+
+def _extract_names_from_email(exporter_user_email: str):
+    email = exporter_user_email.split('@')
+    full_name = email[0].split('.')
+    first_name = full_name[0]
+    last_name = full_name[1] if len(full_name) > 1 else email[1]
+    return first_name, last_name
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
@@ -105,4 +118,5 @@ def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
             organisation=organisation,
             status=UserStatuses.ACTIVE
         ).save()
-        print('{"email: "' + user.email + '", "id": "' + str(user.id) + '"}')
+        print('{"email": "' + user.email + '", "first_name": "' + user.first_name + '", "last_name": "' +
+              user.last_name + '", id": "' + str(user.id) + '"}')
