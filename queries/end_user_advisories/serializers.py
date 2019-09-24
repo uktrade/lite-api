@@ -20,7 +20,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = ['id',
+        fields = ('id',
                   'end_user',
                   'reasoning',
                   'note',
@@ -30,7 +30,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
                   'contact_name',
                   'contact_email',
                   'contact_job_title',
-                  'contact_telephone']
+                  'contact_telephone')
 
     standard_blank_error_message = 'This field may not be blank'
 
