@@ -160,13 +160,13 @@ class OrganisationCreateTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        organisation = Organisation.objects.get(name=data['name'])
+        organisation = Organisation.objects.get(name=data['user']['first_name'] + " " + data['user']['last_name'])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(organisation.name, data['name'])
+        self.assertEqual(organisation.name, data['user']['first_name'] + " " + data['user']['last_name'])
         self.assertEqual(organisation.eori_number, data['eori_number'])
         self.assertEqual(organisation.vat_number, data['vat_number'])
 
