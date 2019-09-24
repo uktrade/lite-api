@@ -5,8 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft
-from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from drafts.libraries.get_drafts import get_draft
+from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from drafts.serializers import ExternalLocationOnDraftSerializer
 from organisations.libraries.get_external_location import get_external_location_with_organisation
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -23,7 +23,7 @@ class DraftExternalLocations(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        external_locations_ids = ExternalLocationOnDraft.objects.filter(draft=draft).values_list('external_location', flat=True)
+        external_locations_ids = ExternalLocationOnApplication.objects.filter(draft=draft).values_list('external_location', flat=True)
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
         serializer = ExternalLocationSerializer(external_locations, many=True)
         return JsonResponse(data={'external_locations': serializer.data})
@@ -53,7 +53,7 @@ class DraftExternalLocations(APIView):
 
         # Delete existing ExternalLocationsOnDrafts
         if data.get('method') != 'append_location':
-            ExternalLocationOnDraft.objects.filter(draft=draft).delete()
+            ExternalLocationOnApplication.objects.filter(draft=draft).delete()
 
         # Append new ExternalLocationOnDrafts
         response_data = []
@@ -67,7 +67,7 @@ class DraftExternalLocations(APIView):
                                     status=400)
 
         # Deletes any sites on the draft if an external location is being added
-        SiteOnDraft.objects.filter(draft=draft).delete()
+        SiteOnApplication.objects.filter(draft=draft).delete()
 
         return JsonResponse(data={'external_locations': response_data},
                             status=status.HTTP_201_CREATED)

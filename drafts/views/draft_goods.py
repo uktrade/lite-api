@@ -5,8 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft_with_organisation, get_good_with_organisation
-from drafts.models import GoodOnDraft
+from drafts.libraries.get_drafts import get_draft_with_organisation, get_good_with_organisation
+from applications.models import GoodOnApplication
 from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -38,7 +38,7 @@ class DraftGoods(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)
 
-        goods = GoodOnDraft.objects.filter(draft=draft)
+        goods = GoodOnApplication.objects.filter(draft=draft)
         serializer = GoodOnDraftViewSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data})
 

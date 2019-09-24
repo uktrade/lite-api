@@ -4,7 +4,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft
+from drafts.libraries.get_drafts import get_draft
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer

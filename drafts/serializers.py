@@ -5,7 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, ExternalLocationOnDraft
+from applications.models import Application, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
@@ -25,7 +25,7 @@ class DraftBaseSerializer(ModelSerializer):
     consignee = ConsigneeSerializer()
 
     class Meta:
-        model = Draft
+        model = Application
         fields = ('id',
                   'name',
                   'activity',
@@ -55,14 +55,14 @@ class DraftCreateSerializer(DraftBaseSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        model = Draft
+        model = Application
         fields = ('id',
                   'name',
                   'licence_type',
                   'export_type',
                   'have_you_been_informed',
                   'reference_number_on_information_form',
-                  'organisation')
+                  'organisation',)
 
 
 class DraftUpdateSerializer(DraftBaseSerializer):
@@ -93,7 +93,7 @@ class DraftUpdateSerializer(DraftBaseSerializer):
 
 class GoodOnDraftBaseSerializer(ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
-    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
     quantity = DecimalField(max_digits=256, decimal_places=6,
                             error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
     value = DecimalField(max_digits=256, decimal_places=2,
@@ -103,7 +103,7 @@ class GoodOnDraftBaseSerializer(ModelSerializer):
         'invalid_choice': get_string('goods.error_messages.required_unit')})
 
     class Meta:
-        model = GoodOnDraft
+        model = GoodOnApplication
         fields = ('id',
                   'good',
                   'draft',
@@ -117,7 +117,7 @@ class GoodOnDraftViewSerializer(ModelSerializer):
     unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
-        model = GoodOnDraft
+        model = GoodOnApplication
         fields = ('id',
                   'good',
                   'draft',
@@ -127,11 +127,11 @@ class GoodOnDraftViewSerializer(ModelSerializer):
 
 
 class SiteOnDraftBaseSerializer(ModelSerializer):
-    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
-        model = SiteOnDraft
+        model = SiteOnApplication
         fields = ('id',
                   'site',
                   'draft')
@@ -142,18 +142,18 @@ class SiteOnDraftViewSerializer(ModelSerializer):
     draft = DraftBaseSerializer(read_only=True)
 
     class Meta:
-        model = SiteOnDraft
+        model = SiteOnApplication
         fields = ('id',
                   'site',
                   'draft')
 
 
 class ExternalLocationOnDraftSerializer(ModelSerializer):
-    draft = PrimaryKeyRelatedField(queryset=Draft.objects.all())
+    draft = PrimaryKeyRelatedField(queryset=Application.objects.all())
     external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
 
     class Meta:
-        model = ExternalLocationOnDraft
+        model = ExternalLocationOnApplication
         fields = ('id',
                   'external_location',
                   'draft')

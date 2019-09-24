@@ -5,8 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft
-from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from drafts.libraries.get_drafts import get_draft
+from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
@@ -23,7 +23,7 @@ class DraftSites(APIView):
     def get(self, request, pk):
         draft = get_draft(pk)
 
-        sites_ids = SiteOnDraft.objects.filter(draft=draft).values_list('site', flat=True)
+        sites_ids = SiteOnApplication.objects.filter(draft=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data})
@@ -60,7 +60,7 @@ class DraftSites(APIView):
         draft.save()
 
         # Delete existing SitesOnDrafts
-        SiteOnDraft.objects.filter(draft=draft).delete()
+        SiteOnApplication.objects.filter(draft=draft).delete()
 
         # Append new SitesOnDrafts
         response_data = []
@@ -74,7 +74,7 @@ class DraftSites(APIView):
                                     status=400)
 
         # Deletes any external sites on the draft if a site is being added
-        ExternalLocationOnDraft.objects.filter(draft=draft).delete()
+        ExternalLocationOnApplication.objects.filter(draft=draft).delete()
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)

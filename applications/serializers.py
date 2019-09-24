@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from applications.libraries.get_application import get_application_by_pk
+from applications.libraries.get_applications import get_application_by_pk
 from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication

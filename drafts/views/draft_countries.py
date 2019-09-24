@@ -5,8 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft, get_draft_with_organisation
-from drafts.models import CountryOnDraft
+from drafts.libraries.get_drafts import get_draft, get_draft_with_organisation
+from applications.models import CountryOnApplication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -22,7 +22,7 @@ class DraftCountries(APIView):
         """
         draft = get_draft(pk)
 
-        countries_ids = CountryOnDraft.objects.filter(draft=draft).values_list('country', flat=True)
+        countries_ids = CountryOnApplication.objects.filter(draft=draft).values_list('country', flat=True)
         countries = Country.objects.filter(id__in=countries_ids)
         serializer = CountrySerializer(countries, many=True)
         return JsonResponse(data={'countries': serializer.data})
@@ -46,11 +46,11 @@ class DraftCountries(APIView):
             }}, status=400)
 
         # Delete existing SitesOnDrafts
-        CountryOnDraft.objects.filter(draft=draft).delete()
+        CountryOnApplication.objects.filter(draft=draft).delete()
 
         # Append new SitesOnDrafts
         for country in countries:
-            CountryOnDraft(country=get_country(country), draft=draft).save()
+            CountryOnApplication(country=get_country(country), draft=draft).save()
 
         response = self.get(request, pk)
         response.status_code = status.HTTP_201_CREATED

@@ -4,10 +4,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import Draft
+from drafts.libraries.get_drafts import get_draft_with_organisation
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
+from drafts.libraries.get_drafts import get_drafts_with_organisation
 
 
 class DraftList(APIView):
@@ -18,7 +18,8 @@ class DraftList(APIView):
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
 
-        drafts = Draft.objects.filter(organisation=organisation).order_by('-created_at')
+        drafts = get_drafts_with_organisation(organisation)
+
         serializer = DraftBaseSerializer(drafts, many=True)
         return JsonResponse(data={'drafts': serializer.data})
 

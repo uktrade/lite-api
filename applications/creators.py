@@ -5,14 +5,13 @@ from applications.models import CountryOnApplication, SiteOnApplication, Externa
     GoodOnApplication
 from content_strings.strings import get_string
 from documents.models import Document
-from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
 from parties.document.models import PartyDocument
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
 
 def create_goods_for_applications(draft, application):
-    for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
+    for good_on_draft in GoodOnApplication.objects.filter(draft=draft):
         good_on_application = GoodOnApplication(
             good=good_on_draft.good,
             application=application,
@@ -25,7 +24,7 @@ def create_goods_for_applications(draft, application):
 
 
 def create_site_for_application(draft, application):
-    for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
+    for site_on_draft in SiteOnApplication.objects.filter(draft=draft):
         site_on_application = SiteOnApplication(
             site=site_on_draft.site,
             application=application)
@@ -33,7 +32,7 @@ def create_site_for_application(draft, application):
 
 
 def create_external_location_for_application(draft, application):
-    for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
+    for external_location_on_draft in ExternalLocationOnApplication.objects.filter(draft=draft):
         external_location_on_application = ExternalLocationOnApplication(
             external_location=external_location_on_draft.external_location,
             application=application)
@@ -87,11 +86,11 @@ def create_standard_licence(draft, application, errors):
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
-    if not GoodOnDraft.objects.filter(draft=draft):
+    if not GoodOnApplication.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
 
     ultimate_end_user_required = False
-    if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnDraft.objects.filter(draft=draft)), None):
+    if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnApplication.objects.filter(draft=draft)), None):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
@@ -124,7 +123,7 @@ def create_open_licence(draft, application, errors):
     """
     Create an open licence application
     """
-    if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
+    if len(CountryOnApplication.objects.filter(draft=draft)) == 0:
         errors['countries'] = get_string('applications.open.no_countries_set')
 
     results = GoodsType.objects.filter(object_id=draft.id)
@@ -141,7 +140,7 @@ def create_open_licence(draft, application, errors):
     for goods_types_on_draft in results:
         goods_types_on_draft.object_id = application.id
 
-    for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
+    for country_on_draft in CountryOnApplication.objects.filter(draft=draft):
         CountryOnApplication(
             country=country_on_draft.country,
             application=application).save()

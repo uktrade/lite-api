@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_application import get_application_by_pk
+from applications.libraries.get_applications import get_application_by_pk
 from applications.models import Application
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
@@ -17,8 +17,8 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
-from drafts.libraries.get_draft import get_draft_with_organisation
-from drafts.models import SiteOnDraft, ExternalLocationOnDraft
+from drafts.libraries.get_drafts import get_draft_with_organisation
+from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
@@ -33,7 +33,8 @@ class ApplicationList(APIView):
         """
         organisation = get_organisation_by_user(request.user)
 
-        applications = Application.objects.filter(organisation=organisation).order_by('created_at')
+        applications = Application.objects.filter(organisation=organisation, submitted_at__is_null=False).order_by(
+            'created_at')
         serializer = ApplicationBaseSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
@@ -66,8 +67,8 @@ class ApplicationList(APIView):
             errors = {}
 
             # Generic errors
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+            if len(SiteOnApplication.objects.filter(draft=draft)) == 0 \
+                    and len(ExternalLocationOnApplication.objects.filter(draft=draft)) == 0:
                 errors['location'] = get_string('applications.generic.no_location_set')
 
             # Create the application depending on type
