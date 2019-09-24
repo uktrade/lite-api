@@ -108,7 +108,7 @@ def _extract_names_from_email(exporter_user_email: str):
     full_name = email[0].split('.')
     first_name = full_name[0]
     last_name = full_name[1] if len(full_name) > 1 else email[1]
-    return first_name, last_name
+    return first_name.capitalize(), last_name.capitalize()
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
