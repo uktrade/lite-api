@@ -5,7 +5,7 @@ from goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
 
 
-class GoodFlagsManagementTests(DataTestClient):
+class GoodTypeFlagsManagementTests(DataTestClient):
 
     def setUp(self):
         super().setUp()

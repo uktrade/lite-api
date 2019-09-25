@@ -49,3 +49,9 @@ class GoodsTypeDetail(APIView):
         else:
             serializer = GoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
+
+
+class Countries(APIView):
+
+    def put(self, request, draft_pk):
+        pass
