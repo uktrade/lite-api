@@ -35,6 +35,13 @@ class OrganisationsList(APIView):
         """
         with reversion.create_revision():
             data = JSONParser().parse(request)
+            if data.get('sub_type') and data['sub_type'] == 'individual':
+                try:
+                    data['name'] = data['user']['first_name'] + " " + data['user']['last_name']
+                except AttributeError:
+                    pass
+                except KeyError:
+                    pass
             serializer = OrganisationCreateSerializer(data=data)
 
             if serializer.is_valid():
