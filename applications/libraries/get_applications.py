@@ -21,12 +21,12 @@ def get_application(pk):
 
 def get_application_with_organisation(pk, organisation):
     try:
-        draft = Application.objects.get(pk=pk, submitted_at__isnull=False)
+        application = Application.objects.get(pk=pk, submitted_at__isnull=False)
 
-        if draft.organisation.pk != organisation.pk:
+        if application.organisation.pk != organisation.pk:
             raise Http404
 
-        return draft
+        return application
     except Application.DoesNotExist:
         raise Http404
 
