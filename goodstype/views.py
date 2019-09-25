@@ -60,17 +60,19 @@ class Countries(APIView):
 
     @transaction.atomic
     def put(self, request):
+
         data = JSONParser().parse(request)
-        assignments = data.get('assignments')
-
-        # validation
-        for assignment in assignments:
-            for country_code in assignment.get('countries'):
-                get_country(country_code)
-
-        # persist
-        for assignment in assignments:
-            good = get_goods_type(assignment.get('goodstype'))
-            good.countries.set(assignment.get('countries'))
+        print("\n\n\n\n"+data+"\n\n\n\n")
+        # assignments = data.get('assignments')
+        #
+        # # validation
+        # for assignment in assignments:
+        #     for country_code in assignment.get('countries'):
+        #         get_country(country_code)
+        #
+        # # persist
+        # for assignment in assignments:
+        #     good = get_goods_type(assignment.get('goodstype'))
+        #     good.countries.set(assignment.get('countries'))
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
