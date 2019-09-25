@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from applications.models import OpenApplication
 from flags.models import Flag
 
 
@@ -15,10 +16,7 @@ class GoodsType(models.Model):
     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
     control_code = models.TextField(default=None, blank=True, null=True)
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
-    limit = models.Q(app_label='applications', model='application') | \
-            models.Q(app_label='drafts', model='draft')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
-    object_id = models.UUIDField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    limit = models.Q(app_label='applications', model='application')
+    open_application = models.ForeignKey(OpenApplication, on_delete=models.CASCADE, related_name='open_application',
+                                         null=False)
     flags = models.ManyToManyField(Flag, related_name='goods_type')
-

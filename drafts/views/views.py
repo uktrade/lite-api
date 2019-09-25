@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.models import StandardApplication, OpenApplication
+from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft_with_organisation
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer

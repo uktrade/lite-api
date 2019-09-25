@@ -3,20 +3,19 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from applications.libraries.get_applications import get_application
-from applications.models import AbstractApplication, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
-    ExternalLocationOnApplication
+from applications.models import AbstractApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
+    OpenApplication
 from applications.models import Site, SiteOnApplication
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from parties.models import EndUser
-from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
@@ -57,97 +56,6 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
                   'reasons',)
 
 
-class AbstractApplicationSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    organisation = OrganisationViewSerializer()
-    last_modified_at = serializers.DateTimeField(read_only=True)
-    submitted_at = serializers.DateTimeField(read_only=True)
-    status = serializers.SerializerMethodField()
-    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
-        'required': get_string('applications.generic.no_licence_type')})
-    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
-        'required': get_string('applications.generic.no_export_type')})
-    reference_number_on_information_form = serializers.CharField()
-    application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
-    case = serializers.SerializerMethodField()
-    ultimate_end_users = UltimateEndUserSerializer(many=True)
-    third_parties = ThirdPartySerializer(many=True)
-    consignee = ConsigneeSerializer()
-
-    # Goods
-    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
-    goods_types = serializers.SerializerMethodField()
-
-    # End User, Countries
-    destinations = serializers.SerializerMethodField()
-
-    # Sites, External Locations
-    goods_locations = serializers.SerializerMethodField()
-
-    class Meta:
-        model = AbstractApplication
-        fields = ('id',
-                  'name',
-                  'case',
-                  'organisation',
-                  'activity',
-                  'usage',
-                  'goods',
-                  'created_at',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status',
-                  'licence_type',
-                  'export_type',
-                  'reference_number_on_information_form',
-                  'application_denial_reason',
-                  'destinations',
-                  'ultimate_end_users',
-                  'goods_locations',
-                  'goods_types',
-                  'consignee',
-                  'third_parties',)
-
-    def get_case(self, instance):
-        return Case.objects.get(application=instance).id
-
-    def get_status(self, instance):
-        return instance.status.status
-
-    def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(object_id=application.id)
-        serializer = FullGoodsTypeSerializer(goods_types, many=True)
-        return serializer.data
-
-    def get_destinations(self, application):
-        countries_ids = CountryOnApplication.objects.filter(application=application).values_list('country', flat=True)
-        if application.end_user:
-            try:
-                serializer = EndUserSerializer(application.end_user)
-                return {'type': 'end_user', 'data': serializer.data}
-            except EndUser.DoesNotExist:
-                return {'type': 'end_user', 'data': ''}
-        else:
-            countries = Country.objects.filter(id__in=countries_ids)
-            serializer = CountrySerializer(countries, many=True)
-            return {'type': 'countries', 'data': serializer.data}
-
-    def get_goods_locations(self, obj):
-        sites_on_application_ids = SiteOnApplication.objects.filter(application=obj) \
-            .values_list('site', flat=True)
-        sites = Site.objects.filter(id__in=sites_on_application_ids)
-        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=obj) \
-            .values_list('external_location', flat=True)
-        external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
-
-        if sites:
-            serializer = SiteViewSerializer(sites, many=True)
-            return {'type': 'sites', 'data': serializer.data}
-        else:
-            serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {'type': 'external_locations', 'data': serializer.data}
-
-
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
     reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
     application = serializers.PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
@@ -168,6 +76,123 @@ class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
 
         application_denial_reason.save()
         return application_denial_reason
+
+
+class AbstractApplicationSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(read_only=True)
+    organisation = OrganisationViewSerializer()
+    last_modified_at = serializers.DateTimeField(read_only=True)
+    submitted_at = serializers.DateTimeField(read_only=True)
+    status = serializers.SerializerMethodField()
+    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+        'required': get_string('applications.generic.no_licence_type')})
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
+        'required': get_string('applications.generic.no_export_type')})
+    reference_number_on_information_form = serializers.CharField()
+    application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
+    case = serializers.SerializerMethodField()
+
+    # Sites, External Locations
+    goods_locations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AbstractApplication
+        fields = ('id',
+                  'name',
+                  'case',
+                  'organisation',
+                  'activity',
+                  'usage',
+                  'created_at',
+                  'last_modified_at',
+                  'submitted_at',
+                  'status',
+                  'licence_type',
+                  'export_type',
+                  'reference_number_on_information_form',
+                  'application_denial_reason',
+                  'goods_locations',)
+
+    def get_case(self, instance):
+        try:
+            return Case.objects.get(application=instance).id
+        except Case.DoesNotExist:
+            # Case will only exist if application has been submitted
+            return None
+
+    def get_status(self, instance):
+        return instance.status.status if instance.status else None
+
+    def get_goods_locations(self, application):
+        """
+        An application, regardless of its type, has one goods location that will be either a site or an external
+        location
+        """
+        sites = Site.objects.filter(sites_on_application__application=application)
+
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
+            return {'type': 'sites', 'data': serializer.data}
+
+        external_locations = ExternalLocation.objects.filter(
+            external_locations_on_application__application=application)
+
+        if external_locations:
+            serializer = ExternalLocationSerializer(external_locations, many=True)
+            return {'type': 'external_locations', 'data': serializer.data}
+
+        return dict()
+
+
+class StandardApplicationSerializer(AbstractApplicationSerializer):
+    ultimate_end_users = UltimateEndUserSerializer(many=True)
+    third_parties = ThirdPartySerializer(many=True)
+    consignee = ConsigneeSerializer()
+
+    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
+
+    destinations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StandardApplication
+        fields = AbstractApplicationSerializer.Meta.fields + (
+            'ultimate_end_users',
+            'third_parties',
+            'consignee',
+            'goods',
+            'destinations',)
+
+    def get_destinations(self, application):
+        if application.end_user:
+            serializer = EndUserSerializer(application.end_user)
+            return {'type': 'end_user', 'data': serializer.data}
+        else:
+            return {'type': 'end_user', 'data': ''}
+
+
+class OpenApplicationSerializer(AbstractApplicationSerializer):
+    destinations = serializers.SerializerMethodField()
+
+    goods_types = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OpenApplication
+        fields = AbstractApplicationSerializer.Meta.fields + (
+            'destinations',
+            'goods_types',)
+
+    def get_destinations(self, application):
+        """
+        For open applications, destinations are countries
+        """
+        countries = Country.objects.filter(countries_on_application__open_application=application)
+        serializer = CountrySerializer(countries, many=True)
+        return {'type': 'countries', 'data': serializer.data}
+
+    def get_goods_types(self, application):
+        goods_types = GoodsType.objects.filter(open_application=application)
+        serializer = FullGoodsTypeSerializer(goods_types, many=True)
+        return serializer.data
 
 
 class ApplicationUpdateSerializer(AbstractApplicationSerializer):
@@ -293,18 +318,3 @@ class ApplicationCaseNotesSerializer(AbstractApplicationSerializer):
                   'goods_locations',
                   'case_notes',
                   'case',)
-
-
-
-
-
-
-
-
-
-
-
-
-
-class StandardApplicationSerializer(AbstractApplicationSerializer):
-    pass

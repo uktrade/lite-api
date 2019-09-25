@@ -38,61 +38,6 @@ class ApplicationList(APIView):
 
         return JsonResponse(data={'applications': serializer.data})
 
-    # @transaction.atomic
-    # def post(self, request):
-    #     """
-    #     Create a new application from a draft
-    #     """
-    #
-    #     submit_id = json.loads(request.body).get('id')
-    #
-    #     with reversion.create_revision():
-    #         # Get Draft
-    #         draft = get_draft_with_organisation(submit_id, get_organisation_by_user(request.user))
-    #
-    #         # Create an Application object corresponding to the draft
-    #         application = Application(id=draft.id,
-    #                                   name=draft.name,
-    #                                   activity=draft.activity,
-    #                                   licence_type=draft.licence_type,
-    #                                   export_type=draft.export_type,
-    #                                   reference_number_on_information_form=draft.reference_number_on_information_form,
-    #                                   usage=draft.usage,
-    #                                   created_at=draft.created_at,
-    #                                   last_modified_at=draft.last_modified_at,
-    #                                   organisation=draft.organisation,
-    #                                   status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
-    #
-    #         errors = {}
-    #
-    #         # Generic errors
-    #         if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-    #                 and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
-    #             errors['location'] = get_string('applications.generic.no_location_set')
-    #
-    #         # Create the application depending on type
-    #         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-    #             application = create_standard_licence(draft, application, errors)
-    #         elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-    #             application = create_open_licence(draft, application, errors)
-    #
-    #         if not isinstance(application, Application):
-    #             return application
-    #
-    #         # Store meta-information.
-    #         reversion.set_user(request.user)
-    #         reversion.set_comment("Created Application Revision")
-    #
-    #         # Create a case
-    #         case = Case(application=application)
-    #         case.save()
-    #
-    #         draft.delete()
-    #
-    #         serializer = ApplicationBaseSerializer(application)
-    #         return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
-    #                             status=status.HTTP_201_CREATED)
-
 
 class ApplicationDetail(APIView):
     authentication_classes = [SharedAuthentication]

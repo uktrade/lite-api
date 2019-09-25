@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.get_applications import get_open_application
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft_with_organisation, get_good_with_organisation
 from applications.models import GoodOnApplication
@@ -24,7 +25,8 @@ class DraftGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        goods_types = GoodsType.objects.filter(object_id=pk, content_type__model='draft')
+        open_application = get_open_application(pk)
+        goods_types = GoodsType.objects.filter(open_application=open_application)
         serializer = GoodsTypeSerializer(goods_types, many=True)
         return JsonResponse(data={'goods': serializer.data})
 

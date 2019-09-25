@@ -1,6 +1,6 @@
 from django.http import Http404
 
-from applications.models import AbstractApplication
+from applications.models import AbstractApplication, OpenApplication, StandardApplication
 from goods.models import Good
 
 
@@ -16,6 +16,20 @@ def get_application(pk):
     try:
         return AbstractApplication.objects.get(pk=pk, submitted_at__isnull=False)
     except AbstractApplication.DoesNotExist:
+        raise Http404
+
+
+def get_open_application(pk):
+    try:
+        return OpenApplication.objects.get(pk=pk, submitted_at__isnull=False)
+    except OpenApplication.DoesNotExist:
+        raise Http404
+
+
+def get_standard_application(pk):
+    try:
+        return StandardApplication.objects.get(pk=pk, submitted_at__isnull=False)
+    except StandardApplication.DoesNotExist:
         raise Http404
 
 
