@@ -56,10 +56,16 @@ class GoodsTypeDetail(APIView):
 
 
 class Countries(APIView):
+    """
+    Sets countries on goodstypes
+    """
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
     def put(self, request):
+        """
+        Accepts dict in style of {goddstype_id: [country_id, country_id]}
+        """
 
         data = JSONParser().parse(request)
         if data.get('csrfmiddlewaretoken'):
