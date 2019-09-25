@@ -50,7 +50,7 @@ class CaseDetail(APIView):
         if serializer.is_valid():
             initial_queues = case.queues.values('id', 'name')
 
-            queues_to_remove = set([str(i['id']) for i in initial_queues]) - set(request.data['queues'])
+            queues_to_remove = set([str(q['id']) for q in initial_queues]) - set(request.data['queues'])
 
             if queues_to_remove:
                 CaseAssignment.objects.filter(queue__in=list(queues_to_remove)).delete()
@@ -58,17 +58,17 @@ class CaseDetail(APIView):
                     activity_type=CaseActivityType.REMOVE_CASE,
                     case=case,
                     user=request.user,
-                    queues=[i['name'] for i in initial_queues if str(i['id']) in queues_to_remove],
+                    queues=[q['name'] for q in initial_queues if str(q['id']) in queues_to_remove],
                 )
 
-            new_queues = set(request.data['queues']) - set([str(i['id']) for i in initial_queues])
+            new_queues = set(request.data['queues']) - set([str(q['id']) for q in initial_queues])
 
             if new_queues:
                 CaseActivity.create(
                     activity_type=CaseActivityType.MOVE_CASE,
                     case=case,
                     user=request.user,
-                    queues=[x.name for x in serializer.validated_data['queues'] if str(x.id) in new_queues]
+                    queues=[q.name for q in serializer.validated_data['queues'] if str(q.id) in new_queues]
                 )
 
             serializer.save()
