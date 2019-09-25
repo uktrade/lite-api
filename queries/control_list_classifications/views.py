@@ -12,7 +12,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.control_list_classifications.serializers import ClcQueryResponseSerializer
+from queries.control_list_classifications.serializers import ControlListClassificationQueryResponseSerializer
 from queries.helpers import get_exporter_query
 from users.models import UserOrganisationRelationship
 
@@ -31,13 +31,6 @@ class ControlListClassificationsList(APIView):
         # A CLC Query can only be created if the good is in draft status
         if good.status != GoodStatus.DRAFT:
             raise Http404
-
-        if data['not_sure_details_control_code'] == '':
-            return JsonResponse(data={
-                'errors': {
-                    'not_sure_details_control_code': ['This field may not be blank.']
-                }
-            }, status=status.HTTP_400_BAD_REQUEST)
 
         good.status = GoodStatus.CLC_QUERY
         good.control_code = data['not_sure_details_control_code']
@@ -63,7 +56,7 @@ class ControlListClassificationDetail(APIView):
         data = json.loads(request.body)
 
         with reversion.create_revision():
-            serializer = ClcQueryResponseSerializer(query, data=data)
+            serializer = ControlListClassificationQueryResponseSerializer(query, data=data)
             if serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
                     serializer.save()
