@@ -1,11 +1,15 @@
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication, SharedAuthentication
+from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from static.countries.helpers import get_country
+from static.countries.serializers import CountrySerializer
 from users.models import GovUser
 
 
@@ -52,6 +56,21 @@ class GoodsTypeDetail(APIView):
 
 
 class Countries(APIView):
+    authentication_classes = (ExporterAuthentication,)
 
-    def put(self, request, draft_pk):
-        pass
+    @transaction.atomic
+    def put(self, request):
+        data = JSONParser().parse(request)
+        assignments = data.get('assignments')
+
+        # validation
+        for assignment in assignments:
+            for country_code in assignment.get('countries'):
+                get_country(country_code)
+
+        # persist
+        for assignment in assignments:
+            good = get_goods_type(assignment.get('goodstype'))
+            good.countries.set(assignment.get('countries'))
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)

@@ -38,7 +38,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'content_type',
                   'content_type_name',
                   'object_id',
-                  'content_object'
+                  'content_object',
+                  'countries'
                   )
 
     def __init__(self, *args, **kwargs):

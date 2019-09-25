@@ -19,7 +19,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
         # Add a country to the draft
         self.country_1 = get_country('ES')
-        self.country_2 = get_country('USA')
+        self.country_2 = get_country('US')
         self.country_3 = get_country('FR')
 
         self.all_countries = [self.country_1, self.country_2, self.country_3]
@@ -36,7 +36,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         Then the correct Good with an empty Country list is returned
         """
         # Act
-        response = self.client.get(self.good_url, **self.gov_headers)
+        response = self.client.get(self.good_url, **self.exporter_headers)
 
         # Assert
         self.assertEqual([], response.json()['good']['countries'])
@@ -52,7 +52,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         self.goods_type_1.countries.set(self.all_countries)
 
         # Act
-        response = self.client.get(self.good_url, **self.gov_headers)
+        response = self.client.get(self.good_url, **self.exporter_headers)
 
         # Assert
         returned_good = response.json()['good']
@@ -74,7 +74,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
             },
         ]}
 
-        self.client.put(self.good_country_url, data, **self.gov_headers)
+        self.client.put(self.good_country_url, data, **self.exporter_headers)
 
         self.assertEquals(2, len(self.goods_type_1.countries.all()))
         self.assertTrue(self.country_1 in self.goods_type_1.countries.all())
@@ -101,9 +101,60 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         ]}
 
         # Act
-        response = self.client.put(self.good_country_url, data, **self.gov_headers)
+        response = self.client.put(self.good_country_url, data, **self.exporter_headers)
 
         # Assert
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 2)
+        self.assertEqual(len(response_data['assignments']), 2)
+
+    def test_goodstype_countries_black_box_data_persistence(self):
+        data = {'assignments': [
+            {
+                'goodstype': self.goods_type_1.id,
+                'countries': [
+                    self.country_1.id,
+                    self.country_2.id]
+            },
+            {
+                'goodstype': self.goods_type_2.id,
+                'countries': [
+                    self.country_3.id,
+                    self.country_1.id]
+            },
+        ]}
+
+        # Act
+        self.client.put(self.good_country_url, data, **self.exporter_headers)
+        response = self.client.get(self.good_url, data, **self.exporter_headers)
+
+        # Assert
+        countries = response.json()['good']['countries']
+        self.assertEqual(len(countries), 2)
+        self.assertIn(self.country_1.id, countries)
+        self.assertIn(self.country_2.id, countries)
+
+    def test_invalid_request_data_returns_404(self):
+        """
+        404 with invalid request county key
+        """
+        data = {'assignments': [
+            {
+                'goodstype': self.goods_type_1.id,
+                'countries': [
+                    self.country_1.id,
+                    self.country_2.id]
+            },
+            {
+                'goodstype': self.goods_type_2.id,
+                'countries': [
+                    'sdffsdfds',
+                    self.country_1.id]
+            },
+        ]}
+
+        # Act
+        response = self.client.put(self.good_country_url, data, **self.exporter_headers)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
