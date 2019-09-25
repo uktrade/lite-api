@@ -62,7 +62,7 @@ class Countries(APIView):
     def put(self, request):
 
         data = JSONParser().parse(request)
-        print("\n\n\n\n"+data+"\n\n\n\n")
+        print("\n\n\n\n"+str(data)+"\n\n\n\n")
         # assignments = data.get('assignments')
         #
         # # validation
