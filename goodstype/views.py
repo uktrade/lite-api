@@ -62,17 +62,19 @@ class Countries(APIView):
     def put(self, request):
 
         data = JSONParser().parse(request)
-        print("\n\n\n\n"+str(data)+"\n\n\n\n")
-        # assignments = data.get('assignments')
-        #
-        # # validation
-        # for assignment in assignments:
-        #     for country_code in assignment.get('countries'):
-        #         get_country(country_code)
-        #
-        # # persist
-        # for assignment in assignments:
-        #     good = get_goods_type(assignment.get('goodstype'))
-        #     good.countries.set(assignment.get('countries'))
+        if data.get('csrfmiddlewaretoken'):
+            data.pop('csrfmiddlewaretoken')
+
+        # validation
+        for assignment in data:
+            get_goods_type(assignment)
+            values = data.get(assignment)
+            for country_code in values:
+                get_country(country_code)
+
+        # persist
+        for assignment in data:
+            good = get_goods_type(assignment)
+            good.countries.set(data.get(assignment))
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

@@ -65,14 +65,11 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         Then only that Country is removed
         """
         self.goods_type_1.countries.set(self.all_countries)
-        data = {'assignments': [
-            {
-                'goodstype': self.goods_type_1.id,
-                'countries': [
+        data = {
+                str(self.goods_type_1.id): [
                     self.country_1.id,
                     self.country_2.id]
-            },
-        ]}
+        }
 
         self.client.put(self.good_country_url, data, **self.exporter_headers)
 
@@ -85,20 +82,14 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         Tests setting multiple countries on multiple goods types simultaneously
         """
 
-        data = {'assignments': [
-            {
-                'goodstype': self.goods_type_1.id,
-                'countries': [
-                    self.country_1.id,
-                    self.country_2.id]
-            },
-            {
-                'goodstype': self.goods_type_2.id,
-                'countries': [
-                    self.country_3.id,
-                    self.country_1.id]
-            },
-        ]}
+        data = {
+            str(self.goods_type_1.id): [
+                self.country_1.id,
+                self.country_2.id],
+            str(self.goods_type_2.id): [
+                self.country_3.id,
+                self.country_1.id]
+        }
 
         # Act
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)
@@ -106,23 +97,17 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         # Assert
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['assignments']), 2)
+        self.assertEqual(len(response_data), 2)
 
     def test_goodstype_countries_black_box_data_persistence(self):
-        data = {'assignments': [
-            {
-                'goodstype': self.goods_type_1.id,
-                'countries': [
-                    self.country_1.id,
-                    self.country_2.id]
-            },
-            {
-                'goodstype': self.goods_type_2.id,
-                'countries': [
-                    self.country_3.id,
-                    self.country_1.id]
-            },
-        ]}
+        data = {
+            str(self.goods_type_1.id): [
+                self.country_1.id,
+                self.country_2.id],
+            str(self.goods_type_2.id): [
+                self.country_3.id,
+                self.country_1.id]
+        }
 
         # Act
         self.client.put(self.good_country_url, data, **self.exporter_headers)
@@ -138,20 +123,14 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         """
         404 with invalid request county key
         """
-        data = {'assignments': [
-            {
-                'goodstype': self.goods_type_1.id,
-                'countries': [
-                    self.country_1.id,
-                    self.country_2.id]
-            },
-            {
-                'goodstype': self.goods_type_2.id,
-                'countries': [
-                    'sdffsdfds',
-                    self.country_1.id]
-            },
-        ]}
+        data = {
+            str(self.goods_type_1.id): [
+                self.country_1.id,
+                self.country_2.id],
+            str(self.goods_type_2.id): [
+                'sdffsdfds',
+                self.country_1.id]
+        }
 
         # Act
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)
