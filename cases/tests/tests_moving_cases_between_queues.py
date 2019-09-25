@@ -27,6 +27,25 @@ class MoveCasesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(data['queues']))
 
+    def test_add_and_remove_case_to_queue(self):
+        queues_data = {
+            'queues': [queue.id for queue in self.queues]
+        }
+
+        response = self.client.put(self.url, data=queues_data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(queues_data['queues']))
+
+        no_queues_data = {
+            'queues': []
+        }
+
+        response = self.client.put(self.url, data=no_queues_data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(no_queues_data['queues']))
+
     @parameterized.expand([
         # Invalid Queues
         [{'queues': 'Not an array'}],

@@ -50,25 +50,28 @@ class CaseDetail(APIView):
         if serializer.is_valid():
             initial_queues = case.queues.values('id', 'name')
 
-            for initial_queue in initial_queues:
-                if str(initial_queue['id']) not in request.data['queues']:
-                    CaseAssignment.objects.filter(queue=initial_queue['id']).delete()
-                    CaseActivity.create(
-                        activity_type=CaseActivityType.REMOVE_CASE,
-                        case=case,
-                        user=request.user,
-                        queues=[initial_queue['name']],
-                    )
+            queues_to_remove = set([str(i['id']) for i in initial_queues]) - set(request.data['queues'])
 
-            serializer.save()
+            if queues_to_remove:
+                CaseAssignment.objects.filter(queue__in=list(queues_to_remove)).delete()
+                CaseActivity.create(
+                    activity_type=CaseActivityType.REMOVE_CASE,
+                    case=case,
+                    user=request.user,
+                    queues=[i['name'] for i in initial_queues if str(i['id']) in queues_to_remove],
+                )
 
-            if serializer.validated_data['queues']:
+            new_queues = set(request.data['queues']) - set([str(i['id']) for i in initial_queues])
+
+            if new_queues:
                 CaseActivity.create(
                     activity_type=CaseActivityType.MOVE_CASE,
                     case=case,
                     user=request.user,
-                    queues=[x.name for x in serializer.validated_data['queues']]
+                    queues=[x.name for x in serializer.validated_data['queues'] if str(x.id) in new_queues]
                 )
+
+            serializer.save()
 
             return JsonResponse(data={'case': serializer.data})
 
