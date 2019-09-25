@@ -3,7 +3,7 @@ from rest_framework import status
 
 from drafts.serializers import DraftDocumentsSerializer
 from parties.document.models import PartyDocument
-from drafts.models import DraftDocuments, Draft
+from drafts.models import DraftDocument, Draft
 from parties.document.serializers import PartyDocumentSerializer
 
 
@@ -33,11 +33,11 @@ def get_party_document(party):
 
 
 def get_draft_documents(draft_id):
-    return _get_draft_documents(DraftDocuments.objects.filter(draft=draft_id))
+    return _get_draft_documents(DraftDocument.objects.filter(draft=draft_id))
 
 
 def get_draft_document(draft_id, doc_pk):
-    return _get_document(DraftDocuments.objects.filter(draft=draft_id, id=doc_pk))
+    return _get_document(DraftDocument.objects.filter(draft=draft_id, id=doc_pk))
 
 
 def upload_draft_document(draft_id, data):
@@ -54,10 +54,10 @@ def upload_draft_document(draft_id, data):
 
 def delete_draft_document(document_id):
     try:
-        document = DraftDocuments.objects.get(id=document_id)
+        document = DraftDocument.objects.get(id=document_id)
         document.delete_s3()
         document.delete()
-    except DraftDocuments.DoesNotExist:
+    except DraftDocument.DoesNotExist:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)

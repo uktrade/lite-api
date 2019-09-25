@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application, ApplicationDocuments
+from applications.models import Application, ApplicationDocument
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
@@ -63,10 +63,10 @@ class ApplicationList(APIView):
                                       organisation=draft.organisation,
                                       status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
 
-            additional_documents = draft.draftdocuments_set.all()
+            additional_documents = draft.draftdocument_set.all()
             for document in additional_documents:
 
-                application_document = ApplicationDocuments.objects.create(
+                application_document = ApplicationDocument.objects.create(
                     description=document.description,
                     name=document.name,
                     s3_key=document.s3_key,

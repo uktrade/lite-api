@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='DraftDocuments',
+            name='DraftDocument',
             fields=[
                 ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
                 ('description', models.TextField(blank=True, default=None, max_length=280, null=True)),

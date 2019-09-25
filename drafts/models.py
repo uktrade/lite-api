@@ -63,6 +63,6 @@ class CountryOnDraft(models.Model):
     country = models.ForeignKey(Country, related_name='countries_on_draft', on_delete=models.CASCADE)
 
 
-class DraftDocuments(Document):
+class DraftDocument(Document):
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)

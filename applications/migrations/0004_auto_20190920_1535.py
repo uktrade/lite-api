@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0003_applicationdocuments'),
+        ('applications', '0003_applicationdocument'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='applicationdocuments',
+            model_name='applicationdocument',
             name='application',
         ),
         migrations.AddField(
             model_name='application',
             name='additional_documents',
-            field=models.ManyToManyField(related_name='additional_documents', to='applications.ApplicationDocuments'),
+            field=models.ManyToManyField(related_name='additional_documents', to='applications.ApplicationDocument'),
         ),
     ]

@@ -15,7 +15,7 @@ from static.units.enums import Units
 
 
 @reversion.register()
-class ApplicationDocuments(Document):
+class ApplicationDocument(Document):
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
 
 
@@ -40,7 +40,7 @@ class Application(models.Model):
     consignee = models.ForeignKey(Consignee, related_name='application_consignee', on_delete=models.CASCADE,
                                   default=None, blank=True, null=True)
     third_parties = models.ManyToManyField(ThirdParty, related_name='application_third_parties')
-    additional_documents = models.ManyToManyField(ApplicationDocuments, related_name='additional_documents')
+    additional_documents = models.ManyToManyField(ApplicationDocument, related_name='additional_documents')
 
 
 @reversion.register()
