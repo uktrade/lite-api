@@ -176,12 +176,7 @@ class CaseAdvice(APIView):
 
 class ViewTeamAdvice(APIView):
     def get(self, request, pk, team_pk):
-        case = get_case(pk)
-        team = get_team_by_pk(team_pk)
-        team_advice = TeamAdvice.objects.filter(case=case, team=team)
-
-        # This is cleaner and doesn't require the case and team objects to be retrieved from db.
-        # team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
+        team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
 
         serializer = CaseTeamAdviceSerializer(team_advice, many=True)
         return JsonResponse({'advice': serializer.data})

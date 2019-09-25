@@ -118,11 +118,6 @@ class CaseDetailSerializer(CaseSerializer):
             pass
         return has_advice
 
-    # def validate_queues(self, attrs):
-    #     if not attrs:
-    #         raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
-    #     return attrs
-
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
