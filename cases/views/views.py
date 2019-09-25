@@ -46,20 +46,30 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        initial_queues = case.queues.values_list('id', flat=True)
-
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+
         if serializer.is_valid():
+            initial_queues = case.queues.values('id', 'name')
+
             for initial_queue in initial_queues:
-                if str(initial_queue) not in request.data['queues']:
-                    CaseAssignment.objects.filter(queue=initial_queue).delete()
+                if str(initial_queue['id']) not in request.data['queues']:
+                    CaseAssignment.objects.filter(queue=initial_queue['id']).delete()
+                    CaseActivity.create(
+                        activity_type=CaseActivityType.REMOVE_CASE,
+                        case=case,
+                        user=request.user,
+                        queues=[initial_queue['name']],
+                    )
+
             serializer.save()
 
-            # Add an activity item for the query's case
-            CaseActivity.create(activity_type=CaseActivityType.MOVE_CASE,
-                                case=case,
-                                user=request.user,
-                                queues=[x.name for x in serializer.validated_data['queues']])
+            if serializer.validated_data['queues']:
+                CaseActivity.create(
+                    activity_type=CaseActivityType.MOVE_CASE,
+                    case=case,
+                    user=request.user,
+                    queues=[x.name for x in serializer.validated_data['queues']]
+                )
 
             return JsonResponse(data={'case': serializer.data})
 
@@ -169,6 +179,9 @@ class ViewTeamAdvice(APIView):
         case = get_case(pk)
         team = get_team_by_pk(team_pk)
         team_advice = TeamAdvice.objects.filter(case=case, team=team)
+
+        # This is cleaner and doesn't require the case and team objects to be retrieved from db.
+        # team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
 
         serializer = CaseTeamAdviceSerializer(team_advice, many=True)
         return JsonResponse({'advice': serializer.data})
