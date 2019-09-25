@@ -12,7 +12,7 @@ from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import EndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer, \
-    AdditionalDocumentsSerializer
+    AdditionalDocumentSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -74,7 +74,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
-    additional_documents = AdditionalDocumentsSerializer(many=True)
+    additional_documents = AdditionalDocumentSerializer(many=True)
 
     # Goods
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)

@@ -1,9 +1,10 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
-from drafts.serializers import DraftDocumentsSerializer
+from drafts.serializers import DraftDocumentSerializer
 from parties.document.models import PartyDocument
-from drafts.models import DraftDocument, Draft
+from drafts.models import DraftDocument
+
 from parties.document.serializers import PartyDocumentSerializer
 
 
@@ -19,11 +20,6 @@ def _get_document(documents):
         return JsonResponse({'document': document})
 
 
-def _get_draft_documents(documents):
-    docs = [document for document in documents.values()]
-    return JsonResponse({'documents': docs})
-
-
 def get_party_document(party):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -33,7 +29,8 @@ def get_party_document(party):
 
 
 def get_draft_documents(draft_id):
-    return _get_draft_documents(DraftDocument.objects.filter(draft=draft_id))
+    documents = DraftDocument.objects.filter(draft=draft_id)
+    return JsonResponse({'documents': list(documents.values())})
 
 
 def get_draft_document(draft_id, doc_pk):
@@ -43,7 +40,7 @@ def get_draft_document(draft_id, doc_pk):
 def upload_draft_document(draft_id, data):
     data['draft'] = draft_id
 
-    serializer = DraftDocumentsSerializer(data=data)
+    serializer = DraftDocumentSerializer(data=data)
 
     if serializer.is_valid():
         serializer.save()

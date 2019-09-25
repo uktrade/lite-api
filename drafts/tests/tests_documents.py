@@ -10,20 +10,20 @@ class DraftDocumentTests(DataTestClient):
 
         self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Draft')
         self.url_draft = reverse('drafts:draft_documents', kwargs={'pk': self.draft.id})
-        self.test_filename = "dog.jpg"
+        self.test_filename = 'dog.jpg'
 
-        self.data = {"name": self.test_filename,
-                     "s3_key": self.test_filename,
-                     "size": 476,
-                     "draft": self.draft.id,
-                     "description": "banana cake"
+        self.data = {'name': self.test_filename,
+                     's3_key': self.test_filename,
+                     'size': 476,
+                     'draft': self.draft.id,
+                     'description': 'banana cake'
                      }
 
-        self.data2 = {"name": self.test_filename + "2",
-                      "s3_key": self.test_filename,
-                      "size": 476,
-                      "draft": self.draft.id,
-                      "description": "banana cake"
+        self.data2 = {'name': self.test_filename + '2',
+                      's3_key': self.test_filename,
+                      'size': 476,
+                      'draft': self.draft.id,
+                      'description': 'banana cake'
                       }
 
     @mock.patch('documents.tasks.prepare_document.now')

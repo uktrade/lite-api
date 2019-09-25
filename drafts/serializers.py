@@ -160,14 +160,14 @@ class ExternalLocationOnDraftSerializer(ModelSerializer):
                   'draft')
 
 
-class DraftDocumentsSerializer(ModelSerializer):
+class DraftDocumentSerializer(ModelSerializer):
 
     class Meta:
         model = DraftDocument
         fields = '__all__'
 
     def create(self, validated_data):
-        document = super(DraftDocumentsSerializer, self).create(validated_data)
+        document = super(DraftDocumentSerializer, self).create(validated_data)
         document.save()
         process_document(document)
         return document
