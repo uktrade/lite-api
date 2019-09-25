@@ -1,10 +1,10 @@
 from rest_framework import serializers, relations
 
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from organisations.models import Organisation
 from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
-from organisations.models import Organisation
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -63,7 +63,7 @@ class ConsigneeSerializer(PartySerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
+    sub_type = serializers.ChoiceField(choices=ThirdPartySubType.choices)
 
     class Meta:
         model = ThirdParty

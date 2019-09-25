@@ -28,9 +28,6 @@ class MoveCasesTests(DataTestClient):
         self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(data['queues']))
 
     @parameterized.expand([
-        # None/Empty Queues
-        [{'queues': None}],
-        [{'queues': []}],
         # Invalid Queues
         [{'queues': 'Not an array'}],
         [{'queues': ['00000000-0000-0000-0000-000000000002']}],
