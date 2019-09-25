@@ -20,4 +20,4 @@ class GoodsType(models.Model):
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
     flags = models.ManyToManyField(Flag, related_name='goods_type')
-    countries = models.ManyToManyField(Country, related_name='goods_type')
+    countries = models.ManyToManyField(Country, related_name='goods_type', default=[])
