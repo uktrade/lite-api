@@ -60,7 +60,7 @@ class DraftExternalLocations(APIView):
         response_data = []
         for external_location in external_locations:
             serializer = ExternalLocationOnDraftSerializer(
-                data={'external_location': external_location, 'draft': str(pk)})
+                data={'external_location': external_location, 'application': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

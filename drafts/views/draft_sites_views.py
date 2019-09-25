@@ -65,7 +65,7 @@ class DraftSites(APIView):
         # Append new SitesOnDrafts
         response_data = []
         for site in sites:
-            serializer = SiteOnDraftBaseSerializer(data={'site': site, 'draft': str(pk)})
+            serializer = SiteOnDraftBaseSerializer(data={'site': site, 'application': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
