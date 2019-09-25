@@ -3,7 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from applications.libraries.get_applications import get_application
-from applications.models import Application, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
+from applications.models import AbstractApplication, GoodOnApplication, ApplicationDenialReason, CountryOnApplication, \
     ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
 from cases.libraries.get_case_note import get_case_notes_from_case
@@ -57,7 +57,7 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
                   'reasons',)
 
 
-class ApplicationBaseSerializer(serializers.ModelSerializer):
+class AbstractApplicationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     organisation = OrganisationViewSerializer()
     last_modified_at = serializers.DateTimeField(read_only=True)
@@ -85,7 +85,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     goods_locations = serializers.SerializerMethodField()
 
     class Meta:
-        model = Application
+        model = AbstractApplication
         fields = ('id',
                   'name',
                   'case',
@@ -150,7 +150,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
 
 class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
     reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
-    application = serializers.PrimaryKeyRelatedField(queryset=Application.objects.all())
+    application = serializers.PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
 
     class Meta:
         model = ApplicationDenialReason
@@ -170,7 +170,7 @@ class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
         return application_denial_reason
 
 
-class ApplicationUpdateSerializer(ApplicationBaseSerializer):
+class ApplicationUpdateSerializer(AbstractApplicationSerializer):
     name = serializers.CharField()
     usage = serializers.CharField()
     activity = serializers.CharField()
@@ -184,7 +184,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
         return attrs
 
     class Meta:
-        model = Application
+        model = AbstractApplication
         fields = ('id',
                   'name',
                   'organisation',
@@ -240,7 +240,7 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
 
 
 class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
-    application = PrimaryKeyRelatedField(queryset=Application.objects.all())
+    application = PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
@@ -252,7 +252,7 @@ class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
 
 class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
     site = SiteViewSerializer(read_only=True, many=True)
-    application = ApplicationBaseSerializer(read_only=True)
+    application = AbstractApplicationSerializer(read_only=True)
 
     class Meta:
         model = SiteOnApplication
@@ -261,7 +261,7 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
                   'application',)
 
 
-class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
+class ApplicationCaseNotesSerializer(AbstractApplicationSerializer):
     case = serializers.SerializerMethodField()
     case_notes = serializers.SerializerMethodField()
 
@@ -274,7 +274,7 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
         return instance.status.status
 
     class Meta:
-        model = Application
+        model = AbstractApplication
         fields = ('id',
                   'name',
                   'organisation',
@@ -293,3 +293,18 @@ class ApplicationCaseNotesSerializer(ApplicationBaseSerializer):
                   'goods_locations',
                   'case_notes',
                   'case',)
+
+
+
+
+
+
+
+
+
+
+
+
+
+class StandardApplicationSerializer(AbstractApplicationSerializer):
+    pass

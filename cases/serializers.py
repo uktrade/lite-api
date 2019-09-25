@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.serializers import ApplicationBaseSerializer
+from applications.serializers import AbstractApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, FinalAdvice
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
@@ -27,7 +27,7 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    application = ApplicationBaseSerializer(read_only=True)
+    application = AbstractApplicationSerializer(read_only=True)
     query = QueryViewSerializer(read_only=True)
 
     class Meta:

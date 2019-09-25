@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 from applications.creators import validate_standard_licence, validate_open_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
-from applications.models import Application, ExternalLocationOnApplication, SiteOnApplication
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
+from applications.models import AbstractApplication, ExternalLocationOnApplication, SiteOnApplication
+from applications.serializers import AbstractApplicationSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -33,8 +33,8 @@ class ApplicationList(APIView):
         """
         organisation = get_organisation_by_user(request.user)
 
-        applications = Application.objects.filter(organisation=organisation).order_by('created_at')
-        serializer = ApplicationBaseSerializer(applications, many=True)
+        applications = AbstractApplication.objects.filter(organisation=organisation).order_by('created_at')
+        serializer = AbstractApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 
@@ -96,7 +96,7 @@ class ApplicationList(APIView):
 
 class ApplicationDetail(APIView):
     authentication_classes = [SharedAuthentication]
-    serializer_class = ApplicationBaseSerializer
+    serializer_class = AbstractApplicationSerializer
 
     """
     Retrieve, update or delete a application instance.
@@ -169,6 +169,6 @@ class ApplicationSubmission(APIView):
         case = Case(application=draft)
         case.save()
 
-        serializer = ApplicationBaseSerializer(draft)
+        serializer = AbstractApplicationSerializer(draft)
         return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
                             status=status.HTTP_201_CREATED)

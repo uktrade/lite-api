@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import Application
+from applications.models import AbstractApplication
 from drafts.models import GoodOnDraft
 from goods.models import Good
 from parties.document.models import PartyDocument
@@ -52,4 +52,4 @@ class ApplicationConsigneeTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(Application.objects.get().consignee, consignee)
+        self.assertEqual(AbstractApplication.objects.get().consignee, consignee)

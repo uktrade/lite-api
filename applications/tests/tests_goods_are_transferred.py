@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import Application, GoodOnApplication
+from applications.models import AbstractApplication, GoodOnApplication
 from drafts.models import GoodOnDraft, SiteOnDraft
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -31,7 +31,7 @@ class ApplicationsTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(GoodOnApplication.objects.count(), 2)
-        application = Application.objects.get()
+        application = AbstractApplication.objects.get()
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 2)
 
     def test_that_cannot_submit_with_no_goods(self):

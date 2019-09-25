@@ -10,7 +10,7 @@ from cases.enums import CaseType, AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
-from applications.models import Application, GoodOnApplication, SiteOnApplication, CountryOnApplication
+from applications.models import AbstractApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -238,12 +238,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Application):
+    def submit_draft(self, draft: AbstractApplication):
         draft_id = draft.id
         url = reverse('applications:applications')
         data = {'id': draft_id}
         self.client.post(url, data, **self.exporter_headers)
-        return Application.objects.get(pk=draft_id)
+        return AbstractApplication.objects.get(pk=draft_id)
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
         case_doc = CaseDocument(case=case,
@@ -343,14 +343,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                      reference_name='Standard Draft'):
-        draft = Application(name=reference_name,
-                            licence_type=licence_type,
-                            export_type=ApplicationExportType.PERMANENT,
-                            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                            reference_number_on_information_form='',
-                            activity='Trade',
-                            usage='Trade',
-                            organisation=organisation)
+        draft = AbstractApplication(name=reference_name,
+                                    licence_type=licence_type,
+                                    export_type=ApplicationExportType.PERMANENT,
+                                    have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                    reference_number_on_information_form='',
+                                    activity='Trade',
+                                    usage='Trade',
+                                    organisation=organisation)
         draft.save()
         return draft
 

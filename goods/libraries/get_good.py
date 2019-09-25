@@ -1,6 +1,6 @@
 from django.http import Http404
 
-from applications.models import Application, GoodOnApplication
+from applications.models import AbstractApplication, GoodOnApplication
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 from goods.models import Good, GoodDocument
@@ -33,6 +33,6 @@ def get_goods_from_case(case):
         else:
             return []
     else:
-        application = Application.objects.get(case=case)
+        application = AbstractApplication.objects.get(case=case)
         goods_on_applications = GoodOnApplication.objects.filter(application=application)
         return [x.good.id for x in goods_on_applications]

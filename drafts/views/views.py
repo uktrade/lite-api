@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationLicenceType
+from applications.models import StandardApplication, OpenApplication
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft_with_organisation
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
@@ -15,6 +17,7 @@ class DraftList(APIView):
     """
     List all drafts that belong to an organisation create a new draft.
     """
+
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
 
@@ -28,11 +31,21 @@ class DraftList(APIView):
         data = request.data
         data['organisation'] = str(organisation.id)
 
+        # Use generic serializer to validate all types of application
         serializer = DraftCreateSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'draft': serializer.data},
+            serializer.validated_data['organisation'] = organisation
+
+            # Use the data from the generic serializer to determine which model to save to
+            if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
+                application = StandardApplication(**serializer.validated_data)
+            else:
+                application = OpenApplication(**serializer.validated_data)
+
+            application.save()
+
+            return JsonResponse(data={'draft': {**serializer.data, 'id': str(application.id)}},
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
@@ -44,10 +57,16 @@ class DraftDetail(APIView):
     """
     Retrieve, update or delete a draft instance.
     """
+
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)
-        serializer = DraftBaseSerializer(draft)
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            serializer = StandardApplicationSerializer(draft)
+        else:
+            serializer = OpenApplicationSerializer(draft)
+
         return JsonResponse(data={'draft': serializer.data})
 
     def put(self, request, pk):
