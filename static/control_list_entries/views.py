@@ -3,7 +3,6 @@ from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
-from conf.helpers import convert_queryset_to_str
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.serializers import ControlListEntrySerializer
@@ -20,10 +19,9 @@ class ControlListEntriesList(APIView):
         Returns list of all Control List Entries
         """
         if request.GET.get('flatten'):
-            return JsonResponse(data={'control_list_entries': convert_queryset_to_str(ControlListEntry.objects
-                                                                                      .filter(is_decontrolled=False)
-                                                                                      .values_list('rating',
-                                                                                                   flat=True))})
+            return JsonResponse(data={'control_list_entries': list(ControlListEntry.objects
+                                                                   .filter(is_decontrolled=False, rating__isnull=False)
+                                                                   .values('rating', 'text'))})
 
         serializer = ControlListEntrySerializer(ControlListEntry.objects.filter(parent=None), many=True)
         return JsonResponse(data={'control_list_entries': serializer.data})

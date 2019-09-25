@@ -18,7 +18,7 @@ def parse_list_into_control_list_entries(worksheet):
                 elif cell.column == 13:
                     rating = cell.value
                 elif cell.column == 35:
-                    is_decontrolled = False
+                    is_decontrolled = cell.value.lower() == 'x'
         if text is None:
             break
 

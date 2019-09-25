@@ -24,6 +24,7 @@ from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
+from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
@@ -61,6 +62,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         }
 
         self.queue = self.create_queue('Initial Queue', self.team)
+
+        # Create a hardcoded control list entry rather than loading in the
+        # spreadsheet each time
+        ControlListEntry.create('ML1a', 'Description', None, False)
 
         if settings.TIME_TESTS:
             self.tick = datetime.now()

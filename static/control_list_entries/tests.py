@@ -1,7 +1,7 @@
 from io import StringIO
-from django.core.management import call_command
 
-from django.test import TestCase, tag
+from django.core.management import call_command
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 
@@ -30,8 +30,8 @@ class TriageStageTests(DataTestClient):
 
     def test_create_new_rating(self):
         data = {
-            'rating': 'ML1a',
-            'text': 'This is a child'
+            'rating': 'ML1b',
+            'text': 'This is an element'
         }
 
         url = reverse('static:control_list_entries:control_list_entries')
@@ -43,19 +43,17 @@ class TriageStageTests(DataTestClient):
         self.assertEqual(response_data['rating'], data['rating'])
         self.assertEqual(response_data['text'], data['text'])
 
-        control_list_entry = ControlListEntry.objects.get()
+        control_list_entry = ControlListEntry.objects.get(rating=data['rating'])
         self.assertEqual(control_list_entry.rating, data['rating'])
         self.assertEqual(control_list_entry.text, data['text'])
 
     def test_create_new_child_rating(self):
-        parent_rating = ControlListEntry.create('ML1', 'Parent rating', None, False)
-
         data = {
-            'rating': 'ML1a',
+            'rating': 'ML1a.a',
             'text': 'This is a child'
         }
 
-        url = reverse('static:control_list_entries:control_list_entry', kwargs={'rating': parent_rating.rating})
+        url = reverse('static:control_list_entries:control_list_entry', kwargs={'rating': ControlListEntry.objects.get().rating})
 
         response = self.client.post(url, data)
         response_data = response.json()['control_list_entry']
