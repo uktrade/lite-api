@@ -9,7 +9,6 @@ from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
 from static.countries.helpers import get_country
-from static.countries.serializers import CountrySerializer
 from users.models import GovUser
 
 
