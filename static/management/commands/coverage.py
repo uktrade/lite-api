@@ -41,21 +41,21 @@ class Command(BaseCommand):
         self._show_report(report_type, threshold)
 
     def _gather_coverage(self, module_to_run_coverage_on, tests_to_run):
-        gather_coverage_command = ['pipenv', 'run', 'coverage', 'run',
-                                   '--source=./' + (module_to_run_coverage_on if module_to_run_coverage_on else ''),
-                                   'manage.py', 'test']
+        gather_coverage_command = 'pipenv run coverage run --source=./' + \
+                                  (module_to_run_coverage_on if module_to_run_coverage_on else '') + \
+                                  ' manage.py test --parallel=1'
 
         if tests_to_run and tests_to_run != 'all':
             gather_coverage_command.append(tests_to_run)
 
-        print('\n`' + (' '.join(gather_coverage_command)) + '`\n')
-        execute_bash_command(gather_coverage_command)
+        print('\n`' + gather_coverage_command + '`\n')
+        execute_bash_command(gather_coverage_command, shell=True)
 
     def _show_report(self, report_type, threshold):
-        report_coverage_command = ['pipenv', 'run', 'coverage', report_type, '--fail-under=' + threshold]
-        print('\n`' + (' '.join(report_coverage_command)) + '`\n')
+        report_coverage_command = 'pipenv run coverage ' + report_type + ' --fail-under=' + threshold
+        print('\n`' + report_coverage_command + '`\n')
 
-        status = execute_bash_command(report_coverage_command)
+        status = execute_bash_command(report_coverage_command, shell=True)
 
         if report_type == 'html':
             color = 'red' if status == 2 else 'green'
@@ -66,7 +66,7 @@ class Command(BaseCommand):
             f.write(s)
             f.close()
 
-            execute_bash_command(['open', 'htmlcov/index.html'])
+            execute_bash_command('open htmlcov/index.html', shell=True)
         else:
             message = '\n\n--FAILURE--\nCoverage was less than ' + threshold + '%\n' if status == 2 else \
                 '\n\n--SUCCESS--\nCoverage was more than ' + threshold + '%\n'
