@@ -46,20 +46,20 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             }
         return repr_dict
 
-    def validate_nature_of_business(self, attrs):
-        if self.initial_data.get('end_user').get('sub_type') == SubType.COMMERCIAL and not attrs:
+    def validate_nature_of_business(self, value):
+        if self.initial_data.get('end_user').get('sub_type') == SubType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
-    def validate_contact_name(self, attrs):
-        if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_contact_name(self, value):
+        if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
-    def validate_contact_job_title(self, attrs):
-        if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not attrs:
+    def validate_contact_job_title(self, value):
+        if self.initial_data.get('end_user').get('sub_type') != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
-        return attrs
+        return value
 
     def create(self, validated_data):
         end_user_data = validated_data.pop('end_user')

@@ -4,9 +4,10 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.enums import SubType
 from static.countries.models import Country
 from users.serializers import ExporterUserCreateUpdateSerializer
 
@@ -65,10 +66,11 @@ class SiteSerializer(serializers.ModelSerializer):
 class OrganisationCreateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
-    eori_number = serializers.CharField()
-    sic_number = serializers.CharField()
-    vat_number = serializers.CharField()
-    registration_number = serializers.CharField()
+    sub_type = KeyValueChoiceField(choices=SubType.choices)
+    eori_number = serializers.CharField(required=False, allow_blank=True)
+    vat_number = serializers.CharField(required=False, allow_blank=True)
+    sic_number = serializers.CharField(required=False)
+    registration_number = serializers.CharField(required=False)
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteSerializer(write_only=True)
 
@@ -76,6 +78,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         model = Organisation
         fields = ('id',
                   'name',
+                  'sub_type',
                   'eori_number',
                   'sic_number',
                   'vat_number',
@@ -85,11 +88,32 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
                   'user',
                   'site')
 
+    standard_blank_error_message = 'This field may not be blank'
+
+    def validate_eori_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+            raise serializers.ValidationError(self.standard_blank_error_message)
+        return value
+
+    def validate_sic_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+            raise serializers.ValidationError(self.standard_blank_error_message)
+        return value
+
+    def validate_vat_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+            raise serializers.ValidationError(self.standard_blank_error_message)
+        return value
+
+    def validate_registration_number(self, value):
+        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+            raise serializers.ValidationError(self.standard_blank_error_message)
+        return value
+
     @transaction.atomic
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         site_data = validated_data.pop('site')
-
         organisation = Organisation.objects.create(**validated_data)
         user_data['organisation'] = organisation.id
         site_data['address']['country'] = site_data['address']['country'].id
@@ -136,11 +160,13 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
 
 class OrganisationViewSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
+    sub_type = KeyValueChoiceField(SubType.choices)
 
     class Meta:
         model = Organisation
         fields = ('id',
                   'name',
+                  'sub_type',
                   'eori_number',
                   'sic_number',
                   'vat_number',
