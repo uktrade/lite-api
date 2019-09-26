@@ -9,7 +9,7 @@ from applications.libraries.get_applications import get_open_application
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft_with_organisation, get_good_with_organisation, get_draft
 from applications.models import GoodOnApplication
-from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
+from drafts.serializers import GoodOnApplicationCreateSerializer, GoodOnDraftViewSerializer
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
@@ -67,7 +67,7 @@ class DraftGoods(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         with reversion.create_revision():
-            serializer = GoodOnDraftBaseSerializer(data=data)
+            serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
 

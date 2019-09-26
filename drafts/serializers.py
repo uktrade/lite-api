@@ -5,7 +5,8 @@ from rest_framework.serializers import ModelSerializer
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from applications.models import AbstractApplication, GoodOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from applications.models import AbstractApplication, GoodOnApplication, SiteOnApplication, \
+    ExternalLocationOnApplication, StandardApplication
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
@@ -91,9 +92,9 @@ class DraftUpdateSerializer(DraftBaseSerializer):
         return instance
 
 
-class GoodOnDraftBaseSerializer(ModelSerializer):
+class GoodOnApplicationCreateSerializer(ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
-    application = PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
+    application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
     quantity = DecimalField(max_digits=256, decimal_places=6,
                             error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
     value = DecimalField(max_digits=256, decimal_places=2,
