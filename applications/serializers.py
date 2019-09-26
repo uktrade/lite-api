@@ -11,7 +11,8 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import EndUser
-from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer, \
+    AdditionalDocumentSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -73,6 +74,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
+    additional_documents = AdditionalDocumentSerializer(many=True)
 
     # Goods
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
@@ -106,7 +108,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'goods_locations',
                   'goods_types',
                   'consignee',
-                  'third_parties',)
+                  'third_parties',
+                  'additional_documents',)
 
     def get_case(self, instance):
         return Case.objects.get(application=instance).id
