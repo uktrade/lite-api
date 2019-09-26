@@ -17,14 +17,25 @@ class GoodListSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     status = KeyValueChoiceField(choices=GoodStatus.choices)
+    documents = serializers.SerializerMethodField()
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
+
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        if documents:
+            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        return None
 
     class Meta:
         model = Good
         fields = ('id',
                   'description',
                   'control_code',
+                  'is_good_controlled',
                   'part_number',
-                  'status')
+                  'status',
+                  'documents')
 
 
 class GoodSerializer(serializers.ModelSerializer):
