@@ -203,14 +203,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         third_party.save()
         return third_party
 
-    def create_clc_query_case(self, name, status=None):
-        if not status:
-            status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
-        clc_query = self.create_clc_query(name, self.organisation, status)
-        case = Case(query=clc_query, type=CaseType.CLC_QUERY)
-        case.save()
-        return case
-
     def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
         case_note = CaseNote(case=case,
                              text=text,
