@@ -56,36 +56,48 @@ def check_party_document(party):
         return None
 
 
-def check_ultimate_end_user_documents_for_draft(draft):
-    ultimate_end_users = draft.ultimate_end_users.all()
-    for ultimate_end_user in ultimate_end_users:
-        error = check_party_document(ultimate_end_user)
+def check_parties_documents(parties):
+    for party in parties:
+        error = check_party_document(party)
         if error:
             return error
     return None
+
+
+def check_party_error(party, object_not_found_error):
+    if not party:
+        return object_not_found_error
+    else:
+        document_error = check_party_document(party)
+        if document_error:
+            return document_error
 
 
 def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
     """
-    if not draft.end_user:
-        errors['end_user'] = get_string('applications.standard.no_end_user_set')
-    else:
-        end_user_document_error = check_party_document(draft.end_user)
-        if end_user_document_error:
-            errors['end_user_document'] = end_user_document_error
+    end_user_errors = check_party_error(
+        draft.end_user,
+        object_not_found_error=get_string('applications.standard.no_end_user_set')
+    )
+    if end_user_errors:
+        errors['end_user'] = end_user_errors
 
-    if not draft.consignee:
-        errors['consignee'] = get_string('applications.standard.no_consignee_set')
-    else:
-        consignee_document_error = check_party_document(draft.consignee)
-        if consignee_document_error:
-            errors['consignee_document'] = consignee_document_error
+    consignee_errors = check_party_error(
+        draft.consignee,
+        object_not_found_error=get_string('applications.standard.no_consignee_set')
+    )
+    if consignee_errors:
+        errors['consignee'] = consignee_errors
 
-    ultimate_end_user_documents_error = check_ultimate_end_user_documents_for_draft(draft)
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all())
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
+
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all())
+    if third_parties_documents_error:
+        errors['third_parties_documents'] = third_parties_documents_error
 
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
