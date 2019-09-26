@@ -21,4 +21,13 @@ class Migration(migrations.Migration):
             ],
             bases=('documents.document',),
         ),
+        migrations.RemoveField(
+            model_name='applicationdocument',
+            name='application',
+        ),
+        migrations.AddField(
+            model_name='application',
+            name='additional_documents',
+            field=models.ManyToManyField(related_name='additional_documents', to='applications.ApplicationDocument'),
+        ),
     ]
