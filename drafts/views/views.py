@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from conf.authentication import ExporterAuthentication
+from drafts.libraries.draft_helpers import get_serializer_for_draft
 from drafts.libraries.get_drafts import get_draft_with_organisation
 from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -32,7 +32,7 @@ class DraftList(APIView):
         data = request.data
         data['organisation'] = str(organisation.id)
 
-        # Use generic serializer to validate all types of application
+        # Use generic serializer to validate all types of application as we may not yet know the application type
         serializer = DraftCreateSerializer(data=data)
 
         if serializer.is_valid():
@@ -61,12 +61,9 @@ class DraftDetail(APIView):
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft_with_organisation(pk, organisation)
+        draft = get_draft_with_organisation(pk=pk, organisation=organisation)
 
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            serializer = StandardApplicationSerializer(draft)
-        else:
-            serializer = OpenApplicationSerializer(draft)
+        serializer = get_serializer_for_draft(draft)
 
         return JsonResponse(data={'draft': serializer.data})
 

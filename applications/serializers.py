@@ -185,7 +185,7 @@ class OpenApplicationSerializer(AbstractApplicationSerializer):
         """
         For open applications, destinations are countries
         """
-        countries = Country.objects.filter(countries_on_application__open_application=application)
+        countries = Country.objects.filter(countries_on_application__application=application)
         serializer = CountrySerializer(countries, many=True)
         return {'type': 'countries', 'data': serializer.data}
 

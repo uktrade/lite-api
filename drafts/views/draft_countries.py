@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft, get_draft_with_organisation
 from applications.models import CountryOnApplication
@@ -21,11 +22,13 @@ class DraftCountries(APIView):
         View countries belonging to an open licence draft
         """
         draft = get_draft(pk)
+        countries_data = list()
 
-        countries_ids = CountryOnApplication.objects.filter(application=draft).values_list('country', flat=True)
-        countries = Country.objects.filter(id__in=countries_ids)
-        serializer = CountrySerializer(countries, many=True)
-        return JsonResponse(data={'countries': serializer.data})
+        if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
+            countries = Country.objects.filter(countries_on_application__application=draft)
+            countries_data = CountrySerializer(countries, many=True).data
+
+        return JsonResponse(data={'countries': countries_data})
 
     @transaction.atomic
     def post(self, request, pk):

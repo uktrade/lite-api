@@ -37,7 +37,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'is_good_end_product',
                   'content_type',
                   'content_type_name',
-                  'object_id',
+                  'open_application',
                   'content_object'
                   )
 

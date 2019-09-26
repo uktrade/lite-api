@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.get_applications import get_standard_application
+from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
 from drafts.libraries.get_drafts import get_draft
 from parties.helpers import delete_party_document_if_exists
@@ -50,10 +50,14 @@ class DraftUltimateEndUsers(APIView):
         """
         Get ultimate end users associated with a draft
         """
-        draft = get_standard_application(pk)
-        serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
+        draft = get_draft(pk)
 
-        return JsonResponse(data={'ultimate_end_users': serializer.data})
+        ultimate_end_users_data = list()
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            ultimate_end_users_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
+
+        return JsonResponse(data={'ultimate_end_users': ultimate_end_users_data})
 
     def post(self, request, pk):
         """
@@ -115,10 +119,13 @@ class DraftThirdParties(APIView):
         """
         Get third parties associated with a draft
         """
-        draft = get_standard_application(pk)
-        serializer = ThirdPartySerializer(draft.third_parties, many=True)
+        draft = get_draft(pk)
+        third_party_data = list()
 
-        return JsonResponse(data={'third_parties': serializer.data})
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            third_party_data = ThirdPartySerializer(draft.third_parties, many=True).data
+
+        return JsonResponse(data={'third_parties': third_party_data})
 
     def post(self, request, pk):
         """

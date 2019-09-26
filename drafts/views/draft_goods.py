@@ -4,9 +4,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_open_application
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_drafts import get_draft_with_organisation, get_good_with_organisation
+from drafts.libraries.get_drafts import get_draft_with_organisation, get_good_with_organisation, get_draft
 from applications.models import GoodOnApplication
 from drafts.serializers import GoodOnDraftBaseSerializer, GoodOnDraftViewSerializer
 from goods.models import GoodDocument
@@ -25,10 +26,14 @@ class DraftGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        open_application = get_open_application(pk)
-        goods_types = GoodsType.objects.filter(open_application=open_application)
-        serializer = GoodsTypeSerializer(goods_types, many=True)
-        return JsonResponse(data={'goods': serializer.data})
+        draft = get_draft(pk)
+        goods_types_data = list()
+
+        if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
+            goods_types = GoodsType.objects.filter(open_application=draft)
+            goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
+
+        return JsonResponse(data={'goods': goods_types_data})
 
 
 class DraftGoods(APIView):
@@ -40,9 +45,13 @@ class DraftGoods(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)
 
-        goods = GoodOnApplication.objects.filter(application=draft)
-        serializer = GoodOnDraftViewSerializer(goods, many=True)
-        return JsonResponse(data={'goods': serializer.data})
+        goods_data = list()
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            goods = GoodOnApplication.objects.filter(application=draft)
+            goods_data = GoodOnDraftViewSerializer(goods, many=True).data
+
+        return JsonResponse(data={'goods': goods_data})
 
     def post(self, request, pk):
         data = JSONParser().parse(request)
