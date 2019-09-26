@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application
+from applications.models import Application, ApplicationDocument
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
@@ -63,11 +63,24 @@ class ApplicationList(APIView):
                                       organisation=draft.organisation,
                                       status=get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
+            additional_documents = draft.draftdocument_set.all()
+            for document in additional_documents:
+                application_document = ApplicationDocument.objects.create(
+                    description=document.description,
+                    name=document.name,
+                    s3_key=document.s3_key,
+                    size=document.size,
+                    virus_scanned_at=document.virus_scanned_at,
+                    safe=document.safe,
+                    created_at=document.created_at
+                )
+                application.additional_documents.add(application_document)
+                document.delete()
+
             errors = {}
 
             # Generic errors
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+            if not SiteOnDraft.objects.filter(draft=draft) and not ExternalLocationOnDraft.objects.filter(draft=draft):
                 errors['location'] = get_string('applications.generic.no_location_set')
 
             # Create the application depending on type
