@@ -77,15 +77,19 @@ def create_standard_licence(draft, application, errors):
     """
     Create a standard licence application
     """
-    errors['end_user'] = check_party_error(
+    end_user_errors = check_party_error(
         draft.end_user,
         object_not_found_error=get_string('applications.standard.no_end_user_set')
     )
+    if end_user_errors:
+        errors['end_user'] = end_user_errors
 
-    errors['consignee'] = check_party_error(
+    consignee_errors = check_party_error(
         draft.consignee,
         object_not_found_error=get_string('applications.standard.no_consignee_set')
     )
+    if consignee_errors:
+        errors['consignee'] = consignee_errors
 
     ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all())
     if ultimate_end_user_documents_error:
