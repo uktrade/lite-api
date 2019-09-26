@@ -59,7 +59,7 @@ class EndUserAdvisoriesList(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
 
-class EndUserAdvisoriesDetail(APIView):
+class EndUserAdvisoryDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -98,3 +98,7 @@ class EndUserAdvisoriesDetail(APIView):
                 return JsonResponse(data={'end_user_advisory': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EndUserAdvisorysDetail(object):
+    pass
