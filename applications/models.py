@@ -4,6 +4,7 @@ import reversion
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
+from documents.models import Document
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -11,6 +12,11 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
+
+
+@reversion.register()
+class ApplicationDocument(Document):
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)
 
 
 @reversion.register()
@@ -34,6 +40,7 @@ class Application(models.Model):
     consignee = models.ForeignKey(Consignee, related_name='application_consignee', on_delete=models.CASCADE,
                                   default=None, blank=True, null=True)
     third_parties = models.ManyToManyField(ThirdParty, related_name='application_third_parties')
+    additional_documents = models.ManyToManyField(ApplicationDocument, related_name='additional_documents')
 
 
 @reversion.register()
