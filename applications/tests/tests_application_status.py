@@ -4,7 +4,7 @@ from rest_framework import status
 
 from applications.models import ApplicationDenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from test_helpers.clients import DataTestClient
 
 
@@ -35,7 +35,7 @@ class ApplicationDenialTests(DataTestClient):
         application_denial_reason = ApplicationDenialReason.objects.get(application=self.standard_application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
+        self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW))
         self.assertEqual(application_denial_reason.reason_details,
                          data.get('reason_details'))
         self.assertEqual(application_denial_reason.reasons.all().count(),
