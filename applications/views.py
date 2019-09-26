@@ -10,7 +10,7 @@ from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
 from applications.models import Application
-from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
+from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -34,7 +34,7 @@ class ApplicationList(APIView):
         organisation = get_organisation_by_user(request.user)
 
         applications = Application.objects.filter(organisation=organisation).order_by('created_at')
-        serializer = ApplicationBaseSerializer(applications, many=True)
+        serializer = ApplicationListSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 
