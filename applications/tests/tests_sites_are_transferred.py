@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import AbstractApplication, SiteOnApplication
+from applications.models import BaseApplication, SiteOnApplication
 from test_helpers.clients import DataTestClient
 
 
@@ -15,7 +15,7 @@ class ApplicationsTests(DataTestClient):
         data = {'id': draft.id}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
-        application = AbstractApplication.objects.get()
+        application = BaseApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SiteOnApplication.objects.filter(application=application).count(), 1)

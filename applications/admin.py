@@ -1,10 +1,10 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 
-from .models import AbstractApplication
+from .models import BaseApplication
 
 
-@admin.register(AbstractApplication)
+@admin.register(BaseApplication)
 class ApplicationModelAdmin(VersionAdmin):
 
     pass

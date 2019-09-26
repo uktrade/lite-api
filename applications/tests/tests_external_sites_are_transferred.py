@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationLicenceType
-from applications.models import AbstractApplication, ExternalLocationOnApplication, SiteOnApplication
+from applications.models import BaseApplication, ExternalLocationOnApplication, SiteOnApplication
 from drafts.models import GoodOnDraft, ExternalLocationOnDraft
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -31,7 +31,7 @@ class ApplicationsTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExternalLocationOnApplication.objects.count(), 2)
-        application = AbstractApplication.objects.get()
+        application = BaseApplication.objects.get()
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=application).count(), 2)
         self.assertEqual(SiteOnApplication.objects.filter(application=application).count(), 0)
         self.assertEqual(application.activity, 'Brokering')

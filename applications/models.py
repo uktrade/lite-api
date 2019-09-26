@@ -12,7 +12,7 @@ from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
 
-class AbstractApplication(models.Model):
+class BaseApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
@@ -33,12 +33,12 @@ class AbstractApplication(models.Model):
 class SiteOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     site = models.ForeignKey(Site, related_name='sites_on_application', on_delete=models.CASCADE)
-    application = models.ForeignKey(AbstractApplication, related_name='application_sites', on_delete=models.CASCADE)
+    application = models.ForeignKey(BaseApplication, related_name='application_sites', on_delete=models.CASCADE)
 
 
 class ApplicationDenialReason(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.ForeignKey(AbstractApplication, related_name='application_denial_reason',
+    application = models.ForeignKey(BaseApplication, related_name='application_denial_reason',
                                     on_delete=models.CASCADE)
     reasons = models.ManyToManyField(DenialReason)
     reason_details = models.TextField(default=None, blank=True, null=True, max_length=2200)
@@ -48,11 +48,11 @@ class ExternalLocationOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     external_location = models.ForeignKey(ExternalLocation, related_name='external_locations_on_application',
                                           on_delete=models.CASCADE)
-    application = models.ForeignKey(AbstractApplication, related_name='external_application_sites',
+    application = models.ForeignKey(BaseApplication, related_name='external_application_sites',
                                     on_delete=models.CASCADE)
 
 
-class StandardApplication(AbstractApplication):
+class StandardApplication(BaseApplication):
     end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='application_ultimate_end_users')
@@ -61,7 +61,7 @@ class StandardApplication(AbstractApplication):
     third_parties = models.ManyToManyField(ThirdParty, related_name='application_third_parties')
 
 
-class OpenApplication(AbstractApplication):
+class OpenApplication(BaseApplication):
     pass
 
 

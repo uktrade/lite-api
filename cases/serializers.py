@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.serializers import AbstractApplicationSerializer
+from applications.enums import ApplicationLicenceType
+from applications.models import StandardApplication, OpenApplication
+from applications.serializers import BaseApplicationSerializer, StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, FinalAdvice
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
+    FinalAdvice
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from content_strings.strings import get_string
@@ -27,12 +30,22 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    application = AbstractApplicationSerializer(read_only=True)
+    application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
         fields = ('id', 'type', 'application', 'query',)
+
+    def get_application(self, instance):
+        # The case has a reference to a BaseApplication but we need the full details of the standard/open
+        # application below
+        if instance.application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            standard_application = StandardApplication.objects.get(pk=instance.application.id)
+            return StandardApplicationSerializer(standard_application).data
+        else:
+            open_application = OpenApplication.objects.get(pk=instance.application.id)
+            return OpenApplicationSerializer(open_application).data
 
     def to_representation(self, value):
         """
@@ -259,7 +272,8 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                 del repr_dict['proviso']
 
             if instance.type == AdviceType.REFUSE:
-                repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+                repr_dict['denial_reasons'] = convert_queryset_to_str(
+                    instance.denial_reasons.values_list('id', flat=True))
             else:
                 del repr_dict['denial_reasons']
 

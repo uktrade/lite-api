@@ -54,7 +54,7 @@ class DraftExternalLocations(APIView):
 
         # Delete existing ExternalLocationsOnDrafts
         if data.get('method') != 'append_location':
-            ExternalLocationOnApplication.objects.filter(draft=draft).delete()
+            ExternalLocationOnApplication.objects.filter(application=draft).delete()
 
         # Append new ExternalLocationOnDrafts
         response_data = []
@@ -69,7 +69,7 @@ class DraftExternalLocations(APIView):
                                     status=400)
 
         # Deletes any sites on the draft if an external location is being added
-        SiteOnApplication.objects.filter(draft=draft).delete()
+        SiteOnApplication.objects.filter(application=draft).delete()
 
         return JsonResponse(data={'external_locations': response_data},
                             status=status.HTTP_201_CREATED)

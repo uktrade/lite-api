@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import AbstractApplication
+from applications.models import BaseApplication
 from content_strings.strings import get_string
 from drafts.models import GoodOnDraft
 from goods.models import Good
@@ -41,7 +41,7 @@ class ApplicationUltimateEndUserTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(AbstractApplication.objects.get().ultimate_end_users.first(), ultimate_end_user)
+        self.assertEqual(BaseApplication.objects.get().ultimate_end_users.first(), ultimate_end_user)
 
     def test_submit_draft_with_no_ultimate_end_users_unsuccessful(self):
         """

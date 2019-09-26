@@ -30,7 +30,7 @@ class DraftGoodsType(APIView):
         goods_types_data = list()
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-            goods_types = GoodsType.objects.filter(open_application=draft)
+            goods_types = GoodsType.objects.filter(application=draft)
             goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={'goods': goods_types_data})

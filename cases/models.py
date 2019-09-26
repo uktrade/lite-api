@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from applications.models import AbstractApplication
+from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from documents.models import Document
@@ -29,7 +29,7 @@ class Case(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
-    application = models.ForeignKey(AbstractApplication, related_name='case', on_delete=models.CASCADE, null=True)
+    application = models.ForeignKey(BaseApplication, related_name='case', on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')

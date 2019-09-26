@@ -1,9 +1,7 @@
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
-from applications.models import AbstractApplication
+from applications.models import OpenApplication
 from conf.helpers import str_to_bool
-from drafts.serializers import DraftBaseSerializer
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 
@@ -12,21 +10,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
-    content_type_name = serializers.CharField(source='content_type.model', read_only=True)
-    content_object = serializers.SerializerMethodField(read_only=True)
-    content_type = serializers.CharField()
-
-    def validate_content_type(self, value):
-        return ContentType.objects.get(model=value)
-
-    def get_content_object(self, obj):
-        """
-        Gets the content object of draft or application
-        """
-        from applications.serializers import AbstractApplicationSerializer
-        if type(obj) == AbstractApplication:
-            return AbstractApplicationSerializer(obj.content_object).data
-        return DraftBaseSerializer(obj.content_object).data
+    application = serializers.PrimaryKeyRelatedField(queryset=OpenApplication.objects.all())
 
     class Meta:
         model = GoodsType
@@ -35,10 +19,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'is_good_controlled',
                   'control_code',
                   'is_good_end_product',
-                  'content_type',
-                  'content_type_name',
-                  'open_application',
-                  'content_object'
+                  'application',
                   )
 
     def __init__(self, *args, **kwargs):

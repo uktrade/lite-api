@@ -17,6 +17,6 @@ class GoodsType(models.Model):
     control_code = models.TextField(default=None, blank=True, null=True)
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
     limit = models.Q(app_label='applications', model='application')
-    open_application = models.ForeignKey(OpenApplication, on_delete=models.CASCADE, related_name='open_application',
-                                         null=False)
+    application = models.ForeignKey(OpenApplication, on_delete=models.CASCADE, related_name='open_application',
+                                    null=False)
     flags = models.ManyToManyField(Flag, related_name='goods_type')

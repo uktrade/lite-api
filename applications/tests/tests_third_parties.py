@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import AbstractApplication, GoodOnApplication
+from applications.models import BaseApplication, GoodOnApplication
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -48,4 +48,4 @@ class ApplicationThirdPartyTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(AbstractApplication.objects.get().third_parties.first(), third_party)
+        self.assertEqual(BaseApplication.objects.get().third_parties.first(), third_party)

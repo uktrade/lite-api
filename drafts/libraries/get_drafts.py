@@ -1,22 +1,22 @@
 from django.http import Http404
 
 from applications.enums import ApplicationLicenceType
-from applications.models import AbstractApplication, StandardApplication, OpenApplication
+from applications.models import BaseApplication, StandardApplication, OpenApplication
 from goods.models import Good
 
 
 def get_draft_type(pk):
-    type = AbstractApplication.objects.get(pk=pk).licence_type
+    type = BaseApplication.objects.get(pk=pk).licence_type
 
     return type
 
 
 def get_drafts():
-    return AbstractApplication.objects.filter(submitted_at__isnull=True)
+    return BaseApplication.objects.filter(submitted_at__isnull=True)
 
 
 def get_drafts_with_organisation(organisation):
-    return AbstractApplication.objects.filter(organisation=organisation, submitted_at__isnull=True)
+    return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=True)
 
 
 def get_draft(pk):

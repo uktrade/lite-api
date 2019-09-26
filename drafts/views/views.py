@@ -5,11 +5,11 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import AbstractApplicationSerializer
+from applications.serializers import BaseApplicationSerializer
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.draft_helpers import get_serializer_for_draft
+from applications.libraries.application_helpers import get_serializer_for_application
 from drafts.libraries.get_drafts import get_draft_with_organisation
-from drafts.serializers import DraftBaseSerializer, DraftCreateSerializer, DraftUpdateSerializer
+from drafts.serializers import DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from drafts.libraries.get_drafts import get_drafts_with_organisation
 
@@ -25,7 +25,7 @@ class DraftList(APIView):
 
         drafts = get_drafts_with_organisation(organisation)
 
-        serializer = AbstractApplicationSerializer(drafts, many=True)
+        serializer = BaseApplicationSerializer(drafts, many=True)
         return JsonResponse(data={'drafts': serializer.data})
 
     def post(self, request):
@@ -64,7 +64,7 @@ class DraftDetail(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk=pk, organisation=organisation)
 
-        serializer = get_serializer_for_draft(draft)
+        serializer = get_serializer_for_application(draft)
 
         return JsonResponse(data={'draft': serializer.data})
 

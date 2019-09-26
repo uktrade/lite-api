@@ -5,7 +5,7 @@ from rest_framework.serializers import ModelSerializer
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
-from applications.models import AbstractApplication, GoodOnApplication, SiteOnApplication, \
+from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, \
     ExternalLocationOnApplication, StandardApplication
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
@@ -26,7 +26,7 @@ class DraftBaseSerializer(ModelSerializer):
     consignee = ConsigneeSerializer()
 
     class Meta:
-        model = AbstractApplication
+        model = BaseApplication
         fields = ('id',
                   'name',
                   'activity',
@@ -56,7 +56,7 @@ class DraftCreateSerializer(DraftBaseSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
-        model = AbstractApplication
+        model = BaseApplication
         fields = ('id',
                   'name',
                   'licence_type',
@@ -128,7 +128,7 @@ class GoodOnDraftViewSerializer(ModelSerializer):
 
 
 class SiteOnDraftBaseSerializer(ModelSerializer):
-    application = PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
+    application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     site = PrimaryKeyRelatedField(queryset=Site.objects.all())
 
     class Meta:
@@ -150,7 +150,7 @@ class SiteOnDraftViewSerializer(ModelSerializer):
 
 
 class ExternalLocationOnDraftSerializer(ModelSerializer):
-    application = PrimaryKeyRelatedField(queryset=AbstractApplication.objects.all())
+    application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
 
     class Meta:
