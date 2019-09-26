@@ -4,8 +4,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def init(apps, schema_editor):
-
+def initialize(apps, schema_editor):
     Permission = apps.get_model('users', 'Permission')
     if not Permission.objects.filter(id='MANAGE_TEAM_ADVICE'):
         permission = Permission(id='MANAGE_TEAM_ADVICE',
@@ -17,6 +16,11 @@ def init(apps, schema_editor):
                                 name='Manage final advice')
         permission.save()
         Permission.objects.get(id='MAKE_FINAL_DECISIONS').delete()
+
+
+def destroy(apps, schema_editor):
+    Permission = apps.get_model('users', 'Permission')
+    Permission.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -47,5 +51,5 @@ class Migration(migrations.Migration):
             ],
             bases=('cases.advice',),
         ),
-        migrations.RunPython(init),
+        migrations.RunPython(initialize, destroy),
     ]

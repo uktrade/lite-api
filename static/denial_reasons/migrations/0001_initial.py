@@ -6,7 +6,7 @@ from django.db import migrations, models
 from conf.helpers import str_to_bool
 
 
-def init(apps, schema_editor):
+def initialize(apps, schema_editor):
     # We can't import the Queue model directly as it may be a newer
     # version than this migration expects. We use the historical version.
     DenialReason = apps.get_model('denial_reasons', 'DenialReason')
@@ -20,6 +20,11 @@ def init(apps, schema_editor):
             denial_reason, created = DenialReason.objects.get_or_create(id=item_id)
             denial_reason.deprecated = item_is_deprecated
             denial_reason.save()
+
+
+def destroy(apps, schema_editor):
+    DenialReason = apps.get_model('denial_reasons', 'DenialReason')
+    DenialReason.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -37,5 +42,5 @@ class Migration(migrations.Migration):
                 ('deprecated', models.BooleanField(default=False)),
             ],
         ),
-        migrations.RunPython(init),
+        migrations.RunPython(initialize, destroy),
     ]
