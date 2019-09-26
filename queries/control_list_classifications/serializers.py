@@ -9,7 +9,7 @@ from organisations.serializers import TinyOrganisationViewSerializer
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class ClcQuerySerializer(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class ClcQueryResponseSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.comment = validated_data.get('comment')
         instance.report_summary = validated_data.get('report_summary').text
-        instance.status = get_case_status_from_status(CaseStatusEnum.FINALISED)
+        instance.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
 
         # Update the good's details
         instance.good.is_good_controlled = validated_data.get('is_good_controlled')
