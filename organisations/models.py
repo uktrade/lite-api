@@ -48,9 +48,6 @@ class Site(models.Model):
     address = models.ForeignKey(Address, related_name='site', on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, blank=True, null=True, related_name='site', on_delete=models.CASCADE)
 
-    class Meta:
-        ordering = ['name']
-
 
 class ExternalLocation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
