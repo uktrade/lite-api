@@ -14,7 +14,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    FullGoodSerializer
+    FullGoodSerializer, GoodListSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -35,7 +35,7 @@ class GoodList(APIView):
                                     description__icontains=description,
                                     part_number__icontains=part_number,
                                     control_code__icontains=control_rating).order_by('description')
-        serializer = GoodSerializer(goods, many=True)
+        serializer = GoodListSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data})
 
     def post(self, request):

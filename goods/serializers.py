@@ -13,6 +13,20 @@ from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
 
+class GoodListSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(max_length=280)
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    status = KeyValueChoiceField(choices=GoodStatus.choices)
+
+    class Meta:
+        model = Good
+        fields = ('id',
+                  'description',
+                  'control_code',
+                  'part_number',
+                  'status')
+
+
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
