@@ -2,6 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity
 from test_helpers.clients import DataTestClient
 
 
@@ -45,6 +47,24 @@ class MoveCasesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(set(self.case.queues.values_list('id', flat=True)), set(no_queues_data['queues']))
+
+    def test_case_activity_created(self):
+        self.assertEqual(CaseActivity.objects.all().count(), 0)
+
+        queues_data = {'queues': [queue.id for queue in self.queues]}
+
+        self.client.put(self.url, data=queues_data, **self.gov_headers)
+
+        add_case_activity = CaseActivity.objects.first()
+        self.assertEqual(add_case_activity.type, CaseActivityType.MOVE_CASE)
+
+        no_queues_data = {'queues': []}
+
+        self.client.put(self.url, data=no_queues_data, **self.gov_headers)
+
+        remove_case_activity = CaseActivity.objects.last()
+        self.assertEqual(remove_case_activity.type, CaseActivityType.REMOVE_CASE)
+        self.assertEqual(CaseActivity.objects.all().count(), 2)
 
     @parameterized.expand([
         # Invalid Queues
