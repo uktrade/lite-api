@@ -67,15 +67,10 @@ class Countries(APIView):
         """
         data = JSONParser().parse(request)
 
-        # validate request data
-        for pk in data:
-            get_goods_type(pk)
-            for country_code in data.get(pk):
+        for good, countries in data.items():
+            good = get_goods_type(good)
+            for country_code in countries:
                 get_country(country_code)
-
-        # persist
-        for pk in data:
-            good = get_goods_type(pk)
-            good.countries.set(data.get(pk))
+            good.countries.set(countries)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
