@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not options['safe'] or options['safe'] != 'False':
-            print('\nSafely removing database..\n')
+            print('\nSafely dropping all database tables..\n')
             execute_bash_command('./manage.py flush --no-input', shell=True)
             for app in apps.get_app_configs():
                 if app.get_models():
@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     app_name = app.name[app_name_index + 1:] if app_name_index > -1 else app.name
                     execute_bash_command('./manage.py migrate ' + app_name.lower() + ' zero', shell=True)
         else:
-            print('\nForcefully removing database..\n')
+            print('\nForcefully dropping all database tables..\n')
             with connection.cursor() as cursor:
                 sql = """DO $$ DECLARE r RECORD;BEGIN FOR r IN (SELECT tablename FROM 
                       pg_catalog.pg_tables WHERE schemaname = 'public\' AND tableowner != 'rdsadmin') 
