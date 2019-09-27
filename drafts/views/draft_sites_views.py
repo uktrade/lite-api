@@ -4,10 +4,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication
 from applications.libraries.get_applications import get_draft
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from drafts.serializers import SiteOnDraftBaseSerializer
+from applications.serializers import SiteOnApplicationCreateSerializer
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
@@ -65,7 +65,7 @@ class DraftSites(APIView):
         # Append new SitesOnDrafts
         response_data = []
         for site in sites:
-            serializer = SiteOnDraftBaseSerializer(data={'site': site, 'application': str(pk)})
+            serializer = SiteOnApplicationCreateSerializer(data={'site': site, 'application': str(pk)})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

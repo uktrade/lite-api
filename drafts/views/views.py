@@ -1,4 +1,3 @@
-import reversion
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -9,7 +8,6 @@ from applications.libraries.get_applications import get_draft_with_organisation,
 from applications.models import StandardApplication, OpenApplication
 from applications.serializers import BaseApplicationSerializer
 from conf.authentication import ExporterAuthentication
-from drafts.serializers import DraftCreateSerializer, DraftUpdateSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
@@ -33,7 +31,7 @@ class DraftList(APIView):
         data['organisation'] = str(organisation.id)
 
         # Use generic serializer to validate all types of application as we may not yet know the application type
-        serializer = DraftCreateSerializer(data=data)
+        serializer = ApplicationCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.validated_data['organisation'] = organisation
@@ -67,24 +65,19 @@ class DraftDetail(APIView):
 
         return JsonResponse(data={'draft': serializer.data})
 
-    def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-
-        with reversion.create_revision():
-            serializer = DraftUpdateSerializer(get_draft_with_organisation(pk, organisation),
-                                               data=request.data,
-                                               partial=True)
-            if serializer.is_valid():
-                serializer.save()
-
-                # Store version meta-information
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Draft Revision")
-
-                return JsonResponse(data={'draft': serializer.data},
-                                    status=status.HTTP_200_OK)
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+    # def put(self, request, pk):
+    #     organisation = get_organisation_by_user(request.user)
+    #
+    #     serializer = DraftUpdateSerializer(get_draft_with_organisation(pk, organisation),
+    #                                        data=request.data,
+    #                                        partial=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #
+    #         return JsonResponse(data={'draft': serializer.data},
+    #                             status=status.HTTP_200_OK)
+    #     return JsonResponse(data={'errors': serializer.errors},
+    #                         status=400)
 
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)

@@ -14,7 +14,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    FullGoodSerializer
+    GoodWithFlagsSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -85,7 +85,7 @@ class GoodDetail(APIView):
             except ControlListClassificationQuery.DoesNotExist:
                 pass
         else:
-            serializer = FullGoodSerializer(good)
+            serializer = GoodWithFlagsSerializer(good)
 
         return JsonResponse(data={'good': serializer.data})
 

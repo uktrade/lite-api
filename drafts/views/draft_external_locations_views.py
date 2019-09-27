@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from conf.authentication import ExporterAuthentication
 from applications.libraries.get_applications import get_draft
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from drafts.serializers import ExternalLocationOnDraftSerializer
+from applications.serializers import ExternalLocationOnApplicationSerializer
 from organisations.libraries.get_external_location import get_external_location_with_organisation
 from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.models import ExternalLocation
@@ -59,7 +59,7 @@ class DraftExternalLocations(APIView):
         # Append new ExternalLocationOnDrafts
         response_data = []
         for external_location in external_locations:
-            serializer = ExternalLocationOnDraftSerializer(
+            serializer = ExternalLocationOnApplicationSerializer(
                 data={'external_location': external_location, 'application': str(pk)})
             if serializer.is_valid():
                 serializer.save()

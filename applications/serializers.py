@@ -1,17 +1,17 @@
 from rest_framework import serializers
+from rest_framework.fields import DecimalField, ChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType
-from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
-    OpenApplication, ApplicationDocument
+    OpenApplication, ApplicationDocument, ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
-from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
-from goods.serializers import FullGoodSerializer
+from goods.models import Good
+from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation
@@ -20,14 +20,12 @@ from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, Co
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
 
-class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
-    good = FullGoodSerializer(read_only=True)
+class GoodOnApplicationWithFlagsViewSerializer(serializers.ModelSerializer):
+    good = GoodWithFlagsSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
@@ -37,6 +35,41 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
                   'quantity',
                   'unit',
                   'value',)
+
+
+class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
+    good = GoodSerializer(read_only=True)
+    unit = KeyValueChoiceField(choices=Units.choices)
+
+    class Meta:
+        model = GoodOnApplication
+        fields = ('id',
+                  'good',
+                  'application',
+                  'quantity',
+                  'unit',
+                  'value')
+
+
+class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
+    good = PrimaryKeyRelatedField(queryset=Good.objects.all())
+    application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
+    quantity = DecimalField(max_digits=256, decimal_places=6,
+                            error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
+    value = DecimalField(max_digits=256, decimal_places=2,
+                         error_messages={'invalid': get_string('goods.error_messages.invalid_value')}),
+    unit = ChoiceField(choices=Units.choices, error_messages={
+        'required': get_string('goods.error_messages.required_unit'),
+        'invalid_choice': get_string('goods.error_messages.required_unit')})
+
+    class Meta:
+        model = GoodOnApplication
+        fields = ('id',
+                  'good',
+                  'application',
+                  'quantity',
+                  'unit',
+                  'value')
 
 
 class DenialReasonSerializer(serializers.ModelSerializer):
@@ -164,7 +197,7 @@ class StandardApplicationSerializer(BaseApplicationSerializer):
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
 
-    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
+    goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
 
     destinations = serializers.SerializerMethodField()
 
@@ -213,71 +246,12 @@ class OpenApplicationSerializer(BaseApplicationSerializer):
 
 class ApplicationUpdateSerializer(BaseApplicationSerializer):
     name = serializers.CharField()
-    usage = serializers.CharField()
-    activity = serializers.CharField()
-    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
-    reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
-
-    def validate_reasons(self, attrs):
-        if not attrs or len(attrs) == 0:
-            raise serializers.ValidationError('Select at least one denial reason')
-        return attrs
 
     class Meta:
         model = BaseApplication
-        fields = ('id',
-                  'name',
-                  'organisation',
-                  'activity',
-                  'usage',
-                  'goods',
-                  'created_at',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status',
-                  'licence_type',
-                  'export_type',
-                  'reasons',
-                  'reason_details',
-                  'reference_number_on_information_form',)
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Application` instance, given the
-        validated data.
-        """
-        instance.name = validated_data.get('name', instance.name)
-        instance.activity = validated_data.get('activity', instance.activity)
-        instance.usage = validated_data.get('usage', instance.usage)
-        instance.status = validated_data.get('status', instance.status)
-        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
-        instance.export_type = validated_data.get('export_type', instance.export_type)
-        instance.reference_number_on_information_form = validated_data.get(
-            'reference_number_on_information_form', instance.reference_number_on_information_form)
-
-        # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
-
-        # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
-            data = {'application': instance.id,
-                    'reason_details': validated_data.get('reason_details'),
-                    'reasons': validated_data.get('reasons')}
-
-            application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
-            if application_denial_reason_serializer.is_valid():
-                # Delete existing ApplicationDenialReasons
-                ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
-
-                # Create a new ApplicationDenialReasons
-                application_denial_reason_serializer.save()
-            else:
-                raise serializers.ValidationError('An error occurred')
-
-        instance.save()
-        return instance
+        fields = ('name',
+                  'status',)
 
 
 class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
@@ -302,40 +276,6 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
                   'application',)
 
 
-class ApplicationCaseNotesSerializer(BaseApplicationSerializer):
-    case = serializers.SerializerMethodField()
-    case_notes = serializers.SerializerMethodField()
-
-    def get_case_notes(self, obj):
-        from cases.serializers import CaseNoteSerializer
-        data = get_case_notes_from_case(Case.objects.get(application=obj.id), True)
-        return CaseNoteSerializer(data, many=True).data
-
-    def get_status(self, instance):
-        return instance.status.status
-
-    class Meta:
-        model = BaseApplication
-        fields = ('id',
-                  'name',
-                  'organisation',
-                  'activity',
-                  'usage',
-                  'goods',
-                  'created_at',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status',
-                  'licence_type',
-                  'export_type',
-                  'reference_number_on_information_form',
-                  'application_denial_reason',
-                  'destinations',
-                  'goods_locations',
-                  'case_notes',
-                  'case',)
-
-
 class ApplicationDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -347,3 +287,14 @@ class ApplicationDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
+
+
+class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
+    application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
+    external_location = PrimaryKeyRelatedField(queryset=ExternalLocation.objects.all())
+
+    class Meta:
+        model = ExternalLocationOnApplication
+        fields = ('id',
+                  'external_location',
+                  'application',)

@@ -5,10 +5,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from conf.authentication import ExporterAuthentication
 from applications.libraries.get_applications import get_draft_with_organisation, get_draft
 from applications.models import GoodOnApplication
-from drafts.serializers import GoodOnApplicationCreateSerializer, GoodOnDraftViewSerializer
+from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
+from conf.authentication import ExporterAuthentication
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -49,7 +49,7 @@ class DraftGoods(APIView):
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             goods = GoodOnApplication.objects.filter(application=draft)
-            goods_data = GoodOnDraftViewSerializer(goods, many=True).data
+            goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={'goods': goods_data})
 

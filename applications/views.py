@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timezone
 
-import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -61,27 +60,26 @@ class ApplicationDetail(APIView):
         """
         application = get_application(pk)
 
-        with reversion.create_revision():
-            data = json.loads(request.body)
+        data = json.loads(request.body)
 
-            # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-            if data.get('status') == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        if data.get('status') == CaseStatusEnum.FINALISED:
+            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-            request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
+        request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 
-            serializer = ApplicationUpdateSerializer(get_application(pk), data=request.data, partial=True)
+        serializer = ApplicationUpdateSerializer(get_application(pk), data=request.data, partial=True)
 
-            if serializer.is_valid():
-                CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                                    case=application.case.get(),
-                                    user=request.user,
-                                    status=data.get('status'))
+        if serializer.is_valid():
+            CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                                case=application.case.get(),
+                                user=request.user,
+                                status=data.get('status'))
 
-                serializer.save()
-                return JsonResponse(data={'application': serializer.data})
+            serializer.save()
+            return JsonResponse(data={'application': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationSubmission(APIView):
