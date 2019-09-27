@@ -42,7 +42,8 @@ class GoodListSerializer(serializers.ModelSerializer):
                   'is_good_controlled',
                   'part_number',
                   'status',
-                  'documents')
+                  'documents',
+                  'query_id')
 
 
 class GoodSerializer(serializers.ModelSerializer):
