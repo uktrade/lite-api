@@ -69,9 +69,7 @@ class Countries(APIView):
 
         for good, countries in data.items():
             good = get_goods_type(good)
-            if Country.objects.filter(pk__in=countries).count() == len(countries):
-                good.countries.set(countries)
-            else:
+            if not Country.objects.filter(pk__in=countries).count() == len(countries):
                 raise Http404
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
