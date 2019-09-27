@@ -25,6 +25,8 @@ from queries.control_list_classifications.models import ControlListClassificatio
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -221,6 +223,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                                                       contact_job_title='director',
                                                                       nature_of_business='guns')
         return end_user_advisory_query
+
+    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
+        eua_query = self.create_end_user_advisory(note, reasoning, organisation)
+        return eua_query
 
     def create_queue(self, name: str, team: Team):
         queue = Queue(name=name,

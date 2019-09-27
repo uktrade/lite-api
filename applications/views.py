@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application
+from applications.models import Application, ApplicationDocument
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
@@ -21,7 +21,7 @@ from drafts.libraries.get_draft import get_draft_with_organisation
 from drafts.models import SiteOnDraft, ExternalLocationOnDraft
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class ApplicationList(APIView):
@@ -61,13 +61,12 @@ class ApplicationList(APIView):
                                       created_at=draft.created_at,
                                       last_modified_at=draft.last_modified_at,
                                       organisation=draft.organisation,
-                                      status=get_case_status_from_status(CaseStatusEnum.SUBMITTED))
+                                      status=get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
             errors = {}
 
             # Generic errors
-            if len(SiteOnDraft.objects.filter(draft=draft)) == 0 \
-                    and len(ExternalLocationOnDraft.objects.filter(draft=draft)) == 0:
+            if not SiteOnDraft.objects.filter(draft=draft) and not ExternalLocationOnDraft.objects.filter(draft=draft):
                 errors['location'] = get_string('applications.generic.no_location_set')
 
             # Create the application depending on type
@@ -78,6 +77,20 @@ class ApplicationList(APIView):
 
             if not isinstance(application, Application):
                 return application
+
+            additional_documents = draft.draftdocument_set.all()
+            for document in additional_documents:
+                application_document = ApplicationDocument.objects.create(
+                    description=document.description,
+                    name=document.name,
+                    s3_key=document.s3_key,
+                    size=document.size,
+                    virus_scanned_at=document.virus_scanned_at,
+                    safe=document.safe,
+                    created_at=document.created_at
+                )
+                application.additional_documents.add(application_document)
+                document.delete()
 
             # Store meta-information.
             reversion.set_user(request.user)
@@ -123,7 +136,7 @@ class ApplicationDetail(APIView):
             if data.get('status') == CaseStatusEnum.FINALISED:
                 assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
+            request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 
             serializer = ApplicationUpdateSerializer(get_application_by_pk(pk), data=request.data, partial=True)
 
@@ -136,4 +149,4 @@ class ApplicationDetail(APIView):
                 serializer.save()
                 return JsonResponse(data={'application': serializer.data})
 
-            return JsonResponse(data={'errors': serializer.errors}, status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
