@@ -63,23 +63,19 @@ class Countries(APIView):
     @transaction.atomic
     def put(self, request):
         """
-        Accepts dict in style of {goddstype_id: [country_id, country_id]}
+        Accepts {goodstype_id: [country_id, country_id], goodstype_id: [etc...], etc...}
         """
-
         data = JSONParser().parse(request)
-        if data.get('csrfmiddlewaretoken'):
-            data.pop('csrfmiddlewaretoken')
 
-        # validation
-        for assignment in data:
-            get_goods_type(assignment)
-            values = data.get(assignment)
-            for country_code in values:
+        # validate request data
+        for pk in data:
+            get_goods_type(pk)
+            for country_code in data.get(pk):
                 get_country(country_code)
 
         # persist
-        for assignment in data:
-            good = get_goods_type(assignment)
-            good.countries.set(data.get(assignment))
+        for pk in data:
+            good = get_goods_type(pk)
+            good.countries.set(data.get(pk))
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
