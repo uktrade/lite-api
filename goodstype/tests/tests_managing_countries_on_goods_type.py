@@ -26,7 +26,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         for country in self.all_countries:
             CountryOnDraft(draft=self.open_draft, country=country).save()
 
-        self.good_url = reverse('goodstype:goodstypes-detail', kwargs={'pk': self.goods_type_1.id})
+        self.good_url = reverse('goodstype:goodstypes_detail', kwargs={'pk': self.goods_type_1.id})
         self.good_country_url = reverse('goodstype:assign_countries')
 
     def test_no_county_for_goods_type_are_returned(self):
