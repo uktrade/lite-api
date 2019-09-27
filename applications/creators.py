@@ -78,7 +78,7 @@ def validate_open_licence(draft, errors):
     if len(CountryOnApplication.objects.filter(application=draft)) == 0:
         errors['countries'] = get_string('applications.open.no_countries_set')
 
-    results = GoodsType.objects.filter(object_id=draft.id)
+    results = GoodsType.objects.filter(application=draft)
     if not results:
         errors['goods'] = get_string('applications.open.no_goods_set')
 
