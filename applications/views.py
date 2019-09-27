@@ -9,8 +9,9 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_standard_licence, validate_open_licence
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication, ExternalLocationOnApplication, SiteOnApplication
+from applications.libraries.get_applications import get_application, get_applications_with_organisation, \
+    get_draft_with_organisation
+from applications.models import ExternalLocationOnApplication, SiteOnApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
@@ -18,7 +19,6 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
-from drafts.libraries.get_drafts import get_draft_with_organisation
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status
@@ -33,7 +33,7 @@ class ApplicationList(APIView):
         """
         organisation = get_organisation_by_user(request.user)
 
-        applications = BaseApplication.objects.filter(organisation=organisation).order_by('created_at')
+        applications = get_applications_with_organisation(organisation).order_by('created_at')
         serializer = BaseApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})

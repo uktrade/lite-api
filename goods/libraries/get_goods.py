@@ -36,3 +36,15 @@ def get_goods_from_case(case):
         application = BaseApplication.objects.get(case=case)
         goods_on_applications = GoodOnApplication.objects.filter(application=application)
         return [x.good.id for x in goods_on_applications]
+
+
+def get_good_with_organisation(pk, organisation):
+    try:
+        good = Good.objects.get(pk=pk)
+
+        if good.organisation.pk != organisation.pk:
+            raise Http404
+
+        return good
+    except Good.DoesNotExist:
+        raise Http404

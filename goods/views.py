@@ -11,7 +11,7 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.models import Document
 from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
-from goods.libraries.get_good import get_good, get_good_document
+from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     FullGoodSerializer

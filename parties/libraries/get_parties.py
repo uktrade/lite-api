@@ -1,5 +1,5 @@
 from parties.models import UltimateEndUser, ThirdParty
-from drafts.libraries.get_drafts import get_draft
+from applications.libraries.get_applications import get_draft
 
 
 def get_end_user(draft_pk):

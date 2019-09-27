@@ -3,9 +3,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
+from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from parties.document.serializers import PartyDocumentSerializer
-from drafts.libraries.get_party import get_end_user, get_ultimate_end_user, get_consignee, get_third_party
+from parties.libraries.get_parties import get_end_user, get_ultimate_end_user, get_consignee, get_third_party
 
 
 class EndUserDocumentView(APIView):

@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from drafts.libraries.get_drafts import get_draft
+from applications.libraries.get_applications import get_draft
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from drafts.serializers import SiteOnDraftBaseSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
