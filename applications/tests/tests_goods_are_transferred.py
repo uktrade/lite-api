@@ -1,8 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import BaseApplication, GoodOnApplication
-from drafts.models import GoodOnDraft, SiteOnDraft
+from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -12,12 +11,12 @@ class ApplicationsTests(DataTestClient):
     url = reverse('applications:applications')
 
     def test_that_goods_are_added_to_application_when_submitted(self):
-        draft = self.create_draft(self.organisation)
+        draft = self.create_standard_draft(self.organisation)
         good = self.create_controlled_good('test good', self.organisation)
-        SiteOnDraft(site=self.organisation.primary_site, draft=draft).save()
+        SiteOnApplication(site=self.organisation.primary_site, application=draft).save()
 
-        GoodOnDraft(draft=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
-        GoodOnDraft(draft=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
+        GoodOnApplication(application=draft, good=good, quantity=20, unit=Units.NAR, value=400).save()
+        GoodOnApplication(application=draft, good=good, quantity=90, unit=Units.KGM, value=500).save()
         draft.end_user = self.create_end_user('test', self.organisation)
         draft.consignee = self.create_consignee('test', self.organisation)
         self.create_document_for_party(draft.end_user)
@@ -35,12 +34,12 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 2)
 
     def test_that_cannot_submit_with_no_goods(self):
-        draft = self.create_draft(self.organisation)
+        draft = self.create_standard_draft(self.organisation)
         draft.end_user = self.create_end_user("End user", self.organisation)
         self.create_document_for_party(draft.end_user)
         draft.save()
 
-        site_on_draft_1 = SiteOnDraft(site=self.organisation.primary_site, draft=draft)
+        site_on_draft_1 = SiteOnApplication(site=self.organisation.primary_site, application=draft)
         site_on_draft_1.save()
 
         url = reverse('applications:applications')

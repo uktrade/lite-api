@@ -11,7 +11,7 @@ class CountriesOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_open_draft(self.organisation)
 
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 
@@ -38,14 +38,14 @@ class CountriesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         response = self.client.get(self.url, **self.exporter_headers).json()
-        self.assertEqual(len(response['countries']), 0)
+        self.assertEqual(len(response['countries']), 1)
 
     def test_add_countries_to_another_orgs_draft_failure(self):
         """
         Ensure that a user cannot add countries to another organisation's draft
         """
         organisation_2 = self.create_organisation_with_exporter_user()
-        self.draft = self.create_standard_draft(organisation_2)
+        self.draft = self.create_open_draft(organisation_2)
         self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
 
         data = {
@@ -56,4 +56,4 @@ class CountriesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         response = self.client.get(self.url, **self.exporter_headers).json()
-        self.assertEqual(len(response['countries']), 0)
+        self.assertEqual(len(response['countries']), 1)

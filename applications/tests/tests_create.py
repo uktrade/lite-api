@@ -36,7 +36,7 @@ class ApplicationsTests(DataTestClient):
         """
         Ensure we cannot create a new application without a site
         """
-        draft = self.create_draft(self.organisation, ApplicationLicenceType.STANDARD_LICENCE)
+        draft = self.create_standard_draft(self.organisation)
         draft.end_user = self.create_end_user("End user", self.organisation)
         draft.save()
 

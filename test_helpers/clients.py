@@ -1,16 +1,16 @@
 from datetime import datetime
 
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from cases.enums import CaseType, AdviceType
+from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
+    StandardApplication, OpenApplication
+from cases.enums import AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
-from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication
 from flags.models import Flag
 from goods.enums import GoodControlled
 from goods.models import Good, GoodDocument
@@ -295,13 +295,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_assignment.save()
         return case_assignment
 
-    def create_goods_type(self, content_type_model, obj):
+    def create_goods_type(self, application):
         goods_type = GoodsType(description='thing',
                                is_good_controlled=False,
                                control_code='ML1a',
                                is_good_end_product=True,
-                               content_type=ContentType.objects.get(model=content_type_model),
-                               object_id=obj.pk)
+                               application=application)
         goods_type.save()
         return goods_type
 
@@ -341,25 +340,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     # Drafts
 
-    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
-                     reference_name='Standard Draft'):
-        draft = BaseApplication(name=reference_name,
-                                licence_type=licence_type,
-                                export_type=ApplicationExportType.PERMANENT,
-                                have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                reference_number_on_information_form='',
-                                activity='Trade',
-                                usage='Trade',
-                                organisation=organisation)
-        draft.save()
-        return draft
-
     def create_standard_draft_without_end_user_document(self, organisation: Organisation,
                                                         reference_name='Standard Draft'):
         """
         Creates a standard draft application
         """
-        draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
+        draft = StandardApplication(name=reference_name,
+                                    licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                                    export_type=ApplicationExportType.PERMANENT,
+                                    have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                    reference_number_on_information_form='',
+                                    activity='Trade',
+                                    usage='Trade',
+                                    organisation=organisation)
+
+        draft.save()
 
         # Add a good to the standard draft
         GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
@@ -392,11 +387,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates an open draft application
         """
-        draft = self.create_draft(organisation, ApplicationLicenceType.OPEN_LICENCE, reference_name)
+        draft = OpenApplication(name=reference_name,
+                                licence_type=ApplicationLicenceType.OPEN_LICENCE,
+                                export_type=ApplicationExportType.PERMANENT,
+                                have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                reference_number_on_information_form='',
+                                activity='Trade',
+                                usage='Trade',
+                                organisation=organisation)
 
         # Add a goods description
-        self.create_goods_type('draft', draft)
-        self.create_goods_type('draft', draft)
+        self.create_goods_type(draft)
+        self.create_goods_type(draft)
 
         # Add a country to the draft
         CountryOnApplication(application=draft, country=get_country('GB')).save()

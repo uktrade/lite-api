@@ -11,7 +11,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_draft(self.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
         self.url = reverse('drafts:consignee', kwargs={'pk': self.draft.id})
 
     @parameterized.expand([

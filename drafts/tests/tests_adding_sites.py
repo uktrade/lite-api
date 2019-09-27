@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import SiteOnDraft, Draft, ExternalLocationOnDraft
+from applications.models import StandardApplication, SiteOnApplication, ExternalLocationOnApplication
 from test_helpers.clients import DataTestClient
 
 
@@ -24,7 +24,7 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.draft = Draft.objects.get(pk=self.draft.id)
+        self.draft = StandardApplication.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Trading')
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
@@ -44,7 +44,7 @@ class SitesOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.draft = Draft.objects.get(pk=self.draft.id)
+        self.draft = StandardApplication.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Trading')
 
         url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
@@ -113,5 +113,5 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
         self.client.post(self.url, data, **self.exporter_headers)
-        self.assertEqual(SiteOnDraft.objects.filter(draft=draft).count(), 1)
-        self.assertEqual(ExternalLocationOnDraft.objects.filter(draft=draft).count(), 0)
+        self.assertEqual(SiteOnApplication.objects.filter(application=draft).count(), 1)
+        self.assertEqual(ExternalLocationOnApplication.objects.filter(application=draft).count(), 0)

@@ -6,9 +6,11 @@ from goods.models import Good
 
 
 def get_draft_type(pk):
-    type = BaseApplication.objects.get(pk=pk).licence_type
-
-    return type
+    try:
+        type = BaseApplication.objects.get(pk=pk).licence_type
+        return type
+    except BaseApplication.DoesNotExist:
+        raise Http404
 
 
 def get_drafts():

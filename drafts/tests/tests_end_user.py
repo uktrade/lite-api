@@ -2,8 +2,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.document.models import PartyDocument
-from parties.document.tests import test_file
 from parties.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -64,7 +62,7 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_failure(self, data):
-        self.draft = self.create_draft(self.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()

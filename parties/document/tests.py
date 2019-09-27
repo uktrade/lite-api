@@ -19,7 +19,7 @@ class PartyDocumentTests(DataTestClient):
         self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Drafty Draft')
         self.url_end_user_doc = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
-        self.draft_no_end_user = self.create_draft(self.organisation, 'Dafty daft')
+        self.draft_no_end_user = self.create_standard_draft(self.organisation, 'Dafty daft')
         self.url_end_user_doc_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
 
         self.data = {

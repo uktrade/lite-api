@@ -2,7 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from drafts.models import Draft
+from applications.models import StandardApplication, OpenApplication
 from test_helpers.clients import DataTestClient
 
 
@@ -24,7 +24,7 @@ class DraftTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Draft.objects.count(), 1)
+        self.assertEqual(StandardApplication.objects.count(), 1)
 
     @parameterized.expand([
         [{}],
@@ -47,4 +47,4 @@ class DraftTests(DataTestClient):
         """
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Draft.objects.count(), 0)
+        self.assertEqual(OpenApplication.objects.count(), 0)

@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from drafts.models import Draft
+from applications.models import StandardApplication
 from test_helpers.clients import DataTestClient
 
 
@@ -11,7 +11,7 @@ class DraftTests(DataTestClient):
         """
         Ensure we can edit a draft object.
         """
-        draft = self.create_draft(self.organisation)
+        draft = self.create_standard_draft(self.organisation)
         url = reverse('drafts:draft', kwargs={'pk': draft.id})
 
         data = {'name': 'Test'}
@@ -19,6 +19,6 @@ class DraftTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(Draft.objects.count(), 1)
-        self.assertEqual(Draft.objects.get().id, draft.id)
-        self.assertEqual(Draft.objects.get().name, data['name'])
+        self.assertEqual(StandardApplication.objects.count(), 1)
+        self.assertEqual(StandardApplication.objects.get().id, draft.id)
+        self.assertEqual(StandardApplication.objects.get().name, data['name'])
