@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from applications.creators import create_open_licence, create_standard_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_application import get_application_by_pk
-from applications.models import Application
+from applications.models import Application, ApplicationDocument
 from applications.serializers import ApplicationBaseSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity

@@ -31,7 +31,7 @@ class GoodListSerializer(serializers.ModelSerializer):
         try:
             clc_query = ControlListClassificationQuery.objects.get(good=instance)
             return clc_query.id
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     class Meta:
