@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -9,6 +9,7 @@ from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
 from static.countries.helpers import get_country
+from static.countries.models import Country
 from users.models import GovUser
 
 
@@ -69,8 +70,9 @@ class Countries(APIView):
 
         for good, countries in data.items():
             good = get_goods_type(good)
-            for country_code in countries:
-                get_country(country_code)
-            good.countries.set(countries)
+            if Country.objects.filter(pk__in=countries).count() == len(countries):
+                good.countries.set(countries)
+            else:
+                raise Http404
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
