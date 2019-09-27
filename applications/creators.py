@@ -95,10 +95,6 @@ def create_standard_licence(draft, application, errors):
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
-    third_parties_documents_error = check_parties_documents(draft.third_parties.all())
-    if third_parties_documents_error:
-        errors['third_parties_documents'] = third_parties_documents_error
-
     if not GoodOnDraft.objects.filter(draft=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
 
