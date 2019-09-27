@@ -72,4 +72,6 @@ class Countries(APIView):
             if not Country.objects.filter(pk__in=countries).count() == len(countries):
                 raise Http404
 
+            good.countries.set(countries)
+
         return JsonResponse(data=data, status=status.HTTP_200_OK)
