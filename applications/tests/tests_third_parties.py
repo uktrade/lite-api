@@ -43,6 +43,9 @@ class ApplicationThirdPartyTests(DataTestClient):
 
         third_party = self.create_third_party("Third party", self.organisation)
         self.draft.third_parties.add(third_party)
+        self.create_document_for_party(party=third_party,
+                                       name='file343.pdf',
+                                       safe=True)
 
         data = {'id': self.draft.id}
         response = self.client.post(self.url, data, **self.exporter_headers)

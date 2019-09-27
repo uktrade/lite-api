@@ -1,5 +1,6 @@
 from rest_framework import serializers, relations
 
+from applications.models import ApplicationDocument
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType

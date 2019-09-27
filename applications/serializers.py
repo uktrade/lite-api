@@ -4,12 +4,13 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.enums import ApplicationLicenceType, ApplicationExportType
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
-    OpenApplication
+    OpenApplication, ApplicationDocument
 from applications.models import Site, SiteOnApplication
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
+from documents.libraries.process_document import process_document
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -20,7 +21,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -78,6 +79,12 @@ class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
         return application_denial_reason
 
 
+class ApplicationDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplicationDocument
+        fields = '__all__'
+
+
 class BaseApplicationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     organisation = OrganisationViewSerializer()
@@ -91,6 +98,8 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     reference_number_on_information_form = serializers.CharField()
     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
     case = serializers.SerializerMethodField()
+
+    additional_documents = serializers.SerializerMethodField()
 
     # Sites, External Locations
     goods_locations = serializers.SerializerMethodField()
@@ -111,7 +120,12 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
                   'export_type',
                   'reference_number_on_information_form',
                   'application_denial_reason',
-                  'goods_locations',)
+                  'goods_locations',
+                  'additional_documents',)
+
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_case(self, instance):
         try:
@@ -243,11 +257,11 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.FINALISED):
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}
@@ -320,3 +334,16 @@ class ApplicationCaseNotesSerializer(BaseApplicationSerializer):
                   'goods_locations',
                   'case_notes',
                   'case',)
+
+
+class ApplicationDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ApplicationDocument
+        fields = '__all__'
+
+    def create(self, validated_data):
+        document = super(ApplicationDocumentSerializer, self).create(validated_data)
+        document.save()
+        process_document(document)
+        return document

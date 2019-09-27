@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.models import BaseApplication
 from content_strings.strings import get_string
-from drafts.models import GoodOnDraft
+from applications.models import GoodOnApplication
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -23,8 +23,8 @@ class ApplicationUltimateEndUserTests(DataTestClient):
                          part_number='123456')
         part_good.save()
 
-        GoodOnDraft(good=part_good,
-                    draft=self.draft,
+        GoodOnApplication(good=part_good,
+                    application=self.draft,
                     quantity=17,
                     value=18).save()
 

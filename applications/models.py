@@ -3,9 +3,10 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
+from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.models import CaseStatus
@@ -28,6 +29,11 @@ class BaseApplication(models.Model):
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
                                               max_length=50)
+
+
+class ApplicationDocument(Document):
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)
 
 
 class SiteOnApplication(models.Model):

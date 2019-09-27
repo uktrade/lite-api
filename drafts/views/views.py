@@ -16,7 +16,7 @@ from organisations.libraries.get_organisation import get_organisation_by_user
 class DraftList(APIView):
     authentication_classes = (ExporterAuthentication,)
     """
-    List all drafts that belong to an organisation create a new draft.
+    List all drafts that belong to an organisation and create a new draft.
     """
 
     def get(self, request):

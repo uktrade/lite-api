@@ -21,7 +21,7 @@ from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 class ApplicationList(APIView):
@@ -68,7 +68,7 @@ class ApplicationDetail(APIView):
             if data.get('status') == CaseStatusEnum.FINALISED:
                 assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-            request.data['status'] = str(get_case_status_from_status(data.get('status')).pk)
+            request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 
             serializer = ApplicationUpdateSerializer(get_application(pk), data=request.data, partial=True)
 
@@ -108,7 +108,7 @@ class ApplicationSubmission(APIView):
 
         # Submit application
         draft.submitted_at = datetime.now(timezone.utc)
-        draft.status = get_case_status_from_status(CaseStatusEnum.SUBMITTED)
+        draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         draft.save()
 
         case = Case(application=draft)

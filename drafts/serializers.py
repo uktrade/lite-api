@@ -6,7 +6,8 @@ from applications.enums import ApplicationLicenceType, ApplicationExportType, Ap
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, \
-    ExternalLocationOnApplication, StandardApplication
+    ExternalLocationOnApplication, StandardApplication, ApplicationDocument
+from documents.libraries.process_document import process_document
 from parties.serializers import EndUserSerializer, ConsigneeSerializer
 from goods.models import Good
 from goods.serializers import GoodSerializer
