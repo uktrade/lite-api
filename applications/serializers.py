@@ -11,7 +11,8 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from parties.models import EndUser
-from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer, \
+    AdditionalDocumentSerializer
 from goods.serializers import FullGoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -21,7 +22,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -87,6 +88,7 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
+    additional_documents = AdditionalDocumentSerializer(many=True)
 
     # Goods
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
@@ -120,7 +122,8 @@ class ApplicationBaseSerializer(serializers.ModelSerializer):
                   'goods_locations',
                   'goods_types',
                   'consignee',
-                  'third_parties',)
+                  'third_parties',
+                  'additional_documents',)
 
     def get_case(self, instance):
         return Case.objects.get(application=instance).id
@@ -230,11 +233,11 @@ class ApplicationUpdateSerializer(ApplicationBaseSerializer):
             'reference_number_on_information_form', instance.reference_number_on_information_form)
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.FINALISED):
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application_by_pk(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_from_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}

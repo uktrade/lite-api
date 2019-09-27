@@ -10,7 +10,7 @@ import users.models
 from conf.settings import env
 
 
-def init(apps, schema_editor):
+def initialize(apps, schema_editor):
     GovUser = apps.get_model('users', 'GovUser')
     Team = apps.get_model('teams', 'Team')
     if not GovUser.objects.all():
@@ -30,6 +30,17 @@ def init(apps, schema_editor):
         permission = Permission(id='MAKE_FINAL_DECISIONS',
                                 name='Make final decisions')
         permission.save()
+
+
+def destroy(apps, schema_editor):
+    GovUser = apps.get_model('users', 'GovUser')
+    GovUser.objects.all().delete()
+
+    Role = apps.get_model('users', 'Role')
+    Role.objects.all().delete()
+
+    Permission = apps.get_model('users', 'Permission')
+    Permission.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -117,5 +128,5 @@ class Migration(migrations.Migration):
                 ('objects', users.models.CustomUserManager()),
             ],
         ),
-        migrations.RunPython(init),
+        migrations.RunPython(initialize, destroy),
     ]

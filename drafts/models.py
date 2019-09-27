@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from documents.models import Document
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -60,3 +61,8 @@ class CountryOnDraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     draft = models.ForeignKey(Draft, related_name='draft_countries', on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name='countries_on_draft', on_delete=models.CASCADE)
+
+
+class DraftDocument(Document):
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE)
+    description = models.TextField(default=None, blank=True, null=True, max_length=280)

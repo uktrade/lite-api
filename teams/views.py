@@ -87,7 +87,7 @@ class TeamDetail(APIView):
             serializer.save()
             return JsonResponse(data={'team': serializer.data})
 
-        return JsonResponse(data={'errors': serializer.errors}, status=400)
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersByTeamsList(APIView):
