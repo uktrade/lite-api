@@ -4,7 +4,7 @@ import csv
 from django.db import migrations, models
 
 
-def init(apps, schema_editor):
+def initialize(apps, schema_editor):
     # We can't import the Queue model directly as it may be a newer
     # version than this migration expects. We use the historical version.
     Country = apps.get_model('countries', 'Country')
@@ -15,6 +15,12 @@ def init(apps, schema_editor):
             for row in reader:
                 country = Country(id=row[1], name=row[0], type=row[2])
                 country.save()
+
+
+def destroy(apps, schema_editor):
+    Country = apps.get_model('countries', 'Country')
+    if Country.objects.all():
+        Country.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -33,5 +39,5 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=100)),
             ],
         ),
-        migrations.RunPython(init),
+        migrations.RunPython(initialize, destroy),
     ]
