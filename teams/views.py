@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.serializers import response_serializer
 from gov_users.serializers import GovUserViewSerializer
 from teams.helpers import get_team_by_pk
 from teams.models import Team
@@ -28,8 +29,7 @@ class TeamList(APIView):
         """
         teams = Team.objects.all().order_by('name')
 
-        serializer = TeamSerializer(teams, many=True)
-        return JsonResponse(data={'teams': serializer.data})
+        return response_serializer(serializer=TeamSerializer, obj=teams, many=True)
 
     @swagger_auto_schema(
         request_body=TeamSerializer,
@@ -42,12 +42,7 @@ class TeamList(APIView):
         """
         data = JSONParser().parse(request)
 
-        serializer = TeamSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'team': serializer.data},  status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=TeamSerializer, data=data, object_class=Team)
 
 
 class TeamDetail(APIView):
@@ -56,9 +51,6 @@ class TeamDetail(APIView):
     """
     authentication_classes = (GovAuthentication,)
 
-    def get_object(self, pk):
-        return get_team_by_pk(pk)
-
     @swagger_auto_schema(responses={
         200: openapi.Response('OK', TeamSerializer),
     })
@@ -66,10 +58,7 @@ class TeamDetail(APIView):
         """
         Retrieve a team instance
         """
-        team = get_team_by_pk(pk)
-
-        serializer = TeamSerializer(team)
-        return JsonResponse(data={'team': serializer.data})
+        return response_serializer(serializer=TeamSerializer, pk=pk, object_class=Team)
 
     @swagger_auto_schema(
         request_body=TeamSerializer,
@@ -81,13 +70,8 @@ class TeamDetail(APIView):
         Update a team instance
         """
         data = JSONParser().parse(request)
-        serializer = TeamSerializer(self.get_object(pk), data=data, partial=True)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'team': serializer.data})
-
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=TeamSerializer, pk=pk, object_class=Team, data=data, partial=True)
 
 
 class UsersByTeamsList(APIView):
@@ -100,5 +84,4 @@ class UsersByTeamsList(APIView):
         team = get_team_by_pk(pk)
         users = GovUser.objects.filter(team=team)
 
-        serializer = GovUserViewSerializer(users, many=True)
-        return JsonResponse(data={'users': serializer.data})
+        return response_serializer(serializer=GovUserViewSerializer, obj=users, many=True, response_name='users')

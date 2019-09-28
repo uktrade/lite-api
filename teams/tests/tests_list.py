@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,6 +10,7 @@ class TeamListTests(DataTestClient):
 
     url = reverse('teams:teams')
 
+    @tag('only')
     def test_team_list(self):
         existing_teams_count = Team.objects.all().count()
         Team(name='name 1').save()
