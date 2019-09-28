@@ -7,6 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.serializers import response_serializer
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
@@ -35,8 +36,8 @@ class GoodList(APIView):
                                     description__icontains=description,
                                     part_number__icontains=part_number,
                                     control_code__icontains=control_rating).order_by('description')
-        serializer = GoodSerializer(goods, many=True)
-        return JsonResponse(data={'goods': serializer.data})
+
+        return response_serializer(serializer=GoodSerializer, obj=goods, many=True)
 
     def post(self, request):
         """
@@ -47,47 +48,37 @@ class GoodList(APIView):
         data = JSONParser().parse(request)
         data['organisation'] = organisation.id
         data['status'] = GoodStatus.DRAFT
-        serializer = GoodSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.save()
-
-            return JsonResponse(data={'good': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=GoodSerializer, data=data, object_class=Good)
 
 
 class GoodDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
+    @staticmethod
+    def update_notifications(request, _, good):
+        try:
+            query = ControlListClassificationQuery.objects.get(good=good)
+            request.user.notification_set.filter(case_note__case__query=query).update(
+                viewed_at=timezone.now()
+            )
+            request.user.notification_set.filter(query=query.id).update(
+                viewed_at=timezone.now()
+            )
+        except ControlListClassificationQuery.DoesNotExist:
+            pass
+
     def get(self, request, pk):
-        good = get_good(pk)
-
         if isinstance(request.user, ExporterUser):
-            organisation = get_organisation_by_user(request.user)
+            return response_serializer(serializer=GoodSerializer,
+                                       pk=pk,
+                                       object_class=Good,
+                                       check_organisation=True,
+                                       request=request,
+                                       post_get_actions=[self.update_notifications])
 
-            if good.organisation != organisation:
-                raise Http404
-
-            serializer = GoodSerializer(good)
-
-            # If there's a query with this good, update the notifications on it
-            try:
-                query = ControlListClassificationQuery.objects.get(good=good)
-                request.user.notification_set.filter(case_note__case__query=query).update(
-                    viewed_at=timezone.now()
-                )
-                request.user.notification_set.filter(query=query.id).update(
-                    viewed_at=timezone.now()
-                )
-            except ControlListClassificationQuery.DoesNotExist:
-                pass
         else:
-            serializer = FullGoodSerializer(good)
-
-        return JsonResponse(data={'good': serializer.data})
+            return response_serializer(serializer=FullGoodSerializer, object_class=Good, pk=pk)
 
     def put(self, request, pk):
         organisation = get_organisation_by_user(request.user)

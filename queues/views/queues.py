@@ -1,13 +1,14 @@
-from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
+from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
+from conf.serializers import response_serializer
 from queues.helpers import get_queue, get_queues
+from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer
 
 
@@ -22,20 +23,11 @@ class QueuesList(APIView):
         """
         queues = get_queues(request.user.team, str_to_bool(request.GET.get('include_system_queues', False)))
 
-        serializer = QueueViewSerializer(queues, many=True)
-        return JsonResponse(data={'queues': serializer.data})
+        return response_serializer(serializer=QueueViewSerializer, obj=queues, many=True, response_name='queues')
 
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = QueueCreateSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'queue': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=QueueCreateSerializer, data=data, object_class=Queue)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -48,18 +40,9 @@ class QueueDetail(APIView):
         """
         team = request.user.team
         queue = get_queue(pk=pk, team=team)
-        serializer = QueueViewSerializer(queue)
-        return JsonResponse(data={'queue': serializer.data})
+        return response_serializer(serializer=QueueViewSerializer, object_class=Queue, obj=queue)
 
     @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):
-        queue = get_queue(pk)
         data = request.data
-
-        serializer = QueueCreateSerializer(instance=queue, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'queue': serializer.data})
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=QueueCreateSerializer, object_class=Queue, data=data, pk=pk, partial=True)
