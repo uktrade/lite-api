@@ -1,4 +1,3 @@
-import reversion
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -10,8 +9,8 @@ from rest_framework.views import APIView
 
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_user
-from users.libraries.get_user import get_user_by_pk
+from conf.serializers import response_serializer
+from goods.helpers import add_organisation_to_data
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
 from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer
@@ -60,8 +59,7 @@ class UserList(APIView):
         """
         Returns a list of Exporter users
         """
-        serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
-        return JsonResponse(data={'users': serializer.data})
+        return response_serializer(serializer=ExporterUserViewSerializer, obj=ExporterUser.objects.all(), many=True, response_name='users')
 
     @swagger_auto_schema(
         responses={
@@ -71,19 +69,14 @@ class UserList(APIView):
         """
         Create Exporter within the same organisation that current user is logged into
         """
-        organisation = get_organisation_by_user(request.user)
-
         data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
-        serializer = ExporterUserCreateUpdateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'user': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=ExporterUserCreateUpdateSerializer,
+                                   data=data,
+                                   response_name='user',
+                                   pre_validation_actions=[
+                                       add_organisation_to_data
+                                   ])
 
 
 class UserDetail(APIView):
@@ -93,10 +86,7 @@ class UserDetail(APIView):
         """
         Get user from pk
         """
-        user = get_user_by_pk(pk)
-
-        serializer = ExporterUserViewSerializer(user)
-        return JsonResponse(data={'user': serializer.data})
+        return response_serializer(serializer=ExporterUserViewSerializer, pk=pk, object_class=ExporterUser, response_name='user')
 
     @swagger_auto_schema(
         responses={
@@ -106,18 +96,14 @@ class UserDetail(APIView):
         """
         Update Exporter user
         """
-        user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
-        with reversion.create_revision():
-            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(data={'user': serializer.data},
-                                    status=status.HTTP_200_OK)
-
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+        return response_serializer(serializer=ExporterUserCreateUpdateSerializer,
+                                   data=data,
+                                   pk=pk,
+                                   object_class=ExporterUser,
+                                   response_name='user',
+                                   partial=True)
 
 
 class UserMeDetail(APIView):
