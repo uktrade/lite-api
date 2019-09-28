@@ -114,7 +114,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         response = self.client.get(self.good_url, data, **self.exporter_headers)
 
         # Assert
-        countries = response.json()['good']['countries']
+        countries = [x.get('id') for x in response.json()['good']['countries']]
         self.assertEqual(len(countries), 2)
         self.assertIn(self.country_1.id, countries)
         self.assertIn(self.country_2.id, countries)
