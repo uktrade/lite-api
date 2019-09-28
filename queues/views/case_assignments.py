@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import views
 

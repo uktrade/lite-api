@@ -19,7 +19,7 @@ class GoodSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, default='', allow_blank=True)
     is_good_end_product = serializers.BooleanField()
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    status = KeyValueChoiceField(choices=GoodStatus.choices, required=False)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
     query_id = serializers.SerializerMethodField()

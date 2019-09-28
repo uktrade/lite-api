@@ -42,13 +42,13 @@ class GoodList(APIView):
         """
         Returns a list of all goods belonging to an organisation
         """
-        organisation = get_organisation_by_user(request.user)
-
         data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
-        data['status'] = GoodStatus.DRAFT
 
-        return response_serializer(GoodSerializer, data=data, object_class=Good)
+        return response_serializer(GoodSerializer,
+                                   data=data,
+                                   object_class=Good,
+                                   request=request,
+                                   pre_validation_actions=[add_organisation_to_data])
 
 
 class GoodDetail(APIView):
