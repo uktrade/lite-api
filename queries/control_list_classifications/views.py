@@ -1,6 +1,5 @@
 import json
 
-import reversion
 from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -62,23 +61,22 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         data = json.loads(request.body)
 
-        with reversion.create_revision():
-            serializer = ClcQueryResponseSerializer(query, data=data)
-            if serializer.is_valid():
-                if 'validate_only' not in data or data['validate_only'] == 'False':
-                    serializer.save()
+        serializer = ClcQueryResponseSerializer(query, data=data)
+        if serializer.is_valid():
+            if 'validate_only' not in data or data['validate_only'] == 'False':
+                serializer.save()
 
-                    # Add an activity item for the query's case
-                    CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
-                                        case=query.case.get(),
-                                        user=request.user)
+                # Add an activity item for the query's case
+                CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
+                                    case=query.case.get(),
+                                    user=request.user)
 
-                    # Send a notification to the user
-                    for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
-                        user_relationship.user.send_notification(query=query)
+                # Send a notification to the user
+                for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
+                    user_relationship.user.send_notification(query=query)
 
-                    return JsonResponse(data={'control_list_classification_query': serializer.data})
-                else:
-                    return JsonResponse(data={}, status=status.HTTP_200_OK)
+                return JsonResponse(data={'control_list_classification_query': serializer.data})
+            else:
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

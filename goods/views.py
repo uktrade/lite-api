@@ -36,7 +36,7 @@ class GoodList(APIView):
                                     part_number__icontains=part_number,
                                     control_code__icontains=control_rating).order_by('description')
 
-        return response_serializer(serializer=GoodSerializer, obj=goods, many=True)
+        return response_serializer(GoodSerializer, obj=goods, many=True)
 
     def post(self, request):
         """
@@ -48,7 +48,7 @@ class GoodList(APIView):
         data['organisation'] = organisation.id
         data['status'] = GoodStatus.DRAFT
 
-        return response_serializer(serializer=GoodSerializer, data=data, object_class=Good)
+        return response_serializer(GoodSerializer, data=data, object_class=Good)
 
 
 class GoodDetail(APIView):
@@ -56,7 +56,7 @@ class GoodDetail(APIView):
 
     def get(self, request, pk):
         if isinstance(request.user, ExporterUser):
-            return response_serializer(serializer=GoodSerializer,
+            return response_serializer(GoodSerializer,
                                        pk=pk,
                                        object_class=Good,
                                        check_organisation=True,
@@ -64,12 +64,11 @@ class GoodDetail(APIView):
                                        post_get_actions=[update_notifications])
 
         else:
-            return response_serializer(serializer=FullGoodSerializer, object_class=Good, pk=pk)
+            return response_serializer(FullGoodSerializer, object_class=Good, pk=pk)
 
     def put(self, request, pk):
         data = request.data.copy()
-
-        return response_serializer(serializer=GoodSerializer,
+        return response_serializer(GoodSerializer,
                                    pk=pk,
                                    object_class=Good,
                                    data=data,
@@ -110,8 +109,7 @@ class GoodDocuments(APIView):
         """
         good = get_good(pk)
         good_documents = GoodDocument.objects.filter(good=good).order_by('-created_at')
-
-        return response_serializer(serializer=GoodDocumentViewSerializer, obj=good_documents, many=True, response_name='documents')
+        return response_serializer(GoodDocumentViewSerializer, obj=good_documents, many=True, response_name='documents')
 
     @swagger_auto_schema(
         request_body=GoodDocumentCreateSerializer,
@@ -141,7 +139,7 @@ class GoodDocuments(APIView):
             document['user'] = request.user.id
             document['organisation'] = organisation.id
 
-        return response_serializer(serializer=GoodDocumentCreateSerializer, data=data, many=True, response_name='documents')
+        return response_serializer(GoodDocumentCreateSerializer, data=data, many=True, response_name='documents')
 
 
 class GoodDocumentDetail(APIView):

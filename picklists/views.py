@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
+from conf.serializers import response_serializer
 from content_strings.strings import get_string
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
@@ -36,8 +37,7 @@ class PickListItems(APIView):
             query.append(Q(status=PickListStatus.ACTIVE))
 
         picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
-        serializer = PicklistSerializer(picklist_items, many=True)
-        return JsonResponse(data={'picklist_items': serializer.data})
+        return response_serializer(PicklistSerializer, obj=picklist_items, many=True)
 
     def post(self, request):
         """
@@ -45,15 +45,7 @@ class PickListItems(APIView):
         """
         data = JSONParser().parse(request)
         data['team'] = request.user.team.id
-        serializer = PicklistSerializer(data=data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'picklist_item': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(PicklistSerializer, data=data, partial=True, response_name='picklist_item')
 
 
 @permission_classes((permissions.AllowAny,))
@@ -64,9 +56,7 @@ class PicklistItemDetail(APIView):
         """
         Gets details of a specific picklist item
         """
-        picklist_item = get_picklist_item(pk)
-        serializer = PicklistSerializer(picklist_item)
-        return JsonResponse(data={'picklist_item': serializer.data})
+        return response_serializer(PicklistSerializer, pk=pk, object_class=PicklistItem)
 
     def put(self, request, pk):
         """
@@ -78,11 +68,4 @@ class PicklistItemDetail(APIView):
             return JsonResponse(data={'errors': get_string('picklist_items.error_messages.forbidden')},
                                 status=status.HTTP_403_FORBIDDEN)
 
-        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'picklist_item': serializer.data})
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(PicklistSerializer, obj=picklist_item, data=request.data, partial=True)

@@ -1,3 +1,5 @@
+import re
+
 import six
 from compat import JsonResponse
 from django.http import Http404
@@ -82,6 +84,11 @@ class KeyValueChoiceField(Field):
     choices = property(_get_choices, _set_choices)
 
 
+def camel_to_snake(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
 def response_serializer(serializer,
                         object_class=None,
                         response_name=None,
@@ -104,9 +111,9 @@ def response_serializer(serializer,
             response_name = str(object_class.__module__).split('.')[0][:-1].lower()
         elif obj:
             try:
-                response_name = obj[0].__class__.__name__.lower() + 's'
+                response_name = camel_to_snake(obj[0].__class__.__name__) + 's'
             except TypeError:
-                response_name = obj.__class__.__name__.lower()
+                response_name = camel_to_snake(obj.__class__.__name__)
 
     if pk:
         try:

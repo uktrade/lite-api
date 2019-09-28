@@ -76,7 +76,7 @@ class GovUserList(APIView):
         else:
             gov_users = GovUser.objects.all().order_by('email')
 
-        return response_serializer(serializer=GovUserViewSerializer, obj=gov_users, many=True, response_name='gov_users')
+        return response_serializer(GovUserViewSerializer, obj=gov_users, many=True)
 
     @swagger_auto_schema(
         request_body=GovUserCreateSerializer,
@@ -88,8 +88,7 @@ class GovUserList(APIView):
         Add a new gov user
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=GovUserCreateSerializer, data=data, response_name='gov_user')
+        return response_serializer(GovUserCreateSerializer, data=data, response_name='gov_user')
 
 
 class GovUserDetail(APIView):
@@ -102,7 +101,7 @@ class GovUserDetail(APIView):
         """
         Get user from pk
         """
-        return response_serializer(serializer=GovUserViewSerializer, pk=pk, object_class=GovUser)
+        return response_serializer(GovUserViewSerializer, pk=pk, object_class=GovUser)
 
     @swagger_auto_schema(
         request_body=GovUserCreateSerializer,
@@ -114,8 +113,7 @@ class GovUserDetail(APIView):
         Edit user from pk
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=GovUserCreateSerializer,
+        return response_serializer(GovUserCreateSerializer,
                                    pk=pk,
                                    object_class=GovUser,
                                    request=request,

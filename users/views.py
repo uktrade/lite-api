@@ -59,7 +59,7 @@ class UserList(APIView):
         """
         Returns a list of Exporter users
         """
-        return response_serializer(serializer=ExporterUserViewSerializer, obj=ExporterUser.objects.all(), many=True, response_name='users')
+        return response_serializer(ExporterUserViewSerializer, obj=ExporterUser.objects.all(), many=True, response_name='users')
 
     @swagger_auto_schema(
         responses={
@@ -70,8 +70,7 @@ class UserList(APIView):
         Create Exporter within the same organisation that current user is logged into
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=ExporterUserCreateUpdateSerializer,
+        return response_serializer(ExporterUserCreateUpdateSerializer,
                                    data=data,
                                    response_name='user',
                                    pre_validation_actions=[
@@ -86,7 +85,7 @@ class UserDetail(APIView):
         """
         Get user from pk
         """
-        return response_serializer(serializer=ExporterUserViewSerializer, pk=pk, object_class=ExporterUser, response_name='user')
+        return response_serializer(ExporterUserViewSerializer, pk=pk, object_class=ExporterUser, response_name='user')
 
     @swagger_auto_schema(
         responses={
@@ -97,8 +96,7 @@ class UserDetail(APIView):
         Update Exporter user
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=ExporterUserCreateUpdateSerializer,
+        return response_serializer(ExporterUserCreateUpdateSerializer,
                                    data=data,
                                    pk=pk,
                                    object_class=ExporterUser,

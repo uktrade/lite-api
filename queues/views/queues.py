@@ -23,11 +23,11 @@ class QueuesList(APIView):
         """
         queues = get_queues(request.user.team, str_to_bool(request.GET.get('include_system_queues', False)))
 
-        return response_serializer(serializer=QueueViewSerializer, obj=queues, many=True, response_name='queues')
+        return response_serializer(QueueViewSerializer, obj=queues, many=True, response_name='queues')
 
     def post(self, request):
         data = JSONParser().parse(request)
-        return response_serializer(serializer=QueueCreateSerializer, data=data, object_class=Queue)
+        return response_serializer(QueueCreateSerializer, data=data, object_class=Queue)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -40,9 +40,9 @@ class QueueDetail(APIView):
         """
         team = request.user.team
         queue = get_queue(pk=pk, team=team)
-        return response_serializer(serializer=QueueViewSerializer, object_class=Queue, obj=queue)
+        return response_serializer(QueueViewSerializer, object_class=Queue, obj=queue)
 
     @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):
         data = request.data
-        return response_serializer(serializer=QueueCreateSerializer, object_class=Queue, data=data, pk=pk, partial=True)
+        return response_serializer(QueueCreateSerializer, object_class=Queue, data=data, pk=pk, partial=True)

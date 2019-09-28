@@ -1,12 +1,10 @@
-from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.serializers import response_serializer
 from gov_users.serializers import RoleSerializer, PermissionSerializer
-from users.libraries.get_role import get_role_by_pk
 from users.models import Role, Permission
 
 
@@ -21,8 +19,7 @@ class Roles(APIView):
         Return list of all roles
         """
         roles = Role.objects.all().order_by('name')
-        serializer = RoleSerializer(roles, many=True)
-        return JsonResponse(data={'roles': serializer.data})
+        return response_serializer(RoleSerializer, obj=roles, many=True)
 
     @swagger_auto_schema(
         request_body=RoleSerializer,
@@ -34,16 +31,7 @@ class Roles(APIView):
         Create a role
         """
         data = JSONParser().parse(request)
-
-        serializer = RoleSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'role': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(RoleSerializer, data=data, object_class=Role)
 
 
 class RoleDetail(APIView):
@@ -56,10 +44,7 @@ class RoleDetail(APIView):
         """
         Get the details of a specific role
         """
-        role = get_role_by_pk(pk)
-        serializer = RoleSerializer(role)
-
-        return JsonResponse(data={'role': serializer.data})
+        return response_serializer(RoleSerializer, pk=pk, object_class=Role)
 
     @swagger_auto_schema(
         request_body=RoleSerializer,
@@ -71,17 +56,7 @@ class RoleDetail(APIView):
         update a role
         """
         data = JSONParser().parse(request)
-        role = get_role_by_pk(pk)
-
-        serializer = RoleSerializer(role, data=data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'role': serializer.data},
-                                status=status.HTTP_200_OK)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(RoleSerializer, data=data, pk=pk, object_class=Role, partial=True)
 
 
 class Permissions(APIView):
@@ -95,5 +70,4 @@ class Permissions(APIView):
         Return list of all permissions
         """
         roles = Permission.objects.all().order_by('name')
-        serializer = PermissionSerializer(roles, many=True)
-        return JsonResponse(data={'permissions': serializer.data})
+        return response_serializer(PermissionSerializer, obj=roles, many=True, response_name='permissions')

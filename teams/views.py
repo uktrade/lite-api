@@ -28,8 +28,7 @@ class TeamList(APIView):
         List all teams
         """
         teams = Team.objects.all().order_by('name')
-
-        return response_serializer(serializer=TeamSerializer, obj=teams, many=True)
+        return response_serializer(TeamSerializer, obj=teams, many=True)
 
     @swagger_auto_schema(
         request_body=TeamSerializer,
@@ -41,8 +40,7 @@ class TeamList(APIView):
         Create a new team
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=TeamSerializer, data=data, object_class=Team)
+        return response_serializer(TeamSerializer, data=data, object_class=Team)
 
 
 class TeamDetail(APIView):
@@ -58,7 +56,7 @@ class TeamDetail(APIView):
         """
         Retrieve a team instance
         """
-        return response_serializer(serializer=TeamSerializer, pk=pk, object_class=Team)
+        return response_serializer(TeamSerializer, pk=pk, object_class=Team)
 
     @swagger_auto_schema(
         request_body=TeamSerializer,
@@ -70,8 +68,7 @@ class TeamDetail(APIView):
         Update a team instance
         """
         data = JSONParser().parse(request)
-
-        return response_serializer(serializer=TeamSerializer, pk=pk, object_class=Team, data=data, partial=True)
+        return response_serializer(TeamSerializer, pk=pk, object_class=Team, data=data, partial=True)
 
 
 class UsersByTeamsList(APIView):
@@ -83,5 +80,4 @@ class UsersByTeamsList(APIView):
     def get(self, request, pk):
         team = get_team_by_pk(pk)
         users = GovUser.objects.filter(team=team)
-
-        return response_serializer(serializer=GovUserViewSerializer, obj=users, many=True, response_name='users')
+        return response_serializer(GovUserViewSerializer, obj=users, many=True, response_name='users')

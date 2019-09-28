@@ -7,6 +7,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
+from conf.serializers import response_serializer
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.helpers import get_queue
 from users.libraries.get_user import get_user_by_pk
@@ -17,22 +18,20 @@ class CaseAssignments(views.APIView):
 
     def get(self, request, pk):
         if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
-            return self._get_all_case_assignments()
+            case_assignments = self._get_all_case_assignments()
         else:
-            return self._get_case_assignments_for_specific_queue(pk)
+            case_assignments = self._get_case_assignments_for_specific_queue(pk)
+
+        return response_serializer(CaseAssignmentSerializer, obj=case_assignments, many=True)
 
     # noinspection PyMethodMayBeStatic
     def _get_all_case_assignments(self):
-        case_assignments = CaseAssignment.objects.all()
-        serializer = CaseAssignmentSerializer(case_assignments, many=True)
-        return JsonResponse(data={'case_assignments': serializer.data})
+        return CaseAssignment.objects.all()
 
     # noinspection PyMethodMayBeStatic
     def _get_case_assignments_for_specific_queue(self, pk):
         queue = get_queue(pk)
-        case_assignments = CaseAssignment.objects.filter(queue=queue)
-        serializer = CaseAssignmentSerializer(case_assignments, many=True)
-        return JsonResponse(data={'case_assignments': serializer.data})
+        return CaseAssignment.objects.filter(queue=queue)
 
     @swagger_auto_schema(request_body=CaseAssignmentSerializer)
     @transaction.atomic
