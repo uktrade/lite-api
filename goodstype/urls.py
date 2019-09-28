@@ -8,5 +8,7 @@ urlpatterns = [
     # ex: /goodstype/
     path('', views.GoodsTypeList.as_view(), name='goodstypes-list'),
     # ex: /goodstype/<uuid:pk>/
-    path('<uuid:pk>/', views.GoodsTypeDetail.as_view(), name='goodstypes-detail'),
+    path('<uuid:pk>/', views.GoodsTypeDetail.as_view(), name='goodstypes_detail'),
+    # ex: /goodstype/assign_countries/ TODO: move this to applications or drafts
+    path('assign_countries/', views.Countries.as_view(), name='assign_countries'),
 ]

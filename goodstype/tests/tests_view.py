@@ -11,6 +11,6 @@ class GoodViewTests(DataTestClient):
         application = Application.objects.create(name='test', licence_type='open_licence', export_type='temporary')
         goods_type = self.create_goods_type(content_type_model='application', obj=application)
 
-        url = reverse('goodstype:goodstypes-detail', kwargs={'pk': goods_type.id})
+        url = reverse('goodstype:goodstypes_detail', kwargs={'pk': goods_type.id})
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
