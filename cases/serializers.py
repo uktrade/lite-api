@@ -1,17 +1,17 @@
+from documents.libraries.process_document import process_document
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, FinalAdvice
+from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
+    FinalAdvice
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from content_strings.strings import get_string
-from documents.libraries.process_document import process_document
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -117,11 +117,6 @@ class CaseDetailSerializer(CaseSerializer):
         except AttributeError:
             pass
         return has_advice
-
-    def validate_queues(self, attrs):
-        if not attrs:
-            raise serializers.ValidationError(get_string('cases.assign_queues.select_at_least_one_queue'))
-        return attrs
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
