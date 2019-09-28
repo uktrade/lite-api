@@ -29,7 +29,7 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         url = reverse('goods:good', kwargs={'pk': good.id})
 
-        response = self.client.put(url, {}, **self.exporter_headers)
+        response = self.client.put(url, {'description': 'some great good'}, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unsubmitted_good_can_be_edited(self):

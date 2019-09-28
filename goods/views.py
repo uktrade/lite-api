@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse, Http404
-from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -12,12 +11,12 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.models import Document
 from drafts.models import GoodOnDraft
 from goods.enums import GoodStatus
+from goods.helpers import if_status_unsure_remove_from_draft, bad_request_if_submitted, add_organisation_to_data, update_notifications
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     FullGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
-from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 
 
@@ -55,19 +54,6 @@ class GoodList(APIView):
 class GoodDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
-    @staticmethod
-    def update_notifications(request, _, good):
-        try:
-            query = ControlListClassificationQuery.objects.get(good=good)
-            request.user.notification_set.filter(case_note__case__query=query).update(
-                viewed_at=timezone.now()
-            )
-            request.user.notification_set.filter(query=query.id).update(
-                viewed_at=timezone.now()
-            )
-        except ControlListClassificationQuery.DoesNotExist:
-            pass
-
     def get(self, request, pk):
         if isinstance(request.user, ExporterUser):
             return response_serializer(serializer=GoodSerializer,
@@ -75,35 +61,26 @@ class GoodDetail(APIView):
                                        object_class=Good,
                                        check_organisation=True,
                                        request=request,
-                                       post_get_actions=[self.update_notifications])
+                                       post_get_actions=[update_notifications])
 
         else:
             return response_serializer(serializer=FullGoodSerializer, object_class=Good, pk=pk)
 
     def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        good = get_good(pk)
-
-        if good.organisation != organisation:
-            raise Http404
-
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
         data = request.data.copy()
 
-        if data.get('is_good_controlled') == 'unsure':
-            for good_on_draft in GoodOnDraft.objects.filter(good=good):
-                good_on_draft.delete()
-
-        data['organisation'] = organisation.id
-        serializer = GoodSerializer(instance=good, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'good': serializer.data})
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=GoodSerializer,
+                                   pk=pk,
+                                   object_class=Good,
+                                   data=data,
+                                   partial=True,
+                                   check_organisation=True,
+                                   request=request,
+                                   pre_validation_actions=[
+                                       bad_request_if_submitted,
+                                       if_status_unsure_remove_from_draft,
+                                       add_organisation_to_data
+                                   ])
 
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)
@@ -112,9 +89,9 @@ class GoodDetail(APIView):
         if good.organisation != organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(data={'errors': 'Good is already on a submitted application'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        response = bad_request_if_submitted(None, None, good)
+        if isinstance(response, JsonResponse):
+            return response
 
         for document in GoodDocument.objects.filter(good=good):
             document.delete_s3()
@@ -133,9 +110,8 @@ class GoodDocuments(APIView):
         """
         good = get_good(pk)
         good_documents = GoodDocument.objects.filter(good=good).order_by('-created_at')
-        serializer = GoodDocumentViewSerializer(good_documents, many=True)
 
-        return JsonResponse({'documents': serializer.data})
+        return response_serializer(serializer=GoodDocumentViewSerializer, obj=good_documents, many=True, response_name='documents')
 
     @swagger_auto_schema(
         request_body=GoodDocumentCreateSerializer,
@@ -156,23 +132,16 @@ class GoodDocuments(APIView):
             delete_documents_on_bad_request(data)
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
-            delete_documents_on_bad_request(data)
-            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        response = bad_request_if_submitted(None, None, good)
+        if isinstance(response, JsonResponse):
+            return response
 
         for document in data:
             document['good'] = good_id
             document['user'] = request.user.id
             document['organisation'] = organisation.id
 
-        serializer = GoodDocumentCreateSerializer(data=data, many=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
-
-        delete_documents_on_bad_request(data)
-        return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=GoodDocumentCreateSerializer, data=data, many=True, response_name='documents')
 
 
 class GoodDocumentDetail(APIView):
@@ -188,9 +157,9 @@ class GoodDocumentDetail(APIView):
         if good.organisation != organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        response = bad_request_if_submitted(None, None, good)
+        if isinstance(response, JsonResponse):
+            return response
 
         good_document = get_good_document(good, doc_pk)
         serializer = GoodDocumentViewSerializer(good_document)
@@ -208,9 +177,9 @@ class GoodDocumentDetail(APIView):
         if good.organisation != organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(data={'errors': 'This good is already on a submitted application'},
-                                status=status.HTTP_400_BAD_REQUEST)
+        response = bad_request_if_submitted(None, None, good)
+        if isinstance(response, JsonResponse):
+            return response
 
         good_document = Document.objects.get(id=doc_pk)
         document = get_good_document(good, good_document.id)

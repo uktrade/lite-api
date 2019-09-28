@@ -96,6 +96,7 @@ def response_serializer(serializer,
                         post_save_actions=None,
                         post_is_invalid_actions=None,
                         post_get_actions=None,
+                        pre_validation_actions=None,
                         check_organisation=False):
 
     if not response_name:
@@ -120,6 +121,12 @@ def response_serializer(serializer,
                 raise Http404
 
     if data:
+        if pre_validation_actions:
+            for action in pre_validation_actions:
+                response = action(request, data, obj)
+                if isinstance(response, JsonResponse):
+                    return response
+
         if obj:
             serializer = serializer(instance=obj, data=data, partial=partial, context=context)
             response_status = status.HTTP_200_OK
@@ -130,20 +137,26 @@ def response_serializer(serializer,
         if serializer.is_valid():
             if post_is_valid_actions:
                 for action in post_is_valid_actions:
-                    action(request, data, obj)
+                    response = action(request, data, obj)
+                    if isinstance(response, JsonResponse):
+                        return response
 
             serializer.save()
 
             if post_save_actions:
                 for action in post_save_actions:
-                    action(request, data, obj)
+                    response = action(request, data, obj)
+                    if isinstance(response, JsonResponse):
+                        return response
 
             return JsonResponse(data={response_name: serializer.data},
                                 status=response_status)
 
         if post_is_invalid_actions:
             for action in post_is_invalid_actions:
-                action(request, data, obj)
+                response = action(request, data, obj)
+                if isinstance(response, JsonResponse):
+                    return response
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -155,5 +168,8 @@ def response_serializer(serializer,
             serializer = serializer(object_class, many=many, context=context)
         if post_get_actions:
             for action in post_get_actions:
-                action(request, data, obj)
+                response = action(request, data, obj)
+                if isinstance(response, JsonResponse):
+                    return response
+
         return JsonResponse(data={response_name: serializer.data})
