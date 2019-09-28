@@ -1,4 +1,4 @@
-from compat import JsonResponse
+from django.http.response import JsonResponse
 from rest_framework import status
 from django.utils import timezone
 

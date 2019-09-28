@@ -120,7 +120,7 @@ def response_serializer(serializer,
             if obj.organisation != organisation:
                 raise Http404
 
-    if data:
+    if isinstance(data, dict):
         if pre_validation_actions:
             for action in pre_validation_actions:
                 response = action(request, data, obj)

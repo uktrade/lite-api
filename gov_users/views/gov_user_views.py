@@ -1,4 +1,3 @@
-import reversion
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -8,9 +7,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.serializers import response_serializer
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
-from users.libraries.get_user import get_user_by_pk
+from users.helpers import bad_request_if_user_edit_own_status, unassign_from_cases
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
 
@@ -76,8 +76,7 @@ class GovUserList(APIView):
         else:
             gov_users = GovUser.objects.all().order_by('email')
 
-        serializer = GovUserViewSerializer(gov_users, many=True)
-        return JsonResponse(data={'gov_users': serializer.data})
+        return response_serializer(serializer=GovUserViewSerializer, obj=gov_users, many=True, response_name='gov_users')
 
     @swagger_auto_schema(
         request_body=GovUserCreateSerializer,
@@ -89,15 +88,8 @@ class GovUserList(APIView):
         Add a new gov user
         """
         data = JSONParser().parse(request)
-        serializer = GovUserCreateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'gov_user': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=GovUserCreateSerializer, data=data, response_name='gov_user')
 
 
 class GovUserDetail(APIView):
@@ -110,10 +102,7 @@ class GovUserDetail(APIView):
         """
         Get user from pk
         """
-        gov_user = get_user_by_pk(pk)
-
-        serializer = GovUserViewSerializer(gov_user)
-        return JsonResponse(data={'user': serializer.data})
+        return response_serializer(serializer=GovUserViewSerializer, pk=pk, object_class=GovUser)
 
     @swagger_auto_schema(
         request_body=GovUserCreateSerializer,
@@ -124,28 +113,17 @@ class GovUserDetail(APIView):
         """
         Edit user from pk
         """
-        gov_user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
-        if 'status' in data.keys():
-            if gov_user.id == request.user.id:
-                return JsonResponse(data={'errors': 'A user cannot change their own status'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-        with reversion.create_revision():
-            serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-
-                # Remove user from assigned cases
-                if gov_user.status == GovUserStatuses.DEACTIVATED:
-                    gov_user.unassign_from_cases()
-
-                return JsonResponse(data={'gov_user': serializer.data},
-                                    status=status.HTTP_200_OK)
-
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
+        return response_serializer(serializer=GovUserCreateSerializer,
+                                   pk=pk,
+                                   object_class=GovUser,
+                                   request=request,
+                                   data=data,
+                                   pre_validation_actions=[bad_request_if_user_edit_own_status],
+                                   post_save_actions=[unassign_from_cases],
+                                   partial=True,
+                                   response_name='gov_user')
 
 
 class UserMeDetail(APIView):
