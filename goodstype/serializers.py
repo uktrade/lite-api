@@ -3,9 +3,12 @@ from rest_framework import serializers
 
 from applications.models import Application
 from conf.helpers import str_to_bool
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from drafts.serializers import DraftBaseSerializer
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
+from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
@@ -15,6 +18,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     content_type_name = serializers.CharField(source='content_type.model', read_only=True)
     content_object = serializers.SerializerMethodField(read_only=True)
     content_type = serializers.CharField()
+    countries = PrimaryKeyRelatedSerializerField(required=False,
+                                                 queryset=Country.objects.all(),
+                                                 serializer=CountrySerializer,
+                                                 many=True)
 
     def validate_content_type(self, value):
         return ContentType.objects.get(model=value)
@@ -38,8 +45,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'content_type',
                   'content_type_name',
                   'object_id',
-                  'content_object'
-                  )
+                  'content_object',
+                  'countries')
 
     def __init__(self, *args, **kwargs):
         """
