@@ -89,43 +89,17 @@ def camel_to_snake(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def response_serializer(serializer,
-                        object_class=None,
-                        response_name=None,
-                        pk=None,
-                        data=None,
-                        partial=False,
-                        many=False,
-                        obj=None,
-                        context=None,
-                        request=None,
-                        post_is_valid_actions=None,
-                        post_save_actions=None,
-                        post_is_invalid_actions=None,
-                        post_get_actions=None,
-                        pre_validation_actions=None,
-                        check_organisation=False):
-
-    if not response_name:
-        if object_class:
-            response_name = str(object_class.__module__).split('.')[0][:-1].lower()
-        elif obj:
-            try:
-                response_name = camel_to_snake(obj[0].__class__.__name__) + 's'
-            except TypeError:
-                response_name = camel_to_snake(obj.__class__.__name__)
-
-    if pk:
-        try:
-            obj = object_class.objects.get(pk=pk)
-        except object_class.DoesNotExist:
-            raise Http404
-
-        if check_organisation:
-            organisation = get_organisation_by_user(request.user)
-
-            if obj.organisation != organisation:
-                raise Http404
+def post_or_put(serializer,
+                data,
+                obj,
+                request,
+                partial,
+                context,
+                response_name,
+                pre_validation_actions,
+                post_is_valid_actions,
+                post_save_actions,
+                post_is_invalid_actions):
 
     if isinstance(data, dict):
         if pre_validation_actions:
@@ -168,15 +142,68 @@ def response_serializer(serializer,
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    else:
-        if obj:
-            serializer = serializer(obj, many=many, context=context)
-        else:
-            serializer = serializer(object_class, many=many, context=context)
-        if post_get_actions:
-            for action in post_get_actions:
-                response = action(request, data, obj)
-                if isinstance(response, JsonResponse):
-                    return response
 
-        return JsonResponse(data={response_name: serializer.data})
+def response_serializer(serializer,
+                        object_class=None,
+                        response_name=None,
+                        pk=None,
+                        data=None,
+                        partial=False,
+                        many=False,
+                        obj=None,
+                        context=None,
+                        request=None,
+                        post_is_valid_actions=None,
+                        post_save_actions=None,
+                        post_is_invalid_actions=None,
+                        post_get_actions=None,
+                        pre_validation_actions=None,
+                        check_organisation=False):
+
+    if not response_name:
+        if object_class:
+            response_name = str(object_class.__module__).split('.')[0][:-1].lower()
+        elif obj:
+            try:
+                response_name = camel_to_snake(obj[0].__class__.__name__) + 's'
+            except TypeError:
+                response_name = camel_to_snake(obj.__class__.__name__)
+
+    if pk:
+        try:
+            obj = object_class.objects.get(pk=pk)
+        except object_class.DoesNotExist:
+            raise Http404
+
+        if check_organisation:
+            organisation = get_organisation_by_user(request.user)
+
+            if obj.organisation != organisation:
+                raise Http404
+
+    response = post_or_put(serializer,
+                           data,
+                           obj,
+                           request,
+                           partial,
+                           context,
+                           response_name,
+                           pre_validation_actions,
+                           post_is_valid_actions,
+                           post_save_actions,
+                           post_is_invalid_actions)
+
+    if isinstance(response, JsonResponse):
+        return response
+
+    if obj:
+        serializer = serializer(obj, many=many, context=context)
+    else:
+        serializer = serializer(object_class, many=many, context=context)
+    if post_get_actions:
+        for action in post_get_actions:
+            response = action(request, data, obj)
+            if isinstance(response, JsonResponse):
+                return response
+
+    return JsonResponse(data={response_name: serializer.data})
