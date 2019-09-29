@@ -10,7 +10,6 @@ from conf.serializers import response_serializer
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
-from goods.enums import GoodStatus
 from goods.helpers import if_status_unsure_remove_from_draft, bad_request_if_submitted, add_organisation_to_data, update_notifications
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
