@@ -283,3 +283,11 @@ class BaseActivity(models.Model):
 class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
+
+
+class CaseGoodCountryDecision(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    type = models.CharField(choices=AdviceType.choices, max_length=30)

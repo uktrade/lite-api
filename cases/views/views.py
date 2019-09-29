@@ -397,3 +397,24 @@ class EcjuQueryDetail(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoodsCountriesDecisions(APIView):
+    def post(self, request, pk):
+        data = JSONParser().parse(request)
+
+        case = get_case(pk)
+
+        print('\n\n')
+        print(data)
+        print('\n\n')
+
+        for item in data.get('good_countries'):
+            item['case'] = str(case.id)
+            print(item)
+
+        print('\n\n')
+        print(data)
+        print('\n\n')
+
+        return JsonResponse(data={'data': data})
