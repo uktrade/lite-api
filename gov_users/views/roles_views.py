@@ -44,7 +44,7 @@ class RoleDetail(APIView):
         """
         Get the details of a specific role
         """
-        return response_serializer(RoleSerializer, pk=pk, object_class=Role)
+        return response_serializer(RoleSerializer, pk=pk, object_class=Role, response_name='role')
 
     @swagger_auto_schema(
         request_body=RoleSerializer,
@@ -56,7 +56,7 @@ class RoleDetail(APIView):
         update a role
         """
         data = JSONParser().parse(request)
-        return response_serializer(RoleSerializer, data=data, pk=pk, object_class=Role, partial=True)
+        return response_serializer(RoleSerializer, data=data, pk=pk, object_class=Role, partial=True, response_name='role')
 
 
 class Permissions(APIView):
