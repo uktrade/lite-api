@@ -1,8 +1,11 @@
+from datetime import datetime, timezone
+
 from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
     OpenApplication, ApplicationDocument, ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
@@ -20,6 +23,8 @@ from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, Co
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -252,12 +257,66 @@ class OpenApplicationSerializer(BaseApplicationSerializer):
 
 class ApplicationUpdateSerializer(BaseApplicationSerializer):
     name = serializers.CharField()
+    usage = serializers.CharField()
+    activity = serializers.CharField()
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
+    reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
     class Meta:
         model = BaseApplication
-        fields = ('name',
-                  'status',)
+        fields = ('id',
+                  'name',
+                  'activity',
+                  'usage',
+                  'last_modified_at',
+                  'submitted_at',
+                  'status',
+                  'reasons',
+                  'reason_details',)
+
+    def validate_reasons(self, attrs):
+        if not attrs or len(attrs) == 0:
+            raise serializers.ValidationError('Select at least one denial reason')
+        return attrs
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Application` instance, given the
+        validated data.
+        """
+        instance.name = validated_data.get('name', instance.name)
+        instance.activity = validated_data.get('activity', instance.activity)
+        instance.usage = validated_data.get('usage', instance.usage)
+        instance.status = validated_data.get('status', instance.status)
+        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
+        instance.export_type = validated_data.get('export_type', instance.export_type)
+        instance.reference_number_on_information_form = validated_data.get(
+            'reference_number_on_information_form', instance.reference_number_on_information_form)
+        instance.last_modified_at = datetime.now(timezone.utc)
+
+        # Remove any previous denial reasons
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+
+        # If the status has been set to under final review, add reason_details to application
+        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
+            data = {'application': instance.id,
+                    'reason_details': validated_data.get('reason_details'),
+                    'reasons': validated_data.get('reasons')}
+
+            application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
+            if application_denial_reason_serializer.is_valid():
+                # Delete existing ApplicationDenialReasons
+                ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+
+                # Create a new ApplicationDenialReason
+                application_denial_reason_serializer.save()
+            else:
+                raise serializers.ValidationError('An error occurred')
+
+        instance.save()
+        return instance
 
 
 class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
