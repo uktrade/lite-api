@@ -105,16 +105,14 @@ class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
                   'application',)
 
     def create(self, validated_data):
-        application_denial_reason = ApplicationDenialReason.objects.create(**validated_data)
-
         if self.initial_data['reasons']:
-            for reason in self.initial_data['reasons']:
-                application_denial_reason.reasons.add(reason)
+            application_denial_reason = ApplicationDenialReason.objects.create(**validated_data)
+            application_denial_reason.reasons.set(self.initial_data['reasons'])
+            application_denial_reason.save()
+
+            return application_denial_reason
         else:
             raise serializers.ValidationError('Select at least one denial reason')
-
-        application_denial_reason.save()
-        return application_denial_reason
 
 
 class ApplicationDocumentSerializer(serializers.ModelSerializer):
