@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case
-from conf.serializers import KeyValueChoiceField
+from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
@@ -13,10 +13,43 @@ from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
 
+class GoodListSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(max_length=280)
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    documents = serializers.SerializerMethodField()
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
+    query_id = serializers.SerializerMethodField()
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        if documents:
+            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        return None
+
+    def get_query_id(self, instance):
+        try:
+            clc_query = ControlListClassificationQuery.objects.get(good=instance)
+            return clc_query.id
+        except ControlListClassificationQuery.DoesNotExist:
+            return None
+
+    class Meta:
+        model = Good
+        fields = ('id',
+                  'description',
+                  'control_code',
+                  'is_good_controlled',
+                  'part_number',
+                  'status',
+                  'documents',
+                  'query_id')
+
+
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    control_code = serializers.CharField(required=False, default='', allow_blank=True)
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField()
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
@@ -38,15 +71,14 @@ class GoodSerializer(serializers.ModelSerializer):
                   'status',
                   'not_sure_details_details',
                   'query_id',
-                  'documents',
-                  )
+                  'documents')
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
         # Only validate the control code if the good is controlled
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
-            self.fields['control_code'] = serializers.CharField(required=True)
+            self.fields['control_code'] = ControlListEntryField(required=True)
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
@@ -76,10 +108,6 @@ class GoodSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Control Code must be set when good is controlled')
 
         return value
-
-    def create(self, validated_data):
-        good = super(GoodSerializer, self).create(validated_data)
-        return good
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get('description', instance.description)

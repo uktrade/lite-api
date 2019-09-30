@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import str_to_bool
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField, ControlListEntryField
 from goods.enums import GoodStatus
 from goods.serializers import FullGoodSerializer
 from organisations.models import Organisation
@@ -12,7 +12,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
-class ClcQuerySerializer(serializers.ModelSerializer):
+class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
                                                     serializer=TinyOrganisationViewSerializer)
     good = FullGoodSerializer(read_only=True)
@@ -24,9 +24,8 @@ class ClcQuerySerializer(serializers.ModelSerializer):
                   'comment', 'report_summary']
 
 
-class ClcQueryResponseSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(allow_blank=True, allow_null=True, max_length=20, required=False,
-                                         write_only=True)
+class ControlListClassificationQueryResponseSerializer(serializers.ModelSerializer):
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
     comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
     report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
@@ -39,15 +38,11 @@ class ClcQueryResponseSerializer(serializers.ModelSerializer):
         fields = ['comment', 'report_summary', 'control_code', 'is_good_controlled']
 
     def __init__(self, *args, **kwargs):
-        super(ClcQueryResponseSerializer, self).__init__(*args, **kwargs)
+        super(ControlListClassificationQueryResponseSerializer, self).__init__(*args, **kwargs)
 
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')):
-            self.fields['control_code'] = serializers.CharField(allow_blank=False,
-                                                                allow_null=False,
-                                                                max_length=20,
-                                                                required=True,
-                                                                write_only=True)
+            self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):

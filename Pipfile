@@ -22,6 +22,7 @@ requests-toolbelt = "*"
 django-background-tasks = ">=1.2"
 packaging = "==19.0"
 coverage = ">=4.5.4"
+openpyxl = "*"
 
 [requires]
 python_version = "3.7"

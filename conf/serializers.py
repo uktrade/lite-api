@@ -1,7 +1,9 @@
 import six
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.fields import Field, iter_options, to_choices_dict, flatten_choices_dict
+from rest_framework.fields import Field, iter_options, to_choices_dict, flatten_choices_dict, CharField
 from rest_framework.relations import PrimaryKeyRelatedField
+
+from conf.validators import ControlListEntryValidator
 
 
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
@@ -75,3 +77,14 @@ class KeyValueChoiceField(Field):
         }
 
     choices = property(_get_choices, _set_choices)
+
+
+class ControlListEntryField(CharField):
+    default_error_messages = {
+        'blank': _('Enter a valid control list entry'),
+        'invalid': _('Enter a valid control list entry')
+    }
+
+    def __init__(self, **kwargs):
+        super(ControlListEntryField, self).__init__(**kwargs)
+        self.validators.append(ControlListEntryValidator())

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'queues.apps.QueuesConfig',
     'gov_users',
     'static',
+    'static.control_list_entries',
     'static.countries',
     'static.units',
     'static.denial_reasons',
