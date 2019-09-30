@@ -27,6 +27,20 @@ from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
 
+class ApplicationListSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, instance):
+        return instance.status.status
+
+    class Meta:
+        model = Application
+        fields = ('id',
+                  'name',
+                  'last_modified_at',
+                  'status')
+
+
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = FullGoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)

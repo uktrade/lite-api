@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from applications.models import Application
 from conf.helpers import str_to_bool
+from conf.serializers import ControlListEntryField
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from drafts.serializers import DraftBaseSerializer
 from flags.enums import FlagStatuses
@@ -13,6 +14,7 @@ from static.countries.serializers import CountrySerializer
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
     content_type_name = serializers.CharField(source='content_type.model', read_only=True)
@@ -56,7 +58,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
-            self.fields['control_code'] = serializers.CharField(required=True)
+            self.fields['control_code'] = ControlListEntryField(required=True)
 
     def update(self, instance, validated_data):
         """
