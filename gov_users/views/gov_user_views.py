@@ -68,7 +68,6 @@ def replace_default_string(data, fields=None):
         if data.get(field):
             if data[field] == default_select_value:
                 data[field] = None
-
     return data
 
 
