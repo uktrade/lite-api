@@ -12,14 +12,16 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.libraries.post_advice import post_advice, check_if_final_advice_exists, check_if_team_advice_exists
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity, CaseGoodCountryDecision
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, \
-    CaseFinalAdviceSerializer
+    CaseFinalAdviceSerializer, CaseGoodCountryDecisionSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
+from goodstype.helpers import get_goods_type
+from static.countries.helpers import get_country
 from users.models import ExporterUser
 
 
@@ -400,21 +402,40 @@ class EcjuQueryDetail(APIView):
 
 
 class GoodsCountriesDecisions(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        goods_countries = CaseGoodCountryDecision.objects.filter(case=pk)
+        serializer = CaseGoodCountryDecisionSerializer(goods_countries, many=True)
+
+        return JsonResponse(data={'data': serializer.data})
+
     def post(self, request, pk):
-        data = JSONParser().parse(request)
+        data = JSONParser().parse(request).get('good_countries')
 
-        case = get_case(pk)
+        if not self._no_duplicates(data):
+            return JsonResponse(data={'errors': 'Cannot have multiple decisions selected for a good country combination', 'data': data},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        print('\n\n')
-        print(data)
-        print('\n\n')
+        serializer = CaseGoodCountryDecisionSerializer(data=data, many=True)
+        if serializer.is_valid():
+            for item in data:
+                CaseGoodCountryDecision(good=get_goods_type(item['good']),
+                                        case=get_case(item['case']),
+                                        country=get_country(item['country']),
+                                        advice_type=item['advice_type']).save()
 
-        for item in data.get('good_countries'):
-            item['case'] = str(case.id)
-            print(item)
+            return JsonResponse(data={'data': data})
 
-        print('\n\n')
-        print(data)
-        print('\n\n')
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data={'data': data})
+    @staticmethod
+    def _no_duplicates(data):
+        goods_countries = []
+        for item in data:
+            if item.get('good') + item.get('country') not in goods_countries:
+                goods_countries.append(item.get('good') + item.get('country'))
+            else:
+                return False
+        return True

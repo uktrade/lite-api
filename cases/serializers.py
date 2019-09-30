@@ -346,6 +346,11 @@ class CaseActivitySerializer(serializers.ModelSerializer):
 
 
 class CaseGoodCountryDecisionSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    advice_type = KeyValueChoiceField(choices=AdviceType.choices)
+
     class Meta:
         model = CaseGoodCountryDecision
         fields = '__all__'

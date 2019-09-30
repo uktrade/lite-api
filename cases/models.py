@@ -290,4 +290,16 @@ class CaseGoodCountryDecision(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    type = models.CharField(choices=AdviceType.choices, max_length=30)
+    advice_type = models.CharField(choices=AdviceType.choices, max_length=30)
+
+    def save(self, *args, **kwargs):
+        try:
+            existing_object = CaseGoodCountryDecision.objects.get(case=self.case,
+                                                                  good=self.good,
+                                                                  country=self.country)
+            existing_object.delete()
+
+        except CaseGoodCountryDecision.DoesNotExist:
+            pass
+
+        super(CaseGoodCountryDecision, self).save(*args, **kwargs)
