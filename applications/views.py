@@ -63,20 +63,6 @@ class ApplicationList(APIView):
                                       organisation=draft.organisation,
                                       status=get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
-            additional_documents = draft.draftdocument_set.all()
-            for document in additional_documents:
-                application_document = ApplicationDocument.objects.create(
-                    description=document.description,
-                    name=document.name,
-                    s3_key=document.s3_key,
-                    size=document.size,
-                    virus_scanned_at=document.virus_scanned_at,
-                    safe=document.safe,
-                    created_at=document.created_at
-                )
-                application.additional_documents.add(application_document)
-                document.delete()
-
             errors = {}
 
             # Generic errors
@@ -91,6 +77,20 @@ class ApplicationList(APIView):
 
             if not isinstance(application, Application):
                 return application
+
+            additional_documents = draft.draftdocument_set.all()
+            for document in additional_documents:
+                application_document = ApplicationDocument.objects.create(
+                    description=document.description,
+                    name=document.name,
+                    s3_key=document.s3_key,
+                    size=document.size,
+                    virus_scanned_at=document.virus_scanned_at,
+                    safe=document.safe,
+                    created_at=document.created_at
+                )
+                application.additional_documents.add(application_document)
+                document.delete()
 
             # Store meta-information.
             reversion.set_user(request.user)

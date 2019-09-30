@@ -60,4 +60,7 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(str(expected.website), actual['website'])
         self.assertEqual(str(expected.type), actual['type'])
         self.assertEqual(str(expected.organisation.id), actual['organisation'])
-        self.assertEqual(str(expected.sub_type), actual['sub_type'])
+
+        sub_type = actual['sub_type']
+        # sub_type is not always a dict.
+        self.assertEqual(str(expected.sub_type), sub_type['key'] if isinstance(sub_type, dict) else sub_type)

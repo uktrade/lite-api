@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http.response import JsonResponse
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -19,8 +20,6 @@ from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSeri
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
-from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
-from teams.helpers import get_team_by_pk
 from users.models import ExporterUser
 
 
@@ -46,20 +45,33 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        initial_queues = case.queues.values_list('id', flat=True)
-
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
-        if serializer.is_valid():
-            for initial_queue in initial_queues:
-                if str(initial_queue) not in request.data['queues']:
-                    CaseAssignment.objects.filter(queue=initial_queue).delete()
-            serializer.save()
 
-            # Add an activity item for the query's case
-            CaseActivity.create(activity_type=CaseActivityType.MOVE_CASE,
-                                case=case,
-                                user=request.user,
-                                queues=[x.name for x in serializer.validated_data['queues']])
+        if serializer.is_valid():
+            initial_queues = case.queues.values('id', 'name')
+
+            queues_to_remove = set([str(q['id']) for q in initial_queues]) - set(request.data['queues'])
+
+            if queues_to_remove:
+                CaseAssignment.objects.filter(queue__in=list(queues_to_remove)).delete()
+                CaseActivity.create(
+                    activity_type=CaseActivityType.REMOVE_CASE,
+                    case=case,
+                    user=request.user,
+                    queues=[q['name'] for q in initial_queues if str(q['id']) in queues_to_remove],
+                )
+
+            new_queues = set(request.data['queues']) - set([str(q['id']) for q in initial_queues])
+
+            if new_queues:
+                CaseActivity.create(
+                    activity_type=CaseActivityType.MOVE_CASE,
+                    case=case,
+                    user=request.user,
+                    queues=[q.name for q in serializer.validated_data['queues'] if str(q.id) in new_queues]
+                )
+
+            serializer.save()
 
             return JsonResponse(data={'case': serializer.data})
 
@@ -166,9 +178,7 @@ class CaseAdvice(APIView):
 
 class ViewTeamAdvice(APIView):
     def get(self, request, pk, team_pk):
-        case = get_case(pk)
-        team = get_team_by_pk(team_pk)
-        team_advice = TeamAdvice.objects.filter(case=case, team=team)
+        team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
 
         serializer = CaseTeamAdviceSerializer(team_advice, many=True)
         return JsonResponse({'advice': serializer.data})
