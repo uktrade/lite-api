@@ -114,4 +114,4 @@ class ApplicationSubmission(APIView):
 
         serializer = BaseApplicationSerializer(draft)
         return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
-                            status=status.HTTP_201_CREATED)
+                            status=status.HTTP_200_OK)

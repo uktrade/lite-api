@@ -1,6 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
+from cases.models import Case
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -11,14 +13,18 @@ class ApplicationsTests(DataTestClient):
         self.draft = self.create_standard_draft(self.organisation)
         self.url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
 
-    def test_create_application_case(self):
+    def test_successful_standard_submit(self):
         """
-        Test whether we can create a draft first and then submit it as an application
+        Test whether we can submit a standard application
         """
 
         response = self.client.put(self.url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case = Case.objects.get()
+        self.assertEqual(case.application.id, self.draft.id)
+        self.assertIsNotNone(case.application.submitted_at)
+        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_create_application_with_invalid_id(self):
         """
