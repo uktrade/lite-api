@@ -48,7 +48,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
                   'application',
                   'quantity',
                   'unit',
-                  'value')
+                  'value',)
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
@@ -69,7 +69,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
                   'application',
                   'quantity',
                   'unit',
-                  'value')
+                  'value',)
 
 
 class DenialReasonSerializer(serializers.ModelSerializer):
@@ -116,6 +116,12 @@ class ApplicationDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDocument
         fields = '__all__'
+
+    def create(self, validated_data):
+        document = super(ApplicationDocumentSerializer, self).create(validated_data)
+        document.save()
+        process_document(document)
+        return document
 
 
 class BaseApplicationSerializer(serializers.ModelSerializer):
@@ -274,19 +280,6 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'site',
                   'application',)
-
-
-class ApplicationDocumentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ApplicationDocument
-        fields = '__all__'
-
-    def create(self, validated_data):
-        document = super(ApplicationDocumentSerializer, self).create(validated_data)
-        document.save()
-        process_document(document)
-        return document
 
 
 class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
