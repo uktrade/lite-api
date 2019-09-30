@@ -63,9 +63,10 @@ class AuthenticateGovUser(APIView):
 
 
 def replace_default_string(data):
-    if data['team'] == 'blank':
+    default_select_value = 'blank'
+    if data['team'] == default_select_value:
         data['team'] = None
-    if data['role'] == 'blank':
+    if data['role'] == default_select_value:
         data['role'] = None
     return data
 
