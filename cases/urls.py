@@ -26,7 +26,7 @@ urlpatterns = [
     # ex: /cases/<uuid:pk>/view-final-advice/
     path('<uuid:pk>/view-final-advice/', views.ViewFinalAdvice.as_view(), name='view_final_advice'),
     # ex: /cases/<uuid:pk>/goods-countries-decisions/
-    path('<uuid:pk>/goods-countries-decisions/', views.GoodsCountriesDecisions.as_view(), name='view_final_advice'),
+    path('<uuid:pk>/goods-countries-decisions/', views.GoodsCountriesDecisions.as_view(), name='goods_countries_decisions'),
     # ex: /cases/<uuid:pk>/ecju-queries/
     path('<uuid:pk>/ecju-queries/', views.CaseEcjuQueries.as_view(), name='case_ecju_queries'),
     # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/
