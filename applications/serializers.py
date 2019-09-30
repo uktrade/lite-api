@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from rest_framework.fields import DecimalField, ChoiceField
+from rest_framework.fields import DecimalField, ChoiceField, CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType
+from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import BaseApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
     OpenApplication, ApplicationDocument, ExternalLocationOnApplication
 from applications.models import Site, SiteOnApplication
@@ -14,7 +14,7 @@ from goods.models import Good
 from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
-from organisations.models import ExternalLocation
+from organisations.models import ExternalLocation, Organisation
 from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from static.countries.models import Country
@@ -291,3 +291,27 @@ class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'external_location',
                   'application',)
+
+
+class ApplicationCreateSerializer(BaseApplicationSerializer):
+    name = CharField(max_length=100,
+                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
+    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+        'required': get_string('applications.generic.no_licence_type')})
+    export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
+        'required': get_string('applications.generic.no_export_type')})
+    have_you_been_informed = KeyValueChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
+                                                 error_messages={
+                                                     'required': get_string('goods.error_messages.informed')})
+    reference_number_on_information_form = CharField(required=True, allow_blank=True)
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
+    class Meta:
+        model = BaseApplication
+        fields = ('id',
+                  'name',
+                  'licence_type',
+                  'export_type',
+                  'have_you_been_informed',
+                  'reference_number_on_information_form',
+                  'organisation',)

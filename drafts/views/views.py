@@ -6,7 +6,7 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_draft_with_organisation, get_drafts_with_organisation
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import BaseApplicationSerializer
+from applications.serializers import BaseApplicationSerializer, ApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 
