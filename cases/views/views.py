@@ -405,12 +405,14 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         goods_countries = CaseGoodCountryDecision.objects.filter(case=pk)
         serializer = CaseGoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={'data': serializer.data})
 
     def post(self, request, pk):
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         data = JSONParser().parse(request).get('good_countries')
 
         serializer = CaseGoodCountryDecisionSerializer(data=data, many=True)
