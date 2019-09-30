@@ -87,4 +87,4 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]['website'], str(ultimate_end_user.website))
         self.assertEqual(ultimate_end_users[0]['type'], str(ultimate_end_user.type))
         self.assertEqual(ultimate_end_users[0]['organisation'], str(ultimate_end_user.organisation.id))
-        self.assertEqual(ultimate_end_users[0]['sub_type'], str(ultimate_end_user.sub_type))
+        self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))

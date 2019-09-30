@@ -16,6 +16,8 @@ class CaseActivityType(BaseActivityType):
     GOOD_ADD_REMOVE_FLAGS = 'good_add_remove_flags'
 
     MOVE_CASE = 'move_case'
+    REMOVE_CASE = 'remove_case'
+
     CLC_RESPONSE = 'clc_response'
     CASE_NOTE = 'case_note'
 
@@ -39,6 +41,8 @@ class CaseActivityType(BaseActivityType):
             (GOOD_ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}'),
 
             (MOVE_CASE, 'moved the case to: {queues}'),
+            (REMOVE_CASE, 'removed case from queues: {queues}'),
+
             (CLC_RESPONSE, 'responded to the case'),
             (CASE_NOTE, 'added a case note:'),
 

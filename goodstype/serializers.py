@@ -2,8 +2,11 @@ from rest_framework import serializers
 
 from applications.models import OpenApplication
 from conf.helpers import str_to_bool
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
+from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
@@ -11,6 +14,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
     application = serializers.PrimaryKeyRelatedField(queryset=OpenApplication.objects.all())
+    countries = PrimaryKeyRelatedSerializerField(required=False,
+                                                 queryset=Country.objects.all(),
+                                                 serializer=CountrySerializer,
+                                                 many=True)
 
     class Meta:
         model = GoodsType
@@ -20,7 +27,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'control_code',
                   'is_good_end_product',
                   'application',
-                  )
+                  'countries',)
 
     def __init__(self, *args, **kwargs):
         """
