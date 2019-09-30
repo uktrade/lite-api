@@ -1,6 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -24,8 +23,6 @@ from queries.control_list_classifications.models import ControlListClassificatio
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.countries.helpers import get_country
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -245,11 +242,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return team
 
     def submit_draft(self, draft: BaseApplication):
-        draft_id = draft.id
-        url = reverse('applications:applications')
-        data = {'id': draft_id}
-        self.client.post(url, data, **self.exporter_headers)
-        return BaseApplication.objects.get(pk=draft_id)
+        draft.submitted_at = datetime.now(timezone.utc)
+        draft.save()
+        return draft
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
         case_doc = CaseDocument(case=case,
@@ -345,9 +340,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return clc_query
 
     # Drafts
-
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
-                                                        reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         """
         Creates a standard draft application
         """
@@ -358,7 +351,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                     reference_number_on_information_form='',
                                     activity='Trade',
                                     usage='Trade',
-                                    organisation=organisation)
+                                    organisation=organisation,
+                                    end_user=self.create_end_user('End User', organisation),
+                                    consignee=self.create_consignee('Consignee', organisation))
 
         draft.save()
 
@@ -369,8 +364,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                           unit=Units.NAR,
                           value=500).save()
 
-        # Set the draft's end user
-        draft.end_user = self.create_end_user('test', organisation)
+        # Set the draft party documents
+        self.create_document_for_party(draft.end_user, safe=safe_document)
+        self.create_document_for_party(draft.consignee, safe=safe_document)
 
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
@@ -378,15 +374,23 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
-        draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
+    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
+                                                        reference_name='Standard Draft', safe_document=True):
 
-        self.create_document_for_party(draft.end_user, safe=safe_document)
+        draft = self.create_standard_draft(organisation, reference_name, safe_document)
+        PartyDocument.objects.filter(party=draft.end_user).delete()
+        return draft
 
-        draft.consignee = self.create_consignee('consignee', organisation)
-        draft.save()
-        self.create_document_for_party(draft.consignee, safe=safe_document)
-
+    def create_standard_draft_without_site(self, organisation: Organisation, reference_name='Standard Draft',
+                                           safe_document=True):
+        """
+        Creates a standard draft application
+        """
+        draft = self.create_standard_draft(organisation, reference_name, safe_document)
+        site_on_app = SiteOnApplication.objects.get(application=draft)
+        site_on_app_id = site_on_app.id
+        site_on_app.delete()
+        Site.objects.filter(pk=site_on_app_id).delete()
         return draft
 
     def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):

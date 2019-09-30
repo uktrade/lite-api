@@ -1,22 +1,22 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationLicenceType
 from test_helpers.clients import DataTestClient
 
 
 class ApplicationsTests(DataTestClient):
 
-    url = reverse('applications:applications')
+    def setUp(self):
+        super().setUp()
+        self.draft = self.create_standard_draft(self.organisation)
+        self.url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
 
     def test_create_application_case(self):
         """
         Test whether we can create a draft first and then submit it as an application
         """
-        draft = self.create_standard_draft(self.organisation)
-        data = {'id': draft.id}
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -25,26 +25,19 @@ class ApplicationsTests(DataTestClient):
         Ensure we cannot create a new application object with an invalid draft id.
         """
         draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
+        url = 'applications/' + draft_id + '/submit/'
 
-        self.create_standard_draft(self.organisation)
-
-        data = {'id': draft_id}
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_that_cannot_submit_with_no_sites_or_external(self):
         """
         Ensure we cannot create a new application without a site
         """
-        draft = self.create_standard_draft(self.organisation)
-        draft.end_user = self.create_end_user("End user", self.organisation)
-        draft.save()
+        draft = self.create_standard_draft_without_site(self.organisation)
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
-        self.create_document_for_party(draft.end_user)
-
-        data = {'id': draft.id}
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_no_end_user_document(self):
@@ -56,12 +49,11 @@ class ApplicationsTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         # assemble
-        draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
-        url = reverse('applications:applications')
-        data = {'id': draft.id}
+        draft = self.create_standard_draft_without_end_user_document(self.organisation)
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
         # act
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -79,14 +71,13 @@ class ApplicationsTests(DataTestClient):
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         self.create_document_for_party(party=draft.end_user, name='blah', safe=None)
-        url = reverse('applications:applications')
-        data = {'id': draft.id}
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
         # act
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, **self.exporter_headers)
 
         # assert
-        self.assertContains(response, text='still being processed', status_code=400)
+        self.assertContains(response, text='still being processed', status_code=status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_with_infected_document(self):
         """
@@ -101,11 +92,10 @@ class ApplicationsTests(DataTestClient):
         # assemble
         draft = self.create_standard_draft_without_end_user_document(self.organisation, 'test')
         self.create_document_for_party(party=draft.end_user, name='blah', safe=False)
-        url = reverse('applications:applications')
-        data = {'id': draft.id}
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
         # act
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, **self.exporter_headers)
 
         # assert
-        self.assertContains(response, text='infected end user document', status_code=400)
+        self.assertContains(response, text='infected end user document', status_code=status.HTTP_400_BAD_REQUEST)

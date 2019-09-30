@@ -77,8 +77,6 @@ def get_good_with_organisation(pk, organisation):
         raise Http404
 
 
-
-
 def get_drafts():
     return BaseApplication.objects.filter(submitted_at__isnull=True)
 
