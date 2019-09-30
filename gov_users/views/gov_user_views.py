@@ -62,12 +62,13 @@ class AuthenticateGovUser(APIView):
         return JsonResponse(data={'token': token, 'lite_api_user_id': str(user.id)})
 
 
-def replace_default_string(data):
+def replace_default_string(data, fields=None):
     default_select_value = 'blank'
-    if data['team'] == default_select_value:
-        data['team'] = None
-    if data['role'] == default_select_value:
-        data['role'] = None
+    for field in fields:
+        if data.get(field):
+            if data[field] == default_select_value:
+                data[field] = None
+
     return data
 
 
@@ -98,7 +99,7 @@ class GovUserList(APIView):
         Add a new gov user
         """
         data = JSONParser().parse(request)
-        data = replace_default_string(data)
+        data = replace_default_string(data, fields=['role', 'team'])
 
         serializer = GovUserCreateSerializer(data=data)
 
@@ -143,7 +144,7 @@ class GovUserDetail(APIView):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
-        data = replace_default_string(data)
+        data = replace_default_string(data, fields=['role', 'team'])
 
         with reversion.create_revision():
             serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
