@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('countries', '0002_auto_20190628_1252'),
-        ('goodstype', '0002_goodstype_flags'),
+        ('goodstype', '0001_initial'),
     ]
 
     operations = [
