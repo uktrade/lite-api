@@ -413,10 +413,6 @@ class GoodsCountriesDecisions(APIView):
     def post(self, request, pk):
         data = JSONParser().parse(request).get('good_countries')
 
-        if not self._no_duplicates(data):
-            return JsonResponse(data={'errors': 'Cannot have multiple decisions selected for a good country combination', 'data': data},
-                                status=status.HTTP_400_BAD_REQUEST)
-
         serializer = CaseGoodCountryDecisionSerializer(data=data, many=True)
         if serializer.is_valid():
             for item in data:
@@ -429,13 +425,3 @@ class GoodsCountriesDecisions(APIView):
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
-
-    @staticmethod
-    def _no_duplicates(data):
-        goods_countries = []
-        for item in data:
-            if item.get('good') + item.get('country') not in goods_countries:
-                goods_countries.append(item.get('good') + item.get('country'))
-            else:
-                return False
-        return True

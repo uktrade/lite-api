@@ -50,17 +50,6 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.assertEqual(CaseGoodCountryDecision.objects.count(), 6)
         self.assertEqual(len(response.json()['data']), 6)
 
-    def test_goods_countries_multiple_decisions_same_good_country_combination_failure(self):
-        data = {'good_countries':
-            [
-                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'advice_type': 'approve', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'advice_type': 'refuse', 'case': str(self.case.id)},
-            ]
-        }
-
-        response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_saving_overwrites_previous_assignment(self):
         data = {'good_countries':
             [
