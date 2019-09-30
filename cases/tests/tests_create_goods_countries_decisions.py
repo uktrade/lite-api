@@ -1,12 +1,13 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case, CaseGoodCountryDecision
+from conf.constants import Permissions
 from drafts.models import CountryOnDraft
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
+from users.models import Role
 
 
 class CreateGoodsCountriesDecisions(DataTestClient):
@@ -14,6 +15,13 @@ class CreateGoodsCountriesDecisions(DataTestClient):
     def setUp(self):
         super().setUp()
         self.open_draft = self.create_open_draft(self.organisation)
+
+        role = Role(name='team_level')
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
+        role.save()
+
+        self.gov_user.role = role
+        self.gov_user.save()
 
         self.goods_types = GoodsType.objects.filter(object_id=self.open_draft.id)
         self.goods_type_1 = self.goods_types[0]
