@@ -20,22 +20,16 @@ class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ['id', 'details', 'good', 'submitted_at', 'organisation',
-                  'comment', 'report_summary']
+        fields = ['id', 'details', 'good', 'submitted_at', 'organisation']
 
 
 class ControlListClassificationQueryResponseSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
-    comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
-    report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
-                                                        required=True,
-                                                        allow_null=False,
-                                                        allow_empty=False)
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ['comment', 'report_summary', 'control_code', 'is_good_controlled']
+        fields = ['control_code', 'is_good_controlled']
 
     def __init__(self, *args, **kwargs):
         super(ControlListClassificationQueryResponseSerializer, self).__init__(*args, **kwargs)
@@ -46,8 +40,6 @@ class ControlListClassificationQueryResponseSerializer(serializers.ModelSerializ
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):
-        instance.comment = validated_data.get('comment')
-        instance.report_summary = validated_data.get('report_summary').text
         instance.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
 
         # Update the good's details
