@@ -389,15 +389,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user(self, organisation: Organisation,
-                                               reference_name='Standard Draft', safe_document=True):
-
-        draft = self.create_standard_draft(organisation, reference_name, safe_document)
-        draft.end_user.delete()
-        return draft
-
     def create_standard_draft_with_incorporated_good(self, organisation: Organisation,
-                                                    reference_name='Standard Draft', safe_document=True):
+                                                     reference_name='Standard Draft', safe_document=True):
 
         draft = self.create_standard_draft(organisation, reference_name, safe_document)
 
@@ -419,17 +412,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return draft
 
-    def create_standard_draft_without_site(self, organisation: Organisation, reference_name='Standard Draft',
-                                           safe_document=True):
-        """
-        Creates a standard draft application
-        """
-        draft = self.create_standard_draft(organisation, reference_name, safe_document)
-        site_on_app = SiteOnApplication.objects.get(application=draft)
-        site_on_app_id = site_on_app.id
-        site_on_app.delete()
-        Site.objects.filter(pk=site_on_app_id).delete()
-        return draft
 
     def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
         """

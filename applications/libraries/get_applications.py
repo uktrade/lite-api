@@ -27,8 +27,7 @@ def get_application_with_organisation(pk, organisation):
 
 def get_draft_type(pk):
     try:
-        type = BaseApplication.objects.get(pk=pk).licence_type
-        return type
+        return BaseApplication.objects.get(pk=pk).licence_type
     except BaseApplication.DoesNotExist:
         raise Http404
 
