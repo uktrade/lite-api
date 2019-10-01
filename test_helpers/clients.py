@@ -343,7 +343,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                     control_code='ML1',
                     is_good_end_product=True,
                     part_number='123456',
-                    organisation=organisation)
+                    organisation=organisation,
+                    comment=None,
+                    report_summary=None)
         good.save()
 
         clc_query = ControlListClassificationQuery.objects.create(details='this is a test text',

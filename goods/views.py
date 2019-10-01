@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from drafts.models import GoodOnDraft
@@ -18,6 +18,35 @@ from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDo
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
+
+
+class GoodsListControlCode(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def post(self, request):
+        """
+        Set control list codes on multiple goods.
+        """
+        data = JSONParser().parse(request)
+        objects = data.get('objects')
+        control_code = data.get('control_code')
+        error_occurred = False
+
+        for pk in objects:
+            good = get_good(pk)
+            good['control_code'] = control_code
+            good['status'] = GoodStatus.VERIFIED
+            serializer = GoodSerializer(good)
+
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                error_occurred = True
+
+        if not error_occurred:
+            return JsonResponse(status=status.HTTP_200_OK)
+        else:
+            return JsonResponse(status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodList(APIView):
