@@ -364,8 +364,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         draft.save()
 
-        draft.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', organisation)])
-
         # Add a good to the standard draft
         GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
                           application=draft,
@@ -376,7 +374,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Set the draft party documents
         self.create_document_for_party(draft.end_user, safe=safe_document)
         self.create_document_for_party(draft.consignee, safe=safe_document)
-        self.create_document_for_party(draft.ultimate_end_users.first(), safe=safe_document)
 
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
@@ -391,12 +388,27 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.end_user.delete()
         return draft
 
-    def create_standard_draft_without_ultimate_user(self, organisation: Organisation,
+    def create_standard_draft_with_incorporated_good(self, organisation: Organisation,
                                                     reference_name='Standard Draft', safe_document=True):
 
         draft = self.create_standard_draft(organisation, reference_name, safe_document)
-        for ultimate_end_user in draft.ultimate_end_users.all():
-            ultimate_end_user.delete()
+
+        part_good = Good(is_good_end_product=False,
+                         is_good_controlled=True,
+                         control_code='ML17',
+                         organisation=self.organisation,
+                         description='a good',
+                         part_number='123456')
+        part_good.save()
+
+        GoodOnApplication(good=part_good,
+                          application=draft,
+                          quantity=17,
+                          value=18).save()
+
+        draft.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', self.organisation)])
+        self.create_document_for_party(draft.ultimate_end_users.first(), safe=safe_document)
+
         return draft
 
     def create_standard_draft_without_site(self, organisation: Organisation, reference_name='Standard Draft',

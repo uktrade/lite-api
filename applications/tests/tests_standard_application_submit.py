@@ -1,11 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
 from cases.models import Case
 from content_strings.strings import get_string
-from goods.models import Good
-from parties.document.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
@@ -22,6 +19,19 @@ class ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
         self.assertEqual(case.application.id, self.draft.id)
+        self.assertIsNotNone(case.application.submitted_at)
+        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
+
+    def test_successful_standard_submit_with_incorporated_good(self):
+        draft = self.create_standard_draft_with_incorporated_good(self.organisation)
+
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case = Case.objects.get()
+        self.assertEqual(case.application.id, draft.id)
         self.assertIsNotNone(case.application.submitted_at)
         self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
 
@@ -75,22 +85,8 @@ class ApplicationsTests(DataTestClient):
         This should be unsuccessful as an ultimate end user is required when
         there is a part which is to be incorporated into another good
         """
-        draft = self.create_standard_draft_without_ultimate_user(self.organisation)
-
-        self.draft = self.create_standard_draft(self.organisation)
-
-        part_good = Good(is_good_end_product=False,
-                         is_good_controlled=True,
-                         control_code='ML17',
-                         organisation=self.organisation,
-                         description='a good',
-                         part_number='123456')
-        part_good.save()
-
-        GoodOnApplication(good=part_good,
-                          application=self.draft,
-                          quantity=17,
-                          value=18).save()
+        draft = self.create_standard_draft_with_incorporated_good(self.organisation)
+        draft.ultimate_end_users.set(list())
 
         url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
