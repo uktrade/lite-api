@@ -9,7 +9,7 @@ from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
-class ApplicationsTests(DataTestClient):
+class StandardApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
@@ -131,7 +131,8 @@ class ApplicationsTests(DataTestClient):
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertContains(response, text='still being processed', status_code=status.HTTP_400_BAD_REQUEST)
+        self.assertContains(response, text=get_string('applications.standard.end_user_document_processing'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
 
     def test_status_code_post_with_infected_document_failure(self):
         draft = self.create_standard_draft(self.organisation, safe_document=False)
@@ -139,4 +140,5 @@ class ApplicationsTests(DataTestClient):
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertContains(response, text='infected end user document', status_code=status.HTTP_400_BAD_REQUEST)
+        self.assertContains(response, text=get_string('applications.standard.end_user_document_infected'),
+                            status_code=status.HTTP_400_BAD_REQUEST)

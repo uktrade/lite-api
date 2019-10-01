@@ -386,7 +386,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
 
-        draft.save()
         return draft
 
     def create_standard_draft_with_incorporated_good(self, organisation: Organisation,
@@ -412,7 +411,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return draft
 
-
     def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
         """
         Creates an open draft application
@@ -426,8 +424,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                 usage='Trade',
                                 organisation=organisation)
 
+        draft.save()
+
         # Add a goods description
-        self.create_goods_type(draft)
         self.create_goods_type(draft)
 
         # Add a country to the draft
@@ -436,7 +435,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
 
-        draft.save()
         return draft
 
     # Applications
