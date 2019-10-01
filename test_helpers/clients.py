@@ -364,6 +364,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         draft.save()
 
+        draft.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', organisation)])
+
         # Add a good to the standard draft
         GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
                           application=draft,
@@ -374,6 +376,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Set the draft party documents
         self.create_document_for_party(draft.end_user, safe=safe_document)
         self.create_document_for_party(draft.consignee, safe=safe_document)
+        self.create_document_for_party(draft.ultimate_end_users.first(), safe=safe_document)
 
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
@@ -381,11 +384,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.save()
         return draft
 
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
-                                                        reference_name='Standard Draft', safe_document=True):
+    def create_standard_draft_without_end_user(self, organisation: Organisation,
+                                               reference_name='Standard Draft', safe_document=True):
 
         draft = self.create_standard_draft(organisation, reference_name, safe_document)
-        PartyDocument.objects.filter(party=draft.end_user).delete()
+        draft.end_user.delete()
+        return draft
+
+    def create_standard_draft_without_ultimate_user(self, organisation: Organisation,
+                                                    reference_name='Standard Draft', safe_document=True):
+
+        draft = self.create_standard_draft(organisation, reference_name, safe_document)
+        for ultimate_end_user in draft.ultimate_end_users.all():
+            ultimate_end_user.delete()
         return draft
 
     def create_standard_draft_without_site(self, organisation: Organisation, reference_name='Standard Draft',
