@@ -11,7 +11,7 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
 from conf import settings
 from conf.urls import urlpatterns
 from flags.models import Flag
-from goods.enums import GoodControlled
+from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
@@ -256,6 +256,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case = Case(application=draft)
         case.save()
 
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            for good_on_application in GoodOnApplication.objects.filter(application=draft):
+                good_on_application.good.status = GoodStatus.SUBMITTED
+                good_on_application.good.save()
+
         return draft
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
@@ -428,6 +433,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a goods description
         self.create_goods_type(draft)
+        self.create_goods_type(draft)
 
         # Add a country to the draft
         CountryOnApplication(application=draft, country=get_country('GB')).save()
@@ -486,10 +492,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.save()
 
         if advice_field == 'end_user':
-            advice.end_user = case.application.end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
 
         if advice_field == 'good':
-            advice.good = GoodOnApplication.objects.filter(application=case.application).first().good
+            advice.good = GoodOnApplication.objects.get(application=case.application).good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = 'I am easy to proviso'

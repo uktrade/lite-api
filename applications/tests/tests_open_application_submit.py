@@ -33,7 +33,7 @@ class OpenApplicationTests(DataTestClient):
                             status_code=status.HTTP_400_BAD_REQUEST)
 
     def test_submit_open_application_without_goods_type_failure(self):
-        GoodsType.objects.get(application=self.draft).delete()
+        GoodsType.objects.filter(application=self.draft).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 

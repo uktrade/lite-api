@@ -10,7 +10,7 @@ from applications.creators import validate_standard_licence, validate_open_licen
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application, get_applications_with_organisation, \
     get_draft_with_organisation
-from applications.models import ExternalLocationOnApplication, SiteOnApplication
+from applications.models import ExternalLocationOnApplication, SiteOnApplication, GoodOnApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
@@ -18,6 +18,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
+from goods.enums import GoodStatus
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
@@ -107,6 +108,11 @@ class ApplicationSubmission(APIView):
         draft.submitted_at = datetime.now(timezone.utc)
         draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         draft.save()
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            for good_on_application in GoodOnApplication.objects.filter(application=draft):
+                good_on_application.good.status = GoodStatus.SUBMITTED
+                good_on_application.good.save()
 
         case = Case(application=draft)
         case.save()
