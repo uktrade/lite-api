@@ -364,6 +364,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         draft.save()
 
+        draft.third_parties.set([self.create_third_party('Third party', self.organisation)])
+
         # Add a good to the standard draft
         GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
                           application=draft,
@@ -374,6 +376,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Set the draft party documents
         self.create_document_for_party(draft.end_user, safe=safe_document)
         self.create_document_for_party(draft.consignee, safe=safe_document)
+        self.create_document_for_party(draft.third_parties.first(), safe=safe_document)
 
         # Add a site to the draft
         SiteOnApplication(site=organisation.primary_site, application=draft).save()
