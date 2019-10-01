@@ -285,7 +285,7 @@ class CaseActivity(BaseActivity):
     activity_types = CaseActivityType
 
 
-class CaseGoodCountryDecision(models.Model):
+class GoodCountryDecision(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
@@ -293,13 +293,8 @@ class CaseGoodCountryDecision(models.Model):
     advice_type = models.CharField(choices=AdviceType.choices, max_length=30)
 
     def save(self, *args, **kwargs):
-        try:
-            existing_object = CaseGoodCountryDecision.objects.get(case=self.case,
-                                                                  good=self.good,
-                                                                  country=self.country)
-            existing_object.delete()
+        GoodCountryDecision.objects.filter(case=self.case,
+                                           good=self.good,
+                                           country=self.country).delete()
 
-        except CaseGoodCountryDecision.DoesNotExist:
-            pass
-
-        super(CaseGoodCountryDecision, self).save(*args, **kwargs)
+        super(GoodCountryDecision, self).save(*args, **kwargs)

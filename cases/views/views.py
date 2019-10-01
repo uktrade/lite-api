@@ -12,11 +12,11 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.libraries.post_advice import post_advice, check_if_final_advice_exists, check_if_team_advice_exists
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity, CaseGoodCountryDecision
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity, GoodCountryDecision
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, \
-    CaseFinalAdviceSerializer, CaseGoodCountryDecisionSerializer
+    CaseFinalAdviceSerializer, GoodCountryDecisionSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
@@ -406,8 +406,8 @@ class GoodsCountriesDecisions(APIView):
 
     def get(self, request, pk):
         assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
-        goods_countries = CaseGoodCountryDecision.objects.filter(case=pk)
-        serializer = CaseGoodCountryDecisionSerializer(goods_countries, many=True)
+        goods_countries = GoodCountryDecision.objects.filter(case=pk)
+        serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={'data': serializer.data})
 
@@ -415,10 +415,10 @@ class GoodsCountriesDecisions(APIView):
         assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         data = JSONParser().parse(request).get('good_countries')
 
-        serializer = CaseGoodCountryDecisionSerializer(data=data, many=True)
+        serializer = GoodCountryDecisionSerializer(data=data, many=True)
         if serializer.is_valid():
             for item in data:
-                CaseGoodCountryDecision(good=get_goods_type(item['good']),
+                GoodCountryDecision(good=get_goods_type(item['good']),
                                         case=get_case(item['case']),
                                         country=get_country(item['country']),
                                         advice_type=item['advice_type']).save()

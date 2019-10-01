@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case, CaseGoodCountryDecision
+from cases.models import Case, GoodCountryDecision
 from conf.constants import Permissions
 from drafts.models import CountryOnDraft
 from goodstype.models import GoodsType
@@ -55,7 +55,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(CaseGoodCountryDecision.objects.count(), 6)
+        self.assertEqual(GoodCountryDecision.objects.count(), 6)
         self.assertEqual(len(response.json()['data']), 6)
 
     def test_saving_overwrites_previous_assignment(self):
@@ -71,4 +71,4 @@ class CreateGoodsCountriesDecisions(DataTestClient):
 
         self.client.post(self.goods_countries_url, data, **self.gov_headers)
 
-        self.assertEqual(CaseGoodCountryDecision.objects.count(), 1)
+        self.assertEqual(GoodCountryDecision.objects.count(), 1)

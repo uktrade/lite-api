@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from applications.serializers import ApplicationBaseSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
-    FinalAdvice, CaseGoodCountryDecision
+    FinalAdvice, GoodCountryDecision
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from goods.models import Good
@@ -345,12 +345,12 @@ class CaseActivitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CaseGoodCountryDecisionSerializer(serializers.ModelSerializer):
+class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
     advice_type = KeyValueChoiceField(choices=AdviceType.choices)
 
     class Meta:
-        model = CaseGoodCountryDecision
+        model = GoodCountryDecision
         fields = '__all__'
