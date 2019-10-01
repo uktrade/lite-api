@@ -44,12 +44,12 @@ class CreateGoodsCountriesDecisions(DataTestClient):
     def test_make_goods_countries_decisions_success(self):
         data = {'good_countries':
             [
-                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'advice_type': 'approve', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_1.id), 'country': 'LR', 'advice_type': 'refuse', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_1.id), 'country': 'AL', 'advice_type': 'no_licence_required', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_2.id), 'country': 'BW', 'advice_type': 'approve', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_2.id), 'country': 'DE', 'advice_type': 'approve', 'case': str(self.case.id)},
-                {'good': str(self.goods_type_2.id), 'country': 'SC', 'advice_type': 'approve', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'decision': 'approve', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_1.id), 'country': 'LR', 'decision': 'refuse', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_1.id), 'country': 'AL', 'decision': 'no_licence_required', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_2.id), 'country': 'BW', 'decision': 'approve', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_2.id), 'country': 'DE', 'decision': 'approve', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_2.id), 'country': 'SC', 'decision': 'approve', 'case': str(self.case.id)},
             ]}
 
         response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
@@ -61,12 +61,12 @@ class CreateGoodsCountriesDecisions(DataTestClient):
     def test_saving_overwrites_previous_assignment(self):
         data = {'good_countries':
             [
-                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'advice_type': 'approve', 'case': str(self.case.id)},
+                {'good': str(self.goods_type_1.id), 'country': 'ZM', 'decision': 'approve', 'case': str(self.case.id)},
             ]
         }
 
         response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
-        data['advice_type'] = 'refuse'
+        data['decision'] = 'refuse'
 
         self.client.post(self.goods_countries_url, data, **self.gov_headers)
 

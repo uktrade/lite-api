@@ -290,7 +290,7 @@ class GoodCountryDecision(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    advice_type = models.CharField(choices=AdviceType.choices, max_length=30)
+    decision = models.CharField(choices=AdviceType.choices, max_length=30)
 
     def save(self, *args, **kwargs):
         GoodCountryDecision.objects.filter(case=self.case,

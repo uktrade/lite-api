@@ -145,8 +145,8 @@ class CaseAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
         # We exclude any team of final level advice objects
-        self.advice = Advice.objects.filter(case=self.case)\
-            .exclude(teamadvice__isnull=False)\
+        self.advice = Advice.objects.filter(case=self.case) \
+            .exclude(teamadvice__isnull=False) \
             .exclude(finaladvice__isnull=False)
         self.serializer_object = CaseAdviceSerializer
 
@@ -419,9 +419,9 @@ class GoodsCountriesDecisions(APIView):
         if serializer.is_valid():
             for item in data:
                 GoodCountryDecision(good=get_goods_type(item['good']),
-                                        case=get_case(item['case']),
-                                        country=get_country(item['country']),
-                                        advice_type=item['advice_type']).save()
+                                    case=get_case(item['case']),
+                                    country=get_country(item['country']),
+                                    decision=item['decision']).save()
 
             return JsonResponse(data={'data': data})
 
