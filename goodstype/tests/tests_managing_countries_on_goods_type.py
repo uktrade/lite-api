@@ -13,7 +13,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         super().setUp()
         self.open_draft = self.create_open_draft(self.organisation)
 
-        self.goods_types = GoodsType.objects.filter(object_id=self.open_draft.id)
+        self.goods_types = GoodsType.objects.filter(application=self.open_draft)
         self.goods_type_1 = self.goods_types[0]
         self.goods_type_2 = self.goods_types[1]
 
