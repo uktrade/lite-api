@@ -66,7 +66,6 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         }
 
         response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
-        print(response.json)
         data['advice_type'] = 'refuse'
 
         self.client.post(self.goods_countries_url, data, **self.gov_headers)
