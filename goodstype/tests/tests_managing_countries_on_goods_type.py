@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import CountryOnDraft
+from applications.models import CountryOnApplication
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -24,7 +24,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
         self.all_countries = [self.country_1, self.country_2, self.country_3]
         for country in self.all_countries:
-            CountryOnDraft(draft=self.open_draft, country=country).save()
+            CountryOnApplication(application=self.open_draft, country=country).save()
 
         self.good_url = reverse('goodstype:goodstypes_detail', kwargs={'pk': self.goods_type_1.id})
         self.good_country_url = reverse('goodstype:assign_countries')
