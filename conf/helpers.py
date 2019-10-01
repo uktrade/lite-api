@@ -24,12 +24,11 @@ def convert_pascal_case_to_snake_case(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def replace_default_string_for_form_select(data, fields, replacement_value=None):
+def replace_default_string_for_form_select(data, fields, replacement_value=None, default_select_value='blank'):
     """
     lite_forms submodule contains a possible default value for select questions, with a value of 'blank'
     this replaces that default value to None(or expected value) so that the test may give correct serializer errors.
     """
-    default_select_value = 'blank'
     for field in fields:
         if data.get(field):
             if data[field] == default_select_value:
