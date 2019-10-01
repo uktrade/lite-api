@@ -30,7 +30,7 @@ Service for handling backend calls in LITE.
 
 **[API Docs available on GitHub Pages](https://uktrade.github.io/lite-api/)**
 
-[Running locally without Docker](docs/without-docker.md)
+[Running locally without Docker](docs/without_docker.md)
 
 ## Running Tests
 

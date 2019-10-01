@@ -200,14 +200,26 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
         return dict()
 
 
+class ApplicationListSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BaseApplication
+        fields = ('id',
+                  'name',
+                  'last_modified_at',
+                  'status',)
+
+    def get_status(self, instance):
+        return instance.status.status
+
+
 class StandardApplicationSerializer(BaseApplicationSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
-
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
-
     destinations = serializers.SerializerMethodField()
 
     class Meta:
@@ -230,7 +242,6 @@ class StandardApplicationSerializer(BaseApplicationSerializer):
 
 class OpenApplicationSerializer(BaseApplicationSerializer):
     destinations = serializers.SerializerMethodField()
-
     goods_types = serializers.SerializerMethodField()
 
     class Meta:

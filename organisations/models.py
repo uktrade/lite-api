@@ -1,6 +1,5 @@
 import uuid
 
-import reversion
 from django.db import models
 
 from addresses.models import Address
@@ -9,7 +8,6 @@ from parties.enums import SubType
 from static.countries.models import Country
 
 
-@reversion.register()
 class Organisation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
@@ -44,7 +42,6 @@ class Organisation(models.Model):
         return [x.user for x in user_organisation_relationships]
 
 
-@reversion.register()
 class Site(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
@@ -52,7 +49,6 @@ class Site(models.Model):
     organisation = models.ForeignKey(Organisation, blank=True, null=True, related_name='site', on_delete=models.CASCADE)
 
 
-@reversion.register()
 class ExternalLocation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)

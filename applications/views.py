@@ -11,7 +11,7 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application, get_applications_with_organisation, \
     get_draft_with_organisation
 from applications.models import ExternalLocationOnApplication, SiteOnApplication
-from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer
+from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -31,9 +31,8 @@ class ApplicationList(APIView):
         List all applications
         """
         organisation = get_organisation_by_user(request.user)
-
         applications = get_applications_with_organisation(organisation).order_by('created_at')
-        serializer = BaseApplicationSerializer(applications, many=True)
+        serializer = ApplicationListSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 

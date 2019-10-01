@@ -21,7 +21,8 @@ class SitesList(APIView):
         Endpoint for listing the Sites of an organisation
         An organisation must have at least one site
         """
-        sites = Site.objects.filter(organisation=org_pk)
+        sites = list(Site.objects.filter(organisation=org_pk).order_by('name'))
+        sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data})
 
