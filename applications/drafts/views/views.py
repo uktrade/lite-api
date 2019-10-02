@@ -65,21 +65,6 @@ class DraftDetail(APIView):
 
         return JsonResponse(data={'draft': serializer.data})
 
-    # TODO: Add edit application/draft functionality
-    # def put(self, request, pk):
-    #     organisation = get_organisation_by_user(request.user)
-    #
-    #     serializer = DraftUpdateSerializer(get_draft_with_organisation(pk, organisation),
-    #                                        data=request.data,
-    #                                        partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #
-    #         return JsonResponse(data={'draft': serializer.data},
-    #                             status=status.HTTP_200_OK)
-    #     return JsonResponse(data={'errors': serializer.errors},
-    #                         status=400)
-
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_with_organisation(pk, organisation)

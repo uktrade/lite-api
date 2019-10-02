@@ -2,7 +2,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.document.models import PartyDocument
 from parties.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -13,7 +12,6 @@ class EndUserOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
-        PartyDocument.objects.filter(party=self.draft.end_user)
         self.draft.end_user = None
         self.draft.save()
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
@@ -82,7 +80,6 @@ class EndUserOnDraftTests(DataTestClient):
         draft = self.create_standard_draft(self.organisation)
         end_user_1_id = draft.end_user.id
         url = reverse('drafts:end_user', kwargs={'pk': draft.id})
-
 
         # act
         self.client.post(url, self.new_end_user_data, **self.exporter_headers)
