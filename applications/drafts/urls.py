@@ -1,7 +1,7 @@
 from django.urls import path
 
-from drafts.views import draft_sites_views, draft_parties, views, draft_external_locations_views, draft_goods, \
-    draft_countries, draft_party_document_views, draft_documents
+from applications.drafts.views import draft_external_locations_views, draft_sites_views, draft_documents, \
+    draft_countries, views, draft_goods, draft_party_document_views, draft_parties
 
 app_name = 'drafts'
 
