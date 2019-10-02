@@ -64,30 +64,6 @@ paths:
         in: path
         required: true
         type: string
-  /applications/{id}/user/:
-    get:
-      operationId: applications_user_list
-      description: Retrieve an application instance.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - applications
-    put:
-      operationId: applications_user_update
-      description: Update an application instance.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - applications
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
   /cases/{id}/:
     get:
       operationId: cases_read
@@ -130,9 +106,9 @@ paths:
         in: path
         required: true
         type: string
-  /cases/{id}/case_notes/:
+  /cases/{id}/case-notes/:
     get:
-      operationId: cases_case_notes_list
+      operationId: cases_case-notes_list
       description: Gets all case notes
       parameters: []
       responses:
@@ -141,7 +117,7 @@ paths:
       tags:
         - cases
     post:
-      operationId: cases_case_notes_create
+      operationId: cases_case-notes_create
       description: Creates a case note on a case
       parameters: []
       responses:
@@ -206,9 +182,184 @@ paths:
         in: path
         required: true
         type: string
-  /cases/{id}/flags/:
+  /cases/{id}/ecju-queries/:
+    get:
+      operationId: cases_ecju-queries_list
+      description: Returns the list of ECJU Queries on a case
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_ecju-queries_create
+      description: Add a new ECJU query
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/ecju-queries/{ecju_pk}/:
+    get:
+      operationId: cases_ecju-queries_read
+      description: Returns details of an ecju query
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
     put:
-      operationId: cases_flags_update
+      operationId: cases_ecju-queries_update
+      description: "If not validate only Will update the ecju query instance, with\
+        \ a response, and return the data details.\nIf validate only, this will return\
+        \ if the data is acceptable or not."
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: ecju_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/final-advice/:
+    get:
+      operationId: cases_final-advice_list
+      description: Concatenates all advice for a case and returns it or just returns
+        if team advice already exists
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_final-advice_create
+      description: Creates advice for a case
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CaseFinalAdvice'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/CaseFinalAdvice'
+        '400':
+          description: JSON parse error
+      tags:
+        - cases
+    delete:
+      operationId: cases_final-advice_delete
+      description: Clears team level advice and reopens the advice for user level
+        for that team
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/team-advice/:
+    get:
+      operationId: cases_team-advice_list
+      description: Concatenates all advice for a case and returns it or just returns
+        if team advice already exists
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_team-advice_create
+      description: Creates advice for a case
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CaseTeamAdvice'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/CaseTeamAdvice'
+        '400':
+          description: JSON parse error
+      tags:
+        - cases
+    delete:
+      operationId: cases_team-advice_delete
+      description: Clears team level advice and reopens the advice for user level
+        for that team
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/user-advice/:
+    get:
+      operationId: cases_user-advice_list
+      description: Returns all advice for a case
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_user-advice_create
+      description: Creates advice for a case
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CaseAdvice'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/CaseAdvice'
+        '400':
+          description: JSON parse error
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/view-final-advice/:
+    get:
+      operationId: cases_view-final-advice_list
       description: ''
       parameters: []
       responses:
@@ -221,16 +372,35 @@ paths:
         in: path
         required: true
         type: string
-  /clc_queries/{id}/:
-    put:
-      operationId: clc_queries_update
-      description: Update a clc query instance.
+  /cases/{id}/view-team-advice/{team_pk}/:
+    get:
+      operationId: cases_view-team-advice_read
+      description: ''
       parameters: []
       responses:
         '200':
           description: ''
       tags:
-        - clc_queries
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: team_pk
+        in: path
+        required: true
+        type: string
+  /documents/{id}/:
+    get:
+      operationId: documents_read
+      description: Returns document metadata
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - documents
     parameters:
       - name: id
         in: path
@@ -289,6 +459,70 @@ paths:
         in: path
         required: true
         type: string
+  /drafts/{id}/consignee/:
+    post:
+      operationId: drafts_consignee_create
+      description: Create a consignee and add it to a draft
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/consignee/document/:
+    get:
+      operationId: drafts_consignee_document_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_consignee_document_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_consignee_document_delete
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /drafts/{id}/countries/:
     get:
       operationId: drafts_countries_list
@@ -313,14 +547,131 @@ paths:
         in: path
         required: true
         type: string
+  /drafts/{id}/documents/:
+    get:
+      operationId: drafts_documents_list
+      description: View all additional documents on a draft.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_documents_create
+      description: Upload additional document onto a draft.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DraftDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/DraftDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/documents/{doc_pk}/:
+    get:
+      operationId: drafts_documents_read
+      description: View an additional document on a draft.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_documents_delete
+      description: Delete an additional document on a draft.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DraftDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    parameters:
+      - name: doc_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
   /drafts/{id}/end-user/:
     post:
       operationId: drafts_end-user_create
-      description: Set the end user of a draft application
+      description: Create an end user and add it to a draft
       parameters: []
       responses:
         '201':
           description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/end-user/document/:
+    get:
+      operationId: drafts_end-user_document_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_end-user_document_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_end-user_document_delete
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
       tags:
         - drafts
     parameters:
@@ -443,6 +794,198 @@ paths:
         in: path
         required: true
         type: string
+  /drafts/{id}/third-parties/:
+    get:
+      operationId: drafts_third-parties_list
+      description: Get third parties associated with a draft
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_third-parties_create
+      description: Create a third party and add it to a draft
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/third-parties/{tp_pk}:
+    delete:
+      operationId: drafts_third-parties_delete
+      description: Delete a third party and remove it from the draft
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: tp_pk
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/third-parties/{tp_pk}/document/:
+    get:
+      operationId: drafts_third-parties_document_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_third-parties_document_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_third-parties_document_delete
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: tp_pk
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/ultimate-end-user/{ueu_pk}/document/:
+    get:
+      operationId: drafts_ultimate-end-user_document_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_ultimate-end-user_document_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    delete:
+      operationId: drafts_ultimate-end-user_document_delete
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: ueu_pk
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/ultimate-end-users/:
+    get:
+      operationId: drafts_ultimate-end-users_list
+      description: Get ultimate end users associated with a draft
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - drafts
+    post:
+      operationId: drafts_ultimate-end-users_create
+      description: Create an ultimate end user and add it to a draft
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /drafts/{id}/ultimate-end-users/{ueu_pk}:
+    delete:
+      operationId: drafts_ultimate-end-users_delete
+      description: Delete an ultimate end user and remove it from the draft
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - drafts
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: ueu_pk
+        in: path
+        required: true
+        type: string
   /flags/:
     get:
       operationId: flags_list
@@ -459,6 +1002,17 @@ paths:
       parameters: []
       responses:
         '201':
+          description: ''
+      tags:
+        - flags
+    parameters: []
+  /flags/assign/:
+    put:
+      operationId: flags_assign_update
+      description: Assigns flags to goods and cases
+      parameters: []
+      responses:
+        '200':
           description: ''
       tags:
         - flags
@@ -490,7 +1044,7 @@ paths:
   /goods/:
     get:
       operationId: goods_list
-      description: ''
+      description: Returns a list of all goods belonging to an organisation
       parameters: []
       responses:
         '200':
@@ -499,7 +1053,7 @@ paths:
         - goods
     post:
       operationId: goods_create
-      description: ''
+      description: Returns a list of all goods belonging to an organisation
       parameters: []
       responses:
         '201':
@@ -540,6 +1094,67 @@ paths:
         in: path
         required: true
         type: string
+  /goods/{id}/documents/:
+    get:
+      operationId: goods_documents_list
+      description: Returns a list of documents on the specified good
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - goods
+    post:
+      operationId: goods_documents_create
+      description: Adds a document to the specified good
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GoodDocumentCreate'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/GoodDocumentCreate'
+        '400':
+          description: JSON parse error
+      tags:
+        - goods
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /goods/{id}/documents/{doc_pk}/:
+    get:
+      operationId: goods_documents_read
+      description: Returns a list of documents on the specified good
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - goods
+    delete:
+      operationId: goods_documents_delete
+      description: Deletes good document
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - goods
+    parameters:
+      - name: doc_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
   /goodstype/:
     get:
       operationId: goodstype_list
@@ -556,6 +1171,18 @@ paths:
       parameters: []
       responses:
         '201':
+          description: ''
+      tags:
+        - goodstype
+    parameters: []
+  /goodstype/assign_countries/:
+    put:
+      operationId: goodstype_assign_countries_update
+      description: 'Accepts {goodstype_id: [country_id, country_id], goodstype_id:
+        [etc...], etc...}'
+      parameters: []
+      responses:
+        '200':
           description: ''
       tags:
         - goodstype
@@ -618,6 +1245,17 @@ paths:
           description: JSON parse error
         '403':
           description: Forbidden
+      tags:
+        - gov-users
+    parameters: []
+  /gov-users/me/:
+    get:
+      operationId: gov-users_me_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
       tags:
         - gov-users
     parameters: []
@@ -756,7 +1394,22 @@ paths:
       tags:
         - organisations
     parameters: []
-  /organisations/external_locations/:
+  /organisations/{id}/:
+    get:
+      operationId: organisations_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/external_locations/:
     get:
       operationId: organisations_external_locations_list
       description: ''
@@ -775,63 +1428,8 @@ paths:
           description: ''
       tags:
         - organisations
-    parameters: []
-  /organisations/sites/:
-    get:
-      operationId: organisations_sites_list
-      description: List all sites for an organisation/create site
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - organisations
-    post:
-      operationId: organisations_sites_create
-      description: List all sites for an organisation/create site
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - organisations
-    parameters: []
-  /organisations/sites/{id}/:
-    get:
-      operationId: organisations_sites_read
-      description: Show details for for a specific site/edit site
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - organisations
-    put:
-      operationId: organisations_sites_update
-      description: Show details for for a specific site/edit site
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - organisations
     parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /organisations/{id}/:
-    get:
-      operationId: organisations_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - organisations
-    parameters:
-      - name: id
+      - name: org_pk
         in: path
         required: true
         type: string
@@ -888,10 +1486,64 @@ paths:
         in: path
         required: true
         type: string
+  /organisations/{org_pk}/users/:
+    get:
+      operationId: organisations_users_list
+      description: List all users from the specified organisation
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    post:
+      operationId: organisations_users_create
+      description: Create an exporter user within the specified organisation
+      parameters: []
+      responses:
+        '201':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - organisations
+    parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/users/{user_pk}/:
+    get:
+      operationId: organisations_users_read
+      description: Return a user from the specified organisation
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    put:
+      operationId: organisations_users_update
+      description: Update the status of a user
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+      - name: user_pk
+        in: path
+        required: true
+        type: string
   /picklist/:
     get:
       operationId: picklist_list
-      description: Returns a list of all picklist items, filtered by type
+      description: Returns a list of all picklist items, filtered by type and by show_deactivated
       parameters: []
       responses:
         '200':
@@ -932,10 +1584,81 @@ paths:
         in: path
         required: true
         type: string
+  /queries/control-list-classifications/:
+    post:
+      operationId: queries_control-list-classifications_create
+      description: Create a new CLC query case instance
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - queries
+    parameters: []
+  /queries/control-list-classifications/{id}/:
+    put:
+      operationId: queries_control-list-classifications_update
+      description: Respond to a control list classification.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queries
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /queries/end-user-advisories/:
+    get:
+      operationId: queries_end-user-advisories_list
+      description: View all end user advisories belonging to an organisation.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queries
+    post:
+      operationId: queries_end-user-advisories_create
+      description: Create a new End User Advisory Enquiry query case instance
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - queries
+    parameters: []
+  /queries/end-user-advisories/{id}/:
+    get:
+      operationId: queries_end-user-advisories_read
+      description: View a single end user advisory's details
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queries
+    put:
+      operationId: queries_end-user-advisories_update
+      description: Update an end user advisory instance.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queries
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /queues/:
     get:
       operationId: queues_list
-      description: List all queues
+      description: "Gets all queues.\nOptionally includes the system defined, pseudo\
+        \ queues \"All cases\" and \"Open cases\""
       parameters: []
       responses:
         '200':
@@ -944,7 +1667,7 @@ paths:
         - queues
     post:
       operationId: queues_create
-      description: List all queues
+      description: ''
       parameters: []
       responses:
         '201':
@@ -964,18 +1687,18 @@ paths:
         - queues
     put:
       operationId: queues_update
-      description: Retrieve a queue instance
+      description: ''
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Queue'
+            $ref: '#/definitions/QueueCreate'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Queue'
+            $ref: '#/definitions/QueueCreate'
       tags:
         - queues
     parameters:
@@ -986,7 +1709,7 @@ paths:
   /queues/{id}/case-assignments/:
     get:
       operationId: queues_case-assignments_list
-      description: Get all case assignments for that queue
+      description: ''
       parameters: []
       responses:
         '200':
@@ -1014,6 +1737,79 @@ paths:
         in: path
         required: true
         type: string
+  /queues/{id}/cases/:
+    get:
+      operationId: queues_cases_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+      tags:
+        - queues
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /static/control-list-entries/:
+    get:
+      operationId: static_control-list-entries_list
+      description: Returns list of all Control List Entries
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    post:
+      operationId: static_control-list-entries_create
+      description: Add a new control list entry
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /static/control-list-entries/{rating}/:
+    get:
+      operationId: static_control-list-entries_read
+      description: Returns details of a specific control ratings
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    post:
+      operationId: static_control-list-entries_create
+      description: Add a new control rating
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - static
+    put:
+      operationId: static_control-list-entries_update
+      description: Update a control rating
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters:
+      - name: rating
+        in: path
+        required: true
+        type: string
   /static/countries/:
     get:
       operationId: static_countries_list
@@ -1028,6 +1824,17 @@ paths:
   /static/denial-reasons/:
     get:
       operationId: static_denial-reasons_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /static/statuses/:
+    get:
+      operationId: static_statuses_list
       description: ''
       parameters: []
       responses:
@@ -1131,7 +1938,7 @@ paths:
   /users/:
     get:
       operationId: users_list
-      description: ''
+      description: Returns a list of Exporter users
       parameters: []
       responses:
         '200':
@@ -1140,11 +1947,14 @@ paths:
         - users
     post:
       operationId: users_create
-      description: ''
+      description: Create Exporter within the same organisation that current user
+        is logged into
       parameters: []
       responses:
         '201':
           description: ''
+        '400':
+          description: JSON parse error
       tags:
         - users
     parameters: []
@@ -1152,8 +1962,7 @@ paths:
     post:
       operationId: users_authenticate_create
       description: "Takes user details from sso and checks them against our whitelisted\
-        \ users\nReturns a token which is just our ID for the user\n:param request:\n\
-        :param email:\n:return token:"
+        \ users\nReturns a token which is just our ID for the user"
       parameters: []
       responses:
         '201':
@@ -1165,122 +1974,17 @@ paths:
       tags:
         - users
     parameters: []
-  /users/clc_notifications/:
+  /users/me/:
     get:
-      operationId: users_clc_notifications_list
+      operationId: users_me_list
       description: ''
-      parameters:
-        - name: limit
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-        - name: offset
-          in: query
-          description: The initial index from which to return the results.
-          required: false
-          type: integer
+      parameters: []
       responses:
         '200':
           description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    post:
-      operationId: users_clc_notifications_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
       tags:
         - users
     parameters: []
-  /users/clc_notifications/{id}/:
-    get:
-      operationId: users_clc_notifications_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    put:
-      operationId: users_clc_notifications_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    patch:
-      operationId: users_clc_notifications_partial_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    delete:
-      operationId: users_clc_notifications_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - users
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this notification.
-        required: true
-        type: integer
   /users/notifications/:
     get:
       operationId: users_notifications_list
@@ -1318,89 +2022,14 @@ paths:
               results:
                 type: array
                 items:
-                  $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    post:
-      operationId: users_notifications_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
+                  $ref: '#/definitions/Notification'
       tags:
         - users
     parameters: []
-  /users/notifications/{id}/:
-    get:
-      operationId: users_notifications_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    put:
-      operationId: users_notifications_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    patch:
-      operationId: users_notifications_partial_update
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Notifications'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notifications'
-      tags:
-        - users
-    delete:
-      operationId: users_notifications_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - users
-    parameters:
-      - name: id
-        in: path
-        description: A unique integer value identifying this notification.
-        required: true
-        type: integer
   /users/{id}/:
     get:
       operationId: users_read
-      description: ''
+      description: Get user from pk
       parameters: []
       responses:
         '200':
@@ -1409,11 +2038,13 @@ paths:
         - users
     put:
       operationId: users_update
-      description: ''
+      description: Update Exporter user
       parameters: []
       responses:
         '200':
           description: ''
+        '400':
+          description: JSON parse error
       tags:
         - users
     parameters:
@@ -1450,6 +2081,341 @@ definitions:
         x-nullable: true
       case:
         title: Case
+        type: string
+        format: uuid
+      description:
+        title: Description
+        type: string
+        maxLength: 280
+        x-nullable: true
+  CaseFinalAdvice:
+    required:
+      - case
+      - user
+      - type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      case:
+        title: Case
+        type: string
+        format: uuid
+      user:
+        title: User
+        type: string
+      proviso:
+        title: Proviso
+        type: string
+        maxLength: 5000
+        minLength: 1
+      text:
+        title: Text
+        type: string
+        maxLength: 5000
+        x-nullable: true
+      note:
+        title: Note
+        type: string
+        maxLength: 200
+        x-nullable: true
+      type:
+        title: Type
+        type: string
+      denial_reasons:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      good:
+        title: Good
+        type: string
+        format: uuid
+      goods_type:
+        title: Goods type
+        type: string
+        format: uuid
+      country:
+        title: Country
+        type: string
+      end_user:
+        title: End user
+        type: string
+      ultimate_end_user:
+        title: Ultimate end user
+        type: string
+      consignee:
+        title: Consignee
+        type: string
+      third_party:
+        title: Third party
+        type: string
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+  CaseTeamAdvice:
+    required:
+      - case
+      - user
+      - type
+      - team
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      case:
+        title: Case
+        type: string
+        format: uuid
+      user:
+        title: User
+        type: string
+      proviso:
+        title: Proviso
+        type: string
+        maxLength: 5000
+        minLength: 1
+      text:
+        title: Text
+        type: string
+        maxLength: 5000
+        x-nullable: true
+      note:
+        title: Note
+        type: string
+        maxLength: 200
+        x-nullable: true
+      type:
+        title: Type
+        type: string
+      denial_reasons:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      good:
+        title: Good
+        type: string
+        format: uuid
+      goods_type:
+        title: Goods type
+        type: string
+        format: uuid
+      country:
+        title: Country
+        type: string
+      end_user:
+        title: End user
+        type: string
+      ultimate_end_user:
+        title: Ultimate end user
+        type: string
+      consignee:
+        title: Consignee
+        type: string
+      third_party:
+        title: Third party
+        type: string
+      team:
+        title: Team
+        type: string
+        format: uuid
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+  CaseAdvice:
+    required:
+      - case
+      - user
+      - type
+    type: object
+    properties:
+      case:
+        title: Case
+        type: string
+        format: uuid
+      user:
+        title: User
+        type: string
+      text:
+        title: Text
+        type: string
+        maxLength: 5000
+        x-nullable: true
+      note:
+        title: Note
+        type: string
+        maxLength: 200
+        x-nullable: true
+      type:
+        title: Type
+        type: string
+      proviso:
+        title: Proviso
+        type: string
+        maxLength: 5000
+        minLength: 1
+      denial_reasons:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      good:
+        title: Good
+        type: string
+        format: uuid
+      goods_type:
+        title: Goods type
+        type: string
+        format: uuid
+      country:
+        title: Country
+        type: string
+      end_user:
+        title: End user
+        type: string
+      ultimate_end_user:
+        title: Ultimate end user
+        type: string
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      consignee:
+        title: Consignee
+        type: string
+      third_party:
+        title: Third party
+        type: string
+  PartyDocument:
+    required:
+      - name
+      - party
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      party:
+        title: Party
+        type: string
+        format: uuid
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
+  DraftDocument:
+    required:
+      - name
+      - draft
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      virus_scanned_at:
+        title: Virus scanned at
+        type: string
+        format: date-time
+        x-nullable: true
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      description:
+        title: Description
+        type: string
+        maxLength: 280
+        x-nullable: true
+      draft:
+        title: Draft
+        type: string
+        format: uuid
+  GoodDocumentCreate:
+    required:
+      - name
+      - user
+      - organisation
+      - good
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      user:
+        title: User
+        type: string
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      good:
+        title: Good
         type: string
         format: uuid
       description:
@@ -1518,7 +2484,7 @@ definitions:
         items:
           type: string
         uniqueItems: true
-  UserCreate:
+  ExporterUserCreateUpdate:
     title: User
     required:
       - email
@@ -1548,118 +2514,6 @@ definitions:
         title: Organisation
         type: string
         format: uuid
-  AddressCountryless:
-    title: Address
-    required:
-      - address_line_1
-      - postcode
-      - city
-      - region
-      - country
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      address_line_1:
-        title: Address line 1
-        type: string
-        minLength: 1
-      address_line_2:
-        title: Address line 2
-        type: string
-        x-nullable: true
-      postcode:
-        title: Postcode
-        type: string
-        maxLength: 10
-        minLength: 1
-      city:
-        title: City
-        type: string
-        minLength: 1
-      region:
-        title: Region
-        type: string
-        minLength: 1
-      country:
-        title: Country
-        type: string
-        minLength: 1
-  SiteCreate:
-    title: Site
-    required:
-      - name
-      - address
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
-      address:
-        $ref: '#/definitions/AddressCountryless'
-      organisation:
-        title: Organisation
-        type: string
-        format: uuid
-  OrganisationCreate:
-    required:
-      - name
-      - eori_number
-      - sic_number
-      - vat_number
-      - registration_number
-      - user
-      - site
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
-      eori_number:
-        title: Eori number
-        type: string
-        minLength: 1
-      sic_number:
-        title: Sic number
-        type: string
-        minLength: 1
-      vat_number:
-        title: Vat number
-        type: string
-        minLength: 1
-      registration_number:
-        title: Registration number
-        type: string
-        minLength: 1
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      last_modified_at:
-        title: Last modified at
-        type: string
-        format: date-time
-        readOnly: true
-      user:
-        $ref: '#/definitions/UserCreate'
-      site:
-        $ref: '#/definitions/SiteCreate'
   Address:
     title: Address
     required:
@@ -1699,9 +2553,10 @@ definitions:
       country:
         title: Country
         type: string
-  SiteView:
-    title: Primary site
+  Site:
+    title: Site
     required:
+      - name
       - address
     type: object
     properties:
@@ -1716,9 +2571,62 @@ definitions:
         minLength: 1
       address:
         $ref: '#/definitions/Address'
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+  OrganisationCreate:
+    required:
+      - name
+      - sub_type
+      - user
+      - site
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        minLength: 1
+      sub_type:
+        title: Sub type
+        type: string
+      eori_number:
+        title: Eori number
+        type: string
+      sic_number:
+        title: Sic number
+        type: string
+        minLength: 1
+      vat_number:
+        title: Vat number
+        type: string
+      registration_number:
+        title: Registration number
+        type: string
+        minLength: 1
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      last_modified_at:
+        title: Last modified at
+        type: string
+        format: date-time
+        readOnly: true
+      user:
+        $ref: '#/definitions/ExporterUserCreateUpdate'
+      site:
+        $ref: '#/definitions/Site'
   OrganisationView:
     title: Organisation
     required:
+      - sub_type
       - primary_site
     type: object
     properties:
@@ -1730,20 +2638,29 @@ definitions:
       name:
         title: Name
         type: string
+      sub_type:
+        title: Sub type
+        type: string
       eori_number:
         title: Eori number
         type: string
+        x-nullable: true
       sic_number:
         title: Sic number
         type: string
+        x-nullable: true
       vat_number:
         title: Vat number
         type: string
+        x-nullable: true
       registration_number:
         title: Registration number
         type: string
+        x-nullable: true
       primary_site:
-        $ref: '#/definitions/SiteView'
+        title: Primary site
+        type: string
+        format: uuid
       created_at:
         title: Created at
         type: string
@@ -1754,7 +2671,7 @@ definitions:
         type: string
         format: date-time
         readOnly: true
-  Good:
+  FullGood:
     title: Good
     required:
       - description
@@ -1781,21 +2698,13 @@ definitions:
           - yes
           - no
           - unsure
-      clc_query_case_id:
-        title: Clc query case id
-        type: string
-        readOnly: true
       control_code:
         title: Control code
         type: string
-        default: ''
+        x-nullable: true
       is_good_end_product:
         title: Is good end product
         type: boolean
-      part_number:
-        title: Part number
-        type: string
-        x-nullable: true
       organisation:
         title: Organisation
         type: string
@@ -1803,19 +2712,32 @@ definitions:
       status:
         title: Status
         type: string
-        enum:
-          - draft
-          - submitted
-          - clcquery
       not_sure_details_details:
         title: Not sure details details
         type: string
-      notes:
-        title: Notes
+      case_id:
+        title: Case id
         type: string
         readOnly: true
+      query_id:
+        title: Query id
+        type: string
+        readOnly: true
+      documents:
+        title: Documents
+        type: string
+        readOnly: true
+      flags:
+        title: Flags
+        type: string
+        readOnly: true
+      part_number:
+        title: Part number
+        type: string
+        x-nullable: true
   GoodOnApplicationView:
     required:
+      - unit
       - value
     type: object
     properties:
@@ -1825,7 +2747,7 @@ definitions:
         format: uuid
         readOnly: true
       good:
-        $ref: '#/definitions/Good'
+        $ref: '#/definitions/FullGood'
       quantity:
         title: Quantity
         type: number
@@ -1833,14 +2755,6 @@ definitions:
       unit:
         title: Unit
         type: string
-        enum:
-          - GRM
-          - KGM
-          - NAR
-          - MTK
-          - MTR
-          - LTR
-          - MTQ
       value:
         title: Value
         type: string
@@ -1873,14 +2787,216 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/DenialReason'
+  UltimateEndUser:
+    required:
+      - name
+      - address
+      - country
+      - organisation
+      - sub_type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        minLength: 1
+      address:
+        title: Address
+        type: string
+        minLength: 1
+      country:
+        title: Country
+        type: string
+      website:
+        title: Website
+        type: string
+        format: uri
+      type:
+        title: Type
+        type: string
+        enum:
+          - consignee
+          - end_user
+          - ultimate_end_user
+          - third_party
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+      document:
+        title: Document
+        type: string
+        readOnly: true
+      sub_type:
+        title: Sub type
+        type: string
+  Consignee:
+    title: Consignee
+    required:
+      - name
+      - address
+      - country
+      - organisation
+      - sub_type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        minLength: 1
+      address:
+        title: Address
+        type: string
+        minLength: 1
+      country:
+        title: Country
+        type: string
+      website:
+        title: Website
+        type: string
+        format: uri
+      type:
+        title: Type
+        type: string
+        enum:
+          - consignee
+          - end_user
+          - ultimate_end_user
+          - third_party
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+      document:
+        title: Document
+        type: string
+        readOnly: true
+      sub_type:
+        title: Sub type
+        type: string
+  ThirdParty:
+    required:
+      - name
+      - address
+      - country
+      - organisation
+      - sub_type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        minLength: 1
+      address:
+        title: Address
+        type: string
+        minLength: 1
+      country:
+        title: Country
+        type: string
+      website:
+        title: Website
+        type: string
+        format: uri
+      type:
+        title: Type
+        type: string
+        enum:
+          - consignee
+          - end_user
+          - ultimate_end_user
+          - third_party
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+      document:
+        title: Document
+        type: string
+        readOnly: true
+      sub_type:
+        title: Sub type
+        type: string
+        enum:
+          - intermediate_consignee
+          - additional_end_user
+          - agent
+          - submitter
+          - consultant
+          - contact
+          - exporter
+          - other
+  AdditionalDocument:
+    required:
+      - name
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      virus_scanned_at:
+        title: Virus scanned at
+        type: string
+        format: date-time
+        x-nullable: true
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      description:
+        title: Description
+        type: string
+        maxLength: 280
+        x-nullable: true
   ApplicationBase:
     title: Application
     required:
       - organisation
-      - status
       - licence_type
       - export_type
       - reference_number_on_information_form
+      - ultimate_end_users
+      - consignee
+      - third_parties
+      - additional_documents
     type: object
     properties:
       id:
@@ -1892,6 +3008,10 @@ definitions:
         title: Name
         type: string
         x-nullable: true
+      case:
+        title: Case
+        type: string
+        readOnly: true
       organisation:
         $ref: '#/definitions/OrganisationView'
       activity:
@@ -1925,27 +3045,13 @@ definitions:
       status:
         title: Status
         type: string
-        enum:
-          - submitted
-          - more_information_required
-          - under_review
-          - under_final_review
-          - resubmitted
-          - withdrawn
-          - approved
-          - declined
+        readOnly: true
       licence_type:
         title: Licence type
         type: string
-        enum:
-          - standard_licence
-          - open_licence
       export_type:
         title: Export type
         type: string
-        enum:
-          - permanent
-          - temporary
       reference_number_on_information_form:
         title: Reference number on information form
         type: string
@@ -1959,55 +3065,55 @@ definitions:
         title: Destinations
         type: string
         readOnly: true
+      ultimate_end_users:
+        type: array
+        items:
+          $ref: '#/definitions/UltimateEndUser'
       goods_locations:
         title: Goods locations
         type: string
         readOnly: true
-  ClcQuery:
-    title: Clc query
+      goods_types:
+        title: Goods types
+        type: string
+        readOnly: true
+      consignee:
+        $ref: '#/definitions/Consignee'
+      third_parties:
+        type: array
+        items:
+          $ref: '#/definitions/ThirdParty'
+      additional_documents:
+        type: array
+        items:
+          $ref: '#/definitions/AdditionalDocument'
+  QueryView:
+    title: Query
+    required:
+      - organisation
     type: object
     properties:
       id:
         title: Id
-        type: string
-        format: uuid
+        type: integer
         readOnly: true
-      details:
-        title: Details
+      submitted_at:
+        title: Submitted at
         type: string
-        x-nullable: true
-      good:
-        $ref: '#/definitions/Good'
+        format: date-time
+        readOnly: true
       status:
         title: Status
         type: string
-        enum:
-          - submitted
-          - more_information_required
-          - under_review
-          - under_final_review
-          - resubmitted
-          - withdrawn
-          - approved
-          - declined
-      organisation_name:
-        title: Organisation name
-        type: string
-        readOnly: true
-  CaseType:
-    title: Case type
-    type: object
-    properties:
-      id:
-        title: Id
+        format: uuid
+        x-nullable: true
+      organisation:
+        title: Organisation
         type: string
         format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
   Case:
+    required:
+      - type
     type: object
     properties:
       id:
@@ -2015,17 +3121,14 @@ definitions:
         type: string
         format: uuid
         readOnly: true
+      type:
+        title: Type
+        type: string
       application:
         $ref: '#/definitions/ApplicationBase'
-      is_clc:
-        title: Is clc
-        type: string
-        readOnly: true
-      clc_query:
-        $ref: '#/definitions/ClcQuery'
-      case_type:
-        $ref: '#/definitions/CaseType'
-  Queue:
+      query:
+        $ref: '#/definitions/QueryView'
+  QueueCreate:
     required:
       - name
       - team
@@ -2099,25 +3202,22 @@ definitions:
         type: string
         maxLength: 50
         minLength: 1
-  Notifications:
-    required:
-      - user
-      - note
+  Notification:
     type: object
     properties:
-      id:
-        title: ID
-        type: integer
+      object:
+        title: Object
+        type: string
         readOnly: true
-      viewed_at:
-        title: Viewed at
+      object_type:
+        title: Object type
         type: string
-        format: date-time
-        x-nullable: true
-      user:
-        title: User
+        readOnly: true
+      parent:
+        title: Parent
         type: string
-      note:
-        title: Note
+        readOnly: true
+      parent_type:
+        title: Parent type
         type: string
-        format: uuid
+        readOnly: true
