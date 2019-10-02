@@ -6,16 +6,16 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_draft_with_organisation, get_drafts_with_organisation
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import BaseApplicationSerializer, ApplicationCreateSerializer
+from applications.serializers import BaseApplicationSerializer, DraftApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class DraftList(APIView):
+    """
+    List all drafts that belong to an organisation and create a new draft
+    """
     authentication_classes = (ExporterAuthentication,)
-    """
-    List all drafts that belong to an organisation and create a new draft.
-    """
 
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
@@ -31,7 +31,7 @@ class DraftList(APIView):
         data['organisation'] = str(organisation.id)
 
         # Use generic serializer to validate all types of application as we may not yet know the application type
-        serializer = ApplicationCreateSerializer(data=data)
+        serializer = DraftApplicationCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.validated_data['organisation'] = organisation
@@ -52,10 +52,10 @@ class DraftList(APIView):
 
 
 class DraftDetail(APIView):
+    """
+    Retrieve or delete a draft instance
+    """
     authentication_classes = (ExporterAuthentication,)
-    """
-    Retrieve, update or delete a draft instance.
-    """
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)

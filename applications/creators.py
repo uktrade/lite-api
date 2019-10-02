@@ -5,12 +5,16 @@ from parties.document.models import PartyDocument
 from goodstype.models import GoodsType
 
 
-def check_party_document(party, mandatory_document):
+def check_party_document(party, is_mandatory):
+    """
+    Checks for existence of and status of document (if it is mandatory) and return errors if any
+    """
+
     try:
         document = PartyDocument.objects.get(party=party)
     except Document.DoesNotExist:
         document = None
-        if mandatory_document:
+        if is_mandatory:
             return get_string('applications.standard.no_{}_document_set'.format(party.type))
 
     if document:
@@ -22,31 +26,28 @@ def check_party_document(party, mandatory_document):
             return None
 
 
-def check_parties_documents(parties, mandatory_document=True):
+def check_parties_documents(parties, is_mandatory=True):
     for party in parties:
-        error = check_party_document(party, mandatory_document)
+        error = check_party_document(party, is_mandatory)
         if error:
             return error
     return None
 
 
-def check_party_error(party, object_not_found_error, mandatory_document=True):
+def check_party_error(party, object_not_found_error, is_document_mandatory=True):
     if not party:
         return object_not_found_error
     else:
-        document_error = check_party_document(party, mandatory_document)
+        document_error = check_party_document(party, is_document_mandatory)
         if document_error:
             return document_error
 
 
 def validate_standard_licence(draft, errors):
-    """
-    Create a standard licence application
-    """
     end_user_errors = check_party_error(
         draft.end_user,
         object_not_found_error=get_string('applications.standard.no_end_user_set'),
-        mandatory_document=True
+        is_document_mandatory=True
     )
     if end_user_errors:
         errors['end_user'] = end_user_errors
@@ -54,16 +55,16 @@ def validate_standard_licence(draft, errors):
     consignee_errors = check_party_error(
         draft.consignee,
         object_not_found_error=get_string('applications.standard.no_consignee_set'),
-        mandatory_document=True
+        is_document_mandatory=True
     )
     if consignee_errors:
         errors['consignee'] = consignee_errors
 
-    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), mandatory_document=True)
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=True)
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
-    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), mandatory_document=False)
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory=False)
     if third_parties_documents_error:
         errors['third_parties_documents'] = third_parties_documents_error
 

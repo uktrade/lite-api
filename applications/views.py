@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_standard_licence, validate_open_licence
 from applications.enums import ApplicationLicenceType
+from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_application, get_applications_with_organisation, \
     get_draft_with_organisation
 from applications.models import ExternalLocationOnApplication, SiteOnApplication, GoodOnApplication
@@ -87,6 +88,9 @@ class ApplicationSubmission(APIView):
 
     @transaction.atomic
     def put(self, request, pk):
+        """
+        Submit a draft-application which will set its submitted_at datetime and status before creating a case
+        """
         draft = get_draft_with_organisation(pk, get_organisation_by_user(request.user))
         errors = {}
 
@@ -98,13 +102,12 @@ class ApplicationSubmission(APIView):
         # Perform additional validation and append errors if found
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             validate_standard_licence(draft, errors)
-        elif draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
+        else:
             validate_open_licence(draft, errors)
 
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Submit application
         draft.submitted_at = datetime.now(timezone.utc)
         draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         draft.save()
@@ -117,6 +120,7 @@ class ApplicationSubmission(APIView):
         case = Case(application=draft)
         case.save()
 
-        serializer = BaseApplicationSerializer(draft)
+        # Serialize for the response message
+        serializer = get_serializer_for_application(draft)
         return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
                             status=status.HTTP_200_OK)

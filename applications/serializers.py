@@ -361,7 +361,7 @@ class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
                   'application',)
 
 
-class ApplicationCreateSerializer(BaseApplicationSerializer):
+class DraftApplicationCreateSerializer(serializers.ModelSerializer):
     name = CharField(max_length=100,
                      error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
