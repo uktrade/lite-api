@@ -19,7 +19,10 @@ class OrganisationsList(APIView):
         """
         List all organisations
         """
-        organisations = Organisation.objects.all().order_by('name')
+        org_type = request.GET.get('org_type', '')
+        name = request.GET.get('name', '')
+        organisations = Organisation.objects.filter(type=org_type,
+                                                    name__icontains=name).order_by('name')
         view_serializer = OrganisationViewSerializer(organisations, many=True)
         return JsonResponse(data={'organisations': view_serializer.data})
 
@@ -35,7 +38,7 @@ class OrganisationsList(APIView):
         """
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            if data.get('sub_type') and data['sub_type'] == 'individual':
+            if data.get('type') and data['type'] == 'individual':
                 try:
                     data['name'] = data['user']['first_name'] + " " + data['user']['last_name']
                 except AttributeError:
@@ -58,6 +61,7 @@ class OrganisationsDetail(APIView):
     """
     Get an organisation by its primary key
     """
+
     def get(self, request, pk):
         organisation = get_organisation_by_pk(pk)
         view_serializer = OrganisationViewSerializer(organisation)

@@ -1,3 +1,4 @@
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -14,7 +15,7 @@ class OrganisationCreateTests(DataTestClient):
     def test_create_organisation_with_first_user(self):
         data = {
             'name': 'Lemonworld Co',
-            'sub_type': 'commercial',
+            'type': 'commercial',
             'eori_number': 'GB123456789000',
             'sic_number': '2765',
             'vat_number': '123456789',
@@ -66,7 +67,7 @@ class OrganisationCreateTests(DataTestClient):
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
             'name': None,
-            'sub_type': 'commercial',
+            'type': 'commercial',
             'eori_number': None,
             'sic_number': None,
             'vat_number': None,
@@ -103,7 +104,7 @@ class OrganisationCreateTests(DataTestClient):
     def test_create_organisation_missing_fields_failure(self, eori_number, vat_number, sic_number, registration_number):
         data = {
             'name': 'Lemonworld Co',
-            'sub_type': 'commercial',
+            'type': 'commercial',
             'eori_number': eori_number,
             'sic_number': sic_number,
             'vat_number': vat_number,
@@ -137,7 +138,7 @@ class OrganisationCreateTests(DataTestClient):
     ])
     def test_create_organisation_as_a_private_individual(self, eori_number, vat_number):
         data = {
-            'sub_type': 'individual',
+            'type': 'individual',
             'eori_number': eori_number,
             'vat_number': vat_number,
             'site': {
@@ -181,3 +182,66 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(site.address.postcode, data['site']['address']['postcode'])
         self.assertEqual(site.address.city, data['site']['address']['city'])
         self.assertEqual(str(site.address.country.id), data['site']['address']['country'])
+
+    def test_create_hmrc_organisation(self):
+        data = {
+            'name': 'hmrc organisation',
+            'type': 'hmrc',
+            'site': {
+                'name': 'Headquarters',
+                'address': {
+                    'address_line_1': '42 Industrial Estate',
+                    'address_line_2': 'Queens Road',
+                    'region': 'Hertfordshire',
+                    'postcode': 'AL1 4GT',
+                    'city': 'St Albans',
+                    'country': 'GB',
+                },
+            },
+            'user': {
+                'first_name': 'Trinity',
+                'last_name': 'Fishburne',
+                'email': 'trinity@bsg.com'
+            },
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        organisation = Organisation.objects.get(id=response.json()['organisation']['id'])
+        exporter_user = get_users_from_organisation(organisation)[0]
+        site = organisation.primary_site
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(organisation.name, data['name'])
+
+        self.assertEqual(exporter_user.email, data['user']['email'])
+        self.assertEqual(exporter_user.first_name, data['user']['first_name'])
+        self.assertEqual(exporter_user.last_name, data['user']['last_name'])
+
+        self.assertEqual(site.name, data['site']['name'])
+        self.assertEqual(site.address.address_line_1, data['site']['address']['address_line_1'])
+        self.assertEqual(site.address.address_line_2, data['site']['address']['address_line_2'])
+        self.assertEqual(site.address.region, data['site']['address']['region'])
+        self.assertEqual(site.address.postcode, data['site']['address']['postcode'])
+        self.assertEqual(site.address.city, data['site']['address']['city'])
+        self.assertEqual(str(site.address.country.id), data['site']['address']['country'])
+
+    @parameterized.expand([
+        ['indi', 'individual', 1],
+        ['indi', 'hmrc', 0],
+        ['indi', 'commercial', 0],
+        ['comm', 'individual', 0],
+        ['comm', 'hmrc', 0],
+        ['comm', 'commercial', 1],
+        ['hmr', 'individual', 0],
+        ['hmr', 'hmrc', 1],
+        ['hmr', 'commercial', 0],
+    ])
+    def test_list_filter_organisations_by_name_and_type(self, name, org_type, expected_result):
+        self.create_organisation_with_exporter_user('Individual', org_type='individual')
+        self.create_organisation_with_exporter_user('Commercial', org_type='commercial')
+        self.create_organisation_with_exporter_user('HMRC', org_type='hmrc')
+
+        response = self.client.get(self.url + '?name=' + name + '&org_type=' + org_type, **self.gov_headers)
+
+        self.assertEqual(len(response.json()['organisations']), expected_result)
