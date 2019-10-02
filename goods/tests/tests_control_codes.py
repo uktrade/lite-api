@@ -1,11 +1,7 @@
-
-
-# valid test (single good, multiple goods) (NLR and control_code) # test flags are removed from good
-# fail tests (invalid pk: [single/multiple], controlled good and missing control code, missing comment, missing)
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
+from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -19,8 +15,11 @@ class GoodsVerifiedTests(DataTestClient):
                                                         self.team,
                                                         PicklistType.REPORT_SUMMARY,
                                                         PickListStatus.ACTIVE)
+
         self.good_1 = self.create_controlled_good('this is a good', self.organisation)
+        self.good_1.flags.set([self.create_flag('New Flag', 'Good', self.team)])
         self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
+
         self.url = reverse('goods:control_code')
 
     def test_verify_single_good(self):
@@ -35,6 +34,12 @@ class GoodsVerifiedTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(verified_good.control_code, 'ML1a')
+
+        # determine that flags have been removed when good verified
+        self.assertEqual(len(verified_good.flags.values()), 0)
+
     def test_verify_multiple_goods(self):
         data = {
             'objects': [self.good_1.pk, self.good_2.pk],
@@ -47,17 +52,29 @@ class GoodsVerifiedTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(verified_good.control_code, 'ML1a')
+
+        verified_good = Good.objects.get(pk=self.good_2.pk)
+        self.assertEqual(verified_good.control_code, 'ML1a')
+
     def test_verify_single_good_NLR(self):
         data = {
             'objects': self.good_1.pk,
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
-            'control_code': '',
+            'control_code': 'ML1a',
             'is_good_controlled': False,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(verified_good.control_code, '')
+
+        # determine that flags have been removed when good verified
+        self.assertEqual(len(verified_good.flags.values()), 0)
 
     def test_verify_multiple_goods_NLR(self):
         data = {
@@ -70,3 +87,75 @@ class GoodsVerifiedTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(verified_good.control_code, '')
+
+        verified_good = Good.objects.get(pk=self.good_2.pk)
+        self.assertEqual(verified_good.control_code, '')
+
+    def test_invalid_pk(self):
+        data = {
+            'objects': [self.team.pk, self.good_1.pk],  # first value is invalid
+            'comment': 'I Am Easy to Find',
+            'report_summary': self.report_summary.pk,
+            'control_code': '',
+            'is_good_controlled': False,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(verified_good.control_code, '')
+
+    def test_invalid_control_code(self):
+        data = {
+            'objects': [self.good_1.pk, self.good_2.pk],
+            'comment': 'I Am Easy to Find',
+            'report_summary': self.report_summary.pk,
+            'control_code': 'invalid',
+            'is_good_controlled': True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # since it has an invalid control code, flags should not be removed
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(len(verified_good.flags.values()), 1)
+
+    def test_controlled_good_empty_control_code(self):
+        data = {
+            'objects': [self.good_1.pk, self.good_2.pk],
+            'comment': 'I Am Easy to Find',
+            'report_summary': self.report_summary.pk,
+            'control_code': '',
+            'is_good_controlled': True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # since it has an empty control code, flags should not be removed
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(len(verified_good.flags.values()), 1)
+
+    def test_required_comment_field_missing(self):
+        data = {
+            'objects': [self.good_1.pk, self.good_2.pk],
+            'comment': '',
+            'report_summary': self.report_summary.pk,
+            'control_code': 'ML1a',
+            'is_good_controlled': True,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(response.json()['errors']['comment'][0], 'This field may not be blank.')
+
+        # since it has no comment, serializer should fail, and flags should not be removed
+        verified_good = Good.objects.get(pk=self.good_1.pk)
+        self.assertEqual(len(verified_good.flags.values()), 1)
+

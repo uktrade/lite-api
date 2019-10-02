@@ -33,21 +33,26 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        error_occurred = False
+        serializer = VerifiedGoodSerializer(data=data)
 
-        for pk in objects:
-            good = get_good(pk)
-            serializer = VerifiedGoodSerializer(good, data=data)
+        if serializer.is_valid():
+            error_occurred = False
+            for pk in objects:
+                try:
+                    good = get_good(pk)
+                    serializer = VerifiedGoodSerializer(good, data=data)
+                    if serializer.is_valid():
+                        serializer.save()
+                except Http404:
+                    error_occurred = True
 
-            if serializer.is_valid():
-                serializer.save()
+            if not error_occurred:
+                return HttpResponse(status=status.HTTP_200_OK)
             else:
-                error_occurred = True
-
-        if not error_occurred:
-            return HttpResponse(status=status.HTTP_200_OK)
+                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         else:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodList(APIView):
