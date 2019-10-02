@@ -13,6 +13,7 @@ from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
+from conf.helpers import replace_default_string_for_form_select
 
 
 class AuthenticateGovUser(APIView):
@@ -89,6 +90,8 @@ class GovUserList(APIView):
         Add a new gov user
         """
         data = JSONParser().parse(request)
+        data = replace_default_string_for_form_select(data, fields=['role', 'team'])
+
         serializer = GovUserCreateSerializer(data=data)
 
         if serializer.is_valid():
@@ -131,6 +134,8 @@ class GovUserDetail(APIView):
             if gov_user.id == request.user.id:
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
+
+        data = replace_default_string_for_form_select(data, fields=['role', 'team'])
 
         with reversion.create_revision():
             serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
