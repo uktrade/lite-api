@@ -8,7 +8,7 @@ class DraftDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Draft')
+        self.draft = self.create_standard_draft(self.organisation, 'Draft')
         self.url_draft = reverse('drafts:draft_documents', kwargs={'pk': self.draft.id})
         self.test_filename = 'dog.jpg'
 
@@ -42,7 +42,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response_data['s3_key'], self.data['s3_key'])
         self.assertEqual(response_data['size'], self.data['size'])
         self.assertEqual(response_data['description'], self.data['description'])
-        self.assertEqual(response_data['draft_id'], str(self.data['draft']))
+        self.assertEqual(response_data['application_id'], str(self.data['draft']))
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_upload_multiple_draft_documents(self, mock_prepare_doc):
@@ -65,14 +65,14 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(self.data['s3_key'], document1['s3_key'])
         self.assertEqual(self.data['size'], document1['size'])
         self.assertEqual(self.data['description'], document1['description'])
-        self.assertEqual(str(self.data['draft']), document1['draft_id'])
+        self.assertEqual(str(self.data['draft']), document1['application_id'])
 
         document2 = response_data[1]
         self.assertEqual(self.data2['name'], document2['name'])
         self.assertEqual(self.data2['s3_key'], document2['s3_key'])
         self.assertEqual(self.data2['size'], document2['size'])
         self.assertEqual(self.data2['description'], document2['description'])
-        self.assertEqual(str(self.data2['draft']), document2['draft_id'])
+        self.assertEqual(str(self.data2['draft']), document2['application_id'])
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
