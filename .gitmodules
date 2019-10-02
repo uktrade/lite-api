@@ -1,4 +1,4 @@
 [submodule "lite-content"]
 	path = lite-content
-	url = https://github.com/uktrade/lite-content.git
+	url = git@github.com:uktrade/lite-content.git
 	branch = master
