@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'static.units',
     'static.denial_reasons',
     'static.statuses',
+    'static.letter_templates',
     'reversion',
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',

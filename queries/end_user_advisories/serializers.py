@@ -4,14 +4,15 @@ from conf.serializers import PrimaryKeyRelatedSerializerField
 from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
+from organisations.serializers import OrganisationViewSerializer
+from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.helpers import get_exporter_query
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
-                                                    serializer=TinyOrganisationViewSerializer)
+                                                    serializer=OrganisationViewSerializer)
     end_user = EndUserSerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
