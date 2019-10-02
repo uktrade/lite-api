@@ -4,10 +4,11 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
     StandardApplication, OpenApplication
 from cases.enums import AdviceType
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
 from conf.urls import urlpatterns
 from flags.models import Flag
@@ -505,3 +506,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         advice.save()
         return advice
+
+    @staticmethod
+    def create_good_country_decision(case, goods_type, country, decision):
+        GoodCountryDecision(case=case,
+                            good=goods_type,
+                            country=country,
+                            decision=decision).save()

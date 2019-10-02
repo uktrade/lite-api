@@ -6,7 +6,7 @@ from applications.models import StandardApplication, OpenApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
-    FinalAdvice
+    FinalAdvice, GoodCountryDecision
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -357,4 +357,15 @@ class CaseActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseActivity
+        fields = '__all__'
+
+
+class GoodCountryDecisionSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    decision = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = GoodCountryDecision
         fields = '__all__'
