@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -45,9 +45,9 @@ class GoodsListControlCode(APIView):
                 error_occurred = True
 
         if not error_occurred:
-            return JsonResponse(status=status.HTTP_200_OK)
+            return HttpResponse(status=status.HTTP_200_OK)
         else:
-            return JsonResponse(status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodList(APIView):

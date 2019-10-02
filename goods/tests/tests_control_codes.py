@@ -20,7 +20,7 @@ class GoodsVerifiedTests(DataTestClient):
                                                         PicklistType.REPORT_SUMMARY,
                                                         PickListStatus.ACTIVE)
         self.good_1 = self.create_controlled_good('this is a good', self.organisation)
-        # self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
+        self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
         self.url = reverse('goods:control_code')
 
     def test_verify_single_good(self):
@@ -33,31 +33,40 @@ class GoodsVerifiedTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-    def test_verify_single_good_in_array(self):
-        data = {
-            'good': [self.good_1.pk],
-            'comment': 'I Am Easy to Find',
-            'report_summary': self.report_summary.pk,
-            'control_code': 'ML1a',
-            'is_good_controlled': True,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_verify_multiple_goods(self):
         data = {
-            'good': [self.good_1.pk, self.good_2.pk],
+            'objects': [self.good_1.pk, self.good_2.pk],
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
             'is_good_controlled': True,
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
 
+    def test_verify_single_good_NLR(self):
+        data = {
+            'objects': self.good_1.pk,
+            'comment': 'I Am Easy to Find',
+            'report_summary': self.report_summary.pk,
+            'control_code': '',
+            'is_good_controlled': False,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+    def test_verify_multiple_goods_NLR(self):
+        data = {
+            'objects': [self.good_1.pk, self.good_2.pk],
+            'comment': 'I Am Easy to Find',
+            'report_summary': self.report_summary.pk,
+            'control_code': '',
+            'is_good_controlled': False,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
