@@ -69,28 +69,28 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
 
-    def test_end_user_is_deleted_when_new_one_added(self):
-        """
-        Given a standard draft has been created
-        And the draft contains an end user
-        When a new end user is added
-        Then the old one is removed
-        """
-        # assemble
-        draft = self.create_standard_draft(self.organisation)
-        end_user_1_id = draft.end_user.id
-        url = reverse('drafts:end_user', kwargs={'pk': draft.id})
-
-        # act
-        self.client.post(url, self.new_end_user_data, **self.exporter_headers)
-
-        # assert
-        draft.refresh_from_db()
-        end_user_2_id = draft.end_user.id
-
-        self.assertNotEqual(end_user_1_id, end_user_2_id)
-        with self.assertRaises(EndUser.DoesNotExist):
-            EndUser.objects.get(id=end_user_1_id)
+    # def test_end_user_is_deleted_when_new_one_added(self):
+    #     """
+    #     Given a standard draft has been created
+    #     And the draft contains an end user
+    #     When a new end user is added
+    #     Then the old one is removed
+    #     """
+    #     # assemble
+    #     draft = self.create_standard_draft(self.organisation)
+    #     end_user_1_id = draft.end_user.id
+    #     url = reverse('drafts:end_user', kwargs={'pk': draft.id})
+    #
+    #     # act
+    #     self.client.post(url, self.new_end_user_data, **self.exporter_headers)
+    #
+    #     # assert
+    #     draft.refresh_from_db()
+    #     end_user_2_id = draft.end_user.id
+    #
+    #     self.assertNotEqual(end_user_1_id, end_user_2_id)
+    #     with self.assertRaises(EndUser.DoesNotExist):
+    #         EndUser.objects.get(id=end_user_1_id)
 
     '''@mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')
