@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from parties.document.models import PartyDocument
 from parties.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -11,7 +12,10 @@ class EndUserOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft_without_end_user_document(self.organisation)
+        self.draft = self.create_standard_draft(self.organisation)
+        PartyDocument.objects.filter(party=self.draft.end_user)
+        self.draft.end_user = None
+        self.draft.save()
         self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
@@ -62,10 +66,8 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_failure(self, data):
-        self.draft = self.create_standard_draft(self.organisation)
         response = self.client.post(self.url, data, **self.exporter_headers)
 
-        self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
 
@@ -77,14 +79,17 @@ class EndUserOnDraftTests(DataTestClient):
         Then the old one is removed
         """
         # assemble
-        end_user_1_id = self.draft.end_user.id
+        draft = self.create_standard_draft(self.organisation)
+        end_user_1_id = draft.end_user.id
+        url = reverse('drafts:end_user', kwargs={'pk': draft.id})
+
 
         # act
-        self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
+        self.client.post(url, self.new_end_user_data, **self.exporter_headers)
 
         # assert
-        self.draft.refresh_from_db()
-        end_user_2_id = self.draft.end_user.id
+        draft.refresh_from_db()
+        end_user_2_id = draft.end_user.id
 
         self.assertNotEqual(end_user_1_id, end_user_2_id)
         with self.assertRaises(EndUser.DoesNotExist):

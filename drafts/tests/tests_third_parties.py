@@ -9,6 +9,8 @@ class ThirdPartiesOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
+        self.draft.third_parties.set(list())
+        self.draft.save()
         self.url = reverse('drafts:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):

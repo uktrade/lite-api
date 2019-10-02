@@ -1,15 +1,15 @@
-from documents.libraries.process_document import process_document
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.enums import ApplicationLicenceType
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import BaseApplicationSerializer, StandardApplicationSerializer, OpenApplicationSerializer
+from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
     FinalAdvice
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
