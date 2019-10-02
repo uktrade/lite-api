@@ -11,6 +11,7 @@ from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good
+from goods.serializers import VerifiedGoodSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.control_list_classifications.serializers import ControlListClassificationQueryResponseSerializer
 from queries.helpers import get_exporter_query
@@ -57,9 +58,11 @@ class ControlListClassificationDetail(APIView):
 
         with reversion.create_revision():
             serializer = ControlListClassificationQueryResponseSerializer(query, data=data)
-            if serializer.is_valid():
+            verified_good_serializer = VerifiedGoodSerializer(query.good, data=data)
+            if serializer.is_valid() and verified_good_serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
                     serializer.save()
+                    verified_good_serializer.save()
 
                     # Add an activity item for the query's case
                     CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,

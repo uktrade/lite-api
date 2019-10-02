@@ -24,32 +24,14 @@ class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
 
 
 class ControlListClassificationQueryResponseSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
-    is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ['control_code', 'is_good_controlled']
-
-    def __init__(self, *args, **kwargs):
-        super(ControlListClassificationQueryResponseSerializer, self).__init__(*args, **kwargs)
-
-        # Only validate the control code if the good is controlled
-        if str_to_bool(self.get_initial().get('is_good_controlled')):
-            self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
+        fields = []
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):
         instance.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
-
-        # Update the good's details
-        instance.good.is_good_controlled = validated_data.get('is_good_controlled')
-        if instance.good.is_good_controlled:
-            instance.good.control_code = validated_data.get('control_code')
-        else:
-            instance.good.control_code = ''
-        instance.good.status = GoodStatus.VERIFIED
-        instance.good.save()
 
         instance.save()
         return instance

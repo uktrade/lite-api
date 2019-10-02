@@ -2,12 +2,14 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case
+from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
+from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
@@ -167,3 +169,41 @@ class FullGoodSerializer(GoodSerializer):
     class Meta:
         model = Good
         fields = '__all__'
+
+
+class VerifiedGoodSerializer(serializers.ModelSerializer):
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
+    comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
+    report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                                        required=True,
+                                                        allow_null=False,
+                                                        allow_empty=False)
+
+    class Meta:
+        model = Good
+        fields = ['control_code', 'is_good_controlled', 'comment', 'report_summary']
+
+    def __init__(self, *args, **kwargs):
+        super(VerifiedGoodSerializer, self).__init__(*args, **kwargs)
+
+        # Only validate the control code if the good is controlled
+        if str_to_bool(self.get_initial().get('is_good_controlled')):
+            self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
+
+    # pylint: disable = W0221
+    def update(self, instance, validated_data):
+        # Update the good's details
+        instance.comment = validated_data.get('comment')
+        instance.report_summary = validated_data.get('report_summary').text
+        instance.is_good_controlled = validated_data.get('is_good_controlled')
+        if instance.is_good_controlled:
+            instance.control_code = validated_data.get('control_code')
+        else:
+            instance.control_code = ''
+        instance.status = GoodStatus.VERIFIED
+        instance.flags.clear()
+
+        instance.save()
+
+        return instance

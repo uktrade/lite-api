@@ -14,7 +14,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_good import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    FullGoodSerializer, GoodListSerializer
+    FullGoodSerializer, GoodListSerializer, VerifiedGoodSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -29,14 +29,15 @@ class GoodsListControlCode(APIView):
         """
         data = JSONParser().parse(request)
         objects = data.get('objects')
-        control_code = data.get('control_code')
+
+        if not isinstance(objects, list):
+            objects = [objects]
+
         error_occurred = False
 
         for pk in objects:
             good = get_good(pk)
-            good['control_code'] = control_code
-            good['status'] = GoodStatus.VERIFIED
-            serializer = GoodSerializer(good)
+            serializer = VerifiedGoodSerializer(good, data=data)
 
             if serializer.is_valid():
                 serializer.save()
