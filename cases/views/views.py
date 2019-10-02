@@ -12,14 +12,16 @@ from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.libraries.post_advice import post_advice, check_if_final_advice_exists, check_if_team_advice_exists
-from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity
+from cases.models import CaseDocument, EcjuQuery, CaseAssignment, Advice, TeamAdvice, FinalAdvice, CaseActivity, GoodCountryDecision
 from cases.serializers import CaseDocumentViewSerializer, CaseDocumentCreateSerializer, \
     EcjuQueryCreateSerializer, CaseDetailSerializer, \
     CaseAdviceSerializer, EcjuQueryGovSerializer, EcjuQueryExporterSerializer, CaseTeamAdviceSerializer, \
-    CaseFinalAdviceSerializer
+    CaseFinalAdviceSerializer, GoodCountryDecisionSerializer
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
+from goodstype.helpers import get_goods_type
+from static.countries.helpers import get_country
 from users.models import ExporterUser
 
 
@@ -143,8 +145,8 @@ class CaseAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
         # We exclude any team of final level advice objects
-        self.advice = Advice.objects.filter(case=self.case)\
-            .exclude(teamadvice__isnull=False)\
+        self.advice = Advice.objects.filter(case=self.case) \
+            .exclude(teamadvice__isnull=False) \
             .exclude(finaladvice__isnull=False)
         self.serializer_object = CaseAdviceSerializer
 
@@ -394,6 +396,34 @@ class EcjuQueryDetail(APIView):
                 return JsonResponse(data={'ecju_query': serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoodsCountriesDecisions(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        goods_countries = GoodCountryDecision.objects.filter(case=pk)
+        serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
+
+        return JsonResponse(data={'data': serializer.data})
+
+    def post(self, request, pk):
+        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        data = JSONParser().parse(request).get('good_countries')
+
+        serializer = GoodCountryDecisionSerializer(data=data, many=True)
+        if serializer.is_valid():
+            for item in data:
+                GoodCountryDecision(good=get_goods_type(item['good']),
+                                    case=get_case(item['case']),
+                                    country=get_country(item['country']),
+                                    decision=item['decision']).save()
+
+            return JsonResponse(data={'data': data})
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)

@@ -8,7 +8,7 @@ from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import Application, GoodOnApplication
 from cases.enums import CaseType, AdviceType
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
 from conf.urls import urlpatterns
 from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
@@ -483,3 +483,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         advice.save()
         return advice
+
+    @staticmethod
+    def create_good_country_decision(case, goods_type, country, decision):
+        GoodCountryDecision(case=case,
+                            good=goods_type,
+                            country=country,
+                            decision=decision).save()
