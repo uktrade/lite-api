@@ -483,8 +483,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return advice
 
     @staticmethod
-    def create_good_country_decision(case, goods_type_1, country_1, decision):
+    def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case,
-                            good=goods_type_1,
-                            country=country_1,
+                            good=goods_type,
+                            country=country,
                             decision=decision).save()
