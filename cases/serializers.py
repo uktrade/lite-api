@@ -37,8 +37,7 @@ class CaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'application', 'query',)
 
     def get_application(self, instance):
-        # The case has a reference to a BaseApplication but we need the full details of the standard/open
-        # application below
+        # The case has a reference to a BaseApplication but we need the full details of the standard/open application
         if instance.application:
             if instance.application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
                 standard_application = StandardApplication.objects.get(pk=instance.application.id)
@@ -46,6 +45,7 @@ class CaseSerializer(serializers.ModelSerializer):
             else:
                 open_application = OpenApplication.objects.get(pk=instance.application.id)
                 return OpenApplicationSerializer(open_application).data
+
         return None
 
     def to_representation(self, value):
