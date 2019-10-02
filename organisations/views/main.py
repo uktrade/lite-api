@@ -1,30 +1,39 @@
+import operator
+from functools import reduce
+
 import reversion
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.authentication import SharedAuthentication
+from conf.pagination import MaxPageNumberPagination
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
 
 
-class OrganisationsList(APIView):
-    authentication_classes = (GovAuthentication,)
+class OrganisationsList(generics.ListAPIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = OrganisationViewSerializer
+    pagination_class = MaxPageNumberPagination
 
-    def get(self, request):
+    def get_queryset(self):
         """
         List all organisations
         """
-        org_type = request.GET.get('org_type', '')
-        name = request.GET.get('name', '')
-        organisations = Organisation.objects.filter(type=org_type,
-                                                    name__icontains=name).order_by('name')
-        view_serializer = OrganisationViewSerializer(organisations, many=True)
-        return JsonResponse(data={'organisations': view_serializer.data})
+        org_type = self.request.query_params.get('org_type', None)
+        name = self.request.query_params.get('name', '')
+
+        query = [Q(name__icontains=name)]
+
+        if org_type:
+            query.append(Q(type=org_type))
+        return Organisation.objects.filter(reduce(operator.and_, query)).order_by('name')
 
     @transaction.atomic
     @swagger_auto_schema(

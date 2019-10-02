@@ -244,4 +244,4 @@ class OrganisationCreateTests(DataTestClient):
 
         response = self.client.get(self.url + '?name=' + name + '&org_type=' + org_type, **self.gov_headers)
 
-        self.assertEqual(len(response.json()['organisations']), expected_result)
+        self.assertEqual(len(response.json()['results']), expected_result)
