@@ -1,4 +1,6 @@
-from applications.models import CountryOnApplication, GoodOnApplication
+from applications.enums import ApplicationLicenceType
+from applications.models import CountryOnApplication, GoodOnApplication, SiteOnApplication, \
+    ExternalLocationOnApplication
 from content_strings.strings import get_string
 from documents.models import Document
 from parties.document.models import PartyDocument
@@ -96,5 +98,22 @@ def validate_open_licence(draft, errors):
     results = GoodsType.objects.filter(application=draft)
     if not results:
         errors['goods'] = get_string('applications.open.no_goods_set')
+
+    return errors
+
+
+def check_application_for_errors(draft):
+    errors = {}
+
+    # Generic errors
+    if SiteOnApplication.objects.filter(application=draft).count() == 0 and \
+            ExternalLocationOnApplication.objects.filter(application=draft).count() == 0:
+        errors['location'] = get_string('applications.generic.no_location_set')
+
+    # Perform additional validation and append errors if found
+    if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        validate_standard_licence(draft, errors)
+    else:
+        validate_open_licence(draft, errors)
 
     return errors

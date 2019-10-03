@@ -5,24 +5,19 @@ from applications.models import BaseApplication, OpenApplication, StandardApplic
 from goods.models import Good
 
 
+def _get_application_from_model(pk, model):
+    try:
+        return model.objects.get(pk=pk, submitted_at__isnull=False)
+    except model.DoesNotExist:
+        raise Http404
+
+
 def get_applications():
     return BaseApplication.objects.filter(submitted_at__isnull=False)
 
 
 def get_applications_for_organisation(organisation):
     return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=False)
-
-
-def get_application_for_organisation(pk, organisation):
-    try:
-        application = BaseApplication.objects.get(pk=pk, submitted_at__isnull=False)
-
-        if application.organisation.pk != organisation.pk:
-            raise Http404
-
-        return application
-    except BaseApplication.DoesNotExist:
-        raise Http404
 
 
 def get_draft_type(pk):
@@ -43,25 +38,25 @@ def get_draft(pk):
         raise Http404
 
 
-def get_application(pk):
-    try:
-        return BaseApplication.objects.get(pk=pk, submitted_at__isnull=False)
-    except BaseApplication.DoesNotExist:
+def get_application_for_organisation(pk, organisation):
+    application = get_application(pk)
+
+    if application.organisation.pk != organisation.pk:
         raise Http404
+
+    return application
+
+
+def get_application(pk):
+    return _get_application_from_model(pk, BaseApplication)
 
 
 def get_open_application(pk):
-    try:
-        return OpenApplication.objects.get(pk=pk, submitted_at__isnull=False)
-    except OpenApplication.DoesNotExist:
-        raise Http404
+    return _get_application_from_model(pk, OpenApplication)
 
 
 def get_standard_application(pk):
-    try:
-        return StandardApplication.objects.get(pk=pk, submitted_at__isnull=False)
-    except StandardApplication.DoesNotExist:
-        raise Http404
+    return _get_application_from_model(pk, StandardApplication)
 
 
 def get_good_for_organisation(pk, organisation):

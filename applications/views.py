@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.creators import validate_standard_licence, validate_open_licence
+from applications.creators import check_application_for_errors
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_application, get_applications_for_organisation, \
@@ -91,19 +91,8 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
         draft = get_draft_application_for_organisation(pk, get_organisation_by_user(request.user))
-        errors = {}
 
-        # Generic errors
-        if SiteOnApplication.objects.filter(application=draft).count() == 0 and \
-                ExternalLocationOnApplication.objects.filter(application=draft).count() == 0:
-            errors['location'] = get_string('applications.generic.no_location_set')
-
-        # Perform additional validation and append errors if found
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            validate_standard_licence(draft, errors)
-        else:
-            validate_open_licence(draft, errors)
-
+        errors = check_application_for_errors(draft)
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
