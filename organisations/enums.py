@@ -4,7 +4,7 @@ class OrganisationType:
     INDIVIDUAL = 'individual'
 
     choices = [
-        (HMRC, 'Hmrc'),
+        (HMRC, 'HMRC'),
         (COMMERCIAL, 'Commercial Organisation'),
         (INDIVIDUAL, 'Individual'),
     ]
