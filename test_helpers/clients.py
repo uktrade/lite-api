@@ -113,13 +113,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return exporter_user
 
-    def create_organisation_with_exporter_user(self, name='Organisation'):
+    def create_organisation_with_exporter_user(self, name='Organisation', org_type=None):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
                                     sic_number='2765',
                                     vat_number='123456789',
                                     registration_number='987654321')
+        if org_type:
+            organisation.type = org_type
         organisation.save()
 
         site, address = self.create_site('HQ', organisation)

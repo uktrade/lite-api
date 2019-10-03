@@ -7,7 +7,7 @@ from addresses.serializers import AddressSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.enums import SubType
+from organisations.enums import OrganisationType
 from static.countries.models import Country
 from users.serializers import ExporterUserCreateUpdateSerializer
 
@@ -66,7 +66,7 @@ class SiteSerializer(serializers.ModelSerializer):
 class OrganisationCreateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField()
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
+    type = KeyValueChoiceField(choices=OrganisationType.choices)
     eori_number = serializers.CharField(required=False, allow_blank=True)
     vat_number = serializers.CharField(required=False, allow_blank=True)
     sic_number = serializers.CharField(required=False)
@@ -78,7 +78,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         model = Organisation
         fields = ('id',
                   'name',
-                  'sub_type',
+                  'type',
                   'eori_number',
                   'sic_number',
                   'vat_number',
@@ -91,22 +91,22 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     standard_blank_error_message = 'This field may not be blank'
 
     def validate_eori_number(self, value):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+        if self.initial_data.get('type') == OrganisationType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
     def validate_sic_number(self, value):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+        if self.initial_data.get('type') == OrganisationType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
     def validate_vat_number(self, value):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+        if self.initial_data.get('type') == OrganisationType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
     def validate_registration_number(self, value):
-        if self.initial_data.get('sub_type') != SubType.INDIVIDUAL and not value:
+        if self.initial_data.get('type') == OrganisationType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
@@ -160,13 +160,13 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
 
 class OrganisationViewSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
-    sub_type = KeyValueChoiceField(SubType.choices)
+    type = KeyValueChoiceField(OrganisationType.choices)
 
     class Meta:
         model = Organisation
         fields = ('id',
                   'name',
-                  'sub_type',
+                  'type',
                   'eori_number',
                   'sic_number',
                   'vat_number',
