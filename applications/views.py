@@ -11,14 +11,13 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_application, get_applications_for_organisation, \
     get_draft_application_for_organisation
-from applications.models import ExternalLocationOnApplication, SiteOnApplication, GoodOnApplication
+from applications.models import GoodOnApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
-from content_strings.strings import get_string
 from goods.enums import GoodStatus
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
