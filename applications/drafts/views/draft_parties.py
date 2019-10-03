@@ -4,12 +4,13 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from conf.authentication import ExporterAuthentication
 from applications.libraries.get_applications import get_draft
+from conf.authentication import ExporterAuthentication
+from conf.decorators import only_application_types
+from organisations.libraries.get_organisation import get_organisation_by_user
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class DraftEndUser(APIView):
@@ -46,26 +47,21 @@ class DraftEndUser(APIView):
 class DraftUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def get(self, request, draft):
         """
         Get ultimate end users associated with a draft
         """
-        draft = get_draft(pk)
+        serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
+        return JsonResponse(data={'ultimate_end_users': serializer.data})
 
-        ultimate_end_users_data = list()
-
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            ultimate_end_users_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
-
-        return JsonResponse(data={'ultimate_end_users': ultimate_end_users_data})
-
-    def post(self, request, pk):
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create an ultimate end user and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_draft(pk)
         data['organisation'] = str(organisation.id)
 
         serializer = UltimateEndUserSerializer(data=data)
