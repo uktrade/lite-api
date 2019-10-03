@@ -40,12 +40,11 @@ class ApplicationList(APIView):
 
 
 class ApplicationDetail(APIView):
+    """
+    Retrieveor update an application instance.
+    """
     authentication_classes = [SharedAuthentication]
     serializer_class = BaseApplicationSerializer
-
-    """
-    Retrieve, update or delete a application instance.
-    """
 
     def get(self, request, pk):
         """

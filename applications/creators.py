@@ -7,7 +7,7 @@ from goodstype.models import GoodsType
 
 def check_party_document(party, is_mandatory):
     """
-    Checks for existence of and status of document (if it is mandatory) and return errors if any
+    Checks for existence of and status of document (if it is mandatory) and return any errors
     """
 
     try:
@@ -15,13 +15,13 @@ def check_party_document(party, is_mandatory):
     except Document.DoesNotExist:
         document = None
         if is_mandatory:
-            return get_string('applications.standard.no_{}_document_set'.format(party.type))
+            return get_string(f'applications.standard.no_{party.type}_document_set')
 
     if document:
         if document.safe is None:
-            return get_string('applications.standard.{}_document_processing'.format(party.type))
+            return get_string(f'applications.standard.{party.type}_document_processing')
         elif not document.safe:
-            return get_string('applications.standard.{}_document_infected'.format(party.type))
+            return get_string(f'applications.standard.{party.type}_document_infected')
         else:
             return None
 
