@@ -47,7 +47,7 @@ class OrganisationsList(generics.ListAPIView):
         """
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            if data.get('type') and data['type'] == 'individual':
+            if data.get('type') == 'individual':
                 try:
                     data['name'] = data['user']['first_name'] + " " + data['user']['last_name']
                 except AttributeError:
