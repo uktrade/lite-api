@@ -12,6 +12,6 @@ def get_goods_type(pk):
 
 def get_goods_types_from_case(case):
     if case.query:
-        return list()
+        return []
 
     return GoodsType.objects.filter(application=case.application)

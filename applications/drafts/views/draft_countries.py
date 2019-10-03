@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
-from applications.libraries.get_applications import get_draft, get_draft_with_organisation
+from applications.libraries.get_applications import get_draft, get_draft_application_for_organisation
 from applications.models import CountryOnApplication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers import get_country
@@ -38,7 +38,7 @@ class DraftCountries(APIView):
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         countries = data.get('countries')
-        draft = get_draft_with_organisation(pk, organisation)
+        draft = get_draft_application_for_organisation(pk, organisation)
 
         # Validate that there are actually countries
         if not countries:

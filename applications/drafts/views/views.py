@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
-from applications.libraries.get_applications import get_draft_with_organisation, get_drafts_with_organisation
+from applications.libraries.get_applications import get_draft_application_for_organisation, get_draft_applications_for_organisation
 from applications.models import StandardApplication, OpenApplication
 from applications.serializers import BaseApplicationSerializer, DraftApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -20,7 +20,7 @@ class DraftList(APIView):
     def get(self, request):
         organisation = get_organisation_by_user(request.user)
 
-        drafts = get_drafts_with_organisation(organisation)
+        drafts = get_draft_applications_for_organisation(organisation)
 
         serializer = BaseApplicationSerializer(drafts, many=True)
         return JsonResponse(data={'drafts': serializer.data})
@@ -59,7 +59,7 @@ class DraftDetail(APIView):
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft_with_organisation(pk=pk, organisation=organisation)
+        draft = get_draft_application_for_organisation(pk=pk, organisation=organisation)
 
         serializer = get_serializer_for_application(draft)
 
@@ -67,7 +67,7 @@ class DraftDetail(APIView):
 
     def delete(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft_with_organisation(pk, organisation)
+        draft = get_draft_application_for_organisation(pk, organisation)
         draft.delete()
         return JsonResponse(data={'status': 'Draft Deleted'},
                             status=status.HTTP_200_OK)

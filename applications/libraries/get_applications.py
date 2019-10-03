@@ -9,11 +9,11 @@ def get_applications():
     return BaseApplication.objects.filter(submitted_at__isnull=False)
 
 
-def get_applications_with_organisation(organisation):
+def get_applications_for_organisation(organisation):
     return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=False)
 
 
-def get_application_with_organisation(pk, organisation):
+def get_application_for_organisation(pk, organisation):
     try:
         application = BaseApplication.objects.get(pk=pk, submitted_at__isnull=False)
 
@@ -64,7 +64,7 @@ def get_standard_application(pk):
         raise Http404
 
 
-def get_good_with_organisation(pk, organisation):
+def get_good_for_organisation(pk, organisation):
     try:
         good = Good.objects.get(pk=pk)
 
@@ -76,15 +76,15 @@ def get_good_with_organisation(pk, organisation):
         raise Http404
 
 
-def get_drafts():
+def get_draft_applications():
     return BaseApplication.objects.filter(submitted_at__isnull=True)
 
 
-def get_drafts_with_organisation(organisation):
+def get_draft_applications_for_organisation(organisation):
     return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=True)
 
 
-def get_draft_with_organisation(pk, organisation):
+def get_draft_application_for_organisation(pk, organisation):
     draft = get_draft(pk=pk)
 
     if draft.organisation.pk != organisation.pk:

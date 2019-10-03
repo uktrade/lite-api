@@ -9,8 +9,8 @@ from rest_framework.views import APIView
 from applications.creators import validate_standard_licence, validate_open_licence
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
-from applications.libraries.get_applications import get_application, get_applications_with_organisation, \
-    get_draft_with_organisation
+from applications.libraries.get_applications import get_application, get_applications_for_organisation, \
+    get_draft_application_for_organisation
 from applications.models import ExternalLocationOnApplication, SiteOnApplication, GoodOnApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
 from cases.libraries.activity_types import CaseActivityType
@@ -33,7 +33,7 @@ class ApplicationList(APIView):
         List all applications
         """
         organisation = get_organisation_by_user(request.user)
-        applications = get_applications_with_organisation(organisation).order_by('created_at')
+        applications = get_applications_for_organisation(organisation).order_by('created_at')
         serializer = ApplicationListSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
@@ -90,7 +90,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        draft = get_draft_with_organisation(pk, get_organisation_by_user(request.user))
+        draft = get_draft_application_for_organisation(pk, get_organisation_by_user(request.user))
         errors = {}
 
         # Generic errors
