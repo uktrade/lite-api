@@ -22,7 +22,7 @@ class DraftCountries(APIView):
         View countries belonging to an open licence draft
         """
         draft = get_draft(pk)
-        countries_data = list()
+        countries_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
             countries = Country.objects.filter(countries_on_application__application=draft)

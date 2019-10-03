@@ -116,7 +116,7 @@ class DraftThirdParties(APIView):
         Get third parties associated with a draft
         """
         draft = get_draft(pk)
-        third_party_data = list()
+        third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             third_party_data = ThirdPartySerializer(draft.third_parties, many=True).data

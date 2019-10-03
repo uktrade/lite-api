@@ -106,7 +106,7 @@ class StandardApplicationTests(DataTestClient):
         there is a part which is to be incorporated into another good
         """
         draft = self.create_standard_draft_with_incorporated_good(self.organisation)
-        draft.ultimate_end_users.set(list())
+        draft.ultimate_end_users.set([])
         url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
         response = self.client.put(url, **self.exporter_headers)

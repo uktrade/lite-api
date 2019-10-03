@@ -27,7 +27,7 @@ class DraftGoodsType(APIView):
         Gets draft Goods Types
         """
         draft = get_draft(pk)
-        goods_types_data = list()
+        goods_types_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
             goods_types = GoodsType.objects.filter(application=draft)
@@ -45,7 +45,7 @@ class DraftGoods(APIView):
         organisation = get_organisation_by_user(request.user)
         draft = get_draft_application_for_organisation(pk, organisation)
 
-        goods_data = list()
+        goods_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             goods = GoodOnApplication.objects.filter(application=draft)
