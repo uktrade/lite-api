@@ -4,7 +4,7 @@ from django.db import models
 
 from addresses.models import Address
 from conf.exceptions import NotFoundError
-from parties.enums import OrganisationType
+from organisations.enums import OrganisationType
 from static.countries.models import Country
 
 

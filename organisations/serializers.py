@@ -7,7 +7,7 @@ from addresses.serializers import AddressSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.enums import OrganisationType
+from organisations.enums import OrganisationType
 from static.countries.models import Country
 from users.serializers import ExporterUserCreateUpdateSerializer
 
