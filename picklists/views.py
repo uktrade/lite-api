@@ -27,6 +27,7 @@ class PickListItems(APIView):
         """
         picklist_type = request.GET.get('type', None)
         show_deactivated = str_to_bool(request.GET.get('show_deactivated', None))
+        ids = request.GET.getlist('ids', None)
         query = [Q(team=request.user.team.id)]
 
         if picklist_type:
@@ -34,6 +35,9 @@ class PickListItems(APIView):
 
         if not show_deactivated:
             query.append(Q(status=PickListStatus.ACTIVE))
+
+        if ids:
+            query.append(Q(id__in=ids))
 
         picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
         serializer = PicklistSerializer(picklist_items, many=True)
