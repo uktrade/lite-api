@@ -13,9 +13,9 @@ class PicklistsViews(DataTestClient):
     def setUp(self):
         super().setUp()
         other_team = self.create_team('Team')
-        self.create_picklist_item('#2', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE)
-        self.create_picklist_item('#3', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.DEACTIVATED)
         self.picklist_item_1 = self.create_picklist_item('#1', self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
+        self.picklist_item_2 = self.create_picklist_item('#2', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE)
+        self.picklist_item_3 = self.create_picklist_item('#3', self.team, PicklistType.REPORT_SUMMARY, PickListStatus.DEACTIVATED)
         self.create_picklist_item('#4', other_team, PicklistType.ECJU, PickListStatus.ACTIVE)
 
     def test_gov_user_can_see_all_their_teams_picklist_items(self):
