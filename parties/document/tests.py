@@ -6,26 +6,30 @@ from rest_framework import status
 from parties.document.models import PartyDocument
 from test_helpers.clients import DataTestClient
 
-test_file = "dog.jpg"
-
-
 # TODO: Fix S3 mocking for running tests in CircleCI
 
-class PartyDocumentTests(DataTestClient):
 
+class PartyDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_draft_without_end_user_document(self.organisation, 'Drafty Draft')
-        self.url_end_user_doc = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
+        self.draft = self.create_standard_draft(self.organisation, 'Draft')
+        self.url = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
 
-        self.draft_no_end_user = self.create_draft(self.organisation, 'Dafty daft')
-        self.url_end_user_doc_no_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
+        self.draft_no_end_user = self.create_standard_draft(self.organisation, 'No End User Draft')
+        PartyDocument.objects.filter(party=self.draft_no_end_user.end_user).delete()
+        self.draft_no_end_user.end_user = None
+        self.draft_no_end_user.save()
+        self.url_no_end_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
+
+        self.draft_no_end_user_doc = self.create_standard_draft(self.organisation, 'No End User Document Draft')
+        PartyDocument.objects.filter(party=self.draft_no_end_user_doc.end_user).delete()
+        self.url_no_end_user_doc = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user_doc.id})
 
         self.data = {
-            'name': test_file,
-            's3_key': test_file,
-            'size': 476
+            'name': 'document_name.pdf',
+            's3_key': 's3_keykey.pdf',
+            'size': 123456
         }
 
     @mock.patch('documents.tasks.prepare_document.now')
@@ -37,11 +41,9 @@ class PartyDocumentTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached end user document
         """
-        # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
 
         # assert
         response_data = response.json()['document']
@@ -59,6 +61,7 @@ class PartyDocumentTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached ultimate end user document
         """
+
         # assemble
         self.draft.ultimate_end_users.add(
             self.create_ultimate_end_user('UEU', self.organisation)
@@ -91,6 +94,7 @@ class PartyDocumentTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached consignee document
         """
+
         # assemble
         self.draft.consignee = self.create_consignee('Consignee', self.organisation)
         self.draft.save()
@@ -117,6 +121,7 @@ class PartyDocumentTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached third party document
         """
+
         # assemble
         self.draft.third_parties.add(
             self.create_third_party('TP', self.organisation)
@@ -147,8 +152,9 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to retrieve a document
         Then a 400 BAD REQUEST is returned
         """
+
         # act
-        response = self.client.get(self.url_end_user_doc_no_user, **self.exporter_headers)
+        response = self.client.get(self.url_no_end_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -161,8 +167,9 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to submit a document
         Then a 400 BAD REQUEST is returned
         """
+
         # act
-        response = self.client.post(self.url_end_user_doc_no_user, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_no_end_user, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -174,8 +181,9 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to delete a document
         Then a 400 BAD REQUEST is returned
         """
+
         # act
-        response = self.client.delete(self.url_end_user_doc_no_user, **self.exporter_headers)
+        response = self.client.delete(self.url_no_end_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -189,8 +197,9 @@ class PartyDocumentTests(DataTestClient):
         Then a 404 NOT FOUND is returned
         And the response contains a null document
         """
+
         # act
-        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.get(self.url_no_end_user_doc, **self.exporter_headers)
 
         # assert
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
@@ -205,8 +214,9 @@ class PartyDocumentTests(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
+
         # act
-        response = self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_no_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -218,8 +228,9 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to delete a document
         Then a 400 BAD REQUEST is returned
         """
+
         # act
-        response = self.client.delete(self.url_end_user_doc_no_user, **self.exporter_headers)
+        response = self.client.delete(self.url_no_end_user, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -233,11 +244,12 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to post a document
         Then a 400 BAD REQUEST is returned
         """
+
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_no_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        response = self.client.post(self.url_no_end_user_doc, data=self.data, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -251,14 +263,12 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to post a document
         Then only a single document exists
         """
-        # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.client.post(self.url, data=self.data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(len(PartyDocument.objects.all()), 1)
+        self.assertEqual(PartyDocument.objects.filter(party=self.draft.end_user).count(), 1)
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
@@ -270,11 +280,12 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
+
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.client.post(self.url_no_end_user_doc, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.delete(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.delete(self.url_no_end_user_doc, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -288,11 +299,12 @@ class PartyDocumentTests(DataTestClient):
         When the document is retrieved
         Then 200 OK is returned
         """
+
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.client.post(self.draft, data=self.data, **self.exporter_headers)
 
         # act
-        response = self.client.get(self.url_end_user_doc, **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -307,11 +319,12 @@ class PartyDocumentTests(DataTestClient):
         When there is an attempt to delete the document
         Then the function to delete document from S3 is called
         """
+
         # assemble
-        self.client.post(self.url_end_user_doc, data=self.data, **self.exporter_headers)
+        self.client.post(self.draft, data=self.data, **self.exporter_headers)
 
         # act
-        self.client.delete(self.url_end_user_doc, **self.exporter_headers)
+        self.client.delete(self.url, **self.exporter_headers)
 
         # assert
         delete_s3_function.assert_called_once()

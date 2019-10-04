@@ -158,7 +158,7 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'size', 'safe')
 
 
-class FullGoodSerializer(GoodSerializer):
+class GoodWithFlagsSerializer(GoodSerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from drafts.models import GoodOnDraft
+from applications.models import GoodOnApplication
 from goods.models import Good
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -15,8 +15,10 @@ class GoodTests(DataTestClient):
         """
         draft = self.create_standard_draft(self.organisation)
         self.assertEqual(Good.objects.get().status, 'draft')
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
-        self.submit_draft(draft=draft)
+        self.client.put(url, **self.exporter_headers)
+
         self.assertEqual(Good.objects.get().status, 'submitted')
 
     def test_submitted_good_cannot_be_edited(self):
@@ -74,14 +76,14 @@ class GoodTests(DataTestClient):
         draft_two = self.create_standard_draft(self.organisation)
 
         good = Good.objects.get()
-        GoodOnDraft(good=good, draft=draft_two, quantity=10, unit=Units.NAR, value=500).save()
+        GoodOnApplication(good=good, application=draft_two, quantity=10, unit=Units.NAR, value=500).save()
 
         self.assertEqual(Good.objects.all().count(), 1)
-        self.assertEqual(GoodOnDraft.objects.count(), 2)
+        self.assertEqual(GoodOnApplication.objects.count(), 2)
 
         url = reverse('goods:good', kwargs={'pk': good.id})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Good.objects.all().count(), 0)
-        self.assertEqual(GoodOnDraft.objects.count(), 0)
+        self.assertEqual(GoodOnApplication.objects.count(), 0)

@@ -11,7 +11,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         super().setUp()
         self.open_application = self.create_open_application(self.organisation)
 
-        self.goods_types = GoodsType.objects.filter(object_id=self.open_application.id)
+        self.goods_types = GoodsType.objects.filter(application=self.open_application)
         self.goods_type = self.goods_types[0]
         self.goods_type_2 = self.goods_types[1]
 
