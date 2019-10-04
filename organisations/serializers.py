@@ -198,3 +198,13 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
                   'address',
                   'country',
                   'organisation')
+
+class OrganisationWithFlagsSerializer(OrganisationViewSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values('id', 'name'))
+
+    class Meta:
+        model = Organisation
+        fields = '__all__'

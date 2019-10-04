@@ -14,7 +14,8 @@ from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
+from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer, OrganisationWithFlagsSerializer
+from users.models import GovUser
 
 
 class OrganisationsList(generics.ListAPIView):
@@ -73,5 +74,9 @@ class OrganisationsDetail(APIView):
 
     def get(self, request, pk):
         organisation = get_organisation_by_pk(pk)
-        view_serializer = OrganisationViewSerializer(organisation)
-        return JsonResponse(data={'organisation': view_serializer.data})
+        if isinstance(request.user, GovUser):
+            serializer_class = OrganisationWithFlagsSerializer
+        else:
+            serializer_class = OrganisationViewSerializer
+        serializer = serializer_class(organisation)
+        return JsonResponse(data={'organisation': serializer.data})
