@@ -1,13 +1,15 @@
-from documents.libraries.process_document import process_document
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.serializers import ApplicationBaseSerializer
+from applications.enums import ApplicationLicenceType
+from applications.models import StandardApplication, OpenApplication
+from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
-    FinalAdvice
+    FinalAdvice, GoodCountryDecision
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -27,12 +29,24 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
     type = KeyValueChoiceField(choices=CaseType.choices)
-    application = ApplicationBaseSerializer(read_only=True)
+    application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
         fields = ('id', 'type', 'application', 'query',)
+
+    def get_application(self, instance):
+        # The case has a reference to a BaseApplication but we need the full details of the standard/open application
+        if instance.application:
+            if instance.application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+                standard_application = StandardApplication.objects.get(pk=instance.application.id)
+                return StandardApplicationSerializer(standard_application).data
+            else:
+                open_application = OpenApplication.objects.get(pk=instance.application.id)
+                return OpenApplicationSerializer(open_application).data
+
+        return None
 
     def to_representation(self, value):
         """
@@ -254,7 +268,8 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                 del repr_dict['proviso']
 
             if instance.type == AdviceType.REFUSE:
-                repr_dict['denial_reasons'] = convert_queryset_to_str(instance.denial_reasons.values_list('id', flat=True))
+                repr_dict['denial_reasons'] = convert_queryset_to_str(
+                    instance.denial_reasons.values_list('id', flat=True))
             else:
                 del repr_dict['denial_reasons']
 
@@ -342,4 +357,15 @@ class CaseActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseActivity
+        fields = '__all__'
+
+
+class GoodCountryDecisionSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    decision = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = GoodCountryDecision
         fields = '__all__'

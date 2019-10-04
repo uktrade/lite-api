@@ -2,12 +2,11 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from drafts.models import Draft
+from applications.models import BaseApplication
 from test_helpers.clients import DataTestClient
 
 
 class GoodsTypeCreateDraftTests(DataTestClient):
-
     url = reverse('goodstype:goodstypes-list')
 
     @parameterized.expand([
@@ -20,7 +19,8 @@ class GoodsTypeCreateDraftTests(DataTestClient):
                               is_good_end_product,
                               draft=False):
         if not draft:
-            draft = Draft.objects.create(name='test', licence_type='open_licence', export_type='temporary', have_you_been_informed='No',)
+            draft = BaseApplication.objects.create(name='test', licence_type='open_licence', export_type='temporary',
+                                                   have_you_been_informed=False)
 
         data = {
             'description': description,

@@ -1,11 +1,9 @@
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
-from applications.models import Application
+from applications.models import OpenApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from drafts.serializers import DraftBaseSerializer
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 from static.countries.models import Country
@@ -17,25 +15,11 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
-    content_type_name = serializers.CharField(source='content_type.model', read_only=True)
-    content_object = serializers.SerializerMethodField(read_only=True)
-    content_type = serializers.CharField()
+    application = serializers.PrimaryKeyRelatedField(queryset=OpenApplication.objects.all())
     countries = PrimaryKeyRelatedSerializerField(required=False,
                                                  queryset=Country.objects.all(),
                                                  serializer=CountrySerializer,
                                                  many=True)
-
-    def validate_content_type(self, value):
-        return ContentType.objects.get(model=value)
-
-    def get_content_object(self, obj):
-        """
-        Gets the content object of draft or application
-        """
-        from applications.serializers import ApplicationBaseSerializer
-        if type(obj) == Application:
-            return ApplicationBaseSerializer(obj.content_object).data
-        return DraftBaseSerializer(obj.content_object).data
 
     class Meta:
         model = GoodsType
@@ -44,11 +28,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'is_good_controlled',
                   'control_code',
                   'is_good_end_product',
-                  'content_type',
-                  'content_type_name',
-                  'object_id',
-                  'content_object',
-                  'countries')
+                  'application',
+                  'countries',)
 
     def __init__(self, *args, **kwargs):
         """

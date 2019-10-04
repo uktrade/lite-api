@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from applications.models import Application
+from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from documents.models import Document
@@ -29,7 +29,7 @@ class Case(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
-    application = models.ForeignKey(Application, related_name='case', on_delete=models.CASCADE, null=True)
+    application = models.ForeignKey(BaseApplication, related_name='case', on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')
@@ -283,3 +283,18 @@ class BaseActivity(models.Model):
 class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
+
+
+class GoodCountryDecision(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    decision = models.CharField(choices=AdviceType.choices, max_length=30)
+
+    def save(self, *args, **kwargs):
+        GoodCountryDecision.objects.filter(case=self.case,
+                                           good=self.good,
+                                           country=self.country).delete()
+
+        super(GoodCountryDecision, self).save(*args, **kwargs)

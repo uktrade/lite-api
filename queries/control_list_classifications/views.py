@@ -10,7 +10,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
-from goods.libraries.get_good import get_good
+from goods.libraries.get_goods import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.control_list_classifications.serializers import ControlListClassificationQueryResponseSerializer
 from queries.helpers import get_exporter_query
