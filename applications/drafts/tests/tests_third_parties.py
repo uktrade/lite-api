@@ -10,7 +10,6 @@ class ThirdPartiesOnDraft(DataTestClient):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.third_parties.set([])
-        self.draft.save()
         self.url = reverse('drafts:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
@@ -41,7 +40,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
+        self.assertEqual(self.draft.third_parties.count(), 0)
 
     def test_set_multiple_third_parties_on_draft_successful(self):
         """

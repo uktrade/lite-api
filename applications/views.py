@@ -1,6 +1,6 @@
 import json
-from datetime import datetime, timezone
 
+from django.utils import timezone
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -95,7 +95,7 @@ class ApplicationSubmission(APIView):
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        draft.submitted_at = datetime.now(timezone.utc)
+        draft.submitted_at = timezone.now()
         draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         draft.save()
 

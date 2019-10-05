@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from documents.models import Document
@@ -19,8 +20,8 @@ class BaseApplication(models.Model):
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, blank=True)
+    last_modified_at = models.DateTimeField(default=timezone.now, blank=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
     status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
                                null=True)
@@ -29,6 +30,7 @@ class BaseApplication(models.Model):
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
                                               max_length=50)
+    application_copied_to = models.ForeignKey('self', on_delete=models.DO_NOTHING, blank=True, null=True)
 
 
 class ApplicationDocument(Document):

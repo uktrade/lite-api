@@ -3,7 +3,7 @@ from contextlib import closing
 
 import requests
 from django.conf import settings
-from django.utils.timezone import now
+from django.utils import timezone
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
@@ -61,7 +61,7 @@ def _process_document(document_pk: str):
 
     is_file_clean = _scan_s3_object(doc.name, settings.AWS_STORAGE_BUCKET_NAME, doc.s3_key)
     if is_file_clean is not None:
-        doc.virus_scanned_at = now()
+        doc.virus_scanned_at = timezone.now()
         doc.safe = is_file_clean
         doc.save()
 

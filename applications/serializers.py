@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, CharField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -302,7 +301,7 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
         instance.export_type = validated_data.get('export_type', instance.export_type)
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
-        instance.last_modified_at = datetime.now(timezone.utc)
+        instance.last_modified_at = timezone.now()
 
         # Remove any previous denial reasons
         if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):

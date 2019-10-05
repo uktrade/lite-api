@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-
+from django.utils import timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -69,14 +68,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ControlListEntry.create('ML1a', 'Description', None, False)
 
         if settings.TIME_TESTS:
-            self.tick = datetime.now()
+            self.tick = timezone.now()
 
     def tearDown(self):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
         """
         if settings.TIME_TESTS:
-            self.tock = datetime.now()
+            self.tock = timezone.now()
 
             diff = self.tock - self.tick
             time = round(diff.microseconds / 1000, 2)
@@ -252,7 +251,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return team
 
     def submit_draft(self, draft: BaseApplication):
-        draft.submitted_at = datetime.now(timezone.utc)
+        draft.submitted_at = timezone.now()
         draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         draft.save()
 
