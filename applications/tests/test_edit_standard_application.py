@@ -36,28 +36,35 @@ class StandardApplicationEditTests(DataTestClient):
 
     def test_initial_edit_of_standard_application(self):
         """
-        This tests the functionality of the initial step of editing an application.
-        This will happen when we hit the "edit" button;
-        A shallow copy of the application will be created and a pointer to this copy will be placed on the original
-        application (see model).
+         **This tests the functionality of the initial step of editing an application.**
+        (see `_copy_standard_application()` on `applications/tests/test_edit_standard_application::21`)
 
-        This pointer can be used as a switch statement when retrieving an individual application i.e.:
-            if application.application_copied_to is not None:
+
+        This functionality will be used when we hit the "edit" button:
+        - A  copy of the application will be created and a pointer to this copy will be placed on the original application (see `applications/models.py`)
+        - This pointer will be used when getting/updating an individual application i.e.:
+           ```
+           if application.application_copied_to is not None:
                 return StandardApplication.objects.get(pk=application.application_copied_to)
-
+           ```
+        - This means we can retain the application's pk on the front-end and we have a mechanism for deleting the original application when we click "save" or deleting the new (edited version) when we click "cancel"
 
         ------------------------------------------------------------------------------------------------------------
 
-        When we update the parties/goods etc. on the copied application (the instance being edited),
-        DO NOT DELETE THE PREVIOUSLY SET PARTY/GOOD IF IT'S THE SAME AS THE ONE ON THE ORIGINAL APPLICATION (THE
-        APPLICATION WE COPIED FROM)
+        When we update the parties/goods etc. on the copied application (the instance being edited):
+        - **DO NOT DELETE THE PREVIOUSLY SET PARTY/GOOD IF IT'S THE SAME AS THE ONE ON THE ORIGINAL APPLICATION (THE APPLICATION WE COPIED FROM)**
 
-        If we click "save", iterate through all of the original application's items deleting the ones which are not
-        equal to the edited application's items. Then delete the original application. Then set the edited version of
-        the application's pk to equal the original application's pk.
 
-        If we click "cancel", iterate through all of the copied application's items and delete the ones which are not
-        equal to the original application's items. Then reset the `application_copied_to` field to None.
+        If we click "save":
+        - iterate through all of the original application's items deleting the ones which are not equal to the edited application's items.
+        - Then delete the original application
+        - Then set the edited version of the application's pk to equal the original application's pk
+
+
+        If we click "cancel":
+        - iterate through all of the copied application's items and delete the ones which are not
+        - equal to the original application's items
+        - Then reset the `application_copied_to` field to None
         """
 
         application = self.create_standard_application(self.organisation)
