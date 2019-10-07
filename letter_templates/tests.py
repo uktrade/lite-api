@@ -7,7 +7,7 @@ from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 
-class LetterTemplatesTests(DataTestClient):
+class LetterTemplatesListTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
@@ -34,7 +34,7 @@ class LetterTemplatesTests(DataTestClient):
         self.assertIsNotNone(response_data.get('last_modified_at'))
 
 
-class LetterTemplateTests(DataTestClient):
+class LetterTemplateDetailTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
