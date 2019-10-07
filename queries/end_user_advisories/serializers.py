@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from parties.enums import SubType
-from parties.serializers import EndUserSerializer
 from organisations.models import Organisation
 from organisations.serializers import OrganisationViewSerializer
+from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.helpers import get_exporter_query
