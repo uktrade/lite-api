@@ -119,20 +119,3 @@ class OrganisationFlagsManagementTests(DataTestClient):
         self.assertEquals(len(self.all_flags), len(self.organisation.flags.all()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.organisation.flags.all())
-
-    # TODO: Establish stable activity for organisation avoiding circular imports
-    # def test_flagging_a_organisation_creates_timeline_entries(self):
-    #     """
-    #     When a user adds a flag to a organisation, it should add a timeline entry
-    #     to whatever case that organisation is on (if any)
-    #     """
-    #     # Set the query and application's organisation
-    #
-    #     data = {
-    #         'level': 'organisations',
-    #         'objects': [self.organisation.pk],
-    #         'flags': [self.team_organisation_flag_1.pk],
-    #         'note': 'A reason for changing the flags'
-    #     }
-    #
-    #     self.client.put(self.organisation_flag_url, data, **self.gov_headers)
