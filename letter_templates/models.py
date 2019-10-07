@@ -2,7 +2,6 @@ import uuid
 
 from django.db import models
 
-from cases.enums import CaseType
 from conf import fields
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
