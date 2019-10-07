@@ -5,7 +5,6 @@ from django.db import models
 
 from conf import settings
 from documents.utils import s3_client
-from static.letter_templates.models import LetterTemplate
 
 
 class Document(models.Model):
@@ -41,14 +40,3 @@ class Document(models.Model):
         if self.safe is False:
             self.delete_s3()
         return self.safe
-
-
-class Letter(models.Model):
-    id = models.UUIDField(primary_key=True, unique=True, null=False, default=uuid.uuid4)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-    template = models.ForeignKey(LetterTemplate, on_delete=models.CASCADE, null=False)
-    content = models.TextField()
-
-    def __str__(self):
-        return str(self.id) + ' ' + str(self.template)

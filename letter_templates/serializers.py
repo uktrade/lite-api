@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from static.letter_templates.models import LetterTemplate
+from letter_templates.models import LetterTemplate
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):

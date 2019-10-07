@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class LetterTemplate(models.Model):
+class LetterLayout(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)  # letter file name minus extension
     name = models.CharField(max_length=30)  # friendly name
 

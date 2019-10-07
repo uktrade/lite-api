@@ -1,5 +1,5 @@
 from conf.exceptions import NotFoundError
-from static.letter_templates.models import LetterTemplate
+from letter_templates.models import LetterTemplate
 
 
 def get_letter_template(pk):

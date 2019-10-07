@@ -29,7 +29,6 @@ class GoodDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data['documents']), 2)
 
     # Circle CI cannot handle this test as the AWS bucket name is invalid
-    # @tag('slow')
     # def test_can_remove_document_from_unsubmitted_good(self):
     #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
     #     self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
