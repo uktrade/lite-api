@@ -2,102 +2,68 @@ from django.http import Http404
 
 from applications.enums import ApplicationLicenceType
 from applications.models import BaseApplication, OpenApplication, StandardApplication
-from goods.models import Good
+from organisations.models import Organisation
 
 
-def _get_application_from_model(pk, model):
-    try:
-        return model.objects.get(pk=pk, submitted_at__isnull=False)
-    except model.DoesNotExist:
-        raise Http404
+def optional_str_to_bool(optional_string: str):
+    if optional_string is None:
+        return None
+    elif optional_string == 'true':
+        return True
+    elif optional_string == 'false':
+        return False
+    else:
+        raise ValueError('You provided ' + optional_string + ', while the allowed values are None, "true" or "false"')
 
 
-def get_applications():
-    return BaseApplication.objects.filter(submitted_at__isnull=False)
+def _add_submitted_filter(kwargs, submitted: bool):
+    if submitted is not None:
+        kwargs['submitted_at__isnull'] = not submitted
 
 
-def get_applications_for_organisation(organisation, submitted=None):
+def _add_organisation_filter(kwargs, organisation):
+    if organisation:
+        if isinstance(organisation, Organisation):
+            kwargs['organisation'] = organisation
+        else:
+            raise TypeError('object "organisation" provided is not an instance of Organisation model')
+
+
+def get_base_applications(organisation=None, submitted=None):
     """
-    :param submitted:
     If param submitted is None, all applications are returned
     If it is true (and consequently submitted_at__isnull is false), only submitted applications are returned
     If it is false (and consequently submitted_at__isnull is true), only draft applications are returned
     """
-    if submitted not in [None, 'true', 'false']:
-        raise ValueError('The allowed values for submitted are "true" or "false"')
+    kwargs = dict()
 
-    kwargs = {'organisation': organisation}
+    _add_submitted_filter(kwargs, submitted)
+    _add_organisation_filter(kwargs, organisation)
 
-    if submitted is not None:
-        kwargs['submitted_at__isnull'] = (submitted == 'false')
     applications = BaseApplication.objects.filter(**kwargs)
 
     return applications
 
 
-def get_draft_type(pk):
-    try:
-        return BaseApplication.objects.get(pk=pk).licence_type
-    except BaseApplication.DoesNotExist:
-        raise Http404
+def get_application(pk, organisation=None, submitted=None):
+    kwargs = {}
 
+    _add_submitted_filter(kwargs, submitted)
+    _add_organisation_filter(kwargs, organisation)
 
-def get_draft(pk):
-    draft_type = get_draft_type(pk)
+    licence_type = get_application_licence_type(pk)
+
     try:
-        if draft_type == ApplicationLicenceType.STANDARD_LICENCE:
-            return StandardApplication.objects.get(pk=pk, submitted_at__isnull=True)
+        if licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            return StandardApplication.objects.get(pk=pk, **kwargs)
         else:
-            return OpenApplication.objects.get(pk=pk, submitted_at__isnull=True)
+            return OpenApplication.objects.get(pk=pk, **kwargs)
     except (StandardApplication.DoesNotExist, OpenApplication.DoesNotExist):
         raise Http404
 
 
-def get_application_for_organisation(pk, organisation):
-    application = get_application(pk)
-
-    if application.organisation.pk != organisation.pk:
-        raise Http404
-
-    return application
-
-
-def get_application(pk):
-    return _get_application_from_model(pk, BaseApplication)
-
-
-def get_open_application(pk):
-    return _get_application_from_model(pk, OpenApplication)
-
-
-def get_standard_application(pk):
-    return _get_application_from_model(pk, StandardApplication)
-
-
-def get_good_for_organisation(pk, organisation):
+def get_application_licence_type(pk):
     try:
-        good = Good.objects.get(pk=pk)
-
-        if good.organisation.pk != organisation.pk:
-            raise Http404
-
-        return good
-    except Good.DoesNotExist:
+        return BaseApplication.objects.get(pk=pk).licence_type
+    except BaseApplication.DoesNotExist:
         raise Http404
-
-
-def get_draft_applications():
-    return BaseApplication.objects.filter(submitted_at__isnull=True)
-
-
-def get_draft_applications_for_organisation(organisation):
-    return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=True)
-
-
-def get_draft_application_for_organisation(pk, organisation):
-    draft = get_draft(pk=pk)
-
-    if draft.organisation.pk != organisation.pk:
-        raise Http404
-
-    return draft

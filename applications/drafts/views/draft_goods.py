@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_draft_application_for_organisation, get_draft
+from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -26,7 +26,7 @@ class DraftGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         goods_types_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
@@ -41,9 +41,10 @@ class DraftGoods(APIView):
     """
     View goods belonging to a draft, or add one
     """
+
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft_application_for_organisation(pk, organisation)
+        draft = get_application(pk=pk, organisation=organisation, submitted=False)
 
         goods_data = []
 
@@ -59,7 +60,7 @@ class DraftGoods(APIView):
         data['application'] = str(pk)
 
         organisation = get_organisation_by_user(request.user)
-        get_draft_application_for_organisation(pk, organisation)
+        get_application(pk, organisation=organisation, submitted=False)
         good = get_good_with_organisation(data.get('good'), organisation)
 
         if len(GoodDocument.objects.filter(good=good)) == 0:

@@ -1,9 +1,9 @@
+from applications.libraries.get_applications import get_application
 from parties.models import UltimateEndUser, ThirdParty
-from applications.libraries.get_applications import get_draft
 
 
 def get_end_user(draft_pk):
-    draft = get_draft(draft_pk)
+    draft = get_application(draft_pk, submitted=False)
     return draft.end_user
 
 
@@ -12,7 +12,7 @@ def get_ultimate_end_user(pk):
 
 
 def get_consignee(draft_pk):
-    draft = get_draft(draft_pk)
+    draft = get_application(draft_pk, submitted=False)
     return draft.consignee
 
 

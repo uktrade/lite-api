@@ -9,8 +9,7 @@ from rest_framework.views import APIView
 from applications.creators import check_application_for_errors
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
-from applications.libraries.get_applications import get_application, get_applications_for_organisation, \
-    get_draft_application_for_organisation
+from applications.libraries.get_applications import get_application, get_base_applications, optional_str_to_bool
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
     DraftApplicationCreateSerializer
@@ -32,13 +31,13 @@ class ApplicationList(APIView):
         """
         List all applications
         """
-        submitted = request.GET.get('submitted', None)
-
-        organisation = get_organisation_by_user(request.user)
         try:
-            applications = get_applications_for_organisation(organisation, submitted).order_by('created_at')
+            submitted = optional_str_to_bool(request.GET.get('submitted', None))
         except ValueError as e:
             return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
+
+        organisation = get_organisation_by_user(request.user)
+        applications = get_base_applications(organisation, submitted).order_by('created_at')
 
         # serializer = ApplicationListSerializer(applications, many=True)
         serializer = BaseApplicationSerializer(applications, many=True)
@@ -82,7 +81,13 @@ class ApplicationDetail(APIView):
         """
         Retrieve an application instance.
         """
-        application = get_application(pk)
+        try:
+            submitted = optional_str_to_bool(request.GET.get('submitted', None))
+        except ValueError as e:
+            return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
+
+        application = get_application(pk, submitted=submitted)
+
         serializer = self.serializer_class(application)
         return JsonResponse(data={'application': serializer.data})
 
@@ -90,7 +95,7 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
-        application = get_application(pk)
+        application = get_application(pk, submitted=True)
 
         data = json.loads(request.body)
 
@@ -100,7 +105,7 @@ class ApplicationDetail(APIView):
 
         request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
 
-        serializer = ApplicationUpdateSerializer(get_application(pk), data=request.data, partial=True)
+        serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
         if serializer.is_valid():
             CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
@@ -113,6 +118,16 @@ class ApplicationDetail(APIView):
 
         return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, pk):
+        """
+        Deleting an application should only be allowed for draft applications
+        """
+        organisation = get_organisation_by_user(request.user)
+        draft = get_application(pk, organisation=organisation, submitted=False)
+        draft.delete()
+        return JsonResponse(data={'status': 'Draft application deleted'},
+                            status=status.HTTP_200_OK)
+
 
 class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
@@ -122,7 +137,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        draft = get_draft_application_for_organisation(pk, get_organisation_by_user(request.user))
+        draft = get_application(pk, organisation=get_organisation_by_user(request.user), submitted=False)
 
         errors = check_application_for_errors(draft)
         if errors:

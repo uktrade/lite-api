@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.get_applications import get_draft
+from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -21,7 +21,7 @@ class DraftSites(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
 
         sites_ids = SiteOnApplication.objects.filter(application=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
@@ -33,7 +33,7 @@ class DraftSites(APIView):
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         sites = data.get('sites')
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
 
         # Validate that there are actually sites
         if sites is None:
@@ -46,9 +46,9 @@ class DraftSites(APIView):
         if len(sites) == 0:
             return JsonResponse(data={'errors': {
                 'sites': [
-                        'You have to pick at least one site.'
-                    ]
-                }},
+                    'You have to pick at least one site.'
+                ]
+            }},
                 status=400)
 
         # Validate each site belongs to the organisation

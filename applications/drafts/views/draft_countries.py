@@ -5,9 +5,9 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from conf.authentication import ExporterAuthentication
-from applications.libraries.get_applications import get_draft, get_draft_application_for_organisation
+from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -21,7 +21,7 @@ class DraftCountries(APIView):
         """
         View countries belonging to an open licence draft
         """
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         countries_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
@@ -38,7 +38,7 @@ class DraftCountries(APIView):
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
         countries = data.get('countries')
-        draft = get_draft_application_for_organisation(pk, organisation)
+        draft = get_application(pk=pk, organisation=organisation, submitted=False)
 
         # Validate that there are actually countries
         if not countries:

@@ -4,7 +4,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_draft
+from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_types
 from organisations.libraries.get_organisation import get_organisation_by_user
@@ -22,7 +22,7 @@ class DraftEndUser(APIView):
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = EndUserSerializer(data=data)
@@ -86,7 +86,7 @@ class DraftConsignee(APIView):
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = ConsigneeSerializer(data=data)
@@ -115,7 +115,7 @@ class DraftThirdParties(APIView):
         """
         Get third parties associated with a draft
         """
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -129,7 +129,7 @@ class DraftThirdParties(APIView):
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = ThirdPartySerializer(data=data)
@@ -153,7 +153,7 @@ class RemoveDraftUltimateEndUser(APIView):
         Delete an ultimate end user and remove it from the draft
         """
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
 
         try:
             ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
@@ -180,7 +180,7 @@ class RemoveThirdParty(APIView):
         Delete a third party and remove it from the draft
         """
         organisation = get_organisation_by_user(request.user)
-        draft = get_draft(pk)
+        draft = get_application(pk, submitted=False)
 
         try:
             third_party = ThirdParty.objects.get(pk=tp_pk)

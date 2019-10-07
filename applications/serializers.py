@@ -306,7 +306,7 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
 
         # Remove any previous denial reasons
         if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id, submitted=True)).delete()
 
         # If the status has been set to under final review, add reason_details to application
         if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
@@ -317,7 +317,8 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
             application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
-                ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+                ApplicationDenialReason.objects.filter(
+                    application=get_application(instance.id, submitted=True)).delete()
 
                 # Create a new ApplicationDenialReason
                 application_denial_reason_serializer.save()
