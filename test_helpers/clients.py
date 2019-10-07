@@ -325,7 +325,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         goods_type.save()
         return goods_type
 
-    def create_picklist_item(self, name, team: Team, picklist_type, status):
+    def create_picklist_item(self, name: object, team: object, picklist_type: object, status: object):
         picklist_item = PicklistItem(team=team,
                                      name=name,
                                      text='This is a string of text, please do not disturb the milk argument',
@@ -334,7 +334,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> object:
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1'):
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,

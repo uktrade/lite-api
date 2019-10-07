@@ -6,5 +6,5 @@ app_name = 'letter_templates'
 
 urlpatterns = [
     path('', views.LetterTemplatesList.as_view(), name='letter_templates'),
-    path('<str:pk>/', views.LetterTemplatesDetail.as_view(), name='letter_template')
+    path('<uuid:pk>/', views.LetterTemplateDetail.as_view(), name='letter_template')
 ]

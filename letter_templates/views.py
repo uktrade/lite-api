@@ -1,20 +1,20 @@
-from django.http import JsonResponse
-from rest_framework.views import APIView
+from rest_framework import generics
 
-from letter_templates.helpers import get_letter_template
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 
 
-class LetterTemplatesList(APIView):
-    def get(self, request):
-        letter_templates = LetterTemplate.objects.all()
-        serializer = LetterTemplateSerializer(letter_templates, many=True)
-        return JsonResponse(data={'letter_templates': serializer.data})
+class LetterTemplatesList(generics.ListAPIView):
+    """
+    Returns list of all letter templates
+    """
+    queryset = LetterTemplate.objects.all()
+    serializer_class = LetterTemplateSerializer
 
 
-class LetterTemplatesDetail(APIView):
-    def get(self, request, pk):
-        letter_template = get_letter_template(pk)
-        serializer = LetterTemplateSerializer(letter_template)
-        return JsonResponse(data={'letter_template': serializer.data})
+class LetterTemplateDetail(generics.RetrieveAPIView):
+    """
+    Returns detail of a specific letter template
+    """
+    queryset = LetterTemplate.objects.all()
+    serializer_class = LetterTemplateSerializer
