@@ -11,8 +11,9 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application
 from applications.libraries.get_applications import get_application, get_applications_for_organisation, \
     get_draft_application_for_organisation
-from applications.models import GoodOnApplication
-from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, ApplicationListSerializer
+from applications.models import GoodOnApplication, StandardApplication, OpenApplication
+from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
+    DraftApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -31,16 +32,48 @@ class ApplicationList(APIView):
         """
         List all applications
         """
+        submitted = request.GET.get('submitted', None)
+
         organisation = get_organisation_by_user(request.user)
-        applications = get_applications_for_organisation(organisation).order_by('created_at')
-        serializer = ApplicationListSerializer(applications, many=True)
+        try:
+            applications = get_applications_for_organisation(organisation, submitted).order_by('created_at')
+        except ValueError as e:
+            return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
+
+        # serializer = ApplicationListSerializer(applications, many=True)
+        serializer = BaseApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
+
+    def post(self, request):
+        organisation = get_organisation_by_user(request.user)
+        data = request.data
+        data['organisation'] = str(organisation.id)
+
+        # Use generic serializer to validate all types of application as we may not yet know the application type
+        serializer = DraftApplicationCreateSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.validated_data['organisation'] = organisation
+
+            # Use the data from the generic serializer to determine which model to save to
+            if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
+                application = StandardApplication(**serializer.validated_data)
+            else:
+                application = OpenApplication(**serializer.validated_data)
+
+            application.save()
+
+            return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
+                                status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationDetail(APIView):
     """
-    Retrieveor update an application instance.
+    Retrieve or update an application instance.
     """
     authentication_classes = [SharedAuthentication]
     serializer_class = BaseApplicationSerializer

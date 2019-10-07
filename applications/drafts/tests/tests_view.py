@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 
 class DraftTests(DataTestClient):
 
-    url = reverse('drafts:drafts')
+    url = reverse('applications:applications')
 
     def test_view_drafts(self):
         """
@@ -19,7 +19,7 @@ class DraftTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['drafts']), 1)
+        self.assertEqual(len(response.json()['applications']), 1)
 
     def test_view_draft(self):
         """
@@ -51,7 +51,7 @@ class DraftTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['drafts']), 0)
+        self.assertEqual(len(response_data['applications']), 0)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()

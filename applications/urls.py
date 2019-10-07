@@ -5,7 +5,8 @@ from applications import views
 app_name = 'applications'
 
 urlpatterns = [
-    # ex: /applications/ - List all applications
+    # ex: /applications/ - List all/draft/submitted applications
+    # ex: /applications/?submitted=
     path('', views.ApplicationList.as_view(), name='applications'),
     # ex: /applications/<uuid:pk>/ - View an application
     path('<uuid:pk>/', views.ApplicationDetail.as_view(), name='application'),

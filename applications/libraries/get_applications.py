@@ -16,8 +16,23 @@ def get_applications():
     return BaseApplication.objects.filter(submitted_at__isnull=False)
 
 
-def get_applications_for_organisation(organisation):
-    return BaseApplication.objects.filter(organisation=organisation, submitted_at__isnull=False)
+def get_applications_for_organisation(organisation, submitted=None):
+    """
+    :param submitted:
+    If param submitted is None, all applications are returned
+    If it is true (and consequently submitted_at__isnull is false), only submitted applications are returned
+    If it is false (and consequently submitted_at__isnull is true), only draft applications are returned
+    """
+    if submitted not in [None, 'true', 'false']:
+        raise ValueError('The allowed values for submitted are "true" or "false"')
+
+    kwargs = {'organisation': organisation}
+
+    if submitted is not None:
+        kwargs['submitted_at__isnull'] = (submitted == 'false')
+    applications = BaseApplication.objects.filter(**kwargs)
+
+    return applications
 
 
 def get_draft_type(pk):
