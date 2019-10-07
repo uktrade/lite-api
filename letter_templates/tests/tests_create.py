@@ -45,7 +45,6 @@ class LetterTemplateCreateTests(DataTestClient):
         self.assertEqual(list(letter_template.letter_paragraphs.values_list('id', flat=True)),
                          data['letter_paragraphs'])
 
-    @tag('only')
     def test_create_letter_templates_not_unique_name_failure(self):
         """
         Fail as the name is not unique

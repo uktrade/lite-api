@@ -9,7 +9,8 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=20,
                                  trim_whitespace=True,
                                  validators=[UniqueValidator(queryset=LetterTemplate.objects.all(), lookup='iexact',
-                                                             message='Name has to be unique')])
+                                                             message='The name of your letter template has to be unique')],
+                                 error_messages={'blank': 'Enter a name for the letter template'})
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
 

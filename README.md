@@ -59,12 +59,10 @@ Service for handling backend calls in LITE.
 
 ## Running API tests
 
-`pipenv run ./manage.py test` 
+`pipenv run ./manage.py test`
 
 with option `--parallel` to run them in parallel
 
 To run a specific folder:
 
 `pipenv run ./manage.py test <folder_name>`
-
-

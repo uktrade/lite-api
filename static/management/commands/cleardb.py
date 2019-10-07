@@ -28,7 +28,7 @@ class Command(BaseCommand):
         else:
             print('\nForcefully dropping all database tables..\n')
             with connection.cursor() as cursor:
-                sql = """DO $$ DECLARE r RECORD;BEGIN FOR r IN (SELECT tablename FROM 
-                      pg_catalog.pg_tables WHERE schemaname = 'public\' AND tableowner != 'rdsadmin') 
+                sql = """DO $$ DECLARE r RECORD;BEGIN FOR r IN (SELECT tablename FROM
+                      pg_catalog.pg_tables WHERE schemaname = 'public\' AND tableowner != 'rdsadmin')
                       LOOP EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';END LOOP;END $$;"""
                 cursor.execute(sql)

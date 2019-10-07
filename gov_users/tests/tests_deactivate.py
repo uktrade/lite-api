@@ -48,4 +48,3 @@ class GovUserDeactivateTests(DataTestClient):
         self.client.put(url, data, **self.gov_headers)
         response = self.client.get(reverse('gov_users:gov_users'), **{'HTTP_GOV_USER_TOKEN': user_to_token(self.valid_user)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-

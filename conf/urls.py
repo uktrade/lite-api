@@ -42,4 +42,3 @@ urlpatterns = [
 
 if ADMIN_ENABLED:
     urlpatterns += path('admin/', admin.site.urls),
-

@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from cases.enums import CaseType
+from conf import fields
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
 
@@ -11,6 +13,7 @@ class LetterTemplate(models.Model):
     name = models.CharField(max_length=35)
     layout = models.ForeignKey(LetterLayout, on_delete=models.CASCADE, null=False)
     letter_paragraphs = models.ManyToManyField(PicklistItem)
+    restricted_to = fields.ListField()
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 

@@ -116,4 +116,3 @@ class EndUserOnDraftTests(DataTestClient):
             EndUserDocument.objects.get(end_user=end_user_1_id)
 
         delete_s3_mock.assert_called_once()'''
-
