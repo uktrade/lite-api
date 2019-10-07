@@ -13,8 +13,9 @@ from goods.enums import GoodStatus
 from goods.serializers import VerifiedGoodSerializer
 from goods.libraries.get_goods import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.control_list_classifications.serializers import ControlListClassificationQueryResponseSerializer
 from queries.helpers import get_exporter_query
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from users.models import UserOrganisationRelationship
 
 
@@ -57,12 +58,12 @@ class ControlListClassificationDetail(APIView):
         data = json.loads(request.body)
 
         with reversion.create_revision():
-            serializer = ControlListClassificationQueryResponseSerializer(query, data=data)
             verified_good_serializer = VerifiedGoodSerializer(query.good, data=data)
-            if serializer.is_valid() and verified_good_serializer.is_valid():
+            if verified_good_serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
-                    serializer.save()
                     verified_good_serializer.save()
+                    query.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
+                    query.save()
 
                     # Add an activity item for the query's case
                     CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
@@ -73,7 +74,7 @@ class ControlListClassificationDetail(APIView):
                     for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
                         user_relationship.user.send_notification(query=query)
 
-                    return JsonResponse(data={'control_list_classification_query': serializer.data})
+                    return JsonResponse(data={'control_list_classification_query': verified_good_serializer.data})
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
 
