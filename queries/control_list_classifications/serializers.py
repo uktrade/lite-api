@@ -16,4 +16,3 @@ class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = ControlListClassificationQuery
         fields = ['id', 'details', 'good', 'submitted_at', 'organisation']
-
