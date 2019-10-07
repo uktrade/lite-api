@@ -18,7 +18,7 @@ from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation, Organisation
-from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
+from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer, OrganisationWithFlagsSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -129,7 +129,7 @@ class ApplicationDocumentSerializer(serializers.ModelSerializer):
 
 class BaseApplicationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
-    organisation = OrganisationViewSerializer()
+    organisation = OrganisationWithFlagsSerializer()
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
