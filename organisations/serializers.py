@@ -169,9 +169,8 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         try:
             if isinstance(self.context.get('request').user, GovUser):
                 return list(instance.flags.values('id', 'name'))
-            return []
         except AttributeError:
-            return None
+            return list(instance.flags.values('id', 'name'))
 
     class Meta:
         model = Organisation
