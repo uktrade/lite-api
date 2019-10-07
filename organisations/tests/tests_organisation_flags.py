@@ -30,7 +30,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         response = self.client.get(self.organisation_url, **self.gov_headers)
 
-        self.assertEqual([], response.json()['organisation']['flags'])
+        self.assertEqual([], response.json()['flags'])
 
     def test_all_flags_for_organisation_are_returned(self):
         """
@@ -41,7 +41,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         self.organisation.flags.set(self.all_flags)
 
         response = self.client.get(self.organisation_url, **self.gov_headers)
-        returned_organisation = response.json()['organisation']
+        returned_organisation = response.json()
 
         self.assertEquals(len(self.organisation.flags.all()), len(returned_organisation['flags']))
 

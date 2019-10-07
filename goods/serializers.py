@@ -7,7 +7,7 @@ from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer
+from organisations.serializers import OrganisationDetailSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
@@ -140,7 +140,7 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = ExporterUserSimpleSerializer()
-    organisation = OrganisationViewSerializer()
+    organisation = OrganisationDetailSerializer()
     s3_key = serializers.SerializerMethodField()
 
     def get_s3_key(self, instance):
