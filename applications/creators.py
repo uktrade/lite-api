@@ -1,105 +1,81 @@
-from django.http import JsonResponse
-from rest_framework import status
-
-from applications.models import CountryOnApplication, SiteOnApplication, ExternalLocationOnApplication, \
-    GoodOnApplication
+from applications.enums import ApplicationLicenceType
+from applications.models import CountryOnApplication, GoodOnApplication, SiteOnApplication, \
+    ExternalLocationOnApplication
 from content_strings.strings import get_string
 from documents.models import Document
-from drafts.models import CountryOnDraft, SiteOnDraft, ExternalLocationOnDraft, GoodOnDraft
 from parties.document.models import PartyDocument
-from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 
 
-def create_goods_for_applications(draft, application):
-    for good_on_draft in GoodOnDraft.objects.filter(draft=draft):
-        good_on_application = GoodOnApplication(
-            good=good_on_draft.good,
-            application=application,
-            quantity=good_on_draft.quantity,
-            unit=good_on_draft.unit,
-            value=good_on_draft.value)
-        good_on_application.save()
-        good_on_application.good.status = GoodStatus.SUBMITTED
-        good_on_application.good.save()
+def check_party_document(party, is_mandatory):
+    """
+    Checks for existence of and status of document (if it is mandatory) and return any errors
+    """
 
-
-def create_site_for_application(draft, application):
-    for site_on_draft in SiteOnDraft.objects.filter(draft=draft):
-        site_on_application = SiteOnApplication(
-            site=site_on_draft.site,
-            application=application)
-        site_on_application.save()
-
-
-def create_external_location_for_application(draft, application):
-    for external_location_on_draft in ExternalLocationOnDraft.objects.filter(draft=draft):
-        external_location_on_application = ExternalLocationOnApplication(
-            external_location=external_location_on_draft.external_location,
-            application=application)
-        external_location_on_application.save()
-
-
-def check_party_document(party):
     try:
         document = PartyDocument.objects.get(party=party)
     except Document.DoesNotExist:
-        return get_string('applications.standard.no_{}_document_set'.format(party.type))
+        document = None
+        if is_mandatory:
+            return get_string(f'applications.standard.no_{party.type}_document_set')
 
-    if not document:
-        return get_string('applications.standard.no_{}_document_set'.format(party.type))
-    elif document.safe is None:
-        return get_string('applications.standard.{}_document_processing'.format(party.type))
-    elif not document.safe:
-        return get_string('applications.standard.{}_document_infected'.format(party.type))
-    else:
-        return None
+    if document:
+        if document.safe is None:
+            return get_string(f'applications.standard.{party.type}_document_processing')
+        elif not document.safe:
+            return get_string(f'applications.standard.{party.type}_document_infected')
+        else:
+            return None
 
 
-def check_parties_documents(parties):
+def check_parties_documents(parties, is_mandatory=True):
     for party in parties:
-        error = check_party_document(party)
+        error = check_party_document(party, is_mandatory)
         if error:
             return error
     return None
 
 
-def check_party_error(party, object_not_found_error):
+def check_party_error(party, object_not_found_error, is_document_mandatory=True):
     if not party:
         return object_not_found_error
     else:
-        document_error = check_party_document(party)
+        document_error = check_party_document(party, is_document_mandatory)
         if document_error:
             return document_error
 
 
-def create_standard_licence(draft, application, errors):
-    """
-    Create a standard licence application
-    """
+def validate_standard_licence(draft, errors):
     end_user_errors = check_party_error(
         draft.end_user,
-        object_not_found_error=get_string('applications.standard.no_end_user_set')
+        object_not_found_error=get_string('applications.standard.no_end_user_set'),
+        is_document_mandatory=True
     )
     if end_user_errors:
         errors['end_user'] = end_user_errors
 
     consignee_errors = check_party_error(
         draft.consignee,
-        object_not_found_error=get_string('applications.standard.no_consignee_set')
+        object_not_found_error=get_string('applications.standard.no_consignee_set'),
+        is_document_mandatory=True
     )
     if consignee_errors:
         errors['consignee'] = consignee_errors
 
-    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all())
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=True)
     if ultimate_end_user_documents_error:
         errors['ultimate_end_user_documents'] = ultimate_end_user_documents_error
 
-    if not GoodOnDraft.objects.filter(draft=draft):
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory=False)
+    if third_parties_documents_error:
+        errors['third_parties_documents'] = third_parties_documents_error
+
+    if not GoodOnApplication.objects.filter(application=draft):
         errors['goods'] = get_string('applications.standard.no_goods_set')
 
     ultimate_end_user_required = False
-    if next(filter(lambda x: x.good.is_good_end_product is False, GoodOnDraft.objects.filter(draft=draft)), None):
+    if next(filter(
+            lambda x: x.good.is_good_end_product is False, GoodOnApplication.objects.filter(application=draft)), None):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
@@ -112,48 +88,32 @@ def create_standard_licence(draft, application, errors):
                     errors['ultimate_end_users'] = get_string(
                         'applications.standard.matching_end_user_and_ultimate_end_user')
 
-    if len(errors):
-        return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Save associated end users, goods and sites
-    application.end_user = draft.end_user
-    application.ultimate_end_users.set(draft.ultimate_end_users.values_list('id', flat=True))
-    application.consignee = draft.consignee
-    application.third_parties.set(draft.third_parties.values_list('id', flat=True))
-    application.save()
-
-    create_goods_for_applications(draft, application)
-    create_site_for_application(draft, application)
-    create_external_location_for_application(draft, application)
-    return application
+    return errors
 
 
-def create_open_licence(draft, application, errors):
-    """
-    Create an open licence application
-    """
-    if len(CountryOnDraft.objects.filter(draft=draft)) == 0:
+def validate_open_licence(draft, errors):
+    if len(CountryOnApplication.objects.filter(application=draft)) == 0:
         errors['countries'] = get_string('applications.open.no_countries_set')
 
-    results = GoodsType.objects.filter(object_id=draft.id)
+    results = GoodsType.objects.filter(application=draft)
     if not results:
         errors['goods'] = get_string('applications.open.no_goods_set')
 
-    if len(errors):
-        return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+    return errors
 
-    # Save associated end users, goods and sites
-    application.end_user = draft.end_user
-    application.save()
 
-    for goods_types_on_draft in results:
-        goods_types_on_draft.object_id = application.id
+def check_application_for_errors(draft):
+    errors = {}
 
-    for country_on_draft in CountryOnDraft.objects.filter(draft=draft):
-        CountryOnApplication(
-            country=country_on_draft.country,
-            application=application).save()
+    # Generic errors
+    if SiteOnApplication.objects.filter(application=draft).count() == 0 and \
+            ExternalLocationOnApplication.objects.filter(application=draft).count() == 0:
+        errors['location'] = get_string('applications.generic.no_location_set')
 
-    create_site_for_application(draft, application)
-    create_external_location_for_application(draft, application)
-    return application
+    # Perform additional validation and append errors if found
+    if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        validate_standard_licence(draft, errors)
+    else:
+        validate_open_licence(draft, errors)
+
+    return errors

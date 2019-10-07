@@ -1,19 +1,18 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import Application, GoodOnApplication
-from cases.enums import CaseType, AdviceType
+
+from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
+    StandardApplication, OpenApplication
+from cases.enums import AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
 from conf.urls import urlpatterns
-from drafts.models import Draft, GoodOnDraft, SiteOnDraft, CountryOnDraft
 from flags.models import Flag
-from goods.enums import GoodControlled
+from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
 from organisations.models import Organisation, Site, ExternalLocation
@@ -113,13 +112,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return exporter_user
 
-    def create_organisation_with_exporter_user(self, name='Organisation'):
+    def create_organisation_with_exporter_user(self, name='Organisation', org_type=None):
 
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
                                     sic_number='2765',
                                     vat_number='123456789',
                                     registration_number='987654321')
+        if org_type:
+            organisation.type = org_type
         organisation.save()
 
         site, address = self.create_site('HQ', organisation)
@@ -250,12 +251,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: Draft):
-        draft_id = draft.id
-        url = reverse('applications:applications')
-        data = {'id': draft_id}
-        self.client.post(url, data, **self.exporter_headers)
-        return Application.objects.get(pk=draft_id)
+    def submit_draft(self, draft: BaseApplication):
+        draft.submitted_at = datetime.now(timezone.utc)
+        draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        draft.save()
+
+        case = Case(application=draft)
+        case.save()
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            for good_on_application in GoodOnApplication.objects.filter(application=draft):
+                good_on_application.good.status = GoodStatus.SUBMITTED
+                good_on_application.good.save()
+
+        return draft
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
         case_doc = CaseDocument(case=case,
@@ -307,13 +316,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_assignment.save()
         return case_assignment
 
-    def create_goods_type(self, content_type_model, obj):
+    def create_goods_type(self, application):
         goods_type = GoodsType(description='thing',
                                is_good_controlled=False,
                                control_code='ML1a',
                                is_good_end_product=True,
-                               content_type=ContentType.objects.get(model=content_type_model),
-                               object_id=obj.pk)
+                               application=application)
         goods_type.save()
         return goods_type
 
@@ -354,51 +362,62 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return clc_query
 
     # Drafts
-
-    def create_draft(self, organisation: Organisation, licence_type=ApplicationLicenceType.STANDARD_LICENCE,
-                     reference_name='Standard Draft'):
-        draft = Draft(name=reference_name,
-                      licence_type=licence_type,
-                      export_type=ApplicationExportType.PERMANENT,
-                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                      reference_number_on_information_form='',
-                      activity='Trade',
-                      usage='Trade',
-                      organisation=organisation)
-        draft.save()
-        return draft
-
-    def create_standard_draft_without_end_user_document(self, organisation: Organisation,
-                                                        reference_name='Standard Draft'):
+    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         """
         Creates a standard draft application
         """
-        draft = self.create_draft(organisation, ApplicationLicenceType.STANDARD_LICENCE, reference_name)
+        draft = StandardApplication(name=reference_name,
+                                    licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+                                    export_type=ApplicationExportType.PERMANENT,
+                                    have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                    reference_number_on_information_form='',
+                                    activity='Trade',
+                                    usage='Trade',
+                                    organisation=organisation,
+                                    end_user=self.create_end_user('End User', organisation),
+                                    consignee=self.create_consignee('Consignee', organisation))
+
+        draft.save()
+
+        draft.third_parties.set([self.create_third_party('Third party', self.organisation)])
 
         # Add a good to the standard draft
-        GoodOnDraft(good=self.create_controlled_good('a thing', organisation),
-                    draft=draft,
-                    quantity=10,
-                    unit=Units.NAR,
-                    value=500).save()
+        GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
+                          application=draft,
+                          quantity=10,
+                          unit=Units.NAR,
+                          value=500).save()
 
-        # Set the draft's end user
-        draft.end_user = self.create_end_user('test', organisation)
+        # Set the draft party documents
+        self.create_document_for_party(draft.end_user, safe=safe_document)
+        self.create_document_for_party(draft.consignee, safe=safe_document)
+        self.create_document_for_party(draft.third_parties.first(), safe=safe_document)
 
         # Add a site to the draft
-        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+        SiteOnApplication(site=organisation.primary_site, application=draft).save()
 
-        draft.save()
         return draft
 
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
-        draft = self.create_standard_draft_without_end_user_document(organisation, reference_name)
+    def create_standard_draft_with_incorporated_good(self, organisation: Organisation,
+                                                     reference_name='Standard Draft', safe_document=True):
 
-        self.create_document_for_party(draft.end_user, safe=safe_document)
+        draft = self.create_standard_draft(organisation, reference_name, safe_document)
 
-        draft.consignee = self.create_consignee('consignee', organisation)
-        draft.save()
-        self.create_document_for_party(draft.consignee, safe=safe_document)
+        part_good = Good(is_good_end_product=False,
+                         is_good_controlled=True,
+                         control_code='ML17',
+                         organisation=self.organisation,
+                         description='a good',
+                         part_number='123456')
+        part_good.save()
+
+        GoodOnApplication(good=part_good,
+                          application=draft,
+                          quantity=17,
+                          value=18).save()
+
+        draft.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', self.organisation)])
+        self.create_document_for_party(draft.ultimate_end_users.first(), safe=safe_document)
 
         return draft
 
@@ -406,19 +425,27 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates an open draft application
         """
-        draft = self.create_draft(organisation, ApplicationLicenceType.OPEN_LICENCE, reference_name)
-
-        # Add a goods description
-        self.create_goods_type('draft', draft)
-        self.create_goods_type('draft', draft)
-
-        # Add a country to the draft
-        CountryOnDraft(draft=draft, country=get_country('GB')).save()
-
-        # Add a site to the draft
-        SiteOnDraft(site=organisation.primary_site, draft=draft).save()
+        draft = OpenApplication(name=reference_name,
+                                licence_type=ApplicationLicenceType.OPEN_LICENCE,
+                                export_type=ApplicationExportType.PERMANENT,
+                                have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                reference_number_on_information_form='',
+                                activity='Trade',
+                                usage='Trade',
+                                organisation=organisation)
 
         draft.save()
+
+        # Add a goods description
+        self.create_goods_type(draft)
+        self.create_goods_type(draft)
+
+        # Add a country to the draft
+        CountryOnApplication(application=draft, country=get_country('GB')).save()
+
+        # Add a site to the draft
+        SiteOnApplication(site=organisation.primary_site, application=draft).save()
+
         return draft
 
     # Applications
@@ -470,10 +497,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.save()
 
         if advice_field == 'end_user':
-            advice.end_user = case.application.end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
 
         if advice_field == 'good':
-            advice.good = GoodOnApplication.objects.filter(application=case.application).first().good
+            advice.good = GoodOnApplication.objects.get(application=case.application).good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = 'I am easy to proviso'

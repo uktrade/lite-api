@@ -4,14 +4,14 @@ from django.db import models
 
 from addresses.models import Address
 from conf.exceptions import NotFoundError
-from parties.enums import SubType
+from organisations.enums import OrganisationType
 from static.countries.models import Country
 
 
 class Organisation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.COMMERCIAL, max_length=20)
+    type = models.CharField(choices=OrganisationType.choices, default=OrganisationType.COMMERCIAL, max_length=20)
     eori_number = models.TextField(default=None, blank=True, null=True)
     sic_number = models.TextField(default=None, blank=True, null=True)
     vat_number = models.TextField(default=None, blank=True, null=True)

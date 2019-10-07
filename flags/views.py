@@ -4,6 +4,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import GoodOnApplication
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
@@ -152,7 +153,10 @@ class AssignFlags(APIView):
             cases.extend(Case.objects.filter(query__id__in=
                                              ControlListClassificationQuery.objects.filter(good=obj)
                                              .values_list('id', flat=True)))
-            cases.extend(Case.objects.filter(application__goods__good=obj))
+
+            cases.extend(Case.objects.filter(application__id__in=
+                                             GoodOnApplication.objects.filter(good=obj)
+                                             .values_list('application_id', flat=True)))
 
             for case in cases:
                 self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)

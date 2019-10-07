@@ -9,12 +9,12 @@ from rest_framework.views import APIView
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from drafts.models import GoodOnDraft
+from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
-from goods.libraries.get_good import get_good, get_good_document
+from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    FullGoodSerializer, GoodListSerializer, VerifiedGoodSerializer
+    VerifiedGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -120,7 +120,7 @@ class GoodDetail(APIView):
             except ControlListClassificationQuery.DoesNotExist:
                 pass
         else:
-            serializer = FullGoodSerializer(good)
+            serializer = GoodWithFlagsSerializer(good)
 
         return JsonResponse(data={'good': serializer.data})
 
@@ -138,7 +138,7 @@ class GoodDetail(APIView):
         data = request.data.copy()
 
         if data.get('is_good_controlled') == 'unsure':
-            for good_on_draft in GoodOnDraft.objects.filter(good=good):
+            for good_on_draft in GoodOnApplication.objects.filter(good=good):
                 good_on_draft.delete()
 
         data['organisation'] = organisation.id
@@ -262,7 +262,7 @@ class GoodDocumentDetail(APIView):
 
         good_document.delete()
         if len(GoodDocument.objects.filter(good=good)) == 0:
-            for good_on_draft in GoodOnDraft.objects.filter(good=good):
+            for good_on_draft in GoodOnApplication.objects.filter(good=good):
                 good_on_draft.delete()
 
         return JsonResponse({'document': 'deleted success'})

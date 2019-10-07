@@ -3,7 +3,7 @@ from rest_framework import serializers
 from conf.helpers import str_to_bool
 from conf.serializers import PrimaryKeyRelatedSerializerField, ControlListEntryField
 from goods.enums import GoodStatus
-from goods.serializers import FullGoodSerializer
+from goods.serializers import GoodWithFlagsSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from picklists.models import PicklistItem
@@ -15,7 +15,7 @@ from static.statuses.libraries.get_case_status import get_case_status_from_statu
 class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
                                                     serializer=TinyOrganisationViewSerializer)
-    good = FullGoodSerializer(read_only=True)
+    good = GoodWithFlagsSerializer(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
