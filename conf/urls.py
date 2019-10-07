@@ -26,7 +26,7 @@ urlpatterns = [
     path('drafts/', include('applications.drafts.urls')),
     path('goods/', include('goods.urls')),
     path('goodstype/', include('goodstype.urls')),
-    path('letter_templates/', include('letter_templates.urls')),
+    path('letter-templates/', include('letter_templates.urls')),
     path('organisations/', include('organisations.urls')),
     path('queues/', include('queues.urls')),
     path('static/', include('static.urls')),

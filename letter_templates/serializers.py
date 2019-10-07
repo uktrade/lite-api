@@ -1,12 +1,22 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=20,
+                                 trim_whitespace=True,
+                                 validators=[UniqueValidator(queryset=LetterTemplate.objects.all(), lookup='iexact',
+                                                             message='Name has to be unique')])
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
+
+    def validate_letter_paragraphs(self, attrs):
+        if len(attrs) == 0:
+            raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
+        return attrs
 
     class Meta:
         model = LetterTemplate
