@@ -38,7 +38,7 @@ class GoodsVerifiedTests(DataTestClient):
         self.assertEqual(verified_good.control_code, 'ML1a')
 
         # determine that flags have been removed when good verified
-        self.assertEqual(len(verified_good.flags.values()), 0)
+        self.assertEqual(verified_good.flags.count(), 0)
 
     def test_verify_multiple_goods(self):
         data = {
@@ -74,7 +74,7 @@ class GoodsVerifiedTests(DataTestClient):
         self.assertEqual(verified_good.control_code, '')
 
         # determine that flags have been removed when good verified
-        self.assertEqual(len(verified_good.flags.values()), 0)
+        self.assertEqual(verified_good.flags.count(), 0)
 
     def test_verify_multiple_goods_NLR(self):
         data = {
@@ -123,7 +123,7 @@ class GoodsVerifiedTests(DataTestClient):
 
         # since it has an invalid control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(len(verified_good.flags.values()), 1)
+        self.assertEqual(verified_good.flags.count(), 1)
 
     def test_controlled_good_empty_control_code(self):
         data = {
@@ -139,7 +139,7 @@ class GoodsVerifiedTests(DataTestClient):
 
         # since it has an empty control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(len(verified_good.flags.values()), 1)
+        self.assertEqual(verified_good.flags.count(), 1)
 
     def test_required_comment_field_missing(self):
         data = {
@@ -157,5 +157,4 @@ class GoodsVerifiedTests(DataTestClient):
 
         # since it has no comment, serializer should fail, and flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(len(verified_good.flags.values()), 1)
-
+        self.assertEqual(verified_good.flags.count(), 1)
