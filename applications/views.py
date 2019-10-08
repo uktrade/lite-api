@@ -75,7 +75,6 @@ class ApplicationDetail(APIView):
     Retrieve or update an application instance.
     """
     authentication_classes = [SharedAuthentication]
-    serializer_class = BaseApplicationSerializer
 
     def get(self, request, pk):
         """
@@ -88,7 +87,7 @@ class ApplicationDetail(APIView):
 
         application = get_application(pk, submitted=submitted)
 
-        serializer = self.serializer_class(application)
+        serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
     def put(self, request, pk):

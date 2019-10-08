@@ -31,6 +31,9 @@ def _add_organisation_filter(kwargs, organisation):
 
 def get_base_applications(organisation=None, submitted=None):
     """
+    If param organisation is None, all applications are returned
+    If it is supplied, only applications for the specific organisation are returned
+
     If param submitted is None, all applications are returned
     If it is true (and consequently submitted_at__isnull is false), only submitted applications are returned
     If it is false (and consequently submitted_at__isnull is true), only draft applications are returned

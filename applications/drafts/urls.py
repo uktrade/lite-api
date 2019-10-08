@@ -6,12 +6,6 @@ from applications.drafts.views import draft_external_locations_views, draft_site
 app_name = 'drafts'
 
 urlpatterns = [
-    # ex: /drafts/<uuid:pk>/
-    path(
-        route='<uuid:pk>/',
-        view=views.DraftDetail.as_view(),
-        name='draft'
-    ),
     # ex: /drafts/<uuid:pk>/goods/
     path(
         route='<uuid:pk>/goods/',
