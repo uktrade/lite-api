@@ -13,7 +13,7 @@ from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 
 
-class DraftEndUser(APIView):
+class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request, pk):
@@ -44,7 +44,7 @@ class DraftEndUser(APIView):
                             status=400)
 
 
-class DraftUltimateEndUsers(APIView):
+class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
@@ -77,7 +77,7 @@ class DraftUltimateEndUsers(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class DraftConsignee(APIView):
+class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request, pk):
@@ -108,7 +108,7 @@ class DraftConsignee(APIView):
                             status=400)
 
 
-class DraftThirdParties(APIView):
+class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
@@ -145,7 +145,7 @@ class DraftThirdParties(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class RemoveDraftUltimateEndUser(APIView):
+class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def delete(self, request, pk, ueu_pk):

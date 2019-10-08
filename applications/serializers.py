@@ -197,21 +197,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             serializer = ExternalLocationSerializer(external_locations, many=True)
             return {'type': 'external_locations', 'data': serializer.data}
 
-        return dict()
-
-
-class ApplicationListSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
-
-    class Meta:
-        model = BaseApplication
-        fields = ('id',
-                  'name',
-                  'last_modified_at',
-                  'status',)
-
-    def get_status(self, instance):
-        return instance.status.status
+        return {}
 
 
 class StandardApplicationSerializer(BaseApplicationSerializer):

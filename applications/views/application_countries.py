@@ -14,7 +14,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
 
-class DraftCountries(APIView):
+class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):

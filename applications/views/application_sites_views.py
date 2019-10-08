@@ -14,7 +14,7 @@ from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 
 
-class DraftSites(APIView):
+class ApplicationSites(APIView):
     """
     View sites belonging to a draft or add them
     """

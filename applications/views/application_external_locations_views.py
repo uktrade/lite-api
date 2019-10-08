@@ -14,7 +14,7 @@ from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 
 
-class DraftExternalLocations(APIView):
+class ApplicationExternalLocations(APIView):
     """
     View sites belonging to a draft or add them
     """

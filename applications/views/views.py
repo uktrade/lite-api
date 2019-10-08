@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
 from applications.creators import check_application_for_errors
@@ -24,22 +25,21 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
-class ApplicationList(APIView):
+class ApplicationList(ListAPIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """
         List all applications
         """
         try:
             submitted = optional_str_to_bool(request.GET.get('submitted', None))
         except ValueError as e:
-            return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         organisation = get_organisation_by_user(request.user)
         applications = get_base_applications(organisation, submitted).order_by('created_at')
 
-        # serializer = ApplicationListSerializer(applications, many=True)
         serializer = BaseApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
