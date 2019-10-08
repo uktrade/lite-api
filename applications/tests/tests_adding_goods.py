@@ -40,7 +40,6 @@ class DraftTests(DataTestClient):
                                   s3_key='doc3')
 
         data = {
-            'draft': draft.id,
             'good_id': good.id,
             'quantity': 1200,
             'unit': Units.KGM,
