@@ -85,7 +85,8 @@ class ApplicationDetail(APIView):
         except ValueError as e:
             return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
 
-        application = get_application(pk, submitted=submitted)
+        organisation = get_organisation_by_user(request.user)
+        application = get_application(pk, organisation=organisation, submitted=submitted)
 
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})

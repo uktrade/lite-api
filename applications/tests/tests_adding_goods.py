@@ -21,12 +21,12 @@ class DraftTests(DataTestClient):
             'value': 50000.45
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = '/drafts/' + str(draft.id) + '/goods/'
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         # The standard draft comes with one good pre-added, plus the good added in this test makes 2
@@ -47,10 +47,10 @@ class DraftTests(DataTestClient):
             'value': 50000
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         # The good that came with the pre-created standard draft remains the only good on the draft
@@ -75,6 +75,6 @@ class DraftTests(DataTestClient):
             'value': data['value']
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.post(url, post_data, **self.exporter_headers)
         self.assertEqual(response.status_code, data['response'])

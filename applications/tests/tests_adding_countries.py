@@ -13,7 +13,7 @@ class CountriesOnDraftTests(DataTestClient):
         super().setUp()
         self.draft = self.create_open_draft(self.organisation)
 
-        self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:countries', kwargs={'pk': self.draft.id})
 
     def test_add_countries_to_a_draft_success(self):
         data = {
@@ -46,7 +46,7 @@ class CountriesOnDraftTests(DataTestClient):
         """
         organisation_2 = self.create_organisation_with_exporter_user()
         self.draft = self.create_open_draft(organisation_2)
-        self.url = reverse('drafts:countries', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:countries', kwargs={'pk': self.draft.id})
 
         data = {
             'countries': Country.objects.all()[:self.COUNTRIES_COUNT].values_list('id', flat=True)

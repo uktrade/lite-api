@@ -11,7 +11,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.third_parties.set([])
         self.draft.save()
-        self.url = reverse('drafts:third_parties', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
         """
@@ -36,7 +36,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         tp_pk = self.draft.third_parties.first().pk
 
-        url = reverse('drafts:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': tp_pk})
+        url = reverse('applications:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': tp_pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 

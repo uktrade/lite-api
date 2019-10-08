@@ -14,7 +14,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.end_user = None
         self.draft.save()
-        self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',

@@ -12,7 +12,7 @@ class SitesOnDraftTests(DataTestClient):
         self.primary_site = self.organisation.primary_site
         self.draft = self.create_standard_draft(self.organisation)
 
-        self.url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
 
     def test_add_site_to_a_draft(self):
         data = {
@@ -27,7 +27,7 @@ class SitesOnDraftTests(DataTestClient):
         self.draft = StandardApplication.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Trading')
 
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers).json()
         self.assertEqual(len(response["sites"]), 1)
 
@@ -47,7 +47,7 @@ class SitesOnDraftTests(DataTestClient):
         self.draft = StandardApplication.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Trading')
 
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         self.assertEqual(len(response_data["sites"]), 2)
@@ -62,19 +62,19 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(len(response_data['sites']), 1)
 
     def test_add_a_site_to_a_draft_deletes_existing_sites(self):
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers).json()
 
         site_id = response['sites'][0]['id']
@@ -87,12 +87,12 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check that the new site has been added, and the old one deleted
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers).json()
         self.assertEqual(len(response['sites']), 1)
         self.assertNotEqual(response['sites'][0]['id'], site_id)
@@ -100,7 +100,7 @@ class SitesOnDraftTests(DataTestClient):
     def test_adding_site_to_draft_deletes_external_locations(self):
         draft = self.draft
         external_location = self.create_external_location('test', self.organisation)
-        url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         data = {
             'external_locations': [
                 external_location.id

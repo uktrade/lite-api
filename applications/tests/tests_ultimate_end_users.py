@@ -9,7 +9,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
-        self.url = reverse('drafts:ultimate_end_users', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
         data = {
@@ -27,7 +27,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         ueu_id = self.draft.ultimate_end_users.first().id
 
-        url = reverse('drafts:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
+        url = reverse('applications:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 

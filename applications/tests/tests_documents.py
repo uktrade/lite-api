@@ -9,7 +9,7 @@ class DraftDocumentTests(DataTestClient):
         super().setUp()
 
         self.draft = self.create_standard_draft(self.organisation, 'Draft')
-        self.url_draft = reverse('drafts:draft_documents', kwargs={'pk': self.draft.id})
+        self.url_draft = reverse('applications:application_documents', kwargs={'pk': self.draft.id})
         self.test_filename = 'dog.jpg'
 
         self.data = {'name': self.test_filename,
@@ -89,8 +89,8 @@ class DraftDocumentTests(DataTestClient):
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
 
-        url = reverse('drafts:draft_document', kwargs={'pk': self.draft.id,
-                                                       'doc_pk': response.json()['documents'][0]['id']})
+        url = reverse('applications:application_document', kwargs={'pk': self.draft.id,
+                                                                   'doc_pk': response.json()['documents'][0]['id']})
 
         self.client.delete(url, **self.exporter_headers)
 
