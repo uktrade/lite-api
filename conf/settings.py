@@ -205,6 +205,13 @@ ADMIN_TEAM_ID = '00000000-0000-0000-0000-000000000001'
 
 # Security settings
 
-SECURE_BROWSER_XSS_FILTER = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+if DEBUG:
+    # Disable security features in local environment.
+    SECURE_BROWSER_XSS_FILTER = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # Enable security features in hosted environments.
+    SECURE_BROWSER_XSS_FILTER = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
