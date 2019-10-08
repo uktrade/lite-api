@@ -16,7 +16,7 @@ from goodstype.serializers import GoodsTypeSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 
 
-class DraftGoodsType(APIView):
+class ApplicationGoodsType(APIView):
     """
     View goods belonging to a draft, or add one
     """
@@ -36,7 +36,7 @@ class DraftGoodsType(APIView):
         return JsonResponse(data={'goods': goods_types_data})
 
 
-class DraftGoods(APIView):
+class ApplicationGoods(APIView):
     authentication_classes = (ExporterAuthentication,)
     """
     View goods belonging to a draft, or add one

@@ -1,27 +1,28 @@
 from django.urls import path
 
 from applications.drafts.views import draft_external_locations_views, draft_sites_views, draft_documents, \
-    draft_countries, views, draft_goods, draft_party_document_views, draft_parties
+    draft_countries, draft_party_document_views, draft_parties
+from applications.views import application_goods
 
 app_name = 'drafts'
 
 urlpatterns = [
-    # ex: /drafts/<uuid:pk>/goods/
-    path(
-        route='<uuid:pk>/goods/',
-        view=draft_goods.DraftGoods.as_view(),
-        name='draft_goods'
-    ),
+    # # ex: /drafts/<uuid:pk>/goods/
+    # path(
+    #     route='<uuid:pk>/goods/',
+    #     view=application_goods.ApplicationGoods.as_view(),
+    #     name='draft_goods'
+    # ),
     # ex: /drafts/<uuid:pk>/goods/<uuid:good_pk>/
     path(
         route='<uuid:pk>/goods/<uuid:good_pk>/',
-        view=draft_goods.DraftGoods.as_view(),
+        view=application_goods.ApplicationGoods.as_view(),
         name='draft_good'
     ),
     # ex: /drafts/<uuid:pk>/goodstype/
     path(
         route='<uuid:pk>/goodstype/',
-        view=draft_goods.DraftGoodsType.as_view(),
+        view=application_goods.ApplicationGoodsType.as_view(),
         name='draft_goodstype'
     ),
     # ex: /drafts/<uuid:pk>/end-user/
