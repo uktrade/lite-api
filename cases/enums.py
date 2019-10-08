@@ -9,6 +9,10 @@ class CaseType:
         (END_USER_ADVISORY_QUERY, 'End User Advisory Query'),
     ]
 
+    @classmethod
+    def get_text(cls, choice):
+        return [x for x in cls.choices if x[0] == choice][0][1]
+
 
 class AdviceType:
     APPROVE = 'approve'

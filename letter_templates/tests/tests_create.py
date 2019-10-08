@@ -2,6 +2,7 @@ from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from cases.enums import CaseType
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
@@ -29,6 +30,9 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             'name': 'Letter Template',
+            'restricted_to': [
+                CaseType.CLC_QUERY
+            ],
             'layout': self.letter_layout.id,
             'letter_paragraphs': [
                 self.picklist_item_1.id,
@@ -54,6 +58,9 @@ class LetterTemplateCreateTests(DataTestClient):
 
         data = {
             'name': 'Letter Template',
+            'restricted_to': [
+                CaseType.CLC_QUERY
+            ],
             'layout': self.letter_layout.id,
             'letter_paragraphs': [
                 self.picklist_item_1.id,
@@ -71,6 +78,9 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             'name': 'Letter Template',
+            'restricted_to': [
+                CaseType.CLC_QUERY
+            ],
             'layout': self.letter_layout.id,
             'letter_paragraphs': []
         }
@@ -85,6 +95,9 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             'name': 'Letter Template',
+            'restricted_to': [
+                CaseType.CLC_QUERY
+            ],
             'letter_paragraphs': [
                 self.picklist_item_1.id,
                 self.picklist_item_2.id
