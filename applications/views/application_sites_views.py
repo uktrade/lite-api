@@ -21,7 +21,7 @@ class ApplicationSites(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         sites_ids = SiteOnApplication.objects.filter(application=draft).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)

@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
@@ -22,7 +21,7 @@ class ApplicationEndUser(APIView):
         Create an end user and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         data['organisation'] = str(organisation.id)
 
         serializer = EndUserSerializer(data=data)
@@ -47,13 +46,17 @@ class ApplicationEndUser(APIView):
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def get(self, request, draft):
+    def get(self, request, pk):
         """
         Get ultimate end users associated with a draft
         """
-        serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
-        return JsonResponse(data={'ultimate_end_users': serializer.data})
+        draft = get_application(pk)
+        ueu_data = []
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            ueu_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
+
+        return JsonResponse(data={'ultimate_end_users': ueu_data})
 
     @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
@@ -61,7 +64,7 @@ class ApplicationUltimateEndUsers(APIView):
         Create an ultimate end user and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         data['organisation'] = str(organisation.id)
 
         serializer = UltimateEndUserSerializer(data=data)
@@ -86,7 +89,7 @@ class ApplicationConsignee(APIView):
         Create a consignee and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         data['organisation'] = str(organisation.id)
 
         serializer = ConsigneeSerializer(data=data)
@@ -115,7 +118,7 @@ class ApplicationThirdParties(APIView):
         """
         Get third parties associated with a draft
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
         third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -129,7 +132,7 @@ class ApplicationThirdParties(APIView):
         Create a third party and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         data['organisation'] = str(organisation.id)
 
         serializer = ThirdPartySerializer(data=data)

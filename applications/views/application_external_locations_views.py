@@ -21,7 +21,7 @@ class ApplicationExternalLocations(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=draft).values_list(
             'external_location', flat=True)

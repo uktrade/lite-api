@@ -44,7 +44,7 @@ class ApplicationGoods(APIView):
 
     def get(self, request, pk):
         organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk=pk, organisation=organisation, submitted=False)
+        draft = get_application(pk=pk, organisation=organisation)
 
         goods_data = []
 
@@ -56,7 +56,6 @@ class ApplicationGoods(APIView):
 
     @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
-        # data = JSONParser().parse(request)
         data = request.data
         data['good'] = data['good_id']
         data['application'] = draft.id
