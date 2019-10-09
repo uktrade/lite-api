@@ -5,8 +5,7 @@ from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
-class CountriesOnDraftTests(DataTestClient):
-
+class CountriesOnDraftApplicationTests(DataTestClient):
     COUNTRIES_COUNT = 10
 
     def setUp(self):

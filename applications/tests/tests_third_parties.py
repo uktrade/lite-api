@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.models import ThirdParty
 from test_helpers.clients import DataTestClient
 
 
@@ -28,7 +29,6 @@ class ThirdPartiesOnDraft(DataTestClient):
             'sub_type': 'agent',
             'website': 'https://www.gov.uk'
         }
-
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -42,6 +42,23 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
+
+    def test_set_third_parties_on_draft_open_application_failure(self):
+        pre_test_third_party_count = ThirdParty.objects.all().count()
+        data = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'agent',
+            'website': 'https://www.gov.uk'
+        }
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
 
     def test_set_multiple_third_parties_on_draft_successful(self):
         """

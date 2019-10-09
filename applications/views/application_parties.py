@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_application_types
+from conf.decorators import only_draft_types
 from organisations.libraries.get_organisation import get_organisation_by_user
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
@@ -16,13 +16,13 @@ from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, Co
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def post(self, request, pk):
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create an end user and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = EndUserSerializer(data=data)
@@ -41,13 +41,13 @@ class ApplicationEndUser(APIView):
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
-                            status=400)
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
     def get(self, request, draft):
         """
         Get ultimate end users associated with a draft
@@ -55,7 +55,7 @@ class ApplicationUltimateEndUsers(APIView):
         serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
         return JsonResponse(data={'ultimate_end_users': serializer.data})
 
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create an ultimate end user and add it to a draft
@@ -80,13 +80,13 @@ class ApplicationUltimateEndUsers(APIView):
 class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def post(self, request, pk):
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create a consignee and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = ConsigneeSerializer(data=data)
@@ -105,7 +105,7 @@ class ApplicationConsignee(APIView):
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
-                            status=400)
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationThirdParties(APIView):
@@ -123,13 +123,13 @@ class ApplicationThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    def post(self, request, pk):
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create a third party and add it to a draft
         """
         organisation = get_organisation_by_user(request.user)
         data = JSONParser().parse(request)
-        draft = get_application(pk, submitted=False)
         data['organisation'] = str(organisation.id)
 
         serializer = ThirdPartySerializer(data=data)

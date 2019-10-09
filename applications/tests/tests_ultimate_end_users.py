@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.models import UltimateEndUser
 from test_helpers.clients import DataTestClient
 
 
@@ -88,3 +89,21 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]['type'], str(ultimate_end_user.type))
         self.assertEqual(ultimate_end_users[0]['organisation'], str(ultimate_end_user.organisation.id))
         self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))
+
+    def test_set_ueu_on_draft_open_application_failure(self):
+        pre_test_ueu_count = UltimateEndUser.objects.all().count()
+        data = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'commercial',
+            'website': 'https://www.gov.uk'
+        }
+
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:ultimate_end_users', kwargs={'pk': open_draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)

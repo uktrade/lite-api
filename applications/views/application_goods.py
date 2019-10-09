@@ -1,7 +1,6 @@
 import reversion
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
@@ -9,6 +8,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
+from conf.decorators import only_draft_types
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -54,13 +54,14 @@ class ApplicationGoods(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    def post(self, request, pk):
-        data = JSONParser().parse(request)
+    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
+        # data = JSONParser().parse(request)
+        data = request.data
         data['good'] = data['good_id']
-        data['application'] = str(pk)
+        data['application'] = draft.id
 
         organisation = get_organisation_by_user(request.user)
-        get_application(pk, organisation=organisation, submitted=False)
         good = get_good_with_organisation(data.get('good'), organisation)
 
         if len(GoodDocument.objects.filter(good=good)) == 0:
