@@ -9,8 +9,8 @@ from rest_framework.views import APIView
 
 from applications.creators import check_application_for_errors
 from applications.enums import ApplicationLicenceType
-from applications.libraries.application_helpers import get_serializer_for_application
-from applications.libraries.get_applications import get_application, get_base_applications, optional_str_to_bool
+from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool
+from applications.libraries.get_applications import get_application, get_base_applications
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
     DraftApplicationCreateSerializer

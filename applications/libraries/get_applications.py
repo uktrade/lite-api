@@ -5,17 +5,6 @@ from applications.models import BaseApplication, OpenApplication, StandardApplic
 from organisations.models import Organisation
 
 
-def optional_str_to_bool(optional_string: str):
-    if optional_string is None:
-        return None
-    elif optional_string == 'true':
-        return True
-    elif optional_string == 'false':
-        return False
-    else:
-        raise ValueError('You provided ' + optional_string + ', while the allowed values are None, "true" or "false"')
-
-
 def _add_submitted_filter(kwargs, submitted: bool):
     if submitted is not None:
         kwargs['submitted_at__isnull'] = not submitted

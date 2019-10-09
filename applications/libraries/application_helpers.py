@@ -7,3 +7,14 @@ def get_serializer_for_application(application: BaseApplication, many=False):
         return StandardApplicationSerializer(application, many=many)
     else:
         return OpenApplicationSerializer(application, many=many)
+
+
+def optional_str_to_bool(optional_string: str):
+    if optional_string is None:
+        return None
+    elif optional_string == 'true':
+        return True
+    elif optional_string == 'false':
+        return False
+    else:
+        raise ValueError('You provided ' + optional_string + ', while the allowed values are None, "true" or "false"')

@@ -6,8 +6,8 @@ from applications.views import views, application_goods, application_parties, ap
 app_name = 'applications'
 
 urlpatterns = [
-    # ex: /applications/ - List all/application/submitted applications
-    # ex: /applications/?submitted=
+    # ex: /applications/ - List all applications
+    # ex: /applications/?submitted=true - List only submitted applications
     path(
         route='',
         view=views.ApplicationList.as_view(),

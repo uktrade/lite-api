@@ -40,7 +40,6 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response_data['s3_key'], self.data['s3_key'])
         self.assertEqual(response_data['size'], self.data['size'])
         self.assertEqual(response_data['description'], self.data['description'])
-        # self.assertEqual(response_data['application_id'], str(self.data['draft']))
 
     @mock.patch('documents.tasks.prepare_document.now')
     def test_upload_multiple_draft_documents(self, mock_prepare_doc):
