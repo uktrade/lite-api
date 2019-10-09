@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -24,14 +23,15 @@ class LetterTemplateCreateTests(DataTestClient):
         self.letter_layout = LetterLayout.objects.create(id='siel', name='SIEL')
         self.url = reverse('letter_templates:letter_templates')
 
-    def test_create_letter_templates(self):
+    def test_create_letter_templates_success(self):
         """
         Successfully create a letter template
         """
         data = {
             'name': 'Letter Template',
             'restricted_to': [
-                CaseType.CLC_QUERY
+                CaseType.CLC_QUERY,
+                CaseType.END_USER_ADVISORY_QUERY
             ],
             'layout': self.letter_layout.id,
             'letter_paragraphs': [
@@ -41,23 +41,29 @@ class LetterTemplateCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+
         letter_template = LetterTemplate.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(letter_template.name, data['name'])
         self.assertEqual(letter_template.layout.id, data['layout'])
-        self.assertEqual(list(letter_template.letter_paragraphs.values_list('id', flat=True)),
-                         data['letter_paragraphs'])
+        self.assertIn(CaseType.CLC_QUERY, letter_template.restricted_to)
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, letter_template.restricted_to)
 
     def test_create_letter_templates_not_unique_name_failure(self):
         """
         Fail as the name is not unique
         """
-        self.letter_template = LetterTemplate.objects.create(name='SIEL', layout=self.letter_layout)
+        self.letter_template = LetterTemplate.objects.create(name='SIEL',
+                                                             restricted_to=[
+                                                                 CaseType.CLC_QUERY,
+                                                                 CaseType.END_USER_ADVISORY_QUERY
+                                                             ],
+                                                             layout=self.letter_layout)
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 
         data = {
-            'name': 'Letter Template',
+            'name': 'SIEL',
             'restricted_to': [
                 CaseType.CLC_QUERY
             ],
@@ -98,6 +104,23 @@ class LetterTemplateCreateTests(DataTestClient):
             'restricted_to': [
                 CaseType.CLC_QUERY
             ],
+            'letter_paragraphs': [
+                self.picklist_item_1.id,
+                self.picklist_item_2.id
+            ]
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_letter_templates_no_restricted_to_failure(self):
+        """
+        Fail as restricted to has not been provided
+        """
+        data = {
+            'name': 'Letter Template',
+            'restricted_to': [],
             'letter_paragraphs': [
                 self.picklist_item_1.id,
                 self.picklist_item_2.id

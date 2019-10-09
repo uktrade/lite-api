@@ -2,18 +2,19 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseType
+from conf.serializers import CommaSeparatedListField
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=20,
-                                 trim_whitespace=True,
+    name = serializers.CharField(max_length=35,
                                  validators=[UniqueValidator(queryset=LetterTemplate.objects.all(), lookup='iexact',
                                                              message='The name of your letter template has to be unique')],
                                  error_messages={'blank': 'Enter a name for the letter template'})
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
+    restricted_to = CommaSeparatedListField()
 
     def validate_letter_paragraphs(self, attrs):
         if len(attrs) == 0:
@@ -26,11 +27,11 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
+        Convert restricted_to to list of key value entries
         """
         repr_dict = super(LetterTemplateSerializer, self).to_representation(value)
+
         repr_dict['restricted_to'] = [{'key': x, 'value': CaseType.get_text(x)} for x in
-                                      repr_dict['restricted_to'].split(',')]
+                                      repr_dict['restricted_to']]
 
         return repr_dict
