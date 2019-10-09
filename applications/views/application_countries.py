@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
@@ -9,7 +8,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_draft_types
-from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
