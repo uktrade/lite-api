@@ -43,23 +43,6 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
-    def test_set_third_parties_on_draft_open_application_failure(self):
-        pre_test_third_party_count = ThirdParty.objects.all().count()
-        data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'agent',
-            'website': 'https://www.gov.uk'
-        }
-        open_draft = self.create_open_draft(self.organisation)
-        url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
-
     def test_set_multiple_third_parties_on_draft_successful(self):
         """
         Given a standard draft has been created
@@ -128,3 +111,29 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(third_parties[0]['type'], str(third_party.type))
         self.assertEqual(third_parties[0]['organisation'], str(third_party.organisation.id))
         self.assertEqual(third_parties[0]['sub_type'], str(third_party.sub_type))
+
+    def test_set_third_parties_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add a third party to the application
+        Then a 404 NOT FOUND is returned
+        And no third parties have been added
+        """
+        # assemble
+        pre_test_third_party_count = ThirdParty.objects.all().count()
+        data = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'agent',
+            'website': 'https://www.gov.uk'
+        }
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)

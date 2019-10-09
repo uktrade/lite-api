@@ -49,9 +49,9 @@ class EndUserOnDraftTests(DataTestClient):
 
     def test_set_end_user_on_draft_open_application_failure(self):
         """
-        Given an open application
-        When I try to post an end user to the application
-        Then a 400 BAD REQUEST is returned
+        Given a draft open application
+        When I try to add an end user to the application
+        Then a 404 NOT FOUND is returned
         And no end users have been added
         """
         # assemble

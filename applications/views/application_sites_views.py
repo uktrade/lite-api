@@ -44,12 +44,8 @@ class ApplicationSites(APIView):
             }}, status=400)
 
         if len(sites) == 0:
-            return JsonResponse(data={'errors': {
-                'sites': [
-                    'You have to pick at least one site.'
-                ]
-            }},
-                status=400)
+            return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site.']}},
+                                status=400)
 
         # Validate each site belongs to the organisation
         for site in sites:

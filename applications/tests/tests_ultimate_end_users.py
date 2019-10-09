@@ -91,6 +91,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))
 
     def test_set_ueu_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add an ultimate end user to the application
+        Then a 404 NOT FOUND is returned
+        And no ultimate end users have been added
+        """
         pre_test_ueu_count = UltimateEndUser.objects.all().count()
         data = {
             'name': 'UK Government',

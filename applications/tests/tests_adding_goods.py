@@ -33,27 +33,6 @@ class DraftTests(DataTestClient):
         # The standard draft comes with one good pre-added, plus the good added in this test makes 2
         self.assertEqual(len(response_data['goods']), 2)
 
-    def test_add_a_good_to_draft_open_application_failure(self):
-        draft = self.create_open_draft(self.organisation)
-        pre_test_good_count = GoodOnApplication.objects.all().count()
-        good = self.create_controlled_good('A good', self.organisation)
-        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
-                                  s3_key='doc3')
-
-        data = {
-            'good_id': good.id,
-            'quantity': 1200.098896,
-            'unit': Units.NAR,
-            'value': 50000.45
-        }
-
-        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
-
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
         draft = self.create_standard_draft(self.organisation)
@@ -99,3 +78,32 @@ class DraftTests(DataTestClient):
         url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.post(url, post_data, **self.exporter_headers)
         self.assertEqual(response.status_code, data['response'])
+
+    def test_add_a_good_to_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add a good to the application
+        Then a 404 NOT FOUND is returned
+        And no goods have been added
+        """
+        # assemble
+        draft = self.create_open_draft(self.organisation)
+        pre_test_good_count = GoodOnApplication.objects.all().count()
+        good = self.create_controlled_good('A good', self.organisation)
+        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
+                                  s3_key='doc3')
+
+        data = {
+            'good_id': good.id,
+            'quantity': 1200.098896,
+            'unit': Units.NAR,
+            'value': 50000.45
+        }
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
