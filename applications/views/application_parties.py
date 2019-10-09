@@ -50,7 +50,8 @@ class ApplicationUltimateEndUsers(APIView):
         """
         Get ultimate end users associated with a draft
         """
-        draft = get_application(pk)
+        organisation = get_organisation_by_user(request.user)
+        draft = get_application(pk, organisation=organisation)
         ueu_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -118,7 +119,8 @@ class ApplicationThirdParties(APIView):
         """
         Get third parties associated with a draft
         """
-        draft = get_application(pk)
+        organisation = get_organisation_by_user(request.user)
+        draft = get_application(pk, organisation=organisation)
         third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
