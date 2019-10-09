@@ -97,7 +97,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         response = self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEquals(0, len(self.organisation.flags.all()))
+        self.assertEquals(0, (self.organisation.flags.all()).count())
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -116,6 +116,6 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), len(self.organisation.flags.all()))
+        self.assertEquals(len(self.all_flags), (self.organisation.flags.all().count()))
         for flag in self.all_flags:
             self.assertTrue(flag in self.organisation.flags.all())
