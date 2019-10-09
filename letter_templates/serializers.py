@@ -16,14 +16,17 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                                  error_messages={'blank': 'Enter a name for the letter template'})
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
-    restricted_to = CommaSeparatedListField()
-    layout = PrimaryKeyRelatedSerializerField(queryset=LetterLayout.objects.all(), serializer=LetterLayoutSerializer)
+    restricted_to = CommaSeparatedListField(error_messages={'required': 'Select which types of case this letter template can apply to'})
+    layout = PrimaryKeyRelatedSerializerField(queryset=LetterLayout.objects.all(),
+                                              serializer=LetterLayoutSerializer,
+                                              error_messages={'required': 'Select the layout you want to use for this letter template'})
 
     def validate_letter_paragraphs(self, attrs):
         if len(attrs) == 0:
             raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
         return attrs
 
+    # TODO
     def validate_restricted_to(self, attrs):
         print(attrs)
         return attrs
