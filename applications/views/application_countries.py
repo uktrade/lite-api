@@ -8,6 +8,7 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
+from conf.decorators import only_draft_types
 from organisations.libraries.get_organisation import get_organisation_by_user
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -30,15 +31,14 @@ class ApplicationCountries(APIView):
 
         return JsonResponse(data={'countries': countries_data})
 
+    @only_draft_types(ApplicationLicenceType.OPEN_LICENCE, filter_by_users_organisation=True)
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request, draft):
         """
         Add countries to an open licence draft
         """
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         countries = data.get('countries')
-        draft = get_application(pk=pk, organisation=organisation, submitted=False)
 
         # Validate that there are actually countries
         if not countries:
@@ -55,6 +55,6 @@ class ApplicationCountries(APIView):
         for country in countries:
             CountryOnApplication(country=get_country(country), application=draft).save()
 
-        response = self.get(request, pk)
+        response = self.get(request, draft.id)
         response.status_code = status.HTTP_201_CREATED
         return response
