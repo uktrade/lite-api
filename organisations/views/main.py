@@ -13,7 +13,6 @@ from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
-from users.models import GovUser
 
 
 class OrganisationsList(generics.ListAPIView):
