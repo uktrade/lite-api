@@ -2,9 +2,11 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseType
-from conf.serializers import CommaSeparatedListField
+from conf.serializers import CommaSeparatedListField, PrimaryKeyRelatedSerializerField
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
+from static.letter_layouts.models import LetterLayout
+from static.letter_layouts.serializers import LetterLayoutSerializer
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):
@@ -15,6 +17,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
     restricted_to = CommaSeparatedListField()
+    layout = PrimaryKeyRelatedSerializerField(queryset=LetterLayout.objects.all(), serializer=LetterLayoutSerializer)
 
     def validate_letter_paragraphs(self, attrs):
         if len(attrs) == 0:
@@ -37,5 +40,6 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
 
         repr_dict['restricted_to'] = [{'key': x, 'value': CaseType.get_text(x)} for x in
                                       repr_dict['restricted_to']]
+        repr_dict['restricted_to'].sort(key=lambda x: x['value'])
 
         return repr_dict
