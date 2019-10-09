@@ -43,7 +43,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         response = self.client.get(self.organisation_url, **self.gov_headers)
         returned_organisation = response.json()
 
-        self.assertEquals(len(self.organisation.flags.all()), len(returned_organisation['flags']))
+        self.assertEquals(self.organisation.flags.count(), len(returned_organisation['flags']))
 
     def test_user_can_add_organisation_level_flags_from_their_own_team(self):
         """
@@ -60,7 +60,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data['flags']), len(self.organisation.flags.all()))
+        self.assertEquals(len(data['flags']), self.organisation.flags.count())
         self.assertTrue(self.team_organisation_flag_1 in self.organisation.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -78,7 +78,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(0, len(self.organisation.flags.all()))
+        self.assertEquals(0, self.organisation.flags.count())
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_organisation_level(self):
@@ -97,7 +97,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         response = self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEquals(0, (self.organisation.flags.all()).count())
+        self.assertEquals(0, self.organisation.flags.count())
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
@@ -116,6 +116,6 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(self.all_flags), (self.organisation.flags.all().count()))
+        self.assertEquals(len(self.all_flags), self.organisation.flags.count())
         for flag in self.all_flags:
             self.assertTrue(flag in self.organisation.flags.all())
