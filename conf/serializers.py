@@ -97,7 +97,8 @@ class CommaSeparatedListField(CharField):
         super(CommaSeparatedListField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
-        data = ','.join(data)
+        if isinstance(data, list):
+            data = ','.join(data)
         return data
 
     def to_representation(self, value):

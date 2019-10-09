@@ -21,6 +21,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
         return attrs
 
+    def validate_restricted_to(self, attrs):
+        print(attrs)
+        return attrs
+
     class Meta:
         model = LetterTemplate
         fields = '__all__'
