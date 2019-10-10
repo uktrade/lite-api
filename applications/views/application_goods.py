@@ -8,7 +8,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_draft_types
+from conf.decorators import only_application_types
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -25,7 +25,7 @@ class ApplicationGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
         goods_types_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
@@ -52,7 +52,7 @@ class ApplicationGoods(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         data = request.data
         data['good'] = data['good_id']

@@ -30,7 +30,7 @@ class ApplicationSites(APIView):
     def post(self, request, pk):
         data = request.data
         sites = data.get('sites')
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         # Validate that there are actually sites
         if sites is None:

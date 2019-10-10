@@ -31,7 +31,7 @@ class ApplicationExternalLocations(APIView):
     def post(self, request, pk):
         data = request.data
         external_locations = data.get('external_locations')
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         # Validate that there are actually external locations
         if external_locations is None or len(external_locations) == 0:
@@ -49,11 +49,11 @@ class ApplicationExternalLocations(APIView):
         draft.activity = 'Brokering'
         draft.save()
 
-        # Delete existing ExternalLocationsOnDrafts
+        # Delete existing ExternalLocationOnApplications
         if data.get('method') != 'append_location':
             ExternalLocationOnApplication.objects.filter(application=draft).delete()
 
-        # Append new ExternalLocationOnDrafts
+        # Append new ExternalLocationOnApplications
         response_data = []
         for external_location in external_locations:
             serializer = ExternalLocationOnApplicationSerializer(

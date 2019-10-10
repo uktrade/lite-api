@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_draft_types
+from conf.decorators import only_application_types
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
@@ -14,7 +14,7 @@ from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, Co
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create an end user and add it to a draft
@@ -56,7 +56,7 @@ class ApplicationUltimateEndUsers(APIView):
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create an ultimate end user and add it to a draft
@@ -80,7 +80,7 @@ class ApplicationUltimateEndUsers(APIView):
 class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create a consignee and add it to a draft
@@ -122,7 +122,7 @@ class ApplicationThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create a third party and add it to a draft
@@ -150,7 +150,7 @@ class RemoveApplicationUltimateEndUser(APIView):
         """
         Delete an ultimate end user and remove it from the draft
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         try:
             ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
@@ -176,7 +176,7 @@ class RemoveThirdParty(APIView):
         """
         Delete a third party and remove it from the draft
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         try:
             third_party = ThirdParty.objects.get(pk=tp_pk)

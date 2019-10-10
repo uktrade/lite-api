@@ -7,7 +7,7 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_draft_types
+from conf.decorators import only_application_types
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -20,7 +20,7 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence draft
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
         countries_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
@@ -29,7 +29,7 @@ class ApplicationCountries(APIView):
 
         return JsonResponse(data={'countries': countries_data})
 
-    @only_draft_types(ApplicationLicenceType.OPEN_LICENCE, filter_by_users_organisation=True)
+    @only_application_types(ApplicationLicenceType.OPEN_LICENCE, filter_by_users_organisation=True)
     @transaction.atomic
     def post(self, request, draft):
         """

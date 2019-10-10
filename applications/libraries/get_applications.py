@@ -4,36 +4,12 @@ from applications.enums import ApplicationLicenceType
 from applications.models import BaseApplication, OpenApplication, StandardApplication
 
 
-def _add_submitted_filter(kwargs, submitted: bool):
-    if submitted is not None:
-        kwargs['submitted_at__isnull'] = not submitted
-
-
-def _add_organisation_filter(kwargs, organisation_id):
+def get_application(pk, organisation_id=None):
+    kwargs = {}
     if organisation_id:
         kwargs['organisation_id'] = str(organisation_id)
 
-
-def _get_filters(organisation_id=None, submitted=None):
-    kwargs = {}
-
-    _add_submitted_filter(kwargs, submitted)
-    _add_organisation_filter(kwargs, organisation_id)
-
-    return kwargs
-
-
-def get_base_applications(organisation_id=None, submitted=None):
-    kwargs = _get_filters(organisation_id, submitted)
-
-    applications = BaseApplication.objects.filter(**kwargs)
-
-    return applications
-
-
-def get_application(pk, organisation_id=None, submitted=None):
-    kwargs = _get_filters(organisation_id, submitted)
-    licence_type = get_application_licence_type(pk)
+    licence_type = _get_application_licence_type(pk)
 
     try:
         if licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -44,7 +20,7 @@ def get_application(pk, organisation_id=None, submitted=None):
         raise Http404
 
 
-def get_application_licence_type(pk):
+def _get_application_licence_type(pk):
     try:
         return BaseApplication.objects.values_list('licence_type', flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:

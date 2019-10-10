@@ -3,7 +3,7 @@ from parties.models import UltimateEndUser, ThirdParty
 
 
 def get_end_user(draft_pk):
-    draft = get_application(draft_pk, submitted=False)
+    draft = get_application(draft_pk)
     return draft.end_user
 
 
@@ -12,7 +12,7 @@ def get_ultimate_end_user(pk):
 
 
 def get_consignee(draft_pk):
-    draft = get_application(draft_pk, submitted=False)
+    draft = get_application(draft_pk)
     return draft.consignee
 
 
