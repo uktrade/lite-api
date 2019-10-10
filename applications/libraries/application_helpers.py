@@ -12,9 +12,9 @@ def get_serializer_for_application(application: BaseApplication, many=False):
 def optional_str_to_bool(optional_string: str):
     if optional_string is None:
         return None
-    elif optional_string == 'true':
+    elif optional_string.lower() == 'true':
         return True
-    elif optional_string == 'false':
+    elif optional_string.lower() == 'false':
         return False
     else:
         raise ValueError('You provided ' + optional_string + ', while the allowed values are None, "true" or "false"')
