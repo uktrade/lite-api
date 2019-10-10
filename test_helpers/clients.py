@@ -325,7 +325,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         goods_type.save()
         return goods_type
 
-    def create_picklist_item(self, name: object, team: object, picklist_type: object, status: object):
+    def create_picklist_item(self, name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(team=team,
                                      name=name,
                                      text='This is a string of text, please do not disturb the milk argument',
