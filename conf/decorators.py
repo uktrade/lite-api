@@ -2,7 +2,6 @@ from django.http import Http404
 from functools import wraps
 
 from applications.libraries.get_applications import get_application
-from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 def only_draft_types(request_method_list, filter_by_users_organisation=False, return_draft=True):
@@ -16,8 +15,8 @@ def only_draft_types(request_method_list, filter_by_users_organisation=False, re
             else:
                 raise Http404
 
-            org = get_organisation_by_user(request.request.user) if filter_by_users_organisation else None
-            draft = get_application(draft_id, organisation=org, submitted=False)
+            org_id = request.request.user.organisation.id if filter_by_users_organisation else None
+            draft = get_application(draft_id, organisation_id=org_id, submitted=False)
 
             if draft.licence_type not in request_method_list:
                 raise Http404

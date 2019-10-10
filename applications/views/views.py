@@ -20,7 +20,6 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
-from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
@@ -37,23 +36,21 @@ class ApplicationList(ListAPIView):
         except ValueError as e:
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        organisation = get_organisation_by_user(request.user)
-        applications = get_base_applications(organisation, submitted).order_by('created_at')
+        applications = get_base_applications(request.user.organisation.id, submitted).order_by('created_at')
 
         serializer = BaseApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 
     def post(self, request):
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         # Use generic serializer to validate all types of application as we may not yet know the application type
         serializer = DraftApplicationCreateSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.validated_data['organisation'] = organisation
+            serializer.validated_data['organisation'] = request.user.organisation
 
             # Use the data from the generic serializer to determine which model to save to
             if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
@@ -85,8 +82,8 @@ class ApplicationDetail(APIView):
         except ValueError as e:
             return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
 
-        organisation = get_organisation_by_user(request.user)
-        application = get_application(pk, organisation=organisation, submitted=submitted)
+        application = get_application(pk, organisation_id=request.user
+                                      .organisation.id, submitted=submitted)
 
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
@@ -122,8 +119,7 @@ class ApplicationDetail(APIView):
         """
         Deleting an application should only be allowed for draft applications
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk, organisation=organisation, submitted=False)
+        draft = get_application(pk, organisation_id=request.user.organisation.id, submitted=False)
         draft.delete()
         return JsonResponse(data={'status': 'Draft application deleted'},
                             status=status.HTTP_200_OK)
@@ -137,7 +133,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        draft = get_application(pk, organisation=get_organisation_by_user(request.user), submitted=False)
+        draft = get_application(pk, organisation_id=request.user.organisation.id, submitted=False)
 
         errors = check_application_for_errors(draft)
         if errors:

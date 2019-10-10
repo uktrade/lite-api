@@ -8,7 +8,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
@@ -30,8 +29,7 @@ class ApplicationSites(APIView):
 
     @transaction.atomic
     def post(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         sites = data.get('sites')
         draft = get_application(pk, submitted=False)
 
@@ -49,7 +47,7 @@ class ApplicationSites(APIView):
 
         # Validate each site belongs to the organisation
         for site in sites:
-            get_site_with_organisation(site, organisation)
+            get_site_with_organisation(site, request.user.organisation)
 
         # Update draft activity
         draft.activity = 'Trading'
