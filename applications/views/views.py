@@ -39,9 +39,9 @@ class ApplicationList(ListAPIView):
         if submitted is None:
             qs = BaseApplication.objects.filter(organisation=request.user.organisation)
         elif submitted:
-            qs = BaseApplication.objects.get_submitted(organisation=request.user.organisation)
+            qs = BaseApplication.objects.submitted_applications(organisation=request.user.organisation)
         else:
-            qs = BaseApplication.objects.get_drafts(organisation=request.user.organisation)
+            qs = BaseApplication.objects.draft_applications(organisation=request.user.organisation)
 
         applications = qs.order_by('created_at')
 
