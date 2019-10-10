@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('teams', '0001_initial'),
         ('goods', '0001_initial'),
-        ('applications', '0002_applicationdocument'),
+        ('applications', '0001_initial'),
         ('countries', '0002_auto_20190628_1252'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('denial_reasons', '0001_initial'),

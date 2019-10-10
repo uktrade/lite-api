@@ -8,18 +8,16 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
-from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from organisations.serializers import OrganisationViewSerializer, OrganisationCreateSerializer
+from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
 
 
 class OrganisationsList(generics.ListAPIView):
     authentication_classes = (SharedAuthentication,)
-    serializer_class = OrganisationViewSerializer
+    serializer_class = OrganisationDetailSerializer
     pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
@@ -65,13 +63,8 @@ class OrganisationsList(generics.ListAPIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrganisationsDetail(APIView):
+class OrganisationsDetail(generics.RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
-    """
-    Get an organisation by its primary key
-    """
 
-    def get(self, request, pk):
-        organisation = get_organisation_by_pk(pk)
-        view_serializer = OrganisationViewSerializer(organisation)
-        return JsonResponse(data={'organisation': view_serializer.data})
+    queryset = Organisation.objects.all()
+    serializer_class = OrganisationDetailSerializer
