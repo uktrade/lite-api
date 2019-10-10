@@ -56,22 +56,22 @@ class ApplicationList(ListAPIView):
         # Use generic serializer to validate all types of application as we may not yet know the application type
         serializer = DraftApplicationCreateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.validated_data['organisation'] = request.user.organisation
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-            # Use the data from the generic serializer to determine which model to save to
-            if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
-                application = StandardApplication(**serializer.validated_data)
-            else:
-                application = OpenApplication(**serializer.validated_data)
+        serializer.validated_data['organisation'] = request.user.organisation
 
-            application.save()
+        # Use the data from the generic serializer to determine which model to save to
+        if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
+            application = StandardApplication(**serializer.validated_data)
+        else:
+            application = OpenApplication(**serializer.validated_data)
 
-            return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
-                                status=status.HTTP_201_CREATED)
+        application.save()
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
+                            status=status.HTTP_201_CREATED)
 
 
 class ApplicationDetail(APIView):
@@ -105,16 +105,16 @@ class ApplicationDetail(APIView):
 
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                                case=application.case.get(),
-                                user=request.user,
-                                status=data.get('status'))
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer.save()
-            return JsonResponse(data={'application': serializer.data})
+        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                            case=application.case.get(),
+                            user=request.user,
+                            status=data.get('status'))
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return JsonResponse(data={'application': serializer.data})
 
     def delete(self, request, pk):
         """
