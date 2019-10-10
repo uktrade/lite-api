@@ -6,6 +6,9 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.libraries.activity_types import CaseActivityType
+from cases.libraries.get_case import get_case
+from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -14,7 +17,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    VerifiedGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
+    ClcControlGoodSerializer, ClcNonControlGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
 from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -23,7 +26,7 @@ from users.models import ExporterUser
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
 
-    def post(self, request):
+    def post(self, request, case_pk):
         """
         Set control list codes on multiple goods.
         """
@@ -33,16 +36,34 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        serializer = VerifiedGoodSerializer(data=data)
+        controlled = data.get('is_good_controlled', None)
+        if controlled == 'yes':
+            serializer = ClcControlGoodSerializer
+        else:
+            serializer = ClcNonControlGoodSerializer
 
-        if serializer.is_valid():
+        data_serializer = locals()['serializer'](data=data)
+        if data_serializer.is_valid():
             error_occurred = False
+            case = get_case(case_pk)
             for pk in objects:
                 try:
                     good = get_good(pk)
-                    serializer = VerifiedGoodSerializer(good, data=data)
-                    if serializer.is_valid():
-                        serializer.save()
+                    good_serializer = locals()['serializer'](good, data=data)
+                    if good_serializer.is_valid():
+                        good_serializer.save()
+
+                    control_code = data.get('control_code')
+                    if control_code == "":
+                        control_code = "None"
+
+                    # Add an activity item for the query's case
+                    CaseActivity.create(activity_type=CaseActivityType.GOOD_REVIEWED,
+                                        good_name=good.description,
+                                        control_code=control_code,
+                                        case=case,
+                                        user=request.user)
+
                 except Http404:
                     error_occurred = True
 
@@ -51,7 +72,7 @@ class GoodsListControlCode(APIView):
             else:
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         else:
-            return JsonResponse(data={'errors': serializer.errors},
+            return JsonResponse(data={'errors': data_serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
 

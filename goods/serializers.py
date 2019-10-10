@@ -171,10 +171,11 @@ class GoodWithFlagsSerializer(GoodSerializer):
         fields = '__all__'
 
 
-class VerifiedGoodSerializer(serializers.ModelSerializer):
+class ClcControlGoodSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
-    is_good_controlled = serializers.BooleanField(allow_null=False, required=True, write_only=True)
-    comment = serializers.CharField(allow_blank=False, max_length=500, required=True)
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices,
+                                                 allow_null=False, required=True, write_only=True)
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                         required=True,
                                                         allow_null=False,
@@ -185,7 +186,7 @@ class VerifiedGoodSerializer(serializers.ModelSerializer):
         fields = ['control_code', 'is_good_controlled', 'comment', 'report_summary']
 
     def __init__(self, *args, **kwargs):
-        super(VerifiedGoodSerializer, self).__init__(*args, **kwargs)
+        super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
 
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')):
@@ -195,7 +196,8 @@ class VerifiedGoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Update the good's details
         instance.comment = validated_data.get('comment')
-        instance.report_summary = validated_data.get('report_summary').text
+        if validated_data['report_summary']:
+            instance.report_summary = validated_data.get('report_summary').text
         instance.is_good_controlled = validated_data.get('is_good_controlled')
         if instance.is_good_controlled:
             instance.control_code = validated_data.get('control_code')
@@ -207,3 +209,11 @@ class VerifiedGoodSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class ClcNonControlGoodSerializer(ClcControlGoodSerializer):
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
+    report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                                        required=False,
+                                                        allow_null=True,
+                                                        allow_empty=True)

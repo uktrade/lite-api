@@ -10,7 +10,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
-from goods.serializers import VerifiedGoodSerializer
+from goods.serializers import ClcControlGoodSerializer, ClcNonControlGoodSerializer
 from goods.libraries.get_goods import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
@@ -57,11 +57,16 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         data = json.loads(request.body)
 
+        controlled = data.get('is_good_controlled', None)
+        if controlled == 'yes':
+            clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
+        else:
+            clc_good_serializer = ClcNonControlGoodSerializer(query.good, data=data)
+
         with reversion.create_revision():
-            verified_good_serializer = VerifiedGoodSerializer(query.good, data=data)
-            if verified_good_serializer.is_valid():
+            if clc_good_serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
-                    verified_good_serializer.save()
+                    clc_good_serializer.save()
                     query.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
                     query.save()
 
@@ -74,8 +79,8 @@ class ControlListClassificationDetail(APIView):
                     for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
                         user_relationship.user.send_notification(query=query)
 
-                    return JsonResponse(data={'control_list_classification_query': verified_good_serializer.data})
+                    return JsonResponse(data={'control_list_classification_query': clc_good_serializer.data})
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={'errors': verified_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
