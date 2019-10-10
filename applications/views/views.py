@@ -32,7 +32,7 @@ class ApplicationList(ListAPIView):
         List all applications
         """
         try:
-            submitted = optional_str_to_bool(request.GET.get('submitted', None))
+            submitted = optional_str_to_bool(request.GET.get('submitted'))
         except ValueError as e:
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,7 +78,7 @@ class ApplicationDetail(APIView):
         Retrieve an application instance.
         """
         try:
-            submitted = optional_str_to_bool(request.GET.get('submitted', None))
+            submitted = optional_str_to_bool(request.GET.get('submitted'))
         except ValueError as e:
             return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
 
