@@ -40,8 +40,8 @@ urlpatterns = [
     # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
     path(
         route='good-on-application/<uuid:good_on_application_pk>/',
-        view=application_goods.ApplicationGoodDetails.as_view(),
-        name='application_good_on_application'
+        view=application_goods.ApplicationGoodsDetails.as_view(),
+        name='good_on_application'
     ),
     path(
         route='<uuid:pk>/goodstype/',

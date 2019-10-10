@@ -380,11 +380,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         draft.third_parties.set([self.create_third_party('Third party', self.organisation)])
 
         # Add a good to the standard draft
-        GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
-                          application=draft,
-                          quantity=10,
-                          unit=Units.NAR,
-                          value=500).save()
+        self.good_on_application = GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
+                                                     application=draft,
+                                                     quantity=10,
+                                                     unit=Units.NAR,
+                                                     value=500)
+
+        self.good_on_application.save()
 
         # Set the draft party documents
         self.create_document_for_party(draft.end_user, safe=safe_document)

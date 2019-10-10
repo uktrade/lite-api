@@ -7,7 +7,7 @@ from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
-class DraftTests(DataTestClient):
+class AddingGoodsOnDraftTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
         draft = self.create_standard_draft(self.organisation)
