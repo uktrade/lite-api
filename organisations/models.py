@@ -4,6 +4,7 @@ from django.db import models
 
 from addresses.models import Address
 from conf.exceptions import NotFoundError
+from flags.models import Flag
 from organisations.enums import OrganisationType
 from static.countries.models import Country
 
@@ -20,6 +21,7 @@ class Organisation(models.Model):
                                      blank=True, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
+    flags = models.ManyToManyField(Flag, related_name='organisations')
 
     def get_user_relationship(self, user):
         from users.models import UserOrganisationRelationship
