@@ -64,7 +64,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.put(self.url, data, **self.gov_headers)
@@ -86,7 +86,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         data = {
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
-            'is_good_controlled': False,
+            'is_good_controlled': 'no',
         }
 
         response = self.client.put(self.url, data, **self.gov_headers)

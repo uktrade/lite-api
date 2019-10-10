@@ -1,8 +1,11 @@
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from rest_framework import status
 
+from applications.models import GoodOnApplication
+from cases.models import Case
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
@@ -20,7 +23,20 @@ class GoodsVerifiedTests(DataTestClient):
         self.good_1.flags.set([self.create_flag('New Flag', 'Good', self.team)])
         self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
 
-        self.url = reverse('goods:control_code')
+        self.draft = self.create_standard_draft(organisation=self.organisation)
+        GoodOnApplication(good=self.good_1,
+                          application=self.draft,
+                          quantity=10,
+                          unit=Units.NAR,
+                          value=500).save()
+        GoodOnApplication(good=self.good_2,
+                          application=self.draft,
+                          quantity=10,
+                          unit=Units.NAR,
+                          value=500).save()
+        self.submit_draft(self.draft)
+        self.case = Case.objects.get(application=self.draft)
+        self.url = reverse_lazy('goods:control_code', kwargs={'case_pk': self.case.id})
 
     def test_verify_single_good(self):
         data = {
@@ -28,7 +44,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -46,7 +62,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -64,7 +80,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
-            'is_good_controlled': False,
+            'is_good_controlled': 'no',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -82,7 +98,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': '',
-            'is_good_controlled': False,
+            'is_good_controlled': 'no',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -100,7 +116,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': '',
-            'is_good_controlled': False,
+            'is_good_controlled': 'no',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -115,7 +131,7 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'invalid',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -131,30 +147,12 @@ class GoodsVerifiedTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': '',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # since it has an empty control code, flags should not be removed
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.flags.count(), 1)
-
-    def test_required_comment_field_missing(self):
-        data = {
-            'objects': [self.good_1.pk, self.good_2.pk],
-            'comment': '',
-            'report_summary': self.report_summary.pk,
-            'control_code': 'ML1a',
-            'is_good_controlled': True,
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        self.assertEqual(response.json()['errors']['comment'][0], 'This field may not be blank.')
-
-        # since it has no comment, serializer should fail, and flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.flags.count(), 1)
