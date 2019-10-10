@@ -5,10 +5,11 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
+from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_draft_types
+from conf.decorators import only_application_type
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -54,7 +55,7 @@ class ApplicationGoods(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    @only_draft_types(ApplicationLicenceType.STANDARD_LICENCE)
+    @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         data = request.data
         data['good'] = data['good_id']
@@ -80,3 +81,12 @@ class ApplicationGoods(APIView):
 
             return JsonResponse(data={'errors': serializer.errors},
                                 status=400)
+
+
+class ApplicationGoodDetails(APIView):
+    def delete(self, request, good_on_application_pk):
+        good_on_application = get_good_on_application(good_on_application_pk)
+
+        good_on_application.delete()
+
+        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
