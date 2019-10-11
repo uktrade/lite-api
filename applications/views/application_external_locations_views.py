@@ -1,27 +1,25 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication
-from applications.libraries.get_applications import get_draft
+from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
+from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_external_location import get_external_location_with_organisation
-from organisations.libraries.get_organisation import get_organisation_by_user
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 
 
-class DraftExternalLocations(APIView):
+class ApplicationExternalLocations(APIView):
     """
     View sites belonging to a draft or add them
     """
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
-        draft = get_draft(pk)
+        draft = get_application(pk)
 
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=draft).values_list(
             'external_location', flat=True)
@@ -31,10 +29,9 @@ class DraftExternalLocations(APIView):
 
     @transaction.atomic
     def post(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
+        data = request.data
         external_locations = data.get('external_locations')
-        draft = get_draft(pk)
+        draft = get_application(pk)
 
         # Validate that there are actually external locations
         if external_locations is None or len(external_locations) == 0:
@@ -46,17 +43,17 @@ class DraftExternalLocations(APIView):
 
         # Validate each external location belongs to the organisation
         for external_location in external_locations:
-            get_external_location_with_organisation(external_location, organisation)
+            get_external_location_with_organisation(external_location, request.user.organisation)
 
         # Update draft activity
         draft.activity = 'Brokering'
         draft.save()
 
-        # Delete existing ExternalLocationsOnDrafts
+        # Delete existing ExternalLocationOnApplications
         if data.get('method') != 'append_location':
             ExternalLocationOnApplication.objects.filter(application=draft).delete()
 
-        # Append new ExternalLocationOnDrafts
+        # Append new ExternalLocationOnApplications
         response_data = []
         for external_location in external_locations:
             serializer = ExternalLocationOnApplicationSerializer(

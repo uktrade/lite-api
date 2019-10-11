@@ -1,29 +1,26 @@
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_draft
+from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_types
-from organisations.libraries.get_organisation import get_organisation_by_user
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 
 
-class DraftEndUser(APIView):
+class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def post(self, request, pk):
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create an end user and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        draft = get_draft(pk)
-        data['organisation'] = str(organisation.id)
+        data = request.data
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = EndUserSerializer(data=data)
         if serializer.is_valid():
@@ -41,28 +38,31 @@ class DraftEndUser(APIView):
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
-                            status=400)
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
-class DraftUltimateEndUsers(APIView):
+class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def get(self, request, draft):
+    def get(self, request, pk):
         """
         Get ultimate end users associated with a draft
         """
-        serializer = UltimateEndUserSerializer(draft.ultimate_end_users, many=True)
-        return JsonResponse(data={'ultimate_end_users': serializer.data})
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
+        ueu_data = []
+
+        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            ueu_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
+
+        return JsonResponse(data={'ultimate_end_users': ueu_data})
 
     @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
     def post(self, request, draft):
         """
         Create an ultimate end user and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        data['organisation'] = str(organisation.id)
+        data = request.data
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = UltimateEndUserSerializer(data=data)
         if serializer.is_valid():
@@ -77,17 +77,16 @@ class DraftUltimateEndUsers(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class DraftConsignee(APIView):
+class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def post(self, request, pk):
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create a consignee and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        draft = get_draft(pk)
-        data['organisation'] = str(organisation.id)
+        data = request.data
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = ConsigneeSerializer(data=data)
         if serializer.is_valid():
@@ -105,17 +104,17 @@ class DraftConsignee(APIView):
                                 status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={'errors': serializer.errors},
-                            status=400)
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
-class DraftThirdParties(APIView):
+class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         """
         Get third parties associated with a draft
         """
-        draft = get_draft(pk)
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
         third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -123,14 +122,13 @@ class DraftThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    def post(self, request, pk):
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
         """
         Create a third party and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
-        data = JSONParser().parse(request)
-        draft = get_draft(pk)
-        data['organisation'] = str(organisation.id)
+        data = request.data
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = ThirdPartySerializer(data=data)
         if serializer.is_valid():
@@ -145,15 +143,14 @@ class DraftThirdParties(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class RemoveDraftUltimateEndUser(APIView):
+class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def delete(self, request, pk, ueu_pk):
         """
         Delete an ultimate end user and remove it from the draft
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_draft(pk)
+        draft = get_application(pk)
 
         try:
             ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
@@ -161,7 +158,7 @@ class RemoveDraftUltimateEndUser(APIView):
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
-        if ultimate_end_user.organisation != organisation:
+        if ultimate_end_user.organisation != request.user.organisation:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
@@ -179,8 +176,7 @@ class RemoveThirdParty(APIView):
         """
         Delete a third party and remove it from the draft
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_draft(pk)
+        draft = get_application(pk)
 
         try:
             third_party = ThirdParty.objects.get(pk=tp_pk)
@@ -188,7 +184,7 @@ class RemoveThirdParty(APIView):
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
-        if third_party.organisation != organisation:
+        if third_party.organisation != request.user.organisation:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 

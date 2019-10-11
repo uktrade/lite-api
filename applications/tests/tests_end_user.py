@@ -14,7 +14,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.end_user = None
         self.draft.save()
-        self.url = reverse('drafts:end_user', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -28,7 +28,7 @@ class EndUserOnDraftTests(DataTestClient):
         'commercial',
         'other'
     ])
-    def test_set_end_user_on_draft_successful(self, data_type):
+    def test_set_end_user_on_draft_standard_application_successful(self, data_type):
         data = {
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -47,6 +47,32 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(self.draft.end_user.sub_type, data_type)
         self.assertEqual(self.draft.end_user.website, data['website'])
 
+    def test_set_end_user_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add an end user to the application
+        Then a 404 NOT FOUND is returned
+        And no end users have been added
+        """
+        # assemble
+        pre_test_end_user_count = EndUser.objects.all().count()
+        draft_open_application = self.create_open_draft(organisation=self.organisation)
+        data = {
+            'name': 'Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'government',
+            'website': 'https://www.gov.uk'
+        }
+        url = reverse('applications:end_user', kwargs={'pk': draft_open_application.id})
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
+
     @parameterized.expand([
         [{}],
         [{
@@ -63,7 +89,7 @@ class EndUserOnDraftTests(DataTestClient):
             'website': 'https://www.americanmary.com'
         }],
     ])
-    def test_set_end_user_on_draft_failure(self, data):
+    def test_set_end_user_on_draft_standard_application_failure(self, data):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

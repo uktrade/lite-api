@@ -8,7 +8,7 @@ from applications.serializers import ApplicationDocumentSerializer
 from applications.libraries.document_helpers import get_draft_documents
 
 
-class DraftDocumentView(APIView):
+class ApplicationDocumentView(APIView):
     """
     Retrieve or add document to a draft
     """
@@ -34,7 +34,7 @@ class DraftDocumentView(APIView):
         return upload_draft_document(pk, request.data)
 
 
-class DraftDocumentDetailView(APIView):
+class ApplicationDocumentDetailView(APIView):
     """
     Retrieve or delete a document from a draft
     """

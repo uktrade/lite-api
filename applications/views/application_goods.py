@@ -1,22 +1,21 @@
 import reversion
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_draft_application_for_organisation, get_draft
+from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
+from conf.decorators import only_application_types
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
 
 
-class DraftGoodsType(APIView):
+class ApplicationGoodsType(APIView):
     """
     View goods belonging to a draft, or add one
     """
@@ -26,7 +25,7 @@ class DraftGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        draft = get_draft(pk)
+        draft = get_application(pk)
         goods_types_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
@@ -36,14 +35,14 @@ class DraftGoodsType(APIView):
         return JsonResponse(data={'goods': goods_types_data})
 
 
-class DraftGoods(APIView):
+class ApplicationGoods(APIView):
     authentication_classes = (ExporterAuthentication,)
     """
     View goods belonging to a draft, or add one
     """
+
     def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        draft = get_draft_application_for_organisation(pk, organisation)
+        draft = get_application(pk=pk, organisation_id=request.user.organisation.id)
 
         goods_data = []
 
@@ -53,14 +52,13 @@ class DraftGoods(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    def post(self, request, pk):
-        data = JSONParser().parse(request)
+    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
+    def post(self, request, draft):
+        data = request.data
         data['good'] = data['good_id']
-        data['application'] = str(pk)
+        data['application'] = draft.id
 
-        organisation = get_organisation_by_user(request.user)
-        get_draft_application_for_organisation(pk, organisation)
-        good = get_good_with_organisation(data.get('good'), organisation)
+        good = get_good_with_organisation(data.get('good'), request.user.organisation)
 
         if len(GoodDocument.objects.filter(good=good)) == 0:
             return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
