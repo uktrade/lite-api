@@ -86,4 +86,4 @@ class ApplicationGoodsDetails(APIView):
 
         good_on_application.delete()
 
-        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
+        return JsonResponse({'status': 'success'}, status=status.HTTP_204_NO_CONTENT)

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -48,12 +48,24 @@ class GoodsTypeDetail(APIView):
         """
         Gets a single Goods Type
         """
-        good = GoodsType.objects.get(pk=pk)
+        try:
+            good = GoodsType.objects.get(pk=pk)
+        except GoodsType.DoesNotExist as e:
+            return JsonResponse(data={'errors': str(e)}, status=status.HTTP_404_NOT_FOUND)
+
         if isinstance(request.user, GovUser):
             serializer = FullGoodsTypeSerializer(good)
         else:
             serializer = GoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
+
+    def delete(self, request, pk):
+        try:
+            GoodsType.objects.get(pk=pk).delete()
+        except GoodsType.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 class Countries(APIView):

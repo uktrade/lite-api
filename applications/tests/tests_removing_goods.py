@@ -20,7 +20,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         goods_on_application = GoodOnApplication.objects.filter(application=draft)
         self.assertEqual(len(goods_on_application), 0)
 
