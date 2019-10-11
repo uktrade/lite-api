@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 
 class DraftTests(DataTestClient):
 
-    url = reverse('drafts:drafts')
+    url = reverse('applications:applications')
 
     def test_create_draft_successful(self):
         """

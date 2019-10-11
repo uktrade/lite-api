@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.models import GoodOnApplication
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -21,12 +22,12 @@ class DraftTests(DataTestClient):
             'value': 50000.45
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = '/drafts/' + str(draft.id) + '/goods/'
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         # The standard draft comes with one good pre-added, plus the good added in this test makes 2
@@ -40,17 +41,16 @@ class DraftTests(DataTestClient):
                                   s3_key='doc3')
 
         data = {
-            'draft': draft.id,
             'good_id': good.id,
             'quantity': 1200,
             'unit': Units.KGM,
             'value': 50000
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         # The good that came with the pre-created standard draft remains the only good on the draft
@@ -75,6 +75,35 @@ class DraftTests(DataTestClient):
             'value': data['value']
         }
 
-        url = reverse('drafts:draft_goods', kwargs={'pk': draft.id})
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
         response = self.client.post(url, post_data, **self.exporter_headers)
         self.assertEqual(response.status_code, data['response'])
+
+    def test_add_a_good_to_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add a good to the application
+        Then a 404 NOT FOUND is returned
+        And no goods have been added
+        """
+        # assemble
+        draft = self.create_open_draft(self.organisation)
+        pre_test_good_count = GoodOnApplication.objects.all().count()
+        good = self.create_controlled_good('A good', self.organisation)
+        self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
+                                  s3_key='doc3')
+
+        data = {
+            'good_id': good.id,
+            'quantity': 1200.098896,
+            'unit': Units.NAR,
+            'value': 50000.45
+        }
+        url = reverse('applications:application_goods', kwargs={'pk': draft.id})
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)

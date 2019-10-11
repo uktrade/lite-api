@@ -10,7 +10,6 @@ from rest_framework.views import APIView
 
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
-from organisations.libraries.get_organisation import get_organisation_by_user
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
@@ -71,10 +70,8 @@ class UserList(APIView):
         """
         Create Exporter within the same organisation that current user is logged into
         """
-        organisation = get_organisation_by_user(request.user)
-
-        data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
+        data = request.data
+        data['organisation'] = request.user.organisation.id
         serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
