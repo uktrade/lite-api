@@ -20,7 +20,7 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence draft
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
         countries_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:

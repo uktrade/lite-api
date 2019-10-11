@@ -27,7 +27,7 @@ class ApplicationGoodsType(APIView):
         """
         Gets draft Goods Types
         """
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
         goods_types_data = []
 
         if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
