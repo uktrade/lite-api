@@ -9,6 +9,7 @@ from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.enums import OrganisationType
 from static.countries.models import Country
+from users.models import GovUser
 from users.serializers import ExporterUserCreateUpdateSerializer
 
 
@@ -158,22 +159,22 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
                   'name')
 
 
-class OrganisationViewSerializer(serializers.ModelSerializer):
+class OrganisationDetailSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
     type = KeyValueChoiceField(OrganisationType.choices)
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        # TODO remove try block when other end points adopt generics
+        try:
+            if isinstance(self.context.get('request').user, GovUser):
+                return list(instance.flags.values('id', 'name'))
+        except AttributeError:
+            return list(instance.flags.values('id', 'name'))
 
     class Meta:
         model = Organisation
-        fields = ('id',
-                  'name',
-                  'type',
-                  'eori_number',
-                  'sic_number',
-                  'vat_number',
-                  'registration_number',
-                  'primary_site',
-                  'created_at',
-                  'last_modified_at')
+        fields = '__all__'
 
     def update(self, instance, validated_data):
         """

@@ -18,7 +18,7 @@ from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import ExternalLocation, Organisation
-from organisations.serializers import SiteViewSerializer, OrganisationViewSerializer, ExternalLocationSerializer
+from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer, OrganisationDetailSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -129,7 +129,7 @@ class ApplicationDocumentSerializer(serializers.ModelSerializer):
 
 class BaseApplicationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
-    organisation = OrganisationViewSerializer()
+    organisation = OrganisationDetailSerializer()
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
@@ -292,7 +292,7 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
 
         # Remove any previous denial reasons
         if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
-            ApplicationDenialReason.objects.filter(application=get_application(instance.id, submitted=True)).delete()
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
         if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
@@ -304,7 +304,7 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
                 ApplicationDenialReason.objects.filter(
-                    application=get_application(instance.id, submitted=True)).delete()
+                    application=get_application(instance.id)).delete()
 
                 # Create a new ApplicationDenialReason
                 application_denial_reason_serializer.save()

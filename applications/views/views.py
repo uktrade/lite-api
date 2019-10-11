@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 from applications.creators import check_application_for_errors
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool
-from applications.libraries.get_applications import get_application, get_base_applications
-from applications.models import GoodOnApplication, StandardApplication, OpenApplication
+from applications.libraries.get_applications import get_application
+from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
     DraftApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
@@ -20,7 +20,6 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
-from organisations.libraries.get_organisation import get_organisation_by_user
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
@@ -33,41 +32,46 @@ class ApplicationList(ListAPIView):
         List all applications
         """
         try:
-            submitted = optional_str_to_bool(request.GET.get('submitted', None))
+            submitted = optional_str_to_bool(request.GET.get('submitted'))
         except ValueError as e:
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        organisation = get_organisation_by_user(request.user)
-        applications = get_base_applications(organisation, submitted).order_by('created_at')
+        if submitted is None:
+            qs = BaseApplication.objects.filter(organisation=request.user.organisation)
+        elif submitted:
+            qs = BaseApplication.objects.submitted(organisation=request.user.organisation)
+        else:
+            qs = BaseApplication.objects.draft(organisation=request.user.organisation)
+
+        applications = qs.order_by('created_at')
 
         serializer = BaseApplicationSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 
     def post(self, request):
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         # Use generic serializer to validate all types of application as we may not yet know the application type
         serializer = DraftApplicationCreateSerializer(data=data)
 
-        if serializer.is_valid():
-            serializer.validated_data['organisation'] = organisation
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-            # Use the data from the generic serializer to determine which model to save to
-            if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
-                application = StandardApplication(**serializer.validated_data)
-            else:
-                application = OpenApplication(**serializer.validated_data)
+        serializer.validated_data['organisation'] = request.user.organisation
 
-            application.save()
+        # Use the data from the generic serializer to determine which model to save to
+        if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
+            application = StandardApplication(**serializer.validated_data)
+        else:
+            application = OpenApplication(**serializer.validated_data)
 
-            return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
-                                status=status.HTTP_201_CREATED)
+        application.save()
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
+                            status=status.HTTP_201_CREATED)
 
 
 class ApplicationDetail(APIView):
@@ -80,13 +84,7 @@ class ApplicationDetail(APIView):
         """
         Retrieve an application instance.
         """
-        try:
-            submitted = optional_str_to_bool(request.GET.get('submitted', None))
-        except ValueError as e:
-            return JsonResponse(data={'errors': e}, status=status.HTTP_400_BAD_REQUEST)
-
-        organisation = get_organisation_by_user(request.user)
-        application = get_application(pk, organisation=organisation, submitted=submitted)
+        application = get_application(pk, organisation_id=request.user.organisation.id)
 
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
@@ -95,7 +93,7 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
-        application = get_application(pk, submitted=True)
+        application = get_application(pk)
 
         data = json.loads(request.body)
 
@@ -107,23 +105,22 @@ class ApplicationDetail(APIView):
 
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                                case=application.case.get(),
-                                user=request.user,
-                                status=data.get('status'))
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer.save()
-            return JsonResponse(data={'application': serializer.data})
+        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                            case=application.case.get(),
+                            user=request.user,
+                            status=data.get('status'))
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return JsonResponse(data={'application': serializer.data})
 
     def delete(self, request, pk):
         """
         Deleting an application should only be allowed for draft applications
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk, organisation=organisation, submitted=False)
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
         draft.delete()
         return JsonResponse(data={'status': 'Draft application deleted'},
                             status=status.HTTP_200_OK)
@@ -137,7 +134,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        draft = get_application(pk, organisation=get_organisation_by_user(request.user), submitted=False)
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
 
         errors = check_application_for_errors(draft)
         if errors:

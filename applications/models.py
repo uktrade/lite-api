@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.managers import BaseApplicationManager
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -29,6 +30,8 @@ class BaseApplication(models.Model):
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
                                               max_length=50)
+
+    objects = BaseApplicationManager()
 
 
 class ApplicationDocument(Document):

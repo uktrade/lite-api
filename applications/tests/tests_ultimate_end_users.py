@@ -9,10 +9,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_draft_with_incorporated_good(self.organisation)
         self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
+        self.draft.ultimate_end_users.set([])
+
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -36,6 +38,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
+        self.draft.ultimate_end_users.set([])
+
         data = [
                 {
                     'name': 'UK Government',
@@ -73,6 +77,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response_data, {'errors': {'sub_type': ['This field is required.']}})
 
     def test_get_ultimate_end_users(self):
+        self.draft.ultimate_end_users.set([])
+        
         ultimate_end_user = self.create_ultimate_end_user('ultimate end user', self.organisation)
         ultimate_end_user.save()
         self.draft.ultimate_end_users.add(ultimate_end_user)
@@ -91,6 +97,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))
 
     def test_set_ueu_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add an ultimate end user to the application
+        Then a 404 NOT FOUND is returned
+        And no ultimate end users have been added
+        """
         pre_test_ueu_count = UltimateEndUser.objects.all().count()
         data = {
             'name': 'UK Government',

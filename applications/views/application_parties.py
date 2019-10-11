@@ -6,7 +6,6 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_type
-from organisations.libraries.get_organisation import get_organisation_by_user
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
@@ -20,9 +19,8 @@ class ApplicationEndUser(APIView):
         """
         Create an end user and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = EndUserSerializer(data=data)
         if serializer.is_valid():
@@ -50,11 +48,13 @@ class ApplicationUltimateEndUsers(APIView):
         """
         Get ultimate end users associated with a draft
         """
-        draft = get_application(pk)
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
         ueu_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             ueu_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
+
+        return JsonResponse(data={'ultimate_end_users': ueu_data})
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
@@ -63,9 +63,8 @@ class ApplicationUltimateEndUsers(APIView):
         """
         Create an ultimate end user and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = UltimateEndUserSerializer(data=data)
         if serializer.is_valid():
@@ -88,9 +87,8 @@ class ApplicationConsignee(APIView):
         """
         Create a consignee and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = ConsigneeSerializer(data=data)
         if serializer.is_valid():
@@ -118,7 +116,7 @@ class ApplicationThirdParties(APIView):
         """
         Get third parties associated with a draft
         """
-        draft = get_application(pk)
+        draft = get_application(pk, organisation_id=request.user.organisation.id)
         third_party_data = []
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -131,9 +129,8 @@ class ApplicationThirdParties(APIView):
         """
         Create a third party and add it to a draft
         """
-        organisation = get_organisation_by_user(request.user)
         data = request.data
-        data['organisation'] = str(organisation.id)
+        data['organisation'] = str(request.user.organisation.id)
 
         serializer = ThirdPartySerializer(data=data)
         if serializer.is_valid():
@@ -155,8 +152,7 @@ class RemoveApplicationUltimateEndUser(APIView):
         """
         Delete an ultimate end user and remove it from the draft
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         try:
             ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
@@ -164,7 +160,7 @@ class RemoveApplicationUltimateEndUser(APIView):
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
-        if ultimate_end_user.organisation != organisation:
+        if ultimate_end_user.organisation != request.user.organisation:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
@@ -182,8 +178,7 @@ class RemoveThirdParty(APIView):
         """
         Delete a third party and remove it from the draft
         """
-        organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk, submitted=False)
+        draft = get_application(pk)
 
         try:
             third_party = ThirdParty.objects.get(pk=tp_pk)
@@ -191,7 +186,7 @@ class RemoveThirdParty(APIView):
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 
-        if third_party.organisation != organisation:
+        if third_party.organisation != request.user.organisation:
             return JsonResponse(data={'errors': 'request invalid'},
                                 status=400)
 

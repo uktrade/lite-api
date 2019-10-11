@@ -14,7 +14,6 @@ from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
 
 
 class ApplicationGoodsType(APIView):
@@ -44,8 +43,7 @@ class ApplicationGoods(APIView):
     """
 
     def get(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
-        draft = get_application(pk=pk, organisation=organisation)
+        draft = get_application(pk=pk, organisation_id=request.user.organisation.id)
 
         goods_data = []
 
@@ -61,8 +59,7 @@ class ApplicationGoods(APIView):
         data['good'] = data['good_id']
         data['application'] = draft.id
 
-        organisation = get_organisation_by_user(request.user)
-        good = get_good_with_organisation(data.get('good'), organisation)
+        good = get_good_with_organisation(data.get('good'), request.user.organisation)
 
         if len(GoodDocument.objects.filter(good=good)) == 0:
             return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
