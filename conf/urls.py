@@ -23,7 +23,6 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('applications/', include('applications.urls')),
     path('cases/', include('cases.urls')),
-    path('drafts/', include('applications.drafts.urls')),
     path('goods/', include('goods.urls')),
     path('goodstype/', include('goodstype.urls')),
     path('letter-templates/', include('letter_templates.urls')),

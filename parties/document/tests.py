@@ -14,17 +14,17 @@ class PartyDocumentTests(DataTestClient):
         super().setUp()
 
         self.draft = self.create_standard_draft(self.organisation, 'Draft')
-        self.url = reverse('drafts:end_user_document', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:end_user_document', kwargs={'pk': self.draft.id})
 
         self.draft_no_end_user = self.create_standard_draft(self.organisation, 'No End User Draft')
         PartyDocument.objects.filter(party=self.draft_no_end_user.end_user).delete()
         self.draft_no_end_user.end_user = None
         self.draft_no_end_user.save()
-        self.url_no_end_user = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
+        self.url_no_end_user = reverse('applications:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
 
         self.draft_no_end_user_doc = self.create_standard_draft(self.organisation, 'No End User Document Draft')
         PartyDocument.objects.filter(party=self.draft_no_end_user_doc.end_user).delete()
-        self.url_no_end_user_doc = reverse('drafts:end_user_document', kwargs={'pk': self.draft_no_end_user_doc.id})
+        self.url_no_end_user_doc = reverse('applications:end_user_document', kwargs={'pk': self.draft_no_end_user_doc.id})
 
         self.data = {
             'name': 'document_name.pdf',
@@ -67,7 +67,7 @@ class PartyDocumentTests(DataTestClient):
             self.create_ultimate_end_user('UEU', self.organisation)
         )
         url_ultimate_end_user_doc = reverse(
-            'drafts:ultimate_end_user_document',
+            'applications:ultimate_end_user_document',
             kwargs={
                 'pk': self.draft.id,
                 'ueu_pk': self.draft.ultimate_end_users.first().id
@@ -99,7 +99,7 @@ class PartyDocumentTests(DataTestClient):
         self.draft.consignee = self.create_consignee('Consignee', self.organisation)
         self.draft.save()
 
-        url_consignee_doc = reverse('drafts:consignee_document', kwargs={'pk': self.draft.id})
+        url_consignee_doc = reverse('applications:consignee_document', kwargs={'pk': self.draft.id})
         self.client.post(url_consignee_doc, data=self.data, **self.exporter_headers)
 
         # act
@@ -127,7 +127,7 @@ class PartyDocumentTests(DataTestClient):
             self.create_third_party('TP', self.organisation)
         )
         url_third_party_doc = reverse(
-            'drafts:third_party_document',
+            'applications:third_party_document',
             kwargs={
                 'pk': self.draft.id,
                 'tp_pk': self.draft.third_parties.first().id

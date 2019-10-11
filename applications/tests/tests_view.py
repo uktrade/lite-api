@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 
 class DraftTests(DataTestClient):
 
-    url = reverse('drafts:drafts')
+    url = reverse('applications:applications') + '?submitted=false'
 
     def test_view_drafts(self):
         """
@@ -19,7 +19,7 @@ class DraftTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['drafts']), 1)
+        self.assertEqual(len(response.json()['applications']), 1)
 
     def test_view_draft(self):
         """
@@ -27,7 +27,7 @@ class DraftTests(DataTestClient):
         """
         draft = self.create_standard_draft(self.organisation)
 
-        url = reverse('drafts:draft', kwargs={'pk': draft.id})
+        url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -38,7 +38,7 @@ class DraftTests(DataTestClient):
         """
         invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
 
-        url = reverse('drafts:draft', kwargs={'pk': invalid_id})
+        url = reverse('applications:application', kwargs={'pk': invalid_id}) + '?submitted=false'
         response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -51,13 +51,13 @@ class DraftTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['drafts']), 0)
+        self.assertEqual(len(response_data['applications']), 0)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
         draft = self.create_standard_draft(organisation_2)
 
-        url = reverse('drafts:draft', kwargs={'pk': draft.id})
+        url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

@@ -3,7 +3,6 @@ from django.http import JsonResponse, Http404
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -15,7 +14,6 @@ from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
     GoodWithFlagsSerializer, GoodListSerializer
-from organisations.libraries.get_organisation import get_organisation_by_user
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 
@@ -27,11 +25,10 @@ class GoodList(APIView):
         """
         Returns a list of all goods belonging to an organisation
         """
-        organisation = get_organisation_by_user(request.user)
         description = request.GET.get('description', '')
         part_number = request.GET.get('part_number', '')
         control_rating = request.GET.get('control_rating', '')
-        goods = Good.objects.filter(organisation=organisation,
+        goods = Good.objects.filter(organisation_id=request.user.organisation.id,
                                     description__icontains=description,
                                     part_number__icontains=part_number,
                                     control_code__icontains=control_rating).order_by('description')
@@ -42,10 +39,8 @@ class GoodList(APIView):
         """
         Returns a list of all goods belonging to an organisation
         """
-        organisation = get_organisation_by_user(request.user)
-
-        data = JSONParser().parse(request)
-        data['organisation'] = organisation.id
+        data = request.data
+        data['organisation'] = request.user.organisation.id
         data['status'] = GoodStatus.DRAFT
         serializer = GoodSerializer(data=data)
 
@@ -66,9 +61,7 @@ class GoodDetail(APIView):
         good = get_good(pk)
 
         if isinstance(request.user, ExporterUser):
-            organisation = get_organisation_by_user(request.user)
-
-            if good.organisation != organisation:
+            if good.organisation != request.user.organisation:
                 raise Http404
 
             serializer = GoodSerializer(good)
@@ -90,10 +83,9 @@ class GoodDetail(APIView):
         return JsonResponse(data={'good': serializer.data})
 
     def put(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
         good = get_good(pk)
 
-        if good.organisation != organisation:
+        if good.organisation != request.user.organisation:
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
@@ -106,7 +98,7 @@ class GoodDetail(APIView):
             for good_on_draft in GoodOnApplication.objects.filter(good=good):
                 good_on_draft.delete()
 
-        data['organisation'] = organisation.id
+        data['organisation'] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -115,10 +107,9 @@ class GoodDetail(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        organisation = get_organisation_by_user(request.user)
         good = get_good(pk)
 
-        if good.organisation != organisation:
+        if good.organisation != request.user.organisation:
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
@@ -159,9 +150,8 @@ class GoodDocuments(APIView):
         good = get_good(pk)
         good_id = str(good.id)
         data = request.data
-        organisation = get_organisation_by_user(request.user)
 
-        if good.organisation != organisation:
+        if good.organisation != request.user.organisation:
             delete_documents_on_bad_request(data)
             raise Http404
 
@@ -173,7 +163,7 @@ class GoodDocuments(APIView):
         for document in data:
             document['good'] = good_id
             document['user'] = request.user.id
-            document['organisation'] = organisation.id
+            document['organisation'] = request.user.organisation.id
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -192,9 +182,8 @@ class GoodDocumentDetail(APIView):
         Returns a list of documents on the specified good
         """
         good = get_good(pk)
-        organisation = get_organisation_by_user(request.user)
 
-        if good.organisation != organisation:
+        if good.organisation != request.user.organisation:
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
@@ -210,11 +199,9 @@ class GoodDocumentDetail(APIView):
         """
         Deletes good document
         """
-
         good = get_good(pk)
-        organisation = get_organisation_by_user(request.user)
 
-        if good.organisation != organisation:
+        if good.organisation != request.user.organisation:
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
