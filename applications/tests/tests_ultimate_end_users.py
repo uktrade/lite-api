@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.models import UltimateEndUser
 from test_helpers.clients import DataTestClient
 
 
@@ -9,7 +10,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
-        self.url = reverse('drafts:ultimate_end_users', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
         data = {
@@ -27,7 +28,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         ueu_id = self.draft.ultimate_end_users.first().id
 
-        url = reverse('drafts:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
+        url = reverse('applications:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -88,3 +89,27 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]['type'], str(ultimate_end_user.type))
         self.assertEqual(ultimate_end_users[0]['organisation'], str(ultimate_end_user.organisation.id))
         self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))
+
+    def test_set_ueu_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add an ultimate end user to the application
+        Then a 404 NOT FOUND is returned
+        And no ultimate end users have been added
+        """
+        pre_test_ueu_count = UltimateEndUser.objects.all().count()
+        data = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'commercial',
+            'website': 'https://www.gov.uk'
+        }
+
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:ultimate_end_users', kwargs={'pk': open_draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)

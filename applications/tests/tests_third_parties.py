@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.models import ThirdParty
 from test_helpers.clients import DataTestClient
 
 
@@ -11,7 +12,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.third_parties.set([])
         self.draft.save()
-        self.url = reverse('drafts:third_parties', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
         """
@@ -28,7 +29,6 @@ class ThirdPartiesOnDraft(DataTestClient):
             'sub_type': 'agent',
             'website': 'https://www.gov.uk'
         }
-
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -36,7 +36,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         tp_pk = self.draft.third_parties.first().pk
 
-        url = reverse('drafts:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': tp_pk})
+        url = reverse('applications:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': tp_pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -111,3 +111,29 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(third_parties[0]['type'], str(third_party.type))
         self.assertEqual(third_parties[0]['organisation'], str(third_party.organisation.id))
         self.assertEqual(third_parties[0]['sub_type'], str(third_party.sub_type))
+
+    def test_set_third_parties_on_draft_open_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add a third party to the application
+        Then a 404 NOT FOUND is returned
+        And no third parties have been added
+        """
+        # assemble
+        pre_test_third_party_count = ThirdParty.objects.all().count()
+        data = {
+            'name': 'UK Government',
+            'address': 'Westminster, London SW1A 0AA',
+            'country': 'GB',
+            'sub_type': 'agent',
+            'website': 'https://www.gov.uk'
+        }
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
+
+        # act
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)

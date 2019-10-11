@@ -12,7 +12,7 @@ class ExternalLocationsOnDraftTests(DataTestClient):
         self.external_location = self.create_external_location('storage facility', self.organisation)
         self.draft = self.create_standard_draft(self.organisation)
 
-        self.url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
+        self.url = reverse('applications:application_external_locations', kwargs={'pk': self.draft.id})
 
     def test_add_external_location_to_a_draft(self):
         data = {
@@ -27,12 +27,12 @@ class ExternalLocationsOnDraftTests(DataTestClient):
         self.draft = StandardApplication.objects.get(pk=self.draft.id)
         self.assertEqual(self.draft.activity, 'Brokering')
 
-        url = reverse('drafts:draft_external_locations', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_external_locations', kwargs={'pk': self.draft.id})
         response = self.client.get(url, **self.exporter_headers).json()
         self.assertEqual(len(response["external_locations"]), 1)
 
     def test_adding_external_location_to_draft_removes_sites(self):
-        url = reverse('drafts:draft_sites', kwargs={'pk': self.draft.id})
+        url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
         data = {
             'sites': [
                 self.organisation.primary_site.id
