@@ -61,6 +61,7 @@ class ControlListClassificationDetail(APIView):
         if controlled == 'yes':
             clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
         else:
+            data['control_code'] = ''
             clc_good_serializer = ClcNonControlGoodSerializer(query.good, data=data)
 
         with reversion.create_revision():
@@ -81,6 +82,6 @@ class ControlListClassificationDetail(APIView):
 
                     return JsonResponse(data={'control_list_classification_query': clc_good_serializer.data})
                 else:
-                    return JsonResponse(data={}, status=status.HTTP_200_OK)
+                    return JsonResponse(data={'control_list_classification_query': data}, status=status.HTTP_200_OK)
 
             return JsonResponse(data={'errors': clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

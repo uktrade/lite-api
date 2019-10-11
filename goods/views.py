@@ -40,6 +40,7 @@ class GoodsListControlCode(APIView):
             serializer = ClcControlGoodSerializer
         else:
             serializer = ClcNonControlGoodSerializer
+            data['control_code'] = ''
 
         data_serializer = locals()['serializer'](data=data)
         if data_serializer.is_valid():
