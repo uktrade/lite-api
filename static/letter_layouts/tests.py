@@ -9,7 +9,7 @@ class LetterLayoutsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.letter_layout = LetterLayout.objects.create(id='siel', name='SIEL')
+        self.letter_layout = LetterLayout.objects.first()
         self.url = reverse('static:letter_layouts:letter_layouts')
 
     def test_get_letter_layouts(self):
@@ -25,7 +25,7 @@ class LetterLayoutTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.letter_layout = LetterLayout.objects.create(id='siel', name='SIEL')
+        self.letter_layout = LetterLayout.objects.first()
         self.url = reverse('static:letter_layouts:letter_layout', kwargs={'pk': self.letter_layout})
 
     def test_get_letter_layout(self):

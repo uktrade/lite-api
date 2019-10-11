@@ -16,7 +16,7 @@ class LetterTemplateEditTests(DataTestClient):
                                                        self.team,
                                                        PicklistType.LETTER_PARAGRAPH,
                                                        PickListStatus.ACTIVE)
-        self.letter_layout = LetterLayout.objects.create(id='siel', name='SIEL')
+        self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name='SIEL',
                                                              restricted_to=[CaseType.CLC_QUERY,
                                                                             CaseType.END_USER_ADVISORY_QUERY],

@@ -20,7 +20,7 @@ class LetterTemplateCreateTests(DataTestClient):
                                                          self.team,
                                                          PicklistType.LETTER_PARAGRAPH,
                                                          PickListStatus.ACTIVE)
-        self.letter_layout = LetterLayout.objects.create(id='siel', name='SIEL')
+        self.letter_layout = LetterLayout.objects.first()
         self.url = reverse('letter_templates:letter_templates')
 
     def test_create_letter_templates_success(self):
