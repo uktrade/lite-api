@@ -3,8 +3,18 @@
 from django.db import migrations, models
 
 
-class Migration(migrations.Migration):
+def initialize(apps, schema_editor):
+    LetterLayout = apps.get_model('letter_layouts', 'LetterLayout')
+    if not LetterLayout.objects.all():
+        team = LetterLayout(id='licence',
+                            name='Licence')
+        team.save()
+        team = LetterLayout(id='siel',
+                            name='SIEL')
+        team.save()
 
+
+class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
@@ -21,4 +31,5 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
+        migrations.RunPython(initialize)
     ]
