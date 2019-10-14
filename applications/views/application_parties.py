@@ -1,4 +1,5 @@
-from django.http import JsonResponse
+from django.db import transaction
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -7,7 +8,7 @@ from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_type
 from parties.helpers import delete_party_document_if_exists
-from parties.models import UltimateEndUser, ThirdParty
+from parties.models import UltimateEndUser, ThirdParty, EndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 
 
@@ -40,6 +41,30 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @transaction.atomic()
+    def delete(self, request, draft):
+        """
+        Delete an end user and their document from an application
+        """
+        try:
+            end_user = EndUser.objects.get(id=draft.end_user.id)
+        except UltimateEndUser.DoesNotExist:
+            return JsonResponse(data={'errors': 'request invalid'},
+                                status=400)
+
+        if end_user.organisation != request.user.organisation:
+            return JsonResponse(data={'errors': 'request invalid'},
+                                status=400)
+
+        delete_party_document_if_exists(end_user)
+
+        draft.end_user = None
+        draft.save()
+        end_user.delete()
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
 
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
@@ -53,8 +78,6 @@ class ApplicationUltimateEndUsers(APIView):
 
         if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
             ueu_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
-
-        return JsonResponse(data={'ultimate_end_users': ueu_data})
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
