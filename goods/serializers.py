@@ -195,8 +195,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                        required=True,
                                        error_messages={
-                                           'required': get_string('picklist_items.error_messages.\
-                                                                  required_report_summary'),
+                                           'required': get_string('picklist_items.error_messages.'
+                                                                  'required_report_summary'),
                                            'null': get_string('picklist_items.error_messages.required_report_summary')
                                                        }
                                        )
