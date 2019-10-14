@@ -17,7 +17,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    ClcControlGoodSerializer, ClcNonControlGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
+    ClcControlGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 
@@ -25,6 +25,7 @@ from users.models import ExporterUser
 class GoodsListControlCode(APIView):
     authentication_classes = (GovAuthentication,)
 
+    @transaction.atomic
     def post(self, request, case_pk):
         """
         Set control list codes on multiple goods.
@@ -35,27 +36,21 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        controlled = data.get('is_good_controlled', None)
-        if controlled == 'yes':
-            serializer = ClcControlGoodSerializer
-        else:
-            serializer = ClcNonControlGoodSerializer
-            data['control_code'] = ''
+        serializer = ClcControlGoodSerializer(data=data)
 
-        data_serializer = locals()['serializer'](data=data)
-        if data_serializer.is_valid():
+        if serializer.is_valid():
             error_occurred = False
             case = get_case(case_pk)
             for pk in objects:
                 try:
                     good = get_good(pk)
-                    good_serializer = locals()['serializer'](good, data=data)
-                    if good_serializer.is_valid():
-                        good_serializer.save()
+                    serializer = ClcControlGoodSerializer(good, data=data)
+                    if serializer.is_valid():
+                        serializer.save()
 
                     control_code = data.get('control_code')
                     if control_code == "":
-                        control_code = "None"
+                        control_code = "No control code"
 
                     # Add an activity item for the query's case
                     CaseActivity.create(activity_type=CaseActivityType.GOOD_REVIEWED,
@@ -72,7 +67,7 @@ class GoodsListControlCode(APIView):
             else:
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         else:
-            return JsonResponse(data={'errors': data_serializer.errors},
+            return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
 

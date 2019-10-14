@@ -10,7 +10,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from goods.enums import GoodStatus
-from goods.serializers import ClcControlGoodSerializer, ClcNonControlGoodSerializer
+from goods.serializers import ClcControlGoodSerializer
 from goods.libraries.get_goods import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
@@ -57,12 +57,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         data = json.loads(request.body)
 
-        controlled = data.get('is_good_controlled', None)
-        if controlled == 'yes':
-            clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
-        else:
-            data['control_code'] = ''
-            clc_good_serializer = ClcNonControlGoodSerializer(query.good, data=data)
+        clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
 
         with reversion.create_revision():
             if clc_good_serializer.is_valid():
@@ -83,5 +78,7 @@ class ControlListClassificationDetail(APIView):
                     return JsonResponse(data={'control_list_classification_query': clc_good_serializer.data})
                 else:
                     return JsonResponse(data={'control_list_classification_query': data}, status=status.HTTP_200_OK)
-
+            print()
+            print()
+            print(clc_good_serializer.errors)
             return JsonResponse(data={'errors': clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

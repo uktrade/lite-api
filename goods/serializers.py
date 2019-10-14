@@ -4,6 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from cases.models import Case
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
+from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
@@ -177,9 +178,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                                                  allow_null=False, required=True, write_only=True)
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
-                                                        required=True,
-                                                        allow_null=False,
-                                                        allow_empty=False)
+                                                        required=False,
+                                                        allow_null=True)
 
     class Meta:
         model = Good
@@ -191,6 +191,13 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')):
             self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
+            self.fields['report_summary'] = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                                                               required=True,
+                                                                               error_messages={
+                                                                                   'required': get_string('picklist_items.error_messages.required_report_summary'),
+                                                                                   'null': get_string('picklist_items.error_messages.required_report_summary')
+                                                                                               }
+                                                                               )
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):
@@ -209,14 +216,3 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
-
-class ClcNonControlGoodSerializer(ClcControlGoodSerializer):
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
-    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices,
-                                                 allow_null=False, required=True, write_only=True)
-    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
-                                                        required=False,
-                                                        allow_null=True,
-                                                        allow_empty=True)
