@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 
 from applications.creators import check_application_for_errors
 from applications.enums import ApplicationLicenceType
-from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool
+from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
+    validate_status_can_be_set
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
@@ -97,11 +98,10 @@ class ApplicationDetail(APIView):
 
         data = json.loads(request.body)
 
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        if data.get('status') == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        validate_status_can_be_set(application.status.status, data.get('status'), request.user)
 
-        request.data['status'] = str(get_case_status_from_status_enum(data.get('status')).pk)
+        new_status = get_case_status_from_status_enum(data.get('status'))
+        request.data['status'] = str(new_status.pk)
 
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
@@ -111,7 +111,7 @@ class ApplicationDetail(APIView):
         CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
                             case=application.case.get(),
                             user=request.user,
-                            status=data.get('status'))
+                            status=new_status)
 
         serializer.save()
         return JsonResponse(data={'application': serializer.data})
