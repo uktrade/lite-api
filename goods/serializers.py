@@ -191,13 +191,15 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')):
             self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
-            self.fields['report_summary'] = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
-                                                                               required=True,
-                                                                               error_messages={
-                                                                                   'required': get_string('picklist_items.error_messages.required_report_summary'),
-                                                                                   'null': get_string('picklist_items.error_messages.required_report_summary')
-                                                                                               }
-                                                                               )
+            self.fields['report_summary'] = serializers.\
+                PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                       required=True,
+                                       error_messages={
+                                           'required': get_string('picklist_items.error_messages.\
+                                                                  required_report_summary'),
+                                           'null': get_string('picklist_items.error_messages.required_report_summary')
+                                                       }
+                                       )
 
     # pylint: disable = W0221
     def update(self, instance, validated_data):
