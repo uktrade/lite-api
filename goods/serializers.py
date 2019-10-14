@@ -175,7 +175,8 @@ class GoodWithFlagsSerializer(GoodSerializer):
 class ClcControlGoodSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices,
-                                                 allow_null=False, required=True, write_only=True)
+                                                 allow_null=False, required=True, write_only=True,
+                                                 error_messages={'null': 'This field is required.'})
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                         required=False,
