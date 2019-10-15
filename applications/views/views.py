@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
@@ -23,6 +24,7 @@ from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from users.models import GovUser
 
 
 class ApplicationList(ListAPIView):
@@ -132,7 +134,14 @@ class ApplicationDetail(APIView):
         """
         Deleting an application should only be allowed for draft applications
         """
+        if isinstance(request.user, GovUser):
+            raise PermissionDenied()
+
         draft = get_application(pk, organisation_id=request.user.organisation.id)
+
+        if draft.submitted_at:
+            return JsonResponse(data={'errors': 'Only draft applications can be deleted'},
+                                status=status.HTTP_400_BAD_REQUEST)
         draft.delete()
         return JsonResponse(data={'status': 'Draft application deleted'},
                             status=status.HTTP_200_OK)
