@@ -1,3 +1,5 @@
+import json
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -89,7 +91,8 @@ class ApplicationDenialTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
+        self.assertEqual(self.standard_application.status,
+                         get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
         self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
@@ -103,7 +106,7 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
     def test_exp_set_application_status_to_applicant_editing_when_not_previously_submitted_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
+        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -111,10 +114,14 @@ class ApplicationDenialTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.FINALISED))
+        self.assertEqual(json.loads(response.content).get('errors')[0],
+                         'Setting application status to "applicant_editing" when application status is '
+                         '"more_information_required" is not allowed.')
+        self.assertEqual(self.standard_application.status,
+                         get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
+        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.SUBMITTED}
@@ -122,7 +129,11 @@ class ApplicationDenialTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.FINALISED))
+        self.assertEqual(json.loads(response.content).get('errors')[0],
+                         'Setting application status to "submitted" when application status is '
+                         '"more_information_required" is not allowed.')
+        self.assertEqual(self.standard_application.status,
+                         get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -130,16 +141,21 @@ class ApplicationDenialTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(json.loads(response.content).get('errors')[0],
+                         'Setting application status to "applicant_editing" is not allowed for GovUsers.')
         self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
 
     def test_gov_set_application_status_when_previously_applicant_editing_failure(self):
         self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         self.standard_application.save()
 
-        data = {'status': CaseStatusEnum.FINALISED}
+        data = {'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(json.loads(response.content).get('errors')[0],
+                         'Setting application status when its existing status is "applicant_editing"'
+                         ' is not allowed for GovUsers.')
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))

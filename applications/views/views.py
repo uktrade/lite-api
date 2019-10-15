@@ -98,7 +98,14 @@ class ApplicationDetail(APIView):
 
         data = json.loads(request.body)
 
-        validate_status_can_be_set(application.status.status, data.get('status'), request.user)
+        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        if data.get('status') == CaseStatusEnum.FINALISED:
+            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+
+        validation_error = validate_status_can_be_set(application.status.status, data.get('status'), request.user)
+
+        if validation_error:
+            return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
         new_status = get_case_status_from_status_enum(data.get('status'))
         request.data['status'] = str(new_status.pk)
