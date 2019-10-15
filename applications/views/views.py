@@ -97,17 +97,18 @@ class ApplicationDetail(APIView):
         application = get_application(pk)
 
         data = json.loads(request.body)
+        new_status_enum = data.get('status')
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if data.get('status') == CaseStatusEnum.FINALISED:
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-        validation_error = validate_status_can_be_set(application.status.status, data.get('status'), request.user)
+        validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
 
         if validation_error:
             return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
-        new_status = get_case_status_from_status_enum(data.get('status'))
+        new_status = get_case_status_from_status_enum(new_status_enum)
         request.data['status'] = str(new_status.pk)
 
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
@@ -119,6 +120,10 @@ class ApplicationDetail(APIView):
                             case=application.case.get(),
                             user=request.user,
                             status=new_status)
+
+        if new_status_enum == CaseStatusEnum.SUBMITTED:
+            application.submitted_at = datetime.now(timezone.utc)
+            application.save()
 
         serializer.save()
         return JsonResponse(data={'application': serializer.data})

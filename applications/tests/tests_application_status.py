@@ -87,16 +87,20 @@ class ApplicationDenialTests(DataTestClient):
 
     def test_exp_set_application_status_to_applicant_editing_when_previously_submitted_success(self):
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
+        previous_submitted_at = self.standard_application.submitted_at
+
         response = self.client.put(self.url, data=data, **self.exporter_headers)
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
+        self.assertEqual(self.standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
         self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         self.standard_application.save()
+        previous_submitted_at = self.standard_application.submitted_at
 
         data = {'status': CaseStatusEnum.SUBMITTED}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
@@ -104,6 +108,7 @@ class ApplicationDenialTests(DataTestClient):
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+        self.assertNotEqual(self.standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_applicant_editing_when_not_previously_submitted_failure(self):
         self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
