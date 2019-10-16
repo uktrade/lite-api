@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('control_list_classifications', '0003_auto_20190913_1536'),
+        ('goods', '0002_auto_20191001_1603'),
     ]
 
     operations = [
