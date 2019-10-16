@@ -81,6 +81,8 @@ class ApplicationGoods(APIView):
 
 
 class ApplicationGoodsDetails(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     def delete(self, request, good_on_application_pk):
         good_on_application = get_good_on_application(good_on_application_pk)
 

@@ -21,7 +21,11 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
-        exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+        if request.META.get(EXPORTER_USER_TOKEN_HEADER):
+            exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+        else:
+            raise exceptions.PermissionDenied('You must supply the correct token in your headers.')
+
         organisation_id = request.META.get(ORGANISATION_ID)
 
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))

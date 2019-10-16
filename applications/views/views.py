@@ -20,11 +20,12 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
+from conf.decorators import authorised_user_type
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
-from users.models import GovUser
+from users.models import GovUser, ExporterUser
 
 
 class ApplicationList(ListAPIView):
@@ -130,6 +131,7 @@ class ApplicationDetail(APIView):
         serializer.save()
         return JsonResponse(data={'application': serializer.data})
 
+    @authorised_user_type(ExporterUser)
     def delete(self, request, pk):
         """
         Deleting an application should only be allowed for draft applications

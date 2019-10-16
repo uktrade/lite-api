@@ -1,4 +1,4 @@
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
 from functools import wraps
 
 from applications.libraries.get_applications import get_application
@@ -24,6 +24,19 @@ def only_application_type(request_method_list, filter_by_users_organisation=Fals
             if return_draft:
                 kwargs['draft'] = draft
 
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def authorised_user_type(authorised_user_type):
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            if not isinstance(request.request.user, authorised_user_type):
+                return HttpResponseForbidden()
             return func(request, *args, **kwargs)
 
         return inner

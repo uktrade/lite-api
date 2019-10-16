@@ -21,10 +21,9 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        goods_on_application = GoodOnApplication.objects.filter(application=draft)
-        self.assertEqual(len(goods_on_application), 0)
+        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
 
-    def test_remove_a_good_from_draft(self):
+    def test_remove_a_good_that_does_not_exist_from_draft(self):
         """
         Given a standard application with a good
         When I attempt to delete a good that doesn't exist
@@ -39,5 +38,15 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        goods_on_application = GoodOnApplication.objects.filter(application=draft)
-        self.assertEqual(len(goods_on_application), 1)
+        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
+
+    def test_remove_a_good_from_draft_as_gov_user_failure(self):
+        draft = self.create_standard_draft(self.organisation)
+
+        url = reverse('applications:good_on_application',
+                      kwargs={'good_on_application_pk': self.good_on_application.id})
+
+        response = self.client.delete(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
