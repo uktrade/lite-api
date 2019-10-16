@@ -208,6 +208,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         instance.comment = validated_data.get('comment')
         if validated_data['report_summary']:
             instance.report_summary = validated_data.get('report_summary').text
+        else:
+            instance.report_summary = ''
         instance.is_good_controlled = validated_data.get('is_good_controlled')
         if instance.is_good_controlled == 'yes':
             instance.control_code = validated_data.get('control_code')
