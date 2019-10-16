@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('goods', '0001_initial'),
+        ('control_list_classifications', '0001_initial'),
     ]
 
     operations = [
