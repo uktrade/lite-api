@@ -2,11 +2,14 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from cases.models import Case
+from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
+from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
+from picklists.models import PicklistItem
 from organisations.serializers import OrganisationDetailSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
@@ -167,3 +170,52 @@ class GoodWithFlagsSerializer(GoodSerializer):
     class Meta:
         model = Good
         fields = '__all__'
+
+
+class ClcControlGoodSerializer(serializers.ModelSerializer):
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices,
+                                                 allow_null=False, required=True, write_only=True,
+                                                 error_messages={'null': 'This field is required.'})
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
+    report_summary = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                                        required=False,
+                                                        allow_null=True)
+
+    class Meta:
+        model = Good
+        fields = ['control_code', 'is_good_controlled', 'comment', 'report_summary']
+
+    def __init__(self, *args, **kwargs):
+        super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
+
+        # Only validate the control code if the good is controlled
+        if str_to_bool(self.get_initial().get('is_good_controlled')):
+            self.fields['control_code'] = ControlListEntryField(required=True, write_only=True)
+            self.fields['report_summary'] = serializers.\
+                PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
+                                       required=True,
+                                       error_messages={
+                                           'required': get_string('picklist_items.error_messages.'
+                                                                  'required_report_summary'),
+                                           'null': get_string('picklist_items.error_messages.required_report_summary')
+                                                       }
+                                       )
+
+    # pylint: disable = W0221
+    def update(self, instance, validated_data):
+        # Update the good's details
+        instance.comment = validated_data.get('comment')
+        if validated_data['report_summary']:
+            instance.report_summary = validated_data.get('report_summary').text
+        instance.is_good_controlled = validated_data.get('is_good_controlled')
+        if instance.is_good_controlled == 'yes':
+            instance.control_code = validated_data.get('control_code')
+        else:
+            instance.control_code = ''
+        instance.status = GoodStatus.VERIFIED
+        instance.flags.clear()
+
+        instance.save()
+
+        return instance
