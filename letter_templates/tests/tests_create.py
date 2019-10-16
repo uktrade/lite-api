@@ -1,3 +1,5 @@
+from itertools import permutations
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -130,3 +132,23 @@ class LetterTemplateCreateTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_letter_templates_order_is_saved(self):
+        """Check the order of letter paragraphs is saved."""
+        for i, picklist_items in enumerate(
+                permutations([self.picklist_item_1, self.picklist_item_2])):
+            name = f'Test Template {i}'
+            data = {
+                'name': name,
+                'restricted_to': [
+                    CaseType.CLC_QUERY,
+                    CaseType.END_USER_ADVISORY_QUERY
+                ],
+                'layout': self.letter_layout.id,
+                'letter_paragraphs': [item.id for item in picklist_items]
+            }
+            response = self.client.post(self.url, data, **self.gov_headers)
+            letter_template = LetterTemplate.objects.get(name=name)
+            letter_paragraphs = letter_template.letter_paragraphs.all()
+            self.assertEqual(letter_paragraphs[0].id, picklist_items[0].id)
+            self.assertEqual(letter_paragraphs[1].id, picklist_items[1].id)
