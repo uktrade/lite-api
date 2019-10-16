@@ -6,8 +6,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
+from conf.decorators import authorised_user_type
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
+from users.models import ExporterUser
 
 
 class SitesList(APIView):
@@ -59,6 +61,7 @@ class SiteDetail(APIView):
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data})
 
+    @authorised_user_type(ExporterUser)
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
         Organisation.objects.get(pk=org_pk)
