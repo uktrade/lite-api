@@ -5,7 +5,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
@@ -24,7 +23,7 @@ from conf.decorators import authorised_user_type
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum, get_case_status_from_pk
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from users.models import GovUser, ExporterUser
 
 
@@ -120,7 +119,7 @@ class ApplicationDetail(APIView):
                 kwargs['application_reference_number'] = request.data.get('reference_number_on_information_form')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_user_type(ExporterUser)
     def delete(self, request, pk):
@@ -172,7 +171,7 @@ class ApplicationSubmission(APIView):
         if not previous_application_status:
             case = Case(application=application)
             case.save()
-            data['case_id'] = case.id
+            data['application']['case_id'] = case.id
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -212,4 +211,4 @@ class ApplicationManageStatus(APIView):
                             user=request.user,
                             status=new_status)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)

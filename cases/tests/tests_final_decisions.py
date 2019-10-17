@@ -37,4 +37,4 @@ class CaseActivityTests(DataTestClient):
 
         response = self.client.put(reverse('applications:manage_status', kwargs={'pk': self.standard_application.id}),
                                    data=data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -18,7 +18,7 @@ class EditApplicationTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.name, data['name'])
         self.assertNotEqual(self.application.last_modified_at, self.original_last_modified_at)
 
@@ -28,7 +28,7 @@ class EditApplicationTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.reference_number_on_information_form,
                          data['reference_number_on_information_form'])
         self.assertNotEqual(self.application.last_modified_at, self.original_last_modified_at)

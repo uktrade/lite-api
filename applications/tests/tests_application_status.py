@@ -36,7 +36,7 @@ class ApplicationDenialTests(DataTestClient):
         self.standard_application.refresh_from_db()
         application_denial_reason = ApplicationDenialReason.objects.get(application=self.standard_application)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW))
         self.assertEqual(application_denial_reason.reason_details,
@@ -92,7 +92,7 @@ class ApplicationDenialTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.exporter_headers)
 
         self.standard_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
         self.assertEqual(self.standard_application.submitted_at, previous_submitted_at)

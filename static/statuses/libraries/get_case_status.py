@@ -4,7 +4,7 @@ from static.statuses.models import CaseStatus
 
 def get_case_status_from_status_enum(case_status):
     # if passed tuple
-    if len(case_status) == 2:
+    if case_status and len(case_status) == 2:
         case_status = case_status[0]
 
     try:

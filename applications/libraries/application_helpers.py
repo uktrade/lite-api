@@ -33,17 +33,17 @@ def validate_status_can_be_set(original_status: CaseStatusEnum,
         get_case_status_from_status_enum(new_status)
     except NotFoundError:
         return 'Status not found.'
-    if new_status == CaseStatusEnum.SUBMITTED:
-        return 'Setting application status to "{}" is not allowed.'.format(str(new_status))
+
     if isinstance(user, ExporterUser):
         if original_status != CaseStatusEnum.SUBMITTED and new_status == CaseStatusEnum.APPLICANT_EDITING:
-            return 'Setting application status to "{}" when application status is "{}" is not allowed.'.format(
-                str(new_status), str(original_status)
-            )
+            return f'Setting application status to "{str(new_status)}" when application status is ' \
+                f'"{str(original_status)}" is not allowed.'
+
+        if new_status == CaseStatusEnum.SUBMITTED:
+            return f'Setting application status to "{str(new_status)}" is not allowed.'
     else:
         if new_status == CaseStatusEnum.APPLICANT_EDITING:
-            return 'Setting application status to "{}" is not allowed for GovUsers.'.format(str(new_status))
+            return f'Setting application status to "{str(new_status)}" is not allowed for GovUsers.'
         elif original_status == CaseStatusEnum.APPLICANT_EDITING:
-            return 'Setting application status when its existing status is "{}" is not allowed for GovUsers.'.format(
-                str(original_status)
-            )
+            return f'Setting application status when its existing status is ' \
+                f'"{str(original_status)}" is not allowed for GovUsers.'
