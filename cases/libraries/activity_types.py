@@ -25,6 +25,8 @@ class CaseActivityType(BaseActivityType):
     ECJU_QUERY = 'ecju_query'
 
     UPDATED_STATUS = 'update_status'
+    UPDATED_APPLICATION_NAME = 'update_application_name'
+    UPDATED_APPLICATION_REFERENCE_NUMBER = 'update_application_reference_number'
 
     CREATED_FINAL_ADVICE = 'created_final_advice'
     CLEARED_FINAL_ADVICE = 'cleared_final_advice'
@@ -57,5 +59,8 @@ class CaseActivityType(BaseActivityType):
             (CREATED_TEAM_ADVICE, 'created team advice'),
             (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
+            (UPDATED_APPLICATION_NAME, 'updated the application name to {application_name}'),
+            (UPDATED_APPLICATION_REFERENCE_NUMBER, 'updated the application reference number to {'
+                                                   'application_reference_number}'),
         ]
     )

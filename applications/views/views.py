@@ -93,12 +93,12 @@ class ApplicationDetail(APIView):
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
+    @authorised_user_type(ExporterUser)
     def put(self, request, pk):
         """
         Update an application instance.
         """
         application = get_application(pk)
-        request.data['last_modified_at'] = datetime.now(timezone.utc)
 
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
@@ -107,9 +107,18 @@ class ApplicationDetail(APIView):
 
         serializer.save()
 
-        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                            case=application.case.get(),
-                            user=request.user)
+        if application.case.get():
+            kwargs = {
+                'case': application.case.get(),
+                'user': request.user
+            }
+
+            if request.data.get('name'):
+                kwargs['application_name'] = request.data.get('name')
+                CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_NAME, **kwargs)
+            elif request.data.get('reference_number_on_information_form'):
+                kwargs['application_reference_number'] = request.data.get('reference_number_on_information_form')
+                CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -190,14 +199,12 @@ class ApplicationManageStatus(APIView):
 
         new_status = get_case_status_from_status_enum(new_status_enum)
 
-        # application.status = get_case_status_from_status_enum(new_status_enum)
-        # application.save()
-
         request.data['status'] = str(new_status.pk)
         serializer = ApplicationStatusUpdateSerializer(application, data=data, partial=True)
 
         if not serializer.is_valid():
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer.save()
 
         CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
