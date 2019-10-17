@@ -8,23 +8,24 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
-from applications.creators import check_application_for_errors
+from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
     validate_status_can_be_set
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
-from applications.serializers import BaseApplicationSerializer, ApplicationUpdateSerializer, \
+from applications.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
     DraftApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_user_type
+from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum, get_case_status_from_pk
 from users.models import GovUser, ExporterUser
 
 
@@ -97,39 +98,40 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
-        application = get_application(pk)
-
-        data = json.loads(request.body)
-        new_status_enum = data.get('status')
-
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        if data.get('status') == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
-
-        validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
-
-        if validation_error:
-            return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
-
-        new_status = get_case_status_from_status_enum(new_status_enum)
-        request.data['status'] = str(new_status.pk)
-
-        serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
-
-        if not serializer.is_valid():
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                            case=application.case.get(),
-                            user=request.user,
-                            status=new_status)
-
-        if new_status_enum == CaseStatusEnum.SUBMITTED:
-            application.submitted_at = datetime.now(timezone.utc)
-            application.save()
-
-        serializer.save()
-        return JsonResponse(data={'application': serializer.data})
+        return JsonResponse(status=status.HTTP_405_METHOD_NOT_ALLOWED, data='This method we need to implement now')
+        # application = get_application(pk)
+        #
+        # data = json.loads(request.body)
+        # new_status_enum = data.get('status')
+        #
+        # # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        # if data.get('status') == CaseStatusEnum.FINALISED:
+        #     assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        #
+        # validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
+        #
+        # if validation_error:
+        #     return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # new_status = get_case_status_from_status_enum(new_status_enum)
+        # request.data['status'] = str(new_status.pk)
+        #
+        # serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
+        #
+        # if not serializer.is_valid():
+        #     return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+        #                     case=application.case.get(),
+        #                     user=request.user,
+        #                     status=new_status)
+        #
+        # if new_status_enum == CaseStatusEnum.SUBMITTED:
+        #     application.submitted_at = datetime.now(timezone.utc)
+        #     application.save()
+        #
+        # serializer.save()
+        # return JsonResponse(data={'application': serializer.data})
 
     @authorised_user_type(ExporterUser)
     def delete(self, request, pk):
@@ -157,25 +159,70 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        draft = get_application(pk, organisation_id=request.user.organisation.id)
+        application = get_application(pk, organisation_id=request.user.organisation.id)
+        previous_application_status = application.status
 
-        errors = check_application_for_errors(draft)
+        errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        draft.submitted_at = datetime.now(timezone.utc)
-        draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
-        draft.save()
+        application.submitted_at = datetime.now(timezone.utc)
+        application.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        application.save()
 
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=draft):
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
-
-        case = Case(application=draft)
-        case.save()
+        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            for good_on_application in GoodOnApplication.objects.filter(application=application):
+                if good_on_application.good.status == GoodStatus.DRAFT:
+                    good_on_application.good.status = GoodStatus.SUBMITTED
+                    good_on_application.good.save()
 
         # Serialize for the response message
-        serializer = get_serializer_for_application(draft)
-        return JsonResponse(data={'application': {**serializer.data, 'case_id': case.id}},
-                            status=status.HTTP_200_OK)
+        serializer = get_serializer_for_application(application)
+
+        data = {'application': {**serializer.data}}
+        if not previous_application_status:
+            case = Case(application=application)
+            case.save()
+            data['case_id'] = case.id
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class ApplicationManageStatus(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        application = get_application(pk)
+
+        data = request.data
+        new_status_enum = data.get('status')
+
+        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        # This can return 403 forbidden
+        if new_status_enum == CaseStatusEnum.FINALISED:
+            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+
+        validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
+
+        if validation_error:
+            return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_status = get_case_status_from_status_enum(new_status_enum)
+
+        # application.status = get_case_status_from_status_enum(new_status_enum)
+        # application.save()
+
+        request.data['status'] = str(new_status.pk)
+        serializer = ApplicationStatusUpdateSerializer(application, data=data, partial=True)
+
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+
+        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                            case=application.case.get(),
+                            user=request.user,
+                            status=new_status)
+
+        return JsonResponse(data={'application': serializer.data})

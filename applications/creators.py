@@ -5,6 +5,8 @@ from content_strings.strings import get_string
 from documents.models import Document
 from parties.document.models import PartyDocument
 from goodstype.models import GoodsType
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 
 
 def check_party_document(party, is_mandatory):
@@ -102,18 +104,20 @@ def validate_open_licence(draft, errors):
     return errors
 
 
-def check_application_for_errors(draft):
+def validate_application_ready_for_submission(application):
     errors = {}
 
+    if application.status and application.status != get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING):
+        errors['status'] = 'This application cannot be submitted.'
     # Generic errors
-    if SiteOnApplication.objects.filter(application=draft).count() == 0 and \
-            ExternalLocationOnApplication.objects.filter(application=draft).count() == 0:
+    if SiteOnApplication.objects.filter(application=application).count() == 0 and \
+            ExternalLocationOnApplication.objects.filter(application=application).count() == 0:
         errors['location'] = get_string('applications.generic.no_location_set')
 
     # Perform additional validation and append errors if found
-    if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-        validate_standard_licence(draft, errors)
+    if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        validate_standard_licence(application, errors)
     else:
-        validate_open_licence(draft, errors)
+        validate_open_licence(application, errors)
 
     return errors

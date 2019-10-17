@@ -25,6 +25,12 @@ urlpatterns = [
         view=views.ApplicationSubmission.as_view(),
         name='application_submit'
     ),
+    # ex: /applications/<uuid:pk>/status/ - Manage application status
+    path(
+        route='<uuid:pk>/status/',
+        view=views.ApplicationManageStatus.as_view(),
+        name='manage_status'
+    ),
     # ex: /applications/<uuid:pk>/goods/
     path(
         route='<uuid:pk>/goods/',

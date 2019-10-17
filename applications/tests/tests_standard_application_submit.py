@@ -4,8 +4,10 @@ from rest_framework import status
 from applications.models import SiteOnApplication, GoodOnApplication
 from cases.models import Case
 from content_strings.strings import get_string
+from goods.enums import GoodStatus
 from parties.document.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from test_helpers.clients import DataTestClient
 
 
@@ -23,6 +25,8 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.application.id, self.draft.id)
         self.assertIsNotNone(case.application.submitted_at)
         self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
+        for good_on_application in GoodOnApplication.objects.filter(application=case.application):
+            self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
         draft = self.create_standard_draft_with_incorporated_good(self.organisation)
@@ -142,3 +146,44 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(response, text=get_string('applications.standard.end_user_document_infected'),
                             status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
+        standard_application = self.create_standard_application(self.organisation)
+        standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        standard_application.save()
+        previous_submitted_at = standard_application.submitted_at
+
+        url = reverse('applications:application_submit', kwargs={'pk': standard_application.id})
+        response = self.client.put(url, **self.exporter_headers)
+
+        standard_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+        self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
+
+    def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
+        standard_application = self.create_standard_application(self.organisation)
+        standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        standard_application.save()
+        previous_submitted_at = standard_application.submitted_at
+
+        url = reverse('applications:application_submit', kwargs={'pk': standard_application.id})
+        response = self.client.put(url, **self.exporter_headers)
+
+        standard_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(standard_application.status,
+                         get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
+        self.assertEqual(standard_application.submitted_at, previous_submitted_at)
+
+    def test_submit_standard_application_and_verified_good_status_is_not_altered(self):
+        for good_on_application in GoodOnApplication.objects.filter(application=self.draft):
+            good_on_application.good.status = GoodStatus.VERIFIED
+            good_on_application.good.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        case = Case.objects.get()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for good_on_application in GoodOnApplication.objects.filter(application=case.application):
+            self.assertEqual(good_on_application.good.status, GoodStatus.VERIFIED)

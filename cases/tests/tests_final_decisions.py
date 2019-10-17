@@ -20,7 +20,7 @@ class CaseActivityTests(DataTestClient):
             'status': CaseStatusEnum.FINALISED,
         }
 
-        response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
+        response = self.client.put(reverse('applications:manage_status', kwargs={'pk': self.standard_application.id}),
                                    data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -35,6 +35,6 @@ class CaseActivityTests(DataTestClient):
             'status': CaseStatusEnum.FINALISED,
         }
 
-        response = self.client.put(reverse('applications:application', kwargs={'pk': self.standard_application.id}),
+        response = self.client.put(reverse('applications:manage_status', kwargs={'pk': self.standard_application.id}),
                                    data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
