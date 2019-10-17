@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from goods.serializers import ClcControlGoodSerializer
 from goods.libraries.get_goods import get_good
@@ -54,6 +56,8 @@ class ControlListClassificationDetail(APIView):
         """
         Respond to a control list classification.
         """
+        assert_user_has_permission(request.user, Permissions.ASSESS_GOODS)
+
         query = get_exporter_query(pk)
         data = json.loads(request.body)
 

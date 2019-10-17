@@ -3,10 +3,12 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication
 from cases.models import Case
+from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
+from users.models import Role
 
 
 class GoodsVerifiedTests(DataTestClient):
@@ -22,6 +24,12 @@ class GoodsVerifiedTests(DataTestClient):
         self.good_1 = self.create_controlled_good('this is a good', self.organisation)
         self.good_1.flags.set([self.create_flag('New Flag', 'Good', self.team)])
         self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
+
+        role = Role(name='team_level')
+        role.permissions.set([Permissions.ASSESS_GOODS])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
 
         self.draft = self.create_standard_draft(organisation=self.organisation)
         GoodOnApplication(good=self.good_1,
@@ -156,3 +164,15 @@ class GoodsVerifiedTests(DataTestClient):
         # since it has an empty control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.flags.count(), 1)
+
+    # User must have permission to create team advice
+    def test_user_cannot_respond_to_good_without_permissions(self):
+        """
+        Tests that the right level of permissions are required
+        """
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+
+        response = self.client.post(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

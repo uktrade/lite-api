@@ -10,6 +10,8 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from applications.models import GoodOnApplication
@@ -30,6 +32,8 @@ class GoodsListControlCode(APIView):
         """
         Set control list codes on multiple goods.
         """
+        assert_user_has_permission(request.user, Permissions.ASSESS_GOODS)
+
         data = JSONParser().parse(request)
         objects = data.get('objects')
 
