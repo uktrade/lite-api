@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timezone
 
 from django.db import transaction
@@ -6,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
@@ -15,13 +15,12 @@ from applications.libraries.application_helpers import get_serializer_for_applic
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
-    DraftApplicationCreateSerializer
+    DraftApplicationCreateSerializer, ApplicationUpdateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_user_type
-from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -98,40 +97,21 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
-        return JsonResponse(status=status.HTTP_405_METHOD_NOT_ALLOWED, data='This method we need to implement now')
-        # application = get_application(pk)
-        #
-        # data = json.loads(request.body)
-        # new_status_enum = data.get('status')
-        #
-        # # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        # if data.get('status') == CaseStatusEnum.FINALISED:
-        #     assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
-        #
-        # validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
-        #
-        # if validation_error:
-        #     return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # new_status = get_case_status_from_status_enum(new_status_enum)
-        # request.data['status'] = str(new_status.pk)
-        #
-        # serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
-        #
-        # if not serializer.is_valid():
-        #     return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-        #                     case=application.case.get(),
-        #                     user=request.user,
-        #                     status=new_status)
-        #
-        # if new_status_enum == CaseStatusEnum.SUBMITTED:
-        #     application.submitted_at = datetime.now(timezone.utc)
-        #     application.save()
-        #
-        # serializer.save()
-        # return JsonResponse(data={'application': serializer.data})
+        application = get_application(pk)
+        request.data['last_modified_at'] = datetime.now(timezone.utc)
+
+        serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                            case=application.case.get(),
+                            user=request.user)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @authorised_user_type(ExporterUser)
     def delete(self, request, pk):
@@ -225,4 +205,4 @@ class ApplicationManageStatus(APIView):
                             user=request.user,
                             status=new_status)
 
-        return JsonResponse(data={'application': serializer.data})
+        return Response(status=status.HTTP_204_NO_CONTENT)
