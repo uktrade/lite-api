@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
-from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -50,7 +50,7 @@ class ControlListClassificationsList(APIView):
 
 
 class ControlListClassificationDetail(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
         """
