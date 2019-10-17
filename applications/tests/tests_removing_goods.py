@@ -2,6 +2,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import GoodOnApplication
+from goods.enums import GoodStatus
+from goods.models import Good
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
@@ -10,8 +13,11 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
     def test_remove_a_good_from_draft_success(self):
         """
         Given a standard application with a good
+        And the good's status is SUBMITTED
+        And there are no other applications with this good attached
         When I attempt to delete the good from the application
-        Then the good is deleted
+        Then the good_on_application is deleted
+        And the good status is changed to DRAFT
         """
         draft = self.create_standard_draft(self.organisation)
 
@@ -22,6 +28,62 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
+        self.assertEqual(self.good_on_application.good.status, GoodStatus.DRAFT)
+
+    def test_remove_a_good_from_draft_success_when_good_is_verified(self):
+        """
+        Given a standard application with a good
+        And the good's status is VERIFIED
+        And there are no other applications with this good attached
+        When I attempt to delete the good from the application
+        Then the good_on_application is deleted
+        And the good status is not changed
+        """
+        draft = self.create_standard_draft(self.organisation)
+        self.good_on_application.good.status = GoodStatus.VERIFIED
+        self.good_on_application.good.save()
+
+        url = reverse('applications:good_on_application',
+                      kwargs={'good_on_application_pk': self.good_on_application.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
+        self.assertEqual(self.good_on_application.good.status, GoodStatus.VERIFIED)
+
+    def test_remove_a_good_from_application_success_when_good_is_on_multiple_applications(self):
+        """
+        Given a standard application with a good
+        And the good's status is VERIFIED
+        And there are no other applications with this good attached
+        When I attempt to delete the good from the application
+        Then the good_on_application is deleted
+        And the good status is not changed
+        """
+        application1 = self.create_standard_application(self.organisation)
+        good_on_application1 = GoodOnApplication.objects.get(application=application1)
+
+        application2 = self.create_standard_application(self.organisation)
+        GoodOnApplication.objects.get(application=application2).delete()
+
+        good_on_application2 = GoodOnApplication(good=good_on_application1.good,
+                          application=application2,
+                          quantity=10,
+                          unit=Units.NAR,
+                          value=500)
+        good_on_application2.save()
+
+
+        url = reverse('applications:good_on_application',
+                      kwargs={'good_on_application_pk': good_on_application1.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application1).count(), 0)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application2).count(), 1)
+        self.assertEqual(Good.objects.get(pk=good_on_application2.good.pk).status, GoodStatus.SUBMITTED)
 
     def test_remove_a_good_that_does_not_exist_from_draft(self):
         """

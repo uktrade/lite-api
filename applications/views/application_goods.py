@@ -10,6 +10,7 @@ from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_type
+from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
@@ -85,6 +86,11 @@ class ApplicationGoodsDetails(APIView):
 
     def delete(self, request, good_on_application_pk):
         good_on_application = get_good_on_application(good_on_application_pk)
+
+        if good_on_application.good.status == GoodStatus.SUBMITTED \
+                and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
+            good_on_application.good.status = GoodStatus.DRAFT
+            good_on_application.good.save()
 
         good_on_application.delete()
 
