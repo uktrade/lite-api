@@ -10,7 +10,3 @@ class ControlListClassificationQuery(Query):
     """
     details = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name='good')
-
-    # Gov
-    comment = models.TextField(default=None, blank=True, null=True)
-    report_summary = models.TextField(default=None, blank=True, null=True)

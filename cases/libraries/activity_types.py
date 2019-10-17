@@ -11,6 +11,7 @@ class CaseActivityType(BaseActivityType):
     REMOVE_FLAGS = 'remove_flags'
     ADD_REMOVE_FLAGS = 'add_remove_flags'
 
+    GOOD_REVIEWED = 'good_reviewed'
     GOOD_ADD_FLAGS = 'good_add_flags'
     GOOD_REMOVE_FLAGS = 'good_remove_flags'
     GOOD_ADD_REMOVE_FLAGS = 'good_add_remove_flags'
@@ -36,6 +37,7 @@ class CaseActivityType(BaseActivityType):
             (REMOVE_FLAGS, 'removed flags: {removed_flags}'),
             (ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags}'),
 
+            (GOOD_REVIEWED, 'good was reviewed: {good_name} control code was changed to \'{control_code}\''),
             (GOOD_ADD_FLAGS, 'added flags: {added_flags} to good: {good_name}'),
             (GOOD_REMOVE_FLAGS, 'removed flags: {removed_flags} to good: {good_name}'),
             (GOOD_ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}'),

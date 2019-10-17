@@ -64,15 +64,13 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
             'control_code': 'ML1a',
-            'is_good_controlled': True,
+            'is_good_controlled': 'yes',
         }
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.comment, data['comment'])
-        self.assertEqual(self.query.report_summary, self.report_summary.text)
         self.assertEqual(self.query.good.control_code, data['control_code'])
         self.assertEqual(self.query.good.is_good_controlled, str(data['is_good_controlled']))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
@@ -88,15 +86,13 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         data = {
             'comment': 'I Am Easy to Find',
             'report_summary': self.report_summary.pk,
-            'is_good_controlled': False,
+            'is_good_controlled': 'no',
         }
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.comment, data['comment'])
-        self.assertEqual(self.query.report_summary, self.report_summary.text)
         self.assertEqual(self.query.good.control_code, '')
         self.assertEqual(self.query.good.is_good_controlled, str(data['is_good_controlled']))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)

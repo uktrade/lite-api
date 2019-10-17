@@ -22,6 +22,10 @@ class Good(models.Model):
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name='goods')
 
+    # Gov
+    comment = models.TextField(default=None, blank=True, null=True)
+    report_summary = models.TextField(default=None, blank=True, null=True)
+
 
 # TODO: This model is going to be part of the Application/Draft rewrite - it'll replace goodstype
 # @reversion.register()
