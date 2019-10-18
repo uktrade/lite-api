@@ -67,7 +67,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         response = self.client.get(self.url, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

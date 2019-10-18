@@ -6,12 +6,12 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.decorators import authorised_user_type, only_application_type
+from conf.decorators import only_application_type
 from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
 from static.countries.models import Country
-from users.models import GovUser, ExporterUser
+from users.models import GovUser
 
 
 class GoodsTypeList(APIView):
@@ -25,8 +25,8 @@ class GoodsTypeList(APIView):
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data})
 
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE, return_application=False)
-    def post(self, request):
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    def post(self, request, application):
         """
         Posts Goods Types
         """
@@ -59,7 +59,6 @@ class GoodsTypeDetail(APIView):
             serializer = GoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
 
-    @authorised_user_type(ExporterUser)
     def delete(self, request, pk):
         try:
             GoodsType.objects.get(pk=pk).delete()

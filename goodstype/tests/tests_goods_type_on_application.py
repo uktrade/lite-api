@@ -59,15 +59,3 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_types_count - 1)
-
-    def test_remove_goodstype_from_open_application_as_gov_user_failure(self):
-        self.create_open_application(self.organisation)
-        all_goods_types = GoodsType.objects.all()
-        goods_type_id = all_goods_types.first().id
-        initial_goods_types_count = all_goods_types.count()
-        url = reverse('goodstype:goodstypes_detail', kwargs={'pk': goods_type_id})
-
-        response = self.client.delete(url, **self.gov_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEquals(GoodsType.objects.all().count(), initial_goods_types_count)

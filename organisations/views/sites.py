@@ -61,7 +61,6 @@ class SiteDetail(APIView):
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={'site': serializer.data})
 
-    @authorised_user_type(ExporterUser)
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
         Organisation.objects.get(pk=org_pk)

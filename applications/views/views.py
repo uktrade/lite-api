@@ -93,12 +93,10 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'application': serializer.data})
 
     @authorised_user_type(ExporterUser)
-    def put(self, request, pk):
+    def put(self, request, application):
         """
         Update an application instance.
         """
-        application = get_application(pk)
-
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
         if not serializer.is_valid():
@@ -122,19 +120,14 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_user_type(ExporterUser)
-    def delete(self, request, pk):
+    def delete(self, request, application):
         """
         Deleting an application should only be allowed for draft applications
         """
-        if isinstance(request.user, GovUser):
-            raise PermissionDenied()
-
-        draft = get_application(pk, organisation_id=request.user.organisation.id)
-
-        if draft.submitted_at:
+        if application.submitted_at:
             return JsonResponse(data={'errors': 'Only draft applications can be deleted'},
                                 status=status.HTTP_400_BAD_REQUEST)
-        draft.delete()
+        application.delete()
         return JsonResponse(data={'status': 'Draft application deleted'},
                             status=status.HTTP_200_OK)
 

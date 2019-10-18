@@ -6,19 +6,21 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationLicenceType
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_application_type
+from conf.decorators import only_application_type, authorised_user_type
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
+from users.models import ExporterUser
 
 
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    @authorised_user_type(ExporterUser)
     def get(self, request, application):
         """
-        View countries belonging to an open licence draft
+        View countries belonging to an open licence application
         """
         countries = Country.objects.filter(countries_on_application__application=application)
         countries_data = CountrySerializer(countries, many=True).data
@@ -26,10 +28,11 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
+    @authorised_user_type(ExporterUser)
     @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
     def post(self, request, application):
         """
-        Add countries to an open licence draft
+        Add countries to an open licence application
         """
         data = request.data
         countries = data.get('countries')
