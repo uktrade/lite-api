@@ -10,8 +10,8 @@ def random_name():
     first_names = ('John', 'Andy', 'Joe', 'Jane', 'Emily', 'Kate')
     last_names = ('Johnson', 'Smith', 'Williams', 'Hargreaves', 'Montague', 'Jenkins')
 
-    first_name = random.choice(first_names)
-    last_name = random.choice(last_names)
+    first_name = random.choice(first_names)  # nosec
+    last_name = random.choice(last_names)  # nosec
 
     return first_name, last_name
 

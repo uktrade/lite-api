@@ -7,9 +7,9 @@ from users.libraries.get_user import get_user_by_pk, get_user_organisations
 from users.libraries.token_to_user import token_to_user_pk
 from users.models import UserOrganisationRelationship
 
-GOV_USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'
+GOV_USER_TOKEN_HEADER = 'HTTP_GOV_USER_TOKEN'  # nosec
 
-EXPORTER_USER_TOKEN_HEADER = 'HTTP_EXPORTER_USER_TOKEN'
+EXPORTER_USER_TOKEN_HEADER = 'HTTP_EXPORTER_USER_TOKEN'  # nosec
 ORGANISATION_ID = 'HTTP_ORGANISATION_ID'
 
 USER_DEACTIVATED_ERROR = 'User has been deactivated'

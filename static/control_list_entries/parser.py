@@ -30,7 +30,7 @@ def parse_list_into_control_list_entries(worksheet):
             is_unique = False
             pk = 0
             while not is_unique:
-                pk = randint(1000000000, 1999999999)
+                pk = randint(1000000000, 1999999999)  # nosec
                 is_unique = (ControlListEntry.objects.filter(rating=pk).count() == 0)
             rating = str(pk)
         elif not is_decontrolled and rating is None:
