@@ -19,7 +19,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import authorised_users
+from conf.decorators import authorised_users, only_applications
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -135,6 +135,7 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
+    @only_applications(can_be_edited=True)
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """

@@ -107,11 +107,9 @@ def validate_open_licence(draft, errors):
 def validate_application_ready_for_submission(application):
     errors = {}
 
-    if application.status and application.status != get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING):
-        errors['status'] = 'This application cannot be submitted.'
-    # Generic errors
-    if SiteOnApplication.objects.filter(application=application).count() == 0 and \
-            ExternalLocationOnApplication.objects.filter(application=application).count() == 0:
+    # Site & External location errors
+    if not SiteOnApplication.objects.filter(application=application).exists() and \
+            not ExternalLocationOnApplication.objects.filter(application=application).exists():
         errors['location'] = get_string('applications.generic.no_location_set')
 
     # Perform additional validation and append errors if found

@@ -22,18 +22,17 @@ def _get_application(request, kwargs):
     return application
 
 
-def only_applications(licence_type, can_be_edited=False):
+def only_applications(licence_type=None, can_be_edited=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.licence_type != licence_type:
+            if licence_type and application.licence_type != licence_type:
                 return HttpResponseBadRequest()
 
-            if can_be_edited:
-                if application.status and application.status != CaseStatusEnum.APPLICANT_EDITING:
-                    return HttpResponseBadRequest()
+            if can_be_edited and application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+                return HttpResponseBadRequest()
 
             return func(request, *args, **kwargs)
 
