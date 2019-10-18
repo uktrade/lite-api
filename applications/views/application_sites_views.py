@@ -21,7 +21,6 @@ class ApplicationSites(APIView):
 
     @authorised_users(ExporterUser)
     def get(self, request, application):
-
         sites_ids = SiteOnApplication.objects.filter(application=application).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)

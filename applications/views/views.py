@@ -160,10 +160,18 @@ class ApplicationSubmission(APIView):
         serializer = get_serializer_for_application(application)
 
         data = {'application': {**serializer.data}}
+
         if not previous_application_status:
+            # If the application is being submitted for the first time
             case = Case(application=application)
             case.save()
             data['application']['case_id'] = case.id
+        else:
+            # If the application is being submitted after being edited
+            CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
+                                case=application.case.get(),
+                                user=request.user,
+                                status=application.status.status)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -204,6 +212,6 @@ class ApplicationManageStatus(APIView):
         CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
                             case=application.case.get(),
                             user=request.user,
-                            status=new_status)
+                            status=new_status.status)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
