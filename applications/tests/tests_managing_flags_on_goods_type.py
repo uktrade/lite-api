@@ -25,7 +25,8 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.other_team_good_flag = self.create_flag('Other Team Good Flag', 'Good', self.other_team)
         self.all_flags = [self.team_good_flag_1, self.team_org_flag, self.team_good_flag_2, self.other_team_good_flag]
 
-        self.good_url = reverse('goodstype:goodstypes_detail', kwargs={'pk': self.goods_type.id})
+        self.good_url = reverse('applications:application_goodstype', kwargs={'pk': self.open_application.id,
+                                                                              'goodstype_pk': self.goods_type.id})
         self.good_flag_url = reverse('flags:assign_flags')
 
     def test_no_flags_for_goods_type_are_returned(self):

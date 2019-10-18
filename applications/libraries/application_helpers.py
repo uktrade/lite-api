@@ -36,14 +36,14 @@ def validate_status_can_be_set(original_status: CaseStatusEnum,
 
     if isinstance(user, ExporterUser):
         if original_status != CaseStatusEnum.SUBMITTED and new_status == CaseStatusEnum.APPLICANT_EDITING:
-            return f'Setting application status to "{str(new_status)}" when application status is ' \
+            return f'Setting application status to "{new_status}" when application status is ' \
                 f'"{str(original_status)}" is not allowed.'
 
         if new_status == CaseStatusEnum.SUBMITTED:
-            return f'Setting application status to "{str(new_status)}" is not allowed.'
+            return f'Setting application status to "{new_status}" is not allowed.'
     else:
         if new_status == CaseStatusEnum.APPLICANT_EDITING:
-            return f'Setting application status to "{str(new_status)}" is not allowed for GovUsers.'
+            return f'Setting application status to "{new_status}" is not allowed for GovUsers.'
         elif original_status == CaseStatusEnum.APPLICANT_EDITING:
             return f'Setting application status when its existing status is ' \
-                f'"{str(original_status)}" is not allowed for GovUsers.'
+                f'"{original_status}" is not allowed for GovUsers.'

@@ -40,13 +40,26 @@ urlpatterns = [
     # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
     path(
         route='good-on-application/<uuid:good_on_application_pk>/',
-        view=application_goods.ApplicationGoodsDetails.as_view(),
+        view=application_goods.ApplicationGoodOnApplication.as_view(),
         name='good_on_application'
     ),
+    # ex: /applications/<uuid:pk>/goodstype/
     path(
-        route='<uuid:pk>/goodstype/',
+        route='<uuid:pk>/goodstypes/',
+        view=application_goods.ApplicationGoodsTypes.as_view(),
+        name='application_goodstypes'
+    ),
+    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/
+    path(
+        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/',
         view=application_goods.ApplicationGoodsType.as_view(),
         name='application_goodstype'
+    ),
+    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
+    path(
+        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/',
+        view=application_goods.GoodsTypeCountries.as_view(),
+        name='application_goodstype_assign_countries'
     ),
     # ex: /applications/<uuid:pk>/end-user/
     path(

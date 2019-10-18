@@ -90,7 +90,7 @@ class GoodList(APIView):
 
     def post(self, request):
         """
-        Returns a list of all goods belonging to an organisation
+        Add a good to to an organisation
         """
         data = request.data
         data['organisation'] = request.user.organisation.id
@@ -195,7 +195,7 @@ class GoodDocuments(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         """
         Adds a document to the specified good
@@ -247,7 +247,7 @@ class GoodDocumentDetail(APIView):
         serializer = GoodDocumentViewSerializer(good_document)
         return JsonResponse({'document': serializer.data})
 
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk, doc_pk):
         """
         Deletes good document

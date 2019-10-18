@@ -22,7 +22,7 @@ def _get_application(request, kwargs):
     return application
 
 
-def only_applications(licence_type=None, can_be_edited=False):
+def only_applications(licence_type=None, in_a_major_edit_state=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
@@ -31,7 +31,8 @@ def only_applications(licence_type=None, can_be_edited=False):
             if licence_type and application.licence_type != licence_type:
                 return HttpResponseBadRequest()
 
-            if can_be_edited and application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            if in_a_major_edit_state and application.status and \
+                    application.status.status != CaseStatusEnum.APPLICANT_EDITING:
                 return HttpResponseBadRequest()
 
             return func(request, *args, **kwargs)

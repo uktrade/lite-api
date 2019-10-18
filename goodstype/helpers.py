@@ -8,10 +8,3 @@ def get_goods_type(pk):
         return GoodsType.objects.get(pk=pk)
     except GoodsType.DoesNotExist:
         raise Http404
-
-
-def get_goods_types_from_case(case):
-    if case.query:
-        return []
-
-    return GoodsType.objects.filter(application=case.application)

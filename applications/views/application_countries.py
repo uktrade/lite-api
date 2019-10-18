@@ -16,7 +16,7 @@ from users.models import ExporterUser
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=False)
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -28,7 +28,7 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=True)
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """

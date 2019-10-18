@@ -26,8 +26,10 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         for country in self.all_countries:
             CountryOnApplication(application=self.open_draft, country=country).save()
 
-        self.good_url = reverse('goodstype:goodstypes_detail', kwargs={'pk': self.goods_type_1.id})
-        self.good_country_url = reverse('goodstype:assign_countries')
+        self.good_url = reverse('applications:application_goodstype', kwargs={'pk': self.open_draft.id,
+                                                                              'goodstype_pk': self.goods_type_1.id})
+        self.good_country_url = reverse('applications:application_goodstype_assign_countries',
+                                        kwargs={'pk': self.open_draft.id, 'goodstype_pk': self.goods_type_1.id})
 
     def test_no_county_for_goods_type_are_returned(self):
         """
@@ -60,9 +62,9 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         """
         self.goods_type_1.countries.set(self.all_countries)
         data = {
-                str(self.goods_type_1.id): [
-                    self.country_1.id,
-                    self.country_2.id]
+            str(self.goods_type_1.id): [
+                self.country_1.id,
+                self.country_2.id]
         }
 
         self.client.put(self.good_country_url, data, **self.exporter_headers)

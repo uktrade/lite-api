@@ -1,5 +1,6 @@
 import reversion
-from django.http import JsonResponse
+from django.db import transaction
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -7,49 +8,25 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
-from conf.authentication import ExporterAuthentication
+from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.decorators import only_applications, authorised_users
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
+from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
-from users.models import ExporterUser
-
-
-class ApplicationGoodsType(APIView):
-    """
-    Goods Types belonging to an application
-    """
-    authentication_classes = (ExporterAuthentication,)
-
-    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=False)
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
-
-        return JsonResponse(data={'goods': goods_types_data})
-
-    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=True)
-    @authorised_users(ExporterUser)
-    def delete(self, request, application):
-        """
-        Deletes a Goods Type
-        """
-        goods_types = GoodsType.objects.filter(application=application)
-        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
-
-        return JsonResponse(data={'goods': goods_types_data})
+from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from static.countries.models import Country
+from users.models import ExporterUser, GovUser
 
 
 class ApplicationGoods(APIView):
     """
-    Goods belonging to an application
+    Goods belonging to a standard application
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, can_be_edited=False)
+    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -57,7 +34,7 @@ class ApplicationGoods(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, can_be_edited=True)
+    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
@@ -66,7 +43,7 @@ class ApplicationGoods(APIView):
 
         good = get_good_with_organisation(data.get('good'), request.user.organisation)
 
-        if len(GoodDocument.objects.filter(good=good)) == 0:
+        if GoodDocument.objects.filter(good=good).count() == 0:
             return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,14 +55,15 @@ class ApplicationGoods(APIView):
                 reversion.set_user(request.user)
                 reversion.set_comment("Created Good on Application Revision")
 
-                return JsonResponse(data={'good': serializer.data},
-                                    status=status.HTTP_201_CREATED)
+                return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ApplicationGoodsDetails(APIView):
+class ApplicationGoodOnApplication(APIView):
+    """
+    Good on a standard application
+    """
     authentication_classes = (ExporterAuthentication,)
 
     def delete(self, request, good_on_application_pk):
@@ -98,4 +76,86 @@ class ApplicationGoodsDetails(APIView):
 
         good_on_application.delete()
 
-        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)
+        return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
+
+
+class ApplicationGoodsTypes(APIView):
+    """
+    Goods Types belonging to an open application
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        goods_types = GoodsType.objects.filter(application=application)
+        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
+
+        return JsonResponse(data={'goods': goods_types_data}, status=status.HTTP_200_OK)
+
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        """
+        Posts Goods Types
+        """
+        request.data['application'] = application
+        
+        serializer = GoodsTypeSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApplicationGoodsType(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    def get(self, request, application, goodstype_pk):
+        """
+        Gets a Goods Type
+        """
+        goods_type = get_goods_type(goodstype_pk)
+
+        if isinstance(request.user, GovUser):
+            goods_type_data = FullGoodsTypeSerializer(goods_type).data
+        else:
+            goods_type_data = GoodsTypeSerializer(goods_type).data
+
+        return JsonResponse(data={'good': goods_type_data}, status=status.HTTP_200_OK)
+
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, goodstype_pk):
+        """
+        Deletes a Goods Type
+        """
+        goods_type = get_goods_type(goodstype_pk)
+        goods_type.delete()
+
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class GoodsTypeCountries(APIView):
+    """
+    Sets countries on goodstypes
+    """
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    @authorised_users(ExporterUser)
+    def put(self, request, application, goodstype_pk):
+        data = request.data
+
+        for good, countries in data.items():
+            good = get_goods_type(good)
+            if not Country.objects.filter(pk__in=countries).count() == len(countries):
+                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+            good.countries.set(countries)
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)

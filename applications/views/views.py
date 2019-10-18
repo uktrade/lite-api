@@ -135,7 +135,7 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @only_applications(can_be_edited=True)
+    @only_applications(in_a_major_edit_state=True)
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """

@@ -21,12 +21,12 @@ class ApplicationExternalLocations(APIView):
 
     @authorised_users(ExporterUser)
     def get(self, request, application):
-
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=application).values_list(
             'external_location', flat=True)
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
         serializer = ExternalLocationSerializer(external_locations, many=True)
-        return JsonResponse(data={'external_locations': serializer.data})
+
+        return JsonResponse(data={'external_locations': serializer.data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @authorised_users(ExporterUser)
@@ -40,7 +40,7 @@ class ApplicationExternalLocations(APIView):
                 'external_locations': [
                     'You have to pick at least one location'
                 ]
-            }}, status=400)
+            }}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate each external location belongs to the organisation
         for external_location in external_locations:
@@ -63,11 +63,9 @@ class ApplicationExternalLocations(APIView):
                 serializer.save()
                 response_data.append(serializer.data)
             else:
-                return JsonResponse(data={'errors': serializer.errors},
-                                    status=400)
+                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         # Deletes any sites on the draft if an external location is being added
         SiteOnApplication.objects.filter(application=application).delete()
 
-        return JsonResponse(data={'external_locations': response_data},
-                            status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'external_locations': response_data}, status=status.HTTP_201_CREATED)

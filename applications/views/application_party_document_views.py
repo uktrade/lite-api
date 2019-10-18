@@ -23,7 +23,7 @@ class EndUserDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         end_user = get_end_user(pk)
         return upload_party_document(end_user, request.data)
@@ -33,7 +33,7 @@ class EndUserDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk):
         end_user = get_end_user(pk)
         return delete_party_document(end_user)
@@ -54,7 +54,7 @@ class UltimateEndUserDocumentsView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return upload_party_document(ultimate_end_user, request.data)
@@ -64,7 +64,7 @@ class UltimateEndUserDocumentsView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return delete_party_document(ultimate_end_user)
@@ -85,7 +85,7 @@ class ConsigneeDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         consignee = get_consignee(pk)
         return upload_party_document(consignee, request.data)
@@ -95,7 +95,7 @@ class ConsigneeDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk):
         consignee = get_consignee(pk)
         return delete_party_document(consignee)
@@ -116,7 +116,7 @@ class ThirdPartyDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk, tp_pk):
         third_party = get_third_party(tp_pk)
         return upload_party_document(third_party, request.data)
@@ -126,7 +126,7 @@ class ThirdPartyDocumentView(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk, tp_pk):
         third_party = get_third_party(tp_pk)
         return delete_party_document(third_party)
