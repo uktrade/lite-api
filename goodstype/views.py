@@ -4,9 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.decorators import only_application_type
 from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
@@ -25,8 +23,7 @@ class GoodsTypeList(APIView):
         serializer = GoodsTypeSerializer(goods, many=True)
         return JsonResponse(data={'goods': serializer.data})
 
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
-    def post(self, request, application):
+    def post(self, request):
         """
         Posts Goods Types
         """

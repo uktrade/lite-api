@@ -70,7 +70,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
 
     @parameterized.expand([

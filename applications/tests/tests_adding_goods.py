@@ -51,7 +51,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
@@ -126,5 +126,5 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)

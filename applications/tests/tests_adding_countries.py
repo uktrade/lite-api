@@ -37,7 +37,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.all().count(), pre_test_country_count)
 
     def test_add_countries_to_a_draft_failure(self):

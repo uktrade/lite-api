@@ -46,7 +46,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_remove_goodstype_from_open_application_as_exporter_user_success(self):
         self.create_open_application(self.organisation)

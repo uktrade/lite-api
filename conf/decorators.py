@@ -1,8 +1,9 @@
-from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseBadRequest
 from functools import wraps
 
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -14,21 +15,25 @@ def _get_application(request, kwargs):
     elif 'application' in kwargs and isinstance(kwargs['application'], BaseApplication):
         application = kwargs['application']
     else:
-        raise Http404
+        return HttpResponseNotFound()
 
     kwargs['application'] = application
 
     return application
 
 
-def only_application_type(licence_type):
+def only_applications(licence_type, can_be_edited=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
             if application.licence_type != licence_type:
-                raise Http404
+                return HttpResponseBadRequest()
+
+            if can_be_edited:
+                if application.status and application.status != CaseStatusEnum.APPLICANT_EDITING:
+                    return HttpResponseBadRequest()
 
             return func(request, *args, **kwargs)
 
@@ -37,7 +42,7 @@ def only_application_type(licence_type):
     return decorator
 
 
-def authorised_user_type(user_type):
+def authorised_users(user_type):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):

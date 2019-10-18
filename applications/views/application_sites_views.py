@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_user_type
+from conf.decorators import authorised_users
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
@@ -19,7 +19,7 @@ class ApplicationSites(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def get(self, request, application):
 
         sites_ids = SiteOnApplication.objects.filter(application=application).values_list('site', flat=True)
@@ -28,7 +28,7 @@ class ApplicationSites(APIView):
         return JsonResponse(data={'sites': serializer.data})
 
     @transaction.atomic
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
         sites = data.get('sites')

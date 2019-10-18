@@ -152,5 +152,5 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)

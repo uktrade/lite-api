@@ -8,7 +8,7 @@ from applications.libraries.get_goods_on_applications import get_good_on_applica
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_application_type, authorised_user_type
+from conf.decorators import only_applications, authorised_users
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -23,16 +23,16 @@ class ApplicationGoodsType(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
-    @authorised_user_type(ExporterUser)
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=False)
+    @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application)
         goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={'goods': goods_types_data})
 
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
-    @authorised_user_type(ExporterUser)
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, can_be_edited=True)
+    @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
         Deletes a Goods Type
@@ -49,16 +49,16 @@ class ApplicationGoods(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
-    @authorised_user_type(ExporterUser)
+    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, can_be_edited=False)
+    @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
         goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={'goods': goods_data})
 
-    @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
-    @authorised_user_type(ExporterUser)
+    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, can_be_edited=True)
+    @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
         data['good'] = data['good_id']

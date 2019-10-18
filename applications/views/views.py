@@ -19,7 +19,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import authorised_user_type
+from conf.decorators import authorised_users
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -83,7 +83,7 @@ class ApplicationDetail(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def get(self, request, application):
         """
         Retrieve an application instance.
@@ -91,7 +91,7 @@ class ApplicationDetail(APIView):
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def put(self, request, application):
         """
         Update an application instance.
@@ -118,7 +118,7 @@ class ApplicationDetail(APIView):
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
         Deleting an application should only be allowed for draft applications
@@ -135,7 +135,7 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def put(self, request, application):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case

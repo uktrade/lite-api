@@ -7,7 +7,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_user_type
+from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_external_location_with_organisation
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
@@ -20,7 +20,7 @@ class ApplicationExternalLocations(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def get(self, request, application):
 
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=application).values_list(
@@ -30,7 +30,7 @@ class ApplicationExternalLocations(APIView):
         return JsonResponse(data={'external_locations': serializer.data})
 
     @transaction.atomic
-    @authorised_user_type(ExporterUser)
+    @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
         external_locations = data.get('external_locations')

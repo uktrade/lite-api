@@ -46,24 +46,6 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(self.draft.consignee.sub_type, data_type)
         self.assertEqual(self.draft.consignee.website, data['website'])
 
-    def test_set_consignee_on_open_draft_application_failure(self):
-        pre_test_consignee_count = Consignee.objects.all().count()
-        data = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': 'government',
-            'website': 'https://www.gov.py'
-        }
-
-        open_draft = self.create_open_draft(self.organisation)
-        url = reverse('applications:consignee', kwargs={'pk': open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(Consignee.objects.all().count(), pre_test_consignee_count)
-
     @parameterized.expand([
         [{}],
         [{
@@ -123,10 +105,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         """
         Given a draft open application
         When I try to add a consignee to the application
-        Then a 404 NOT FOUND is returned
+        Then a 400 BAD REQUEST is returned
         And no consignees have been added
         """
-        # assemble
         pre_test_consignee_count = Consignee.objects.all().count()
         data = {
             'name': 'Government of Paraguay',
@@ -139,9 +120,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         open_draft = self.create_open_draft(self.organisation)
         url = reverse('applications:consignee', kwargs={'pk': open_draft.id})
 
-        # act
         response = self.client.post(url, data, **self.exporter_headers)
 
-        # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Consignee.objects.all().count(), pre_test_consignee_count)
