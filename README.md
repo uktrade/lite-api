@@ -57,6 +57,12 @@ Service for handling backend calls in LITE.
 
 [lite-internal-frontend](https://github.com/uktrade/lite-internal-frontend) - Application for handling internal information in LITE.
 
+
+## Running Bandit
+
+`pipenv run bandit -r .`
+
+
 ## Running API tests
 
 `pipenv run ./manage.py test`

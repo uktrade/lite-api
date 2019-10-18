@@ -1,11 +1,15 @@
 from django.db import transaction
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication, SharedAuthentication
+from cases.libraries.activity_types import CaseActivityType
+from cases.libraries.get_case import get_case
+from cases.models import CaseActivity
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from applications.models import GoodOnApplication
@@ -13,9 +17,58 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import GoodSerializer, GoodDocumentViewSerializer, GoodDocumentCreateSerializer, \
-    GoodWithFlagsSerializer, GoodListSerializer
+    ClcControlGoodSerializer, GoodListSerializer, GoodWithFlagsSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
+
+
+class GoodsListControlCode(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def post(self, request, case_pk):
+        """
+        Set control list codes on multiple goods.
+        """
+        data = JSONParser().parse(request)
+        objects = data.get('objects')
+
+        if not isinstance(objects, list):
+            objects = [objects]
+
+        serializer = ClcControlGoodSerializer(data=data)
+
+        if serializer.is_valid():
+            error_occurred = False
+            case = get_case(case_pk)
+            for pk in objects:
+                try:
+                    good = get_good(pk)
+                    serializer = ClcControlGoodSerializer(good, data=data)
+                    if serializer.is_valid():
+                        serializer.save()
+
+                    control_code = data.get('control_code')
+                    if control_code == "":
+                        control_code = "No control code"
+
+                    # Add an activity item for the query's case
+                    CaseActivity.create(activity_type=CaseActivityType.GOOD_REVIEWED,
+                                        good_name=good.description,
+                                        control_code=control_code,
+                                        case=case,
+                                        user=request.user)
+
+                except Http404:
+                    error_occurred = True
+
+            if not error_occurred:
+                return HttpResponse(status=status.HTTP_200_OK)
+            else:
+                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return JsonResponse(data={'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodList(APIView):

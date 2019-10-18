@@ -79,3 +79,9 @@ jobs:
       - run:
           name: Run Code Coverage
           command: pipenv run ./manage.py coverage --threshold=80 --html=False
+
+      - run:
+          name: Run Bandit tests
+          command: |
+            pipenv install bandit
+            pipenv run bandit -r .

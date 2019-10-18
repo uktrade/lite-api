@@ -110,7 +110,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(third_parties[0]['website'], str(third_party.website))
         self.assertEqual(third_parties[0]['type'], str(third_party.type))
         self.assertEqual(third_parties[0]['organisation'], str(third_party.organisation.id))
-        self.assertEqual(third_parties[0]['sub_type'], str(third_party.sub_type))
+        self.assertEqual(third_parties[0]['sub_type']['key'], str(third_party.sub_type))
 
     def test_set_third_parties_on_draft_open_application_failure(self):
         """

@@ -63,7 +63,7 @@ class ConsigneeSerializer(PartySerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = serializers.ChoiceField(choices=ThirdPartySubType.choices)
+    sub_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
 
     class Meta:
         model = ThirdParty

@@ -19,11 +19,14 @@ class Command(BaseCommand):
         _seed_exporter_users_to_organisation(organisation)
 
 
+ORG_NAME = 'Archway Communications'
+
+
 def _get_organisation():
     print('\nRetrieving organisation...')
 
     try:
-        organisation = Organisation.objects.get(name='Test Org')
+        organisation = Organisation.objects.get(name=ORG_NAME)
     except Organisation.DoesNotExist:
         print('Organisation not found...')
         organisation = _create_organisation()
@@ -36,7 +39,7 @@ def _create_organisation():
     print('\nCreating organisation...')
 
     organisation = Organisation(
-            name='Test Org',
+            name=ORG_NAME,
             eori_number='1234567890AAA',
             sic_number='2345',
             vat_number='GB1234567',
