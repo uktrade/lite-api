@@ -5,16 +5,18 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_application_type
+from conf.decorators import only_application_type, authorised_user_type
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty, EndUser
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
+from users.models import ExporterUser
 
 
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def post(self, request, application):
         """
         Create an end user and add it to a application
@@ -42,6 +44,7 @@ class ApplicationEndUser(APIView):
 
     @transaction.atomic()
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def delete(self, request, application):
         """
         Delete an end user and their document from an application
@@ -69,6 +72,7 @@ class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def get(self, request, application):
         """
         Get ultimate end users associated with a application
@@ -78,6 +82,7 @@ class ApplicationUltimateEndUsers(APIView):
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def post(self, request, application):
         """
         Create an ultimate end user and add it to a application
@@ -102,6 +107,7 @@ class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def post(self, request, application):
         """
         Create a consignee and add it to a application
@@ -132,6 +138,7 @@ class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def get(self, request, application):
         """
         Get third parties associated with a application
@@ -141,6 +148,7 @@ class ApplicationThirdParties(APIView):
         return JsonResponse(data={'third_parties': third_party_data})
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def post(self, request, application):
         """
         Create a third party and add it to a application
@@ -165,6 +173,7 @@ class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def delete(self, request, application, ueu_pk):
         """
         Delete an ultimate end user and remove it from the application
@@ -190,6 +199,7 @@ class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_user_type(ExporterUser)
     def delete(self, request, application, tp_pk):
         """
         Delete a third party and remove it from the application

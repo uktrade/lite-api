@@ -7,9 +7,11 @@ from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
+from conf.decorators import authorised_user_type
 from organisations.libraries.get_external_location import get_external_location_with_organisation
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
+from users.models import ExporterUser
 
 
 class ApplicationExternalLocations(APIView):
@@ -18,8 +20,8 @@ class ApplicationExternalLocations(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        application = get_application(pk)
+    @authorised_user_type(ExporterUser)
+    def get(self, request, application):
 
         external_locations_ids = ExternalLocationOnApplication.objects.filter(application=application).values_list(
             'external_location', flat=True)
@@ -28,10 +30,10 @@ class ApplicationExternalLocations(APIView):
         return JsonResponse(data={'external_locations': serializer.data})
 
     @transaction.atomic
-    def post(self, request, pk):
+    @authorised_user_type(ExporterUser)
+    def post(self, request, application):
         data = request.data
         external_locations = data.get('external_locations')
-        application = get_application(pk)
 
         # Validate that there are actually external locations
         if external_locations is None or len(external_locations) == 0:
@@ -57,7 +59,7 @@ class ApplicationExternalLocations(APIView):
         response_data = []
         for external_location in external_locations:
             serializer = ExternalLocationOnApplicationSerializer(
-                data={'external_location': external_location, 'application': str(pk)})
+                data={'external_location': external_location, 'application': application.id})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)

@@ -60,4 +60,4 @@ class DraftTests(DataTestClient):
         url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
 
         response = self.client.get(url, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

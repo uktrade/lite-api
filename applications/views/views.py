@@ -24,7 +24,7 @@ from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
-from users.models import GovUser, ExporterUser
+from users.models import ExporterUser
 
 
 class ApplicationList(ListAPIView):
@@ -81,14 +81,13 @@ class ApplicationDetail(APIView):
     """
     Retrieve or update an application instance.
     """
-    authentication_classes = [SharedAuthentication]
+    authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    @authorised_user_type(ExporterUser)
+    def get(self, request, application):
         """
         Retrieve an application instance.
         """
-        application = get_application(pk, organisation_id=request.user.organisation.id)
-
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
@@ -136,11 +135,11 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    def put(self, request, pk):
+    @authorised_user_type(ExporterUser)
+    def put(self, request, application):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        application = get_application(pk, organisation_id=request.user.organisation.id)
         previous_application_status = application.status
 
         errors = validate_application_ready_for_submission(application)
@@ -183,6 +182,9 @@ class ApplicationManageStatus(APIView):
         # This can return 403 forbidden
         if new_status_enum == CaseStatusEnum.FINALISED:
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+
+        if isinstance(request.user, ExporterUser) and request.user.organisation.id != application.organisation.id:
+            raise PermissionDenied()
 
         validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
 

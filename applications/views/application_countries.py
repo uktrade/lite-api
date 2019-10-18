@@ -28,8 +28,8 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @authorised_user_type(ExporterUser)
     @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    @authorised_user_type(ExporterUser)
     def post(self, request, application):
         """
         Add countries to an open licence application

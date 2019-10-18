@@ -3,13 +3,14 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
+from conf.decorators import authorised_user_type
 from organisations.libraries.get_site import get_site_with_organisation
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
+from users.models import ExporterUser
 
 
 class ApplicationSites(APIView):
@@ -18,19 +19,19 @@ class ApplicationSites(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        draft = get_application(pk)
+    @authorised_user_type(ExporterUser)
+    def get(self, request, application):
 
-        sites_ids = SiteOnApplication.objects.filter(application=draft).values_list('site', flat=True)
+        sites_ids = SiteOnApplication.objects.filter(application=application).values_list('site', flat=True)
         sites = Site.objects.filter(id__in=sites_ids)
         serializer = SiteViewSerializer(sites, many=True)
         return JsonResponse(data={'sites': serializer.data})
 
     @transaction.atomic
-    def post(self, request, pk):
+    @authorised_user_type(ExporterUser)
+    def post(self, request, application):
         data = request.data
         sites = data.get('sites')
-        application = get_application(pk)
 
         # Validate that there are actually sites
         if sites is None:
@@ -58,7 +59,7 @@ class ApplicationSites(APIView):
         # Append new SitesOnDrafts
         response_data = []
         for site in sites:
-            serializer = SiteOnApplicationCreateSerializer(data={'site': site, 'application': str(pk)})
+            serializer = SiteOnApplicationCreateSerializer(data={'site': site, 'application': application.id})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
@@ -69,5 +70,4 @@ class ApplicationSites(APIView):
         # Deletes any external sites on the draft if a site is being added
         ExternalLocationOnApplication.objects.filter(application=application).delete()
 
-        return JsonResponse(data={'sites': response_data},
-                            status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'sites': response_data}, status=status.HTTP_201_CREATED)
