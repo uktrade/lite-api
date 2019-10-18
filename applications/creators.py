@@ -3,10 +3,8 @@ from applications.models import CountryOnApplication, GoodOnApplication, SiteOnA
     ExternalLocationOnApplication
 from content_strings.strings import get_string
 from documents.models import Document
-from parties.document.models import PartyDocument
 from goodstype.models import GoodsType
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from parties.document.models import PartyDocument
 
 
 def check_party_document(party, is_mandatory):

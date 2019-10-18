@@ -6,10 +6,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from conf.decorators import authorised_users
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
-from users.models import ExporterUser
 
 
 class SitesList(APIView):
