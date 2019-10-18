@@ -10,6 +10,7 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, E
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import FlagSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -70,6 +71,7 @@ class TinyCaseSerializer(serializers.Serializer):
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
+    flags = FlagSerializer(many=True)
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
