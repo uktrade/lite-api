@@ -165,7 +165,7 @@ class GoodDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'Good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -208,7 +208,7 @@ class GoodDocuments(APIView):
             delete_documents_on_bad_request(data)
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             delete_documents_on_bad_request(data)
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -239,7 +239,7 @@ class GoodDocumentDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -257,7 +257,7 @@ class GoodDocumentDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 

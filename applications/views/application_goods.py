@@ -20,7 +20,7 @@ from static.countries.models import Country
 from users.models import ExporterUser
 
 
-class ApplicationGoods(APIView):
+class ApplicationGoodsOnApplication(APIView):
     """
     Goods belonging to a standard application
     """
