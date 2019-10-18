@@ -58,7 +58,7 @@ urlpatterns = [
     # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
     path(
         route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/',
-        view=application_goods.GoodsTypeCountries.as_view(),
+        view=application_goods.ApplicationGoodsTypeCountries.as_view(),
         name='application_goodstype_assign_countries'
     ),
     # ex: /applications/<uuid:pk>/end-user/

@@ -33,6 +33,9 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
+        application = self.create_standard_application(self.organisation)
+        url = reverse('applications:application_goodstypes', kwargs={'pk': application.id})
+
         data = {
             'description': 'Widget',
             'is_good_controlled': True,
@@ -40,7 +43,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             'is_good_end_product': True
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 

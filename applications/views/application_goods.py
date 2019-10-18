@@ -8,16 +8,16 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
-from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.authentication import ExporterAuthentication
 from conf.decorators import only_applications, authorised_users
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
-from users.models import ExporterUser, GovUser
+from users.models import ExporterUser
 
 
 class ApplicationGoods(APIView):
@@ -81,7 +81,7 @@ class ApplicationGoodOnApplication(APIView):
 
 class ApplicationGoodsTypes(APIView):
     """
-    Goods Types belonging to an open application
+    Goodstypes belonging to an open application
     """
     authentication_classes = (ExporterAuthentication,)
 
@@ -97,10 +97,10 @@ class ApplicationGoodsTypes(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
-        Posts Goods Types
+        Post a goodstype
         """
         request.data['application'] = application
-        
+
         serializer = GoodsTypeSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -111,19 +111,15 @@ class ApplicationGoodsTypes(APIView):
 
 
 class ApplicationGoodsType(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
     def get(self, request, application, goodstype_pk):
         """
-        Gets a Goods Type
+        Gets a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
-
-        if isinstance(request.user, GovUser):
-            goods_type_data = FullGoodsTypeSerializer(goods_type).data
-        else:
-            goods_type_data = GoodsTypeSerializer(goods_type).data
+        goods_type_data = GoodsTypeSerializer(goods_type).data
 
         return JsonResponse(data={'good': goods_type_data}, status=status.HTTP_200_OK)
 
@@ -131,7 +127,7 @@ class ApplicationGoodsType(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
-        Deletes a Goods Type
+        Deletes a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
         goods_type.delete()
@@ -139,9 +135,9 @@ class ApplicationGoodsType(APIView):
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-class GoodsTypeCountries(APIView):
+class ApplicationGoodsTypeCountries(APIView):
     """
-    Sets countries on goodstypes
+    Sets countries on goodstype
     """
     authentication_classes = (ExporterAuthentication,)
 
