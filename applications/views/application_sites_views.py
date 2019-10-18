@@ -14,7 +14,7 @@ from organisations.serializers import SiteViewSerializer
 
 class ApplicationSites(APIView):
     """
-    View sites belonging to a draft or add them
+    View sites belonging to an application or add them
     """
     authentication_classes = (ExporterAuthentication,)
 
@@ -30,7 +30,7 @@ class ApplicationSites(APIView):
     def post(self, request, pk):
         data = request.data
         sites = data.get('sites')
-        draft = get_application(pk)
+        application = get_application(pk)
 
         # Validate that there are actually sites
         if sites is None:
@@ -49,11 +49,11 @@ class ApplicationSites(APIView):
             get_site_with_organisation(site, request.user.organisation)
 
         # Update draft activity
-        draft.activity = 'Trading'
-        draft.save()
+        application.activity = 'Trading'
+        application.save()
 
         # Delete existing SitesOnDrafts
-        SiteOnApplication.objects.filter(application=draft).delete()
+        SiteOnApplication.objects.filter(application=application).delete()
 
         # Append new SitesOnDrafts
         response_data = []
@@ -67,7 +67,7 @@ class ApplicationSites(APIView):
                                     status=400)
 
         # Deletes any external sites on the draft if a site is being added
-        ExternalLocationOnApplication.objects.filter(application=draft).delete()
+        ExternalLocationOnApplication.objects.filter(application=application).delete()
 
         return JsonResponse(data={'sites': response_data},
                             status=status.HTTP_201_CREATED)

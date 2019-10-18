@@ -3,9 +3,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from applications.libraries.document_helpers import upload_draft_document, delete_draft_document, get_draft_document
+from applications.libraries.document_helpers import upload_application_document, delete_application_document, get_application_document
 from applications.serializers import ApplicationDocumentSerializer
-from applications.libraries.document_helpers import get_draft_documents
+from applications.libraries.document_helpers import get_application_documents
 
 
 class ApplicationDocumentView(APIView):
@@ -19,7 +19,7 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on a draft.
         """
-        return get_draft_documents(pk)
+        return get_application_documents(pk)
 
     @swagger_auto_schema(
         request_body=ApplicationDocumentSerializer,
@@ -31,7 +31,7 @@ class ApplicationDocumentView(APIView):
         """
         Upload additional document onto a draft.
         """
-        return upload_draft_document(pk, request.data)
+        return upload_application_document(pk, request.data)
 
 
 class ApplicationDocumentDetailView(APIView):
@@ -45,7 +45,7 @@ class ApplicationDocumentDetailView(APIView):
         """
         View an additional document on a draft.
         """
-        return get_draft_document(pk, doc_pk)
+        return get_application_document(pk, doc_pk)
 
     @swagger_auto_schema(
         request_body=ApplicationDocumentSerializer,
@@ -57,4 +57,4 @@ class ApplicationDocumentDetailView(APIView):
         """
         Delete an additional document on a draft.
         """
-        return delete_draft_document(doc_pk)
+        return delete_application_document(doc_pk)

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.decorators import only_application_type, authorised_user_type
+from conf.decorators import authorised_user_type, only_application_type
 from goodstype.helpers import get_goods_type
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
@@ -23,9 +23,9 @@ class GoodsTypeList(APIView):
         """
         goods = GoodsType.objects.all()
         serializer = GoodsTypeSerializer(goods, many=True)
-        return JsonResponse(data={'goods': serializer.data}, )
+        return JsonResponse(data={'goods': serializer.data})
 
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE, return_draft=False)
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE, return_application=False)
     def post(self, request):
         """
         Posts Goods Types

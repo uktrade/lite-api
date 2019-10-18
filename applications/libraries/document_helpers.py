@@ -28,17 +28,17 @@ def get_party_document(party):
     return _get_document(documents)
 
 
-def get_draft_documents(draft_id):
-    documents = ApplicationDocument.objects.filter(application__id=draft_id)
+def get_application_documents(application_id):
+    documents = ApplicationDocument.objects.filter(application__id=application_id)
     return JsonResponse({'documents': list(documents.values())})
 
 
-def get_draft_document(draft_id, doc_pk):
-    return _get_document(ApplicationDocument.objects.filter(application__id=draft_id, id=doc_pk))
+def get_application_document(application_id, doc_pk):
+    return _get_document(ApplicationDocument.objects.filter(application__id=application_id, id=doc_pk))
 
 
-def upload_draft_document(draft_id, data):
-    data['application'] = draft_id
+def upload_application_document(application_id, data):
+    data['application'] = application_id
 
     serializer = ApplicationDocumentSerializer(data=data)
 
@@ -49,7 +49,7 @@ def upload_draft_document(draft_id, data):
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def delete_draft_document(document_id):
+def delete_application_document(document_id):
     try:
         document = ApplicationDocument.objects.get(id=document_id)
         document.delete_s3()

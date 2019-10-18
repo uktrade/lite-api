@@ -4,25 +4,25 @@ from functools import wraps
 from applications.libraries.get_applications import get_application
 
 
-def only_application_type(request_method_list, filter_by_users_organisation=False, return_draft=True):
+def only_application_type(licence_type, filter_by_user_org=True, return_application=True):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             if 'pk' in kwargs:
-                draft_id = kwargs.pop('pk')
+                application_id = kwargs.pop('pk')
             elif 'application' in request.request.data:
-                draft_id = request.request.data['application']
+                application_id = request.request.data['application']
             else:
                 raise Http404
 
-            org_id = request.request.user.organisation.id if filter_by_users_organisation else None
-            draft = get_application(draft_id, organisation_id=org_id)
+            org_id = request.request.user.organisation.id if filter_by_user_org else None
+            application = get_application(application_id, organisation_id=org_id)
 
-            if draft.licence_type not in request_method_list:
+            if application.licence_type != licence_type:
                 raise Http404
 
-            if return_draft:
-                kwargs['draft'] = draft
+            if return_application:
+                kwargs['application'] = application
 
             return func(request, *args, **kwargs)
 
@@ -31,11 +31,11 @@ def only_application_type(request_method_list, filter_by_users_organisation=Fals
     return decorator
 
 
-def authorised_user_type(authorised_user_type):
+def authorised_user_type(user_type):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            if not isinstance(request.request.user, authorised_user_type):
+            if not isinstance(request.request.user, user_type):
                 return HttpResponseForbidden()
             return func(request, *args, **kwargs)
 

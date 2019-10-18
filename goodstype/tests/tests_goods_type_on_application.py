@@ -1,24 +1,21 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from applications.models import OpenApplication, StandardApplication
 from goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
 
 
 class GoodsTypeOnApplicationTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.url = reverse('goodstype:goodstypes-list')
-        self.open_draft = OpenApplication.objects.create(name='test', licence_type='open_licence',
-                                                         export_type='temporary', have_you_been_informed=False)
+        self.open_application = self.create_open_application(self.organisation)
         self.data = {
             'description': 'Widget',
             'is_good_controlled': True,
             'control_code': 'ML1a',
             'is_good_end_product': True,
-            'application': self.open_draft.pk
+            'application': self.open_application.pk
         }
 
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
@@ -37,17 +34,14 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
-        draft = StandardApplication.objects.create(name='test',
-                                                   licence_type='standard_licence',
-                                                   export_type='temporary',
-                                                   have_you_been_informed=False)
+        application = self.create_standard_application(self.organisation)
 
         data = {
             'description': 'Widget',
             'is_good_controlled': True,
             'control_code': 'ML1a',
             'is_good_end_product': True,
-            'application': draft.pk
+            'application': application.pk
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

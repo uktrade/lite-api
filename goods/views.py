@@ -148,8 +148,8 @@ class GoodDetail(APIView):
         data = request.data.copy()
 
         if data.get('is_good_controlled') == 'unsure':
-            for good_on_draft in GoodOnApplication.objects.filter(good=good):
-                good_on_draft.delete()
+            for good_on_application in GoodOnApplication.objects.filter(good=good):
+                good_on_application.delete()
 
         data['organisation'] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
@@ -266,8 +266,8 @@ class GoodDocumentDetail(APIView):
         document.delete_s3()
 
         good_document.delete()
-        if len(GoodDocument.objects.filter(good=good)) == 0:
-            for good_on_draft in GoodOnApplication.objects.filter(good=good):
-                good_on_draft.delete()
+        if GoodDocument.objects.filter(good=good).count() == 0:
+            for good_on_application in GoodOnApplication.objects.filter(good=good):
+                good_on_application.delete()
 
         return JsonResponse({'document': 'deleted success'})

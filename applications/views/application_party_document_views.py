@@ -9,10 +9,10 @@ from parties.libraries.get_parties import get_end_user, get_ultimate_end_user, g
 
 
 class EndUserDocumentView(APIView):
-    authentication_classes = (ExporterAuthentication,)
     """
     Retrieve, add or delete an end user document from a draft
     """
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         end_user = get_end_user(pk)
@@ -40,10 +40,10 @@ class EndUserDocumentView(APIView):
 
 
 class UltimateEndUserDocumentsView(APIView):
-    authentication_classes = (ExporterAuthentication,)
     """
     Retrieve, add or delete an ultimate end user document from a draft
     """
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
@@ -71,10 +71,10 @@ class UltimateEndUserDocumentsView(APIView):
 
 
 class ConsigneeDocumentView(APIView):
-    authentication_classes = (ExporterAuthentication,)
     """
     Retrieve, add or delete a consignee document from a draft
     """
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
         consignee = get_consignee(pk)
@@ -102,10 +102,10 @@ class ConsigneeDocumentView(APIView):
 
 
 class ThirdPartyDocumentView(APIView):
-    authentication_classes = (ExporterAuthentication,)
     """
     Retrieve, add or delete a third party document from a draft
     """
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk, tp_pk):
         third_party = get_third_party(tp_pk)

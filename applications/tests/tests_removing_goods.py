@@ -26,7 +26,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
         self.assertEqual(self.good_on_application.good.status, GoodStatus.DRAFT)
 
@@ -48,7 +48,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 0)
         self.assertEqual(self.good_on_application.good.status, GoodStatus.VERIFIED)
 
@@ -68,19 +68,18 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         GoodOnApplication.objects.get(application=application2).delete()
 
         good_on_application2 = GoodOnApplication(good=good_on_application1.good,
-                          application=application2,
-                          quantity=10,
-                          unit=Units.NAR,
-                          value=500)
+                                                 application=application2,
+                                                 quantity=10,
+                                                 unit=Units.NAR,
+                                                 value=500)
         good_on_application2.save()
-
 
         url = reverse('applications:good_on_application',
                       kwargs={'good_on_application_pk': good_on_application1.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(GoodOnApplication.objects.filter(application=application1).count(), 0)
         self.assertEqual(GoodOnApplication.objects.filter(application=application2).count(), 1)
         self.assertEqual(Good.objects.get(pk=good_on_application2.good.pk).status, GoodStatus.SUBMITTED)

@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_application
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
@@ -19,46 +18,46 @@ from goodstype.serializers import GoodsTypeSerializer
 
 class ApplicationGoodsType(APIView):
     """
-    View goods belonging to a draft, or add one
+    Goods Types belonging to an application
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        """
-        Gets draft Goods Types
-        """
-        draft = get_application(pk)
-        goods_types_data = []
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    def get(self, request, application):
+        goods_types = GoodsType.objects.filter(application=application)
+        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
-        if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-            goods_types = GoodsType.objects.filter(application=draft)
-            goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
+        return JsonResponse(data={'goods': goods_types_data})
+
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    def delete(self, request, application):
+        """
+        Deletes a Goods Type
+        """
+        goods_types = GoodsType.objects.filter(application=application)
+        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={'goods': goods_types_data})
 
 
 class ApplicationGoods(APIView):
+    """
+    Goods belonging to an application
+    """
     authentication_classes = (ExporterAuthentication,)
-    """
-    View goods belonging to a draft, or add one
-    """
 
-    def get(self, request, pk):
-        draft = get_application(pk=pk, organisation_id=request.user.organisation.id)
-
-        goods_data = []
-
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            goods = GoodOnApplication.objects.filter(application=draft)
-            goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
+    @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
+    def get(self, request, application):
+        goods = GoodOnApplication.objects.filter(application=application)
+        goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={'goods': goods_data})
 
     @only_application_type(ApplicationLicenceType.STANDARD_LICENCE)
-    def post(self, request, draft):
+    def post(self, request, application):
         data = request.data
         data['good'] = data['good_id']
-        data['application'] = draft.id
+        data['application'] = application.id
 
         good = get_good_with_organisation(data.get('good'), request.user.organisation)
 
@@ -72,7 +71,7 @@ class ApplicationGoods(APIView):
                 serializer.save()
 
                 reversion.set_user(request.user)
-                reversion.set_comment("Created Good on Draft Revision")
+                reversion.set_comment("Created Good on Application Revision")
 
                 return JsonResponse(data={'good': serializer.data},
                                     status=status.HTTP_201_CREATED)
@@ -94,4 +93,4 @@ class ApplicationGoodsDetails(APIView):
 
         good_on_application.delete()
 
-        return JsonResponse({'status': 'success'}, status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse({'status': 'success'}, status=status.HTTP_200_OK)

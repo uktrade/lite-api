@@ -37,12 +37,6 @@ urlpatterns = [
         view=application_goods.ApplicationGoods.as_view(),
         name='application_goods'
     ),
-    # ex: /applications/<uuid:pk>/goods/<uuid:good_pk>/
-    path(
-        route='<uuid:pk>/goods/<uuid:good_pk>/',
-        view=application_goods.ApplicationGoods.as_view(),
-        name='application_good'
-    ),
     # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
     path(
         route='good-on-application/<uuid:good_on_application_pk>/',

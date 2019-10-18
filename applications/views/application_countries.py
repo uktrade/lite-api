@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
 from conf.decorators import only_application_type
@@ -16,22 +15,19 @@ from static.countries.serializers import CountrySerializer
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    def get(self, request, application):
         """
         View countries belonging to an open licence draft
         """
-        draft = get_application(pk)
-        countries_data = []
+        countries = Country.objects.filter(countries_on_application__application=application)
+        countries_data = CountrySerializer(countries, many=True).data
 
-        if draft.licence_type == ApplicationLicenceType.OPEN_LICENCE:
-            countries = Country.objects.filter(countries_on_application__application=draft)
-            countries_data = CountrySerializer(countries, many=True).data
+        return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data={'countries': countries_data})
-
-    @only_application_type(ApplicationLicenceType.OPEN_LICENCE, filter_by_users_organisation=True)
     @transaction.atomic
-    def post(self, request, draft):
+    @only_application_type(ApplicationLicenceType.OPEN_LICENCE)
+    def post(self, request, application):
         """
         Add countries to an open licence draft
         """
@@ -44,15 +40,16 @@ class ApplicationCountries(APIView):
                 'countries': [
                     'You have to pick at least one country'
                 ]
-            }}, status=400)
+            }}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Delete existing SitesOnDrafts
-        CountryOnApplication.objects.filter(application=draft).delete()
+        countries = [get_country(country) for country in countries]
 
-        # Append new SitesOnDrafts
+        # Delete existing Countries from application
+        CountryOnApplication.objects.filter(application=application).delete()
+
+        # Append new Countries to application
         for country in countries:
-            CountryOnApplication(country=get_country(country), application=draft).save()
+            CountryOnApplication(country=country, application=application).save()
 
-        response = self.get(request, draft.id)
-        response.status_code = status.HTTP_201_CREATED
-        return response
+        countries_data = CountrySerializer(countries, many=True).data
+        return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)

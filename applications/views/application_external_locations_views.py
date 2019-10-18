@@ -19,9 +19,9 @@ class ApplicationExternalLocations(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, pk):
-        draft = get_application(pk)
+        application = get_application(pk)
 
-        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=draft).values_list(
+        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=application).values_list(
             'external_location', flat=True)
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
         serializer = ExternalLocationSerializer(external_locations, many=True)
@@ -31,7 +31,7 @@ class ApplicationExternalLocations(APIView):
     def post(self, request, pk):
         data = request.data
         external_locations = data.get('external_locations')
-        draft = get_application(pk)
+        application = get_application(pk)
 
         # Validate that there are actually external locations
         if external_locations is None or len(external_locations) == 0:
@@ -46,12 +46,12 @@ class ApplicationExternalLocations(APIView):
             get_external_location_with_organisation(external_location, request.user.organisation)
 
         # Update draft activity
-        draft.activity = 'Brokering'
-        draft.save()
+        application.activity = 'Brokering'
+        application.save()
 
         # Delete existing ExternalLocationOnApplications
         if data.get('method') != 'append_location':
-            ExternalLocationOnApplication.objects.filter(application=draft).delete()
+            ExternalLocationOnApplication.objects.filter(application=application).delete()
 
         # Append new ExternalLocationOnApplications
         response_data = []
@@ -66,7 +66,7 @@ class ApplicationExternalLocations(APIView):
                                     status=400)
 
         # Deletes any sites on the draft if an external location is being added
-        SiteOnApplication.objects.filter(application=draft).delete()
+        SiteOnApplication.objects.filter(application=application).delete()
 
         return JsonResponse(data={'external_locations': response_data},
                             status=status.HTTP_201_CREATED)
