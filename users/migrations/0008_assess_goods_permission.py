@@ -15,10 +15,7 @@ def create_permission(apps, schema_editor):
 
 
 def remove_permission(apps, schema_editor):
-    Permission = apps.get_model('users', 'Permission')
-    if Permission.objects.filter(id='ASSESS_GOODS'):
-        permission = Permission.objects.get(pk='ASSESS_GOODS')
-        permission.delete()
+    pass
 
 
 class Migration(migrations.Migration):
