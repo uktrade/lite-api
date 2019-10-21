@@ -35,6 +35,7 @@ class ApplicationGoodsOnApplication(APIView):
         return JsonResponse(data={'goods': goods_data})
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
@@ -69,15 +70,19 @@ class ApplicationGoodOnApplication(APIView):
     def delete(self, request, good_on_application_pk):
         good_on_application = get_good_on_application(good_on_application_pk)
 
-        if good_on_application.good.status == GoodStatus.SUBMITTED \
-                and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
-            good_on_application.good.status = GoodStatus.DRAFT
-            good_on_application.good.save()
+        if good_on_application.application.organisation.id == request.user.organisation.id:
+            if good_on_application.application.organisation.id == request.user.organisation.id \
+                    and good_on_application.good.status == GoodStatus.SUBMITTED \
+                    and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
+                good_on_application.good.status = GoodStatus.DRAFT
+                good_on_application.good.save()
 
-        good_on_application.delete()
+            good_on_application.delete()
 
-        return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
+            return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
 
+        return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
+                            status=status.HTTP_403_FORBIDDEN)
 
 class ApplicationGoodsTypes(APIView):
     """
@@ -115,6 +120,7 @@ class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
         Gets a goodstype

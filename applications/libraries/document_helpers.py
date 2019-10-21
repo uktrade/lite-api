@@ -33,8 +33,8 @@ def get_application_documents(application_id):
     return JsonResponse({'documents': list(documents.values())})
 
 
-def get_application_document(application_id, doc_pk):
-    return _get_document(ApplicationDocument.objects.filter(application__id=application_id, id=doc_pk))
+def get_application_document(doc_pk):
+    return _get_document(ApplicationDocument.objects.filter(pk=doc_pk))
 
 
 def upload_application_document(application_id, data):
@@ -51,7 +51,7 @@ def upload_application_document(application_id, data):
 
 def delete_application_document(document_id):
     try:
-        document = ApplicationDocument.objects.get(id=document_id)
+        document = ApplicationDocument.objects.get(pk=document_id)
         document.delete_s3()
         document.delete()
     except ApplicationDocument.DoesNotExist:

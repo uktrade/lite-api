@@ -19,7 +19,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import authorised_users, application_licence_type, application_in_major_editable_state
+from conf.decorators import authorised_users, application_in_major_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum

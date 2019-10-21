@@ -76,6 +76,7 @@ class ApplicationUltimateEndUsers(APIView):
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -119,6 +120,7 @@ class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -176,6 +178,7 @@ class ApplicationThirdParties(APIView):
         return JsonResponse(data={'third_parties': third_party_data})
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """

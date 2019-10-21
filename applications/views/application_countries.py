@@ -46,7 +46,9 @@ class ApplicationCountries(APIView):
         previous_countries = CountryOnApplication.objects.filter(application=application)
         new_countries = []
 
-        if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+        if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
+            new_countries = [get_country(country) for country in countries]
+        else:
             for country in countries:
                 new_country = get_country(country)
 
@@ -56,8 +58,6 @@ class ApplicationCountries(APIView):
                                         status=status.HTTP_400_BAD_REQUEST)
                 else:
                     new_countries.append(new_country)
-        else:
-            new_countries = [get_country(country) for country in countries]
 
         # Delete previous Countries from application
         previous_countries.delete()
@@ -66,4 +66,5 @@ class ApplicationCountries(APIView):
         for country in new_countries:
             CountryOnApplication(country=country, application=application).save()
 
-        return JsonResponse(data={}, status=status.HTTP_201_CREATED)
+        countries_data = CountrySerializer(new_countries, many=True).data
+        return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)

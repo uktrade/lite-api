@@ -2,10 +2,13 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
+from conf.decorators import authorised_users, application_in_major_editable_state, application_licence_type
 from parties.document.serializers import PartyDocumentSerializer
 from parties.libraries.get_parties import get_end_user, get_ultimate_end_user, get_consignee, get_third_party
+from users.models import ExporterUser
 
 
 class EndUserDocumentView(APIView):
@@ -14,8 +17,10 @@ class EndUserDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        end_user = get_end_user(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        end_user = get_end_user(application.pk)
         return get_party_document(end_user)
 
     @swagger_auto_schema(
@@ -24,8 +29,11 @@ class EndUserDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def post(self, request, pk):
-        end_user = get_end_user(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        end_user = get_end_user(application.pk)
         return upload_party_document(end_user, request.data)
 
     @swagger_auto_schema(
@@ -34,8 +42,10 @@ class EndUserDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def delete(self, request, pk):
-        end_user = get_end_user(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application):
+        end_user = get_end_user(application.pk)
         return delete_party_document(end_user)
 
 
@@ -45,7 +55,9 @@ class UltimateEndUserDocumentsView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk, ueu_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return get_party_document(ultimate_end_user)
 
@@ -55,7 +67,10 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def post(self, request, pk, ueu_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return upload_party_document(ultimate_end_user, request.data)
 
@@ -65,7 +80,9 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def delete(self, request, pk, ueu_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
         return delete_party_document(ultimate_end_user)
 
@@ -76,8 +93,10 @@ class ConsigneeDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
-        consignee = get_consignee(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        consignee = get_consignee(application.pk)
         return get_party_document(consignee)
 
     @swagger_auto_schema(
@@ -86,8 +105,11 @@ class ConsigneeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def post(self, request, pk):
-        consignee = get_consignee(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        consignee = get_consignee(application.pk)
         return upload_party_document(consignee, request.data)
 
     @swagger_auto_schema(
@@ -96,8 +118,10 @@ class ConsigneeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def delete(self, request, pk):
-        consignee = get_consignee(pk)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application):
+        consignee = get_consignee(application.pk)
         return delete_party_document(consignee)
 
 
@@ -107,7 +131,9 @@ class ThirdPartyDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk, tp_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
         return get_party_document(third_party)
 
@@ -117,7 +143,10 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def post(self, request, pk, tp_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
         return upload_party_document(third_party, request.data)
 
@@ -127,6 +156,8 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    def delete(self, request, pk, tp_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
         return delete_party_document(third_party)

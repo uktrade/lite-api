@@ -7,8 +7,8 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
-from organisations.libraries.get_site import get_site_with_organisation, has_previous_external_locations, \
-    get_site_countries_on_application
+from organisations.libraries.get_external_location import has_previous_external_locations
+from organisations.libraries.get_site import get_site, get_site_countries_on_application
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 from static.statuses.enums import CaseStatusEnum
@@ -42,9 +42,9 @@ class ApplicationSites(APIView):
         new_sites = []
 
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-            new_sites = [get_site_with_organisation(site, request.user.organisation) for site in sites]
+            new_sites = [get_site(site, request.user.organisation) for site in sites]
         elif application.status.status != CaseStatusEnum.APPLICANT_EDITING:
-            if has_previous_external_locations:
+            if has_previous_external_locations(application):
                 return JsonResponse(data={'errors': {
                     'sites': [
                         'You can not change from sites to external locations on this application without first '
@@ -54,14 +54,14 @@ class ApplicationSites(APIView):
             previous_site_countries = get_site_countries_on_application(application)
 
             for site in sites:
-                new_site = get_site_with_organisation(site, request.user.organisation)
+                new_site = get_site(site, request.user.organisation)
 
                 if new_site.address.country not in previous_site_countries:
                     return JsonResponse(data={'errors': {
                         'sites': [
                             'You can not add sites located in a different country to this application without first '
                             'setting it to an editable status.']
-                      }}, status=status.HTTP_400_BAD_REQUEST)
+                    }}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     new_sites.append(new_site)
 

@@ -7,7 +7,7 @@ from applications.libraries.document_helpers import upload_application_document,
     get_application_document
 from applications.serializers import ApplicationDocumentSerializer
 from applications.libraries.document_helpers import get_application_documents
-from conf.decorators import authorised_users, application_licence_type, application_in_major_editable_state
+from conf.decorators import authorised_users, application_in_major_editable_state
 from users.models import ExporterUser
 
 
@@ -50,7 +50,7 @@ class ApplicationDocumentDetailView(APIView):
         """
         View an additional document on an application
         """
-        return get_application_document(application.id, doc_pk)
+        return get_application_document(doc_pk)
 
     @swagger_auto_schema(
         request_body=ApplicationDocumentSerializer,
@@ -58,7 +58,6 @@ class ApplicationDocumentDetailView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application, doc_pk):
         """

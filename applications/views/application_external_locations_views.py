@@ -7,9 +7,12 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
-from organisations.libraries.get_external_location import get_external_location_with_organisation
+from organisations.libraries.get_external_location import get_external_location, \
+    get_external_location_countries_on_application
+from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -35,16 +38,37 @@ class ApplicationExternalLocations(APIView):
         external_locations = data.get('external_locations')
 
         # Validate that there are actually external locations
-        if external_locations is None or len(external_locations) == 0:
-            return JsonResponse(data={'errors': {
-                'external_locations': [
-                    'You have to pick at least one location'
-                ]
-            }}, status=status.HTTP_400_BAD_REQUEST)
+        if not external_locations:
+            return JsonResponse(data={'errors': {'external_locations': ['You have to pick at least one '
+                                                                        'external location']
+                                                 }}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate each external location belongs to the organisation
-        for external_location in external_locations:
-            get_external_location_with_organisation(external_location, request.user.organisation)
+        new_external_locations = []
+
+        if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
+            new_external_locations = [get_external_location(external_location, request.user.organisation)
+                                      for external_location in external_locations]
+        else:
+            if has_previous_sites(application):
+                return JsonResponse(data={'errors': {
+                    'sites': [
+                        'You can not change from external locations to sites on this application without first '
+                        'setting it to an editable status.']
+                }}, status=status.HTTP_400_BAD_REQUEST)
+
+            previous_external_location_countries = get_external_location_countries_on_application(application)
+
+            for external_location in external_locations:
+                new_external_location = get_external_location(external_location, request.user.organisation)
+
+                if new_external_location.address.country not in previous_external_location_countries:
+                    return JsonResponse(data={'errors': {
+                        'sites': [
+                            'You can not add external locations located in a different country to this application '
+                            'without first setting it to an editable status.']
+                    }}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    new_external_locations.append(new_external_location)
 
         # Update draft activity
         application.activity = 'Brokering'
@@ -56,9 +80,9 @@ class ApplicationExternalLocations(APIView):
 
         # Append new ExternalLocationOnApplications
         response_data = []
-        for external_location in external_locations:
+        for external_location in new_external_locations:
             serializer = ExternalLocationOnApplicationSerializer(
-                data={'external_location': external_location, 'application': application.id})
+                data={'external_location': external_location.pk, 'application': application.id})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
