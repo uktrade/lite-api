@@ -8,7 +8,6 @@ from test_helpers.clients import DataTestClient
 
 
 class EndUserOnDraftTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
@@ -114,6 +113,30 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertNotEqual(end_user2, end_user1)
         with self.assertRaises(EndUser.DoesNotExist):
             EndUser.objects.get(id=end_user1.id)
+
+    def test_set_end_user_on_open_draft_application_failure(self):
+        """
+        Given a draft open application
+        When I try to add a consignee to the application
+        Then a 400 BAD REQUEST is returned
+        And no consignees have been added
+        """
+        pre_test_end_user_count = EndUser.objects.all().count()
+        data = {
+            'name': 'Government of Paraguay',
+            'address': 'Asuncion',
+            'country': 'PY',
+            'sub_type': 'government',
+            'website': 'https://www.gov.py'
+        }
+
+        open_draft = self.create_open_draft(self.organisation)
+        url = reverse('applications:end_user', kwargs={'pk': open_draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
 
     '''@mock.patch('documents.models.Document.delete_s3')
     @mock.patch('documents.tasks.prepare_document.now')

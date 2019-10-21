@@ -100,7 +100,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         Given a draft open application
         When I try to add an ultimate end user to the application
-        Then a 404 NOT FOUND is returned
+        Then a 400 BAD REQUEST is returned
         And no ultimate end users have been added
         """
         pre_test_ueu_count = UltimateEndUser.objects.all().count()

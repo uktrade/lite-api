@@ -6,12 +6,10 @@ from test_helpers.clients import DataTestClient
 
 
 class ThirdPartiesOnDraft(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_draft(self.organisation)
         self.draft.third_parties.set([])
-        self.draft.save()
         self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
@@ -21,7 +19,6 @@ class ThirdPartiesOnDraft(DataTestClient):
         When a new third party is added
         Then the third party is successfully added to the draft
         """
-
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -41,24 +38,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
-
-    def test_set_third_parties_on_draft_open_application_failure(self):
-        pre_test_third_party_count = ThirdParty.objects.all().count()
-        data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'agent',
-            'website': 'https://www.gov.uk'
-        }
-        open_draft = self.create_open_draft(self.organisation)
-        url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
+        self.assertEqual(self.draft.third_parties.count(), 0)
 
     def test_set_multiple_third_parties_on_draft_successful(self):
         """
@@ -67,7 +47,6 @@ class ThirdPartiesOnDraft(DataTestClient):
         When multiple third parties are added
         Then all third parties are successfully added to the draft
         """
-
         data = [
                 {
                     'name': 'UK Government',
@@ -97,7 +76,6 @@ class ThirdPartiesOnDraft(DataTestClient):
          When attempting to add an invalid third party
          Then the third party is not added to the draft
          """
-
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -133,10 +111,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         Given a draft open application
         When I try to add a third party to the application
-        Then a 404 NOT FOUND is returned
+        Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        # assemble
         pre_test_third_party_count = ThirdParty.objects.all().count()
         data = {
             'name': 'UK Government',
@@ -148,9 +125,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         open_draft = self.create_open_draft(self.organisation)
         url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
 
-        # act
         response = self.client.post(url, data, **self.exporter_headers)
 
-        # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
