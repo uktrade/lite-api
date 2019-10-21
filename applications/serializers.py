@@ -253,10 +253,11 @@ class OpenApplicationSerializer(BaseApplicationSerializer):
 class ApplicationUpdateSerializer(BaseApplicationSerializer):
     class Meta:
         model = BaseApplication
-        fields = ('name', 'reference_number_on_information_form',)
+        fields = ('name', 'reference_number_on_information_form', 'have_you_been_informed',)
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
+        instance.have_you_been_informed = validated_data.get('have_you_been_informed', instance.have_you_been_informed)
         instance.reference_number_on_information_form = validated_data.get(
             'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.last_modified_at = datetime.now(timezone.utc)
