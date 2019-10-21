@@ -9,7 +9,6 @@ class ThirdPartiesOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.draft.third_parties.set([])
         self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
@@ -19,6 +18,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         When a new third party is added
         Then the third party is successfully added to the draft
         """
+        self.draft.third_parties.set([])
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -47,22 +47,23 @@ class ThirdPartiesOnDraft(DataTestClient):
         When multiple third parties are added
         Then all third parties are successfully added to the draft
         """
+        self.draft.third_parties.set([])
         data = [
-                {
-                    'name': 'UK Government',
-                    'address': 'Westminster, London SW1A 0AA',
-                    'country': 'GB',
-                    'sub_type': 'agent',
-                    'website': 'https://www.gov.uk'
-                },
-                {
-                    'name': 'French Government',
-                    'address': 'Paris',
-                    'country': 'FR',
-                    'sub_type': 'other',
-                    'website': 'https://www.gov.fr'
-                }
-            ]
+            {
+                'name': 'UK Government',
+                'address': 'Westminster, London SW1A 0AA',
+                'country': 'GB',
+                'sub_type': 'agent',
+                'website': 'https://www.gov.uk'
+            },
+            {
+                'name': 'French Government',
+                'address': 'Paris',
+                'country': 'FR',
+                'sub_type': 'other',
+                'website': 'https://www.gov.fr'
+            }
+        ]
 
         for third_party in data:
             self.client.post(self.url, third_party, **self.exporter_headers)
@@ -71,11 +72,11 @@ class ThirdPartiesOnDraft(DataTestClient):
 
     def test_unsuccessful_add_third_party(self):
         """
-         Given a standard draft has been created
-         And the draft does not yet contain a third party
-         When attempting to add an invalid third party
-         Then the third party is not added to the draft
-         """
+        Given a standard draft has been created
+        And the draft does not yet contain a third party
+        When attempting to add an invalid third party
+        Then the third party is not added to the draft
+        """
         data = {
             'name': 'UK Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -90,11 +91,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response_data, {'errors': {'sub_type': ['This field is required.']}})
 
     def test_get_third_parties(self):
-        third_party = self.create_third_party('third party', self.organisation)
-        third_party.save()
-        self.draft.third_parties.add(third_party)
-        self.draft.save()
-
+        third_party = self.draft.third_parties.first()
         response = self.client.get(self.url, **self.exporter_headers)
         third_parties = response.json()['third_parties']
 
@@ -129,3 +126,17 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
+
+    def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(self):
+        """
+        Given a draft standard application
+        When I try to delete a third party from the application
+        Then a 404 NOT FOUND is returned
+        """
+        third_party = self.draft.third_parties.first()
+        self.draft.third_parties.set([])
+        url = reverse('applications:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': third_party.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

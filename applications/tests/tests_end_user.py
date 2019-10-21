@@ -11,8 +11,6 @@ class EndUserOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.draft.end_user = None
-        self.draft.save()
         self.url = reverse('applications:end_user', kwargs={'pk': self.draft.id})
         self.new_end_user_data = {
             'name': 'Government of Paraguay',
@@ -28,6 +26,8 @@ class EndUserOnDraftTests(DataTestClient):
         'other'
     ])
     def test_set_end_user_on_draft_standard_application_successful(self, data_type):
+        self.draft.end_user = None
+        self.draft.save()
         data = {
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -53,7 +53,8 @@ class EndUserOnDraftTests(DataTestClient):
         Then a 404 NOT FOUND is returned
         And no end users have been added
         """
-        # assemble
+        self.draft.end_user = None
+        self.draft.save()
         pre_test_end_user_count = EndUser.objects.all().count()
         draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
@@ -89,6 +90,9 @@ class EndUserOnDraftTests(DataTestClient):
         }],
     ])
     def test_set_end_user_on_draft_standard_application_failure(self, data):
+        self.draft.end_user = None
+        self.draft.save()
+
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -101,10 +105,7 @@ class EndUserOnDraftTests(DataTestClient):
         When a new end user is added
         Then the old one is removed
         """
-        # assemble
-        end_user1 = self.create_end_user('old end user', self.organisation)
-        self.draft.end_user = end_user1
-        self.draft.save()
+        end_user1 = self.draft.end_user
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
         self.draft.refresh_from_db()
@@ -117,11 +118,14 @@ class EndUserOnDraftTests(DataTestClient):
     def test_set_end_user_on_open_draft_application_failure(self):
         """
         Given a draft open application
-        When I try to add a consignee to the application
+        When I try to add an end user to the application
         Then a 400 BAD REQUEST is returned
-        And no consignees have been added
+        And no end user has been added
         """
-        pre_test_end_user_count = EndUser.objects.all().count()
+        end_user = self.draft.end_user
+        self.draft.end_user = None
+        self.draft.save()
+        EndUser.objects.filter(pk=end_user.pk).delete()
         data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -136,33 +140,31 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
+        self.assertEqual(EndUser.objects.all().count(), 0)
 
-    '''@mock.patch('documents.models.Document.delete_s3')
-    @mock.patch('documents.tasks.prepare_document.now')
-    def test_end_user_document_is_deleted_when_associated_end_user_is_deleted(self, prep_doc_mock, delete_s3_mock):
+    def test_delete_end_user_on_standard_application_success(self):
         """
-        Given a standard draft has been created
-        And the draft contains an end user
-        And the end user has a document
-        When a new end user is added
-        Then the previous old user's associated document is deleted
+        Given a draft standard application
+        When I try to delete an end user from the application
+        Then a 204 NO CONTENT is returned
+        And the end user has been deleted
         """
-        # assemble
-        end_user_1_id = self.draft.end_user.id
-        self.document_data = {"name": test_file,
-                 "s3_key": test_file,
-                 "size": 476,
-                 "description": "Description 7538564"}
-        self.client.post(reverse('drafts:end_user_document', kwargs={'pk': self.draft.id}),
-                         self.document_data, **self.exporter_headers)
+        response = self.client.delete(self.url, **self.exporter_headers)
 
-        # act
-        self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(EndUser.objects.all().count(), 0)
 
-        # assert
-        with self.assertRaises(EndUserDocument.DoesNotExist):
-            EndUserDocument.objects.get(end_user=end_user_1_id)
+    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self):
+        """
+        Given a draft standard application
+        When I try to delete an end user from the application
+        Then a 404 NOT FOUND is returned
+        """
+        end_user = self.draft.end_user
+        self.draft.end_user = None
+        self.draft.save()
+        EndUser.objects.filter(pk=end_user.pk).delete()
 
-        delete_s3_mock.assert_called_once()'''
+        response = self.client.delete(self.url, **self.exporter_headers)
 
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

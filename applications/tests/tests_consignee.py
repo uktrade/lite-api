@@ -12,8 +12,6 @@ class ConsigneeOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.draft.consignee = None
-        self.draft.save()
         self.url = reverse('applications:consignee', kwargs={'pk': self.draft.id})
 
     @parameterized.expand([
@@ -28,6 +26,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a new consignee is added
         Then the consignee is successfully added to the draft
         """
+        self.draft.consignee = None
+        self.draft.save()
+
         data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -69,6 +70,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         When attempting to add an invalid consignee
         Then the consignee is not added to the draft
         """
+        self.draft.consignee = None
+        self.draft.save()
+
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
@@ -108,7 +112,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no consignees have been added
         """
-        pre_test_consignee_count = Consignee.objects.all().count()
+        consignee = self.draft.consignee
+        self.draft.consignee = None
+        self.draft.save()
+        Consignee.objects.filter(pk=consignee.pk).delete()
         data = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -123,4 +130,31 @@ class ConsigneeOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Consignee.objects.all().count(), pre_test_consignee_count)
+        self.assertEqual(Consignee.objects.all().count(), 0)
+
+    def test_delete_consignee_on_standard_application_success(self):
+        """
+        Given a draft standard application
+        When I try to delete a consignee from the application
+        Then a 204 NO CONTENT is returned
+        And the consignee has been deleted
+        """
+        response = self.client.delete(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Consignee.objects.all().count(), 0)
+
+    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self):
+        """
+        Given a draft standard application
+        When I try to delete an consignee from the application
+        Then a 404 NOT FOUND is returned
+        """
+        end_user = self.draft.end_user
+        self.draft.consignee = None
+        self.draft.save()
+        Consignee.objects.filter(pk=end_user.pk).delete()
+
+        response = self.client.delete(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

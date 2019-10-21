@@ -6,6 +6,8 @@ from goods.enums import GoodStatus
 from goods.models import Good
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
+from users.libraries.user_to_token import user_to_token
+from users.models import UserOrganisationRelationship
 
 
 class RemovingGoodsOffDraftsTests(DataTestClient):
@@ -20,6 +22,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         And the good status is changed to DRAFT
         """
         draft = self.create_standard_application(self.organisation)
+        self.submit_application(draft) # This will submit the application and set the good status to SUBMITTED
 
         url = reverse('applications:good_on_application',
                       kwargs={'good_on_application_pk': self.good_on_application.id})
@@ -112,3 +115,19 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
+
+    def test_remove_goods_from_application_not_in_users_organisation_failure(self):
+        self.create_standard_application(self.organisation)
+        url = reverse('applications:good_on_application',
+                      kwargs={'good_on_application_pk': self.good_on_application.id})
+
+        other_organisation = self.create_organisation_with_exporter_user()
+        permission_denied_user = UserOrganisationRelationship.objects.get(organisation=other_organisation).user
+        permission_denied_user_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(permission_denied_user),
+            'HTTP_ORGANISATION_ID': other_organisation.id
+        }
+
+        response = self.client.delete(url, **permission_denied_user_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

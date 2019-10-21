@@ -49,10 +49,7 @@ class ApplicationEndUser(APIView):
         end_user = application.end_user
 
         if not end_user:
-            return JsonResponse(data={'errors': 'consignee not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        if end_user.organisation != request.user.organisation:
-            return JsonResponse(data={'errors': 'request invalid'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': 'end user not found'}, status=status.HTTP_404_NOT_FOUND)
 
         application.end_user = None
         application.save()

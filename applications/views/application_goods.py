@@ -70,19 +70,18 @@ class ApplicationGoodOnApplication(APIView):
     def delete(self, request, good_on_application_pk):
         good_on_application = get_good_on_application(good_on_application_pk)
 
-        if good_on_application.application.organisation.id == request.user.organisation.id:
-            if good_on_application.application.organisation.id == request.user.organisation.id \
-                    and good_on_application.good.status == GoodStatus.SUBMITTED \
-                    and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
-                good_on_application.good.status = GoodStatus.DRAFT
-                good_on_application.good.save()
+        if good_on_application.application.organisation.id != request.user.organisation.id:
+            return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
+                                status=status.HTTP_403_FORBIDDEN)
 
-            good_on_application.delete()
+        if good_on_application.good.status == GoodStatus.SUBMITTED \
+                and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
+            good_on_application.good.status = GoodStatus.DRAFT
+            good_on_application.good.save()
 
-            return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
+        good_on_application.delete()
 
-        return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
-                            status=status.HTTP_403_FORBIDDEN)
+        return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
 
 class ApplicationGoodsTypes(APIView):
     """

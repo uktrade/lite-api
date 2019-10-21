@@ -41,21 +41,21 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.draft.ultimate_end_users.set([])
 
         data = [
-                {
-                    'name': 'UK Government',
-                    'address': 'Westminster, London SW1A 0AA',
-                    'country': 'GB',
-                    'sub_type': 'commercial',
-                    'website': 'https://www.gov.uk'
-                },
-                {
-                    'name': 'French Government',
-                    'address': 'Paris',
-                    'country': 'FR',
-                    'sub_type': 'government',
-                    'website': 'https://www.gov.fr'
-                }
-            ]
+            {
+                'name': 'UK Government',
+                'address': 'Westminster, London SW1A 0AA',
+                'country': 'GB',
+                'sub_type': 'commercial',
+                'website': 'https://www.gov.uk'
+            },
+            {
+                'name': 'French Government',
+                'address': 'Paris',
+                'country': 'FR',
+                'sub_type': 'government',
+                'website': 'https://www.gov.fr'
+            }
+        ]
 
         for ultimate_end_user in data:
             self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
@@ -78,7 +78,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     def test_get_ultimate_end_users(self):
         self.draft.ultimate_end_users.set([])
-        
+
         ultimate_end_user = self.create_ultimate_end_user('ultimate end user', self.organisation)
         ultimate_end_user.save()
         self.draft.ultimate_end_users.add(ultimate_end_user)
@@ -119,3 +119,18 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)
+
+    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self):
+        """
+        Given a draft standard application
+        When I try to delete an ultimate end user from the application
+        Then a 404 NOT FOUND is returned
+        """
+        ultimate_end_user = self.draft.ultimate_end_users.first()
+        self.draft.ultimate_end_users.set([])
+        url = reverse('applications:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk':
+            ultimate_end_user.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

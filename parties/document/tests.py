@@ -328,3 +328,24 @@ class PartyDocumentTests(DataTestClient):
 
         # assert
         delete_s3_function.assert_called_once()
+
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_status_code_delete_consignee_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
+
+        # assemble
+        self.client.post(self.url_no_end_user_doc, data=self.data, **self.exporter_headers)
+
+        # act
+        response = self.client.delete(self.url_no_end_user_doc, **self.exporter_headers)
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

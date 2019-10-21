@@ -8,6 +8,8 @@ from applications.models import ApplicationDenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from test_helpers.clients import DataTestClient
+from users.libraries.user_to_token import user_to_token
+from users.models import UserOrganisationRelationship
 
 
 class ApplicationDenialTests(DataTestClient):
@@ -152,7 +154,7 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
 
-    def test_set_application_status_to_something_stupid_failure(self):
+    def test_set_application_status_to_invalid_status_failure(self):
         self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
         self.standard_application.save()
 
@@ -163,5 +165,23 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Status not found.')
+        self.assertEqual(self.standard_application.status,
+                         get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+
+    def test_set_application_status_on_application_not_in_users_organisation_failure(self):
+        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        self.standard_application.save()
+
+        other_organisation = self.create_organisation_with_exporter_user()
+        permission_denied_user = UserOrganisationRelationship.objects.get(organisation=other_organisation).user
+        permission_denied_user_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(permission_denied_user),
+            'HTTP_ORGANISATION_ID': other_organisation.id
+        }
+
+        data = {'status': 'something_stupid'}
+        response = self.client.put(self.url, data=data, **permission_denied_user_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.standard_application.status,
                          get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
