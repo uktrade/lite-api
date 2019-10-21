@@ -45,7 +45,7 @@ class Query(models.Model):
         if not self.pk:
             is_unique = False
             while not is_unique:
-                pk = randint(1000000000, 1999999999)
+                pk = randint(1000000000, 1999999999)  # nosec
                 is_unique = (Query.objects.filter(id=pk).count() == 0)
             self.pk = pk
         super(Query, self).save()
