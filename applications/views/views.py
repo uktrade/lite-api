@@ -19,7 +19,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import authorised_users, only_applications
+from conf.decorators import authorised_users, application_licence_type, application_in_major_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -91,6 +91,7 @@ class ApplicationDetail(APIView):
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """
@@ -103,9 +104,11 @@ class ApplicationDetail(APIView):
 
         serializer.save()
 
-        if application.case.get():
+        try:
+            case = Case.objects.get(application=application)
+
             kwargs = {
-                'case': application.case.get(),
+                'case': case,
                 'user': request.user
             }
 
@@ -115,6 +118,8 @@ class ApplicationDetail(APIView):
             elif request.data.get('reference_number_on_information_form'):
                 kwargs['application_reference_number'] = request.data.get('reference_number_on_information_form')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
+        except Case.DoesNotExist:
+            pass
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -135,7 +140,7 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @only_applications(in_a_major_edit_state=True)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """

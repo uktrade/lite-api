@@ -9,7 +9,6 @@ class EditApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = self.create_standard_application(self.organisation)
-        self.submit_application(self.application)
         self.url = reverse('applications:application', kwargs={'pk': self.application.id})
         self.original_last_modified_at = self.application.last_modified_at
 

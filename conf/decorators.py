@@ -22,17 +22,33 @@ def _get_application(request, kwargs):
     return application
 
 
-def only_applications(licence_type=None, in_a_major_edit_state=False):
+def application_licence_type(type):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if licence_type and application.licence_type != licence_type:
+            if application.licence_type != type:
                 return HttpResponseBadRequest()
 
-            if in_a_major_edit_state and application.status and \
-                    application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def application_in_major_editable_state():
+    """
+    Checks if application is in a major-editable state;
+    A Major editable state is either APPLICANT_EDITING or NONE (An un-submitted application)
+    """
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            application = _get_application(request, kwargs)
+
+            if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
                 return HttpResponseBadRequest()
 
             return func(request, *args, **kwargs)

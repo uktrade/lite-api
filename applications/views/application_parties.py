@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_applications, authorised_users
+from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
@@ -14,7 +14,8 @@ from users.models import ExporterUser
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=True)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -39,7 +40,7 @@ class ApplicationEndUser(APIView):
 
         return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -64,7 +65,7 @@ class ApplicationEndUser(APIView):
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -74,7 +75,7 @@ class ApplicationUltimateEndUsers(APIView):
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -96,7 +97,7 @@ class ApplicationUltimateEndUsers(APIView):
 class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
         """
@@ -117,7 +118,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -142,7 +143,7 @@ class ApplicationConsignee(APIView):
 
         return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -164,7 +165,7 @@ class ApplicationConsignee(APIView):
 class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -174,7 +175,7 @@ class ApplicationThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -196,7 +197,7 @@ class ApplicationThirdParties(APIView):
 class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
         """

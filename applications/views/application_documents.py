@@ -7,7 +7,7 @@ from applications.libraries.document_helpers import upload_application_document,
     get_application_document
 from applications.serializers import ApplicationDocumentSerializer
 from applications.libraries.document_helpers import get_application_documents
-from conf.decorators import authorised_users, only_applications
+from conf.decorators import authorised_users, application_licence_type, application_in_major_editable_state
 from users.models import ExporterUser
 
 
@@ -30,7 +30,7 @@ class ApplicationDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @only_applications(in_a_major_edit_state=True)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -58,7 +58,7 @@ class ApplicationDocumentDetailView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @only_applications(in_a_major_edit_state=True)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application, doc_pk):
         """
