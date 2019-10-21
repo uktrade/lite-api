@@ -19,7 +19,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is changed to DRAFT
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:good_on_application',
                       kwargs={'good_on_application_pk': self.good_on_application.id})
@@ -39,7 +39,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is not changed
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         self.good_on_application.good.status = GoodStatus.VERIFIED
         self.good_on_application.good.save()
 
@@ -62,6 +62,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         And the good status is not changed
         """
         application1 = self.create_standard_application(self.organisation)
+        self.submit_application(application1)
         good_on_application1 = GoodOnApplication.objects.get(application=application1)
 
         application2 = self.create_standard_application(self.organisation)
@@ -91,7 +92,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the delete operation returns a not found response
         And no goods are deleted
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:good_on_application',
                       kwargs={'good_on_application_pk': "7070dc05-0afa-482c-b4f7-ae0a8943e53c"})  # Imaginary UUID
@@ -102,7 +103,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
 
     def test_remove_a_good_from_draft_as_gov_user_failure(self):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:good_on_application',
                       kwargs={'good_on_application_pk': self.good_on_application.id})

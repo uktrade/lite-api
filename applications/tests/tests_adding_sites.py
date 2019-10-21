@@ -10,7 +10,7 @@ class SitesOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.primary_site = self.organisation.primary_site
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_application(self.organisation)
 
         self.url = reverse('applications:application_sites', kwargs={'pk': self.draft.id})
 

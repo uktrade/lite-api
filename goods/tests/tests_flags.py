@@ -154,6 +154,7 @@ class GoodFlagsManagementTests(DataTestClient):
         """
         query = self.create_clc_query('Query', self.organisation)
         application = self.create_standard_application(self.organisation)
+        self.submit_application(application)
 
         # Set the query and application's good
         query.good = self.good

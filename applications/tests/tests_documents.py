@@ -8,7 +8,7 @@ class DraftDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_draft(self.organisation, 'Draft')
+        self.draft = self.create_standard_application(self.organisation, 'Draft')
         self.url_draft = reverse('applications:application_documents', kwargs={'pk': self.draft.id})
         self.test_filename = 'dog.jpg'
 

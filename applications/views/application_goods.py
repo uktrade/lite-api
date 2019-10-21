@@ -93,7 +93,7 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={'goods': goods_types_data}, status=status.HTTP_200_OK)
 
-    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=False)
+    @only_applications(ApplicationLicenceType.OPEN_LICENCE, in_a_major_edit_state=True)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """

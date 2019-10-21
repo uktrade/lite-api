@@ -10,7 +10,7 @@ from test_helpers.clients import DataTestClient
 class AddingGoodsOnApplicationTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -34,7 +34,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(len(response_data['goods']), 2)
 
     def test_add_a_good_to_draft_open_application_failure(self):
-        draft = self.create_open_draft(self.organisation)
+        draft = self.create_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
@@ -56,7 +56,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('test', organisation_2)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -84,7 +84,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
     ])
     def test_adding_goods_with_different_number_formats(self, data):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -108,7 +108,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         And no goods have been added
         """
         # assemble
-        draft = self.create_open_draft(self.organisation)
+        draft = self.create_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',

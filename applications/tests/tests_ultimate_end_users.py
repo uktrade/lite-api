@@ -9,7 +9,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft_with_incorporated_good(self.organisation)
+        self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
         self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
@@ -112,7 +112,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             'website': 'https://www.gov.uk'
         }
 
-        open_draft = self.create_open_draft(self.organisation)
+        open_draft = self.create_open_application(self.organisation)
         url = reverse('applications:ultimate_end_users', kwargs={'pk': open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

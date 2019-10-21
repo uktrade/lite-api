@@ -10,7 +10,7 @@ class DeleteApplication(DataTestClient):
         super().setUp()
 
     def test_delete_draft_application_as_exporter_user_success(self):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         number_of_applications = BaseApplication.objects.all().count()
         url = reverse('applications:application', kwargs={'pk': draft.id})
 
@@ -20,7 +20,7 @@ class DeleteApplication(DataTestClient):
         self.assertEqual(number_of_applications - 1, BaseApplication.objects.all().count())
 
     def test_delete_draft_application_as_gov_user_failure(self):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         number_of_applications = BaseApplication.objects.all().count()
         url = reverse('applications:application', kwargs={'pk': draft.id})
 
@@ -31,6 +31,7 @@ class DeleteApplication(DataTestClient):
 
     def test_delete_application_as_exporter_user_failure(self):
         application = self.create_standard_application(self.organisation)
+        self.submit_application(application)
         number_of_applications = BaseApplication.objects.all().count()
         url = reverse('applications:application', kwargs={'pk': application.id})
 

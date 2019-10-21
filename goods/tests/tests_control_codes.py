@@ -23,7 +23,7 @@ class GoodsVerifiedTests(DataTestClient):
         self.good_1.flags.set([self.create_flag('New Flag', 'Good', self.team)])
         self.good_2 = self.create_controlled_good('this is a good as well', self.organisation)
 
-        self.draft = self.create_standard_draft(organisation=self.organisation)
+        self.draft = self.create_standard_application(organisation=self.organisation)
         GoodOnApplication(good=self.good_1,
                           application=self.draft,
                           quantity=10,
@@ -34,7 +34,7 @@ class GoodsVerifiedTests(DataTestClient):
                           quantity=10,
                           unit=Units.NAR,
                           value=500).save()
-        self.submit_draft(self.draft)
+        self.submit_application(self.draft)
         self.case = Case.objects.get(application=self.draft)
         self.url = reverse_lazy('goods:control_code', kwargs={'case_pk': self.case.id})
 

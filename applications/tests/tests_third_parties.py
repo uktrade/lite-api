@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 class ThirdPartiesOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_application(self.organisation)
         self.draft.third_parties.set([])
         self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
 
@@ -122,7 +122,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             'sub_type': 'agent',
             'website': 'https://www.gov.uk'
         }
-        open_draft = self.create_open_draft(self.organisation)
+        open_draft = self.create_open_application(self.organisation)
         url = reverse('applications:third_parties', kwargs={'pk': open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

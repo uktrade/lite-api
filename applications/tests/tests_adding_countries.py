@@ -11,7 +11,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_open_draft(self.organisation)
+        self.draft = self.create_open_application(self.organisation)
 
         self.url = reverse('applications:countries', kwargs={'pk': self.draft.id})
 
@@ -27,7 +27,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         self.assertEqual(len(response['countries']), self.COUNTRIES_COUNT)
 
     def test_add_countries_to_a_draft_standard_application_failure(self):
-        std_draft = self.create_standard_draft(self.organisation)
+        std_draft = self.create_standard_application(self.organisation)
         pre_test_country_count = CountryOnApplication.objects.all().count()
 
         data = {
@@ -59,7 +59,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         Ensure that a user cannot add countries to another organisation's draft
         """
         organisation_2 = self.create_organisation_with_exporter_user()
-        self.draft = self.create_open_draft(organisation_2)
+        self.draft = self.create_open_application(organisation_2)
         self.url = reverse('applications:countries', kwargs={'pk': self.draft.id})
 
         data = {

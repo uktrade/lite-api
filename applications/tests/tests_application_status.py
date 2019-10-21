@@ -15,6 +15,7 @@ class ApplicationDenialTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.url = reverse('applications:manage_status', kwargs={'pk': self.standard_application.id})
 
     @parameterized.expand([

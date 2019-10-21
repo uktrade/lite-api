@@ -10,7 +10,7 @@ from test_helpers.clients import DataTestClient
 class EndUserOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_application(self.organisation)
         self.draft.end_user = None
         self.draft.save()
         self.url = reverse('applications:end_user', kwargs={'pk': self.draft.id})
@@ -55,7 +55,7 @@ class EndUserOnDraftTests(DataTestClient):
         """
         # assemble
         pre_test_end_user_count = EndUser.objects.all().count()
-        draft_open_application = self.create_open_draft(organisation=self.organisation)
+        draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
             'name': 'Government',
             'address': 'Westminster, London SW1A 0AA',
@@ -130,7 +130,7 @@ class EndUserOnDraftTests(DataTestClient):
             'website': 'https://www.gov.py'
         }
 
-        open_draft = self.create_open_draft(self.organisation)
+        open_draft = self.create_open_application(self.organisation)
         url = reverse('applications:end_user', kwargs={'pk': open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

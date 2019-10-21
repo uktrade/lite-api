@@ -7,8 +7,8 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
-from organisations.libraries.get_site import get_site_with_organisation, \
-    get_site_or_external_location_countries_on_application
+from organisations.libraries.get_site import get_site_with_organisation, has_previous_external_locations, \
+    get_site_countries_on_application
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 from static.statuses.enums import CaseStatusEnum
@@ -44,7 +44,14 @@ class ApplicationSites(APIView):
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
             new_sites = [get_site_with_organisation(site, request.user.organisation) for site in sites]
         elif application.status.status != CaseStatusEnum.APPLICANT_EDITING:
-            previous_site_countries = get_site_or_external_location_countries_on_application(application)
+            if has_previous_external_locations:
+                return JsonResponse(data={'errors': {
+                    'sites': [
+                        'You can not change from sites to external locations on this application without first '
+                        'setting it to an editable status.']
+                }}, status=status.HTTP_400_BAD_REQUEST)
+
+            previous_site_countries = get_site_countries_on_application(application)
 
             for site in sites:
                 new_site = get_site_with_organisation(site, request.user.organisation)

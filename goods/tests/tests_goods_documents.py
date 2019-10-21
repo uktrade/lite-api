@@ -50,9 +50,9 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good_id = GoodOnApplication.objects.get(application=draft).good.id
-        self.submit_draft(draft)
+        self.submit_application(draft)
 
         url = reverse('goods:documents', kwargs={'pk': good_id})
         data = {}
@@ -64,14 +64,14 @@ class GoodDocumentsTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = GoodOnApplication.objects.get(application=draft).good
         document_1 = self.create_good_document(good=good,
                                                user=self.exporter_user,
                                                organisation=self.organisation,
                                                s3_key='doc1key',
                                                name='doc1.pdf')
-        self.submit_draft(draft)
+        self.submit_application(draft)
 
         url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': document_1.id})
         response = self.client.delete(url, **self.exporter_headers)

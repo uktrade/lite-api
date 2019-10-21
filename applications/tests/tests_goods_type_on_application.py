@@ -17,7 +17,17 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             'is_good_end_product': True
         }
 
+    def test_get_goodstypes_on_open_application_as_exporter_user_success(self):
+        response = self.client.get(self.url, self.data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(len(response.json()['goods']), GoodsType.objects.filter(
+            application=self.open_application).count())
+
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
+        self.open_application.status = None
+        self.open_application.save()
+
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
@@ -26,6 +36,13 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response_data['is_good_controlled'], True)
         self.assertEquals(response_data['control_code'], 'ML1a')
         self.assertEquals(response_data['is_good_end_product'], True)
+
+    def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
+        data = {}
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_goodstype_on_open_application_as_gov_user_failure(self):
         response = self.client.post(self.url, self.data, **self.gov_headers)

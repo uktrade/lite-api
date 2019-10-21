@@ -11,7 +11,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_draft(self.organisation)
+        self.draft = self.create_standard_application(self.organisation)
         self.draft.consignee = None
         self.draft.save()
         self.url = reverse('applications:consignee', kwargs={'pk': self.draft.id})
@@ -117,7 +117,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             'website': 'https://www.gov.py'
         }
 
-        open_draft = self.create_open_draft(self.organisation)
+        open_draft = self.create_open_application(self.organisation)
         url = reverse('applications:consignee', kwargs={'pk': open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

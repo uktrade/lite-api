@@ -14,7 +14,7 @@ from users.models import ExporterUser
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=False)
+    @only_applications(ApplicationLicenceType.STANDARD_LICENCE, in_a_major_edit_state=True)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """

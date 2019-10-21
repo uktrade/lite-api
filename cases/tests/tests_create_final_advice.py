@@ -17,6 +17,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         team_2 = Team(name='2')

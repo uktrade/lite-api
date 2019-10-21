@@ -17,6 +17,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         role = Role(name='team_level')
@@ -32,6 +33,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user_3.save()
 
         self.open_application = self.create_open_application(self.organisation)
+        self.submit_application(self.open_application)
         self.open_case = Case.objects.get(application=self.open_application)
 
         self.standard_case_url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})

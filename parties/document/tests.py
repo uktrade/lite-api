@@ -13,16 +13,16 @@ class PartyDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_draft(self.organisation, 'Draft')
+        self.draft = self.create_standard_application(self.organisation, 'Draft')
         self.url = reverse('applications:end_user_document', kwargs={'pk': self.draft.id})
 
-        self.draft_no_end_user = self.create_standard_draft(self.organisation, 'No End User Draft')
+        self.draft_no_end_user = self.create_standard_application(self.organisation, 'No End User Draft')
         PartyDocument.objects.filter(party=self.draft_no_end_user.end_user).delete()
         self.draft_no_end_user.end_user = None
         self.draft_no_end_user.save()
         self.url_no_end_user = reverse('applications:end_user_document', kwargs={'pk': self.draft_no_end_user.id})
 
-        self.draft_no_end_user_doc = self.create_standard_draft(self.organisation, 'No End User Document Draft')
+        self.draft_no_end_user_doc = self.create_standard_application(self.organisation, 'No End User Document Draft')
         PartyDocument.objects.filter(party=self.draft_no_end_user_doc.end_user).delete()
         self.url_no_end_user_doc = reverse('applications:end_user_document', kwargs={'pk': self.draft_no_end_user_doc.id})
 
