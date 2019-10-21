@@ -10,6 +10,7 @@ from conf.decorators import only_applications, authorised_users
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -39,20 +40,30 @@ class ApplicationCountries(APIView):
 
         # Validate that there are actually countries
         if not countries:
-            return JsonResponse(data={'errors': {
-                'countries': [
-                    'You have to pick at least one country'
-                ]
-            }}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={'errors': {'countries': ['You have to pick at least one country']}},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        countries = [get_country(country) for country in countries]
+        previous_countries = CountryOnApplication.objects.filter(application=application)
+        new_countries = []
 
-        # Delete existing Countries from application
-        CountryOnApplication.objects.filter(application=application).delete()
+        if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            for country in countries:
+                new_country = get_country(country)
+
+                if new_country not in previous_countries:
+                    return JsonResponse(data={'errors': 'You can not add new countries to this application without '
+                                                        'first setting it to an editable status'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    new_countries.append(new_country)
+        else:
+            new_countries = [get_country(country) for country in countries]
+
+        # Delete previous Countries from application
+        previous_countries.delete()
 
         # Append new Countries to application
-        for country in countries:
+        for country in new_countries:
             CountryOnApplication(country=country, application=application).save()
 
-        countries_data = CountrySerializer(countries, many=True).data
-        return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={}, status=status.HTTP_201_CREATED)

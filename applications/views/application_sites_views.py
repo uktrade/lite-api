@@ -7,9 +7,11 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
-from organisations.libraries.get_site import get_site_with_organisation
+from organisations.libraries.get_site import get_site_with_organisation, \
+    get_site_or_external_location_countries_on_application
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -33,20 +35,28 @@ class ApplicationSites(APIView):
         sites = data.get('sites')
 
         # Validate that there are actually sites
-        if sites is None:
-            return JsonResponse(data={'errors': {
-                'sites': [
-                    'You have to pick at least one site.'
-                ]
-            }}, status=400)
-
-        if len(sites) == 0:
+        if not sites:
             return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site.']}},
-                                status=400)
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate each site belongs to the organisation
-        for site in sites:
-            get_site_with_organisation(site, request.user.organisation)
+        new_sites = []
+
+        if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
+            new_sites = [get_site_with_organisation(site, request.user.organisation) for site in sites]
+        elif application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            previous_site_countries = get_site_or_external_location_countries_on_application(application)
+
+            for site in sites:
+                new_site = get_site_with_organisation(site, request.user.organisation)
+
+                if new_site.address.country not in previous_site_countries:
+                    return JsonResponse(data={'errors': {
+                        'sites': [
+                            'You can not add sites located in a different country to this application without first '
+                            'setting it to an editable status.']
+                      }}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    new_sites.append(new_site)
 
         # Update draft activity
         application.activity = 'Trading'
@@ -57,14 +67,13 @@ class ApplicationSites(APIView):
 
         # Append new SitesOnDrafts
         response_data = []
-        for site in sites:
-            serializer = SiteOnApplicationCreateSerializer(data={'site': site, 'application': application.id})
+        for site in new_sites:
+            serializer = SiteOnApplicationCreateSerializer(data={'site': site.pk, 'application': application.id})
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
             else:
-                return JsonResponse(data={'errors': serializer.errors},
-                                    status=400)
+                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         # Deletes any external sites on the draft if a site is being added
         ExternalLocationOnApplication.objects.filter(application=application).delete()
