@@ -97,9 +97,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a new consignee is added
         Then the old one is removed
         """
-        consignee1 = self.create_consignee('old consignee', self.organisation)
-        self.draft.consignee = consignee1
-        self.draft.save()
+        old_consignee = self.draft.consignee
         new_consignee = {
             'name': 'Government of Paraguay',
             'address': 'Asuncion',
@@ -110,11 +108,9 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         self.client.post(self.url, new_consignee, **self.exporter_headers)
         self.draft.refresh_from_db()
-        consignee2 = self.draft.consignee
 
-        self.assertNotEqual(consignee2, consignee1)
         with self.assertRaises(Consignee.DoesNotExist):
-            Consignee.objects.get(id=consignee1.id)
+            Consignee.objects.get(id=old_consignee.id)
         delete_s3_function.assert_called_once()
 
     def test_set_consignee_on_open_draft_application_failure(self):

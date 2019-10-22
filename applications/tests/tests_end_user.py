@@ -113,15 +113,13 @@ class EndUserOnDraftTests(DataTestClient):
         When a new end user is added
         Then the old one is removed
         """
-        end_user1 = self.draft.end_user
+        old_end_user = self.draft.end_user
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
         self.draft.refresh_from_db()
-        end_user2 = self.draft.end_user
 
-        self.assertNotEqual(end_user2, end_user1)
         with self.assertRaises(EndUser.DoesNotExist):
-            EndUser.objects.get(id=end_user1.id)
+            EndUser.objects.get(id=old_end_user.id)
         delete_s3_function.assert_called_once()
 
     def test_set_end_user_on_open_draft_application_failure(self):
