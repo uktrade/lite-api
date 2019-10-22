@@ -138,10 +138,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                      organisation=organisation).save()
 
     @staticmethod
-    def create_site(name, org):
+    def create_site(name, org, country='GB'):
         address = Address(address_line_1='42 Road',
                           address_line_2='',
-                          country=get_country('GB'),
+                          country=get_country(country),
                           city='London',
                           region='Buckinghamshire',
                           postcode='E14QW')

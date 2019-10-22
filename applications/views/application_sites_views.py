@@ -43,7 +43,7 @@ class ApplicationSites(APIView):
 
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
             new_sites = [get_site(site, request.user.organisation) for site in sites]
-        elif application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+        else:
             if has_previous_external_locations(application):
                 return JsonResponse(data={'errors': {
                     'sites': [
