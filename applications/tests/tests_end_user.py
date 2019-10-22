@@ -149,17 +149,17 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), 0)
 
-    def test_delete_end_user_on_standard_application_success(self):
-        """
-        Given a draft standard application
-        When I try to delete an end user from the application
-        Then a 204 NO CONTENT is returned
-        And the end user has been deleted
-        """
-        response = self.client.delete(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(EndUser.objects.all().count(), 0)
+    # def test_delete_end_user_on_standard_application_success(self):
+    #     """
+    #     Given a draft standard application
+    #     When I try to delete an end user from the application
+    #     Then a 204 NO CONTENT is returned
+    #     And the end user has been deleted
+    #     """
+    #     response = self.client.delete(self.url, **self.exporter_headers)
+    #
+    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    #     self.assertEqual(EndUser.objects.all().count(), 0)
 
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self):
         """
