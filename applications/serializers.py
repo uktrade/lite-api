@@ -24,7 +24,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_status_enum, get_status_from_case_status
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -177,7 +177,10 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             return None
 
     def get_status(self, instance):
-        return instance.status.status if instance.status else None
+        return {
+            'key': instance.status.status,
+            'value': get_status_from_case_status(instance.status.status)
+        }
 
     def get_goods_locations(self, application):
         """

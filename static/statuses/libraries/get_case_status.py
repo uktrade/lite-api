@@ -1,5 +1,10 @@
 from conf.exceptions import NotFoundError
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
+
+
+def get_status_from_case_status(case_status):
+    return [x for x in CaseStatusEnum.choices if x[0] == case_status][0][1]
 
 
 def get_case_status_from_status_enum(case_status):
