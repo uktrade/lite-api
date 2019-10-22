@@ -89,7 +89,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.consignee, None)
 
-    def test_consignee_deleted_when_new_one_added(self):
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_consignee_deleted_when_new_one_added(self, delete_s3_function):
         """
         Given a standard draft has been created
         And the draft contains a consignee
@@ -114,6 +115,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertNotEqual(consignee2, consignee1)
         with self.assertRaises(Consignee.DoesNotExist):
             Consignee.objects.get(id=consignee1.id)
+        delete_s3_function.assert_called_once()
 
     def test_set_consignee_on_open_draft_application_failure(self):
         """

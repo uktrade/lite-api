@@ -105,7 +105,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
 
-    def test_end_user_is_deleted_when_new_one_added(self):
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_end_user_is_deleted_when_new_one_added(self, delete_s3_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -121,6 +122,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertNotEqual(end_user2, end_user1)
         with self.assertRaises(EndUser.DoesNotExist):
             EndUser.objects.get(id=end_user1.id)
+        delete_s3_function.assert_called_once()
 
     def test_set_end_user_on_open_draft_application_failure(self):
         """
