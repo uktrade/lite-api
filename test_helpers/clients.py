@@ -334,7 +334,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> object:
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> Good:
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,
