@@ -3,11 +3,13 @@ from rest_framework import status
 
 from cases.libraries.get_case import get_case_activity
 from cases.models import Case
+from conf.constants import Permissions
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from test_helpers.clients import DataTestClient
+from users.models import Role
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
@@ -51,6 +53,12 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
                                                         PickListStatus.ACTIVE)
 
         self.query = self.create_clc_query('This is a widget', self.organisation)
+
+        role = Role(name='review_goods')
+        role.permissions.set([Permissions.REVIEW_GOODS])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
 
         self.url = reverse('queries:control_list_classifications:control_list_classification',
                            kwargs={'pk': self.query.pk})
@@ -112,3 +120,15 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.query.good.status, GoodStatus.DRAFT)
+
+    # User must have permission to create team advice
+    def test_user_cannot_respond_to_clc_without_permissions(self):
+        """
+        Tests that the right level of permissions are required
+        """
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+
+        response = self.client.put(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
