@@ -27,35 +27,6 @@ class ThirdPartiesOnDraft(DataTestClient):
             'size': 123456
         }
 
-    def test_set_and_remove_third_parties_on_draft_successful(self):
-        """
-        Given a standard draft has been created
-        And the draft does not yet contain a third party
-        When a new third party is added
-        Then the third party is successfully added to the draft
-        """
-        self.draft.third_parties.set([])
-        data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'agent',
-            'website': 'https://www.gov.uk'
-        }
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.third_parties.first().name, 'UK Government')
-
-        tp_pk = self.draft.third_parties.first().pk
-
-        url = reverse('applications:remove_third_party', kwargs={'pk': self.draft.id, 'tp_pk': tp_pk})
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.third_parties.count(), 0)
-
     def test_set_multiple_third_parties_on_draft_successful(self):
         """
         Given a standard draft has been created
@@ -206,12 +177,12 @@ class ThirdPartiesOnDraft(DataTestClient):
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_third_party_deletes_document_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_third_party_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains a third party
         And the draft contains a third party document
-        When there is an attempt to delete the document
+        When there is an attempt to delete third party
         Then 200 OK
         """
         remove_tp_url = reverse('applications:remove_third_party',
@@ -220,4 +191,5 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(remove_tp_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()

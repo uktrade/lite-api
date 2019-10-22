@@ -149,18 +149,6 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), 0)
 
-    # def test_delete_end_user_on_standard_application_success(self):
-    #     """
-    #     Given a draft standard application
-    #     When I try to delete an end user from the application
-    #     Then a 204 NO CONTENT is returned
-    #     And the end user has been deleted
-    #     """
-    #     response = self.client.delete(self.url, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #     self.assertEqual(EndUser.objects.all().count(), 0)
-
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self):
         """
         Given a draft standard application
@@ -300,15 +288,16 @@ class EndUserOnDraftTests(DataTestClient):
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_end_user_deletes_document_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_end_user_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
         And the draft contains an end user document
-        When there is an attempt to delete the document
+        When there is an attempt to delete the end user
         Then 204 NO CONTENT is returned
         """
         response = self.client.delete(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(EndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()

@@ -27,31 +27,6 @@ class UltimateEndUsersOnDraft(DataTestClient):
             'size': 123456
         }
 
-    def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
-        self.draft.ultimate_end_users.set([])
-
-        data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'commercial',
-            'website': 'https://www.gov.uk'
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.ultimate_end_users.first().name, 'UK Government')
-
-        ueu_id = self.draft.ultimate_end_users.first().id
-
-        url = reverse('applications:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk': ueu_id})
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
-
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
         self.draft.ultimate_end_users.set([])
 
@@ -199,7 +174,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_ultimate_end_user_deletes_document_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_ultimate_end_user_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -213,4 +188,5 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(UltimateEndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
