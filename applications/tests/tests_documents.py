@@ -92,3 +92,16 @@ class DraftDocumentTests(DataTestClient):
         mock_delete_s3.assert_called_once()
         response = self.client.get(self.url_draft, **self.exporter_headers)
         self.assertEqual(len(response.json()['documents']), 1)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_get_individual_draft_document(self, mock_prepare_doc):
+        self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
+        response = self.client.get(self.url_draft, **self.exporter_headers)
+        url = reverse('applications:application_document', kwargs={'pk': self.draft.id,
+                                                                   'doc_pk': response.json()['documents'][0]['id']})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.json()['document']['name'], self.data['name'])
+        self.assertEqual(response.json()['document']['s3_key'], self.data['s3_key'])
+        self.assertEqual(response.json()['document']['size'], self.data['size'])
