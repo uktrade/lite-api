@@ -54,8 +54,8 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.query = self.create_clc_query('This is a widget', self.organisation)
 
-        role = Role(name='assess_goods')
-        role.permissions.set([Permissions.ASSESS_GOODS])
+        role = Role(name='review_goods')
+        role.permissions.set([Permissions.REVIEW_GOODS])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

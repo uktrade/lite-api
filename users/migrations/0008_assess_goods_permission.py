@@ -6,9 +6,9 @@ from queries.control_list_classifications.models import ControlListClassificatio
 
 def create_permission(apps, schema_editor):
     Permission = apps.get_model('users', 'Permission')
-    if not Permission.objects.filter(id='ASSESS_GOODS'):
-        permission = Permission(id='ASSESS_GOODS',
-                                name='Assess goods')
+    if not Permission.objects.filter(id='REVIEW_GOODS'):
+        permission = Permission(id='REVIEW_GOODS',
+                                name='Review goods')
         permission.save()
 
 
