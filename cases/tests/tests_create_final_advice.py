@@ -137,11 +137,11 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response= self.client.post(self.standard_case_url, **self.gov_headers)
+        response = self.client.post(self.standard_case_url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response= self.client.delete(self.standard_case_url, **self.gov_headers)
+        response = self.client.delete(self.standard_case_url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
