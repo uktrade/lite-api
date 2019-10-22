@@ -1,16 +1,31 @@
+from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
+from parties.document.models import PartyDocument
 from parties.models import UltimateEndUser
 from test_helpers.clients import DataTestClient
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
         self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
+
+        self.document_url = reverse(
+            'applications:ultimate_end_user_document',
+            kwargs={
+                'pk': self.draft.id,
+                'ueu_pk': self.draft.ultimate_end_users.first().id
+            }
+        )
+        self.new_document_data = {
+            'name': 'document_name.pdf',
+            's3_key': 's3_keykey.pdf',
+            'size': 123456
+        }
 
     def test_set_and_remove_ultimate_end_user_on_draft_successful(self):
         self.draft.ultimate_end_users.set([])
@@ -134,3 +149,68 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_ultimate_end_user_document_success(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the ultimate end user does not have a document attached
+        When a document is submitted
+        Then a 201 CREATED is returned
+        """
+        PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first()).delete()
+
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_get_ultimate_end_user_document_success(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the ultimate end user has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached ultimate end user document
+        """
+        response = self.client.get(self.document_url, **self.exporter_headers)
+        response_data = response.json()['document']
+        expected = self.new_document_data
+
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_ultimate_end_user_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the draft contains an ultimate end user document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
+        response = self.client.delete(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        delete_s3_function.assert_called_once()
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_ultimate_end_user_deletes_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an ultimate end user
+        And the draft contains an ultimate end user document
+        When there is an attempt to delete the document
+        Then 200 OK
+        """
+        remove_ueu_url = reverse('applications:remove_ultimate_end_user',
+                                 kwargs={'pk': self.draft.id, 'ueu_pk': self.draft.ultimate_end_users.first().id})
+
+        response = self.client.delete(remove_ueu_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        delete_s3_function.assert_called_once()

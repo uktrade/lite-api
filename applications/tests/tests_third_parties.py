@@ -1,6 +1,9 @@
+from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
+from parties.document.models import PartyDocument
 from parties.models import ThirdParty
 from test_helpers.clients import DataTestClient
 
@@ -10,6 +13,19 @@ class ThirdPartiesOnDraft(DataTestClient):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
         self.url = reverse('applications:third_parties', kwargs={'pk': self.draft.id})
+
+        self.document_url = reverse(
+            'applications:third_party_document',
+            kwargs={
+                'pk': self.draft.id,
+                'tp_pk': self.draft.third_parties.first().id
+            }
+        )
+        self.new_document_data = {
+            'name': 'document_name.pdf',
+            's3_key': 's3_keykey.pdf',
+            'size': 123456
+        }
 
     def test_set_and_remove_third_parties_on_draft_successful(self):
         """
@@ -140,3 +156,68 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_third_party_document_success(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the third party does not have a document attached
+        When a document is submitted
+        Then a 201 CREATED is returned
+        """
+        PartyDocument.objects.filter(party=self.draft.third_parties.first()).delete()
+
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_get_third_party_document_success(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the third party has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached third party document
+        """
+        response = self.client.get(self.document_url, **self.exporter_headers)
+        response_data = response.json()['document']
+        expected = self.new_document_data
+
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_third_party_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the draft contains a third party document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
+        response = self.client.delete(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        delete_s3_function.assert_called_once()
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_third_party_deletes_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains a third party
+        And the draft contains a third party document
+        When there is an attempt to delete the document
+        Then 200 OK
+        """
+        remove_tp_url = reverse('applications:remove_third_party',
+                                kwargs={'pk': self.draft.id, 'tp_pk': self.draft.third_parties.first().id})
+
+        response = self.client.delete(remove_tp_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        delete_s3_function.assert_called_once()

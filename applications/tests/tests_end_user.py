@@ -1,7 +1,9 @@
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
+from unittest import mock
 
+from parties.document.models import PartyDocument
 from parties.models import EndUser
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -18,6 +20,13 @@ class EndUserOnDraftTests(DataTestClient):
             'country': 'PY',
             'sub_type': 'government',
             'website': 'https://www.gov.py'
+        }
+
+        self.document_url = reverse('applications:end_user_document', kwargs={'pk': self.draft.id})
+        self.new_document_data = {
+            'name': 'document_name.pdf',
+            's3_key': 's3_keykey.pdf',
+            'size': 123456
         }
 
     @parameterized.expand([
@@ -66,10 +75,8 @@ class EndUserOnDraftTests(DataTestClient):
         }
         url = reverse('applications:end_user', kwargs={'pk': draft_open_application.id})
 
-        # act
         response = self.client.post(url, data, **self.exporter_headers)
 
-        # assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
 
@@ -168,3 +175,140 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.delete(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_get_end_user_document_successful(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user has a document attached
+        When the document is retrieved
+        Then the data in the document is the same as the data in the attached end user document
+        """
+        response = self.client.get(self.document_url, **self.exporter_headers)
+        response_data = response.json()['document']
+        expected = self.new_document_data
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data['name'], expected['name'])
+        self.assertEqual(response_data['s3_key'], expected['s3_key'])
+        self.assertEqual(response_data['size'], expected['size'])
+
+    def test_get_document_when_no_end_user_exists_failure(self):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to retrieve a document
+        Then a 400 BAD REQUEST is returned
+        """
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        self.draft.end_user = None
+        self.draft.save()
+
+        response = self.client.get(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_document_when_no_end_user_exists_failure(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to submit a document
+        Then a 400 BAD REQUEST is returned
+        """
+        self.draft.end_user = None
+        self.draft.save()
+
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_document_when_no_end_user_exists_failure(self):
+        """
+        Given a standard draft has been created
+        And the draft does not contain an end user
+        When there is an attempt to delete a document
+        Then a 400 BAD REQUEST is returned
+        """
+        self.draft.end_user = None
+        self.draft.save()
+
+        response = self.client.delete(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_end_user_document_when_document_does_not_exist_failure(self):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user does not have a document attached
+        When there is an attempt to get a document
+        Then a 404 NOT FOUND is returned
+        And the response contains a null document
+        """
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+
+        response = self.client.get(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+        self.assertEqual(None, response.json()['document'])
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_end_user_document_success(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the end user does not have a document attached
+        When a document is submitted
+        Then a 201 CREATED is returned
+        """
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    def test_post_end_user_document_when_a_document_already_exists_failure(self, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to post a document
+        Then a 400 BAD REQUEST is returned
+        """
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(PartyDocument.objects.filter(party=self.draft.end_user).count(), 1)
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_end_user_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
+        response = self.client.delete(self.document_url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        delete_s3_function.assert_called_once()
+
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_end_user_deletes_document_success(self, delete_s3_function, prepare_document_function):
+        """
+        Given a standard draft has been created
+        And the draft contains an end user
+        And the draft contains an end user document
+        When there is an attempt to delete the document
+        Then 204 NO CONTENT is returned
+        """
+        response = self.client.delete(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        delete_s3_function.assert_called_once()
