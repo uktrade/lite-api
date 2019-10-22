@@ -61,7 +61,7 @@ class ApplicationExternalLocations(APIView):
             for external_location in external_locations:
                 new_external_location = get_external_location(external_location, request.user.organisation)
 
-                if new_external_location.address.country not in previous_external_location_countries:
+                if new_external_location.country.id not in previous_external_location_countries:
                     return JsonResponse(data={'errors': {
                         'sites': [
                             'You can not add external locations located in a different country to this application '

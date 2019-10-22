@@ -153,10 +153,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return site, address
 
     @staticmethod
-    def create_external_location(name, org):
+    def create_external_location(name, org, country='GB'):
         external_location = ExternalLocation(name=name,
                                              address='20 Questions Road, Enigma',
-                                             country=get_country('GB'),
+                                             country=get_country(country),
                                              organisation=org)
         external_location.save()
         return external_location

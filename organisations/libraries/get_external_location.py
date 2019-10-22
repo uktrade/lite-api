@@ -20,5 +20,5 @@ def has_previous_external_locations(application: BaseApplication):
 
 
 def get_external_location_countries_on_application(application: BaseApplication):
-    external_locations = ExternalLocationOnApplication.objects.filter(application=application)
-    return [external_location.ext_loc.country for external_location in external_locations]
+    return list(ExternalLocationOnApplication.objects.filter(
+        application=application).values_list('external_location__country__id', flat=True))

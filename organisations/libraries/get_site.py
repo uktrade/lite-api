@@ -20,5 +20,5 @@ def has_previous_sites(application: BaseApplication):
 
 
 def get_site_countries_on_application(application: BaseApplication):
-    sites_on_application = SiteOnApplication.objects.filter(application=application)
-    return [site_on_app.site.address.country for site_on_app in sites_on_application]
+    return list(SiteOnApplication.objects.filter(
+        application=application).values_list('site__address__country_id', flat=True))

@@ -56,7 +56,7 @@ class ApplicationSites(APIView):
             for site in sites:
                 new_site = get_site(site, request.user.organisation)
 
-                if new_site.address.country not in previous_site_countries:
+                if new_site.address.country.id not in previous_site_countries:
                     return JsonResponse(data={'errors': {
                         'sites': [
                             'You can not add sites located in a different country to this application without first '
