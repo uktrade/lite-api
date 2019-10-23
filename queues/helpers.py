@@ -102,7 +102,7 @@ def filter_cases(cases, filter_by: Dict[str, str]):
     if case_type:
         cases = cases.filter(type=case_type)
 
-    return cases.all()
+    return cases
 
 
 def sort_cases(cases, sort_by: str):
