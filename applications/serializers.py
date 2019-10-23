@@ -177,9 +177,10 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             return None
 
     def get_status(self, instance):
+        status = instance.status.status if instance.status else None
         return {
-            'key': instance.status.status,
-            'value': get_status_from_case_status(instance.status.status)
+            'key': status,
+            'value': get_status_from_case_status(status) if status else None
         }
 
     def get_goods_locations(self, application):
