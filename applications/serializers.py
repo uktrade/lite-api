@@ -268,8 +268,11 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.have_you_been_informed = validated_data.get('have_you_been_informed', instance.have_you_been_informed)
-        instance.reference_number_on_information_form = validated_data.get(
-            'reference_number_on_information_form', instance.reference_number_on_information_form)
+        if instance.have_you_been_informed == 'yes':
+            instance.reference_number_on_information_form = validated_data.get(
+                'reference_number_on_information_form', instance.reference_number_on_information_form)
+        else:
+            instance.reference_number_on_information_form = None
         instance.last_modified_at = datetime.now(timezone.utc)
         instance.save()
         return instance
@@ -368,7 +371,7 @@ class DraftApplicationCreateSerializer(serializers.ModelSerializer):
     have_you_been_informed = KeyValueChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                  error_messages={
                                                      'required': get_string('goods.error_messages.informed')})
-    reference_number_on_information_form = CharField(required=True, allow_blank=True)
+    reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
