@@ -255,6 +255,12 @@ class OpenApplicationSerializer(BaseApplicationSerializer):
 
 
 class ApplicationUpdateSerializer(BaseApplicationSerializer):
+    name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
+                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
+
     class Meta:
         model = BaseApplication
         fields = ('name', 'reference_number_on_information_form', 'have_you_been_informed',)
@@ -351,6 +357,9 @@ class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
 
 class DraftApplicationCreateSerializer(serializers.ModelSerializer):
     name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
                      error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
         'required': get_string('applications.generic.no_licence_type')})
