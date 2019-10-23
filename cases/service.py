@@ -24,7 +24,7 @@ def get_user_queue_meta(user) -> List[Dict]:
             'id': 'open_cases',
             'href': '/cases/?status=open',
             'name': 'Open cases',
-            'case_count': case_qs.open().count(),
+            'case_count': case_qs.is_open().count(),
         },
         {
             'id': 'team_cases',
@@ -57,7 +57,7 @@ def search_cases(queue_id=None, team=None, status=None, case_type=None) -> List[
     if status:
         if status == 'open':
             # Special status for all open. Does not exist in CaseStatusEnum.
-            case_qs = case_qs.open()
+            case_qs = case_qs.is_open()
         else:
             case_qs = case_qs.has_status(status=status)
 

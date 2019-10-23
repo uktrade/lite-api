@@ -7,8 +7,9 @@ from static.statuses.enums import CaseStatusEnum
 
 
 class CaseQuerySet(models.QuerySet):
-    def open(self):
-        return self.exclude(
+    def is_open(self, is_open: bool = True):
+        func = self.exclude if is_open else self.filter
+        return func(
             query__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED],
             application__status__status=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
         )
@@ -34,7 +35,7 @@ class CaseManager(models.Manager):
         return CaseQuerySet(self.model, using=self.db)
 
     def open(self):
-        return self.get_queryset().open()
+        return self.get_queryset().is_open()
 
     def in_queues(self, queues: List):
         return self.get_queryset().in_queues(queues)
