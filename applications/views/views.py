@@ -136,6 +136,13 @@ class ApplicationSubmission(APIView):
         """
         draft = get_application(pk, organisation_id=request.user.organisation.id)
 
+        try:
+            case = Case.objects.get(application=draft)
+            return JsonResponse(data={'application': {'case_id': case.id}},
+                            status=status.HTTP_200_OK)
+        except:
+            pass
+
         errors = check_application_for_errors(draft)
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
