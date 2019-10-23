@@ -1,17 +1,9 @@
 from django.http import JsonResponse
 from rest_framework import generics
 
-from cases.models import Case
-from cases.serializers import TinyCaseSerializer
+from cases import service
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
-from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID
-from queues.helpers import get_queue, sort_cases, filter_cases, get_queues
-from rest_framework.views import APIView
-
-from queues.models import Queue
-from queues.serializers import QueueViewSerializer
-from cases import service
 
 
 class CasesSearchView(generics.GenericAPIView):
