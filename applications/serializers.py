@@ -160,6 +160,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
                   'status',
                   'licence_type',
                   'export_type',
+                  'have_you_been_informed',
                   'reference_number_on_information_form',
                   'application_denial_reason',
                   'goods_locations',
@@ -260,6 +261,10 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
                      allow_blank=False,
                      allow_null=False,
                      error_messages={'blank': get_string('goods.error_messages.ref_name')})
+    reference_number_on_information_form = CharField(max_length=100,
+                                                     required=False,
+                                                     allow_blank=True,
+                                                     allow_null=True)
 
     class Meta:
         model = BaseApplication
