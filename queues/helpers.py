@@ -92,19 +92,15 @@ def filter_cases(cases, filter_by: Dict[str, str]):
     """
     Given a list of cases, filter by filter parameter
     """
-    kwargs = {}
-    case_type = filter_by.get('case_type', None)
-    if case_type:
-        kwargs['type'] = case_type
-
     status = filter_by.get('status', None)
     if status:
         cases = _coalesce_case_status_priority(cases)
         priority = get_case_status_from_status_enum(status).priority
-        kwargs['status__priority'] = priority
+        cases = cases.filter(status__priority=priority)
 
-    if kwargs:
-        return cases.filter(**kwargs)
+    case_type = filter_by.get('case_type', None)
+    if case_type:
+        cases = cases.filter(type=case_type)
 
     return cases.all()
 

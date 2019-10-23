@@ -9,11 +9,12 @@ from django.utils import timezone
 from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
+from cases.managers import CaseManager
 from documents.models import Document
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
@@ -33,6 +34,8 @@ class Case(models.Model):
     query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')
+
+    objects = CaseManager()
 
     class Meta:
         ordering = [Coalesce('application__submitted_at', 'query__submitted_at')]

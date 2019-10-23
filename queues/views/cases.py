@@ -1,10 +1,15 @@
+from django.http import JsonResponse
 from rest_framework import generics
 
+from cases.models import Case
 from cases.serializers import TinyCaseSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID
 from queues.helpers import get_queue, sort_cases, filter_cases
+from rest_framework.views import APIView
+
+from queues.models import Queue
 
 
 class CasesList(generics.ListAPIView):
@@ -15,11 +20,12 @@ class CasesList(generics.ListAPIView):
     def get_queryset(self):
         queue_pk = self.kwargs['pk']
         team = self.request.user.team
-
         queue = get_queue(queue_pk, team)
+
+        #queue = Queue.objects.get(pk=queue_pk)
+
         cases = filter_cases(queue.get_cases(), self.request.query_params)
         cases = sort_cases(cases, self.request.query_params.get('sort'))
-
         return cases.distinct()
 
     def get_serializer_context(self):
@@ -29,3 +35,17 @@ class CasesList(generics.ListAPIView):
             'queue': get_queue(self.kwargs['pk']).name,
             'is_system_queue': is_system_queue
         }
+
+
+class CasesSearchView(generics.GenericAPIView):
+    authentication_classes = (GovAuthentication,)
+    pagination_class = MaxPageNumberPagination
+    serializer_class = TinyCaseSerializer
+
+    def get_queryset(self):
+        cases = Case.objects.all()
+
+        return cases
+
+    def get(self, request):
+        print(request)
