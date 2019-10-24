@@ -109,19 +109,22 @@ class ApplicationDetail(APIView):
         try:
             case = Case.objects.get(application=application)
 
-            kwargs = {
-                'case': case,
-                'user': request.user
-            }
-
             if request.data.get('name'):
-                kwargs['old_name'] = application_old_name
-                kwargs['new_name'] = serializer.data.get('name')
-                CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_NAME, **kwargs)
+                CaseActivity.create(
+                    activity_type=CaseActivityType.UPDATED_APPLICATION_NAME,
+                    case=case,
+                    user=request.user,
+                    old_name=application_old_name,
+                    new_name=serializer.data.get('name')
+                )
             elif request.data.get('reference_number_on_information_form'):
-                kwargs['old_ref_number'] = application_old_ref_number
-                kwargs['new_ref_number'] = serializer.data.get('reference_number_on_information_form')
-                CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
+                CaseActivity.create(
+                    activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER,
+                    case=case,
+                    user=request.user,
+                    old_ref_number=application_old_ref_number,
+                    new_ref_number=serializer.data.get('reference_number_on_information_form')
+                )
         except Case.DoesNotExist:
             pass
 
@@ -193,6 +196,9 @@ class ApplicationManageStatus(APIView):
     def put(self, request, pk):
         application = get_application(pk)
 
+        if isinstance(request.user, ExporterUser) and request.user.organisation.id != application.organisation.id:
+            raise PermissionDenied()
+
         data = request.data
         new_status_enum = data.get('status')
 
@@ -200,9 +206,6 @@ class ApplicationManageStatus(APIView):
         # This can return 403 forbidden
         if new_status_enum == CaseStatusEnum.FINALISED:
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
-
-        if isinstance(request.user, ExporterUser) and request.user.organisation.id != application.organisation.id:
-            raise PermissionDenied()
 
         validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
 

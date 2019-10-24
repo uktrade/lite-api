@@ -22,13 +22,13 @@ def _get_application(request, kwargs):
     return application
 
 
-def application_licence_type(type):
+def application_licence_type(licence_type):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.licence_type != type:
+            if application.licence_type != licence_type:
                 return HttpResponseBadRequest()
 
             return func(request, *args, **kwargs)
