@@ -97,6 +97,8 @@ class ApplicationDetail(APIView):
         """
         Update an application instance.
         """
+        application_old_name = application.name
+        application_old_ref_number = application.reference_number_on_information_form
         serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
         if not serializer.is_valid():
@@ -113,11 +115,11 @@ class ApplicationDetail(APIView):
             }
 
             if request.data.get('name'):
-                kwargs['old_name'] = application.name
+                kwargs['old_name'] = application_old_name
                 kwargs['new_name'] = request.data.get('name')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_NAME, **kwargs)
             elif request.data.get('reference_number_on_information_form'):
-                kwargs['old_ref_number'] = application.reference_number_on_information_form
+                kwargs['old_ref_number'] = application_old_ref_number
                 kwargs['new_ref_number'] = request.data.get('reference_number_on_information_form')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
         except Case.DoesNotExist:
