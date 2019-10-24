@@ -8,7 +8,7 @@ from conf.exceptions import NotFoundError
 from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
 
 
@@ -100,7 +100,7 @@ def filter_cases(cases, filter_by: Dict[str, str]):
     status = filter_by.get('status', None)
     if status:
         cases = _coalesce_case_status_priority(cases)
-        priority = get_case_status_from_case_status_enum(status).priority
+        priority = get_case_status_by_status(status).priority
         kwargs['status__priority'] = priority
 
     if kwargs:

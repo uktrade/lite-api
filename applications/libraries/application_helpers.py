@@ -4,7 +4,7 @@ from applications.models import BaseApplication, StandardApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from conf.exceptions import NotFoundError
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import BaseUser, ExporterUser
 
 
@@ -26,18 +26,16 @@ def optional_str_to_bool(optional_string: str):
         raise ValueError('You provided ' + optional_string + ', while the allowed values are None, "true" or "false"')
 
 
-def validate_status_can_be_set(original_status: CaseStatusEnum,
-                               new_status: CaseStatusEnum,
-                               user: BaseUser) -> Optional[str]:
+def validate_status_can_be_set(original_status: str, new_status: str, user: BaseUser) -> Optional[str]:
     try:
-        get_case_status_from_case_status_enum(new_status)
+        get_case_status_by_status(new_status)
     except NotFoundError:
         return 'Status not found.'
 
     if isinstance(user, ExporterUser):
         if original_status != CaseStatusEnum.SUBMITTED and new_status == CaseStatusEnum.APPLICANT_EDITING:
             return f'Setting application status to "{new_status}" when application status is ' \
-                f'"{str(original_status)}" is not allowed.'
+                f'"{original_status}" is not allowed.'
 
         if new_status == CaseStatusEnum.SUBMITTED:
             return f'Setting application status to "{new_status}" is not allowed.'

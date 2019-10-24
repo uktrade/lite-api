@@ -24,7 +24,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum, get_status_from_case_status
+from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -181,7 +181,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
         status = instance.status.status if instance.status else None
         return {
             'key': status,
-            'value': get_status_from_case_status(status) if status else None
+            'value': get_status_value_from_case_status_enum(status) if status else None
         }
 
     def get_goods_locations(self, application):
@@ -306,11 +306,11 @@ class ApplicationStatusUpdateSerializer(BaseApplicationSerializer):
         instance.last_modified_at = datetime.now(timezone.utc)
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_case_status_enum(CaseStatusEnum.FINALISED):
+        if validated_data.get('status') == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_from_case_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
+        if validated_data.get('status') == get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}

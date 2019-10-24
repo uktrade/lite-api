@@ -23,7 +23,7 @@ from conf.decorators import authorised_users, application_in_major_editable_stat
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
 
 
@@ -160,7 +160,7 @@ class ApplicationSubmission(APIView):
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application.submitted_at = datetime.now(timezone.utc)
-        application.status = get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED)
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
         if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
@@ -212,7 +212,7 @@ class ApplicationManageStatus(APIView):
         if validation_error:
             return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
-        new_status = get_case_status_from_case_status_enum(new_status_enum)
+        new_status = get_case_status_by_status(new_status_enum)
 
         request.data['status'] = str(new_status.pk)
         serializer = ApplicationStatusUpdateSerializer(application, data=data, partial=True)

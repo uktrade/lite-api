@@ -26,7 +26,7 @@ from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -253,7 +253,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def submit_application(self, application: BaseApplication):
         application.submitted_at = datetime.now(timezone.utc)
-        application.status = get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED)
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
         case = Case(application=application)
