@@ -192,8 +192,8 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data['cases']))
         # Assert ordering
-        for i in range(0, len(response_data['cases'])):
-            self.assertEqual(response_data['cases'][i]['id'], all_cases_sorted[i]['case'])
+        for case, expected_case in zip(response_data['cases'], all_cases_sorted):
+            self.assertEqual(case['id'], expected_case['case'])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
@@ -218,9 +218,9 @@ class CasesFilterAndSortTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.application_cases), len(response_data['cases']))
-        for i in range(0, len(response_data['cases'])):
+        for case, expected_case in zip(response_data['cases'], application_cases_sorted):
             # Assert Case Type
-            case_type = Case.objects.filter(pk=response_data['cases'][i]['id']).values_list('type', flat=True)[0]
+            case_type = Case.objects.filter(pk=case['id']).values_list('type', flat=True)[0]
             self.assertEqual(case_type, 'application')
             # Assert ordering
-            self.assertEqual(response_data['cases'][i]['id'], application_cases_sorted[i]['case'])
+            self.assertEqual(case['id'], expected_case['case'])
