@@ -8,18 +8,6 @@ from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 
 
-def _coalesce_case_status_priority(cases):
-    if cases.count():
-        case = cases.first()
-        case = case.__dict__
-        if 'status__priority' not in case:
-            return cases.annotate(
-                status__priority=Coalesce('application__status__priority', 'query__status__priority')
-            )
-
-    return cases
-
-
 def _all_cases_queue():
     queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
                   name='All cases',
