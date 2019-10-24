@@ -55,8 +55,8 @@ class ApplicationCountries(APIView):
                 new_country = get_country(country)
 
                 if new_country.id not in list(previous_countries.values_list('country_id', flat=True)):
-                    return JsonResponse(data={'errors': 'You can not add new countries to this application without '
-                                                        'first setting it to an editable status'},
+                    return JsonResponse(data={'errors': {'countries': ['You can not add new countries to this application without '
+                                                         'first setting it to an editable status']}},
                                         status=status.HTTP_400_BAD_REQUEST)
                 else:
                     new_countries.append(new_country)
