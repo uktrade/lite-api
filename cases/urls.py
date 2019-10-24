@@ -1,12 +1,13 @@
 from django.urls import path
 
-from cases.views import views, activity, case_notes, search
+from cases.views import views, activity, case_notes
+from cases.views.search import views as search_views
 
 app_name = 'cases'
 
 urlpatterns = [
-    path('', search.CasesSearchView.as_view(), name='search'),
-
+    # ex: /cases/
+    path('', search_views.CasesSearchView.as_view(), name='search'),
     # ex: /cases/<uuid:pk>/
     path('<uuid:pk>/', views.CaseDetail.as_view(), name='case'),
     # ex: /cases/<uuid:pk>/case-notes/

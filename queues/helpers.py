@@ -88,23 +88,6 @@ def get_queue(pk, team=None):
         raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
 
 
-def filter_cases(cases, filter_by: Dict[str, str]):
-    """
-    Given a list of cases, filter by filter parameter
-    """
-    status = filter_by.get('status', None)
-    if status:
-        cases = _coalesce_case_status_priority(cases)
-        priority = get_case_status_from_status_enum(status).priority
-        cases = cases.filter(status__priority=priority)
-
-    case_type = filter_by.get('case_type', None)
-    if case_type:
-        cases = cases.filter(type=case_type)
-
-    return cases
-
-
 def sort_cases(cases, sort_by: str):
     """
     Given a list of cases, sort by the sort parameter

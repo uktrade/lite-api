@@ -1,5 +1,7 @@
 from typing import List, Dict
 
+from django.db.models.functions import Coalesce
+
 from cases.enums import CaseType
 from cases.models import Case
 from cases.serializers import TinyCaseSerializer
@@ -16,33 +18,33 @@ def get_user_queue_meta(user) -> List[Dict]:
     return [
         {
             'id': 'all_cases',
-            'href': '/cases/',
+            'href': '/cases/?is_system_queue=true',
             'name': 'All cases',
             'case_count': case_qs.count(),
         },
         {
             'id': 'open_cases',
-            'href': '/cases/?status=open',
+            'href': '/cases/?is_system_queue=true&status=open',
             'name': 'Open cases',
             'case_count': case_qs.is_open().count(),
         },
         {
             'id': 'team_cases',
-            'href': '/cases/?team=my',
+            'href': '/cases/?is_system_queue=true&team=true',
             'name': 'All my queues',
             'case_count': case_qs.in_team(team=user.team).count(),
         },
     ] + [
         {
             'id': str(queue.id),
-            'href': f'/cases/?queue={queue.id}',
+            'href': f'/cases/?title={queue.name}&queue={queue.id}',
             'name': queue.name,
             'case_count': case_qs.in_queue(queue_id=queue.id).count(),
         } for queue in Queue.objects.all()
     ]
 
 
-def search_cases(queue_id=None, team=None, status=None, case_type=None) -> List[Dict]:
+def search_cases(queue_id=None, team=None, status=None, case_type=None, sort=None):
     """
     Search for a user's available cases given a set of search parameters.
     """
@@ -64,10 +66,16 @@ def search_cases(queue_id=None, team=None, status=None, case_type=None) -> List[
     if case_type:
         case_qs = case_qs.is_type(case_type=case_type)
 
-    return list(TinyCaseSerializer(case_qs, many=True).data)
+    case_qs = case_qs.order_by_date()
+
+    if sort:
+        case_qs = case_qs.order_by_status(order='-' if '-' in sort else '')
+
+    return case_qs
 
 
 def get_case_status_list() -> List[Dict]:
+    """Used by migration and views for consistency."""
     return [
         {
             'status': choice[0],
