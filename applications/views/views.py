@@ -113,10 +113,12 @@ class ApplicationDetail(APIView):
             }
 
             if request.data.get('name'):
-                kwargs['application_name'] = request.data.get('name')
+                kwargs['old_name'] = application.name
+                kwargs['new_name'] = request.data.get('name')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_NAME, **kwargs)
             elif request.data.get('reference_number_on_information_form'):
-                kwargs['application_reference_number'] = request.data.get('reference_number_on_information_form')
+                kwargs['old_ref_number'] = application.reference_number_on_information_form
+                kwargs['new_ref_number'] = request.data.get('reference_number_on_information_form')
                 CaseActivity.create(activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER, **kwargs)
         except Case.DoesNotExist:
             pass

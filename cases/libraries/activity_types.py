@@ -16,6 +16,17 @@ class CaseActivityType(BaseActivityType):
     GOOD_REMOVE_FLAGS = 'good_remove_flags'
     GOOD_ADD_REMOVE_FLAGS = 'good_add_remove_flags'
 
+    ADD_GOOD_TO_APPLICATION = 'add_good_to_application'
+    REMOVE_GOOD_FROM_APPLICATION = 'remove_good_from_application'
+    ADD_GOOD_TYPE_TO_APPLICATION = 'add_good_type_to_application'
+    REMOVE_GOOD_TYPE_FROM_APPLICATION = 'remove_good_type_from_application'
+
+    DELETE_ALL_SITES_FROM_APPLICATION = 'delete_all_sites_from_application'
+    ADD_EXTERNAL_LOCATIONS_TO_APPLICATION = 'add_external_locations_to_application'
+
+    DELETE_ALL_COUNTRIES_FROM_APPLICATION = 'delete_all_countries_from_application'
+    ADD_COUNTRIES_TO_APPLICATION = 'add_countries_to_application'
+
     MOVE_CASE = 'move_case'
     REMOVE_CASE = 'remove_case'
 
@@ -44,6 +55,17 @@ class CaseActivityType(BaseActivityType):
             (GOOD_REMOVE_FLAGS, 'removed flags: {removed_flags} to good: {good_name}'),
             (GOOD_ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}'),
 
+            (ADD_GOOD_TO_APPLICATION, 'added good {good_name} to the application'),
+            (REMOVE_GOOD_FROM_APPLICATION, 'removed good {good_name} from the application'),
+            (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name} to the application'),
+            (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name} from the application'),
+
+            (DELETE_ALL_SITES_FROM_APPLICATION, 'removed all sites from the application'),
+            (ADD_EXTERNAL_LOCATIONS_TO_APPLICATION, 'added external locations: {locations}'),
+
+            (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries from the application'),
+            (ADD_COUNTRIES_TO_APPLICATION, 'added countries: {countries}'),
+
             (MOVE_CASE, 'moved the case to: {queues}'),
             (REMOVE_CASE, 'removed case from queues: {queues}'),
 
@@ -59,8 +81,8 @@ class CaseActivityType(BaseActivityType):
             (CREATED_TEAM_ADVICE, 'created team advice'),
             (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
-            (UPDATED_APPLICATION_NAME, 'updated the application name to {application_name}'),
-            (UPDATED_APPLICATION_REFERENCE_NUMBER, 'updated the application reference number to {'
-                                                   'application_reference_number}'),
+            (UPDATED_APPLICATION_NAME, 'updated the application name from "{old_name}" to "{new_name}"'),
+            (UPDATED_APPLICATION_REFERENCE_NUMBER, 'updated the application reference number from '
+                                                   '{old_ref_number} to {new_ref_number}'),
         ]
     )

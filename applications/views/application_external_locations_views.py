@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_external_location, \
@@ -90,6 +92,30 @@ class ApplicationExternalLocations(APIView):
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         # Deletes any sites on the draft if an external location is being added
-        SiteOnApplication.objects.filter(application=application).delete()
+        _, deleted_site_count = SiteOnApplication.objects.filter(application=application).delete()
+
+        self._set_case_activity(application, request.user, deleted_site_count, new_external_locations)
 
         return JsonResponse(data={'external_locations': response_data}, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def _set_case_activity(application, user, deleted_site_count, new_external_locations):
+        try:
+            case = Case.objects.get(application=application)
+        except Case.DoesNotExist:
+            return
+
+        if deleted_site_count:
+            CaseActivity.create(activity_type=CaseActivityType.DELETE_ALL_SITES_FROM_APPLICATION,
+                                case=case,
+                                user=user)
+
+        case_activity_locations = [external_location.name + ' ' +
+                                   external_location.address + ' ' +
+                                   external_location.country.name
+                                   for external_location in new_external_locations]
+
+        CaseActivity.create(activity_type=CaseActivityType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
+                            case=case,
+                            user=user,
+                            locations=case_activity_locations)

@@ -71,11 +71,11 @@ def upload_party_document(party, data):
     data['party'] = party.id
     serializer = PartyDocumentSerializer(data=data)
 
-    if serializer.is_valid():
-        serializer.save()
-        return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
-    else:
+    if not serializer.is_valid():
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 def delete_party_document(party):

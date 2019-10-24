@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
@@ -8,6 +7,8 @@ from applications.enums import ApplicationLicenceType
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from goods.enums import GoodStatus
@@ -48,17 +49,19 @@ class ApplicationGoodsOnApplication(APIView):
             return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        with reversion.create_revision():
-            serializer = GoodOnApplicationCreateSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-
-                reversion.set_user(request.user)
-                reversion.set_comment("Created Good on Application Revision")
-
-                return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
-
+        serializer = GoodOnApplicationCreateSerializer(data=data)
+        if not serializer.is_valid():
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        if application.status:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_GOOD_TO_APPLICATION,
+                                case=Case.objects.get(application=application),
+                                user=request.user,
+                                good_name=good.description)
+
+        return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationGoodOnApplication(APIView):
@@ -81,7 +84,14 @@ class ApplicationGoodOnApplication(APIView):
 
         good_on_application.delete()
 
+        if good_on_application.application.status:
+            CaseActivity.create(activity_type=CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
+                                case=Case.objects.get(application=good_on_application.application),
+                                user=request.user,
+                                good_name=good_on_application.good.description)
+
         return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
+
 
 class ApplicationGoodsTypes(APIView):
     """
@@ -108,11 +118,18 @@ class ApplicationGoodsTypes(APIView):
 
         serializer = GoodsTypeSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+
+        if application.status:
+            CaseActivity.create(activity_type=CaseActivityType.ADD_GOOD_TO_APPLICATION,
+                                case=Case.objects.get(application=application),
+                                user=request.user,
+                                good_name=serializer.data['description'])
+
+        return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationGoodsType(APIView):
@@ -137,6 +154,12 @@ class ApplicationGoodsType(APIView):
         """
         goods_type = get_goods_type(goodstype_pk)
         goods_type.delete()
+
+        if application.status:
+            CaseActivity.create(activity_type=CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
+                                case=Case.objects.get(application=application),
+                                user=request.user,
+                                good_type_name=goods_type.description)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
