@@ -27,11 +27,6 @@ def optional_str_to_bool(optional_string: str):
 
 
 def validate_status_can_be_set(original_status: str, new_status: str, user: BaseUser) -> Optional[str]:
-    try:
-        get_case_status_by_status(new_status)
-    except NotFoundError:
-        return 'Status not found.'
-
     if isinstance(user, ExporterUser):
         if original_status != CaseStatusEnum.SUBMITTED and new_status == CaseStatusEnum.APPLICANT_EDITING:
             return f'Setting application status to "{new_status}" when application status is ' \
