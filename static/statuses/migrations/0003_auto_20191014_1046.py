@@ -7,16 +7,15 @@ from static.statuses.enums import CaseStatusEnum
 
 def initialize(apps, schema_editor):
     CaseStatus = apps.get_model('statuses', 'CaseStatus')
-    CaseStatus.objects.all().delete()
 
     for choice in CaseStatusEnum.choices:
-        case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
-        case_status.save()
+        if not CaseStatus.objects.filter(status=choice[0]).exists():
+            case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
+            case_status.save()
 
 
 def destroy(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
-    CaseStatus.objects.all().delete()
+    pass
 
 
 class Migration(migrations.Migration):
