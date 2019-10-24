@@ -15,7 +15,7 @@ class GoodTests(DataTestClient):
         """
         draft = self.create_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, 'draft')
-        url = reverse('applications:application_submit', kwargs={'pk':  draft.id})
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
 
         self.client.put(url, **self.exporter_headers)
 

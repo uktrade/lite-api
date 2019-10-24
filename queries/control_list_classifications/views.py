@@ -17,7 +17,7 @@ from goods.libraries.get_goods import get_good
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from users.models import UserOrganisationRelationship
 
 
@@ -67,7 +67,7 @@ class ControlListClassificationDetail(APIView):
             if clc_good_serializer.is_valid():
                 if 'validate_only' not in data or data['validate_only'] == 'False':
                     clc_good_serializer.save()
-                    query.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
+                    query.status = get_case_status_from_case_status_enum(CaseStatusEnum.FINALISED)
                     query.save()
 
                     # Add an activity item for the query's case

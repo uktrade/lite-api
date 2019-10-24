@@ -4,7 +4,7 @@ from applications.models import BaseApplication, StandardApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from conf.exceptions import NotFoundError
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from users.models import BaseUser, ExporterUser
 
 
@@ -30,7 +30,7 @@ def validate_status_can_be_set(original_status: CaseStatusEnum,
                                new_status: CaseStatusEnum,
                                user: BaseUser) -> Optional[str]:
     try:
-        get_case_status_from_status_enum(new_status)
+        get_case_status_from_case_status_enum(new_status)
     except NotFoundError:
         return 'Status not found.'
 

@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from test_helpers.clients import DataTestClient
 
 
@@ -28,7 +28,7 @@ class EditApplicationTests(DataTestClient):
     def test_edit_submitted_application_name(self):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
-        application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        application.status = get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
         url = reverse('applications:application', kwargs={'pk': application.id})
         original_last_modified_at = application.last_modified_at
@@ -45,7 +45,7 @@ class EditApplicationTests(DataTestClient):
     def test_edit_application_reference_number(self):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
-        application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        application.status = get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
         url = reverse('applications:application', kwargs={'pk': application.id})
         original_last_modified_at = application.last_modified_at

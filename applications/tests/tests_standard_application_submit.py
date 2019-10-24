@@ -7,7 +7,7 @@ from content_strings.strings import get_string
 from goods.enums import GoodStatus
 from parties.document.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from test_helpers.clients import DataTestClient
 
 
@@ -150,7 +150,7 @@ class StandardApplicationTests(DataTestClient):
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
         standard_application = self.create_standard_application(self.organisation)
         self.submit_application(standard_application)
-        standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
@@ -159,12 +159,12 @@ class StandardApplicationTests(DataTestClient):
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+        self.assertEqual(standard_application.status, get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED))
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_standard_application(self.organisation)
-        standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
@@ -174,7 +174,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
         self.assertEqual(standard_application.submitted_at, previous_submitted_at)
 
     def test_submit_standard_application_and_verified_good_status_is_not_altered(self):

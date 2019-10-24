@@ -6,7 +6,7 @@ from rest_framework import status
 
 from applications.models import ApplicationDenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
@@ -41,7 +41,7 @@ class ApplicationDenialTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW))
         self.assertEqual(application_denial_reason.reason_details,
                          data.get('reason_details'))
         self.assertEqual(application_denial_reason.reasons.all().count(),
@@ -97,11 +97,11 @@ class ApplicationDenialTests(DataTestClient):
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING))
         self.assertEqual(self.standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_applicant_editing_when_not_previously_submitted_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        self.standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -113,7 +113,7 @@ class ApplicationDenialTests(DataTestClient):
                          'Setting application status to "applicant_editing" when application status is '
                          '"more_information_required" is not allowed.')
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -123,10 +123,10 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Setting application status to "applicant_editing" is not allowed for GovUsers.')
-        self.assertEqual(self.standard_application.status, get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+        self.assertEqual(self.standard_application.status, get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED))
 
     def test_gov_set_application_status_when_previously_applicant_editing_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        self.standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED}
@@ -138,10 +138,10 @@ class ApplicationDenialTests(DataTestClient):
                          'Setting application status when its existing status is "applicant_editing"'
                          ' is not allowed for GovUsers.')
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_set_application_status_to_submitted_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING)
+        self.standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.SUBMITTED}
@@ -152,10 +152,10 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Setting application status to "submitted" is not allowed.')
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.APPLICANT_EDITING))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_set_application_status_to_invalid_status_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        self.standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED)
         self.standard_application.save()
 
         data = {'status': 'something_stupid'}
@@ -166,10 +166,10 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Status not found.')
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
-        self.standard_application.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        self.standard_application.status = get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED)
         self.standard_application.save()
 
         other_organisation = self.create_organisation_with_exporter_user()
@@ -184,4 +184,4 @@ class ApplicationDenialTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.standard_application.status,
-                         get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+                         get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED))

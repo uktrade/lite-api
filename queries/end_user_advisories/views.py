@@ -15,7 +15,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 
 
 class EndUserAdvisoriesList(APIView):
@@ -84,7 +84,7 @@ class EndUserAdvisoryDetail(APIView):
             if data.get('status') == CaseStatusEnum.FINALISED:
                 assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-            request.data['status'] = get_case_status_from_status_enum(data.get('status'))
+            request.data['status'] = get_case_status_from_case_status_enum(data.get('status'))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 

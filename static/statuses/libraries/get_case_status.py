@@ -7,11 +7,7 @@ def get_status_from_case_status(case_status):
     return [x for x in CaseStatusEnum.choices if x[0] == case_status][0][1]
 
 
-def get_case_status_from_status_enum(case_status):
-    # if passed tuple
-    if case_status and len(case_status) == 2:
-        case_status = case_status[0]
-
+def get_case_status_from_case_status_enum(case_status):
     try:
         return CaseStatus.objects.get(status=case_status)
     except CaseStatus.DoesNotExist:

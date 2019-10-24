@@ -5,7 +5,7 @@ from django.db import models
 
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from static.statuses.models import CaseStatus
 
 
@@ -15,7 +15,7 @@ class QueryManager(models.Manager):
         from cases.enums import CaseType
         from cases.models import Case
 
-        query = super().create(**obj_data, status=get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED))
+        query = super().create(**obj_data, status=get_case_status_from_case_status_enum(CaseStatusEnum.SUBMITTED))
 
         # Create a case with this query
         case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) \

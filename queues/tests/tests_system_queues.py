@@ -4,7 +4,7 @@ from rest_framework import status
 from cases.models import CaseAssignment
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_from_case_status_enum
 from test_helpers.clients import DataTestClient
 
 
@@ -19,7 +19,7 @@ class RetrieveAllCases(DataTestClient):
         self.case_2 = self.create_clc_query('Query', self.organisation).case.get()
         self.case_3 = self.create_clc_query('Query', self.organisation).case.get()
 
-        self.case_3.query.status = get_case_status_from_status_enum(CaseStatusEnum.FINALISED)
+        self.case_3.query.status = get_case_status_from_case_status_enum(CaseStatusEnum.FINALISED)
         self.case_3.query.save()
 
         self.url = reverse('queues:queues')
