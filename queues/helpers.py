@@ -1,5 +1,4 @@
 from django.db.models import Q
-from django.db.models.functions import Coalesce
 
 from conf.exceptions import NotFoundError
 from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
