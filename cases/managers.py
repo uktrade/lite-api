@@ -1,6 +1,6 @@
-from django.db import models
-from typing import List, Union
+from typing import List
 
+from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Coalesce
 
@@ -35,7 +35,7 @@ class CaseQuerySet(models.QuerySet):
         :param order: ('', '-')
         :return:
         """
-        assert order in ['', '-']
+        order = order if order in ['', '-'] else ''
 
         return self.annotate(
             status__priority=Coalesce('application__status__priority', 'query__status__priority')
@@ -46,7 +46,7 @@ class CaseQuerySet(models.QuerySet):
         :param order: ('', '-')
         :return:
         """
-        assert order in ['', '-']
+        order = order if order in ['', '-'] else ''
 
         return self.annotate(
             created_at=Coalesce('application__submitted_at', 'query__submitted_at'),
@@ -56,24 +56,3 @@ class CaseQuerySet(models.QuerySet):
 class CaseManager(models.Manager):
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
-
-    def open(self):
-        return self.get_queryset().is_open()
-
-    def in_queues(self, queues: List):
-        return self.get_queryset().in_queues(queues)
-
-    def in_queue(self, queue_id):
-        return self.get_queryset().in_queue(queue_id)
-
-    def in_team(self, team):
-        return self.get_queryset().in_team(team)
-
-    def has_status(self, status):
-        return self.get_queryset().has_status(status)
-
-    def is_type(self, case_type):
-        return self.get_queryset().is_type(case_type)
-
-    def order_by_date(self):
-        return self.get_queryset().order_by_date()

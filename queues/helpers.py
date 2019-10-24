@@ -1,14 +1,10 @@
-from typing import Dict
-
 from django.db.models import Q
 from django.db.models.functions import Coalesce
-from django.http import Http404
 
 from conf.exceptions import NotFoundError
 from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from teams.models import Team
 
 
@@ -87,18 +83,3 @@ def get_queue(pk, team=None):
     else:
         raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
 
-
-def sort_cases(cases, sort_by: str):
-    """
-    Given a list of cases, sort by the sort parameter
-    Currently only supports: status
-    """
-    if sort_by:
-        order = '-' if '-' in sort_by else ''
-        if sort_by == 'status' or sort_by == '-status':
-            cases = _coalesce_case_status_priority(cases)
-            return cases.order_by(order + 'status__priority')
-        else:
-            raise Http404
-
-    return cases.all()

@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case
-from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
 from test_helpers.clients import DataTestClient
@@ -193,9 +192,6 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data['cases']))
         # Assert ordering
-        from pprint import pprint
-        pprint(response_data['cases'])
-        pprint(all_cases_sorted)
         for i in range(0, len(response_data['cases'])):
             self.assertEqual(response_data['cases'][i]['id'], all_cases_sorted[i]['case'])
 

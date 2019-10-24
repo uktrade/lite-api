@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import generics
 
 from cases.serializers import TinyCaseSerializer

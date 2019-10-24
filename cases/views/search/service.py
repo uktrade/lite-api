@@ -1,10 +1,7 @@
 from typing import List, Dict
 
-from django.db.models.functions import Coalesce
-
 from cases.enums import CaseType
 from cases.models import Case
-from cases.serializers import TinyCaseSerializer
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 
@@ -68,8 +65,8 @@ def search_cases(queue_id=None, team=None, status=None, case_type=None, sort=Non
 
     case_qs = case_qs.order_by_date()
 
-    if sort:
-        case_qs = case_qs.order_by_status(order='-' if '-' in sort else '')
+    if isinstance(sort, str):
+        case_qs = case_qs.order_by_status(order='-' if sort.startswith('-') else '')
 
     return case_qs
 
