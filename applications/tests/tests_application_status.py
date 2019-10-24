@@ -137,8 +137,7 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Setting application status when its existing status is "applicant_editing"'
                          ' is not allowed for GovUsers.')
-        self.assertEqual(self.standard_application.status,
-                         get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_set_application_status_to_submitted_failure(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -162,11 +161,8 @@ class ApplicationDenialTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.exporter_headers)
 
         self.standard_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json.loads(response.content).get('errors')[0],
-                         'Status not found.')
-        self.assertEqual(self.standard_application.status,
-                         get_case_status_by_status(CaseStatusEnum.SUBMITTED))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
@@ -183,5 +179,4 @@ class ApplicationDenialTests(DataTestClient):
         response = self.client.put(self.url, data=data, **permission_denied_user_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(self.standard_application.status,
-                         get_case_status_by_status(CaseStatusEnum.SUBMITTED))
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))

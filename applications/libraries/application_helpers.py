@@ -2,9 +2,7 @@ from typing import Optional
 
 from applications.models import BaseApplication, StandardApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
-from conf.exceptions import NotFoundError
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import BaseUser, ExporterUser
 
 
