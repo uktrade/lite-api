@@ -91,7 +91,6 @@ class ApplicationDetail(APIView):
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """
