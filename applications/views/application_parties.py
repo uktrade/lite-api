@@ -3,9 +3,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
+from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from parties.helpers import delete_party_document_if_exists
+from parties.libraries.party_case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from users.models import ExporterUser
@@ -25,20 +27,26 @@ class ApplicationEndUser(APIView):
         data['organisation'] = request.user.organisation.id
 
         serializer = EndUserSerializer(data=data)
-        if serializer.is_valid():
-            previous_end_user = application.end_user
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            new_end_user = serializer.save()
-            application.end_user = new_end_user
-            application.save()
+        previous_end_user = application.end_user
 
-            if previous_end_user:
-                delete_party_document_if_exists(previous_end_user)
-                previous_end_user.delete()
+        new_end_user = serializer.save()
+        application.end_user = new_end_user
+        application.save()
 
-            return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
+        if previous_end_user:
+            delete_party_document_if_exists(previous_end_user)
+            previous_end_user.delete()
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            set_party_case_activity(application.id, request.user, previous_end_user.type, previous_end_user.name,
+                                    CaseActivityType.REMOVE_PARTY)
+
+        set_party_case_activity(application.id, request.user, new_end_user.type, new_end_user.name,
+                                CaseActivityType.ADD_PARTY)
+
+        return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @application_in_major_editable_state()
@@ -56,6 +64,9 @@ class ApplicationEndUser(APIView):
         application.save()
         delete_party_document_if_exists(end_user)
         end_user.delete()
+
+        set_party_case_activity(application.id, request.user, end_user.type, end_user.name,
+                                CaseActivityType.REMOVE_PARTY)
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -84,13 +95,16 @@ class ApplicationUltimateEndUsers(APIView):
         data['organisation'] = request.user.organisation.id
 
         serializer = UltimateEndUserSerializer(data=data)
-        if serializer.is_valid():
-            ultimate_end_user = serializer.save()
-            application.ultimate_end_users.add(ultimate_end_user.id)
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            return JsonResponse(data={'ultimate_end_user': serializer.data}, status=status.HTTP_201_CREATED)
+        ultimate_end_user = serializer.save()
+        application.ultimate_end_users.add(ultimate_end_user.id)
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        set_party_case_activity(application.id, request.user, ultimate_end_user.type, ultimate_end_user.name,
+                                CaseActivityType.ADD_PARTY)
+
+        return JsonResponse(data={'ultimate_end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class RemoveApplicationUltimateEndUser(APIView):
@@ -111,6 +125,9 @@ class RemoveApplicationUltimateEndUser(APIView):
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
 
+        set_party_case_activity(application.id, request.user, ultimate_end_user.type, ultimate_end_user.name,
+                                CaseActivityType.REMOVE_PARTY)
+
         return JsonResponse(data={'ultimate_end_user': 'deleted'}, status=status.HTTP_200_OK)
 
 
@@ -128,20 +145,26 @@ class ApplicationConsignee(APIView):
         data['organisation'] = request.user.organisation.id
 
         serializer = ConsigneeSerializer(data=data)
-        if serializer.is_valid():
-            previous_consignee = application.consignee
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            new_consignee = serializer.save()
-            application.consignee = new_consignee
-            application.save()
+        previous_consignee = application.consignee
 
-            if previous_consignee:
-                delete_party_document_if_exists(previous_consignee)
-                previous_consignee.delete()
+        new_consignee = serializer.save()
+        application.consignee = new_consignee
+        application.save()
 
-            return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
+        if previous_consignee:
+            delete_party_document_if_exists(previous_consignee)
+            previous_consignee.delete()
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            set_party_case_activity(application.id, request.user, previous_consignee.type, previous_consignee.name,
+                                    CaseActivityType.REMOVE_PARTY)
+
+        set_party_case_activity(application.id, request.user, new_consignee.type, new_consignee.name,
+                                CaseActivityType.ADD_PARTY)
+
+        return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @application_in_major_editable_state()
@@ -159,6 +182,9 @@ class ApplicationConsignee(APIView):
         application.save()
         delete_party_document_if_exists(consignee)
         consignee.delete()
+
+        set_party_case_activity(application.id, request.user, consignee.type, consignee.name,
+                                CaseActivityType.REMOVE_PARTY)
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -187,13 +213,16 @@ class ApplicationThirdParties(APIView):
         data['organisation'] = request.user.organisation.id
 
         serializer = ThirdPartySerializer(data=data)
-        if serializer.is_valid():
-            third_party = serializer.save()
-            application.third_parties.add(third_party.id)
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            return JsonResponse(data={'third_party': serializer.data}, status=status.HTTP_201_CREATED)
+        third_party = serializer.save()
+        application.third_parties.add(third_party.id)
 
-        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        set_party_case_activity(application.id, request.user, third_party.type, third_party.name,
+                                CaseActivityType.ADD_PARTY)
+
+        return JsonResponse(data={'third_party': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class RemoveThirdParty(APIView):
@@ -213,5 +242,8 @@ class RemoveThirdParty(APIView):
         application.third_parties.remove(third_party.id)
         delete_party_document_if_exists(third_party)
         third_party.delete()
+
+        set_party_case_activity(application.id, request.user, third_party.type, third_party.name,
+                                CaseActivityType.REMOVE_PARTY)
 
         return JsonResponse(data={'third_party': 'deleted'}, status=status.HTTP_200_OK)

@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.libraries.site_and_location_case_activity import set_site_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -70,7 +71,7 @@ class ApplicationSites(APIView):
         application.save()
 
         # Delete existing SitesOnDrafts
-        SiteOnApplication.objects.filter(application=application).delete()
+        _, deleted_site_count = SiteOnApplication.objects.filter(application=application).delete()
 
         # Append new SitesOnDrafts
         response_data = []
@@ -83,6 +84,10 @@ class ApplicationSites(APIView):
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         # Deletes any external sites on the draft if a site is being added
-        ExternalLocationOnApplication.objects.filter(application=application).delete()
+        _, deleted_external_location_count = \
+            ExternalLocationOnApplication.objects.filter(application=application).delete()
+
+        set_site_case_activity(application, request.user, deleted_external_location_count, deleted_site_count,
+                               new_sites)
 
         return JsonResponse(data={'sites': response_data}, status=status.HTTP_201_CREATED)

@@ -22,6 +22,9 @@ class CaseActivityType(BaseActivityType):
     REMOVE_GOOD_TYPE_FROM_APPLICATION = 'remove_good_type_from_application'
 
     DELETE_ALL_SITES_FROM_APPLICATION = 'delete_all_sites_from_application'
+    ADD_SITES_TO_APPLICATION = 'add_sites_to_application'
+
+    DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'delete_all_external_locations_from_application'
     ADD_EXTERNAL_LOCATIONS_TO_APPLICATION = 'add_external_locations_to_application'
 
     DELETE_ALL_COUNTRIES_FROM_APPLICATION = 'delete_all_countries_from_application'
@@ -44,10 +47,13 @@ class CaseActivityType(BaseActivityType):
     CREATED_TEAM_ADVICE = 'created_team_advice'
     CLEARED_TEAM_ADVICE = 'cleared_team_advice'
 
-    UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
-    DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
+    ADD_PARTY = 'add_party'
+    REMOVE_PARTY = 'remove_party'
+
     UPLOAD_PARTY_DOCUMENT = 'upload_party_document'
     DELETE_PARTY_DOCUMENT = 'delete_party_document'
+    UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
+    DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
 
     BaseActivityType.choices.extend(
         [
@@ -66,6 +72,9 @@ class CaseActivityType(BaseActivityType):
             (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name} from the application'),
 
             (DELETE_ALL_SITES_FROM_APPLICATION, 'removed all sites from the application'),
+            (ADD_SITES_TO_APPLICATION, 'added sites: {sites}'),
+
+            (DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed all external locations from the application'),
             (ADD_EXTERNAL_LOCATIONS_TO_APPLICATION, 'added external locations: {locations}'),
 
             (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries from the application'),
@@ -89,9 +98,12 @@ class CaseActivityType(BaseActivityType):
             (CREATED_TEAM_ADVICE, 'created team advice'),
             (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
-            (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
-            (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
+            (ADD_PARTY, 'added the {party_type} {party_name}'),
+            (REMOVE_PARTY, 'removed the {party_type} {party_name}'),
+
             (UPLOAD_PARTY_DOCUMENT, 'uploaded the document {file_name} for {party_type} {party_name}'),
             (DELETE_PARTY_DOCUMENT, 'deleted the document {file_name} for {party_type} {party_name}'),
+            (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
+            (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
         ]
     )
