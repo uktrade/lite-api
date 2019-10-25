@@ -1,5 +1,3 @@
-import ast
-
 import six
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.fields import Field, iter_options, to_choices_dict, flatten_choices_dict, CharField
@@ -90,22 +88,3 @@ class ControlListEntryField(CharField):
     def __init__(self, **kwargs):
         super(ControlListEntryField, self).__init__(**kwargs)
         self.validators.append(ControlListEntryValidator())
-
-
-class CommaSeparatedListField(CharField):
-    def __init__(self, **kwargs):
-        super(CommaSeparatedListField, self).__init__(**kwargs)
-
-    def to_internal_value(self, data):
-        if isinstance(data, list):
-            data = ','.join(data)
-        return data
-
-    def to_representation(self, value):
-        if isinstance(value, set):
-            value = value.pop()
-
-        if '{' in value or '[' in value:
-            return ast.literal_eval(value)
-
-        return value.split(',')

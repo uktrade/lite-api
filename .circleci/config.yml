@@ -6,13 +6,13 @@ orbs:
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.7
+      - image: circleci/postgres:11
 
     environment:
       DEBUG: 'True'
       PIPENV_VENV_IN_PROJECT: 'enabled'
+      DATABASE_URL: postgresql://lite-api:security_is_important@localhost/lite-api
 
     working_directory: ~/lite-api
 
@@ -73,7 +73,7 @@ jobs:
       # https://nose.readthedocs.io
       - run:
           name: Run Unit Tests
-          command: pipenv run ./manage.py test --parallel
+          command: pipenv run ./manage.py test
 
       # Code Coverage
       - run:

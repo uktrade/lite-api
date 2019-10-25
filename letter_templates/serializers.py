@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseType
-from conf.serializers import CommaSeparatedListField, PrimaryKeyRelatedSerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
@@ -16,10 +16,12 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                                  error_messages={'blank': 'Enter a name for the letter template'})
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
-    restricted_to = CommaSeparatedListField(error_messages={'required': 'Select which types of case this letter template can apply to'},
-                                            required=True,
-                                            allow_blank=False,
-                                            allow_null=False)
+    restricted_to = serializers.MultipleChoiceField(error_messages={'required': 'Select which types of case this letter template can apply to'},
+                                                    required=True,
+                                                    allow_blank=False,
+                                                    allow_null=False,
+                                                    choices=CaseType.choices)
+    restricted_to_display = serializers.SerializerMethodField()
     layout = PrimaryKeyRelatedSerializerField(queryset=LetterLayout.objects.all(),
                                               serializer=LetterLayoutSerializer,
                                               error_messages={'required': 'Select the layout you want to use for this letter template'})
@@ -34,18 +36,18 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
         return attrs
 
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+        data["restricted_to"] = list(data["restricted_to"])  # cast set to list so it can be saved as an ArrayField.
+        return data
+
+    def get_restricted_to_display(self, instance):
+        """
+        Provide display values for restricted_to.
+        """
+        display_names = dict(CaseType.choices)
+        return [display_names.get(r) for r in instance.restricted_to]
+
     class Meta:
         model = LetterTemplate
         fields = '__all__'
-
-    def to_representation(self, value):
-        """
-        Convert restricted_to to list of key value entries
-        """
-        repr_dict = super(LetterTemplateSerializer, self).to_representation(value)
-
-        repr_dict['restricted_to'] = [{'key': x, 'value': CaseType.get_text(x)} for x in
-                                      repr_dict['restricted_to']]
-        repr_dict['restricted_to'].sort(key=lambda x: x['value'])
-
-        return repr_dict
