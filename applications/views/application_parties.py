@@ -41,6 +41,7 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -143,6 +144,7 @@ class ApplicationConsignee(APIView):
         return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
