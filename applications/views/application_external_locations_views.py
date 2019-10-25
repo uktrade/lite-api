@@ -3,10 +3,9 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.libraries.site_and_location_case_activity import set_external_location_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_external_location, \
@@ -76,9 +75,11 @@ class ApplicationExternalLocations(APIView):
         application.activity = 'Brokering'
         application.save()
 
+        deleted_external_location_count = 0
         # Delete existing ExternalLocationOnApplications
         if data.get('method') != 'append_location':
-            ExternalLocationOnApplication.objects.filter(application=application).delete()
+            _, deleted_external_location_count = \
+                ExternalLocationOnApplication.objects.filter(application=application).delete()
 
         # Append new ExternalLocationOnApplications
         response_data = []
@@ -94,28 +95,7 @@ class ApplicationExternalLocations(APIView):
         # Deletes any sites on the draft if an external location is being added
         _, deleted_site_count = SiteOnApplication.objects.filter(application=application).delete()
 
-        self._set_case_activity(application, request.user, deleted_site_count, new_external_locations)
+        set_external_location_case_activity(application, request.user, deleted_site_count,
+                                            deleted_external_location_count, new_external_locations)
 
         return JsonResponse(data={'external_locations': response_data}, status=status.HTTP_201_CREATED)
-
-    @staticmethod
-    def _set_case_activity(application, user, deleted_site_count, new_external_locations):
-        try:
-            case = Case.objects.get(application=application)
-        except Case.DoesNotExist:
-            return
-
-        if deleted_site_count:
-            CaseActivity.create(activity_type=CaseActivityType.DELETE_ALL_SITES_FROM_APPLICATION,
-                                case=case,
-                                user=user)
-
-        case_activity_locations = [external_location.name + ' ' +
-                                   external_location.address + ' ' +
-                                   external_location.country.name
-                                   for external_location in new_external_locations]
-
-        CaseActivity.create(activity_type=CaseActivityType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
-                            case=case,
-                            user=user,
-                            locations=case_activity_locations)
