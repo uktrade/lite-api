@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
-    validate_status_can_be_set
+    validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
@@ -91,7 +91,6 @@ class ApplicationDetail(APIView):
         serializer = get_serializer_for_application(application)
         return JsonResponse(data={'application': serializer.data})
 
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """
@@ -196,24 +195,26 @@ class ApplicationManageStatus(APIView):
     def put(self, request, pk):
         application = get_application(pk)
 
-        if isinstance(request.user, ExporterUser) and request.user.organisation.id != application.organisation.id:
-            raise PermissionDenied()
-
         data = request.data
         new_status_enum = data.get('status')
+
+        if isinstance(request.user, ExporterUser):
+            if request.user.organisation.id != application.organisation.id:
+                raise PermissionDenied()
+
+            validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
+        else:
+            validation_error = validate_status_can_be_set_by_gov_user(application.status.status, new_status_enum)
+
+        if validation_error:
+            return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         # This can return 403 forbidden
         if new_status_enum == CaseStatusEnum.FINALISED:
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-        validation_error = validate_status_can_be_set(application.status.status, new_status_enum, request.user)
-
-        if validation_error:
-            return JsonResponse(data={'errors': [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
-
         new_status = get_case_status_by_status(new_status_enum)
-
         request.data['status'] = str(new_status.pk)
         serializer = ApplicationStatusUpdateSerializer(application, data=data, partial=True)
 
