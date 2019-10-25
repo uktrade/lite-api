@@ -1,10 +1,11 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
-from applications.serializers import ApplicationDocumentSerializer
-from parties.document.models import PartyDocument
 from applications.models import ApplicationDocument
-
+from applications.serializers import ApplicationDocumentSerializer
+from cases.libraries.activity_types import CaseActivityType
+from cases.models import Case, CaseActivity
+from parties.document.models import PartyDocument
 from parties.document.serializers import PartyDocumentSerializer
 
 
@@ -37,30 +38,37 @@ def get_application_document(doc_pk):
     return _get_document(ApplicationDocument.objects.filter(pk=doc_pk))
 
 
-def upload_application_document(application_id, data):
+def upload_application_document(application_id, data, user):
     data['application'] = application_id
 
     serializer = ApplicationDocumentSerializer(data=data)
 
-    if serializer.is_valid():
-        serializer.save()
-        return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
-    else:
+    if not serializer.is_valid():
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+
+    _set_application_document_case_activity(application_id, user, data.get('name'),
+                                            CaseActivityType.UPLOAD_APPLICATION_DOCUMENT)
+
+    return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
 
-def delete_application_document(document_id):
+def delete_application_document(document_id, application_id, user):
     try:
         document = ApplicationDocument.objects.get(pk=document_id)
+        file_name = document.name
         document.delete_s3()
         document.delete()
     except ApplicationDocument.DoesNotExist:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+    _set_application_document_case_activity(application_id, user, file_name,
+                                            CaseActivityType.DELETE_APPLICATION_DOCUMENT)
+
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def upload_party_document(party, data):
+def upload_party_document(party, data, application_id, user):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,10 +83,14 @@ def upload_party_document(party, data):
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
+
+    _set_party_document_case_activity(application_id, user, serializer.data.get('name'), party.type, party.name,
+                                      CaseActivityType.UPLOAD_PARTY_DOCUMENT)
+
     return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
 
-def delete_party_document(party):
+def delete_party_document(party, application_id, user):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -87,4 +99,33 @@ def delete_party_document(party):
         document.delete_s3()
         document.delete()
 
+        _set_party_document_case_activity(application_id, user, document.name, party.type, party.name,
+                                          CaseActivityType.DELETE_PARTY_DOCUMENT)
+
     return HttpResponse(status=204)
+
+
+def _set_application_document_case_activity(application_id, user, file_name, activity_type):
+    try:
+        case = Case.objects.get(application__id=application_id)
+    except Case.DoesNotExist:
+        return
+
+    CaseActivity.create(activity_type=activity_type,
+                        case=case,
+                        user=user,
+                        file_name=file_name)
+
+
+def _set_party_document_case_activity(application_id, user, file_name, party_type, party_name, activity_type):
+    try:
+        case = Case.objects.get(application__id=application_id)
+    except Case.DoesNotExist:
+        return
+
+    CaseActivity.create(activity_type=activity_type,
+                        case=case,
+                        user=user,
+                        file_name=file_name,
+                        party_type=party_type,
+                        party_name=party_name)
