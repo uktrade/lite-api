@@ -7,6 +7,3 @@ class LetterLayout(models.Model):
 
     class Meta:
         ordering = ['name']
-
-    def __str__(self):
-        return self.id
