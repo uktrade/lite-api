@@ -3,7 +3,6 @@ from typing import Optional
 from applications.models import BaseApplication, StandardApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from static.statuses.enums import CaseStatusEnum
-from users.models import BaseUser, ExporterUser, GovUser
 
 
 def get_serializer_for_application(application: BaseApplication, many=False):
