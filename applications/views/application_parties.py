@@ -49,6 +49,7 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -166,6 +167,7 @@ class ApplicationConsignee(APIView):
         return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """

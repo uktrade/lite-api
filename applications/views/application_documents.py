@@ -29,7 +29,6 @@ class ApplicationDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
