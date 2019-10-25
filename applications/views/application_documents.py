@@ -6,7 +6,7 @@ from applications.libraries.document_helpers import upload_application_document,
     get_application_document, get_application_documents
 from applications.serializers import ApplicationDocumentSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, application_in_major_editable_state
+from conf.decorators import authorised_users
 from users.models import ExporterUser
 
 
