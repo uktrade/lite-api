@@ -44,10 +44,13 @@ class CaseActivityType(BaseActivityType):
     CREATED_TEAM_ADVICE = 'created_team_advice'
     CLEARED_TEAM_ADVICE = 'cleared_team_advice'
 
-    UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
-    DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
+    ADD_PARTY = 'add_party'
+    REMOVE_PARTY = 'remove_party'
+
     UPLOAD_PARTY_DOCUMENT = 'upload_party_document'
     DELETE_PARTY_DOCUMENT = 'delete_party_document'
+    UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
+    DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
 
     BaseActivityType.choices.extend(
         [
@@ -89,9 +92,12 @@ class CaseActivityType(BaseActivityType):
             (CREATED_TEAM_ADVICE, 'created team advice'),
             (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
-            (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
-            (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
+            (ADD_PARTY, 'added the {party_type} {party_name}'),
+            (REMOVE_PARTY, 'removed the {party_type} {party_name}'),
+
             (UPLOAD_PARTY_DOCUMENT, 'uploaded the document {file_name} for {party_type} {party_name}'),
             (DELETE_PARTY_DOCUMENT, 'deleted the document {file_name} for {party_type} {party_name}'),
+            (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
+            (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
         ]
     )
