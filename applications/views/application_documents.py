@@ -2,11 +2,10 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
-from conf.authentication import ExporterAuthentication
 from applications.libraries.document_helpers import upload_application_document, delete_application_document, \
-    get_application_document
+    get_application_document, get_application_documents
 from applications.serializers import ApplicationDocumentSerializer
-from applications.libraries.document_helpers import get_application_documents
+from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_major_editable_state
 from users.models import ExporterUser
 
@@ -36,7 +35,7 @@ class ApplicationDocumentView(APIView):
         """
         Upload additional document onto an application
         """
-        return upload_application_document(application.id, request.data)
+        return upload_application_document(application.id, request.data, request.user)
 
 
 class ApplicationDocumentDetailView(APIView):
@@ -63,4 +62,4 @@ class ApplicationDocumentDetailView(APIView):
         """
         Delete an additional document on an application
         """
-        return delete_application_document(doc_pk)
+        return delete_application_document(doc_pk, application.id, request.user)

@@ -44,6 +44,11 @@ class CaseActivityType(BaseActivityType):
     CREATED_TEAM_ADVICE = 'created_team_advice'
     CLEARED_TEAM_ADVICE = 'cleared_team_advice'
 
+    UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
+    DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
+    UPLOAD_PARTY_DOCUMENT = 'upload_party_document'
+    DELETE_PARTY_DOCUMENT = 'delete_party_document'
+
     BaseActivityType.choices.extend(
         [
             (ADD_FLAGS, 'added flags: {added_flags}'),
@@ -75,14 +80,18 @@ class CaseActivityType(BaseActivityType):
             (ECJU_QUERY, ' added an ECJU Query: {ecju_query}'),
 
             (UPDATED_STATUS, 'updated the status to {status}'),
+            (UPDATED_APPLICATION_NAME, 'updated the application name from "{old_name}" to "{new_name}"'),
+            (UPDATED_APPLICATION_REFERENCE_NUMBER, 'updated the application reference number from '
+                                                   '{old_ref_number} to {new_ref_number}'),
 
             (CREATED_FINAL_ADVICE, 'created final advice'),
             (CLEARED_FINAL_ADVICE, 'cleared final advice'),
             (CREATED_TEAM_ADVICE, 'created team advice'),
             (CLEARED_TEAM_ADVICE, 'cleared team advice'),
 
-            (UPDATED_APPLICATION_NAME, 'updated the application name from "{old_name}" to "{new_name}"'),
-            (UPDATED_APPLICATION_REFERENCE_NUMBER, 'updated the application reference number from '
-                                                   '{old_ref_number} to {new_ref_number}'),
+            (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
+            (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
+            (UPLOAD_PARTY_DOCUMENT, 'uploaded the document {file_name} for {party_type} {party_name}'),
+            (DELETE_PARTY_DOCUMENT, 'deleted the document {file_name} for {party_type} {party_name}'),
         ]
     )
