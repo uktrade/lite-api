@@ -10,5 +10,5 @@ def set_party_case_activity(application_id, user, party_type, party_name, activi
     CaseActivity.create(activity_type=activity_type,
                         case=case,
                         user=user,
-                        party_type=party_type,
+                        party_type=party_type.replace("_", " "),
                         party_name=party_name)

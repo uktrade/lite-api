@@ -127,5 +127,5 @@ def _set_party_document_case_activity(application_id, user, file_name, party_typ
                         case=case,
                         user=user,
                         file_name=file_name,
-                        party_type=party_type,
+                        party_type=party_type.replace("_", " "),
                         party_name=party_name)
