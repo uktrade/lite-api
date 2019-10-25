@@ -1,5 +1,7 @@
-from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseBadRequest
+from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseBadRequest, JsonResponse
 from functools import wraps
+
+from rest_framework import status
 
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
@@ -29,7 +31,9 @@ def application_licence_type(licence_type):
             application = _get_application(request, kwargs)
 
             if application.licence_type != licence_type:
-                return HttpResponseBadRequest()
+                return JsonResponse(data={'errors': [f'This operation can only be used on applications of type '
+                                                     f'`{licence_type}`']},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
             return func(request, *args, **kwargs)
 
@@ -43,13 +47,16 @@ def application_in_major_editable_state():
     Checks if application is in a major-editable state;
     A Major editable state is either APPLICANT_EDITING or NONE (An un-submitted application)
     """
+
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
             if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
-                return HttpResponseBadRequest()
+                return JsonResponse(data={'errors': [f'You can only perform this operation when the application is '
+                                                     f'in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state']},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
             return func(request, *args, **kwargs)
 
@@ -68,7 +75,9 @@ def authorised_users(user_type):
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
                 if application.organisation.id != request.request.user.organisation.id:
-                    return HttpResponseForbidden()
+                    return JsonResponse(data={'errors': ['You can only perform this operation on an application '
+                                                         'that has been opened within your organisation']},
+                                        status=status.HTTP_403_FORBIDDEN)
 
             return func(request, *args, **kwargs)
 
