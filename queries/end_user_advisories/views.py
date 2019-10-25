@@ -98,7 +98,3 @@ class EndUserAdvisoryDetail(APIView):
                 return JsonResponse(data={'end_user_advisory': serializer.data})
 
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class EndUserAdvisorysDetail(object):
-    pass
