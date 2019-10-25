@@ -11,7 +11,9 @@ class CaseType:
 
     @classmethod
     def get_text(cls, choice):
-        return [x for x in cls.choices if x[0] == choice][0][1]
+        for key, value in cls.choices:
+            if key == choice:
+                return value
 
 
 class AdviceType:

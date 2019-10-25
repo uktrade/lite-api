@@ -18,8 +18,8 @@ class LetterTemplatesListTests(DataTestClient):
                                                        PickListStatus.ACTIVE)
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name='SIEL',
-                                                             restricted_to=[CaseType.CLC_QUERY,
-                                                                            CaseType.END_USER_ADVISORY_QUERY],
+                                                             restricted_to=",".join([CaseType.CLC_QUERY,
+                                                                                     CaseType.END_USER_ADVISORY_QUERY]),
                                                              layout=self.letter_layout)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse('letter_templates:letter_templates')
@@ -33,8 +33,10 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data['name'], self.letter_template.name)
         self.assertEqual(response_data['layout']['id'], self.letter_layout.id)
         self.assertEqual(response_data['letter_paragraphs'], [str(self.picklist_item.id)])
-        self.assertIn(CaseType.get_text(CaseType.CLC_QUERY), str(response_data['restricted_to']))
-        self.assertIn(CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), str(response_data['restricted_to']))
+        self.assertIn(CaseType.CLC_QUERY, str(response_data['restricted_to']))
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, str(response_data['restricted_to']))
+        self.assertIn(CaseType.get_text(CaseType.CLC_QUERY), str(response_data['restricted_to_display']))
+        self.assertIn(CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), str(response_data['restricted_to_display']))
         self.assertIsNotNone(response_data.get('created_at'))
         self.assertIsNotNone(response_data.get('last_modified_at'))
 
@@ -49,8 +51,8 @@ class LetterTemplateDetailTests(DataTestClient):
                                                        PickListStatus.ACTIVE)
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name='SIEL',
-                                                             restricted_to=[CaseType.CLC_QUERY,
-                                                                            CaseType.END_USER_ADVISORY_QUERY],
+                                                             restricted_to=",".join([CaseType.CLC_QUERY,
+                                                                                     CaseType.END_USER_ADVISORY_QUERY]),
                                                              layout=self.letter_layout)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse('letter_templates:letter_template', kwargs={'pk': self.letter_template.id})
@@ -64,7 +66,9 @@ class LetterTemplateDetailTests(DataTestClient):
         self.assertEqual(response_data['name'], self.letter_template.name)
         self.assertEqual(response_data['layout']['id'], self.letter_layout.id)
         self.assertEqual(response_data['letter_paragraphs'], [str(self.picklist_item.id)])
-        self.assertIn(CaseType.get_text(CaseType.CLC_QUERY), str(response_data['restricted_to']))
-        self.assertIn(CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), str(response_data['restricted_to']))
+        self.assertIn(CaseType.CLC_QUERY, response_data['restricted_to'])
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, response_data['restricted_to'])
+        self.assertIn(CaseType.get_text(CaseType.CLC_QUERY), response_data['restricted_to_display'])
+        self.assertIn(CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), response_data['restricted_to_display'])
         self.assertIsNotNone(response_data.get('created_at'))
         self.assertIsNotNone(response_data.get('last_modified_at'))
