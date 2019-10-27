@@ -120,5 +120,11 @@ class ApplicationRemoveExternalLocation(APIView):
                                                      'edits'},
                                     status=status.HTTP_400_BAD_REQUEST)
 
-        ExternalLocationOnApplication.objects.filter(application=application, external_location__pk=ext_loc_pk).delete()
-        return JsonResponse(data={'success': 'External location deleted.'}, status=status.HTTP_204_NO_CONTENT)
+        removed_locations = ExternalLocationOnApplication.objects.filter(application=application,
+                                                                         external_location__pk=ext_loc_pk)
+
+        set_external_location_case_activity(None, removed_locations, None, request.user, application)
+
+        removed_locations.delete()
+
+        return JsonResponse(data={'success': 'External location deleted'}, status=status.HTTP_204_NO_CONTENT)

@@ -66,19 +66,18 @@ class CaseActivityType(BaseActivityType):
             (GOOD_REMOVE_FLAGS, 'removed flags: {removed_flags} to good: {good_name}'),
             (GOOD_ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}'),
 
-            (ADD_GOOD_TO_APPLICATION, 'added good {good_name} to the application'),
-            (REMOVE_GOOD_FROM_APPLICATION, 'removed good {good_name} from the application'),
-            (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name} to the application'),
-            (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name} from the application'),
+            (ADD_GOOD_TO_APPLICATION, 'added good {good_name}'),
+            (REMOVE_GOOD_FROM_APPLICATION, 'removed good {good_name}'),
+            (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name}'),
+            (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name}'),
 
-            (REMOVED_SITES_FROM_APPLICATION, 'removed sites {sites} from the application'),
+            (REMOVED_SITES_FROM_APPLICATION, 'removed sites {sites}'),
             (ADD_SITES_TO_APPLICATION, 'added sites: {sites}'),
 
-            (REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed external locations {locations} from the '
-                                                          'application'),
+            (REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed external locations {locations}'),
             (ADD_EXTERNAL_LOCATIONS_TO_APPLICATION, 'added external locations: {locations}'),
 
-            (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries from the application'),
+            (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries'),
             (ADD_COUNTRIES_TO_APPLICATION, 'added countries: {countries}'),
 
             (MOVE_CASE, 'moved the case to: {queues}'),
