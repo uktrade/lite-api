@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -8,8 +10,8 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
-from organisations.libraries.get_external_location import has_previous_external_locations
-from organisations.libraries.get_site import get_site, get_site_countries_on_application
+from organisations.libraries.get_external_location import has_previous_locations
+from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 from static.statuses.enums import CaseStatusEnum
@@ -33,61 +35,68 @@ class ApplicationSites(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
-        sites = data.get('sites')
+        site_ids = data.get('sites')
 
         # Validate that there are actually sites
-        if not sites:
+        if not site_ids:
             return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site.']}},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        new_sites = []
+        previous_sites = SiteOnApplication.objects.filter(application=application)
+        previous_sites_ids = [str(previous_site_id) for previous_site_id in
+                              previous_sites.values_list('site__id', flat=True)]
 
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-            new_sites = [get_site(site, request.user.organisation) for site in sites]
+            new_sites = [get_site(site_id, request.user.organisation) for site_id in site_ids if site_id not in
+                         previous_sites_ids]
         else:
-            if has_previous_external_locations(application):
+            if has_previous_locations(application):
                 return JsonResponse(data={'errors': {
                     'sites': [
                         'You can not change from sites to external locations on this application without first '
-                        'setting it to an editable status.']
+                        'setting it to the `applicant_editing` status.']
                 }}, status=status.HTTP_400_BAD_REQUEST)
 
-            previous_site_countries = get_site_countries_on_application(application)
+            previous_site_countries = list(previous_sites.values_list('site__address__country_id', flat=True))
+            new_sites = []
 
-            for site in sites:
-                new_site = get_site(site, request.user.organisation)
+            for site_id in site_ids:
+                new_site = get_site(site_id, request.user.organisation)
 
                 if new_site.address.country.id not in previous_site_countries:
                     return JsonResponse(data={'errors': {
                         'sites': [
                             'You can not add sites located in a different country to this application without first '
-                            'setting it to an editable status.']
+                            'setting it to the `applicant_editing` status.']
                     }}, status=status.HTTP_400_BAD_REQUEST)
-                else:
+                elif str(new_site.id) not in previous_sites_ids:
                     new_sites.append(new_site)
 
-        # Update draft activity
+        # Update application activity
         application.activity = 'Trading'
         application.save()
 
-        # Delete existing SitesOnDrafts
-        _, deleted_site_count = SiteOnApplication.objects.filter(application=application).delete()
+        # Get sites to be removed
+        removed_site_ids = list(set(previous_sites_ids) - set(site_ids))
+        removed_sites = previous_sites.filter(site__id__in=removed_site_ids)
 
         # Append new SitesOnDrafts
         response_data = []
-        for site in new_sites:
-            serializer = SiteOnApplicationCreateSerializer(data={'site': site.pk, 'application': application.id})
+        for new_site in new_sites:
+            serializer = SiteOnApplicationCreateSerializer(data={'site': new_site.id, 'application': application.id})
+
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
             else:
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Deletes any external sites on the draft if a site is being added
-        _, deleted_external_location_count = \
-            ExternalLocationOnApplication.objects.filter(application=application).delete()
+        # Get external locations to be removed if a site is being added
+        removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
 
-        set_site_case_activity(deleted_external_location_count, deleted_site_count,
-                               new_sites, request.user, application)
+        set_site_case_activity(removed_locations, removed_sites, new_sites, request.user, application)
+
+        removed_sites.delete()
+        removed_locations.delete()
 
         return JsonResponse(data={'sites': response_data}, status=status.HTTP_201_CREATED)

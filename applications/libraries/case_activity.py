@@ -45,54 +45,74 @@ def set_application_status_case_activity(status, user, application):
     set_case_activity(case_activity, user, application)
 
 
-def set_site_case_activity(deleted_external_location_count, deleted_site_count, new_sites, user, application):
+def set_site_case_activity(removed_locations, removed_sites, new_sites, user, application):
     case_activities = []
 
-    if deleted_external_location_count:
+    if removed_locations:
+        case_activity_removed_locations = [location.external_location.name + ' ' +
+                                           location.external_location.country.name
+                                           for location in removed_locations]
+
         case_activities.append({
-            'activity_type': CaseActivityType.DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION
+            'activity_type': CaseActivityType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
+            'locations': case_activity_removed_locations
         })
 
-    if deleted_site_count:
+    if removed_sites:
+        case_activity_removed_sites = [site.site.name + ' ' +
+                                       site.site.address.country.name
+                                       for site in removed_sites]
+
         case_activities.append({
-            'activity_type': CaseActivityType.DELETE_ALL_SITES_FROM_APPLICATION
+            'activity_type': CaseActivityType.REMOVED_SITES_FROM_APPLICATION,
+            'sites': case_activity_removed_sites
         })
 
-    case_activity_sites = [site.name + ' ' +
-                           site.address.country.name
-                           for site in new_sites]
-
-    case_activities.append({
-        'activity_type': CaseActivityType.ADD_SITES_TO_APPLICATION,
-        'sites': case_activity_sites
-    })
+    if new_sites:
+        case_activity_new_sites = [site.name + ' ' +
+                                   site.address.country.name
+                                   for site in new_sites]
+        case_activities.append({
+            'activity_type': CaseActivityType.ADD_SITES_TO_APPLICATION,
+            'sites': case_activity_new_sites
+        })
 
     for case_activity in case_activities:
         set_case_activity(case_activity, user, application)
 
 
-def set_external_location_case_activity(deleted_site_count, deleted_external_location_count, new_external_locations,
-                                        user, application):
+def set_external_location_case_activity(removed_sites, removed_locations, new_locations, user, application):
     case_activities = []
 
-    if deleted_site_count:
+    if removed_sites:
+        case_activity_removed_sites = [site.site.name + ' ' +
+                                       site.site.address.country.name
+                                       for site in removed_sites]
+
         case_activities.append({
-            'activity_type': CaseActivityType.DELETE_ALL_SITES_FROM_APPLICATION
+            'activity_type': CaseActivityType.REMOVED_SITES_FROM_APPLICATION,
+            'sites': case_activity_removed_sites
         })
 
-    if deleted_external_location_count:
+    if removed_locations:
+        case_activity_removed_locations = [location.external_location.name + ' ' +
+                                           location.external_location.country.name
+                                           for location in removed_locations]
+
         case_activities.append({
-            'activity_type': CaseActivityType.DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION
+            'activity_type': CaseActivityType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
+            'locations': case_activity_removed_locations
         })
 
-    case_activity_locations = [external_location.name + ' ' +
-                               external_location.country.name
-                               for external_location in new_external_locations]
+    if new_locations:
+        case_activity_locations = [location.name + ' ' +
+                                   location.country.name
+                                   for location in new_locations]
 
-    case_activities.append({
-        'activity_type': CaseActivityType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
-        'locations': case_activity_locations
-    })
+        case_activities.append({
+            'activity_type': CaseActivityType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
+            'locations': case_activity_locations
+        })
 
     for case_activity in case_activities:
         set_case_activity(case_activity, user, application)

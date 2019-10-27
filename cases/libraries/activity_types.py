@@ -21,10 +21,10 @@ class CaseActivityType(BaseActivityType):
     ADD_GOOD_TYPE_TO_APPLICATION = 'add_good_type_to_application'
     REMOVE_GOOD_TYPE_FROM_APPLICATION = 'remove_good_type_from_application'
 
-    DELETE_ALL_SITES_FROM_APPLICATION = 'delete_all_sites_from_application'
+    REMOVED_SITES_FROM_APPLICATION = 'removed_sites_from_application'
     ADD_SITES_TO_APPLICATION = 'add_sites_to_application'
 
-    DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'delete_all_external_locations_from_application'
+    REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'removed_external_locations_from_application'
     ADD_EXTERNAL_LOCATIONS_TO_APPLICATION = 'add_external_locations_to_application'
 
     DELETE_ALL_COUNTRIES_FROM_APPLICATION = 'delete_all_countries_from_application'
@@ -71,10 +71,11 @@ class CaseActivityType(BaseActivityType):
             (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name} to the application'),
             (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name} from the application'),
 
-            (DELETE_ALL_SITES_FROM_APPLICATION, 'removed all sites from the application'),
+            (REMOVED_SITES_FROM_APPLICATION, 'removed sites {sites} from the application'),
             (ADD_SITES_TO_APPLICATION, 'added sites: {sites}'),
 
-            (DELETE_ALL_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed all external locations from the application'),
+            (REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed external locations {locations} from the '
+                                                          'application'),
             (ADD_EXTERNAL_LOCATIONS_TO_APPLICATION, 'added external locations: {locations}'),
 
             (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries from the application'),
