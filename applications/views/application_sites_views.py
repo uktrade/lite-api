@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.site_and_location_case_activity import set_site_case_activity
+from applications.libraries.case_activity import set_site_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -87,7 +87,7 @@ class ApplicationSites(APIView):
         _, deleted_external_location_count = \
             ExternalLocationOnApplication.objects.filter(application=application).delete()
 
-        set_site_case_activity(application, request.user, deleted_external_location_count, deleted_site_count,
-                               new_sites)
+        set_site_case_activity(deleted_external_location_count, deleted_site_count,
+                               new_sites, request.user, application)
 
         return JsonResponse(data={'sites': response_data}, status=status.HTTP_201_CREATED)

@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
-
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView
@@ -11,12 +10,13 @@ from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationLicenceType
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
     validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
+from applications.libraries.case_activity import set_application_ref_number_case_activity, \
+    set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
 from applications.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
     DraftApplicationCreateSerializer, ApplicationUpdateSerializer
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import Case, CaseActivity
+from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_users, application_in_major_editable_state
@@ -105,27 +105,13 @@ class ApplicationDetail(APIView):
 
         serializer.save()
 
-        try:
-            case = Case.objects.get(application=application)
-
-            if request.data.get('name'):
-                CaseActivity.create(
-                    activity_type=CaseActivityType.UPDATED_APPLICATION_NAME,
-                    case=case,
-                    user=request.user,
-                    old_name=application_old_name,
-                    new_name=serializer.data.get('name')
-                )
-            elif request.data.get('reference_number_on_information_form'):
-                CaseActivity.create(
-                    activity_type=CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER,
-                    case=case,
-                    user=request.user,
-                    old_ref_number=application_old_ref_number,
-                    new_ref_number=serializer.data.get('reference_number_on_information_form')
-                )
-        except Case.DoesNotExist:
-            pass
+        if request.data.get('name'):
+            set_application_name_case_activity(application_old_name, serializer.data.get('name'), request.user,
+                                               application)
+        elif request.data.get('reference_number_on_information_form'):
+            set_application_ref_number_case_activity(application_old_ref_number,
+                                                     serializer.data.get('reference_number_on_information_form'),
+                                                     request.user, application)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -158,7 +144,7 @@ class ApplicationSubmission(APIView):
         if errors:
             return JsonResponse(data={'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        application.submitted_at = datetime.now(timezone.utc)
+        application.submitted_at = timezone.now()
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
@@ -180,10 +166,7 @@ class ApplicationSubmission(APIView):
             data['application']['case_id'] = case.id
         else:
             # If the application is being submitted after being edited
-            CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                                case=application.case.get(),
-                                user=request.user,
-                                status=application.status.status)
+            set_application_status_case_activity(application.status.status, request.user, application)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -223,9 +206,6 @@ class ApplicationManageStatus(APIView):
 
         serializer.save()
 
-        CaseActivity.create(activity_type=CaseActivityType.UPDATED_STATUS,
-                            case=application.case.get(),
-                            user=request.user,
-                            status=new_status.status)
+        set_application_status_case_activity(new_status.status, request.user, application)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

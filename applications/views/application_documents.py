@@ -21,7 +21,7 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on an application
         """
-        return get_application_documents(application.id)
+        return get_application_documents(application)
 
     @swagger_auto_schema(
         request_body=ApplicationDocumentSerializer,
@@ -34,7 +34,7 @@ class ApplicationDocumentView(APIView):
         """
         Upload additional document onto an application
         """
-        return upload_application_document(application.id, request.data, request.user)
+        return upload_application_document(application, request.data, request.user)
 
 
 class ApplicationDocumentDetailView(APIView):
@@ -61,4 +61,4 @@ class ApplicationDocumentDetailView(APIView):
         """
         Delete an additional document on an application
         """
-        return delete_application_document(doc_pk, application.id, request.user)
+        return delete_application_document(doc_pk, application, request.user)

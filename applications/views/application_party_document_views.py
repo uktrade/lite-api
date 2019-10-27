@@ -34,7 +34,7 @@ class EndUserDocumentView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         end_user = get_end_user(application.pk)
-        return upload_party_document(end_user, request.data, application.id, request.user)
+        return upload_party_document(end_user, request.data, application, request.user)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -46,7 +46,7 @@ class EndUserDocumentView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         end_user = get_end_user(application.pk)
-        return delete_party_document(end_user, application.id, request.user)
+        return delete_party_document(end_user, application, request.user)
 
 
 class UltimateEndUserDocumentsView(APIView):
@@ -72,7 +72,7 @@ class UltimateEndUserDocumentsView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
-        return upload_party_document(ultimate_end_user, request.data, application.id, request.user)
+        return upload_party_document(ultimate_end_user, request.data, application, request.user)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -84,7 +84,7 @@ class UltimateEndUserDocumentsView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
-        return delete_party_document(ultimate_end_user, application.id, request.user)
+        return delete_party_document(ultimate_end_user, application, request.user)
 
 
 class ConsigneeDocumentView(APIView):
@@ -110,7 +110,7 @@ class ConsigneeDocumentView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         consignee = get_consignee(application.pk)
-        return upload_party_document(consignee, request.data, application.id, request.user)
+        return upload_party_document(consignee, request.data, application, request.user)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -122,7 +122,7 @@ class ConsigneeDocumentView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         consignee = get_consignee(application.pk)
-        return delete_party_document(consignee, application.id, request.user)
+        return delete_party_document(consignee, application, request.user)
 
 
 class ThirdPartyDocumentView(APIView):
@@ -148,7 +148,7 @@ class ThirdPartyDocumentView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
-        return upload_party_document(third_party, request.data, application.id, request.user)
+        return upload_party_document(third_party, request.data, application, request.user)
 
     @swagger_auto_schema(
         request_body=PartyDocumentSerializer,
@@ -160,4 +160,4 @@ class ThirdPartyDocumentView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
-        return delete_party_document(third_party, application.id, request.user)
+        return delete_party_document(third_party, application, request.user)

@@ -7,7 +7,7 @@ from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from parties.helpers import delete_party_document_if_exists
-from parties.libraries.party_case_activity import set_party_case_activity
+from applications.libraries.case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from users.models import ExporterUser
@@ -40,11 +40,11 @@ class ApplicationEndUser(APIView):
             delete_party_document_if_exists(previous_end_user)
             previous_end_user.delete()
 
-            set_party_case_activity(application.id, request.user, previous_end_user.type, previous_end_user.name,
-                                    CaseActivityType.REMOVE_PARTY)
+            set_party_case_activity(CaseActivityType.REMOVE_PARTY, previous_end_user.type, previous_end_user.name,
+                                    request.user, application)
 
-        set_party_case_activity(application.id, request.user, new_end_user.type, new_end_user.name,
-                                CaseActivityType.ADD_PARTY)
+        set_party_case_activity(CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user,
+                                application)
 
         return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -65,8 +65,7 @@ class ApplicationEndUser(APIView):
         delete_party_document_if_exists(end_user)
         end_user.delete()
 
-        set_party_case_activity(application.id, request.user, end_user.type, end_user.name,
-                                CaseActivityType.REMOVE_PARTY)
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application)
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -101,8 +100,8 @@ class ApplicationUltimateEndUsers(APIView):
         ultimate_end_user = serializer.save()
         application.ultimate_end_users.add(ultimate_end_user.id)
 
-        set_party_case_activity(application.id, request.user, ultimate_end_user.type, ultimate_end_user.name,
-                                CaseActivityType.ADD_PARTY)
+        set_party_case_activity(CaseActivityType.ADD_PARTY, ultimate_end_user.type, ultimate_end_user.name,
+                                request.user, application)
 
         return JsonResponse(data={'ultimate_end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -125,8 +124,8 @@ class RemoveApplicationUltimateEndUser(APIView):
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
 
-        set_party_case_activity(application.id, request.user, ultimate_end_user.type, ultimate_end_user.name,
-                                CaseActivityType.REMOVE_PARTY)
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name,
+                                request.user, application)
 
         return JsonResponse(data={'ultimate_end_user': 'deleted'}, status=status.HTTP_200_OK)
 
@@ -158,11 +157,11 @@ class ApplicationConsignee(APIView):
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
 
-            set_party_case_activity(application.id, request.user, previous_consignee.type, previous_consignee.name,
-                                    CaseActivityType.REMOVE_PARTY)
+            set_party_case_activity(CaseActivityType.REMOVE_PARTY, previous_consignee.type, previous_consignee.name,
+                                    request.user, application)
 
-        set_party_case_activity(application.id, request.user, new_consignee.type, new_consignee.name,
-                                CaseActivityType.ADD_PARTY)
+        set_party_case_activity(CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name,
+                                request.user, application)
 
         return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -183,8 +182,8 @@ class ApplicationConsignee(APIView):
         delete_party_document_if_exists(consignee)
         consignee.delete()
 
-        set_party_case_activity(application.id, request.user, consignee.type, consignee.name,
-                                CaseActivityType.REMOVE_PARTY)
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user,
+                                application)
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -219,8 +218,8 @@ class ApplicationThirdParties(APIView):
         third_party = serializer.save()
         application.third_parties.add(third_party.id)
 
-        set_party_case_activity(application.id, request.user, third_party.type, third_party.name,
-                                CaseActivityType.ADD_PARTY)
+        set_party_case_activity(CaseActivityType.ADD_PARTY, third_party.type, third_party.name,
+                                request.user, application)
 
         return JsonResponse(data={'third_party': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -243,7 +242,7 @@ class RemoveThirdParty(APIView):
         delete_party_document_if_exists(third_party)
         third_party.delete()
 
-        set_party_case_activity(application.id, request.user, third_party.type, third_party.name,
-                                CaseActivityType.REMOVE_PARTY)
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, third_party.type, third_party.name,
+                                request.user, application)
 
         return JsonResponse(data={'third_party': 'deleted'}, status=status.HTTP_200_OK)

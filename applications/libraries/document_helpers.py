@@ -1,10 +1,11 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
+from applications.libraries.case_activity import set_party_document_case_activity, \
+    set_application_document_case_activity
 from applications.models import ApplicationDocument
 from applications.serializers import ApplicationDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
-from cases.models import Case, CaseActivity
 from parties.document.models import PartyDocument
 from parties.document.serializers import PartyDocumentSerializer
 
@@ -29,8 +30,8 @@ def get_party_document(party):
     return _get_document(documents)
 
 
-def get_application_documents(application_id):
-    documents = ApplicationDocument.objects.filter(application__id=application_id)
+def get_application_documents(application):
+    documents = ApplicationDocument.objects.filter(application=application)
     return JsonResponse({'documents': list(documents.values())})
 
 
@@ -38,8 +39,8 @@ def get_application_document(doc_pk):
     return _get_document(ApplicationDocument.objects.filter(pk=doc_pk))
 
 
-def upload_application_document(application_id, data, user):
-    data['application'] = application_id
+def upload_application_document(application, data, user):
+    data['application'] = application.id
 
     serializer = ApplicationDocumentSerializer(data=data)
 
@@ -47,13 +48,13 @@ def upload_application_document(application_id, data, user):
         return JsonResponse({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
 
-    _set_application_document_case_activity(application_id, user, data.get('name'),
-                                            CaseActivityType.UPLOAD_APPLICATION_DOCUMENT)
+    set_application_document_case_activity(CaseActivityType.UPLOAD_APPLICATION_DOCUMENT, data.get('name'), user,
+                                           application)
 
     return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
 
-def delete_application_document(document_id, application_id, user):
+def delete_application_document(document_id, application, user):
     try:
         document = ApplicationDocument.objects.get(pk=document_id)
         file_name = document.name
@@ -62,13 +63,12 @@ def delete_application_document(document_id, application_id, user):
     except ApplicationDocument.DoesNotExist:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-    _set_application_document_case_activity(application_id, user, file_name,
-                                            CaseActivityType.DELETE_APPLICATION_DOCUMENT)
+    set_application_document_case_activity(CaseActivityType.DELETE_APPLICATION_DOCUMENT, file_name, user, application)
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
-def upload_party_document(party, data, application_id, user):
+def upload_party_document(party, data, application, user):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,13 +84,13 @@ def upload_party_document(party, data, application_id, user):
 
     serializer.save()
 
-    _set_party_document_case_activity(application_id, user, serializer.data.get('name'), party.type, party.name,
-                                      CaseActivityType.UPLOAD_PARTY_DOCUMENT)
+    set_party_document_case_activity(CaseActivityType.UPLOAD_PARTY_DOCUMENT, serializer.data.get('name'), party.type,
+                                     party.name, user, application)
 
     return JsonResponse({'document': serializer.data}, status=status.HTTP_201_CREATED)
 
 
-def delete_party_document(party, application_id, user):
+def delete_party_document(party, application, user):
     if not party:
         return JsonResponse(data={'error': 'No such user'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -99,33 +99,7 @@ def delete_party_document(party, application_id, user):
         document.delete_s3()
         document.delete()
 
-        _set_party_document_case_activity(application_id, user, document.name, party.type, party.name,
-                                          CaseActivityType.DELETE_PARTY_DOCUMENT)
+        set_party_document_case_activity(CaseActivityType.DELETE_PARTY_DOCUMENT, document.name, party.type,
+                                         party.name, user, application)
 
-    return HttpResponse(status=204)
-
-
-def _set_application_document_case_activity(application_id, user, file_name, activity_type):
-    try:
-        case = Case.objects.get(application__id=application_id)
-    except Case.DoesNotExist:
-        return
-
-    CaseActivity.create(activity_type=activity_type,
-                        case=case,
-                        user=user,
-                        file_name=file_name)
-
-
-def _set_party_document_case_activity(application_id, user, file_name, party_type, party_name, activity_type):
-    try:
-        case = Case.objects.get(application__id=application_id)
-    except Case.DoesNotExist:
-        return
-
-    CaseActivity.create(activity_type=activity_type,
-                        case=case,
-                        user=user,
-                        file_name=file_name,
-                        party_type=party_type.replace("_", " "),
-                        party_name=party_name)
+    return HttpResponse(status=status.HTTP_204_NO_CONTENT)

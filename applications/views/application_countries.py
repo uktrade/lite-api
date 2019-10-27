@@ -4,9 +4,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
+from applications.libraries.case_activity import set_countries_case_activity
 from applications.models import CountryOnApplication
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import Case, CaseActivity
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users
 from static.countries.helpers import get_country
@@ -71,25 +70,6 @@ class ApplicationCountries(APIView):
 
         countries_data = CountrySerializer(new_countries, many=True).data
 
-        self._set_case_activity(application, request.user, deleted_country_count, new_countries)
+        set_countries_case_activity(deleted_country_count, new_countries, request.user, application)
 
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)
-
-    @staticmethod
-    def _set_case_activity(application, user, deleted_country_count, new_countries):
-        try:
-            case = Case.objects.get(application=application)
-        except Case.DoesNotExist:
-            return
-
-        if deleted_country_count:
-            CaseActivity.create(activity_type=CaseActivityType.DELETE_ALL_COUNTRIES_FROM_APPLICATION,
-                                case=case,
-                                user=user)
-
-        case_activity_countries = [country.name for country in new_countries]
-
-        CaseActivity.create(activity_type=CaseActivityType.ADD_COUNTRIES_TO_APPLICATION,
-                            case=case,
-                            user=user,
-                            countries=case_activity_countries)

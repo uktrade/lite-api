@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.site_and_location_case_activity import set_external_location_case_activity
+from applications.libraries.case_activity import set_external_location_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
@@ -95,7 +95,7 @@ class ApplicationExternalLocations(APIView):
         # Deletes any sites on the draft if an external location is being added
         _, deleted_site_count = SiteOnApplication.objects.filter(application=application).delete()
 
-        set_external_location_case_activity(application, request.user, deleted_site_count,
-                                            deleted_external_location_count, new_external_locations)
+        set_external_location_case_activity(deleted_site_count, deleted_external_location_count, new_external_locations,
+                                            request.user, application)
 
         return JsonResponse(data={'external_locations': response_data}, status=status.HTTP_201_CREATED)

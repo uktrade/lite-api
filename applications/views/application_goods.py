@@ -4,11 +4,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
+from applications.libraries.case_activity import set_application_goods_case_activity
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from goods.enums import GoodStatus
@@ -55,11 +55,8 @@ class ApplicationGoodsOnApplication(APIView):
 
         serializer.save()
 
-        if application.status:
-            CaseActivity.create(activity_type=CaseActivityType.ADD_GOOD_TO_APPLICATION,
-                                case=Case.objects.get(application=application),
-                                user=request.user,
-                                good_name=good.description)
+        set_application_goods_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user,
+                                            application)
 
         return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -84,11 +81,9 @@ class ApplicationGoodOnApplication(APIView):
 
         good_on_application.delete()
 
-        if good_on_application.application.status:
-            CaseActivity.create(activity_type=CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
-                                case=Case.objects.get(application=good_on_application.application),
-                                user=request.user,
-                                good_name=good_on_application.good.description)
+        set_application_goods_case_activity(CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
+                                            good_on_application.good.description, request.user,
+                                            good_on_application.application)
 
         return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
 
@@ -123,11 +118,8 @@ class ApplicationGoodsTypes(APIView):
 
         serializer.save()
 
-        if application.status:
-            CaseActivity.create(activity_type=CaseActivityType.ADD_GOOD_TO_APPLICATION,
-                                case=Case.objects.get(application=application),
-                                user=request.user,
-                                good_name=serializer.data['description'])
+        set_application_goods_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION, serializer.data['description'],
+                                            request.user, application)
 
         return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -155,11 +147,8 @@ class ApplicationGoodsType(APIView):
         goods_type = get_goods_type(goodstype_pk)
         goods_type.delete()
 
-        if application.status:
-            CaseActivity.create(activity_type=CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
-                                case=Case.objects.get(application=application),
-                                user=request.user,
-                                good_type_name=goods_type.description)
+        set_application_goods_case_activity(CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description,
+                                            request.user, application)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

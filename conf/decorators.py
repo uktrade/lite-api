@@ -1,6 +1,6 @@
-from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseBadRequest, JsonResponse
 from functools import wraps
 
+from django.http import JsonResponse
 from rest_framework import status
 
 from applications.libraries.get_applications import get_application
@@ -17,7 +17,8 @@ def _get_application(request, kwargs):
     elif 'application' in kwargs and isinstance(kwargs['application'], BaseApplication):
         application = kwargs['application']
     else:
-        return HttpResponseNotFound()
+        return JsonResponse(data={'errors': ['Application was not found']},
+                            status=status.HTTP_404_NOT_FOUND)
 
     kwargs['application'] = application
 
@@ -25,6 +26,10 @@ def _get_application(request, kwargs):
 
 
 def application_licence_type(licence_type):
+    """
+    Checks if application is the correct type for the request
+    """
+
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
@@ -66,11 +71,16 @@ def application_in_major_editable_state():
 
 
 def authorised_users(user_type):
+    """
+    Checks if the user is the correct type and if they have access to the application being requested
+    """
+
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
             if not isinstance(request.request.user, user_type):
-                return HttpResponseForbidden()
+                return JsonResponse(data={'errors': ['You are not authorised to perform this operation']},
+                                    status=status.HTTP_403_FORBIDDEN)
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
