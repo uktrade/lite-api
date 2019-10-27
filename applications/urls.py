@@ -134,6 +134,12 @@ urlpatterns = [
         view=application_external_locations_views.ApplicationExternalLocations.as_view(),
         name='application_external_locations'
     ),
+    # ex: /applications/<uuid:pk>/external_locations/<uuid:ext_loc_pk>/
+    path(
+        route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/',
+        view=application_external_locations_views.ApplicationRemoveExternalLocation.as_view(),
+        name='application_remove_external_location'
+    ),
     # ex: /applications/<uuid:pk>/countries/
     path(
         route='<uuid:pk>/countries/',

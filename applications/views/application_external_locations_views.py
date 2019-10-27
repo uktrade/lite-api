@@ -79,8 +79,10 @@ class ApplicationExternalLocations(APIView):
         application.save()
 
         # Get locations on to be removed
-        removed_location_ids = list(set(previous_location_ids) - set(location_ids))
-        removed_locations = previous_locations.filter(external_location__id__in=removed_location_ids)
+        removed_locations = []
+        if data.get('method') != 'append_location':
+            removed_location_ids = list(set(previous_location_ids) - set(location_ids))
+            removed_locations = previous_locations.filter(external_location__id__in=removed_location_ids)
 
         # Append new ExternalLocationOnApplications
         response_data = []
@@ -99,7 +101,24 @@ class ApplicationExternalLocations(APIView):
 
         set_external_location_case_activity(removed_sites, removed_locations, new_locations, request.user, application)
 
-        removed_locations.delete()
+        if data.get('method') != 'append_location':
+            removed_locations.delete()
+
         removed_sites.delete()
 
         return JsonResponse(data={'external_locations': response_data}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationRemoveExternalLocation(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, ext_loc_pk):
+        if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            if ExternalLocationOnApplication.objects.filter(application=application).exists():
+                return JsonResponse(data={'failure': 'You cannot remove all external locations whilst doing minor '
+                                                     'edits'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+        ExternalLocationOnApplication.objects.filter(application=application, external_location__pk=ext_loc_pk).delete()
+        return JsonResponse(data={'success': 'External location deleted.'}, status=status.HTTP_204_NO_CONTENT)
