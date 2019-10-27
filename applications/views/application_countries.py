@@ -37,32 +37,32 @@ class ApplicationCountries(APIView):
         Add countries to an open licence application
         """
         data = request.data
-        countries = data.get('countries')
+        country_ids = data.get('countries')
 
         # Validate that there are actually countries
-        if not countries:
+        if not country_ids:
             return JsonResponse(data={'errors': {'countries': ['You have to pick at least one country']}},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         previous_countries = CountryOnApplication.objects.filter(application=application)
+        previous_country_ids = [str(previous_country_id) for previous_country_id in
+                                previous_countries.values_list('country__id', flat=True)]
         new_countries = []
 
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-            new_countries = [get_country(country) for country in countries]
+            new_countries = [get_country(country_id) for country_id in country_ids if country_id not in
+                             previous_country_ids]
         else:
-            for country in countries:
-                new_country = get_country(country)
-
-                if new_country.id not in list(previous_countries.values_list('country_id', flat=True)):
+            for country_id in country_ids:
+                if country_id not in previous_country_ids:
                     return JsonResponse(
                         data={'errors': {'countries': ['You can not add new countries to this application without '
-                                                       'first setting it to an editable status']}},
+                                                       'first setting it to the `applicant_editing` status']}},
                         status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    new_countries.append(new_country)
 
-        # Delete previous Countries from application
-        _, deleted_country_count = previous_countries.delete()
+        # Get countries to be removed
+        removed_country_ids = list(set(previous_country_ids) - set(country_ids))
+        removed_countries = previous_countries.filter(country__id__in=removed_country_ids)
 
         # Append new Countries to application
         for country in new_countries:
@@ -70,6 +70,8 @@ class ApplicationCountries(APIView):
 
         countries_data = CountrySerializer(new_countries, many=True).data
 
-        set_countries_case_activity(deleted_country_count, new_countries, request.user, application)
+        set_countries_case_activity(removed_countries, new_countries, request.user, application)
+
+        removed_countries.delete()
 
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)

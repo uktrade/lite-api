@@ -39,7 +39,7 @@ class ApplicationSites(APIView):
 
         # Validate that there are actually sites
         if not site_ids:
-            return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site.']}},
+            return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site']}},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         previous_sites = SiteOnApplication.objects.filter(application=application)
@@ -54,7 +54,7 @@ class ApplicationSites(APIView):
                 return JsonResponse(data={'errors': {
                     'sites': [
                         'You can not change from sites to external locations on this application without first '
-                        'setting it to the `applicant_editing` status.']
+                        'setting it to the `applicant_editing` status']
                 }}, status=status.HTTP_400_BAD_REQUEST)
 
             previous_site_countries = list(previous_sites.values_list('site__address__country_id', flat=True))
@@ -67,7 +67,7 @@ class ApplicationSites(APIView):
                     return JsonResponse(data={'errors': {
                         'sites': [
                             'You can not add sites located in a different country to this application without first '
-                            'setting it to the `applicant_editing` status.']
+                            'setting it to the `applicant_editing` status']
                     }}, status=status.HTTP_400_BAD_REQUEST)
                 elif str(new_site.id) not in previous_sites_ids:
                     new_sites.append(new_site)

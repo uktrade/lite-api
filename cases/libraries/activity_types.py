@@ -27,7 +27,7 @@ class CaseActivityType(BaseActivityType):
     REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'removed_external_locations_from_application'
     ADD_EXTERNAL_LOCATIONS_TO_APPLICATION = 'add_external_locations_to_application'
 
-    DELETE_ALL_COUNTRIES_FROM_APPLICATION = 'delete_all_countries_from_application'
+    REMOVED_COUNTRIES_FROM_APPLICATION = 'removed_countries_from_application'
     ADD_COUNTRIES_TO_APPLICATION = 'add_countries_to_application'
 
     MOVE_CASE = 'move_case'
@@ -71,13 +71,13 @@ class CaseActivityType(BaseActivityType):
             (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name}'),
             (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name}'),
 
-            (REMOVED_SITES_FROM_APPLICATION, 'removed sites {sites}'),
+            (REMOVED_SITES_FROM_APPLICATION, 'removed sites: {sites}'),
             (ADD_SITES_TO_APPLICATION, 'added sites: {sites}'),
 
-            (REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed external locations {locations}'),
+            (REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION, 'removed external locations: {locations}'),
             (ADD_EXTERNAL_LOCATIONS_TO_APPLICATION, 'added external locations: {locations}'),
 
-            (DELETE_ALL_COUNTRIES_FROM_APPLICATION, 'removed all countries'),
+            (REMOVED_COUNTRIES_FROM_APPLICATION, 'removed countries: {countries}'),
             (ADD_COUNTRIES_TO_APPLICATION, 'added countries: {countries}'),
 
             (MOVE_CASE, 'moved the case to: {queues}'),

@@ -105,33 +105,36 @@ def set_external_location_case_activity(removed_sites, removed_locations, new_lo
         })
 
     if new_locations:
-        case_activity_locations = [location.name + ' ' +
-                                   location.country.name
-                                   for location in new_locations]
+        case_activity_new_locations = [location.name + ' ' +
+                                       location.country.name
+                                       for location in new_locations]
 
         case_activities.append({
             'activity_type': CaseActivityType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
-            'locations': case_activity_locations
+            'locations': case_activity_new_locations
         })
 
     for case_activity in case_activities:
         set_case_activity(case_activity, user, application)
 
 
-def set_countries_case_activity(deleted_country_count, new_countries, user, application):
+def set_countries_case_activity(removed_countries, new_countries, user, application):
     case_activities = []
 
-    if deleted_country_count:
+    if removed_countries:
+        case_activity_removed_countries = [country.country.name for country in removed_countries]
         case_activities.append({
-            'activity_type': CaseActivityType.DELETE_ALL_COUNTRIES_FROM_APPLICATION
+            'activity_type': CaseActivityType.REMOVED_COUNTRIES_FROM_APPLICATION,
+            'countries': case_activity_removed_countries
         })
 
-    case_activity_countries = [country.name for country in new_countries]
+    if new_countries:
+        case_activity_new_countries = [country.name for country in new_countries]
 
-    case_activities.append({
-        'activity_type': CaseActivityType.ADD_COUNTRIES_TO_APPLICATION,
-        'countries': case_activity_countries
-    })
+        case_activities.append({
+            'activity_type': CaseActivityType.ADD_COUNTRIES_TO_APPLICATION,
+            'countries': case_activity_new_countries
+        })
 
     for case_activity in case_activities:
         set_case_activity(case_activity, user, application)
