@@ -97,3 +97,21 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_removing_external_locations_success(self):
+        url = reverse('applications:application_remove_external_location',
+                      kwargs={'pk': self.application.id, 'ext_loc_pk': self.external_location.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_removing_external_locations_failure(self):
+        ExternalLocationOnApplication(application=self.application, external_location=self.external_location).save()
+        self.submit_application(self.application)
+        url = reverse('applications:application_remove_external_location',
+                      kwargs={'pk': self.application.id, 'ext_loc_pk': self.external_location.id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

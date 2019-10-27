@@ -115,7 +115,7 @@ class ApplicationRemoveExternalLocation(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, ext_loc_pk):
         if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
-            if ExternalLocationOnApplication.objects.filter(application=application).exists():
+            if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
                 return JsonResponse(data={'failure': 'You cannot remove all external locations whilst doing minor '
                                                      'edits'},
                                     status=status.HTTP_400_BAD_REQUEST)
