@@ -116,7 +116,7 @@ class ApplicationRemoveExternalLocation(APIView):
     def delete(self, request, application, ext_loc_pk):
         if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
             if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
-                return JsonResponse(data={'failure': "Go back and change your answer from ‘Change a site, or delete a "
+                return JsonResponse(data={'error': "Go back and change your answer from ‘Change a site, or delete a "
                                                      "good, third party or country’ to ’Change something else’."},
                                     status=status.HTTP_400_BAD_REQUEST)
 
