@@ -119,7 +119,7 @@ class ApplicationGoodsTypes(APIView):
 
         serializer.save()
 
-        set_application_goods_type_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION,
+        set_application_goods_type_case_activity(CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION,
                                                  serializer.data['description'], request.user, application)
 
         return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
