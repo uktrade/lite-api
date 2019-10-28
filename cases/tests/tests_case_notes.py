@@ -11,6 +11,7 @@ class CaseNotesGovCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 
@@ -42,6 +43,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case_notes', kwargs={'pk': self.case.id})
 

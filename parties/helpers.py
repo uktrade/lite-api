@@ -1,27 +1,5 @@
-from django.http import Http404
-
-from conf.exceptions import NotFoundError
 from parties.document.models import PartyDocument
-from parties.models import EndUser, Party
-
-
-def get_end_user(pk):
-    try:
-        return EndUser.objects.get(pk=pk)
-    except EndUser.DoesNotExist:
-        raise Http404
-
-
-def get_end_user_with_organisation(pk, organisation):
-    try:
-        end_user = EndUser.objects.get(pk=pk)
-
-        if end_user.organisation.pk != organisation.pk:
-            raise Http404
-
-        return end_user
-    except EndUser.DoesNotExist:
-        raise NotFoundError({'end_user': 'End User not found - ' + str(pk)})
+from parties.models import Party
 
 
 def delete_party_document_if_exists(party: Party):

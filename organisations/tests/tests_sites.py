@@ -54,7 +54,7 @@ class OrganisationSitesTests(DataTestClient):
                 'country': 'GB',
             }
         }
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

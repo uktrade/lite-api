@@ -14,7 +14,7 @@ class DraftTests(DataTestClient):
         """
         Ensure we can get a list of drafts.
         """
-        self.create_standard_draft(self.organisation)
+        self.create_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
 
@@ -25,7 +25,7 @@ class DraftTests(DataTestClient):
         """
         Ensure we can view an individual draft.
         """
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
 
@@ -45,7 +45,7 @@ class DraftTests(DataTestClient):
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
         organisation_2 = self.create_organisation_with_exporter_user()
-        self.create_standard_draft(organisation_2)
+        self.create_standard_application(organisation_2)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
@@ -55,9 +55,9 @@ class DraftTests(DataTestClient):
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
-        draft = self.create_standard_draft(organisation_2)
+        draft = self.create_standard_application(organisation_2)
 
         url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
 
         response = self.client.get(url, **self.exporter_headers)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
