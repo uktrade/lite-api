@@ -51,8 +51,8 @@ class ApplicationSites(APIView):
             if has_previous_locations(application):
                 return JsonResponse(data={'errors': {
                     'sites': [
-                        'You can not change from sites to external locations on this application without first '
-                        'setting it to the `applicant_editing` status']
+                        "Go back and change your answer from ‘Change a site, or delete a good, third party or "
+                        "country’ to ’Change something else’."]
                 }}, status=status.HTTP_400_BAD_REQUEST)
 
             previous_site_countries = list(previous_sites.values_list('site__address__country_id', flat=True))
@@ -64,8 +64,8 @@ class ApplicationSites(APIView):
                 if new_site.address.country.id not in previous_site_countries:
                     return JsonResponse(data={'errors': {
                         'sites': [
-                            'You can not add sites located in a different country to this application without first '
-                            'setting it to the `applicant_editing` status']
+                            "Go back and change your answer from ‘Change a site, or delete a good, third party or "
+                            "country’ to ’Change something else’."]
                     }}, status=status.HTTP_400_BAD_REQUEST)
                 elif str(new_site.id) not in previous_sites_ids:
                     new_sites.append(new_site)
