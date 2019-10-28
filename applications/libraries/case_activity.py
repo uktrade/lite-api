@@ -159,6 +159,15 @@ def set_application_goods_case_activity(activity_type, good_name, user, applicat
     set_case_activity(case_activity, user, application)
 
 
+def set_application_goods_type_case_activity(activity_type, good_type_name, user, application):
+    case_activity = {
+        'activity_type': activity_type,
+        'good_type_name': good_type_name
+    }
+
+    set_case_activity(case_activity, user, application)
+
+
 def set_application_document_case_activity(activity_type, file_name, user, application):
     case_activity = {
         'activity_type': activity_type,

@@ -66,10 +66,10 @@ class CaseActivityType(BaseActivityType):
             (GOOD_REMOVE_FLAGS, 'removed flags: {removed_flags} to good: {good_name}'),
             (GOOD_ADD_REMOVE_FLAGS, 'added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}'),
 
-            (ADD_GOOD_TO_APPLICATION, 'added good {good_name}'),
-            (REMOVE_GOOD_FROM_APPLICATION, 'removed good {good_name}'),
-            (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type {good_type_name}'),
-            (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good {good_type_name}'),
+            (ADD_GOOD_TO_APPLICATION, 'added good: {good_name}'),
+            (REMOVE_GOOD_FROM_APPLICATION, 'removed good: {good_name}'),
+            (ADD_GOOD_TYPE_TO_APPLICATION, 'added good type: {good_type_name}'),
+            (REMOVE_GOOD_TYPE_FROM_APPLICATION, 'removed good type: {good_type_name}'),
 
             (REMOVED_SITES_FROM_APPLICATION, 'removed sites: {sites}'),
             (ADD_SITES_TO_APPLICATION, 'added sites: {sites}'),

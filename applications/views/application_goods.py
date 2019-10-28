@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.case_activity import set_application_goods_case_activity
+from applications.libraries.case_activity import set_application_goods_case_activity, \
+    set_application_goods_type_case_activity
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
@@ -118,8 +119,8 @@ class ApplicationGoodsTypes(APIView):
 
         serializer.save()
 
-        set_application_goods_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION, serializer.data['description'],
-                                            request.user, application)
+        set_application_goods_type_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION,
+                                                 serializer.data['description'], request.user, application)
 
         return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -147,8 +148,8 @@ class ApplicationGoodsType(APIView):
         goods_type = get_goods_type(goodstype_pk)
         goods_type.delete()
 
-        set_application_goods_case_activity(CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description,
-                                            request.user, application)
+        set_application_goods_type_case_activity(CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
+                                                 goods_type.description, request.user, application)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
