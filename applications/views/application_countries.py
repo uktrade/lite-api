@@ -56,8 +56,8 @@ class ApplicationCountries(APIView):
             for country_id in country_ids:
                 if country_id not in previous_country_ids:
                     return JsonResponse(
-                        data={'errors': {'countries': ['You can not add new countries to this application without '
-                                                       'first setting it to the `applicant_editing` status']}},
+                        data={'errors': {'countries': ["Go back and change your answer from ‘Change a site, or delete "
+                                                       "a good, third party or country’ to ’Change something else’."]}},
                         status=status.HTTP_400_BAD_REQUEST)
 
         # Get countries to be removed

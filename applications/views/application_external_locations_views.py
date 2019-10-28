@@ -54,8 +54,8 @@ class ApplicationExternalLocations(APIView):
             if has_previous_sites(application):
                 return JsonResponse(data={'errors': {
                     'external_locations': [
-                        'You can not change from external locations to sites on this application without first '
-                        'setting it the `applicant_editing` status']
+                        "Go back and change your answer from ‘Change a site, or delete a good, third party or "
+                        "country’ to ’Change something else’."]
                 }}, status=status.HTTP_400_BAD_REQUEST)
 
             previous_location_countries = list(previous_locations.values_list('external_location__country__id',
@@ -68,8 +68,8 @@ class ApplicationExternalLocations(APIView):
                 if new_location.country.id not in previous_location_countries:
                     return JsonResponse(data={'errors': {
                         'external_locations': [
-                            'You can not add external locations located in a different country to this application '
-                            'without first setting it to the `applicant_editing` status']
+                            "Go back and change your answer from ‘Change a site, or delete a good, third party or "
+                            "country’ to ’Change something else’."]
                     }}, status=status.HTTP_400_BAD_REQUEST)
                 elif str(new_location.id) not in previous_location_ids:
                     new_locations.append(new_location)
@@ -116,8 +116,8 @@ class ApplicationRemoveExternalLocation(APIView):
     def delete(self, request, application, ext_loc_pk):
         if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
             if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
-                return JsonResponse(data={'failure': 'You cannot remove all external locations from this application '
-                                                     'without first setting it to the `applicant_editing` status'},
+                return JsonResponse(data={'failure': "Go back and change your answer from ‘Change a site, or delete a "
+                                                     "good, third party or country’ to ’Change something else’."},
                                     status=status.HTTP_400_BAD_REQUEST)
 
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application,
