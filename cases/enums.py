@@ -10,8 +10,10 @@ class CaseType:
     ]
 
     @classmethod
-    def get_text(cls, choice):
-        return [x for x in cls.choices if x[0] == choice][0][1]
+    def get_text(cls, given_choice):
+        for choice in cls.choices:
+            if choice[0] == given_choice:
+                return choice[1]
 
 
 class AdviceType:
