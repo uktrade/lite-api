@@ -26,6 +26,7 @@ openpyxl = "*"
 pre-commit = "*"
 django-sortedm2m = "*"
 bandit = "*"
+tblib = "*"
 
 [requires]
 python_version = "3.7"
