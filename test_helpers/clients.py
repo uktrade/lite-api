@@ -69,9 +69,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # spreadsheet each time
         ControlListEntry.create('ML1a', 'Description', None, False)
 
-        # Seed layouts
-        call_command('seedlayouts')
-
         if settings.TIME_TESTS:
             self.tick = datetime.now()
 

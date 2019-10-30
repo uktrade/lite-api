@@ -14,6 +14,8 @@ class LetterLayoutsTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        # Seed layouts
+        call_command('seedlayouts')
         self.letter_layout = LetterLayout.objects.first()
         self.url = reverse('static:letter_layouts:letter_layouts')
 
@@ -29,6 +31,8 @@ class LetterLayoutsTests(DataTestClient):
 class LetterLayoutTests(DataTestClient):
 
     def setUp(self):
+        # Seed layouts
+        call_command('seedlayouts')
         super().setUp()
         self.letter_layout = LetterLayout.objects.first()
         self.url = reverse('static:letter_layouts:letter_layout', kwargs={'pk': self.letter_layout.id})

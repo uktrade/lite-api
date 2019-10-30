@@ -18,13 +18,14 @@ class Command(BaseCommand):
         """
         pipenv run ./manage.py seedlayouts
         """
+        # Check Layouts haven't been seeded already
+        if LetterLayout.objects.count() != len(layouts):
+            # Clear all existing layouts
+            LetterLayout.objects.all().delete()
 
-        # Clear all existing layouts
-        LetterLayout.objects.all().delete()
+            # Add layouts
+            for layout_id, layout_name in layouts.items():
+                LetterLayout(id=layout_id,  name=layout_name).save()
+                print("Seeded %s layout" % layout_name)
 
-        # Add layouts
-        for layout_id, layout_name in layouts.items():
-            LetterLayout(id=layout_id,  name=layout_name).save()
-            print("Seeded %s layout" % layout_name)
-
-        self.stdout.write(self.style.SUCCESS(success_message))
+            self.stdout.write(self.style.SUCCESS(success_message))
