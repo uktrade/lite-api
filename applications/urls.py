@@ -25,22 +25,42 @@ urlpatterns = [
         view=views.ApplicationSubmission.as_view(),
         name='application_submit'
     ),
+    # ex: /applications/<uuid:pk>/status/ - Manage application status
+    path(
+        route='<uuid:pk>/status/',
+        view=views.ApplicationManageStatus.as_view(),
+        name='manage_status'
+    ),
     # ex: /applications/<uuid:pk>/goods/
     path(
         route='<uuid:pk>/goods/',
-        view=application_goods.ApplicationGoods.as_view(),
+        view=application_goods.ApplicationGoodsOnApplication.as_view(),
         name='application_goods'
     ),
-    # ex: /applications/<uuid:pk>/goods/<uuid:good_pk>/
+    # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
     path(
-        route='<uuid:pk>/goods/<uuid:good_pk>/',
-        view=application_goods.ApplicationGoods.as_view(),
-        name='application_good'
+        route='good-on-application/<uuid:good_on_application_pk>/',
+        view=application_goods.ApplicationGoodOnApplication.as_view(),
+        name='good_on_application'
     ),
+    # ex: /applications/<uuid:pk>/goodstype/
     path(
-        route='<uuid:pk>/goodstype/',
+        route='<uuid:pk>/goodstypes/',
+        view=application_goods.ApplicationGoodsTypes.as_view(),
+        name='application_goodstypes'
+    ),
+    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/
+    path(
+        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/',
         view=application_goods.ApplicationGoodsType.as_view(),
         name='application_goodstype'
+    ),
+    # TODO: verify why this endpoint receiving a list of goodstypes
+    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
+    path(
+        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/',
+        view=application_goods.ApplicationGoodsTypeCountries.as_view(),
+        name='application_goodstype_assign_countries'
     ),
     # ex: /applications/<uuid:pk>/end-user/
     path(
@@ -113,6 +133,12 @@ urlpatterns = [
         route='<uuid:pk>/external_locations/',
         view=application_external_locations_views.ApplicationExternalLocations.as_view(),
         name='application_external_locations'
+    ),
+    # ex: /applications/<uuid:pk>/external_locations/<uuid:ext_loc_pk>/
+    path(
+        route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/',
+        view=application_external_locations_views.ApplicationRemoveExternalLocation.as_view(),
+        name='application_remove_external_location'
     ),
     # ex: /applications/<uuid:pk>/countries/
     path(

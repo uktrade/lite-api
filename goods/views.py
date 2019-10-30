@@ -94,7 +94,7 @@ class GoodList(APIView):
 
     def post(self, request):
         """
-        Returns a list of all goods belonging to an organisation
+        Add a good to to an organisation
         """
         data = request.data
         data['organisation'] = request.user.organisation.id
@@ -152,8 +152,8 @@ class GoodDetail(APIView):
         data = request.data.copy()
 
         if data.get('is_good_controlled') == 'unsure':
-            for good_on_draft in GoodOnApplication.objects.filter(good=good):
-                good_on_draft.delete()
+            for good_on_application in GoodOnApplication.objects.filter(good=good):
+                good_on_application.delete()
 
         data['organisation'] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
@@ -169,7 +169,7 @@ class GoodDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'Good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -199,7 +199,7 @@ class GoodDocuments(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         """
         Adds a document to the specified good
@@ -212,7 +212,7 @@ class GoodDocuments(APIView):
             delete_documents_on_bad_request(data)
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             delete_documents_on_bad_request(data)
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -243,7 +243,7 @@ class GoodDocumentDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -251,7 +251,7 @@ class GoodDocumentDetail(APIView):
         serializer = GoodDocumentViewSerializer(good_document)
         return JsonResponse({'document': serializer.data})
 
-    @transaction.atomic()
+    @transaction.atomic
     def delete(self, request, pk, doc_pk):
         """
         Deletes good document
@@ -261,7 +261,7 @@ class GoodDocumentDetail(APIView):
         if good.organisation != request.user.organisation:
             raise Http404
 
-        if good.status == GoodStatus.SUBMITTED:
+        if good.status != GoodStatus.DRAFT:
             return JsonResponse(data={'errors': 'This good is already on a submitted application'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -270,8 +270,8 @@ class GoodDocumentDetail(APIView):
         document.delete_s3()
 
         good_document.delete()
-        if len(GoodDocument.objects.filter(good=good)) == 0:
-            for good_on_draft in GoodOnApplication.objects.filter(good=good):
-                good_on_draft.delete()
+        if GoodDocument.objects.filter(good=good).count() == 0:
+            for good_on_application in GoodOnApplication.objects.filter(good=good):
+                good_on_application.delete()
 
         return JsonResponse({'document': 'deleted success'})

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'static.statuses',
     'static.letter_layouts',
     'letter_templates.apps.LetterTemplatesConfig',
+    'static.upload_document_for_tests',
     'reversion',
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',
@@ -155,6 +156,7 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
+UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env('UPLOAD_DOCUMENT_ENDPOINT_ENABLED')
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True

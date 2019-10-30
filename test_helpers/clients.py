@@ -26,7 +26,7 @@ from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
@@ -138,10 +138,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                      organisation=organisation).save()
 
     @staticmethod
-    def create_site(name, org):
+    def create_site(name, org, country='GB'):
         address = Address(address_line_1='42 Road',
                           address_line_2='',
-                          country=get_country('GB'),
+                          country=get_country(country),
                           city='London',
                           region='Buckinghamshire',
                           postcode='E14QW')
@@ -153,10 +153,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return site, address
 
     @staticmethod
-    def create_external_location(name, org):
+    def create_external_location(name, org, country='GB'):
         external_location = ExternalLocation(name=name,
                                              address='20 Questions Road, Enigma',
-                                             country=get_country('GB'),
+                                             country=get_country(country),
                                              organisation=org)
         external_location.save()
         return external_location
@@ -251,20 +251,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         team.save()
         return team
 
-    def submit_draft(self, draft: BaseApplication):
-        draft.submitted_at = datetime.now(timezone.utc)
-        draft.status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
-        draft.save()
+    def submit_application(self, application: BaseApplication):
+        application.submitted_at = datetime.now(timezone.utc)
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        application.save()
 
-        case = Case(application=draft)
+        case = Case(application=application)
         case.save()
 
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=draft):
+        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            for good_on_application in GoodOnApplication.objects.filter(application=application):
                 good_on_application.good.status = GoodStatus.SUBMITTED
                 good_on_application.good.save()
 
-        return draft
+        return application
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
         case_doc = CaseDocument(case=case,
@@ -334,7 +334,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1'):
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> Good:
         good = Good(description=description,
                     is_good_controlled=GoodControlled.YES,
                     control_code=control_code,
@@ -361,12 +361,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                                                   organisation=organisation)
         return clc_query
 
-    # Drafts
-    def create_standard_draft(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
+    # Applications
+
+    def create_standard_application(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
         """
         Creates a standard draft application
         """
-        draft = StandardApplication(name=reference_name,
+        application = StandardApplication(name=reference_name,
                                     licence_type=ApplicationLicenceType.STANDARD_LICENCE,
                                     export_type=ApplicationExportType.PERMANENT,
                                     have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
@@ -377,31 +378,33 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                     end_user=self.create_end_user('End User', organisation),
                                     consignee=self.create_consignee('Consignee', organisation))
 
-        draft.save()
+        application.save()
 
-        draft.third_parties.set([self.create_third_party('Third party', self.organisation)])
+        application.third_parties.set([self.create_third_party('Third party', self.organisation)])
 
-        # Add a good to the standard draft
-        GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
-                          application=draft,
-                          quantity=10,
-                          unit=Units.NAR,
-                          value=500).save()
+        # Add a good to the standard application
+        self.good_on_application = GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
+                                                     application=application,
+                                                     quantity=10,
+                                                     unit=Units.NAR,
+                                                     value=500)
 
-        # Set the draft party documents
-        self.create_document_for_party(draft.end_user, safe=safe_document)
-        self.create_document_for_party(draft.consignee, safe=safe_document)
-        self.create_document_for_party(draft.third_parties.first(), safe=safe_document)
+        self.good_on_application.save()
 
-        # Add a site to the draft
-        SiteOnApplication(site=organisation.primary_site, application=draft).save()
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
 
-        return draft
+        # Add a site to the application
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
 
-    def create_standard_draft_with_incorporated_good(self, organisation: Organisation,
-                                                     reference_name='Standard Draft', safe_document=True):
+        return application
 
-        draft = self.create_standard_draft(organisation, reference_name, safe_document)
+    def create_standard_application_with_incorporated_good(self, organisation: Organisation,
+                                                           reference_name='Standard Draft', safe_document=True):
+
+        application = self.create_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(is_good_end_product=False,
                          is_good_controlled=True,
@@ -412,20 +415,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         part_good.save()
 
         GoodOnApplication(good=part_good,
-                          application=draft,
+                          application=application,
                           quantity=17,
                           value=18).save()
 
-        draft.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', self.organisation)])
-        self.create_document_for_party(draft.ultimate_end_users.first(), safe=safe_document)
+        application.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', self.organisation)])
+        self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)
 
-        return draft
+        return application
 
-    def create_open_draft(self, organisation: Organisation, reference_name='Open Draft'):
+    def create_open_application(self, organisation: Organisation, reference_name='Open Draft'):
         """
-        Creates an open draft application
+        Creates an open application
         """
-        draft = OpenApplication(name=reference_name,
+        application = OpenApplication(name=reference_name,
                                 licence_type=ApplicationLicenceType.OPEN_LICENCE,
                                 export_type=ApplicationExportType.PERMANENT,
                                 have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
@@ -434,35 +437,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                 usage='Trade',
                                 organisation=organisation)
 
-        draft.save()
+        application.save()
 
         # Add a goods description
-        self.create_goods_type(draft)
-        self.create_goods_type(draft)
+        self.create_goods_type(application)
+        self.create_goods_type(application)
 
-        # Add a country to the draft
-        CountryOnApplication(application=draft, country=get_country('GB')).save()
+        # Add a country to the application
+        CountryOnApplication(application=application, country=get_country('GB')).save()
 
-        # Add a site to the draft
-        SiteOnApplication(site=organisation.primary_site, application=draft).save()
+        # Add a site to the application
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
 
-        return draft
-
-    # Applications
-
-    def create_standard_application(self, organisation: Organisation, reference_name='Standard Application'):
-        """
-        Creates a complete standard application
-        """
-        draft = self.create_standard_draft(organisation, reference_name)
-        return self.submit_draft(draft)
-
-    def create_open_application(self, organisation: Organisation, reference_name='Open Application'):
-        """
-        Creates a complete open application
-        """
-        draft = self.create_open_draft(organisation, reference_name)
-        return self.submit_draft(draft)
+        return application
 
     # Cases
 
@@ -470,17 +457,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_standard_draft(organisation, reference_name)
+        draft = self.create_standard_application(organisation, reference_name)
 
-        application = self.submit_draft(draft)
-        return Case.objects.get(application=application)
-
-    def create_open_application_case(self, organisation: Organisation, reference_name='Open Application Case'):
-        """
-        Creates a complete open application case
-        """
-        draft = self.create_open_draft(organisation, reference_name)
-        application = self.submit_draft(draft)
+        application = self.submit_application(draft)
         return Case.objects.get(application=application)
 
     @staticmethod

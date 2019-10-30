@@ -1,28 +1,93 @@
-from django.http import Http404
 from functools import wraps
 
+from django.http import JsonResponse
+from rest_framework import status
+
 from applications.libraries.get_applications import get_application
+from applications.models import BaseApplication
+from static.statuses.enums import CaseStatusEnum
+from users.models import ExporterUser
 
 
-def only_application_types(request_method_list, filter_by_users_organisation=False, return_draft=True):
+def _get_application(request, kwargs):
+    if 'pk' in kwargs:
+        application = get_application(kwargs.pop('pk'))
+    elif 'application' in request.request.data:
+        application = get_application(request.request.data['application'])
+    elif 'application' in kwargs and isinstance(kwargs['application'], BaseApplication):
+        application = kwargs['application']
+    else:
+        return JsonResponse(data={'errors': ['Application was not found']},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    kwargs['application'] = application
+
+    return application
+
+
+def application_licence_type(licence_type):
+    """
+    Checks if application is the correct type for the request
+    """
+
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            if 'pk' in kwargs:
-                draft_id = kwargs.pop('pk')
-            elif 'application' in request.request.data:
-                draft_id = request.request.data['application']
-            else:
-                raise Http404
+            application = _get_application(request, kwargs)
 
-            org_id = request.request.user.organisation.id if filter_by_users_organisation else None
-            draft = get_application(draft_id, organisation_id=org_id)
+            if application.licence_type != licence_type:
+                return JsonResponse(data={'errors': [f'This operation can only be used on applications of type '
+                                                     f'`{licence_type}`']},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
-            if draft.licence_type not in request_method_list:
-                raise Http404
+            return func(request, *args, **kwargs)
 
-            if return_draft:
-                kwargs['draft'] = draft
+        return inner
+
+    return decorator
+
+
+def application_in_major_editable_state():
+    """
+    Checks if application is in a major-editable state;
+    A Major editable state is either APPLICANT_EDITING or NONE (An un-submitted application)
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            application = _get_application(request, kwargs)
+
+            if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+                return JsonResponse(data={'errors': [f'You can only perform this operation when the application is '
+                                                     f'in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state']},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def authorised_users(user_type):
+    """
+    Checks if the user is the correct type and if they have access to the application being requested
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            if not isinstance(request.request.user, user_type):
+                return JsonResponse(data={'errors': ['You are not authorised to perform this operation']},
+                                    status=status.HTTP_403_FORBIDDEN)
+
+            if isinstance(request.request.user, ExporterUser):
+                application = _get_application(request, kwargs)
+                if application.organisation.id != request.request.user.organisation.id:
+                    return JsonResponse(data={'errors': ['You can only perform this operation on an application '
+                                                         'that has been opened within your organisation']},
+                                        status=status.HTTP_403_FORBIDDEN)
 
             return func(request, *args, **kwargs)
 

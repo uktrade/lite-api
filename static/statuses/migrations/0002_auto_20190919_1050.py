@@ -2,25 +2,8 @@
 
 from django.db import migrations, models
 
-from static.statuses.enums import CaseStatusEnum
-
-
-def initialize(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
-    CaseStatus.objects.all().delete()
-
-    for choice in CaseStatusEnum.choices:
-        case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
-        case_status.save()
-
-
-def destroy(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
-    CaseStatus.objects.all().delete()
-
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('statuses', '0001_initial'),
     ]
@@ -29,7 +12,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='casestatus',
             name='status',
-            field=models.CharField(choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'), ('under_review', 'Under review'), ('under_final_review', 'Under final review'), ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'finalised')], max_length=50),
+            field=models.CharField(
+                choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'),
+                         ('under_review', 'Under review'), ('under_final_review', 'Under final review'),
+                         ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'finalised')],
+                max_length=50),
         ),
-        migrations.RunPython(initialize, destroy),
     ]

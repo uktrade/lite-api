@@ -10,6 +10,7 @@ class CaseGetTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
+        self.submit_application(self.standard_application)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse('cases:case', kwargs={'pk': self.case.id})
 

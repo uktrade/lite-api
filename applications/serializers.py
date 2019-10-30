@@ -24,7 +24,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
@@ -160,6 +160,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
                   'status',
                   'licence_type',
                   'export_type',
+                  'have_you_been_informed',
                   'reference_number_on_information_form',
                   'application_denial_reason',
                   'goods_locations',
@@ -177,7 +178,11 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
             return None
 
     def get_status(self, instance):
-        return instance.status.status if instance.status else None
+        status = instance.status.status if instance.status else None
+        return {
+            'key': status,
+            'value': get_status_value_from_case_status_enum(status) if status else None
+        }
 
     def get_goods_locations(self, application):
         """
@@ -251,24 +256,41 @@ class OpenApplicationSerializer(BaseApplicationSerializer):
 
 
 class ApplicationUpdateSerializer(BaseApplicationSerializer):
-    name = serializers.CharField()
-    usage = serializers.CharField()
-    activity = serializers.CharField()
+    name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
+                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
+    reference_number_on_information_form = CharField(max_length=100,
+                                                     required=False,
+                                                     allow_blank=True,
+                                                     allow_null=True)
+
+    class Meta:
+        model = BaseApplication
+        fields = ('name', 'reference_number_on_information_form', 'have_you_been_informed',)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.have_you_been_informed = validated_data.get('have_you_been_informed', instance.have_you_been_informed)
+        if instance.have_you_been_informed == 'yes':
+            instance.reference_number_on_information_form = validated_data.get(
+                'reference_number_on_information_form', instance.reference_number_on_information_form)
+        else:
+            instance.reference_number_on_information_form = None
+        instance.last_modified_at = datetime.now(timezone.utc)
+        instance.save()
+        return instance
+
+
+class ApplicationStatusUpdateSerializer(BaseApplicationSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
     class Meta:
         model = BaseApplication
-        fields = ('id',
-                  'name',
-                  'activity',
-                  'usage',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status',
-                  'reasons',
-                  'reason_details',)
+        fields = ('status', 'reasons', 'reason_details',)
 
     def validate_reasons(self, attrs):
         if not attrs or len(attrs) == 0:
@@ -280,22 +302,15 @@ class ApplicationUpdateSerializer(BaseApplicationSerializer):
         Update and return an existing `Application` instance, given the
         validated data.
         """
-        instance.name = validated_data.get('name', instance.name)
-        instance.activity = validated_data.get('activity', instance.activity)
-        instance.usage = validated_data.get('usage', instance.usage)
         instance.status = validated_data.get('status', instance.status)
-        instance.licence_type = validated_data.get('licence_type', instance.licence_type)
-        instance.export_type = validated_data.get('export_type', instance.export_type)
-        instance.reference_number_on_information_form = validated_data.get(
-            'reference_number_on_information_form', instance.reference_number_on_information_form)
         instance.last_modified_at = datetime.now(timezone.utc)
 
         # Remove any previous denial reasons
-        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.FINALISED):
+        if validated_data.get('status') == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get('status') == get_case_status_from_status_enum(CaseStatusEnum.UNDER_FINAL_REVIEW):
+        if validated_data.get('status') == get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {'application': instance.id,
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}
@@ -350,6 +365,9 @@ class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
 
 class DraftApplicationCreateSerializer(serializers.ModelSerializer):
     name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
                      error_messages={'blank': get_string('goods.error_messages.ref_name')})
     licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
         'required': get_string('applications.generic.no_licence_type')})
@@ -358,7 +376,7 @@ class DraftApplicationCreateSerializer(serializers.ModelSerializer):
     have_you_been_informed = KeyValueChoiceField(choices=ApplicationExportLicenceOfficialType.choices,
                                                  error_messages={
                                                      'required': get_string('goods.error_messages.informed')})
-    reference_number_on_information_form = CharField(required=True, allow_blank=True)
+    reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:

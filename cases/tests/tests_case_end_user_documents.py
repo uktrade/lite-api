@@ -21,8 +21,8 @@ class CaseEndUserDocumentTests(DataTestClient):
         And the data in the document is the same as the data in original draft's end user document
         """
         # assemble
-        draft = self.create_standard_draft(organisation=self.organisation)
-        application = self.submit_draft(draft)
+        draft = self.create_standard_application(organisation=self.organisation)
+        application = self.submit_application(draft)
         case = Case.objects.get(application=application)
 
         # act

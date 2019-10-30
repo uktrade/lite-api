@@ -7,7 +7,7 @@ class CaseStatusEnum:
         run `./manage.py makemigrations`
         add a custom migration step in the generated migration file to populate the
         table with the new data
-    (see this applications `0001_initial` migration file for an example)
+    (see the `static/statuses/migrations/0003_auto_20191014_1046.py` migration file for an example)
     """
     SUBMITTED = 'submitted'
     MORE_INFORMATION_REQUIRED = 'more_information_required'
@@ -16,6 +16,7 @@ class CaseStatusEnum:
     RESUBMITTED = 'resubmitted'
     WITHDRAWN = 'withdrawn'
     FINALISED = 'finalised'
+    APPLICANT_EDITING = 'applicant_editing'
 
     choices = [
         (SUBMITTED, 'Submitted'),
@@ -24,7 +25,8 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, 'Under final review'),
         (RESUBMITTED, 'Resubmitted'),
         (WITHDRAWN, 'Withdrawn'),
-        (FINALISED, 'finalised'),
+        (FINALISED, 'Finalised'),
+        (APPLICANT_EDITING, 'Applicant editing'),
     ]
 
     priorities = {
@@ -34,5 +36,6 @@ class CaseStatusEnum:
         UNDER_REVIEW: 4,
         UNDER_FINAL_REVIEW: 5,
         WITHDRAWN: 6,
-        FINALISED: 7
+        FINALISED: 7,
+        APPLICANT_EDITING: 8
     }
