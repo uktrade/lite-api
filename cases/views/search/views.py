@@ -22,7 +22,7 @@ class CasesSearchView(generics.GenericAPIView):
         )
 
         try:
-            cases = TinyCaseSerializer(case_qs, many=True).data
+            cases = TinyCaseSerializer(case_qs, team=request.user.team, many=True).data
         except ValidationError:
             cases = []
 

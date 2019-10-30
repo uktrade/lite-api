@@ -15,19 +15,19 @@ def get_user_queue_meta(user) -> List[Dict]:
     return [
         {
             'id': 'all_cases',
-            'href': '/cases/?is_system_queue=true',
+            'href': '/cases/?',
             'name': 'All cases',
             'case_count': case_qs.count(),
         },
         {
             'id': 'open_cases',
-            'href': '/cases/?is_system_queue=true&status=open',
+            'href': '/cases/?status=open',
             'name': 'Open cases',
             'case_count': case_qs.is_open().count(),
         },
         {
             'id': 'team_cases',
-            'href': '/cases/?is_system_queue=true&team=true',
+            'href': '/cases/?team=true',
             'name': 'All my queues',
             'case_count': case_qs.in_team(team=user.team).count(),
         },

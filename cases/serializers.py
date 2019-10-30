@@ -71,7 +71,28 @@ class TinyCaseSerializer(serializers.Serializer):
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
-    flags = FlagSerializer(many=True)
+    flags = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        self.team = kwargs.pop('team', None)
+        super().__init__(*args, **kwargs)
+
+    def get_flags(self, instance):
+        """
+        Gets flags for a case and returns in sorted order by team.
+        """
+        data = FlagSerializer(instance.flags, many=True).data
+        if not self.team:
+            return data
+
+        # Sort flags by user's team.
+        team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), data))
+        non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), data))
+
+        data = sorted(team_flags, key=lambda x: x['name']) + sorted(non_team_flags, key=lambda x: x['name'])
+
+        return data
+
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
