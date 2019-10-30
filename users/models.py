@@ -87,6 +87,9 @@ class BaseUser(AbstractUser):
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
         elif case_activity:
+            # Case activity notifications are for gov users only.
+            # There can only be one notification per gov user's case
+            # If a notification for that gov user's case already exists, update the case activity it points to
             try:
                 notification = Notification.objects.get(user=self)
                 notification.case_activity = case_activity
