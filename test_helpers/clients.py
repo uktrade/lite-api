@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from django.core.management import call_command
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -67,6 +68,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Create a hardcoded control list entry rather than loading in the
         # spreadsheet each time
         ControlListEntry.create('ML1a', 'Description', None, False)
+
+        # Seed layouts
+        call_command('seedlayouts')
 
         if settings.TIME_TESTS:
             self.tick = datetime.now()

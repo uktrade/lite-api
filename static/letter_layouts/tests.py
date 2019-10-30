@@ -44,7 +44,7 @@ class LetterLayoutTests(DataTestClient):
 
 class SeedTemplatesTests(TestCase):
 
-    def test_seed_control_list_entries_command_output(self):
+    def test_seed_layout_command_output(self):
         out = StringIO()
         call_command('seedlayouts', stdout=out)
 
