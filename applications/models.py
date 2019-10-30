@@ -74,6 +74,15 @@ class OpenApplication(BaseApplication):
     pass
 
 
+class HmrcQuery(BaseApplication):
+    end_user = models.ForeignKey(EndUser, related_name='hmrc_query_end_user', on_delete=models.CASCADE,
+                                 default=None, blank=True, null=True)
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='hmrc_query_ultimate_end_users')
+    consignee = models.ForeignKey(Consignee, related_name='hmrc_query_consignee', on_delete=models.CASCADE,
+                                  default=None, blank=True, null=True)
+    third_parties = models.ManyToManyField(ThirdParty, related_name='hmrc_query_third_parties')
+
+
 class GoodOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name='goods_on_application', on_delete=models.CASCADE)

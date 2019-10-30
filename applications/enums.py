@@ -14,9 +14,9 @@ class ApplicationType:
     HMRC_QUERY = 'hmrc_query'
 
     choices = [
-        (STANDARD_LICENCE, 'Standard licence'),
-        (OPEN_LICENCE, 'Open licence'),
-        (HMRC_QUERY, 'HMRC query'),
+        (STANDARD_LICENCE, 'Standard Licence'),
+        (OPEN_LICENCE, 'Open Licence'),
+        (HMRC_QUERY, 'HMRC Query'),
     ]
 
 
