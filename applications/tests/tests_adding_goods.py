@@ -7,10 +7,10 @@ from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
-class DraftTests(DataTestClient):
+class AddingGoodsOnApplicationTests(DataTestClient):
 
     def test_add_a_good_to_a_draft(self):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -35,7 +35,7 @@ class DraftTests(DataTestClient):
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('test', organisation_2)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -63,7 +63,7 @@ class DraftTests(DataTestClient):
         [{'value': '123.4523', 'quantity': '1234', 'response': status.HTTP_400_BAD_REQUEST}],
     ])
     def test_adding_goods_with_different_number_formats(self, data):
-        draft = self.create_standard_draft(self.organisation)
+        draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
                                   s3_key='doc3')
@@ -79,15 +79,14 @@ class DraftTests(DataTestClient):
         response = self.client.post(url, post_data, **self.exporter_headers)
         self.assertEqual(response.status_code, data['response'])
 
-    def test_add_a_good_to_draft_open_application_failure(self):
+    def test_add_a_good_to_open_application_failure(self):
         """
         Given a draft open application
         When I try to add a good to the application
-        Then a 404 NOT FOUND is returned
+        Then a 400 BAD REQUEST is returned
         And no goods have been added
         """
-        # assemble
-        draft = self.create_open_draft(self.organisation)
+        draft = self.create_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         good = self.create_controlled_good('A good', self.organisation)
         self.create_good_document(good, user=self.exporter_user, organisation=self.organisation, name='doc1',
@@ -101,9 +100,26 @@ class DraftTests(DataTestClient):
         }
         url = reverse('applications:application_goods', kwargs={'pk': draft.id})
 
-        # act
         response = self.client.post(url, data, **self.exporter_headers)
 
-        # assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
+
+    def test_add_a_good_to_a_submitted_application__failure(self):
+        application = self.create_standard_application(self.organisation)
+        self.submit_application(application)
+        good_to_add = self.create_controlled_good('A good', self.organisation)
+        self.create_good_document(good_to_add, user=self.exporter_user, organisation=self.organisation, name='doc1',
+                                  s3_key='doc3')
+        data = {
+            'good_id': good_to_add.id,
+            'quantity': 1200.098896,
+            'unit': Units.NAR,
+            'value': 50000.45
+        }
+
+        url = reverse('applications:application_goods', kwargs={'pk': application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

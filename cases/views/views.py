@@ -99,7 +99,7 @@ class CaseDocuments(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         """
         Adds a document to the specified case

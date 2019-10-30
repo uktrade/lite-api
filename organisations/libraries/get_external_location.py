@@ -1,22 +1,19 @@
-from django.http import Http404
-
+from applications.models import BaseApplication, ExternalLocationOnApplication
+from conf.exceptions import NotFoundError
 from organisations.models import ExternalLocation
 
 
-def get_external_location_by_pk(pk):
+def get_location(pk, organisation=None):
+    kwargs = {'pk': pk}
+
+    if organisation:
+        kwargs['organisation'] = organisation
+
     try:
-        return ExternalLocation.objects.get(pk=pk)
+        return ExternalLocation.objects.get(**kwargs)
     except ExternalLocation.DoesNotExist:
-        raise Http404
+        raise NotFoundError({'external_location': 'External location not found - ' + str(pk)})
 
 
-def get_external_location_with_organisation(pk, organisation):
-    try:
-        external_location = ExternalLocation.objects.get(pk=pk)
-
-        if external_location.organisation.pk != organisation.pk:
-            raise Http404
-
-        return external_location
-    except ExternalLocation.DoesNotExist:
-        raise Http404
+def has_previous_locations(application: BaseApplication):
+    return ExternalLocationOnApplication.objects.filter(application=application).exists()

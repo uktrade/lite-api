@@ -14,7 +14,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.open_draft = self.create_open_draft(self.organisation)
+        self.open_draft = self.create_open_application(self.organisation)
 
         role = Role(name='team_level')
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
@@ -36,7 +36,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         for country in self.all_countries:
             CountryOnApplication(application=self.open_draft, country=country).save()
 
-        application = self.submit_draft(self.open_draft)
+        application = self.submit_application(self.open_draft)
         self.case = Case.objects.get(application=application)
 
         self.goods_countries_url = reverse('cases:goods_countries_decisions', kwargs={'pk': self.case.id})

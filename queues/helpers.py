@@ -69,4 +69,3 @@ def get_queue(pk, team=None):
         return queue[0]
     else:
         raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
-

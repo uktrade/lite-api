@@ -3,7 +3,7 @@ from rest_framework import status
 
 from cases.models import Case
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -16,7 +16,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.application_cases = []
         for app_status in CaseStatusEnum.choices:
             case = self.create_standard_application_case(self.organisation, 'Example Application')
-            case.application.status = get_case_status_from_status_enum(app_status)
+            case.application.status = get_case_status_by_status(app_status[0])
             case.application.save()
             self.queue.cases.add(case)
             self.queue.save()
@@ -25,7 +25,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.clc_cases = []
         for clc_status in CaseStatusEnum.choices:
             clc_query = self.create_clc_query('Example CLC Query', self.organisation)
-            clc_query.status = get_case_status_from_status_enum(clc_status)
+            clc_query.status = get_case_status_by_status(clc_status[0])
             clc_query.save()
             self.queue.cases.add(clc_query.case.get())
             self.queue.save()
@@ -124,7 +124,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
         url = f'{reverse("cases:search")}?case_type=clc_query&status={case_status.status}&sort=status'
 
@@ -148,7 +148,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.query.status == case_status, self.clc_cases))
         url = self.url + '?case_type=clc_query&status=' + case_status.status
 
