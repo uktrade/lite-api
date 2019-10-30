@@ -115,10 +115,9 @@ def sort_cases(cases, sort_by: str):
     Currently only supports: status
     """
     if sort_by:
-        order = '-' if '-' in sort_by else ''
         if sort_by == 'status' or sort_by == '-status':
             cases = _coalesce_case_status_priority(cases)
-            return cases.order_by(order + 'status__priority')
+            return cases.order_by(sort_by+'__priority')
         else:
             raise Http404
 
