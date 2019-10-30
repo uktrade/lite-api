@@ -117,7 +117,7 @@ def sort_cases(cases, sort_by: str):
     if sort_by:
         if sort_by == 'status' or sort_by == '-status':
             cases = _coalesce_case_status_priority(cases)
-            return cases.order_by(sort_by+'__priority')
+            return cases.order_by(sort_by + '__priority')
         else:
             raise Http404
 
