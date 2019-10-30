@@ -162,8 +162,13 @@ class CaseNotification(APIView):
     def get(self, request):
         user = request.user
         case = self.request.GET.get('case')
-        notification = Notification.objects.filter(user=user, case_activity__case__id=case).last()
+
+        try:
+            notification = Notification.objects.get(user=user, case_activity__case__id=case)
+        except Notification.DoesNotExist:
+            return JsonResponse(data={'notification': None})
 
         serializer = CaseNotificationGetSerializer(notification)
+        notification.delete()
 
         return JsonResponse(data={'notification': serializer.data})
