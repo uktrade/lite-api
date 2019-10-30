@@ -41,25 +41,36 @@ class ApplicationGoodsOnApplication(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         data = request.data
-        data['good'] = data['good_id']
         data['application'] = application.id
 
-        good = get_good_with_organisation(data.get('good'), request.user.organisation)
+        if 'validate_only' not in data or data['validate_only'] == 'False':
+            data['good'] = data['good_id']
 
-        if GoodDocument.objects.filter(good=good).count() == 0:
-            return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            good = get_good_with_organisation(data.get('good'), request.user.organisation)
 
-        serializer = GoodOnApplicationCreateSerializer(data=data)
-        if not serializer.is_valid():
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            if GoodDocument.objects.filter(good=good).count() == 0:
+                return JsonResponse(data={'error': 'Cannot attach a good with no documents'},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+            serializer = GoodOnApplicationCreateSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
 
-        set_application_goods_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user,
-                                            application)
+                set_application_goods_case_activity(CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description,
+                                                    request.user,
+                                                    application)
 
-        return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
+                return JsonResponse(data={'good': serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            # validate the value, quantity, and units relating to a good on an application.
+            # note: Goods attached to applications also need documents. This is validated at a later stage.
+            serializer = GoodOnApplicationCreateSerializer(data=data, partial=True)
+            if serializer.is_valid():
+                return HttpResponse(status=status.HTTP_200_OK)
+
+        return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class ApplicationGoodOnApplication(APIView):
