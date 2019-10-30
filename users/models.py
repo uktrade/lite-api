@@ -76,7 +76,7 @@ class BaseUser(AbstractUser):
 
     objects = CustomUserManager()
 
-    def send_notification(self, case_note=None, query=None, ecju_query=None):
+    def send_notification(self, case_note=None, query=None, ecju_query=None, case_activity=None):
         from cases.models import Notification
         # circular import prevention
         if case_note:
@@ -86,6 +86,8 @@ class BaseUser(AbstractUser):
             Notification.objects.create(user=self, query=actual_query)
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
+        elif case_activity:
+            Notification.objects.update_or_create(user=self, case_activity=case_activity)
         else:
             raise Exception("BaseUser.send_notification: objects expected have not been added.")
 

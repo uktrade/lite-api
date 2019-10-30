@@ -9,11 +9,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, SharedAuthentication, \
+    GovAuthentication
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
-from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer
+from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer, \
+    CaseNotificationGetSerializer
 
 
 class AuthenticateExporterUser(APIView):
@@ -118,17 +120,17 @@ class UserDetail(APIView):
 
 
 class UserMeDetail(APIView):
-    authentication_classes = (ExporterOnlyAuthentication,)
     """
     Get the user from request
     """
+    authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
         serializer = ExporterUserViewSerializer(request.user)
         return JsonResponse(data={'user': serializer.data})
 
 
-class NotificationViewset(generics.ListAPIView):
+class NotificationViewSet(generics.ListAPIView):
     model = Notification
     serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
@@ -152,3 +154,16 @@ class NotificationViewset(generics.ListAPIView):
             queryset = queryset.filter(viewed_at__isnull=True)
 
         return queryset
+
+
+class CaseNotification(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        user = request.user
+        case = self.request.GET.get('case')
+        notification = Notification.objects.filter(user=user, case_activity__case__id=case).last()
+
+        serializer = CaseNotificationGetSerializer(notification)
+
+        return JsonResponse(data={'notification': serializer.data})

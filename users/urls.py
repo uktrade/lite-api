@@ -14,5 +14,7 @@ urlpatterns = [
     # ex: /users/me/
     path('me/', views.UserMeDetail.as_view(), name='me'),
     # ex: /users/notifications/
-    path('notifications/', views.NotificationViewset.as_view(), name='notifications'),
+    path('notifications/', views.NotificationViewSet.as_view(), name='notifications'),
+    # ex: /users/notification/
+    path('case-notification/', views.CaseNotification.as_view(), name='case_notification'),
 ]

@@ -212,14 +212,6 @@ class EcjuQuery(models.Model):
             super(EcjuQuery, self).save(*args, **kwargs)
 
 
-class Notification(models.Model):
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
-    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
-    viewed_at = models.DateTimeField(null=True)
-
-
 class BaseActivity(models.Model):
     text = models.TextField(default=None)
     additional_text = models.TextField(default=None, null=True)
@@ -277,6 +269,10 @@ class BaseActivity(models.Model):
                        created_at=created_at)
         if save_object:
             activity.save()
+
+        for gov_user in GovUser.objects.all():
+            gov_user.send_notification(case_activity=activity)
+
         return activity
 
 
@@ -298,3 +294,12 @@ class GoodCountryDecision(models.Model):
                                            country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
+    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
+    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
+    viewed_at = models.DateTimeField(null=True)
