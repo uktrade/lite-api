@@ -15,7 +15,7 @@ class NotificationTests(DataTestClient):
         self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
 
-        self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case__id=case).count(),
+        self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
                          prev_notification_count + 1)
 
     def tests_edit_application_updates_previous_case_notification_success(self):
