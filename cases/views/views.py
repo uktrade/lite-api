@@ -323,7 +323,7 @@ class CaseEcjuQueries(APIView):
         Returns the list of ECJU Queries on a case
         """
         case = get_case(pk)
-        case_ecju_queries = EcjuQuery.objects.filter(case=case)
+        case_ecju_queries = EcjuQuery.objects.filter(case=case).order_by("created_at")
 
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
