@@ -178,12 +178,12 @@ class CasesFilterAndSortTests(DataTestClient):
         all_cases = [
             {
                 'status': case.application.status.status if case.application is not None else case.query.status.status,
-                'priority': case.application.status.priority if case.application is not None
+                'status_ordering': case.application.status.priority if case.application is not None
                 else case.query.status.priority
             }
             for case in all_cases
         ]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k['priority'])
+        all_cases_sorted = sorted(all_cases, key=lambda k: k['status_ordering'])
         url = self.url + '?sort=status'
 
         # Act
@@ -209,11 +209,11 @@ class CasesFilterAndSortTests(DataTestClient):
             [
                 {
                     'status': case.application.status.status,
-                    'priority': case.application.status.priority
+                    'status_ordering': case.application.status.priority
                 }
                 for case in self.application_cases
             ],
-            key=lambda k: k['priority'],
+            key=lambda k: k['status_ordering'],
             reverse=True
         )
 
