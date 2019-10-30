@@ -75,6 +75,7 @@ class OpenApplication(BaseApplication):
 
 
 class HmrcQuery(BaseApplication):
+    hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     end_user = models.ForeignKey(EndUser, related_name='hmrc_query_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='hmrc_query_ultimate_end_users')
