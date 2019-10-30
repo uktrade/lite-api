@@ -5,19 +5,6 @@ from django.db import migrations, models
 from static.statuses.enums import CaseStatusEnum
 
 
-def initialize(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
-
-    for choice in CaseStatusEnum.choices:
-        if not CaseStatus.objects.filter(status=choice[0]).exists():
-            case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
-            case_status.save()
-
-
-def destroy(apps, schema_editor):
-    pass
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ('statuses', '0002_auto_20190919_1050'),
@@ -33,5 +20,4 @@ class Migration(migrations.Migration):
                          ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'Finalised'),
                          ('applicant_editing', 'Applicant editing')], max_length=50),
         ),
-        migrations.RunPython(initialize, destroy),
     ]
