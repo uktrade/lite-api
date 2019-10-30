@@ -1,6 +1,6 @@
 from django.http import Http404
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.models import BaseApplication, OpenApplication, StandardApplication
 
 
@@ -9,10 +9,10 @@ def get_application(pk, organisation_id=None):
     if organisation_id:
         kwargs['organisation_id'] = str(organisation_id)
 
-    licence_type = _get_application_licence_type(pk)
+    application_type = _get_application_type(pk)
 
     try:
-        if licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        if application_type == ApplicationType.STANDARD_LICENCE:
             return StandardApplication.objects.get(pk=pk, **kwargs)
         else:
             return OpenApplication.objects.get(pk=pk, **kwargs)
@@ -20,8 +20,8 @@ def get_application(pk, organisation_id=None):
         raise Http404
 
 
-def _get_application_licence_type(pk):
+def _get_application_type(pk):
     try:
-        return BaseApplication.objects.values_list('licence_type', flat=True).get(pk=pk)
+        return BaseApplication.objects.values_list('application_type', flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:
         raise Http404

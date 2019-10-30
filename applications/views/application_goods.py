@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_application_goods_case_activity, \
     set_application_goods_type_case_activity
 from applications.libraries.get_goods_on_applications import get_good_on_application
@@ -11,7 +11,7 @@ from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
+from conf.decorators import application_type, authorised_users, application_in_major_editable_state
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -28,7 +28,7 @@ class ApplicationGoodsOnApplication(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_type(ApplicationType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -36,7 +36,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_type(ApplicationType.STANDARD_LICENCE)
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -95,7 +95,7 @@ class ApplicationGoodsTypes(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @application_type(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application)
@@ -103,7 +103,7 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={'goods': goods_types_data}, status=status.HTTP_200_OK)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @application_type(ApplicationType.OPEN_LICENCE)
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -128,7 +128,7 @@ class ApplicationGoodsTypes(APIView):
 class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @application_type(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
@@ -139,7 +139,7 @@ class ApplicationGoodsType(APIView):
 
         return JsonResponse(data={'good': goods_type_data}, status=status.HTTP_200_OK)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @application_type(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
@@ -161,7 +161,7 @@ class ApplicationGoodsTypeCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @application_type(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def put(self, request, application, goodstype_pk):
         data = request.data

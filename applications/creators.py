@@ -1,4 +1,4 @@
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.models import CountryOnApplication, GoodOnApplication, SiteOnApplication, \
     ExternalLocationOnApplication
 from content_strings.strings import get_string
@@ -111,7 +111,7 @@ def validate_application_ready_for_submission(application):
         errors['location'] = get_string('applications.generic.no_location_set')
 
     # Perform additional validation and append errors if found
-    if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+    if application.application_type == ApplicationType.STANDARD_LICENCE:
         validate_standard_licence(application, errors)
     else:
         validate_open_licence(application, errors)

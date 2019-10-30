@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.models import StandardApplication, OpenApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
@@ -39,7 +39,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but we need the full details of the standard/open application
         if instance.application:
-            if instance.application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+            if instance.application.application_type == ApplicationType.STANDARD_LICENCE:
                 standard_application = StandardApplication.objects.get(pk=instance.application.id)
                 return StandardApplicationSerializer(standard_application).data
             else:

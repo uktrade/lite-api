@@ -16,7 +16,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             'name': 'Test',
-            'licence_type': 'standard_licence',
+            'application_type': 'standard_licence',
             'export_type': 'temporary',
             'reference_number_on_information_form': '123',
             'have_you_been_informed': 'yes',
@@ -29,7 +29,7 @@ class DraftTests(DataTestClient):
     @parameterized.expand([
         [{}],
         [{
-            'licence_type': 'standard_licence',
+            'application_type': 'standard_licence',
             'export_type': 'temporary',
         }],
         [{
@@ -38,7 +38,7 @@ class DraftTests(DataTestClient):
         }],
         [{
             'name': 'Test',
-            'licence_type': 'standard_licence',
+            'application_type': 'standard_licence',
         }],
     ])
     def test_create_draft_failure(self, data):

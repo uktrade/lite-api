@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, GoodOnApplication, ApplicationDenialReason, StandardApplication, \
     OpenApplication, ApplicationDocument, ExternalLocationOnApplication
@@ -133,7 +133,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
     last_modified_at = serializers.DateTimeField(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
-    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+    application_type = KeyValueChoiceField(choices=ApplicationType.choices, error_messages={
         'required': get_string('applications.generic.no_licence_type')})
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
         'required': get_string('applications.generic.no_export_type')})
@@ -158,7 +158,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
                   'last_modified_at',
                   'submitted_at',
                   'status',
-                  'licence_type',
+                  'application_type',
                   'export_type',
                   'have_you_been_informed',
                   'reference_number_on_information_form',
@@ -369,7 +369,7 @@ class DraftApplicationCreateSerializer(serializers.ModelSerializer):
                      allow_blank=False,
                      allow_null=False,
                      error_messages={'blank': get_string('goods.error_messages.ref_name')})
-    licence_type = KeyValueChoiceField(choices=ApplicationLicenceType.choices, error_messages={
+    application_type = KeyValueChoiceField(choices=ApplicationType.choices, error_messages={
         'required': get_string('applications.generic.no_licence_type')})
     export_type = KeyValueChoiceField(choices=ApplicationExportType.choices, error_messages={
         'required': get_string('applications.generic.no_export_type')})
@@ -383,7 +383,7 @@ class DraftApplicationCreateSerializer(serializers.ModelSerializer):
         model = BaseApplication
         fields = ('id',
                   'name',
-                  'licence_type',
+                  'application_type',
                   'export_type',
                   'have_you_been_informed',
                   'reference_number_on_information_form',

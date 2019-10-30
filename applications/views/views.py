@@ -7,7 +7,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
     validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
 from applications.libraries.case_activity import set_application_ref_number_case_activity, \
@@ -66,7 +66,7 @@ class ApplicationList(ListAPIView):
         serializer.validated_data['organisation'] = request.user.organisation
 
         # Use the data from the generic serializer to determine which model to save to
-        if serializer.validated_data['licence_type'] == ApplicationLicenceType.STANDARD_LICENCE:
+        if serializer.validated_data['application_type'] == ApplicationType.STANDARD_LICENCE:
             application = StandardApplication(**serializer.validated_data)
         else:
             application = OpenApplication(**serializer.validated_data)
@@ -148,7 +148,7 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(application=application):
                 if good_on_application.good.status == GoodStatus.DRAFT:
                     good_on_application.good.status = GoodStatus.SUBMITTED

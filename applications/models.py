@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.managers import BaseApplicationManager
 from documents.models import Document
 from goods.models import Good
@@ -25,7 +25,7 @@ class BaseApplication(models.Model):
     submitted_at = models.DateTimeField(blank=True, null=True)
     status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
                                null=True)
-    licence_type = models.CharField(choices=ApplicationLicenceType.choices, default=None, max_length=50)
+    application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,

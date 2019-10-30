@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
     StandardApplication, OpenApplication
@@ -259,7 +259,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case = Case(application=application)
         case.save()
 
-        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(application=application):
                 good_on_application.good.status = GoodStatus.SUBMITTED
                 good_on_application.good.save()
@@ -368,15 +368,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         Creates a standard draft application
         """
         application = StandardApplication(name=reference_name,
-                                    licence_type=ApplicationLicenceType.STANDARD_LICENCE,
-                                    export_type=ApplicationExportType.PERMANENT,
-                                    have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                    reference_number_on_information_form='',
-                                    activity='Trade',
-                                    usage='Trade',
-                                    organisation=organisation,
-                                    end_user=self.create_end_user('End User', organisation),
-                                    consignee=self.create_consignee('Consignee', organisation))
+                                          application_type=ApplicationType.STANDARD_LICENCE,
+                                          export_type=ApplicationExportType.PERMANENT,
+                                          have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                          reference_number_on_information_form='',
+                                          activity='Trade',
+                                          usage='Trade',
+                                          organisation=organisation,
+                                          end_user=self.create_end_user('End User', organisation),
+                                          consignee=self.create_consignee('Consignee', organisation))
 
         application.save()
 
@@ -429,13 +429,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         Creates an open application
         """
         application = OpenApplication(name=reference_name,
-                                licence_type=ApplicationLicenceType.OPEN_LICENCE,
-                                export_type=ApplicationExportType.PERMANENT,
-                                have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                reference_number_on_information_form='',
-                                activity='Trade',
-                                usage='Trade',
-                                organisation=organisation)
+                                      application_type=ApplicationType.OPEN_LICENCE,
+                                      export_type=ApplicationExportType.PERMANENT,
+                                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+                                      reference_number_on_information_form='',
+                                      activity='Trade',
+                                      usage='Trade',
+                                      organisation=organisation)
 
         application.save()
 

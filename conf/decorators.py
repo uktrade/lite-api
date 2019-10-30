@@ -25,7 +25,7 @@ def _get_application(request, kwargs):
     return application
 
 
-def application_licence_type(licence_type):
+def application_type(application_type):
     """
     Checks if application is the correct type for the request
     """
@@ -35,9 +35,9 @@ def application_licence_type(licence_type):
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.licence_type != licence_type:
+            if application.application_type != application_type:
                 return JsonResponse(data={'errors': [f'This operation can only be used on applications of type '
-                                                     f'`{licence_type}`']},
+                                                     f'`{application_type}`']},
                                     status=status.HTTP_400_BAD_REQUEST)
 
             return func(request, *args, **kwargs)
