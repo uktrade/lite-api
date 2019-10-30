@@ -87,7 +87,12 @@ class BaseUser(AbstractUser):
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
         elif case_activity:
-            Notification.objects.update_or_create(user=self, case_activity=case_activity)
+            try:
+                notification = Notification.objects.get(user=self)
+                notification.case_activity = case_activity
+                notification.save()
+            except Notification.DoesNotExist:
+                Notification.objects.create(user=self, case_activity=case_activity)
         else:
             raise Exception("BaseUser.send_notification: objects expected have not been added.")
 
