@@ -9,8 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, SharedAuthentication, \
-    GovAuthentication
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
