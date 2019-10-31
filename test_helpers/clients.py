@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
@@ -107,9 +108,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
+        random_string = str(uuid.uuid4())
+
         exporter_user = ExporterUser(first_name=first_name,
                                      last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com')
+                                     email=f'{first_name}.{last_name}@{random_string}.com')
         exporter_user.organisation = organisation
         exporter_user.save()
 

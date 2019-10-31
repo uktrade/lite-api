@@ -8,16 +8,15 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationType
-from applications.helpers import get_application_create_serializer, get_application_view_serializer
+from applications.helpers import get_application_create_serializer, get_application_view_serializer, \
+    get_application_update_serializer
 from applications.libraries.application_helpers import optional_str_to_bool, \
     validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
 from applications.libraries.case_activity import set_application_ref_number_case_activity, \
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication
-from applications.serializers.hmrc_query import HmrcQueryUpdateSerializer
-from applications.serializers.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
-    ApplicationUpdateSerializer
+from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -50,7 +49,7 @@ class ApplicationList(ListAPIView):
 
         applications = qs.order_by('created_at')
 
-        serializer = BaseApplicationSerializer(applications, many=True)
+        serializer = GenericApplicationListSerializer(applications, many=True)
 
         return JsonResponse(data={'applications': serializer.data})
 
@@ -80,25 +79,27 @@ class ApplicationDetail(APIView):
         Retrieve an application instance.
         """
         serializer = get_application_view_serializer(application)
+        serializer = serializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     @authorised_users(ExporterUser)
-    def put(self, request, application: BaseApplication):
+    def put(self, request, application):
         """
         Update an application instance.
         """
-        if application.application_type == ApplicationType.HMRC_QUERY:
-            serializer = HmrcQueryUpdateSerializer(application, data=request.data, partial=True)
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
+        if application.application_type == ApplicationType.HMRC_QUERY:
             if not serializer.is_valid():
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer.save()
+
             return JsonResponse(data={}, status=status.HTTP_200_OK)
         else:
             application_old_name = application.name
             application_old_ref_number = application.reference_number_on_information_form
-            serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
             if not serializer.is_valid():
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -155,7 +156,8 @@ class ApplicationSubmission(APIView):
                     good_on_application.good.save()
 
         # Serialize for the response message
-        serializer = get_application_view_serializer(application)
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(application)
 
         data = {'application': {**serializer.data}}
 
@@ -199,7 +201,9 @@ class ApplicationManageStatus(APIView):
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data['status'] = str(new_status.pk)
-        serializer = ApplicationStatusUpdateSerializer(application, data=data, partial=True)
+
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(application, data=data, partial=True)
 
         if not serializer.is_valid():
             return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

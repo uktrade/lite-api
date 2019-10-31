@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from applications.libraries.case_activity import set_external_location_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from applications.serializers.serializers import ExternalLocationOnApplicationSerializer
+from applications.serializers.other import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_location
@@ -117,7 +117,7 @@ class ApplicationRemoveExternalLocation(APIView):
         if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
             if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
                 return JsonResponse(data={'error': "Go back and change your answer from ‘Change a site, or delete a "
-                                                     "good, third party or country’ to ’Change something else’."},
+                                                   "good, third party or country’ to ’Change something else’."},
                                     status=status.HTTP_400_BAD_REQUEST)
 
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application,

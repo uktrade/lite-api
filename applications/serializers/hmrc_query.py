@@ -1,8 +1,10 @@
 from rest_framework import exceptions
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery
 from organisations.enums import OrganisationType
+from organisations.models import Organisation
 
 
 class HmrcQueryViewSerializer(serializers.ModelSerializer):
@@ -14,6 +16,9 @@ class HmrcQueryViewSerializer(serializers.ModelSerializer):
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
+    organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    hmrc_organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -24,7 +29,10 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = ['id', 'reasoning', 'application_type']
+        fields = ['reasoning',
+                  'application_type',
+                  'organisation',
+                  'hmrc_organisation']
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):

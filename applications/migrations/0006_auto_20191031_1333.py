@@ -42,14 +42,6 @@ class Migration(migrations.Migration):
             old_name='reference_number_on_information_form',
             new_name='reference_number_on_information_form_2',
         ),
-        migrations.RemoveField(
-            model_name='baseapplication',
-            name='activity',
-        ),
-        migrations.RemoveField(
-            model_name='baseapplication',
-            name='usage',
-        ),
         migrations.AddField(
             model_name='openapplication',
             name='export_type',

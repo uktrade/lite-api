@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -14,12 +15,20 @@ class DraftTests(DataTestClient):
         """
         Ensure we can get a list of drafts.
         """
-        self.create_standard_application(self.organisation)
+        standard_application = self.create_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()['applications']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['applications']), 1)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]['name'], standard_application.name)
+        self.assertEqual(response_data[0]['application_type']['key'], standard_application.application_type)
+        self.assertEqual(response_data[0]['export_type']['key'], standard_application.export_type)
+        self.assertIsNotNone(response_data[0]['created_at'])
+        self.assertIsNotNone(response_data[0]['last_modified_at'])
+        self.assertIsNone(response_data[0]['submitted_at'])
+        self.assertEqual(response_data[0]['status']['key'], standard_application.status)
 
     def test_view_draft(self):
         """

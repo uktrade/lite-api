@@ -3,7 +3,8 @@ from rest_framework.exceptions import ValidationError
 
 from applications.enums import ApplicationType
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers.serializers import StandardApplicationViewSerializer, OpenApplicationViewSerializer
+from applications.serializers.open_application import OpenApplicationViewSerializer
+from applications.serializers.standard_application import StandardApplicationViewSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
     FinalAdvice, GoodCountryDecision
@@ -43,7 +44,7 @@ class CaseSerializer(serializers.ModelSerializer):
                 standard_application = StandardApplication.objects.get(pk=instance.application.id)
                 return StandardApplicationViewSerializer(standard_application).data
             else:
-                open_application = OpenApplication.objects.get(pk=instance.application.id)
+                open_application: OpenApplication = OpenApplication.objects.get(pk=instance.application.id)
                 return OpenApplicationViewSerializer(open_application).data
 
         return None
