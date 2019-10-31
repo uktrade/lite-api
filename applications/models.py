@@ -17,8 +17,6 @@ from static.units.enums import Units
 class BaseApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True, null=True)
-    activity = models.TextField(default=None, blank=True, null=True)
-    usage = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -26,10 +24,6 @@ class BaseApplication(models.Model):
     status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
                                null=True)
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    reference_number_on_information_form = models.TextField(blank=True, null=True)
-    have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
-                                              max_length=50)
 
     objects = BaseApplicationManager()
 
@@ -62,6 +56,10 @@ class ExternalLocationOnApplication(models.Model):
 
 
 class StandardApplication(BaseApplication):
+    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
+                                              max_length=50)
     end_user = models.ForeignKey(EndUser, related_name='application_end_user', on_delete=models.CASCADE,
                                  default=None, blank=True, null=True)
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name='application_ultimate_end_users')
@@ -71,7 +69,10 @@ class StandardApplication(BaseApplication):
 
 
 class OpenApplication(BaseApplication):
-    pass
+    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    have_you_been_informed = models.CharField(choices=ApplicationExportLicenceOfficialType.choices, default=None,
+                                              max_length=50)
 
 
 class HmrcQuery(BaseApplication):
