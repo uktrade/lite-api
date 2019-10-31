@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import OpenApplication, BaseApplication
+from applications.models import BaseApplication
 from flags.models import Flag
 from static.countries.models import Country
 
