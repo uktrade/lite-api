@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.enums import ApplicationType
 from applications.models import StandardApplication, OpenApplication
-from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
+from applications.serializers.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
     FinalAdvice, GoodCountryDecision

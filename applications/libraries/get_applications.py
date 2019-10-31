@@ -1,7 +1,7 @@
 from django.http import Http404
 
 from applications.enums import ApplicationType
-from applications.models import BaseApplication, OpenApplication, StandardApplication
+from applications.models import BaseApplication, OpenApplication, StandardApplication, HmrcQuery
 
 
 def get_application(pk, organisation_id=None):
@@ -14,8 +14,12 @@ def get_application(pk, organisation_id=None):
     try:
         if application_type == ApplicationType.STANDARD_LICENCE:
             return StandardApplication.objects.get(pk=pk, **kwargs)
-        else:
+        elif application_type == ApplicationType.OPEN_LICENCE:
             return OpenApplication.objects.get(pk=pk, **kwargs)
+        elif application_type == ApplicationType.HMRC_QUERY:
+            return HmrcQuery.objects.get(pk=pk, **kwargs)
+        else:
+            raise NotImplementedError(f'get_application does not support this application type: {application_type}')
     except (StandardApplication.DoesNotExist, OpenApplication.DoesNotExist):
         raise Http404
 

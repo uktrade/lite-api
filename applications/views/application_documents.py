@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from applications.libraries.document_helpers import upload_application_document, delete_application_document, \
     get_application_document, get_application_documents
-from applications.serializers import ApplicationDocumentSerializer
+from applications.serializers.serializers import ApplicationDocumentSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from users.models import ExporterUser

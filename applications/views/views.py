@@ -14,8 +14,9 @@ from applications.libraries.case_activity import set_application_ref_number_case
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
-from applications.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
+from applications.serializers.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
     DraftApplicationCreateSerializer, ApplicationUpdateSerializer
+from applications.serializers.hmrc import HmrcQueryUpdateSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -92,28 +93,37 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'application': serializer.data})
 
     @authorised_users(ExporterUser)
-    def put(self, request, application):
+    def put(self, request, application: BaseApplication):
         """
         Update an application instance.
         """
-        application_old_name = application.name
-        application_old_ref_number = application.reference_number_on_information_form
-        serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
+        if application.application_type == ApplicationType.HMRC_QUERY:
+            serializer = HmrcQueryUpdateSerializer(application, data=request.data, partial=True)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            if not serializer.is_valid():
+                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+            serializer.save()
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        else:
+            application_old_name = application.name
+            application_old_ref_number = application.reference_number_on_information_form
+            serializer = ApplicationUpdateSerializer(application, data=request.data, partial=True)
 
-        if request.data.get('name'):
-            set_application_name_case_activity(application_old_name, serializer.data.get('name'), request.user,
-                                               application)
-        elif request.data.get('reference_number_on_information_form'):
-            set_application_ref_number_case_activity(application_old_ref_number,
-                                                     serializer.data.get('reference_number_on_information_form'),
-                                                     request.user, application)
+            if not serializer.is_valid():
+                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+            serializer.save()
+
+            if request.data.get('name'):
+                set_application_name_case_activity(application_old_name, serializer.data.get('name'), request.user,
+                                                   application)
+            elif request.data.get('reference_number_on_information_form'):
+                set_application_ref_number_case_activity(application_old_ref_number,
+                                                         serializer.data.get('reference_number_on_information_form'),
+                                                         request.user, application)
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):

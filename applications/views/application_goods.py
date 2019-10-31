@@ -8,7 +8,7 @@ from applications.libraries.case_activity import set_application_goods_case_acti
     set_application_goods_type_case_activity
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
-from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
+from applications.serializers.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_type, authorised_users, application_in_major_editable_state
