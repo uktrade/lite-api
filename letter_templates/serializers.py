@@ -46,7 +46,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         Provide display values for restricted_to.
         """
         display_names = dict(CaseType.choices)
-        return [display_names.get(r) for r in instance.restricted_to]
+        return [display_names.get(restricted_to) for restricted_to in instance.restricted_to]
 
     class Meta:
         model = LetterTemplate
