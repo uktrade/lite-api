@@ -17,7 +17,8 @@ def get_application_view_serializer(application: BaseApplication):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryViewSerializer
     else:
-        raise BadRequestError({'errors': '??? todo'})  # TODO
+        raise BadRequestError({'errors': f'get_application_view_serializer does '
+                                         f'not support this application type: {application.application_type}'})
 
 
 def get_application_create_serializer(application_type):
@@ -28,7 +29,8 @@ def get_application_create_serializer(application_type):
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
     else:
-        raise BadRequestError({'errors': f'Application type: {application_type} is not supported'})
+        raise BadRequestError({'errors': f'get_application_update_serializer does '
+                                         f'not support this application type: {application_type}'})
 
 
 def get_application_update_serializer(application: BaseApplication):
@@ -39,4 +41,5 @@ def get_application_update_serializer(application: BaseApplication):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryUpdateSerializer
     else:
-        raise BadRequestError({'errors': '??? todo'})  # TODO
+        raise BadRequestError({'errors': f'get_application_update_serializer does '
+                                         f'not support this application type: {application.application_type}'})
