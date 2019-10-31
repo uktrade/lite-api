@@ -6,6 +6,7 @@ from applications.enums import ApplicationType, ApplicationExportType, Applicati
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from applications.serializers.other import ApplicationDenialReasonSerializer
+from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation
@@ -25,7 +26,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         if hasattr(instance, 'export_type'):
             return {
                 'key': instance.export_type,
-                'value': instance.export_type,
+                'value': get_value_from_enum(ApplicationExportType, instance.export_type)
             }
 
         return None

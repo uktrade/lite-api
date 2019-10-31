@@ -34,3 +34,7 @@ def replace_default_string_for_form_select(data, fields, replacement_value=None,
             if data[field] == default_select_value:
                 data[field] = replacement_value
     return data
+
+
+def get_value_from_enum(enum, value):
+    return [x for x in enum.choices if x[0] == value][0][1]
