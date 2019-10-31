@@ -7,7 +7,7 @@ from static.statuses.enums import CaseStatusEnum
 
 def initialize(apps, schema_editor):
     CaseStatus = apps.get_model('statuses', 'CaseStatus')
-
+    CaseStatus.objects.all().delete()
     for choice in CaseStatusEnum.choices:
         if not CaseStatus.objects.filter(status=choice[0]).exists():
             case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
@@ -33,5 +33,4 @@ class Migration(migrations.Migration):
                          ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'Finalised'),
                          ('applicant_editing', 'Applicant editing')], max_length=50),
         ),
-        migrations.RunPython(initialize, destroy),
     ]

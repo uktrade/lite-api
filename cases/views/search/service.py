@@ -2,43 +2,17 @@ from typing import List, Dict
 
 from cases.enums import CaseType
 from cases.models import Case
+from cases.views.search.queue import SearchQueue
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 
 
-def get_user_queue_meta(user) -> List[Dict]:
+def get_search_queues(user) -> List[Queue]:
     """
     Retrieves meta information on all the queues available for a user.
     """
-    case_qs = Case.objects.all()
-
-    return [
-        {
-            'id': 'all_cases',
-            'href': '/cases/?',
-            'name': 'All cases',
-            'case_count': case_qs.count(),
-        },
-        {
-            'id': 'open_cases',
-            'href': '/cases/?status=open',
-            'name': 'Open cases',
-            'case_count': case_qs.is_open().count(),
-        },
-        {
-            'id': 'team_cases',
-            'href': '/cases/?team=true',
-            'name': 'All my queues',
-            'case_count': case_qs.in_team(team=user.team).count(),
-        },
-    ] + [
-        {
-            'id': str(queue.id),
-            'href': f'/cases/?title={queue.name}&queue={queue.id}',
-            'name': queue.name,
-            'case_count': case_qs.in_queue(queue_id=queue.id).count(),
-        } for queue in Queue.objects.all()
-    ]
+    return SearchQueue.system(team=user.team) + [SearchQueue.from_queue(queue) for queue in Queue.objects.all()]
 
 
 def search_cases(queue_id=None, team=None, status=None, case_type=None, sort=None):
@@ -47,18 +21,17 @@ def search_cases(queue_id=None, team=None, status=None, case_type=None, sort=Non
     """
     case_qs = Case.objects.all()
 
-    if queue_id:
-        case_qs = case_qs.in_queue(queue_id=queue_id)
-
-    if team:
+    if queue_id == MY_TEAMS_QUEUES_CASES_ID:
         case_qs = case_qs.in_team(team=team)
 
+    elif queue_id == OPEN_CASES_SYSTEM_QUEUE_ID:
+        case_qs = case_qs.is_open()
+
+    elif queue_id is not None and queue_id != ALL_CASES_SYSTEM_QUEUE_ID:
+        case_qs = case_qs.in_queue(queue_id=queue_id)
+
     if status:
-        if status == 'open':
-            # Special status for all open. Does not exist in CaseStatusEnum.
-            case_qs = case_qs.is_open()
-        else:
-            case_qs = case_qs.has_status(status=status)
+        case_qs = case_qs.has_status(status=status)
 
     if case_type:
         case_qs = case_qs.is_type(case_type=case_type)

@@ -4,6 +4,7 @@ from rest_framework import generics
 
 from cases.serializers import TinyCaseSerializer
 from cases.views.search import service
+from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
 
@@ -15,7 +16,7 @@ class CasesSearchView(generics.GenericAPIView):
     def get(self, request):
         case_qs = service.search_cases(
             queue_id=request.GET.get('queue_id'),
-            team=request.user.team if request.GET.get('team') else None,
+            team=request.user.team,
             status=request.GET.get('status'),
             case_type=request.GET.get('case_type'),
             sort=request.GET.get('sort', '')
@@ -26,14 +27,14 @@ class CasesSearchView(generics.GenericAPIView):
         except ValidationError:
             cases = []
 
-        queues = service.get_user_queue_meta(user=request.user)
+        queues = service.get_search_queues(user=request.user)
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_list()
 
         return JsonResponse(
             {
                 'data': {
-                    'queues': queues,
+                    'queues': SearchQueueSerializer(queues, many=True).data,
                     'cases': cases,
                     'filters': {
                         'statuses': statuses,
