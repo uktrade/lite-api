@@ -50,7 +50,8 @@ class NotificationTests(DataTestClient):
         url = reverse_lazy('users:case_notification') + '?case=' + str(case.id)
 
         response = self.client.get(url, **self.gov_headers)
+        notification = response.json()['notification']
 
-        self.assertEqual(len(response.json()['notification']), 1)
-        self.assertEqual(response.json()['notification']['case_activity'], case_activity.id)
+        self.assertEqual(len(notification), 1)
+        self.assertEqual(notification['case_activity'], case_activity.id)
         self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(), 0)
