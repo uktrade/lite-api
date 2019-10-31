@@ -105,15 +105,26 @@ class TinyCaseSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         try:
-            case_assignments = CaseAssignment.objects.filter(case=instance)
+            case_assignments = CaseAssignment.objects.filter(
+                case=instance
+            ).order_by('queue__name').select_related('queue')
             users = []
+
             for case_assignment in case_assignments:
-                if self.context['is_system_queue'] or case_assignment.queue.name == self.context['queue']:
-                    queue_users = {'queue': case_assignment.queue.name}
-                    queue_users['users'] = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]}
-                                            for x
-                                            in case_assignment.users.values_list('first_name', 'last_name', 'email')]
-                    users.append(queue_users)
+                if self.context['is_system_queue'] or str(case_assignment.queue.id) == self.context['queue_id']:
+                    queue_users = [
+                        {
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'email': email,
+                            'queue': case_assignment.queue.name
+                        }
+                        for first_name, last_name, email
+                        in case_assignment.users.values_list('first_name', 'last_name', 'email')
+                    ]
+
+                    users.extend(queue_users)
+
             return users
         except CaseAssignment.DoesNotExist:
             return []

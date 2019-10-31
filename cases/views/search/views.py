@@ -7,6 +7,7 @@ from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
 from conf.pagination import MaxPageNumberPagination
+from queues.constants import SYSTEM_QUEUES, ALL_CASES_SYSTEM_QUEUE_ID
 
 
 class CasesSearchView(generics.GenericAPIView):
@@ -14,8 +15,11 @@ class CasesSearchView(generics.GenericAPIView):
     pagination_class = MaxPageNumberPagination
 
     def get(self, request):
+        queue_id = request.GET.get('queue_id', ALL_CASES_SYSTEM_QUEUE_ID)
+        context = {'is_system_queue': queue_id in SYSTEM_QUEUES, 'queue_id': queue_id}
+
         case_qs = service.search_cases(
-            queue_id=request.GET.get('queue_id'),
+            queue_id=queue_id,
             team=request.user.team,
             status=request.GET.get('status'),
             case_type=request.GET.get('case_type'),
@@ -23,7 +27,7 @@ class CasesSearchView(generics.GenericAPIView):
         )
 
         try:
-            cases = TinyCaseSerializer(case_qs, team=request.user.team, many=True).data
+            cases = TinyCaseSerializer(case_qs, context=context, team=request.user.team, many=True).data
         except ValidationError:
             cases = []
 
@@ -39,7 +43,8 @@ class CasesSearchView(generics.GenericAPIView):
                     'filters': {
                         'statuses': statuses,
                         'case_types': case_types,
-                    }
+                    },
+                    'is_system_queue': context['is_system_queue']
                 }
             }
         )
