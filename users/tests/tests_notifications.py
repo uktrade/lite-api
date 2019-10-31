@@ -56,7 +56,7 @@ class NotificationTests(DataTestClient):
         When an API user gets notifications for the exporter user and one of their orgs
         Then the notifications specific to that user and org combination are returned
         """
-        org_2 = self.create_organisation_with_exporter_user('Org 2')
+        org_2, _ = self.create_organisation_with_exporter_user('Org 2')
         self.add_exporter_user_to_org(org_2, self.exporter_user)
 
         application1 = self.create_standard_application(self.organisation)

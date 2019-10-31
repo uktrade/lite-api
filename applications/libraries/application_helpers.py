@@ -1,8 +1,5 @@
 from typing import Optional
 
-from applications.models import BaseApplication, StandardApplication, OpenApplication, HmrcQuery
-from applications.serializers.hmrc import HmrcQueryViewSerializer
-from applications.serializers.serializers import StandardApplicationViewSerializer, OpenApplicationViewSerializer
 from static.statuses.enums import CaseStatusEnum
 
 

@@ -234,7 +234,7 @@ class OrganisationCreateTests(DataTestClient):
         ['comm', 'hmrc', 0],
         ['comm', 'commercial', 1],
         ['hmr', 'individual', 0],
-        ['hmr', 'hmrc', 1],
+        ['hmr', 'hmrc', 2],
         ['hmr', 'commercial', 0],
     ])
     def test_list_filter_organisations_by_name_and_type(self, name, org_type, expected_result):

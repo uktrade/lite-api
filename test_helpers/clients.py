@@ -121,7 +121,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return exporter_user
 
     def create_organisation_with_exporter_user(self, name='Organisation', org_type=None):
-
         organisation = Organisation(name=name,
                                     eori_number='GB123456789000',
                                     sic_number='2765',

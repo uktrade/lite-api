@@ -4,6 +4,10 @@ from applications.serializers.serializers import DraftApplicationCreateSerialize
 
 class OpenApplicationCreateSerializer(DraftApplicationCreateSerializer):
 
+    def __init__(self, *args, **kwargs):
+        super(OpenApplicationCreateSerializer, self).__init__(*args, **kwargs)
+        self.initial_data['organisation'] = self.context.id
+
     class Meta:
         model = OpenApplication
         fields = ['id',

@@ -56,9 +56,8 @@ class ApplicationList(ListAPIView):
 
     def post(self, request):
         data = request.data
-        data['organisation'] = str(request.user.organisation.id)
         serializer = get_application_create_serializer(data.get('application_type'))
-        serializer = serializer(data=data)
+        serializer = serializer(data=data, context=request.user.organisation)
 
         if not serializer.is_valid():
             return JsonResponse(data={'errors': serializer.errors},
