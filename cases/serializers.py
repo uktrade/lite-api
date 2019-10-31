@@ -1,10 +1,8 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.enums import ApplicationType
-from applications.models import StandardApplication, OpenApplication
-from applications.serializers.open_application import OpenApplicationViewSerializer
-from applications.serializers.standard_application import StandardApplicationViewSerializer
+from applications.helpers import get_application_view_serializer
+from applications.libraries.get_applications import get_application
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
     FinalAdvice, GoodCountryDecision
@@ -38,14 +36,12 @@ class CaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'application', 'query',)
 
     def get_application(self, instance):
-        # The case has a reference to a BaseApplication but we need the full details of the standard/open application
+        # The case has a reference to a BaseApplication but
+        # we need the full details of the application it points to
         if instance.application:
-            if instance.application.application_type == ApplicationType.STANDARD_LICENCE:
-                standard_application = StandardApplication.objects.get(pk=instance.application.id)
-                return StandardApplicationViewSerializer(standard_application).data
-            else:
-                open_application: OpenApplication = OpenApplication.objects.get(pk=instance.application.id)
-                return OpenApplicationViewSerializer(open_application).data
+            application = get_application(instance.application.id)
+            serializer = get_application_view_serializer(application)
+            return serializer(application).data
 
         return None
 
