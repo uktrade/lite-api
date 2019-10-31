@@ -9,8 +9,10 @@ from applications.serializers.other import ApplicationDenialReasonSerializer
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation
+from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum, get_case_status_by_status
+from static.statuses.models import CaseStatus
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
@@ -74,11 +76,19 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
+    reason_details = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
+
     class Meta:
         model = BaseApplication
-        fields = ['name',
-                  'reference_number_on_information_form',
-                  'status',]
+        fields = [
+            'name',
+            'reference_number_on_information_form',
+            'status',
+            'reasons',
+            'reason_details',
+        ]
 
     def update(self, instance, validated_data):
         """
@@ -112,78 +122,3 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
-
-# class BaseApplicationSerializer(serializers.ModelSerializer):
-#     created_at = serializers.DateTimeField(read_only=True)
-#     organisation = OrganisationDetailSerializer()
-#     last_modified_at = serializers.DateTimeField(read_only=True)
-#     submitted_at = serializers.DateTimeField(read_only=True)
-#     status = serializers.SerializerMethodField()
-#     application_type = KeyValueChoiceField(choices=ApplicationType.choices, error_messages={
-#         'required': get_string('applications.generic.no_licence_type')})
-#     application_denial_reason = ApplicationDenialReasonViewSerializer(read_only=True, many=True)
-#     case = serializers.SerializerMethodField()
-#
-#     additional_documents = serializers.SerializerMethodField()
-#
-#     # Sites, External Locations
-#     goods_locations = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = BaseApplication
-#         fields = ('id',
-#                   'name',
-#                   'case',
-#                   'organisation',
-#                   'activity',
-#                   'usage',
-#                   'created_at',
-#                   'last_modified_at',
-#                   'submitted_at',
-#                   'status',
-#                   'application_type',
-#                   'export_type',
-#                   'have_you_been_informed',
-#                   'reference_number_on_information_form',
-#                   'application_denial_reason',
-#                   'goods_locations',
-#                   'additional_documents',)
-#
-#     def get_additional_documents(self, instance):
-#         documents = ApplicationDocument.objects.filter(application=instance)
-#         return ApplicationDocumentSerializer(documents, many=True).data
-#
-#     def get_case(self, instance):
-#         try:
-#             return Case.objects.get(application=instance).id
-#         except Case.DoesNotExist:
-#             # Case will only exist if application has been submitted
-#             return None
-#
-#     def get_status(self, instance):
-#         status = instance.status.status if instance.status else None
-#         return {
-#             'key': status,
-#             'value': get_status_value_from_case_status_enum(status) if status else None
-#         }
-#
-#     def get_goods_locations(self, application):
-#         """
-#         An application, regardless of its type, has one goods location that will be either a site or an external
-#         location
-#         """
-#         sites = Site.objects.filter(sites_on_application__application=application)
-#
-#         if sites:
-#             serializer = SiteViewSerializer(sites, many=True)
-#             return {'type': 'sites', 'data': serializer.data}
-#
-#         external_locations = ExternalLocation.objects.filter(
-#             external_locations_on_application__application=application)
-#
-#         if external_locations:
-#             serializer = ExternalLocationSerializer(external_locations, many=True)
-#             return {'type': 'external_locations', 'data': serializer.data}
-#
-#         return {}
