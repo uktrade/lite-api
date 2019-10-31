@@ -82,6 +82,7 @@ class HmrcQuery(BaseApplication):
     consignee = models.ForeignKey(Consignee, related_name='hmrc_query_consignee', on_delete=models.CASCADE,
                                   default=None, blank=True, null=True)
     third_parties = models.ManyToManyField(ThirdParty, related_name='hmrc_query_third_parties')
+    reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
 
 
 class GoodOnApplication(models.Model):
