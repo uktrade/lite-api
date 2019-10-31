@@ -270,15 +270,22 @@ class BaseActivity(models.Model):
         if save_object:
             activity.save()
 
-        for gov_user in GovUser.objects.all():
-            gov_user.send_notification(case_activity=activity)
-
         return activity
 
 
 class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
+
+    @classmethod
+    def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
+        activity = super(CaseActivity, cls).create(activity_type, case, user, additional_text=None, created_at=None,
+                                                   save_object=True, **kwargs)
+
+        for gov_user in GovUser.objects.all():
+            gov_user.send_notification(case_activity=activity)
+
+        return activity
 
 
 class GoodCountryDecision(models.Model):
