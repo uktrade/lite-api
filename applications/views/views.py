@@ -8,16 +8,16 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationType
-from applications.helpers import get_application_create_serializer
-from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
+from applications.helpers import get_application_create_serializer, get_application_view_serializer
+from applications.libraries.application_helpers import optional_str_to_bool, \
     validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
 from applications.libraries.case_activity import set_application_ref_number_case_activity, \
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication, HmrcQuery
+from applications.models import GoodOnApplication, BaseApplication
+from applications.serializers.hmrc import HmrcQueryUpdateSerializer
 from applications.serializers.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
-    DraftApplicationCreateSerializer, ApplicationUpdateSerializer
-from applications.serializers.hmrc import HmrcQueryUpdateSerializer, HmrcQueryViewSerializer
+    ApplicationUpdateSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -66,7 +66,7 @@ class ApplicationList(ListAPIView):
 
         application = serializer.save()
 
-        return JsonResponse(data={'id': application.id},  status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': application.id}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationDetail(APIView):
@@ -80,7 +80,7 @@ class ApplicationDetail(APIView):
         """
         Retrieve an application instance.
         """
-        serializer = get_serializer_for_application(application)
+        serializer = get_application_view_serializer(application)
         return JsonResponse(data={'application': serializer.data})
 
     @authorised_users(ExporterUser)
@@ -156,7 +156,7 @@ class ApplicationSubmission(APIView):
                     good_on_application.good.save()
 
         # Serialize for the response message
-        serializer = get_serializer_for_application(application)
+        serializer = get_application_view_serializer(application)
 
         data = {'application': {**serializer.data}}
 

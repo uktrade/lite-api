@@ -205,7 +205,7 @@ class BaseApplicationSerializer(serializers.ModelSerializer):
         return {}
 
 
-class StandardApplicationSerializer(BaseApplicationSerializer):
+class StandardApplicationViewSerializer(BaseApplicationSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
@@ -231,7 +231,7 @@ class StandardApplicationSerializer(BaseApplicationSerializer):
             return {'type': 'end_user', 'data': ''}
 
 
-class OpenApplicationSerializer(BaseApplicationSerializer):
+class OpenApplicationViewSerializer(BaseApplicationSerializer):
     destinations = serializers.SerializerMethodField()
     goods_types = serializers.SerializerMethodField()
 

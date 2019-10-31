@@ -2,17 +2,8 @@ from typing import Optional
 
 from applications.models import BaseApplication, StandardApplication, OpenApplication, HmrcQuery
 from applications.serializers.hmrc import HmrcQueryViewSerializer
-from applications.serializers.serializers import StandardApplicationSerializer, OpenApplicationSerializer
+from applications.serializers.serializers import StandardApplicationViewSerializer, OpenApplicationViewSerializer
 from static.statuses.enums import CaseStatusEnum
-
-
-def get_serializer_for_application(application: BaseApplication, many=False):
-    if isinstance(application, StandardApplication):
-        return StandardApplicationSerializer(application, many=many)
-    elif isinstance(application, OpenApplication):
-        return OpenApplicationSerializer(application, many=many)
-    elif isinstance(application, HmrcQuery):
-        return HmrcQueryViewSerializer(application, many=many)
 
 
 def optional_str_to_bool(optional_string: str):
