@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from applications.models import StandardApplication
-from applications.serializers.generic_application import GenericApplicationCreateSerializer
+from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
+    GenericApplicationUpdateSerializer
 
 
 class StandardApplicationViewSerializer(serializers.ModelSerializer):
@@ -33,7 +34,6 @@ class StandardApplicationViewSerializer(serializers.ModelSerializer):
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data['organisation'] = self.context.id
@@ -49,8 +49,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
                   'organisation']
 
 
-class StandardApplicationUpdateSerializer(serializers.ModelSerializer):
-
+class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = StandardApplication
         fields = ['id',

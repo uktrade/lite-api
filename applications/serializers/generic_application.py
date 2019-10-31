@@ -77,13 +77,16 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseApplication
         fields = ['name',
-                  'status']
+                  'reference_number_on_information_form',
+                  'status',]
 
     def update(self, instance, validated_data):
         """
-        Update and return an existing `Application` instance, given the
-        validated data.
+        Update and return an existing `Application` instance, given the validated data.
         """
+        instance.name = validated_data.get('name', instance.name)
+        instance.reference_number_on_information_form = \
+            validated_data.get('reference_number_on_information_form', instance.name)
         instance.status = validated_data.get('status', instance.status)
 
         # Remove any previous denial reasons

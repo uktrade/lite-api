@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from applications.models import OpenApplication
-from applications.serializers.generic_application import GenericApplicationCreateSerializer
+from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
+    GenericApplicationUpdateSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
@@ -31,7 +32,6 @@ class OpenApplicationViewSerializer(serializers.ModelSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data['organisation'] = self.context.id
@@ -47,8 +47,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
                   'organisation']
 
 
-class OpenApplicationUpdateSerializer(serializers.ModelSerializer):
-
+class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = OpenApplication
         fields = ['id',
