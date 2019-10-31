@@ -15,6 +15,7 @@ from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
 from goodstype.models import GoodsType
+from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.document.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
@@ -55,11 +56,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        self.organisation = self.create_organisation_with_exporter_user()
-        self.exporter_user = ExporterUser.objects.get()
+        self.organisation, self.exporter_user = self.create_organisation_with_exporter_user()
+        self.hmrc_organisation, self.hmrc_exporter_user = \
+            self.create_organisation_with_exporter_user('HMRC org 5843', org_type=OrganisationType.HMRC)
+
         self.exporter_headers = {
             'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
             'HTTP_ORGANISATION_ID': self.organisation.id
+        }
+
+        self.hmrc_exporter_headers = {
+            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.hmrc_exporter_user),
+            'HTTP_ORGANISATION_ID': self.hmrc_organisation.id
         }
 
         self.queue = self.create_queue('Initial Queue', self.team)
@@ -128,9 +136,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation.primary_site = site
         organisation.save()
 
-        self.create_exporter_user(organisation)
+        exporter_user = self.create_exporter_user(organisation)
 
-        return organisation
+        return organisation, exporter_user
 
     @staticmethod
     def add_exporter_user_to_org(organisation, exporter_user):
