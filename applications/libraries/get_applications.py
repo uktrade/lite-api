@@ -17,10 +17,10 @@ def get_application(pk, organisation_id=None):
         elif application_type == ApplicationType.OPEN_LICENCE:
             return OpenApplication.objects.get(pk=pk, **kwargs)
         elif application_type == ApplicationType.HMRC_QUERY:
-            return HmrcQuery.objects.get(pk=pk, **kwargs)
+            return HmrcQuery.objects.get(pk=pk)
         else:
             raise NotImplementedError(f'get_application does not support this application type: {application_type}')
-    except (StandardApplication.DoesNotExist, OpenApplication.DoesNotExist):
+    except (StandardApplication.DoesNotExist, OpenApplication.DoesNotExist, HmrcQuery.DoesNotExist):
         raise Http404
 
 

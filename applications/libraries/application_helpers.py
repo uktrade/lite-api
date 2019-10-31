@@ -7,9 +7,6 @@ from static.statuses.enums import CaseStatusEnum
 
 
 def get_serializer_for_application(application: BaseApplication, many=False):
-    print('\n')
-    print(type(application))
-    print('\n')
     if isinstance(application, StandardApplication):
         return StandardApplicationSerializer(application, many=many)
     elif isinstance(application, OpenApplication):

@@ -8,15 +8,16 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
 from applications.enums import ApplicationType
+from applications.helpers import get_application_create_serializer
 from applications.libraries.application_helpers import get_serializer_for_application, optional_str_to_bool, \
     validate_status_can_be_set_by_exporter_user, validate_status_can_be_set_by_gov_user
 from applications.libraries.case_activity import set_application_ref_number_case_activity, \
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication
+from applications.models import GoodOnApplication, StandardApplication, OpenApplication, BaseApplication, HmrcQuery
 from applications.serializers.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
     DraftApplicationCreateSerializer, ApplicationUpdateSerializer
-from applications.serializers.hmrc import HmrcQueryUpdateSerializer
+from applications.serializers.hmrc import HmrcQueryUpdateSerializer, HmrcQueryViewSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -56,26 +57,16 @@ class ApplicationList(ListAPIView):
     def post(self, request):
         data = request.data
         data['organisation'] = str(request.user.organisation.id)
-
-        # Use generic serializer to validate all types of application as we may not yet know the application type
-        serializer = DraftApplicationCreateSerializer(data=data)
+        serializer = get_application_create_serializer(data.get('application_type'))
+        serializer = serializer(data=data)
 
         if not serializer.is_valid():
             return JsonResponse(data={'errors': serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.validated_data['organisation'] = request.user.organisation
+        application = serializer.save()
 
-        # Use the data from the generic serializer to determine which model to save to
-        if serializer.validated_data['application_type'] == ApplicationType.STANDARD_LICENCE:
-            application = StandardApplication(**serializer.validated_data)
-        else:
-            application = OpenApplication(**serializer.validated_data)
-
-        application.save()
-
-        return JsonResponse(data={'application': {**serializer.data, 'id': str(application.id)}},
-                            status=status.HTTP_201_CREATED)
+        return JsonResponse(data={'id': application.id},  status=status.HTTP_201_CREATED)
 
 
 class ApplicationDetail(APIView):
