@@ -4,8 +4,8 @@ from applications.serializers.serializers import DraftApplicationCreateSerialize
 
 class OpenApplicationCreateSerializer(DraftApplicationCreateSerializer):
 
-    def __init__(self, *args, **kwargs):
-        super(OpenApplicationCreateSerializer, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.initial_data['organisation'] = self.context.id
 
     class Meta:

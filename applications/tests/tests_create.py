@@ -1,3 +1,4 @@
+from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -10,6 +11,7 @@ class DraftTests(DataTestClient):
 
     url = reverse('applications:applications')
 
+    @tag('only')
     def test_create_draft_standard_application_successful(self):
         """
         Ensure we can create a new standard application draft object
@@ -26,6 +28,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(StandardApplication.objects.count(), 1)
 
+    @tag('only')
     def test_create_draft_open_application_successful(self):
         """
         Ensure we can create a new open application draft object
@@ -42,6 +45,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
 
+    @tag('only')
     def test_create_draft_hmrc_query_successful(self):
         """
         Ensure we can create a new HMRC query draft object
@@ -54,6 +58,19 @@ class DraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.hmrc_exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(HmrcQuery.objects.count(), 1)
+
+    def test_create_draft_hmrc_query_failure(self):
+        """
+        Ensure that a normal exporter cannot create an HMRC query
+        """
+        data = {
+            'application_type': 'hmrc_query',
+            'organisation': self.organisation.id,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(HmrcQuery.objects.count(), 0)
 
     @parameterized.expand([
         [{}],

@@ -14,12 +14,10 @@ class HmrcQueryViewSerializer(serializers.ModelSerializer):
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
-    # application_type = KeyValueChoiceField(choices=ApplicationType.choices)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        if self.context.type is not OrganisationType.HMRC:
+        if self.context.type != OrganisationType.HMRC:
             raise exceptions.PermissionDenied('User does not belong to an HMRC organisation')
 
         self.initial_data['hmrc_organisation'] = self.context.id

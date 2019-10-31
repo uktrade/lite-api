@@ -1,6 +1,6 @@
 from applications.enums import ApplicationType
 from applications.models import BaseApplication, StandardApplication, OpenApplication, HmrcQuery
-from applications.serializers.hmrc import HmrcQueryCreateSerializer, HmrcQueryViewSerializer
+from applications.serializers.hmrc_query import HmrcQueryCreateSerializer, HmrcQueryViewSerializer
 from applications.serializers.open_application import OpenApplicationCreateSerializer
 from applications.serializers.serializers import OpenApplicationViewSerializer, StandardApplicationViewSerializer
 from applications.serializers.standard_application import StandardApplicationCreateSerializer

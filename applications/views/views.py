@@ -15,7 +15,7 @@ from applications.libraries.case_activity import set_application_ref_number_case
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication
-from applications.serializers.hmrc import HmrcQueryUpdateSerializer
+from applications.serializers.hmrc_query import HmrcQueryUpdateSerializer
 from applications.serializers.serializers import BaseApplicationSerializer, ApplicationStatusUpdateSerializer, \
     ApplicationUpdateSerializer
 from cases.models import Case
