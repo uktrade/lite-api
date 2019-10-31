@@ -52,10 +52,4 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = StandardApplication
-        fields = ['id',
-                  'name',
-                  'application_type',
-                  'export_type',
-                  'have_you_been_informed',
-                  'reference_number_on_information_form',
-                  'organisation']
+        fields = GenericApplicationUpdateSerializer.Meta.fields

@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
