@@ -104,30 +104,30 @@ class TinyCaseSerializer(serializers.Serializer):
             return instance.application.organisation.name
 
     def get_users(self, instance):
-        try:
-            case_assignments = CaseAssignment.objects.filter(
-                case=instance
-            ).order_by('queue__name').select_related('queue')
-            users = []
+        case_assignments = CaseAssignment.objects.filter(
+            case=instance
+        ).order_by('queue__name').select_related('queue')
 
-            for case_assignment in case_assignments:
-                if self.context['is_system_queue'] or str(case_assignment.queue.id) == self.context['queue_id']:
-                    queue_users = [
-                        {
-                            'first_name': first_name,
-                            'last_name': last_name,
-                            'email': email,
-                            'queue': case_assignment.queue.name
-                        }
-                        for first_name, last_name, email
-                        in case_assignment.users.values_list('first_name', 'last_name', 'email')
-                    ]
+        if not self.context['is_system_queue']:
+            case_assignments = case_assignments.filter(queue=self.context['queue_id'])
 
-                    users.extend(queue_users)
+        users = []
 
-            return users
-        except CaseAssignment.DoesNotExist:
-            return []
+        for case_assignment in case_assignments:
+            queue_users = [
+                {
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'email': email,
+                    'queue': case_assignment.queue.name
+                }
+                for first_name, last_name, email
+                in case_assignment.users.values_list('first_name', 'last_name', 'email')
+            ]
+
+            users.extend(queue_users)
+
+        return users
 
     def get_status(self, instance):
         if instance.query:

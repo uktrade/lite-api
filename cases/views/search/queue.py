@@ -10,7 +10,7 @@ from teams.models import Team
 
 class SearchQueue(Queue):
     class Meta:
-        proxy = True
+        managed = False
 
     case_count = models.IntegerField()
 
