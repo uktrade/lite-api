@@ -38,13 +38,15 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
     class Meta:
         model = OpenApplication
-        fields = ['id',
-                  'name',
-                  'application_type',
-                  'export_type',
-                  'have_you_been_informed',
-                  'reference_number_on_information_form',
-                  'organisation']
+        fields = [
+            'id',
+            'name',
+            'application_type',
+            'export_type',
+            'have_you_been_informed',
+            'reference_number_on_information_form',
+            'organisation'
+        ]
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
