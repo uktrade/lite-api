@@ -76,9 +76,12 @@ class BaseUser(AbstractUser):
 
     objects = CustomUserManager()
 
-    def send_notification(self, case_note=None, query=None, ecju_query=None, case_activity=None):
+
+class ExporterUser(BaseUser):
+    def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
         # circular import prevention
+
         if case_note:
             Notification.objects.create(user=self, case_note=case_note)
         elif query:
@@ -86,22 +89,8 @@ class BaseUser(AbstractUser):
             Notification.objects.create(user=self, query=actual_query)
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
-        elif case_activity:
-            # Case activity notifications are for gov users only.
-            # There can only be one notification per gov user's case
-            # If a notification for that gov user's case already exists, update the case activity it points to
-            try:
-                notification = Notification.objects.get(user=self)
-                notification.case_activity = case_activity
-                notification.save()
-            except Notification.DoesNotExist:
-                Notification.objects.create(user=self, case_activity=case_activity)
         else:
-            raise Exception("BaseUser.send_notification: objects expected have not been added.")
-
-
-class ExporterUser(BaseUser):
-    pass
+            raise Exception("ExporterUser.send_notification: objects expected have not been added.")
 
 
 class UserOrganisationRelationship(models.Model):
@@ -121,3 +110,19 @@ class GovUser(BaseUser):
         Remove gov user from all cases
         """
         self.case_assignments.clear()
+
+    def send_notification(self, case_activity=None):
+        from cases.models import Notification
+        # circular import prevention
+
+        if case_activity:
+            # There can only be one notification per gov user's case
+            # If a notification for that gov user's case already exists, update the case activity it points to
+            try:
+                notification = Notification.objects.get(user=self, case_activity__case=case_activity.case)
+                notification.case_activity = case_activity
+                notification.save()
+            except Notification.DoesNotExist:
+                Notification.objects.create(user=self, case_activity=case_activity)
+        else:
+            raise Exception("GovUser.send_notification: objects expected have not been added.")
