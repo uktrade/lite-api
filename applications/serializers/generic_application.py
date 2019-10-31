@@ -40,13 +40,15 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = ['name',
-                  'application_type',
-                  'export_type',
-                  'created_at',
-                  'last_modified_at',
-                  'submitted_at',
-                  'status']
+        fields = [
+            'name',
+            'application_type',
+            'export_type',
+            'created_at',
+            'last_modified_at',
+            'submitted_at',
+            'status'
+        ]
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):
@@ -67,13 +69,15 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = ('id',
-                  'name',
-                  'application_type',
-                  'export_type',
-                  'have_you_been_informed',
-                  'reference_number_on_information_form',
-                  'organisation',)
+        fields = [
+            'id',
+            'name',
+            'application_type',
+            'export_type',
+            'have_you_been_informed',
+            'reference_number_on_information_form',
+            'organisation',
+        ]
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
