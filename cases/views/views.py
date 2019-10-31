@@ -99,7 +99,7 @@ class CaseDocuments(APIView):
         responses={
             400: 'JSON parse error'
         })
-    @transaction.atomic()
+    @transaction.atomic
     def post(self, request, pk):
         """
         Adds a document to the specified case
@@ -197,7 +197,7 @@ class CaseTeamAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
         self.advice = Advice.objects.filter(case=self.case)
-        self.team_advice = TeamAdvice.objects.filter(case=self.case)
+        self.team_advice = TeamAdvice.objects.filter(case=self.case).order_by("created_at")
         self.serializer_object = CaseTeamAdviceSerializer
 
         return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
@@ -215,7 +215,8 @@ class CaseTeamAdvice(APIView):
             CaseActivity.create(activity_type=CaseActivityType.CREATED_TEAM_ADVICE,
                                 case=self.case,
                                 user=request.user)
-            team_advice = TeamAdvice.objects.filter(case=self.case, team=team)
+            team_advice = TeamAdvice.objects.filter(case=self.case,
+                                                    team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
         serializer = self.serializer_object(team_advice, many=True)
@@ -269,7 +270,7 @@ class CaseFinalAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs['pk'])
         self.team_advice = TeamAdvice.objects.filter(case=self.case)
-        self.final_advice = FinalAdvice.objects.filter(case=self.case)
+        self.final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
         self.serializer_object = CaseFinalAdviceSerializer
 
         return super(CaseFinalAdvice, self).dispatch(request, *args, **kwargs)
@@ -285,7 +286,7 @@ class CaseFinalAdvice(APIView):
             CaseActivity.create(activity_type=CaseActivityType.CREATED_FINAL_ADVICE,
                                 case=self.case,
                                 user=request.user)
-            final_advice = FinalAdvice.objects.filter(case=self.case)
+            final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
         else:
             final_advice = self.final_advice
         serializer = self.serializer_object(final_advice, many=True)
@@ -323,7 +324,7 @@ class CaseEcjuQueries(APIView):
         Returns the list of ECJU Queries on a case
         """
         case = get_case(pk)
-        case_ecju_queries = EcjuQuery.objects.filter(case=case)
+        case_ecju_queries = EcjuQuery.objects.filter(case=case).order_by("created_at")
 
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)

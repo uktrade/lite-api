@@ -4,7 +4,7 @@ from rest_framework import status
 from cases.models import Case
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_from_status_enum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -17,7 +17,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.application_cases = []
         for app_status in CaseStatusEnum.choices:
             case = self.create_standard_application_case(self.organisation, 'Example Application')
-            case.application.status = get_case_status_from_status_enum(app_status)
+            case.application.status = get_case_status_by_status(app_status[0])
             case.application.save()
             self.queue.cases.add(case)
             self.queue.save()
@@ -26,7 +26,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.clc_cases = []
         for clc_status in CaseStatusEnum.choices:
             clc_query = self.create_clc_query('Example CLC Query', self.organisation)
-            clc_query.status = get_case_status_from_status_enum(clc_status)
+            clc_query.status = get_case_status_by_status(clc_status[0])
             clc_query.save()
             self.queue.cases.add(clc_query.case.get())
             self.queue.save()
@@ -125,7 +125,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
         url = reverse('queues:cases', kwargs={'pk': ALL_CASES_SYSTEM_QUEUE_ID}) + \
               '?case_type=clc_query&status=' + case_status.status + '&sort=status'
@@ -150,7 +150,7 @@ class CasesFilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        case_status = get_case_status_from_status_enum(CaseStatusEnum.SUBMITTED)
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.query.status == case_status, self.clc_cases))
         url = self.url + '?case_type=clc_query&status=' + case_status.status
 
@@ -177,13 +177,13 @@ class CasesFilterAndSortTests(DataTestClient):
         all_cases = self.application_cases + self.clc_cases
         all_cases = [
             {
-                'case': str(case.id),
-                'status': case.application.status.priority if case.application is not None else
-                case.query.status.priority
+                'status': case.application.status.status if case.application is not None else case.query.status.status,
+                'status_ordering': case.application.status.priority if case.application is not None
+                else case.query.status.priority
             }
             for case in all_cases
         ]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
+        all_cases_sorted = sorted(all_cases, key=lambda k: k['status_ordering'])
         url = self.url + '?sort=status'
 
         # Act
@@ -195,7 +195,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data))
         # Assert ordering
         for i in range(0, len(response_data)):
-            self.assertEqual(response_data[i]['id'], all_cases_sorted[i]['case'])
+            self.assertEqual(response_data[i]['status'], all_cases_sorted[i]['status'])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
@@ -206,8 +206,14 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Arrange
         application_cases_sorted = sorted(
-            [{'case': str(case.id), 'status': case.application.status.priority} for case in self.application_cases],
-            key=lambda k: k['status'],
+            [
+                {
+                    'status': case.application.status.status,
+                    'status_ordering': case.application.status.priority
+                }
+                for case in self.application_cases
+            ],
+            key=lambda k: k['status_ordering'],
             reverse=True
         )
 
@@ -225,4 +231,4 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=response_data[i]['id']).values_list('type', flat=True)[0]
             self.assertEqual(case_type, 'application')
             # Assert ordering
-            self.assertEqual(response_data[i]['id'], application_cases_sorted[i]['case'])
+            self.assertEqual(response_data[i]['status'], application_cases_sorted[i]['status'])

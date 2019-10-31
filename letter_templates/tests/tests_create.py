@@ -1,5 +1,6 @@
 from itertools import permutations
 
+from django.core.management import call_command
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -14,6 +15,8 @@ class LetterTemplateCreateTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        # Seed layouts
+        call_command('seedlayouts')
         self.picklist_item_1 = self.create_picklist_item('#1',
                                                          self.team,
                                                          PicklistType.LETTER_PARAGRAPH,

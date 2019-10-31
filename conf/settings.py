@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'static.statuses',
     'static.letter_layouts',
     'letter_templates.apps.LetterTemplatesConfig',
+    'static.upload_document_for_tests',
     'reversion',
     'drf_yasg',
     'content_strings.apps.ContentStringsConfig',
@@ -131,17 +132,9 @@ SWAGGER_SETTINGS = {
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'mydatabase'
-        }
-    }
-else:
-    DATABASES = {
-        'default': env.db()
-    }
+DATABASES = {
+    'default': env.db()
+}
 
 S3_CLIENT = 'boto3'
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
@@ -155,6 +148,7 @@ AV_SERVICE_USERNAME = env('AV_SERVICE_USERNAME')
 AV_SERVICE_PASSWORD = env('AV_SERVICE_PASSWORD')
 
 BACKGROUND_TASK_ENABLED = env('BACKGROUND_TASK_ENABLED')
+UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env('UPLOAD_DOCUMENT_ENDPOINT_ENABLED')
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True

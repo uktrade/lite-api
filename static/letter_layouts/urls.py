@@ -7,6 +7,6 @@ app_name = 'letter_layouts'
 urlpatterns = [
     # ex: /static/letter-layouts/
     path('', views.LetterLayoutsList.as_view(), name='letter_layouts'),
-    # ex: /static/control-list-entries/<str:rating>/
+    # ex: /static/letter-layouts/<str:pk>/
     path('<str:pk>/', views.LetterLayoutDetail.as_view(), name='letter_layout'),
 ]

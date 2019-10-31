@@ -1,195 +1,248 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
-from applications.libraries.get_applications import get_application
+from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import only_application_types
+from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
 from parties.helpers import delete_party_document_if_exists
+from applications.libraries.case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
+from users.models import ExporterUser
 
 
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def post(self, request, draft):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
         """
-        Create an end user and add it to a draft
+        Create an end user and add it to a application
         """
         data = request.data
-        data['organisation'] = str(request.user.organisation.id)
+        data['organisation'] = request.user.organisation.id
 
         serializer = EndUserSerializer(data=data)
-        if serializer.is_valid():
-            previous_end_user = draft.end_user
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            new_end_user = serializer.save()
-            draft.end_user = new_end_user
-            draft.save()
+        previous_end_user = application.end_user
 
-            if previous_end_user:
-                delete_party_document_if_exists(previous_end_user)
-                previous_end_user.delete()
+        new_end_user = serializer.save()
+        application.end_user = new_end_user
+        application.save()
 
-            return JsonResponse(data={'end_user': serializer.data},
-                                status=status.HTTP_201_CREATED)
+        if previous_end_user:
+            delete_party_document_if_exists(previous_end_user)
+            previous_end_user.delete()
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+            set_party_case_activity(CaseActivityType.REMOVE_PARTY, previous_end_user.type, previous_end_user.name,
+                                    request.user, application)
+
+        set_party_case_activity(CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user,
+                                application)
+
+        return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
+
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def delete(self, request, application):
+        """
+        Delete an end user and their document from an application
+        """
+        end_user = application.end_user
+
+        if not end_user:
+            return JsonResponse(data={'errors': 'end user not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        application.end_user = None
+        application.save()
+        delete_party_document_if_exists(end_user)
+        end_user.delete()
+
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application)
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
         """
-        Get ultimate end users associated with a draft
+        Get ultimate end users associated with a application
         """
-        draft = get_application(pk, organisation_id=request.user.organisation.id)
-        ueu_data = []
-
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            ueu_data = UltimateEndUserSerializer(draft.ultimate_end_users, many=True).data
+        ueu_data = UltimateEndUserSerializer(application.ultimate_end_users, many=True).data
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def post(self, request, draft):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
         """
-        Create an ultimate end user and add it to a draft
+        Create an ultimate end user and add it to a application
         """
         data = request.data
-        data['organisation'] = str(request.user.organisation.id)
+        data['organisation'] = request.user.organisation.id
 
         serializer = UltimateEndUserSerializer(data=data)
-        if serializer.is_valid():
-            ultimate_end_user = serializer.save()
-            draft.ultimate_end_users.add(str(ultimate_end_user.id))
-            draft.save()
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            return JsonResponse(data={'ultimate_end_user': serializer.data},
-                                status=status.HTTP_201_CREATED)
+        ultimate_end_user = serializer.save()
+        application.ultimate_end_users.add(ultimate_end_user.id)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        set_party_case_activity(CaseActivityType.ADD_PARTY, ultimate_end_user.type, ultimate_end_user.name,
+                                request.user, application)
 
-
-class ApplicationConsignee(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def post(self, request, draft):
-        """
-        Create a consignee and add it to a draft
-        """
-        data = request.data
-        data['organisation'] = str(request.user.organisation.id)
-
-        serializer = ConsigneeSerializer(data=data)
-        if serializer.is_valid():
-            previous_consignee = draft.consignee
-
-            new_consignee = serializer.save()
-            draft.consignee = new_consignee
-            draft.save()
-
-            if previous_consignee:
-                delete_party_document_if_exists(previous_consignee)
-                previous_consignee.delete()
-
-            return JsonResponse(data={'consignee': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
-class ApplicationThirdParties(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, pk):
-        """
-        Get third parties associated with a draft
-        """
-        draft = get_application(pk, organisation_id=request.user.organisation.id)
-        third_party_data = []
-
-        if draft.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            third_party_data = ThirdPartySerializer(draft.third_parties, many=True).data
-
-        return JsonResponse(data={'third_parties': third_party_data})
-
-    @only_application_types(ApplicationLicenceType.STANDARD_LICENCE)
-    def post(self, request, draft):
-        """
-        Create a third party and add it to a draft
-        """
-        data = request.data
-        data['organisation'] = str(request.user.organisation.id)
-
-        serializer = ThirdPartySerializer(data=data)
-        if serializer.is_valid():
-            third_party = serializer.save()
-            draft.third_parties.add(str(third_party.id))
-            draft.save()
-
-            return JsonResponse(data={'third_party': serializer.data},
-                                status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={'ultimate_end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def delete(self, request, pk, ueu_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, ueu_pk):
         """
-        Delete an ultimate end user and remove it from the draft
+        Delete an ultimate end user and remove it from the application
         """
-        draft = get_application(pk)
-
         try:
-            ultimate_end_user = UltimateEndUser.objects.get(id=ueu_pk)
+            ultimate_end_user = application.ultimate_end_users.get(id=ueu_pk)
         except UltimateEndUser.DoesNotExist:
-            return JsonResponse(data={'errors': 'request invalid'},
-                                status=400)
+            return JsonResponse(data={'errors': 'ultimate end user not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if ultimate_end_user.organisation != request.user.organisation:
-            return JsonResponse(data={'errors': 'request invalid'},
-                                status=400)
-
-        draft.ultimate_end_users.remove(str(ultimate_end_user.id))
-        draft.save()
+        application.ultimate_end_users.remove(ultimate_end_user.id)
+        delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
 
-        return JsonResponse(data={'ultimate_end_user': 'deleted'})
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name,
+                                request.user, application)
+
+        return JsonResponse(data={'ultimate_end_user': 'deleted'}, status=status.HTTP_200_OK)
+
+
+class ApplicationConsignee(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        """
+        Create a consignee and add it to a application
+        """
+        data = request.data
+        data['organisation'] = request.user.organisation.id
+
+        serializer = ConsigneeSerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        previous_consignee = application.consignee
+
+        new_consignee = serializer.save()
+        application.consignee = new_consignee
+        application.save()
+
+        if previous_consignee:
+            delete_party_document_if_exists(previous_consignee)
+            previous_consignee.delete()
+
+            set_party_case_activity(CaseActivityType.REMOVE_PARTY, previous_consignee.type, previous_consignee.name,
+                                    request.user, application)
+
+        set_party_case_activity(CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name,
+                                request.user, application)
+
+        return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
+
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def delete(self, request, application):
+        """
+        Delete a consignee and their document from an application
+        """
+        consignee = application.consignee
+
+        if not consignee:
+            return JsonResponse(data={'errors': 'consignee not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        application.consignee = None
+        application.save()
+        delete_party_document_if_exists(consignee)
+        consignee.delete()
+
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user,
+                                application)
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+
+class ApplicationThirdParties(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        """
+        Get third parties associated with a application
+        """
+        third_party_data = ThirdPartySerializer(application.third_parties, many=True).data
+
+        return JsonResponse(data={'third_parties': third_party_data})
+
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        """
+        Create a third party and add it to a application
+        """
+        data = request.data
+        data['organisation'] = request.user.organisation.id
+
+        serializer = ThirdPartySerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        third_party = serializer.save()
+        application.third_parties.add(third_party.id)
+
+        set_party_case_activity(CaseActivityType.ADD_PARTY, third_party.type, third_party.name,
+                                request.user, application)
+
+        return JsonResponse(data={'third_party': serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def delete(self, request, pk, tp_pk):
+    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @authorised_users(ExporterUser)
+    def delete(self, request, application, tp_pk):
         """
-        Delete a third party and remove it from the draft
+        Delete a third party and remove it from the application
         """
-        draft = get_application(pk)
-
         try:
-            third_party = ThirdParty.objects.get(pk=tp_pk)
+            third_party = application.third_parties.get(pk=tp_pk)
         except ThirdParty.DoesNotExist:
-            return JsonResponse(data={'errors': 'request invalid'},
-                                status=400)
+            return JsonResponse(data={'errors': 'third party not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if third_party.organisation != request.user.organisation:
-            return JsonResponse(data={'errors': 'request invalid'},
-                                status=400)
-
-        draft.third_parties.remove(str(third_party.id))
-        draft.save()
+        application.third_parties.remove(third_party.id)
+        delete_party_document_if_exists(third_party)
         third_party.delete()
 
-        return JsonResponse(data={'third_party': 'deleted'})
+        set_party_case_activity(CaseActivityType.REMOVE_PARTY, third_party.type, third_party.name,
+                                request.user, application)
+
+        return JsonResponse(data={'third_party': 'deleted'}, status=status.HTTP_200_OK)

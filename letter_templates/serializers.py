@@ -29,13 +29,15 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                                               serializer=LetterLayoutSerializer,
                                               error_messages={'required': 'Select the layout you want to use for this letter template'})
 
-    def validate_restricted_to(self, attrs):
-        if len(attrs) == 0:
+    @staticmethod
+    def validate_restricted_to(attrs):
+        if not attrs:
             raise serializers.ValidationError('Select at least one case restriction for your letter template')
         return attrs
 
-    def validate_letter_paragraphs(self, attrs):
-        if len(attrs) == 0:
+    @staticmethod
+    def validate_letter_paragraphs(attrs):
+        if not attrs:
             raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
         return attrs
 
