@@ -2,7 +2,7 @@ from django.db import models
 
 
 class BaseApplicationManager(models.Manager):
-    def draft(self, organisation):
+    def drafts(self, organisation):
         return self.get_queryset().filter(status__isnull=True, organisation=organisation)
 
     def submitted(self, organisation):

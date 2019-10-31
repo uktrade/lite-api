@@ -45,7 +45,7 @@ class ApplicationList(ListAPIView):
         elif submitted:
             qs = BaseApplication.objects.submitted(organisation=request.user.organisation)
         else:
-            qs = BaseApplication.objects.draft(organisation=request.user.organisation)
+            qs = BaseApplication.objects.drafts(organisation=request.user.organisation)
 
         applications = qs.order_by('created_at')
 
