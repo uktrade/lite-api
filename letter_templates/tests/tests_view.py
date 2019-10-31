@@ -21,8 +21,8 @@ class LetterTemplatesListTests(DataTestClient):
                                                        PickListStatus.ACTIVE)
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name='SIEL',
-                                                             restricted_to=",".join([CaseType.CLC_QUERY,
-                                                                                     CaseType.END_USER_ADVISORY_QUERY]),
+                                                             restricted_to=[CaseType.CLC_QUERY,
+                                                                            CaseType.END_USER_ADVISORY_QUERY],
                                                              layout=self.letter_layout)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse('letter_templates:letter_templates')
@@ -56,8 +56,8 @@ class LetterTemplateDetailTests(DataTestClient):
                                                        PickListStatus.ACTIVE)
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name='SIEL',
-                                                             restricted_to=",".join([CaseType.CLC_QUERY,
-                                                                                     CaseType.END_USER_ADVISORY_QUERY]),
+                                                             restricted_to=[CaseType.CLC_QUERY,
+                                                                            CaseType.END_USER_ADVISORY_QUERY],
                                                              layout=self.letter_layout)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse('letter_templates:letter_template', kwargs={'pk': self.letter_template.id})

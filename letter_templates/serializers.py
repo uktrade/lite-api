@@ -17,12 +17,12 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(),
                                                            many=True)
 
-    # restricted_to is backed by a text field containing comma delimited data.
-    restricted_to = serializers.MultipleChoiceField(error_messages={'required': 'Select which types of case this letter template can apply to'},
-                                                    required=True,
-                                                    allow_blank=False,
-                                                    allow_null=False,
-                                                    choices=CaseType.choices)
+    restricted_to = serializers.ListField(
+        child=serializers.CharField(),
+        error_messages={
+            'required': 'Select which types of case this letter template can apply to',
+        },
+    )
     restricted_to_display = serializers.SerializerMethodField()
 
     layout = PrimaryKeyRelatedSerializerField(queryset=LetterLayout.objects.all(),
@@ -41,24 +41,12 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You\'ll need to add at least one letter paragraph')
         return attrs
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["restricted_to"] = instance.restricted_to.split(",")
-        return data
-
-    def to_internal_value(self, data):
-        data = super().to_internal_value(data)
-        if "restricted_to" in data:
-            data["restricted_to"] = ",".join(data["restricted_to"])
-
-        return data
-
     def get_restricted_to_display(self, instance):
         """
         Provide display values for restricted_to.
         """
         display_names = dict(CaseType.choices)
-        return [display_names.get(r) for r in instance.restricted_to.split(",")]
+        return [display_names.get(r) for r in instance.restricted_to]
 
     class Meta:
         model = LetterTemplate
