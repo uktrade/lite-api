@@ -130,17 +130,9 @@ SWAGGER_SETTINGS = {
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'mydatabase'
-        }
-    }
-else:
-    DATABASES = {
-        'default': env.db()
-    }
+DATABASES = {
+    'default': env.db()
+}
 
 S3_CLIENT = 'boto3'
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
