@@ -133,7 +133,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -165,7 +165,7 @@ class ApplicationConsignee(APIView):
 
         return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
