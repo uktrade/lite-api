@@ -7,7 +7,7 @@ from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_countries_case_activity
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_type, authorised_users
+from conf.decorators import allowed_application_types, authorised_users
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -18,7 +18,7 @@ from users.models import ExporterUser
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_type(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -30,7 +30,7 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @application_type(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types(ApplicationType.OPEN_LICENCE)
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
