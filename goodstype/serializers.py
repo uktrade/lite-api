@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from applications.models import OpenApplication
+from applications.models import BaseApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from conf.serializers import PrimaryKeyRelatedSerializerField
@@ -15,7 +15,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
-    application = serializers.PrimaryKeyRelatedField(queryset=OpenApplication.objects.all())
+    application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     countries = PrimaryKeyRelatedSerializerField(required=False,
                                                  queryset=Country.objects.all(),
                                                  serializer=CountrySerializer,

@@ -4,6 +4,8 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from goodstype.models import GoodsType
+from goodstype.serializers import GoodsTypeSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -11,15 +13,21 @@ from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, Th
 
 
 class HmrcQueryViewSerializer(GenericApplicationListSerializer):
+    goods_types = serializers.SerializerMethodField()
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
     hmrc_organisation = TinyOrganisationViewSerializer()
 
+    def get_goods_types(self, instance):
+        goods_types = GoodsType.objects.filter(application=instance)
+        return GoodsTypeSerializer(goods_types, many=True).data
+
     class Meta:
         model = HmrcQuery
         fields = GenericApplicationListSerializer.Meta.fields + [
+            'goods_types',
             'end_user',
             'ultimate_end_users',
             'third_parties',

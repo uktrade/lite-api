@@ -95,7 +95,7 @@ class ApplicationGoodsTypes(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application)
@@ -103,14 +103,14 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={'goods': goods_types_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
         Post a goodstype
         """
-        request.data['application'] = application
+        request.data['application'] = application.id
 
         serializer = GoodsTypeSerializer(data=request.data)
 
@@ -128,7 +128,7 @@ class ApplicationGoodsTypes(APIView):
 class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
@@ -139,7 +139,7 @@ class ApplicationGoodsType(APIView):
 
         return JsonResponse(data={'good': goods_type_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
