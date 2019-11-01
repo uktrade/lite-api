@@ -43,6 +43,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]['name'], hmrc_query.name)
         self.assertEqual(response_data[0]['application_type']['key'], hmrc_query.application_type)
+        self.assertEqual(response_data[0]['organisation']['name'], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]['export_type'])
         self.assertIsNotNone(response_data[0]['created_at'])
         self.assertIsNotNone(response_data[0]['last_modified_at'])
