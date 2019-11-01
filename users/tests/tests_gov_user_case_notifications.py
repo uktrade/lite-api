@@ -36,6 +36,7 @@ class NotificationTests(DataTestClient):
         new_notification = Notification.objects.filter(user=self.gov_user, case_activity__case=case)
 
         self.assertEqual(new_notification.count(), prev_notification_count)
+        self.assertTrue(data['name'] in new_notification.first().case_activity.text)
         self.assertNotEqual(new_notification.first().case_activity, case_activity)
 
     def tests_get_case_notification_deletes_case_notification_and_returns_data(self):
