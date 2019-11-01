@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
@@ -21,6 +21,7 @@ from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_users, application_in_major_editable_state
+from conf.pagination import MaxPageNumberPagination
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -28,30 +29,34 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
 
 
-class ApplicationList(ListAPIView):
+class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = GenericApplicationListSerializer
+    pagination_class = MaxPageNumberPagination
 
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         """
-        List all applications using a generic, small serializer for minimal
-        data transfer
+        Filter applications on submitted
         """
         try:
-            submitted = optional_str_to_bool(request.GET.get('submitted'))
+            submitted = optional_str_to_bool(self.request.GET.get('submitted'))
         except ValueError as e:
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if submitted is None:
-            applications = BaseApplication.objects.filter(organisation=request.user.organisation)
+            applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
         elif submitted:
-            applications = BaseApplication.objects.submitted(organisation=request.user.organisation)
+            applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation)
         else:
-            applications = BaseApplication.objects.drafts(organisation=request.user.organisation)
+            applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation)
 
-        serializer = GenericApplicationListSerializer(applications, many=True)
-        return JsonResponse(data={'applications': serializer.data})
+        return applications
 
-    def post(self, request):
+    def post(self, request, **kwargs):
+        """
+        Create a new application
+        Types include StandardApplication, OpenApplication and HmrcQuery
+        """
         data = request.data
         serializer = get_application_create_serializer(data.get('application_type'))
         serializer = serializer(data=data, context=request.user.organisation)
@@ -65,16 +70,13 @@ class ApplicationList(ListAPIView):
         return JsonResponse(data={'id': application.id}, status=status.HTTP_201_CREATED)
 
 
-class ApplicationDetail(APIView):
-    """
-    Retrieve or update an application instance.
-    """
+class ApplicationDetail(RetrieveUpdateDestroyAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
-        Retrieve an application instance.
+        Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
@@ -83,7 +85,7 @@ class ApplicationDetail(APIView):
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """
-        Update an application instance.
+        Update an application instance
         """
         serializer = get_application_update_serializer(application)
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
