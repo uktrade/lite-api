@@ -1,10 +1,8 @@
 from rest_framework import serializers
 
-from applications.enums import ApplicationType
 from applications.models import OpenApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer, GenericApplicationListSerializer
-from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
