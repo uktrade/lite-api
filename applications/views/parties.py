@@ -48,7 +48,7 @@ class ApplicationEndUser(APIView):
 
         return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -73,7 +73,7 @@ class ApplicationEndUser(APIView):
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -83,7 +83,7 @@ class ApplicationUltimateEndUsers(APIView):
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -109,7 +109,7 @@ class ApplicationUltimateEndUsers(APIView):
 class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
         """
@@ -191,7 +191,7 @@ class ApplicationConsignee(APIView):
 class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -201,7 +201,7 @@ class ApplicationThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
