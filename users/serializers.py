@@ -138,6 +138,12 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'first_name', 'last_name', 'organisation')
 
 
+class CaseNotificationGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('case_activity',)
+
+
 class NotificationSerializer(serializers.ModelSerializer):
     object = serializers.SerializerMethodField()
     object_type = serializers.SerializerMethodField()
