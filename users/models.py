@@ -1,4 +1,5 @@
 import uuid
+from abc import abstractmethod
 
 import reversion
 from django.contrib.auth.base_user import BaseUserManager
@@ -75,6 +76,10 @@ class BaseUser(AbstractUser):
         return self.email
 
     objects = CustomUserManager()
+
+    @abstractmethod
+    def send_notification(self, **kwargs):
+        pass
 
 
 class ExporterUser(BaseUser):
