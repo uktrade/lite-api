@@ -3,13 +3,12 @@ from uuid import UUID
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
+from applications.models import GoodOnApplication, CountryOnApplication, SiteOnApplication
 from goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
 
 
 class DraftTests(DataTestClient):
-
     url = reverse('applications:applications') + '?submitted=false'
 
     def test_view_drafts(self):
@@ -57,7 +56,7 @@ class DraftTests(DataTestClient):
         """
         standard_application = self.create_standard_application(self.organisation)
 
-        url = reverse('applications:application', kwargs={'pk': standard_application.id}) + '?submitted=false'
+        url = reverse('applications:application', kwargs={'pk': standard_application.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -71,11 +70,35 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application['last_modified_at'])
         self.assertIsNone(retrieved_application['submitted_at'])
         self.assertIsNone(retrieved_application['status'])
-        self.assertIsNotNone(GoodOnApplication.objects.get(application__id=standard_application.id))
+        self.assertEquals(GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1)
         self.assertEqual(retrieved_application['end_user']['id'], str(standard_application.end_user.id))
         self.assertEqual(retrieved_application['consignee']['id'], str(standard_application.consignee.id))
         self.assertEqual(retrieved_application['third_parties'][0]['id'],
                          str(standard_application.third_parties.get().id))
+
+    def test_view_draft_open_application(self):
+        """
+        Ensure we can view an individual draft.
+        """
+        open_application = self.create_open_application(self.organisation)
+
+        url = reverse('applications:application', kwargs={'pk': open_application.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application['name'], open_application.name)
+        self.assertEqual(retrieved_application['application_type']['key'], open_application.application_type)
+        self.assertEqual(retrieved_application['export_type']['key'], open_application.export_type)
+        self.assertIsNotNone(retrieved_application['created_at'])
+        self.assertIsNotNone(retrieved_application['last_modified_at'])
+        self.assertIsNone(retrieved_application['submitted_at'])
+        self.assertIsNone(retrieved_application['status'])
+        self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
+        self.assertIsNotNone(CountryOnApplication.objects.filter(application__id=open_application.id).count(), 1)
+        self.assertEqual(SiteOnApplication.objects.filter(application__id=open_application.id).count(), 1)
 
     def test_view_draft_hmrc_query(self):
         """
@@ -83,7 +106,7 @@ class DraftTests(DataTestClient):
         """
         hmrc_query = self.create_hmrc_query(self.organisation)
 
-        url = reverse('applications:application', kwargs={'pk': hmrc_query.id}) + '?submitted=false'
+        url = reverse('applications:application', kwargs={'pk': hmrc_query.id})
 
         response = self.client.get(url, **self.hmrc_exporter_headers)
 
