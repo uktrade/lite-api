@@ -7,17 +7,20 @@ from applications.models import HmrcQuery
 from conf.serializers import KeyValueChoiceField
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
+from organisations.serializers import TinyOrganisationViewSerializer
 
 
 class HmrcQueryViewSerializer(serializers.ModelSerializer):
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
+    organisation = TinyOrganisationViewSerializer()
 
     class Meta:
         model = HmrcQuery
         fields = [
             'id',
             'reasoning',
-            'application_type'
+            'application_type',
+            'organisation',
         ]
 
 
