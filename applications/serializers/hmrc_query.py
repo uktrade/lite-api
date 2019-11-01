@@ -25,6 +25,7 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
             'third_parties',
             'consignee',
             'hmrc_organisation',
+            'reasoning',
         ]
 
 
@@ -51,6 +52,8 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
+    reasoning = serializers.CharField(max_length=1000, allow_null=True, allow_blank=True)
+
     class Meta:
         model = HmrcQuery
         fields = ['reasoning']
