@@ -175,9 +175,8 @@ class CasesFilterAndSortTests(DataTestClient):
         all_cases = self.application_cases + self.clc_cases
         all_cases = [
             {
-                'status': case.application.status.status if case.application is not None else case.query.status.status,
-                'status_ordering': case.application.status.priority if case.application is not None
-                else case.query.status.priority
+                'status': case.application.status.status if case.application else case.query.status.status,
+                'status_ordering': case.application.status.priority if case.application else case.query.status.priority,
             }
             for case in all_cases
         ]
@@ -193,7 +192,6 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data['cases']))
         # Assert ordering
         for case, expected_case in zip(response_data['cases'], all_cases_sorted):
-            self.assertEqual(case['id'], expected_case['case'])
             self.assertEqual(case['status'], expected_case['status'])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
@@ -208,7 +206,8 @@ class CasesFilterAndSortTests(DataTestClient):
             [
                 {
                     'status': case.application.status.status,
-                    'status_ordering': case.application.status.priority
+                    'status_ordering': case.application.status.priority,
+                    'id': str(case.id),
                 }
                 for case in self.application_cases
             ],
@@ -230,5 +229,5 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case['id']).values_list('type', flat=True)[0]
             self.assertEqual(case_type, 'application')
             # Assert ordering
-            self.assertEqual(case['id'], expected_case['case'])
             self.assertEqual(case['status'], expected_case['status'])
+            self.assertEqual(case['id'], expected_case['id'])
