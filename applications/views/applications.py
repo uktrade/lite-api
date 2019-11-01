@@ -80,7 +80,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
-        return JsonResponse(data={'application': serializer.data})
+        return JsonResponse(data=serializer.data)
 
     @authorised_users(ExporterUser)
     def put(self, request, application):
