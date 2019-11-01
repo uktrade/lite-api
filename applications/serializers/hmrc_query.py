@@ -3,30 +3,29 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery
+from applications.serializers.generic_application import GenericApplicationListSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
-class HmrcQueryViewSerializer(serializers.ModelSerializer):
+class HmrcQueryViewSerializer(GenericApplicationListSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
-    destinations = serializers.SerializerMethodField()
-    organisation = TinyOrganisationViewSerializer()
+    hmrc_organisation = TinyOrganisationViewSerializer()
 
     class Meta:
         model = HmrcQuery
-        fields = '__all__'
-
-    def get_destinations(self, application):
-        if application.end_user:
-            serializer = EndUserSerializer(application.end_user)
-            return {'type': 'end_user', 'data': serializer.data}
-        else:
-            return {'type': 'end_user', 'data': ''}
+        fields = GenericApplicationListSerializer.Meta.fields + [
+            'end_user',
+            'ultimate_end_users',
+            'third_parties',
+            'consignee',
+            'hmrc_organisation',
+        ]
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
@@ -47,7 +46,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             'reasoning',
             'application_type',
             'organisation',
-            'hmrc_organisation'
+            'hmrc_organisation',
         ]
 
 

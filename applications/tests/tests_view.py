@@ -29,7 +29,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(response_data[0]['created_at'])
         self.assertIsNotNone(response_data[0]['last_modified_at'])
         self.assertIsNone(response_data[0]['submitted_at'])
-        self.assertEqual(response_data[0]['status']['key'], standard_application.status)
+        self.assertIsNone(response_data[0]['status'])
 
     def test_view_hmrc_queries(self):
         """
@@ -49,7 +49,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(response_data[0]['created_at'])
         self.assertIsNotNone(response_data[0]['last_modified_at'])
         self.assertIsNone(response_data[0]['submitted_at'])
-        self.assertEqual(response_data[0]['status']['key'], hmrc_query.status)
+        self.assertIsNone(response_data[0]['status'])
 
     def test_view_draft_standard_application(self):
         """
@@ -70,7 +70,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application['created_at'])
         self.assertIsNotNone(retrieved_application['last_modified_at'])
         self.assertIsNone(retrieved_application['submitted_at'])
-        self.assertEqual(retrieved_application['status']['key'], standard_application.status)
+        self.assertIsNone(retrieved_application['status'])
         self.assertIsNotNone(GoodOnApplication.objects.get(application__id=standard_application.id))
         self.assertEqual(retrieved_application['end_user']['id'], str(standard_application.end_user.id))
         self.assertEqual(retrieved_application['consignee']['id'], str(standard_application.consignee.id))
@@ -91,13 +91,13 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application['name'], hmrc_query.name)
-        self.assertEqual(retrieved_application['application_type'], hmrc_query.application_type)
+        self.assertEqual(retrieved_application['application_type']['key'], hmrc_query.application_type)
         self.assertIsNotNone(retrieved_application['created_at'])
         self.assertIsNotNone(retrieved_application['last_modified_at'])
         self.assertIsNone(retrieved_application['submitted_at'])
-        self.assertEqual(retrieved_application['status'], hmrc_query.status)
+        self.assertIsNone(retrieved_application['status'])
         self.assertEqual(retrieved_application['organisation']['id'], str(hmrc_query.organisation.id))
-        self.assertEqual(retrieved_application['hmrc_organisation'], str(hmrc_query.hmrc_organisation.id))
+        self.assertEqual(retrieved_application['hmrc_organisation']['id'], str(hmrc_query.hmrc_organisation.id))
         self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
         self.assertEqual(retrieved_application['end_user']['id'], str(hmrc_query.end_user.id))
         self.assertEqual(retrieved_application['consignee']['id'], str(hmrc_query.consignee.id))

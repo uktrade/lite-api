@@ -30,15 +30,15 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
                 'key': instance.export_type,
                 'value': get_value_from_enum(ApplicationExportType, instance.export_type)
             }
-
         return None
 
     def get_status(self, instance):
-        status = instance.status.status if instance.status else None
-        return {
-            'key': status,
-            'value': get_status_value_from_case_status_enum(status) if status else None
-        }
+        if instance.status:
+            return {
+                'key': instance.status.status,
+                'value': get_status_value_from_case_status_enum(instance.status.status)
+            }
+        return None
 
     class Meta:
         model = BaseApplication
