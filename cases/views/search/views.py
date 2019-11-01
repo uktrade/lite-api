@@ -10,11 +10,11 @@ from conf.pagination import MaxPageNumberPagination
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_SYSTEM_QUEUE_ID
 
 
-class CasesSearchView(generics.GenericAPIView):
+class CasesSearchView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         queue_id = request.GET.get('queue_id', ALL_CASES_SYSTEM_QUEUE_ID)
         context = {'is_system_queue': queue_id in SYSTEM_QUEUES, 'queue_id': queue_id}
 
@@ -36,15 +36,13 @@ class CasesSearchView(generics.GenericAPIView):
         case_types = service.get_case_type_list()
 
         return JsonResponse(
-            {
-                'data': {
-                    'queues': SearchQueueSerializer(queues, many=True).data,
-                    'cases': cases,
-                    'filters': {
-                        'statuses': statuses,
-                        'case_types': case_types,
-                    },
-                    'is_system_queue': context['is_system_queue']
-                }
+            data={
+                'queues': SearchQueueSerializer(queues, many=True).data,
+                'cases': cases,
+                'filters': {
+                    'statuses': statuses,
+                    'case_types': case_types,
+                },
+                'is_system_queue': context['is_system_queue']
             }
         )

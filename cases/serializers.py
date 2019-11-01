@@ -93,7 +93,6 @@ class TinyCaseSerializer(serializers.Serializer):
 
         return data
 
-
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
 
