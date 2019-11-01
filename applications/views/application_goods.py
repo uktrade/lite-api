@@ -43,6 +43,10 @@ class ApplicationGoodsOnApplication(APIView):
         data = request.data
         data['application'] = application.id
 
+        if 'validate_only' in data and not isinstance(data['validate_only'], bool):
+            return JsonResponse(data={'error': 'Invalid value supplied for validate_only'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
         if 'validate_only' in data and data['validate_only'] is True:
             # validate the value, quantity, and units relating to a good on an application.
             # note: Goods attached to applications also need documents. This is validated at a later stage.
@@ -50,6 +54,10 @@ class ApplicationGoodsOnApplication(APIView):
             if serializer.is_valid():
                 return HttpResponse(status=status.HTTP_200_OK)
         else:
+            if 'good_id' not in data:
+                return JsonResponse(data={'error': 'Good ID required when adding good to application'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
             data['good'] = data['good_id']
 
             good = get_good_with_organisation(data.get('good'), request.user.organisation)

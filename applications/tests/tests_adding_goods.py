@@ -130,6 +130,10 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         [{'value': '123.45', 'quantity': '1123423.901234', 'validate_only': True, 'response': status.HTTP_200_OK}],
         [{'good_id': uuid.uuid4(), 'value': '123.45', 'quantity': '1123423.901234', 'validate_only': False,
             'response': status.HTTP_404_NOT_FOUND}],
+        [{'value': '123.45', 'quantity': '100.00', 'validate_only': 'Bob',
+          'response': status.HTTP_400_BAD_REQUEST}],
+        [{'value': '123.45', 'quantity': '100.00', 'validate_only': 1,
+          'response': status.HTTP_400_BAD_REQUEST}],
         [{'value': '123.45', 'quantity': 'asd', 'validate_only': True,
           'response': status.HTTP_400_BAD_REQUEST}],
     ])
