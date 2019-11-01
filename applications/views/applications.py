@@ -15,7 +15,7 @@ from applications.libraries.application_helpers import optional_str_to_bool, \
 from applications.libraries.case_activity import set_application_ref_number_case_activity, \
     set_application_name_case_activity, set_application_status_case_activity
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, BaseApplication
+from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -24,6 +24,7 @@ from conf.decorators import authorised_users, application_in_major_editable_stat
 from conf.pagination import MaxPageNumberPagination
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
+from organisations.enums import OrganisationType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
@@ -38,17 +39,20 @@ class ApplicationList(ListCreateAPIView):
         """
         Filter applications on submitted
         """
-        try:
-            submitted = optional_str_to_bool(self.request.GET.get('submitted'))
-        except ValueError as e:
-            return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        if submitted is None:
-            applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
-        elif submitted:
-            applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation)
+        if self.request.user.organisation != OrganisationType.HMRC:
+            applications = HmrcQuery.objects.filter(status__isnull=True, hmrc_organisation=self.request.user.organisation)
         else:
-            applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation)
+            try:
+                submitted = optional_str_to_bool(self.request.GET.get('submitted'))
+            except ValueError as e:
+                return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            if submitted is None:
+                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
+            elif submitted:
+                applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation)
+            else:
+                applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation)
 
         return applications
 

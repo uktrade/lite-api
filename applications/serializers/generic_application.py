@@ -41,6 +41,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseApplication
         fields = [
+            'id',
             'name',
             'application_type',
             'export_type',
