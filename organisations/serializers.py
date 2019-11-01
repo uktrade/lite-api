@@ -9,6 +9,7 @@ from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.enums import OrganisationType
 from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 from users.models import GovUser
 from users.serializers import ExporterUserCreateUpdateSerializer
 
@@ -188,8 +189,9 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(),
-                                                 error_messages={'null': get_string('address.null_country')})
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(),
+                                               error_messages={'null': get_string('address.null_country')},
+                                               serializer=CountrySerializer)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:

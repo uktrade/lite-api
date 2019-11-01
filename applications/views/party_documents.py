@@ -17,7 +17,7 @@ class EndUserDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         end_user = get_end_user(application.pk)
@@ -29,7 +29,7 @@ class EndUserDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -42,7 +42,7 @@ class EndUserDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         end_user = get_end_user(application.pk)
@@ -55,7 +55,7 @@ class UltimateEndUserDocumentsView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
@@ -67,7 +67,7 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, ueu_pk):
@@ -80,7 +80,7 @@ class UltimateEndUserDocumentsView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
@@ -93,7 +93,7 @@ class ConsigneeDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         consignee = get_consignee(application.pk)
@@ -105,7 +105,7 @@ class ConsigneeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -118,7 +118,7 @@ class ConsigneeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         consignee = get_consignee(application.pk)
@@ -131,7 +131,7 @@ class ThirdPartyDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
@@ -143,7 +143,7 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, tp_pk):
@@ -156,7 +156,7 @@ class ThirdPartyDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)

@@ -227,7 +227,7 @@ class ApplicationThirdParties(APIView):
 class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
         """
