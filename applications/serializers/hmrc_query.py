@@ -2,26 +2,31 @@ from rest_framework import exceptions
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationType
 from applications.models import HmrcQuery
-from conf.serializers import KeyValueChoiceField
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
+from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
 class HmrcQueryViewSerializer(serializers.ModelSerializer):
-    application_type = KeyValueChoiceField(choices=ApplicationType.choices)
+    end_user = EndUserSerializer()
+    ultimate_end_users = UltimateEndUserSerializer(many=True)
+    third_parties = ThirdPartySerializer(many=True)
+    consignee = ConsigneeSerializer()
+    destinations = serializers.SerializerMethodField()
     organisation = TinyOrganisationViewSerializer()
 
     class Meta:
         model = HmrcQuery
-        fields = [
-            'id',
-            'reasoning',
-            'application_type',
-            'organisation',
-        ]
+        fields = '__all__'
+
+    def get_destinations(self, application):
+        if application.end_user:
+            serializer = EndUserSerializer(application.end_user)
+            return {'type': 'end_user', 'data': serializer.data}
+        else:
+            return {'type': 'end_user', 'data': ''}
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):

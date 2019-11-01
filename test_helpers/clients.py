@@ -373,10 +373,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     # Applications
 
-    def create_standard_application(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
-        """
-        Creates a standard draft application
-        """
+    def create_standard_application(self, organisation: Organisation, reference_name='Standard Draft',
+                                    safe_document=True):
         application = StandardApplication(name=reference_name,
                                           application_type=ApplicationType.STANDARD_LICENCE,
                                           export_type=ApplicationExportType.PERMANENT,
@@ -391,6 +389,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.save()
 
         application.third_parties.set([self.create_third_party('Third party', self.organisation)])
+
+        application.save()
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
@@ -435,9 +435,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_open_application(self, organisation: Organisation, reference_name='Open Draft'):
-        """
-        Creates an open application
-        """
         application = OpenApplication(name=reference_name,
                                       application_type=ApplicationType.OPEN_LICENCE,
                                       export_type=ApplicationExportType.PERMANENT,
@@ -461,12 +458,32 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_hmrc_query(self, organisation: Organisation, hmrc_organisation: Organisation):
-        hmrc_query = HmrcQuery(organisation=organisation,
-                               hmrc_organisation=hmrc_organisation,
-                               application_type=ApplicationType.HMRC_QUERY)
-        hmrc_query.save()
-        return hmrc_query
+    def create_hmrc_query(self, organisation: Organisation, reference_name='HMRC Query', safe_document=True):
+        application = HmrcQuery(name=reference_name,
+                                application_type=ApplicationType.HMRC_QUERY,
+                                activity='Trade',
+                                usage='Trade',
+                                organisation=organisation,
+                                hmrc_organisation=self.hmrc_organisation,
+                                end_user=self.create_end_user('End User', organisation),
+                                consignee=self.create_consignee('Consignee', organisation),
+                                reasoning='Because the exporter "forgot" to mention the nuclear submarine in his trunk')
+
+        application.save()
+
+        application.third_parties.set([self.create_third_party('Third party', self.organisation)])
+
+        self.create_goods_type(application)
+
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+
+        # Add a site to the application
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
+
+        return application
 
     # Cases
 

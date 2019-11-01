@@ -3,6 +3,8 @@ from uuid import UUID
 from django.urls import reverse
 from rest_framework import status
 
+from applications.models import GoodOnApplication
+from goodstype.models import GoodsType
 from test_helpers.clients import DataTestClient
 
 
@@ -33,8 +35,7 @@ class DraftTests(DataTestClient):
         """
         Ensure we can get a list of HMRC queries.
         """
-        hmrc_query = self.create_hmrc_query(organisation=self.organisation,
-                                            hmrc_organisation=self.hmrc_organisation)
+        hmrc_query = self.create_hmrc_query(organisation=self.organisation)
 
         response = self.client.get(self.url, **self.hmrc_exporter_headers)
         response_data = response.json()['results']
@@ -50,16 +51,57 @@ class DraftTests(DataTestClient):
         self.assertIsNone(response_data[0]['submitted_at'])
         self.assertEqual(response_data[0]['status']['key'], hmrc_query.status)
 
-    def test_view_draft(self):
+    def test_view_draft_standard_application(self):
         """
         Ensure we can view an individual draft.
         """
-        draft = self.create_standard_application(self.organisation)
+        standard_application = self.create_standard_application(self.organisation)
 
-        url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
+        url = reverse('applications:application', kwargs={'pk': standard_application.id}) + '?submitted=false'
 
         response = self.client.get(url, **self.exporter_headers)
+
+        retrieved_application = response.json()
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application['name'], standard_application.name)
+        self.assertEqual(retrieved_application['application_type'], standard_application.application_type)
+        self.assertEqual(retrieved_application['export_type'], standard_application.export_type)
+        self.assertIsNotNone(retrieved_application['created_at'])
+        self.assertIsNotNone(retrieved_application['last_modified_at'])
+        self.assertIsNone(retrieved_application['submitted_at'])
+        self.assertEqual(retrieved_application['status'], standard_application.status)
+        self.assertIsNotNone(GoodOnApplication.objects.get(application__id=standard_application.id))
+        self.assertEqual(retrieved_application['end_user']['id'], str(standard_application.end_user.id))
+        self.assertEqual(retrieved_application['consignee']['id'], str(standard_application.consignee.id))
+        self.assertEqual(retrieved_application['third_parties'][0]['id'],
+                         str(standard_application.third_parties.get().id))
+
+    def test_view_draft_hmrc_query(self):
+        """
+        Ensure we can view an individual draft.
+        """
+        hmrc_query = self.create_hmrc_query(self.organisation)
+
+        url = reverse('applications:application', kwargs={'pk': hmrc_query.id}) + '?submitted=false'
+
+        response = self.client.get(url, **self.hmrc_exporter_headers)
+
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application['name'], hmrc_query.name)
+        self.assertEqual(retrieved_application['application_type'], hmrc_query.application_type)
+        self.assertIsNotNone(retrieved_application['created_at'])
+        self.assertIsNotNone(retrieved_application['last_modified_at'])
+        self.assertIsNone(retrieved_application['submitted_at'])
+        self.assertEqual(retrieved_application['status'], hmrc_query.status)
+        self.assertEqual(retrieved_application['organisation']['id'], str(hmrc_query.organisation.id))
+        self.assertEqual(retrieved_application['hmrc_organisation'], str(hmrc_query.hmrc_organisation.id))
+        self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
+        self.assertEqual(retrieved_application['end_user']['id'], str(hmrc_query.end_user.id))
+        self.assertEqual(retrieved_application['consignee']['id'], str(hmrc_query.consignee.id))
+        self.assertEqual(retrieved_application['third_parties'][0]['id'], str(hmrc_query.third_parties.get().id))
 
     def test_view_incorrect_draft(self):
         """
