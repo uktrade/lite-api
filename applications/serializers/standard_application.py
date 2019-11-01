@@ -1,13 +1,16 @@
 from rest_framework import serializers
 
+from applications.enums import ApplicationType
 from applications.models import StandardApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer
 from applications.serializers.other import GoodOnApplicationWithFlagsViewSerializer
+from conf.serializers import KeyValueChoiceField
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
 class StandardApplicationViewSerializer(serializers.ModelSerializer):
+    application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)

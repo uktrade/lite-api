@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
+from applications.enums import ApplicationType
 from applications.models import OpenApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer
+from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
@@ -10,6 +12,7 @@ from static.countries.serializers import CountrySerializer
 
 
 class OpenApplicationViewSerializer(serializers.ModelSerializer):
+    application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     destinations = serializers.SerializerMethodField()
     goods_types = serializers.SerializerMethodField()
 
@@ -18,6 +21,7 @@ class OpenApplicationViewSerializer(serializers.ModelSerializer):
         fields = [
             'destinations',
             'goods_types',
+            'application_type'
         ]
 
     def get_destinations(self, application):
