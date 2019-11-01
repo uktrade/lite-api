@@ -26,17 +26,15 @@ class CasesSearchView(generics.ListAPIView):
             sort=request.GET.get('sort', '')
         )
 
-        try:
-            cases = TinyCaseSerializer(case_qs, context=context, team=request.user.team, many=True).data
-        except ValidationError:
-            cases = []
+        page = self.paginate_queryset(case_qs)
+
+        cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
 
         queues = service.get_search_queues(user=request.user)
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_list()
 
-        return JsonResponse(
-            data={
+        return self.get_paginated_response({
                 'queues': SearchQueueSerializer(queues, many=True).data,
                 'cases': cases,
                 'filters': {
