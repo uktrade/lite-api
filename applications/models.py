@@ -28,6 +28,9 @@ class BaseApplication(models.Model):
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     objects = BaseApplicationManager()
 
 

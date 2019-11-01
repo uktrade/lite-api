@@ -17,7 +17,7 @@ class DraftTests(DataTestClient):
         standard_application = self.create_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()['applications']
+        response_data = response.json()['results']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
@@ -59,7 +59,7 @@ class DraftTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['applications']), 0)
+        self.assertEqual(len(response_data['results']), 0)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
