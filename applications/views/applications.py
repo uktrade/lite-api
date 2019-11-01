@@ -33,7 +33,8 @@ class ApplicationList(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         """
-        List all applications
+        List all applications using a generic, small serializer for minimal
+        data transfer
         """
         try:
             submitted = optional_str_to_bool(request.GET.get('submitted'))
@@ -41,16 +42,13 @@ class ApplicationList(ListAPIView):
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if submitted is None:
-            qs = BaseApplication.objects.filter(organisation=request.user.organisation)
+            applications = BaseApplication.objects.filter(organisation=request.user.organisation)
         elif submitted:
-            qs = BaseApplication.objects.submitted(organisation=request.user.organisation)
+            applications = BaseApplication.objects.submitted(organisation=request.user.organisation)
         else:
-            qs = BaseApplication.objects.drafts(organisation=request.user.organisation)
-
-        applications = qs.order_by('created_at')
+            applications = BaseApplication.objects.drafts(organisation=request.user.organisation)
 
         serializer = GenericApplicationListSerializer(applications, many=True)
-
         return JsonResponse(data={'applications': serializer.data})
 
     def post(self, request):
