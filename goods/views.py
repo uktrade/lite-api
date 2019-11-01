@@ -102,13 +102,13 @@ class GoodList(APIView):
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
-            if 'validate_only' not in data or data['validate_only'] == 'False':
+            if 'validate_only' in data and data['validate_only'] == True:
+                return HttpResponse(status=200)
+            else:
                 serializer.save()
 
                 return JsonResponse(data={'good': serializer.data},
                                     status=status.HTTP_201_CREATED)
-            else:
-                return HttpResponse(status=200)
 
         return JsonResponse(data={'errors': serializer.errors},
                             status=status.HTTP_400_BAD_REQUEST)
