@@ -39,7 +39,7 @@ class ApplicationList(ListCreateAPIView):
         """
         Filter applications on submitted
         """
-        if self.request.user.organisation != OrganisationType.HMRC:
+        if self.request.user.organisation.type == OrganisationType.HMRC:
             applications = HmrcQuery.objects.filter(status__isnull=True, hmrc_organisation=self.request.user.organisation)
         else:
             try:
