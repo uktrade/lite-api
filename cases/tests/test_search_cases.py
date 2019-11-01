@@ -43,7 +43,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -61,7 +61,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -83,7 +83,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,7 +106,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -130,7 +130,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -154,7 +154,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -186,7 +186,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -213,7 +213,7 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Act
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()['data']
+        response_data = response.json()['results']
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
