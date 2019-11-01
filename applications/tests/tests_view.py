@@ -29,6 +29,26 @@ class DraftTests(DataTestClient):
         self.assertIsNone(response_data[0]['submitted_at'])
         self.assertEqual(response_data[0]['status']['key'], standard_application.status)
 
+    def test_view_hmrc_queries(self):
+        """
+        Ensure we can get a list of HMRC queries.
+        """
+        hmrc_query = self.create_hmrc_query(organisation=self.organisation,
+                                            hmrc_organisation=self.hmrc_organisation)
+
+        response = self.client.get(self.url, **self.hmrc_exporter_headers)
+        response_data = response.json()['results']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]['name'], hmrc_query.name)
+        self.assertEqual(response_data[0]['application_type']['key'], hmrc_query.application_type)
+        self.assertIsNone(response_data[0]['export_type'])
+        self.assertIsNotNone(response_data[0]['created_at'])
+        self.assertIsNotNone(response_data[0]['last_modified_at'])
+        self.assertIsNone(response_data[0]['submitted_at'])
+        self.assertEqual(response_data[0]['status']['key'], hmrc_query.status)
+
     def test_view_draft(self):
         """
         Ensure we can view an individual draft.

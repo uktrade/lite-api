@@ -7,7 +7,7 @@ from addresses.models import Address
 from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
-    StandardApplication, OpenApplication
+    StandardApplication, OpenApplication, HmrcQuery
 from cases.enums import AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
@@ -460,6 +460,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
+
+    def create_hmrc_query(self, organisation: Organisation, hmrc_organisation: Organisation):
+        hmrc_query = HmrcQuery(organisation=organisation,
+                               hmrc_organisation=hmrc_organisation,
+                               application_type=ApplicationType.HMRC_QUERY)
+        hmrc_query.save()
+        return hmrc_query
 
     # Cases
 
