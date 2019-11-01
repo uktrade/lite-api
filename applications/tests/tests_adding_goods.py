@@ -1,3 +1,5 @@
+import uuid
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -123,3 +125,18 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @parameterized.expand([
+        [{'value': '123.45', 'quantity': '1123423.901234', 'validate_only': True, 'response': status.HTTP_200_OK}],
+        [{'good_id': uuid.uuid4(), 'value': '123.45', 'quantity': '1123423.901234', 'validate_only': False,
+            'response': status.HTTP_404_NOT_FOUND}],
+        [{'value': '123.45', 'quantity': 'asd', 'validate_only': True,
+          'response': status.HTTP_400_BAD_REQUEST}],
+    ])
+    def test_adding_good_validate_only(self, data):
+        application = self.create_standard_application(self.organisation)
+        url = reverse('applications:application_goods', kwargs={'pk': application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, data['response'])
