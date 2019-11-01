@@ -2,12 +2,12 @@ from rest_framework import serializers
 
 from applications.models import StandardApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
-    GenericApplicationUpdateSerializer
+    GenericApplicationUpdateSerializer, GenericApplicationListSerializer
 from applications.serializers.other import GoodOnApplicationWithFlagsViewSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
-class StandardApplicationViewSerializer(serializers.ModelSerializer):
+class StandardApplicationViewSerializer(GenericApplicationListSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
@@ -17,7 +17,14 @@ class StandardApplicationViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StandardApplication
-        fields = '__all__'
+        fields = GenericApplicationListSerializer.Meta.fields + [
+            'end_user',
+            'ultimate_end_users',
+            'third_parties',
+            'consignee',
+            'goods',
+            'destinations',
+        ]
 
     def get_destinations(self, application):
         if application.end_user:

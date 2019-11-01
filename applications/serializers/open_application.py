@@ -2,22 +2,23 @@ from rest_framework import serializers
 
 from applications.models import OpenApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
-    GenericApplicationUpdateSerializer
+    GenericApplicationUpdateSerializer, GenericApplicationListSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
 
-class OpenApplicationViewSerializer(serializers.ModelSerializer):
+class OpenApplicationViewSerializer(GenericApplicationListSerializer):
     destinations = serializers.SerializerMethodField()
     goods_types = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
-        fields = [
+        fields = GenericApplicationListSerializer.Meta.fields + [
             'destinations',
             'goods_types',
+            'application_type'
         ]
 
     def get_destinations(self, application):
