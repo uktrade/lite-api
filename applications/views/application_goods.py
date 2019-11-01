@@ -43,7 +43,7 @@ class ApplicationGoodsOnApplication(APIView):
         data = request.data
         data['application'] = application.id
 
-        if 'validate_only' in data and data['validate_only'] == True:
+        if 'validate_only' in data and data['validate_only'] is True:
             # validate the value, quantity, and units relating to a good on an application.
             # note: Goods attached to applications also need documents. This is validated at a later stage.
             serializer = GoodOnApplicationCreateSerializer(data=data, partial=True)

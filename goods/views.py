@@ -102,7 +102,7 @@ class GoodList(APIView):
         serializer = GoodSerializer(data=data)
 
         if serializer.is_valid():
-            if 'validate_only' in data and data['validate_only'] == True:
+            if 'validate_only' in data and data['validate_only'] is True:
                 return HttpResponse(status=200)
             else:
                 serializer.save()
