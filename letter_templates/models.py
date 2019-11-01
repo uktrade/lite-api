@@ -12,7 +12,7 @@ from static.letter_layouts.models import LetterLayout
 
 class LetterTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=35)
+    name = models.CharField(max_length=35, unique=True)
     layout = models.ForeignKey(LetterLayout, on_delete=models.CASCADE, null=False)
     letter_paragraphs = SortedManyToManyField(PicklistItem)
     restricted_to = ArrayField(
