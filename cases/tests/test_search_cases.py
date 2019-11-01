@@ -175,13 +175,13 @@ class CasesFilterAndSortTests(DataTestClient):
         all_cases = self.application_cases + self.clc_cases
         all_cases = [
             {
-                'case': str(case.id),
-                'status': case.application.status.priority if case.application is not None else
-                case.query.status.priority
+                'status': case.application.status.status if case.application is not None else case.query.status.status,
+                'status_ordering': case.application.status.priority if case.application is not None
+                else case.query.status.priority
             }
             for case in all_cases
         ]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
+        all_cases_sorted = sorted(all_cases, key=lambda k: k['status_ordering'])
         url = self.url + '?sort=status'
 
         # Act
@@ -194,6 +194,7 @@ class CasesFilterAndSortTests(DataTestClient):
         # Assert ordering
         for case, expected_case in zip(response_data['cases'], all_cases_sorted):
             self.assertEqual(case['id'], expected_case['case'])
+            self.assertEqual(case['status'], expected_case['status'])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
@@ -204,8 +205,14 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Arrange
         application_cases_sorted = sorted(
-            [{'case': str(case.id), 'status': case.application.status.priority} for case in self.application_cases],
-            key=lambda k: k['status'],
+            [
+                {
+                    'status': case.application.status.status,
+                    'status_ordering': case.application.status.priority
+                }
+                for case in self.application_cases
+            ],
+            key=lambda k: k['status_ordering'],
             reverse=True
         )
 
@@ -224,3 +231,4 @@ class CasesFilterAndSortTests(DataTestClient):
             self.assertEqual(case_type, 'application')
             # Assert ordering
             self.assertEqual(case['id'], expected_case['case'])
+            self.assertEqual(case['status'], expected_case['status'])
