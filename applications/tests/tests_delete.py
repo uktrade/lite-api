@@ -68,7 +68,5 @@ class DeleteApplication(DataTestClient):
 
         response = self.client.delete(url, **self.hmrc_exporter_headers)
 
-        print('RESPONSE', response.json())
-
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(number_of_applications, BaseApplication.objects.all().count())

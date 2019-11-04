@@ -86,13 +86,10 @@ def authorised_users(user_type):
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
-                if application.application_type == ApplicationType.HMRC_QUERY:
-                    if application.hmrc_organisation.id != request.request.user.organisation.id:
-                        return JsonResponse(data={'errors': ['You can only perform this operation on an application '
-                                                             'that has been opened within your organisation']},
-                                            status=status.HTTP_403_FORBIDDEN)
-
-                elif application.organisation.id != request.request.user.organisation.id:
+                if application.application_type == ApplicationType.HMRC_QUERY and \
+                        application.hmrc_organisation.id != request.request.user.organisation.id or \
+                        application.application_type != ApplicationType.HMRC_QUERY and \
+                        application.organisation.id != request.request.user.organisation.id:
                     return JsonResponse(data={'errors': ['You can only perform this operation on an application '
                                                          'that has been opened within your organisation']},
                                         status=status.HTTP_403_FORBIDDEN)
