@@ -81,13 +81,19 @@ class TinyCaseSerializer(serializers.Serializer):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        data = FlagSerializer(instance.flags, many=True).data
+        org = instance.organisation()
+
+        case_flag_data = FlagSerializer(instance.flags, many=True).data
+        org_flag_data = FlagSerializer(org.flags, many=True).data
+
+        flag_data = case_flag_data + org_flag_data
+
         if not self.team:
-            return data
+            return flag_data
 
         # Sort flags by user's team.
-        team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), data))
-        non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), data))
+        team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), flag_data))
+        non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), flag_data))
 
         data = sorted(team_flags, key=lambda x: x['name']) + sorted(non_team_flags, key=lambda x: x['name'])
 
@@ -125,7 +131,6 @@ class TinyCaseSerializer(serializers.Serializer):
             ]
 
             users.extend(queue_users)
-
         return users
 
     def get_status(self, instance):

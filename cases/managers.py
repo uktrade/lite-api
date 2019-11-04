@@ -84,5 +84,10 @@ class CaseManager(models.Manager):
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order='-' if sort.startswith('-') else '')
 
-        return case_qs
-
+        return case_qs.prefetch_related(
+            'queues',
+            'query__status',
+            'application__status',
+            'query__organisation__flags',
+            'application__organisation__flags'
+        )

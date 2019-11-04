@@ -40,6 +40,12 @@ class Case(models.Model):
     class Meta:
         ordering = [Coalesce('application__submitted_at', 'query__submitted_at')]
 
+    def organisation(self):
+        """
+        The organisation for a case comes from the query or application associated with that case.
+        """
+        return self.query.organisation if self.query else self.application.organisation
+
 
 @reversion.register()
 class CaseNote(models.Model):
