@@ -5,6 +5,7 @@ from applications.models import SiteOnApplication, GoodOnApplication
 from cases.models import Case
 from content_strings.strings import get_string
 from goods.enums import GoodStatus
+from goodstype.models import GoodsType
 from parties.document.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -26,125 +27,78 @@ class HmrcQueryTests(DataTestClient):
         self.assertIsNotNone(case.application.submitted_at)
         self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
     #
-    # def test_submit_standard_application_with_incorporated_good_success(self):
-    #     draft = self.create_standard_application_with_incorporated_good(self.organisation)
-    #     url = reverse('applications:application_submit', kwargs={'pk': draft.id})
+    def test_submit_hmrc_query_with_invalid_id_failure(self):
+        draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
+        url = 'applications/' + draft_id + '/submit/'
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     #
-    #     response = self.client.put(url, **self.exporter_headers)
+    def test_submit_hmrc_query_without_end_user_failure(self):
+        self.draft.end_user = None
+        self.draft.save()
+        url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.no_end_user_set'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_submit_hmrc_query_without_end_user_document_failure(self):
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.no_end_user_document_set'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_submit_hmrc_query_without_consignee_failure(self):
+        self.draft.consignee = None
+        self.draft.save()
+        url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.no_consignee_set'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
     #
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     case = Case.objects.get()
-    #     self.assertEqual(case.application.id, draft.id)
-    #     self.assertIsNotNone(case.application.submitted_at)
-    #     self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
-    #
-    # def test_submit_standard_application_with_invalid_id_failure(self):
-    #     draft_id = '90D6C724-0339-425A-99D2-9D2B8E864EC7'
-    #     url = 'applications/' + draft_id + '/submit/'
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    #
-    # def test_submit_standard_application_without_site_or_external_location_failure(self):
-    #     SiteOnApplication.objects.get(application=self.draft).delete()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.generic.no_location_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_standard_application_without_end_user_failure(self):
-    #     self.draft.end_user = None
-    #     self.draft.save()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_end_user_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_standard_application_without_end_user_document_failure(self):
-    #     PartyDocument.objects.filter(party=self.draft.end_user).delete()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_end_user_document_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_standard_application_without_consignee_failure(self):
-    #     self.draft.consignee = None
-    #     self.draft.save()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_consignee_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_standard_application_without_consignee_document_failure(self):
-    #     PartyDocument.objects.filter(party=self.draft.consignee).delete()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_consignee_document_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_standard_application_without_good_failure(self):
-    #     GoodOnApplication.objects.get(application=self.draft).delete()
-    #     url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_goods_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self):
-    #     """
-    #     This should be unsuccessful as an ultimate end user is required when
-    #     there is a part which is to be incorporated into another good
-    #     """
-    #     draft = self.create_standard_application_with_incorporated_good(self.organisation)
-    #     draft.ultimate_end_users.set([])
-    #     url = reverse('applications:application_submit', kwargs={'pk': draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_ultimate_end_users_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
-    #     draft = self.create_standard_application_with_incorporated_good(self.organisation)
-    #     for ueu in draft.ultimate_end_users.all():
-    #         PartyDocument.objects.filter(party=ueu).delete()
-    #     url = reverse('applications:application_submit', kwargs={'pk': draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.no_ultimate_end_user_document_set'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_status_code_post_with_untested_document_failure(self):
-    #     draft = self.create_standard_application(self.organisation, safe_document=None)
-    #     url = reverse('applications:application_submit', kwargs={'pk': draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.end_user_document_processing'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
-    # def test_status_code_post_with_infected_document_failure(self):
-    #     draft = self.create_standard_application(self.organisation, safe_document=False)
-    #     url = reverse('applications:application_submit', kwargs={'pk': draft.id})
-    #
-    #     response = self.client.put(url, **self.exporter_headers)
-    #
-    #     self.assertContains(response, text=get_string('applications.standard.end_user_document_infected'),
-    #                         status_code=status.HTTP_400_BAD_REQUEST)
-    #
+    def test_submit_hmrc_query_without_consignee_document_failure(self):
+        PartyDocument.objects.filter(party=self.draft.consignee).delete()
+        url = reverse('applications:application_submit', kwargs={'pk': self.draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.no_consignee_document_set'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_submit_hmrc_query_without_goods_type_failure(self):
+        GoodsType.objects.filter(application=self.draft).delete()
+
+        response = self.client.put(self.url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.open.no_goods_set'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_status_code_post_with_untested_document_failure(self):
+        draft = self.create_hmrc_query(self.organisation, safe_document=None)
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.end_user_document_processing'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+
+    def test_status_code_post_with_infected_document_failure(self):
+        draft = self.create_hmrc_query(self.organisation, safe_document=False)
+        url = reverse('applications:application_submit', kwargs={'pk': draft.id})
+
+        response = self.client.put(url, **self.hmrc_exporter_headers)
+
+        self.assertContains(response, text=get_string('applications.standard.end_user_document_infected'),
+                            status_code=status.HTTP_400_BAD_REQUEST)
+    
     # def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
     #     standard_application = self.create_standard_application(self.organisation)
     #     self.submit_application(standard_application)
