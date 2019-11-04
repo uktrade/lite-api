@@ -194,7 +194,10 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(UltimateEndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
-    def test_delete_ultimate_end_user_when_application_editable_success(self):
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_ultimate_end_user_when_application_editable_success(self, delete_s3_function,
+                                                                        prepare_document_function):
         """ Test success in deleting the single ultimate end user on an editable application. """
         for status in get_editable_case_statuses():
             application = self.create_standard_application_with_incorporated_good(self.organisation)

@@ -136,7 +136,8 @@ class DraftDocumentTests(DataTestClient):
             self.assertEqual(application.applicationdocument_set.count(), 1)
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_delete_document_when_application_in_read_only_state_failure(self, mock_prepare_doc):
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_document_when_application_in_read_only_state_failure(self, mock_delete_s3, mock_prepare_doc):
         """ Test failure in deleting a document when an application is in a read-only status. """
         for status in self.read_only_case_statuses:
             application = self.create_standard_application(self.organisation)
