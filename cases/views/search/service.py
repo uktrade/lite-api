@@ -6,7 +6,7 @@ from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 
 
-def get_search_queues(user) -> List[Queue]:
+def get_search_queues(user) -> List[SearchQueue]:
     """
     Retrieves meta information on all the queues available for a user.
     """

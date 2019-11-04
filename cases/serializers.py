@@ -83,8 +83,8 @@ class TinyCaseSerializer(serializers.Serializer):
         """
         org = instance.organisation()
 
-        case_flag_data = FlagSerializer(instance.flags, many=True).data
-        org_flag_data = FlagSerializer(org.flags, many=True).data
+        case_flag_data = FlagSerializer(instance.flags.order_by('name'), many=True).data
+        org_flag_data = FlagSerializer(org.flags.order_by('name'), many=True).data
 
         flag_data = case_flag_data + org_flag_data
 
@@ -95,9 +95,7 @@ class TinyCaseSerializer(serializers.Serializer):
         team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), flag_data))
         non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), flag_data))
 
-        data = sorted(team_flags, key=lambda x: x['name']) + sorted(non_team_flags, key=lambda x: x['name'])
-
-        return data
+        return team_flags + non_team_flags
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))

@@ -1,18 +1,21 @@
 from typing import List
 
-from django.db import models
-
 from cases.models import Case
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID, OPEN_CASES_SYSTEM_QUEUE_ID
-from queues.models import Queue
 from teams.models import Team
 
 
-class SearchQueue(Queue):
-    class Meta:
-        managed = False
+class SearchQueue:
+    id = None
+    name = None
+    team = None
+    case_count = None
 
-    case_count = models.IntegerField()
+    def __init__(self, id, name, team, case_count):
+        self.id = id
+        self.name = name
+        self.team = team
+        self.case_count = case_count
 
     @classmethod
     def from_queue(cls, queue, case_qs=None) -> 'SearchQueue':
