@@ -98,7 +98,7 @@ class HmrcQueryTests(DataTestClient):
 
         self.assertContains(response, text=get_string('applications.standard.end_user_document_infected'),
                             status_code=status.HTTP_400_BAD_REQUEST)
-    
+
     # def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
     #     standard_application = self.create_standard_application(self.organisation)
     #     self.submit_application(standard_application)
