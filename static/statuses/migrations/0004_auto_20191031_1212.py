@@ -2,6 +2,21 @@
 
 from django.db import migrations, models
 
+from static.statuses.enums import CaseStatusEnum
+
+
+def initialize(apps, schema_editor):
+    CaseStatus = apps.get_model('statuses', 'CaseStatus')
+
+    for choice in CaseStatusEnum.choices:
+        if not CaseStatus.objects.filter(status=choice[0]).exists():
+            case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
+            case_status.save()
+
+
+def destroy(apps, schema_editor):
+    pass
+
 
 class Migration(migrations.Migration):
 
@@ -15,4 +30,5 @@ class Migration(migrations.Migration):
             name='priority',
             field=models.IntegerField(choices=[('submitted', 1), ('resubmitted', 2), ('more_information_required', 3), ('under_review', 4), ('under_final_review', 5), ('withdrawn', 6), ('finalised', 7), ('applicant_editing', 8)]),
         ),
+        migrations.RunPython(initialize, destroy),
     ]

@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Coalesce
 
+from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 
 
@@ -56,3 +57,32 @@ class CaseQuerySet(models.QuerySet):
 class CaseManager(models.Manager):
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
+
+    def search(self, queue_id=None, team=None, status=None, case_type=None, sort=None):
+        """
+        Search for a user's available cases given a set of search parameters.
+        """
+        case_qs = self.get_queryset()
+
+        if queue_id == MY_TEAMS_QUEUES_CASES_ID:
+            case_qs = case_qs.in_team(team=team)
+
+        elif queue_id == OPEN_CASES_SYSTEM_QUEUE_ID:
+            case_qs = case_qs.is_open()
+
+        elif queue_id is not None and queue_id != ALL_CASES_SYSTEM_QUEUE_ID:
+            case_qs = case_qs.in_queue(queue_id=queue_id)
+
+        if status:
+            case_qs = case_qs.has_status(status=status)
+
+        if case_type:
+            case_qs = case_qs.is_type(case_type=case_type)
+
+        case_qs = case_qs.order_by_date()
+
+        if isinstance(sort, str):
+            case_qs = case_qs.order_by_status(order='-' if sort.startswith('-') else '')
+
+        return case_qs
+

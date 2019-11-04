@@ -1,7 +1,6 @@
-from django.core.exceptions import ValidationError
-from django.http import JsonResponse
 from rest_framework import generics
 
+from cases.models import Case
 from cases.serializers import TinyCaseSerializer
 from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
@@ -18,7 +17,7 @@ class CasesSearchView(generics.ListAPIView):
         queue_id = request.GET.get('queue_id', ALL_CASES_SYSTEM_QUEUE_ID)
         context = {'is_system_queue': queue_id in SYSTEM_QUEUES, 'queue_id': queue_id}
 
-        case_qs = service.search_cases(
+        case_qs = Case.objects.search(
             queue_id=queue_id,
             team=request.user.team,
             status=request.GET.get('status'),
