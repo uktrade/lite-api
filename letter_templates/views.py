@@ -10,9 +10,9 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
     Returns list of all letter templates or creates a letter template
     """
+    authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
-    authentication_classes = (GovAuthentication,)
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -30,9 +30,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     """
     Returns detail of a specific letter template
     """
+    authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
-    authentication_classes = (GovAuthentication,)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
