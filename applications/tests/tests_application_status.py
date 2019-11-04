@@ -101,7 +101,7 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(self.standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_applicant_editing_when_not_previously_submitted_failure(self):
-        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
         self.standard_application.save()
 
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -111,9 +111,9 @@ class ApplicationDenialTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content).get('errors')[0],
                          'Setting application status to "applicant_editing" when application status is '
-                         '"more_information_required" is not allowed.')
+                         '"initial_checks" is not allowed.')
         self.assertEqual(self.standard_application.status,
-                         get_case_status_by_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
+                         get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS))
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {'status': CaseStatusEnum.APPLICANT_EDITING}
@@ -129,7 +129,7 @@ class ApplicationDenialTests(DataTestClient):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         self.standard_application.save()
 
-        data = {'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED}
+        data = {'status': CaseStatusEnum.INITIAL_CHECKS}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()

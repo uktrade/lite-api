@@ -5,6 +5,8 @@ from rest_framework import status
 
 from parties.document.models import PartyDocument
 from parties.models import ThirdParty
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
 from test_helpers.clients import DataTestClient
 
 
@@ -193,3 +195,31 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    def test_delete_third_party_when_application_editable_success(self):
+        """ Test success in deleting the single third party on an editable application. """
+        for status in get_editable_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+            url = reverse('applications:remove_third_party',
+                          kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(application.third_parties.count(), 0)
+
+    def test_delete_third_party_when_application_read_only_failure(self):
+        """ Test failure in deleting the single third party on a read only application. """
+        for status in get_read_only_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+            url = reverse('applications:remove_third_party',
+                          kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(application.third_parties.count(), 1)

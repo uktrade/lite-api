@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 from static.statuses.enums import CaseStatusEnum
 
-
 class Migration(migrations.Migration):
     dependencies = [
         ('statuses', '0002_auto_20190919_1050'),

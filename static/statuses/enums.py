@@ -3,11 +3,10 @@ class CaseStatusEnum:
     This enum is used in this application's model and `0001_initial` migration file to create and populate the
     `statuses_casestatus table`
     If you want to add a status to that table:
-        add it to this enum, specify if status is read-only and it's priority
+        add it to this enum, specify the status' priority and if it is read-only below
         run `./manage.py makemigrations`
-        add a custom migration step in the generated migration file to populate the
-        table with the new data
-    (see the `static/statuses/migrations/0003_auto_20191014_1046.py` migration file for an example)
+        add a custom migration step in the generated migration file to populate the table with the new data (see the
+        `static/statuses/migrations/0003_auto_20191014_1046.py` migration file for an example)
     """
     APPLICANT_EDITING = 'applicant_editing'
     FINALISED = 'finalised'
@@ -29,7 +28,7 @@ class CaseStatusEnum:
         (WITHDRAWN, 'Withdrawn'),
     ]
 
-    priorities = {
+    priority = {
         APPLICANT_EDITING: 2,
         FINALISED: 7,
         INITIAL_CHECKS: 4,

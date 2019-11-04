@@ -1,7 +1,9 @@
 from django.urls import reverse
 from rest_framework import status
 
+from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
 from applications.models import StandardApplication, SiteOnApplication, ExternalLocationOnApplication
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -169,3 +171,40 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 0)
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=self.application).count(), 1)
+
+
+    def test_add_site_to_application_in_read_only_status_failure(self):
+        """ Test failure in adding a site to an application in a read-only status. """
+        data = {
+            'sites': [
+                self.primary_site.id
+            ]
+        }
+
+        for status in get_read_only_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+
+            url = reverse('applications:application_sites', kwargs={'pk': application.id})
+            response = self.client.post(url, data, **self.exporter_headers)
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(application.application_sites.count(), 1)
+
+    def test_add_site_to_application_in_editable_status_success(self):
+        """ Test success in adding a site to an application in an editable status. """
+        data = {
+            'sites': [
+                self.primary_site.id
+            ]
+        }
+
+        for status in get_editable_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+
+            url = reverse('applications:application_sites', kwargs={'pk': application.id})
+            response = self.client.post(url, data, **self.exporter_headers)
+            self.assertEqual(response.status_code, 201)
+            self.assertEqual(application.application_sites.count(), 1)

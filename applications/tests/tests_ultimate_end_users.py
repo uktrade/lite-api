@@ -5,6 +5,9 @@ from rest_framework import status
 
 from parties.document.models import PartyDocument
 from parties.models import UltimateEndUser
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
 from test_helpers.clients import DataTestClient
 
 
@@ -190,3 +193,32 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(UltimateEndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    def test_delete_ultimate_end_user_when_application_editable_success(self):
+        """ Test success in deleting the single ultimate end user on an editable application. """
+        for status in get_editable_case_statuses():
+            application = self.create_standard_application_with_incorporated_good(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+            url = reverse('applications:remove_ultimate_end_user',
+                          kwargs={'pk': application.id, 'ueu_pk': application.ultimate_end_users.first().id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(application.ultimate_end_users.count(), 0)
+
+    def test_delete_third_party_when_application_read_only_failure(self):
+        """ Test failure in deleting the single ultimate end user on a read only application. """
+        for status in get_read_only_case_statuses():
+            application = self.create_standard_application_with_incorporated_good(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+
+            url = reverse('applications:remove_ultimate_end_user',
+                          kwargs={'pk': application.id, 'ueu_pk': application.ultimate_end_users.first().id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(application.ultimate_end_users.count(), 1)

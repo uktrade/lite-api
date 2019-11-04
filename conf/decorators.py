@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from rest_framework import status
 
 from applications.libraries.get_applications import get_application
+from applications.libraries.case_status_helpers import get_read_only_case_statuses
 from applications.models import BaseApplication
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -61,6 +62,26 @@ def application_in_major_editable_state():
             if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
                 return JsonResponse(data={'errors': [f'You can only perform this operation when the application is '
                                                      f'in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state']},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def application_in_editable_state():
+    """ Check if an application is in an editable state. """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            application = _get_application(request, kwargs)
+
+            if application.status and application.status.status in get_read_only_case_statuses():
+                return JsonResponse(data={'errors': ['You can only perform this operation when the application '
+                                                     'is in an editable state']},
                                     status=status.HTTP_400_BAD_REQUEST)
 
             return func(request, *args, **kwargs)

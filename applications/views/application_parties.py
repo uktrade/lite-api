@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationLicenceType
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state
+from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state, application_in_editable_state
 from parties.helpers import delete_party_document_if_exists
 from applications.libraries.case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
@@ -49,7 +49,7 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
-    @application_in_major_editable_state()
+    @application_in_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -111,6 +111,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def delete(self, request, application, ueu_pk):
         """
         Delete an ultimate end user and remove it from the application
@@ -229,10 +230,9 @@ class RemoveThirdParty(APIView):
 
     @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def delete(self, request, application, tp_pk):
-        """
-        Delete a third party and remove it from the application
-        """
+        """ Delete a third party and remove it from the application. """
         try:
             third_party = application.third_parties.get(pk=tp_pk)
         except ThirdParty.DoesNotExist:

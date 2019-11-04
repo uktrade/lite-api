@@ -4,6 +4,8 @@ from rest_framework import status
 from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
 from goods.models import Good
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
@@ -131,3 +133,31 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         response = self.client.delete(url, **permission_denied_user_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_good_from_application_in_an_editable_status_success(self):
+        """ Test success in deleting a good on a editable application. """
+        for status in get_editable_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+            url = reverse('applications:good_on_application',
+                          kwargs={'good_on_application_pk': self.good_on_application.id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
+
+    def test_delete_good_from_application_in_read_only_status_failure(self):
+        """ Test failure in deleting a good on a read only application. """
+        for status in get_read_only_case_statuses():
+            application = self.create_standard_application(self.organisation)
+            application.status = get_case_status_by_status(status)
+            application.save()
+            url = reverse('applications:good_on_application',
+                          kwargs={'good_on_application_pk': self.good_on_application.id})
+
+            response = self.client.delete(url, **self.exporter_headers)
+
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 1)
