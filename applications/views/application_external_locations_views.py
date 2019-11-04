@@ -8,7 +8,7 @@ from applications.libraries.case_status_helpers import get_read_only_case_status
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, application_in_editable_state
+from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
