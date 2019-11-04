@@ -1,6 +1,5 @@
-from functools import wraps
-
 from django.http import JsonResponse
+from functools import wraps
 from rest_framework import status
 
 from applications.enums import ApplicationType
@@ -92,11 +91,6 @@ def authorised_users(user_type):
                         return JsonResponse(data={'errors': ['You can only perform this operation on an application '
                                                              'that has been opened within your organisation']},
                                             status=status.HTTP_403_FORBIDDEN)
-                    if application.submitted_at is not None:
-                        return JsonResponse(
-                            data={'errors': ['You can only perform this operation on an application '
-                                             'that has not been submitted']},
-                            status=status.HTTP_403_FORBIDDEN)
 
                 elif application.organisation.id != request.request.user.organisation.id:
                     return JsonResponse(data={'errors': ['You can only perform this operation on an application '
