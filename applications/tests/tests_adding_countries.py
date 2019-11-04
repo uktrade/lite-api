@@ -148,7 +148,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
     def test_remove_countries_to_application_in_editable_status_success(self):
         """ Test success in deleting a country on an application in an editable status. """
         add_second_country_data = {
-            'countries': Country.objects.filter(id__istartswith='G')[:2].values_list('id', flat=True)
+            'countries': Country.objects.filter(id__in=('GA', 'GB')).values_list('id', flat=True)
         }
 
         delete_country_data = {
