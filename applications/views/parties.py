@@ -3,11 +3,11 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
+from applications.libraries.case_activity import set_party_case_activity
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users, application_in_major_editable_state
 from parties.helpers import delete_party_document_if_exists
-from applications.libraries.case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from users.models import ExporterUser

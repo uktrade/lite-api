@@ -15,7 +15,7 @@ from conf.decorators import allowed_application_types, authorised_users, applica
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
-from goodstype.helpers import get_goods_type
+from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
@@ -146,6 +146,8 @@ class ApplicationGoodsType(APIView):
         Deletes a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
+        if application.application_type == ApplicationType.HMRC_QUERY:
+            delete_goods_type_document_if_exists(goods_type)
         goods_type.delete()
 
         set_application_goods_type_case_activity(CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
