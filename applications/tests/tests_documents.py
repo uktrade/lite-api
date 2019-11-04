@@ -108,7 +108,8 @@ class DraftDocumentTests(DataTestClient):
             self.assertEqual(application.applicationdocument_set.count(), 2)
 
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_delete_document_when_application_in_editable_state_success(self, mock_prepare_doc):
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_document_when_application_in_editable_state_success(self, mock_delete_s3, mock_prepare_doc):
         """ Test success in deleting a document when an application is in an editable status. """
         for status in self.editable_case_statuses:
             application = self.create_standard_application(self.organisation)
