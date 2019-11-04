@@ -18,6 +18,11 @@ from static.statuses.models import CaseStatus
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
+    name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
+                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     export_type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
@@ -85,6 +90,11 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
+    name = CharField(max_length=100,
+                     required=True,
+                     allow_blank=False,
+                     allow_null=False,
+                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())

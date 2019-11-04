@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField, CountrySerializerField
 from content_strings.strings import get_string
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.enums import OrganisationType
@@ -189,9 +189,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(),
-                                               error_messages={'null': get_string('address.null_country')},
-                                               serializer=CountrySerializer)
+    country = CountrySerializerField()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
