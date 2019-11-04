@@ -177,13 +177,13 @@ class CasesFilterAndSortTests(DataTestClient):
         all_cases = self.application_cases + self.clc_cases
         all_cases = [
             {
-                'case': str(case.id),
-                'status': case.application.status.priority if case.application is not None else
-                case.query.status.priority
+                'status': case.application.status.status if case.application is not None else case.query.status.status,
+                'status_ordering': case.application.status.priority if case.application is not None
+                else case.query.status.priority
             }
             for case in all_cases
         ]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k['status'])
+        all_cases_sorted = sorted(all_cases, key=lambda k: k['status_ordering'])
         url = self.url + '?sort=status'
 
         # Act
@@ -195,7 +195,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertEqual(len(all_cases), len(response_data))
         # Assert ordering
         for i in range(0, len(response_data)):
-            self.assertEqual(response_data[i]['id'], all_cases_sorted[i]['case'])
+            self.assertEqual(response_data[i]['status'], all_cases_sorted[i]['status'])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
@@ -206,8 +206,14 @@ class CasesFilterAndSortTests(DataTestClient):
 
         # Arrange
         application_cases_sorted = sorted(
-            [{'case': str(case.id), 'status': case.application.status.priority} for case in self.application_cases],
-            key=lambda k: k['status'],
+            [
+                {
+                    'status': case.application.status.status,
+                    'status_ordering': case.application.status.priority
+                }
+                for case in self.application_cases
+            ],
+            key=lambda k: k['status_ordering'],
             reverse=True
         )
 
@@ -225,4 +231,4 @@ class CasesFilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=response_data[i]['id']).values_list('type', flat=True)[0]
             self.assertEqual(case_type, 'application')
             # Assert ordering
-            self.assertEqual(response_data[i]['id'], application_cases_sorted[i]['case'])
+            self.assertEqual(response_data[i]['status'], application_cases_sorted[i]['status'])
