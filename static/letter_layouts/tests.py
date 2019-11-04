@@ -24,7 +24,8 @@ class LetterLayoutsTests(DataTestClient):
         response_data = response.json()['results'][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['id'], self.letter_layout.id)
+        self.assertEqual(response_data['id'], str(self.letter_layout.id))
+        self.assertEqual(response_data['filename'], self.letter_layout.filename)
         self.assertEqual(response_data['name'], self.letter_layout.name)
 
 
@@ -42,7 +43,8 @@ class LetterLayoutTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['id'], self.letter_layout.id)
+        self.assertEqual(response_data['id'], str(self.letter_layout.id))
+        self.assertEqual(response_data['filename'], self.letter_layout.filename)
         self.assertEqual(response_data['name'], self.letter_layout.name)
 
 
