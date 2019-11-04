@@ -15,6 +15,7 @@ from conf.urls import urlpatterns
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
+from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
@@ -314,6 +315,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         document.save()
         return document
 
+    @staticmethod
+    def create_document_for_goods_type(goods_type: GoodsType, name='document_name.pdf', safe=True):
+        document = GoodsTypeDocument(
+            goods_type=goods_type,
+            name=name,
+            s3_key='s3_keykey.pdf',
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe
+        )
+        document.save()
+        return document
+
     def create_flag(self, name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
@@ -473,12 +487,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.third_parties.set([self.create_third_party('Third party', self.organisation)])
 
-        self.create_goods_type(application)
+        goods_type = self.create_goods_type(application)
 
         # Set the application party documents
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
         self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+
+        self.create_document_for_goods_type(goods_type)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()

@@ -56,9 +56,9 @@ urlpatterns = [
         name='application_goodstype'
     ),
     # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/document/
-    path(route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/document/',
+    path(route='<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/',
          view=documents.GoodsTypeDocumentView.as_view(),
-         name='documents'),
+         name='goods_type_document'),
     # TODO: verify why this endpoint receiving a list of goodstypes
     # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
     path(
