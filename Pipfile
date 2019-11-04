@@ -9,6 +9,7 @@ parameterized = "==0.7.0"
 [packages]
 Django = "==2.2.4"
 django-environ = "==0.4.5"
+django-model-utils = "*"
 django-reversion = "==3.0.3"
 djangorestframework = "==3.9.2"
 psycopg2 = "==2.8.2"

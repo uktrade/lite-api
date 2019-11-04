@@ -9,12 +9,12 @@ from django.utils import timezone
 from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
-from common.models import Timestamp
+from common.models import TimestampedModel
 from documents.models import Document
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from flags.models import Flag
 from goods.models import Good
 from goodstype.models import GoodsType
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
@@ -24,7 +24,7 @@ from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelati
 
 
 @reversion.register()
-class Case(Timestamp):
+class Case(TimestampedModel):
     """
     Wrapper for application and query model intended for internal users.
     """
