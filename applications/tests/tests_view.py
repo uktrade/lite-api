@@ -11,13 +11,14 @@ from test_helpers.clients import DataTestClient
 class DraftTests(DataTestClient):
     url = reverse('applications:applications') + '?submitted=false'
 
-    def test_view_drafts(self):
+    def test_view_draft_standard_application_list_as_exporter_success(self):
         """
         Ensure we can get a list of drafts.
         """
         standard_application = self.create_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
+
         response_data = response.json()['results']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -30,7 +31,17 @@ class DraftTests(DataTestClient):
         self.assertIsNone(response_data[0]['submitted_at'])
         self.assertIsNone(response_data[0]['status'])
 
-    def test_view_hmrc_queries(self):
+    def test_cant_view_draft_hmrc_query_list_as_exporter_success(self):
+        self.create_hmrc_query(organisation=self.organisation)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+
+        result_count = response.json()['count']
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(result_count, 0)
+
+    def test_view_hmrc_query_list_as_hmrc_exporter_success(self):
         """
         Ensure we can get a list of HMRC queries.
         """
@@ -50,10 +61,7 @@ class DraftTests(DataTestClient):
         self.assertIsNone(response_data[0]['submitted_at'])
         self.assertIsNone(response_data[0]['status'])
 
-    def test_view_draft_standard_application(self):
-        """
-        Ensure we can view an individual draft.
-        """
+    def test_view_draft_standard_application_as_exporter_success(self):
         standard_application = self.create_standard_application(self.organisation)
 
         url = reverse('applications:application', kwargs={'pk': standard_application.id})
@@ -76,10 +84,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application['third_parties'][0]['id'],
                          str(standard_application.third_parties.get().id))
 
-    def test_view_draft_open_application(self):
-        """
-        Ensure we can view an individual draft.
-        """
+    def test_view_draft_open_application_as_exporter_success(self):
         open_application = self.create_open_application(self.organisation)
 
         url = reverse('applications:application', kwargs={'pk': open_application.id})
@@ -100,10 +105,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(CountryOnApplication.objects.filter(application__id=open_application.id).count(), 1)
         self.assertEqual(SiteOnApplication.objects.filter(application__id=open_application.id).count(), 1)
 
-    def test_view_draft_hmrc_query(self):
-        """
-        Ensure we can view an individual draft.
-        """
+    def test_view_draft_hmrc_query_as_hmrc_exporter_success(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
 
         url = reverse('applications:application', kwargs={'pk': hmrc_query.id})
@@ -126,10 +128,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application['consignee']['id'], str(hmrc_query.consignee.id))
         self.assertEqual(retrieved_application['third_parties'][0]['id'], str(hmrc_query.third_parties.get().id))
 
-    def test_view_incorrect_draft(self):
-        """
-        Ensure we cannot get a draft if the id is incorrect.
-        """
+    def test_view_nonexisting_draft_failure(self):
         invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
 
         url = reverse('applications:application', kwargs={'pk': invalid_id}) + '?submitted=false'

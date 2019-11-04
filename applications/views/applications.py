@@ -40,7 +40,8 @@ class ApplicationList(ListCreateAPIView):
         Filter applications on submitted
         """
         if self.request.user.organisation.type == OrganisationType.HMRC:
-            applications = HmrcQuery.objects.filter(status__isnull=True, hmrc_organisation=self.request.user.organisation)
+            applications = HmrcQuery.objects.filter(status__isnull=True,
+                                                    hmrc_organisation=self.request.user.organisation)
         else:
             try:
                 submitted = optional_str_to_bool(self.request.GET.get('submitted'))
@@ -48,11 +49,17 @@ class ApplicationList(ListCreateAPIView):
                 return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             if submitted is None:
-                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
+                applications = BaseApplication.objects. \
+                    filter(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
             elif submitted:
-                applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation)
+                applications = BaseApplication.objects. \
+                    submitted(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
             else:
-                applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation)
+                applications = BaseApplication.objects. \
+                    drafts(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
 
         return applications
 
