@@ -16,8 +16,8 @@ class Migration(migrations.Migration):
             name='LetterLayout',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(help_text='Friendly name')),
-                ('filename', models.TextField(help_text='Letter file name minus extension')),
+                ('name', models.TextField()),
+                ('filename', models.TextField()),
             ],
             options={
                 'ordering': ['name'],
