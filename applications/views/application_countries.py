@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationLicenceType
 from applications.libraries.case_activity import set_countries_case_activity
-from applications.libraries.case_status_helpers import get_read_only_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from conf.authentication import ExporterAuthentication
 from conf.decorators import application_licence_type, authorised_users
@@ -43,11 +43,11 @@ class ApplicationCountries(APIView):
             return JsonResponse(data={'errors': {'countries': ['You have to pick at least one country']}},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        if application.status and application.status.status in get_read_only_case_statuses():
-            return JsonResponse(data={'errors': {
-                'external_locations': [
-                    f'Application status {application.status.status} is read-only.']
-            }}, status=status.HTTP_400_BAD_REQUEST)
+        if application.status and application.status.status in get_case_statuses(read_only=True):
+            return JsonResponse(data={'errors': {'external_locations':
+                                                     [f'Application status {application.status.status} is read-only.']
+                                                 }},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         else:
             previous_countries = CountryOnApplication.objects.filter(application=application)

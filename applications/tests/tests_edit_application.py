@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from static.statuses.enums import CaseStatusEnum
-from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -32,7 +32,7 @@ class EditApplicationTests(DataTestClient):
     def test_edit_application_name_in_editable_status_success(self):
         """ Test successful editing of an application's name when the application's status is not read only. """
 
-        for editable_status in get_editable_case_statuses():
+        for editable_status in get_case_statuses(read_only=False):
             application = self.create_standard_application(self.organisation)
             self.submit_application(application)
             application.status = get_case_status_by_status(editable_status)
@@ -50,7 +50,7 @@ class EditApplicationTests(DataTestClient):
     def test_edit_application_name_in_read_only_status_failure(self):
         """ Test failure in editing an application's name when the application's status is read only. """
 
-        for read_only_status in get_read_only_case_statuses():
+        for read_only_status in get_case_statuses(read_only=True):
             application = self.create_standard_application(self.organisation)
             self.submit_application(application)
             application.status = get_case_status_by_status(read_only_status)

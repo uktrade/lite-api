@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from rest_framework import status
 
 from applications.libraries.get_applications import get_application
-from applications.libraries.case_status_helpers import get_read_only_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -79,7 +79,7 @@ def application_in_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status in get_read_only_case_statuses():
+            if application.status and application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(data={'errors': ['You can only perform this operation when the application '
                                                      'is in an editable state']},
                                     status=status.HTTP_400_BAD_REQUEST)

@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 
 
 class ExternalLocationsOnApplicationTests(DataTestClient):
@@ -127,21 +127,21 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         url = reverse('applications:application_remove_external_location',
                       kwargs={'pk': self.application.id, 'ext_loc_pk': self.external_location.id})
 
-        for status in get_read_only_case_statuses():
-            self.application.status = get_case_status_by_status(status)
+        for read_only_status in get_case_statuses(read_only=True):
+            self.application.status = get_case_status_by_status(read_only_status)
             self.application.save()
 
             response = self.client.delete(url, **self.exporter_headers)
-            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(self.application.external_application_sites.count(), 1)
 
     def test_remove_external_locations_from_application_in_editable_status_success(self):
         """ Test success in removing an external location from an application in an editable status that has
         more than one external location added.
         """
-        for status in get_editable_case_statuses():
+        for editable_status in get_case_statuses(read_only=False):
             application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
+            application.status = get_case_status_by_status(editable_status)
             application.save()
 
             ExternalLocationOnApplication(application=application, external_location=self.external_location).save()
@@ -153,7 +153,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
                                   'ext_loc_pk': self.external_location.id})
 
             response = self.client.delete(url, **self.exporter_headers)
-            self.assertEqual(response.status_code, 204)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             self.assertEqual(application.external_application_sites.count(), 1)
 
     def test_add_external_locations_to_application_in_editable_status_success(self):
@@ -164,15 +164,15 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
             ]
         }
 
-        for status in get_editable_case_statuses():
+        for editable_status in get_case_statuses(read_only=False):
             application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
+            application.status = get_case_status_by_status(editable_status)
             application.save()
             SiteOnApplication.objects.filter(application=application).delete()
 
             url = reverse('applications:application_external_locations', kwargs={'pk': application.id})
             response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, 201)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             self.assertEqual(application.external_application_sites.count(), 1)
 
     def test_add_external_locations_to_application_in_read_only_status_failure(self):
@@ -183,12 +183,12 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
             ]
         }
 
-        for status in get_read_only_case_statuses():
+        for read_only_status in get_case_statuses(read_only=True):
             application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
+            application.status = get_case_status_by_status(read_only_status)
             application.save()
 
             url = reverse('applications:application_external_locations', kwargs={'pk': application.id})
             response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(application.external_application_sites.count(), 0)

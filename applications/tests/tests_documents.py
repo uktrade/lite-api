@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from test_helpers.clients import DataTestClient
 
 
@@ -16,8 +16,8 @@ class DraftDocumentTests(DataTestClient):
         self.url_draft = reverse('applications:application_documents', kwargs={'pk': self.draft.id})
         self.test_filename = 'dog.jpg'
 
-        self.editable_case_statuses = get_editable_case_statuses()
-        self.read_only_case_statuses = get_read_only_case_statuses()
+        self.editable_case_statuses = get_case_statuses(read_only=False)
+        self.read_only_case_statuses = get_case_statuses(read_only=True)
 
         self.data = {'name': self.test_filename,
                      's3_key': self.test_filename,

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationLicenceType
 from applications.libraries.case_activity import set_application_goods_case_activity, \
     set_application_goods_type_case_activity
-from applications.libraries.case_status_helpers import get_read_only_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
@@ -72,27 +72,27 @@ class ApplicationGoodOnApplication(APIView):
         good_on_application = get_good_on_application(good_on_application_pk)
         application = good_on_application.application
 
-        if application.status and application.status.status in get_read_only_case_statuses():
+        if application.status and application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(data={'errors': ['You can only perform this operation when the application '
                                                  'is in an editable state']},
                                 status=status.HTTP_400_BAD_REQUEST)
-        else:
-            if good_on_application.application.organisation.id != request.user.organisation.id:
-                return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
-                                    status=status.HTTP_403_FORBIDDEN)
 
-            if good_on_application.good.status == GoodStatus.SUBMITTED \
-                    and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
-                good_on_application.good.status = GoodStatus.DRAFT
-                good_on_application.good.save()
+        if good_on_application.application.organisation.id != request.user.organisation.id:
+            return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
+                                status=status.HTTP_403_FORBIDDEN)
 
-            good_on_application.delete()
+        if good_on_application.good.status == GoodStatus.SUBMITTED \
+                and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1:
+            good_on_application.good.status = GoodStatus.DRAFT
+            good_on_application.good.save()
 
-            set_application_goods_case_activity(CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
+        good_on_application.delete()
+
+        set_application_goods_case_activity(CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
                                             good_on_application.good.description, request.user,
                                             good_on_application.application)
 
-            return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
+        return JsonResponse(data={'status': 'success'}, status=status.HTTP_200_OK)
 
 
 class ApplicationGoodsTypes(APIView):

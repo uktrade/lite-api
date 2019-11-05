@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_read_only_case_statuses, get_editable_case_statuses
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import StandardApplication, SiteOnApplication, ExternalLocationOnApplication
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -181,14 +181,14 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        for status in get_read_only_case_statuses():
+        for read_only_status in get_case_statuses(read_only=True):
             application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
+            application.status = get_case_status_by_status(read_only_status)
             application.save()
 
             url = reverse('applications:application_sites', kwargs={'pk': application.id})
             response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertEqual(application.application_sites.count(), 1)
 
     def test_add_site_to_application_in_editable_status_success(self):
@@ -199,12 +199,12 @@ class SitesOnDraftTests(DataTestClient):
             ]
         }
 
-        for status in get_editable_case_statuses():
+        for editable_status in get_case_statuses(read_only=False):
             application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
+            application.status = get_case_status_by_status(editable_status)
             application.save()
 
             url = reverse('applications:application_sites', kwargs={'pk': application.id})
             response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, 201)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             self.assertEqual(application.application_sites.count(), 1)
