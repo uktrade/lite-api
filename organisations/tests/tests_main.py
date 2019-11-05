@@ -242,6 +242,6 @@ class OrganisationCreateTests(DataTestClient):
         self.create_organisation_with_exporter_user('Commercial', org_type='commercial')
         self.create_organisation_with_exporter_user('HMRC', org_type='hmrc')
 
-        response = self.client.get(self.url + '?name=' + name + '&org_type=' + org_type, **self.gov_headers)
+        response = self.client.get(self.url + '?search_term=' + name + '&org_type=' + org_type, **self.gov_headers)
 
         self.assertEqual(len(response.json()['results']), expected_result)
