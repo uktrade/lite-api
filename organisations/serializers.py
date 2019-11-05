@@ -5,11 +5,8 @@ from rest_framework import serializers
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField, CountrySerializerField
-from content_strings.strings import get_string
-from organisations.models import Organisation, Site, ExternalLocation
 from organisations.enums import OrganisationType
-from static.countries.models import Country
-from static.countries.serializers import CountrySerializer
+from organisations.models import Organisation, Site, ExternalLocation
 from users.models import GovUser
 from users.serializers import ExporterUserCreateUpdateSerializer
 
