@@ -142,6 +142,6 @@ def validate_application_ready_for_submission(application):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         _validate_hmrc_query(application, errors)
     else:
-        raise ValueError('Your are trying to check ')
+        errors['unsupported_application'] = 'You can only validate a supported application type'
 
     return errors
