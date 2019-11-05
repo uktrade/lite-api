@@ -1,8 +1,10 @@
-from django.core.management import BaseCommand
 from json import loads as serialize
+
+from django.core.management import BaseCommand
 
 from addresses.models import Address
 from conf.settings import env
+from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
 from users.enums import UserStatuses
@@ -15,35 +17,48 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        organisation = _get_organisation()
-        _seed_exporter_users_to_organisation(organisation)
+        for org in organisations:
+            organisation = _get_organisation(org['name'], org['type'])
+            _seed_exporter_users_to_organisation(organisation)
 
 
-ORG_NAME = 'Archway Communications'
+organisations = [
+    {
+        'name': 'Archway Communications',
+        'type': OrganisationType.COMMERCIAL
+    },
+    {
+        'name': 'HMRC office at Battersea heliport',
+        'type': OrganisationType.HMRC
+    }
+]
 
 
-def _get_organisation():
+def _get_organisation(org_name: str, org_type: str):
     print('\nRetrieving organisation...')
 
     try:
-        organisation = Organisation.objects.get(name=ORG_NAME)
+        organisation = Organisation.objects.get(name=org_name, type=org_type)
     except Organisation.DoesNotExist:
-        print('Organisation not found...')
-        organisation = _create_organisation()
+        print(org_type + ' organisation ' + org_name + ' not found.')
+        organisation = _create_organisation(org_name=org_name, org_type=org_type)
 
-    print('{"name: "' + organisation.name + '", "id": "' + str(organisation.id) + '"}')
+    print('{"name: "' + organisation.name +
+          '", "type": "' + organisation.type +
+          '", "id": "' + str(organisation.id) + '"}')
     return organisation
 
 
-def _create_organisation():
+def _create_organisation(org_name: str, org_type: str):
     print('\nCreating organisation...')
 
     organisation = Organisation(
-            name=ORG_NAME,
-            eori_number='1234567890AAA',
-            sic_number='2345',
-            vat_number='GB1234567',
-            registration_number='09876543'
+        name=org_name,
+        eori_number='1234567890AAA',
+        sic_number='2345',
+        vat_number='GB1234567',
+        registration_number='09876543',
+        type=org_type
     )
     organisation.save()
 
@@ -115,7 +130,7 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    if UserOrganisationRelationship.objects.filter(user=user).count() == 0:
+    if not UserOrganisationRelationship.objects.filter(user=user, organisation=organisation).exists():
         UserOrganisationRelationship(
             user=user,
             organisation=organisation,
