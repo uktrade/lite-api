@@ -24,8 +24,8 @@ class Command(BaseCommand):
             LetterLayout.objects.all().delete()
 
             # Add layouts
-            for layout_id, layout_name in layouts.items():
-                LetterLayout(id=layout_id,  name=layout_name).save()
+            for layout_filename, layout_name in layouts.items():
+                LetterLayout.objects.create(filename=layout_filename, name=layout_name)
                 print("Seeded %s layout" % layout_name)
 
             self.stdout.write(self.style.SUCCESS(success_message))
