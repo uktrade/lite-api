@@ -1,6 +1,7 @@
 from static.management.SeedCommand import SeedCommand
 
-from static.management.commands import seedcontrollistentries, seedorgusers, seeddenialreasons, seedcountries
+from static.management.commands import seedcontrollistentries, seedorgusers, seeddenialreasons, seedcountries, \
+    seedgovuser
 
 
 class Command(SeedCommand):
@@ -15,3 +16,4 @@ class Command(SeedCommand):
         seedorgusers.Command().handle(*args, **options)
         seeddenialreasons.Command().handle(*args, **options)
         seedcountries.Command().handle(*args, **options)
+        seedgovuser.Command().handle(*args, **options)
