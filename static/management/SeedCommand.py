@@ -1,7 +1,9 @@
+from abc import ABC
+
 from django.core.management import BaseCommand
 
 
-class SeedCommand(BaseCommand):
+class SeedCommand(ABC, BaseCommand):
     """
     help and success message should be overridden
     with messages relevant to the operation

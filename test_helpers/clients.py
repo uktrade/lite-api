@@ -36,6 +36,7 @@ from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
+from static.management.commands import seedall
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -49,7 +50,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUpClass(cls):
         """ Run seed operations for tests. """
         super(DataTestClient, cls).setUpClass()
-        call_command('seedall')
+        seedall.Command().essential_seeding()
 
     def setUp(self):
         # Gov User Setup
