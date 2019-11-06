@@ -30,25 +30,23 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(application.name, self.data['name'])
         self.assertNotEqual(application.last_modified_at, original_last_modified_at)
 
-    def test_edit_application_name_in_editable_status_success(self):
-        """ Test successful editing of an application's name when the application's status is not read only. """
+    @parameterized.expand(get_case_statuses(is_read_only=False))
+    def test_edit_application_name_in_editable_status_success(self, editable_status):
+        application = self.create_standard_application(self.organisation)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
+        url = reverse('applications:application', kwargs={'pk': application.id})
+        original_last_modified_at = application.last_modified_at
 
-        for editable_status in get_case_statuses(read_only=False):
-            application = self.create_standard_application(self.organisation)
-            self.submit_application(application)
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
-            url = reverse('applications:application', kwargs={'pk': application.id})
-            original_last_modified_at = application.last_modified_at
+        response = self.client.put(url, self.data, **self.exporter_headers)
 
-            response = self.client.put(url, self.data, **self.exporter_headers)
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.name, self.data['name'])
+        self.assertNotEqual(application.last_modified_at, original_last_modified_at)
 
-            application.refresh_from_db()
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(application.name, self.data['name'])
-            self.assertNotEqual(application.last_modified_at, original_last_modified_at)
-
-    @parameterized.expand(get_case_statuses(read_only=True))
+    @parameterized.expand(get_case_statuses(is_read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)

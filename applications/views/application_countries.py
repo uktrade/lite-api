@@ -43,7 +43,7 @@ class ApplicationCountries(APIView):
             return JsonResponse(data={'errors': {'countries': ['You have to pick at least one country']}},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        if application.status and application.status.status in get_case_statuses(read_only=True):
+        if application.status and application.status.status in get_case_statuses(is_read_only=True):
             return JsonResponse(data={'errors': {'external_locations':
                                                      [f'Application status {application.status.status} is read-only.']
                                                  }},

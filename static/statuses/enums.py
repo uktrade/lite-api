@@ -5,8 +5,6 @@ class CaseStatusEnum:
     If you want to add a status to that table:
         add it to this enum, specify the status' priority and if it is read-only below
         run `./manage.py makemigrations`
-        add a custom migration step in the generated migration file to populate the table with the new data (see the
-        `static/statuses/migrations/0003_auto_20191014_1046.py` migration file for an example)
     """
     APPLICANT_EDITING = 'applicant_editing'
     FINALISED = 'finalised'
@@ -29,13 +27,13 @@ class CaseStatusEnum:
     ]
 
     priority = {
-        APPLICANT_EDITING: 2,
-        FINALISED: 7,
-        INITIAL_CHECKS: 4,
-        RESUBMITTED: 3,
         SUBMITTED: 1,
-        UNDER_FINAL_REVIEW: 6,
+        APPLICANT_EDITING: 2,
+        RESUBMITTED: 3,
+        INITIAL_CHECKS: 4,
         UNDER_REVIEW: 5,
+        UNDER_FINAL_REVIEW: 6,
+        FINALISED: 7,
         WITHDRAWN: 8,
     }
 

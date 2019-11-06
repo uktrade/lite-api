@@ -197,7 +197,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
-    @parameterized.expand(get_case_statuses(read_only=False))
+    @parameterized.expand(get_case_statuses(is_read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
     def test_delete_third_party_when_application_editable_success(self, editable_status, delete_s3_function,
@@ -213,7 +213,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.third_parties.count(), 0)
 
-    @parameterized.expand(get_case_statuses(read_only=True))
+    @parameterized.expand(get_case_statuses(is_read_only=True))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
     def test_delete_third_party_when_application_read_only_failure(self, read_only_status, delete_s3_function,

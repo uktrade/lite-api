@@ -45,7 +45,7 @@ class ApplicationSites(APIView):
         previous_sites_ids = [str(previous_site_id) for previous_site_id in
                               previous_sites.values_list('site__id', flat=True)]
 
-        if application.status and application.status.status in get_case_statuses(read_only=True):
+        if application.status and application.status.status in get_case_statuses(is_read_only=True):
             return JsonResponse(data={'errors': {
                 'external_locations': [
                     f'Application status {application.status.status} is read-only.']

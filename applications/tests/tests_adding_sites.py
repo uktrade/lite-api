@@ -173,7 +173,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 0)
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=self.application).count(), 1)
 
-    @parameterized.expand(get_case_statuses(read_only=True))
+    @parameterized.expand(get_case_statuses(is_read_only=True))
     def test_add_site_to_application_in_read_only_status_failure(self, read_only_status):
         data = {
             'sites': [
@@ -191,7 +191,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.application_sites.count(), 1)
 
-    @parameterized.expand(get_case_statuses(read_only=False))
+    @parameterized.expand(get_case_statuses(is_read_only=False))
     def test_add_site_to_application_in_editable_status_success(self, editable_status):
         data = {
             'sites': [
