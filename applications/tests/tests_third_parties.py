@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from parties.document.models import PartyDocument
@@ -196,34 +197,34 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
+    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_third_party_when_application_editable_success(self, delete_s3_function, prepare_document_function):
-        """ Test success in deleting the single third party on an editable application. """
-        for editable_status in get_case_statuses(read_only=False):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
-            url = reverse('applications:remove_third_party',
-                          kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+    def test_delete_third_party_when_application_editable_success(self, editable_status, delete_s3_function,
+                                                                  prepare_document_function):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
+        url = reverse('applications:remove_third_party',
+                        kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
 
-            response = self.client.delete(url, **self.exporter_headers)
+        response = self.client.delete(url, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(application.third_parties.count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.third_parties.count(), 0)
 
+    @parameterized.expand(get_case_statuses(read_only=True))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_third_party_when_application_read_only_failure(self, delete_s3_function, prepare_document_function):
-        """ Test failure in deleting the single third party on a read only application. """
-        for read_only_status in get_case_statuses(read_only=True):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(read_only_status)
-            application.save()
-            url = reverse('applications:remove_third_party',
-                          kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+    def test_delete_third_party_when_application_read_only_failure(self, read_only_status, delete_s3_function,
+                                                                   prepare_document_function):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+        url = reverse('applications:remove_third_party',
+                        kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
 
-            response = self.client.delete(url, **self.exporter_headers)
+        response = self.client.delete(url, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertEqual(application.third_parties.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.third_parties.count(), 1)

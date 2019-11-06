@@ -1,6 +1,8 @@
 import uuid
 from unittest import mock
 from django.urls import reverse
+from parameterized import parameterized
+from rest_framework import status
 
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from applications.libraries.case_status_helpers import get_case_statuses
@@ -93,60 +95,59 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.json()['document']['s3_key'], application_document.s3_key)
         self.assertEqual(response.json()['document']['size'], application_document.size)
 
+    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
-    def test_add_document_when_application_in_editable_state_success(self, mock_prepare_doc):
-        """ Test success in adding a document when an application is in an editable status. """
-        for status in self.editable_case_statuses:
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
-            application.save()
+    def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-            url = reverse('applications:application_documents', kwargs={'pk': application.id})
-            response = self.client.post(url, data=self.data, **self.exporter_headers)
+        url = reverse('applications:application_documents', kwargs={'pk': application.id})
+        response = self.client.post(url, data=self.data, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, 201)
-            self.assertEqual(application.applicationdocument_set.count(), 2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application.applicationdocument_set.count(), 2)
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_document_when_application_in_editable_state_success(self, mock_delete_s3, mock_prepare_doc):
-        """ Test success in deleting a document when an application is in an editable status. """
-        for status in self.editable_case_statuses:
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
-            application.save()
-
-            url = reverse('applications:application_document',
-                          kwargs={'pk': application.id, 'doc_pk': application.applicationdocument_set.first().id})
-
-            response = self.client.delete(url, **self.exporter_headers)
-            self.assertEqual(response.status_code, 204)
-            self.assertEqual(application.applicationdocument_set.count(), 0)
-
-    def test_add_document_when_application_in_read_only_state_failure(self):
-        """ Test failure in adding an additional document when an application is in a read-only status. """
-        for status in self.read_only_case_statuses:
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
-            application.save()
-
-            url = reverse('applications:application_documents', kwargs={'pk': application.id})
-            response = self.client.post(url, data=self.data, **self.exporter_headers)
-
-            self.assertEqual(response.status_code, 400)
-            self.assertEqual(application.applicationdocument_set.count(), 1)
-
+    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_document_when_application_in_read_only_state_failure(self, mock_delete_s3, mock_prepare_doc):
-        """ Test failure in deleting a document when an application is in a read-only status. """
-        for status in self.read_only_case_statuses:
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(status)
-            application.save()
+    def test_delete_document_when_application_in_editable_state_success(self, editable_status, mock_delete_s3,
+                                                                        mock_prepare_doc):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-            url = reverse('applications:application_document', kwargs={'pk': application.id, 'doc_pk': uuid.uuid4()})
-            response = self.client.delete(url, **self.exporter_headers)
+        url = reverse('applications:application_document',
+                        kwargs={'pk': application.id, 'doc_pk': application.applicationdocument_set.first().id})
 
-            self.assertEqual(response.status_code, 400)
-            self.assertEqual(application.applicationdocument_set.count(), 1)
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(application.applicationdocument_set.count(), 0)
+
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_add_document_when_application_in_read_only_state_failure(self, read_only_status):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+
+        url = reverse('applications:application_documents', kwargs={'pk': application.id})
+        response = self.client.post(url, data=self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.applicationdocument_set.count(), 1)
+
+    @parameterized.expand(get_case_statuses(read_only=True))
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_document_when_application_in_read_only_state_failure(self, read_only_status, mock_delete_s3,
+                                                                         mock_prepare_doc):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+
+        url = reverse('applications:application_document', kwargs={'pk': application.id, 'doc_pk': uuid.uuid4()})
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.applicationdocument_set.count(), 1)

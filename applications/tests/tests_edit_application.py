@@ -1,5 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
+from parameterized import parameterized
 
 from static.statuses.enums import CaseStatusEnum
 from applications.libraries.case_status_helpers import get_case_statuses
@@ -47,18 +48,16 @@ class EditApplicationTests(DataTestClient):
             self.assertEqual(application.name, self.data['name'])
             self.assertNotEqual(application.last_modified_at, original_last_modified_at)
 
-    def test_edit_application_name_in_read_only_status_failure(self):
-        """ Test failure in editing an application's name when the application's status is read only. """
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
+        application = self.create_standard_application(self.organisation)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+        url = reverse('applications:application', kwargs={'pk': application.id})
 
-        for read_only_status in get_case_statuses(read_only=True):
-            application = self.create_standard_application(self.organisation)
-            self.submit_application(application)
-            application.status = get_case_status_by_status(read_only_status)
-            application.save()
-            url = reverse('applications:application', kwargs={'pk': application.id})
-
-            response = self.client.put(url, self.data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.put(url, self.data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_reference_number(self):
         """ Test successful editing of an application's reference number when the application's status

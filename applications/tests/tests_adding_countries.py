@@ -1,4 +1,6 @@
+from django.core.management import call_command
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
@@ -88,42 +90,38 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_add_countries_to_application_in_read_only_status_failure(self):
-        """ Test failure in adding a country to an application in a read-only status. """
-        for read_only_status in get_case_statuses(read_only=True):
-            application = self.create_open_application(self.organisation)
-            application.status = get_case_status_by_status(read_only_status)
-            application.save()
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_add_countries_to_application_in_read_only_status_failure(self, read_only_status):
+        application = self.create_open_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
 
-            url = reverse('applications:countries', kwargs={'pk': application.id})
-            response = self.client.post(url, self.data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        url = reverse('applications:countries', kwargs={'pk': application.id})
+        response = self.client.post(url, self.data, **self.exporter_headers)
 
-            # Default Open application already has a country added
-            self.assertEqual(application.application_countries.count(), 1)
+        # Default Open application already has a country added
+        self.assertEqual(application.application_countries.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_add_countries_to_application_in_editable_status_failure(self):
+    @parameterized.expand([CaseStatusEnum.RESUBMITTED, CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.SUBMITTED])
+    def test_add_countries_to_application_in_editable_status_failure(self, editable_status):
         """ Test failure in adding a country to an application in a minor editable status. Major editing
          status of APPLICANT_EDITING is removed from the case status list.
 
         """
-        editable_statuses = get_case_statuses(read_only=False)
-        editable_statuses.remove(CaseStatusEnum.APPLICANT_EDITING)
+        application = self.create_open_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-        for editable_status in editable_statuses:
-            application = self.create_open_application(self.organisation)
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
+        url = reverse('applications:countries', kwargs={'pk': application.id})
+        response = self.client.post(url, self.data, **self.exporter_headers)
 
-            url = reverse('applications:countries', kwargs={'pk': application.id})
-            response = self.client.post(url, self.data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Default Open application already has a country added
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.application_countries.count(), 1)
 
-            # Default Open application already has a country added
-            self.assertEqual(application.application_countries.count(), 1)
-
-    def test_remove_countries_to_application_in_editable_status_success(self):
-        """ Test success in deleting a country on an application in an editable status. """
+    @parameterized.expand(get_case_statuses(read_only=False))
+    def test_remove_countries_to_application_in_editable_status_success(self, editable_status):
         add_second_country_data = {
             'countries': Country.objects.filter(id__in=('GA', 'GB')).values_list('id', flat=True)
         }
@@ -132,18 +130,16 @@ class CountriesOnDraftApplicationTests(DataTestClient):
             'countries': Country.objects.filter(id='GA').values_list('id', flat=True)
         }
 
-        for editable_status in get_case_statuses(read_only=False):
-            application = self.create_open_application(self.organisation)
-            # Add second country, as cannot delete last remaining country
-            url = reverse('applications:countries', kwargs={'pk': application.id})
-            self.client.post(url, add_second_country_data, **self.exporter_headers)
+        application = self.create_open_application(self.organisation)
+        # Add second country, as cannot delete last remaining country
+        url = reverse('applications:countries', kwargs={'pk': application.id})
+        self.client.post(url, add_second_country_data, **self.exporter_headers)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
+        response = self.client.post(url, delete_country_data, **self.exporter_headers)
 
-            response = self.client.post(url, delete_country_data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-            # Assert 'GB' country removed and 'GA' country remains
-            self.assertEqual(application.application_countries.count(), 1)
-            self.assertEqual(application.application_countries.first().country.id, 'GA')
+        # Assert 'GB' country removed and 'GA' country remains
+        self.assertEqual(application.application_countries.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application.application_countries.first().country.id, 'GA')

@@ -10,6 +10,7 @@ from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
+from parameterized import parameterized
 
 
 class RemovingGoodsOffDraftsTests(DataTestClient):
@@ -134,30 +135,28 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_delete_good_from_application_in_an_editable_status_success(self):
-        """ Test success in deleting a good on a editable application. """
-        for editable_status in get_case_statuses(read_only=False):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
-            url = reverse('applications:good_on_application',
-                          kwargs={'good_on_application_pk': self.good_on_application.id})
+    @parameterized.expand(get_case_statuses(read_only=False))
+    def test_delete_good_from_application_in_an_editable_status_success(self, editable_status):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
+        url = reverse('applications:good_on_application',
+                        kwargs={'good_on_application_pk': self.good_on_application.id})
 
-            response = self.client.delete(url, **self.exporter_headers)
+        response = self.client.delete(url, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 0)
 
-    def test_delete_good_from_application_in_read_only_status_failure(self):
-        """ Test failure in deleting a good on a read only application. """
-        for read_only_status in get_case_statuses(read_only=True):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(read_only_status)
-            application.save()
-            url = reverse('applications:good_on_application',
-                          kwargs={'good_on_application_pk': self.good_on_application.id})
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_delete_good_from_application_in_read_only_status_failure(self, read_only_status):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+        url = reverse('applications:good_on_application',
+                        kwargs={'good_on_application_pk': self.good_on_application.id})
 
-            response = self.client.delete(url, **self.exporter_headers)
+        response = self.client.delete(url, **self.exporter_headers)
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(GoodOnApplication.objects.filter(application=application).count(), 1)

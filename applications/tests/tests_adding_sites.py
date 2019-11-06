@@ -1,5 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
+from parameterized import parameterized
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import StandardApplication, SiteOnApplication, ExternalLocationOnApplication
@@ -172,39 +173,38 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 0)
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=self.application).count(), 1)
 
-
-    def test_add_site_to_application_in_read_only_status_failure(self):
-        """ Test failure in adding a site to an application in a read-only status. """
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_add_site_to_application_in_read_only_status_failure(self, read_only_status):
         data = {
             'sites': [
                 self.primary_site.id
             ]
         }
 
-        for read_only_status in get_case_statuses(read_only=True):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(read_only_status)
-            application.save()
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
 
-            url = reverse('applications:application_sites', kwargs={'pk': application.id})
-            response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertEqual(application.application_sites.count(), 1)
+        url = reverse('applications:application_sites', kwargs={'pk': application.id})
+        response = self.client.post(url, data, **self.exporter_headers)
 
-    def test_add_site_to_application_in_editable_status_success(self):
-        """ Test success in adding a site to an application in an editable status. """
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.application_sites.count(), 1)
+
+    @parameterized.expand(get_case_statuses(read_only=False))
+    def test_add_site_to_application_in_editable_status_success(self, editable_status):
         data = {
             'sites': [
                 self.primary_site.id
             ]
         }
 
-        for editable_status in get_case_statuses(read_only=False):
-            application = self.create_standard_application(self.organisation)
-            application.status = get_case_status_by_status(editable_status)
-            application.save()
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
 
-            url = reverse('applications:application_sites', kwargs={'pk': application.id})
-            response = self.client.post(url, data, **self.exporter_headers)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(application.application_sites.count(), 1)
+        url = reverse('applications:application_sites', kwargs={'pk': application.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(application.application_sites.count(), 1)
