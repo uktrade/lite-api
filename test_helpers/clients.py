@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from django.core.management import call_command
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -43,6 +44,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
+
+    @classmethod
+    def setUpClass(cls):
+        """ Run seed operations for tests. """
+        super(DataTestClient, cls).setUpClass()
+        call_command('seedall')
 
     def setUp(self):
         # Gov User Setup

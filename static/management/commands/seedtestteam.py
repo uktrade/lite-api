@@ -6,8 +6,8 @@ class Command(SeedCommand):
     """
     pipenv run ./manage.py seedtestteam
     """
-    help = 'Seeds all countries'
-    success = 'Successfully seeded countries'
+    help = 'Seeds all test teams'
+    success = 'Successfully seeded test team'
 
     def operation(self, *args, **options):
         if not Team.objects.all():
