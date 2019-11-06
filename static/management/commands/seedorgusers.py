@@ -18,38 +18,41 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for org in organisations:
-            organisation = _get_organisation(org['name'], org['type'])
+            organisation = _get_organisation(org['name'], org['type'], org['reg_no'])
             _seed_exporter_users_to_organisation(organisation)
 
 
 organisations = [
     {
         'name': 'Archway Communications',
-        'type': OrganisationType.COMMERCIAL
+        'type': OrganisationType.COMMERCIAL,
+        'reg_no': '09876543'
     },
     {
         'name': 'HMRC office at Battersea heliport',
-        'type': OrganisationType.HMRC
+        'type': OrganisationType.HMRC,
+        'reg_no': '75863840'
     }
 ]
 
 
-def _get_organisation(org_name: str, org_type: str):
+def _get_organisation(org_name: str, org_type: str, org_reg_no: str):
     print('\nRetrieving organisation...')
 
     try:
         organisation = Organisation.objects.get(name=org_name, type=org_type)
     except Organisation.DoesNotExist:
         print(org_type + ' organisation ' + org_name + ' not found.')
-        organisation = _create_organisation(org_name=org_name, org_type=org_type)
+        organisation = _create_organisation(org_name=org_name, org_type=org_type, org_reg_no=org_reg_no)
 
     print('{"name: "' + organisation.name +
           '", "type": "' + organisation.type +
+          '", "registration_number": "' + organisation.registration_number +
           '", "id": "' + str(organisation.id) + '"}')
     return organisation
 
 
-def _create_organisation(org_name: str, org_type: str):
+def _create_organisation(org_name: str, org_type: str, org_reg_no: str):
     print('\nCreating organisation...')
 
     organisation = Organisation(
@@ -57,7 +60,7 @@ def _create_organisation(org_name: str, org_type: str):
         eori_number='1234567890AAA',
         sic_number='2345',
         vat_number='GB1234567',
-        registration_number='09876543',
+        registration_number=org_reg_no,
         type=org_type
     )
     organisation.save()
