@@ -23,15 +23,17 @@ class OrganisationsList(generics.ListCreateAPIView):
         """
         List all organisations
         """
-        org_type = self.request.query_params.get('org_type', None)
+        org_types = self.request.query_params.getlist('org_type', [])
         search_term = self.request.query_params.get('search_term', '')
 
         query = [Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)]
 
-        if org_type:
-            query.append(Q(type=org_type))
+        result = Organisation.objects.filter(reduce(operator.and_, query)).order_by('name')
 
-        return Organisation.objects.filter(reduce(operator.and_, query)).order_by('name')
+        if org_types:
+            result = result.filter(Q(type__in=org_types))
+
+        return result
 
     @transaction.atomic
     @swagger_auto_schema(
