@@ -3,11 +3,6 @@
 from django.db import migrations, models
 
 
-def destroy(apps, schema_editor):
-    DenialReason = apps.get_model('denial_reasons', 'DenialReason')
-    DenialReason.objects.all().delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True

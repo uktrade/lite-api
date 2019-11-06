@@ -8,17 +8,6 @@ from django.db import migrations, models
 import users.models
 
 
-def destroy(apps, schema_editor):
-    GovUser = apps.get_model('users', 'GovUser')
-    GovUser.objects.all().delete()
-
-    Role = apps.get_model('users', 'Role')
-    Role.objects.all().delete()
-
-    Permission = apps.get_model('users', 'Permission')
-    Permission.objects.all().delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True

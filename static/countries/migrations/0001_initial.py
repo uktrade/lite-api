@@ -3,18 +3,11 @@
 from django.db import migrations, models
 
 
-def destroy(apps, schema_editor):
-    Country = apps.get_model('countries', 'Country')
-    if Country.objects.all():
-        Country.objects.all().delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
