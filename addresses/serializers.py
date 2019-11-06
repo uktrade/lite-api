@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
 from addresses.models import Address
-from conf.serializers import CountrySerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField
+from content_strings.strings import get_string
+from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -13,7 +16,9 @@ class AddressSerializer(serializers.ModelSerializer):
                                      error_messages={'blank': 'Enter a real postcode'})
     city = serializers.CharField(error_messages={'blank': 'Enter a real city'})
     region = serializers.CharField(error_messages={'blank': 'Enter a real region'})
-    country = CountrySerializerField()
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(),
+                                               serializer=CountrySerializer,
+                                               error_messages={'does_not_exist': get_string('address.null_country')})
 
     class Meta:
         model = Address
