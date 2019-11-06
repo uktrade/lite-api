@@ -236,7 +236,7 @@ class OrganisationCreateTests(DataTestClient):
         ['hmr', ['individual'], 0],
         ['hmr', ['hmrc'], 2],
         ['hmr', ['commercial'], 0],
-        ['indi', ['commercial', 'individual'], 1],
+        ['al', ['commercial', 'individual'], 2],
     ])
     def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
         self.create_organisation_with_exporter_user('Individual', org_type='individual')
