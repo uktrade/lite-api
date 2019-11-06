@@ -1,21 +1,20 @@
 from subprocess import call as execute_bash_command
+
 from django.apps import apps
+from django.core.management import BaseCommand
 from django.db import connection
 
-from static.management.SeedCommand import SeedCommand
 
-
-class Command(SeedCommand):
+class Command(BaseCommand):
     """
     pipenv run ./manage.py cleardb
     """
     help = 'Clear the database'
-    success = 'ClearDB was successful'
 
     def add_arguments(self, parser):
         parser.add_argument('-f', type=bool, nargs='?', default=False, help='Flag for forcefully dropping tables.')
 
-    def operation(self, *args, **options):
+    def handle(self, *args, **options):
         if options['f'] is not False and options['f'] is None:
             print('\nForcefully dropping all database tables..\n')
             with connection.cursor() as cursor:

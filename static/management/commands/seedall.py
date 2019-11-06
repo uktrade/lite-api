@@ -1,6 +1,6 @@
 from static.management.SeedCommand import SeedCommand
 
-from static.management.commands import seedcontrollistentries, seedorgusers
+from static.management.commands import seedcontrollistentries, seedorgusers, seeddenialreasons
 
 
 class Command(SeedCommand):
@@ -8,8 +8,9 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedall
     """
     help = 'Executes all seed operations'
-    success = 'All seed opertations executed!'
+    success = 'All seed operations executed!'
 
     def operation(self, *args, **options):
-        seedcontrollistentries.Command().operation(*args, **options)
-        seedorgusers.Command().operation(*args, **options)
+        seedcontrollistentries.Command().handle(*args, **options)
+        seedorgusers.Command().handle(*args, **options)
+        seeddenialreasons.Command().handle(*args, **options)
