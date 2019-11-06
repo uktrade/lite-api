@@ -6,6 +6,7 @@ from applications.enums import ApplicationType, ApplicationExportType, Applicati
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from applications.serializers.other import ApplicationDenialReasonSerializer
+from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
@@ -27,6 +28,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     export_type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     organisation = TinyOrganisationViewSerializer()
+    case = serializers.SerializerMethodField()
 
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
@@ -45,6 +47,13 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             }
         return None
 
+    def get_case(self, instance):
+        try:
+            return Case.objects.get(application=instance).id
+        except Case.DoesNotExist:
+            # Case will only exist if application has been submitted
+            return None
+
     class Meta:
         model = BaseApplication
         fields = [
@@ -57,6 +66,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             'last_modified_at',
             'submitted_at',
             'status',
+            'case',
         ]
 
 
