@@ -1,8 +1,8 @@
 class UserStatuses:
-    ACTIVE = 'Active'
-    DEACTIVATED = 'Deactivated'
+    ACTIVE = "Active"
+    DEACTIVATED = "Deactivated"
 
     choices = [
-        (ACTIVE, 'Active'),
-        (DEACTIVATED, 'Deactivated'),
+        (ACTIVE, "Active"),
+        (DEACTIVATED, "Deactivated"),
     ]

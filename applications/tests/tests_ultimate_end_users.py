@@ -11,20 +11,24 @@ from test_helpers.clients import DataTestClient
 class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        self.url = reverse('applications:ultimate_end_users', kwargs={'pk': self.draft.id})
+        self.draft = self.create_standard_application_with_incorporated_good(
+            self.organisation
+        )
+        self.url = reverse(
+            "applications:ultimate_end_users", kwargs={"pk": self.draft.id}
+        )
 
         self.document_url = reverse(
-            'applications:ultimate_end_user_document',
+            "applications:ultimate_end_user_document",
             kwargs={
-                'pk': self.draft.id,
-                'ueu_pk': self.draft.ultimate_end_users.first().id
-            }
+                "pk": self.draft.id,
+                "ueu_pk": self.draft.ultimate_end_users.first().id,
+            },
         )
         self.new_document_data = {
-            'name': 'document_name.pdf',
-            's3_key': 's3_keykey.pdf',
-            'size': 123456
+            "name": "document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
         }
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
@@ -32,19 +36,19 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         data = [
             {
-                'name': 'UK Government',
-                'address': 'Westminster, London SW1A 0AA',
-                'country': 'GB',
-                'sub_type': 'commercial',
-                'website': 'https://www.gov.uk'
+                "name": "UK Government",
+                "address": "Westminster, London SW1A 0AA",
+                "country": "GB",
+                "sub_type": "commercial",
+                "website": "https://www.gov.uk",
             },
             {
-                'name': 'French Government',
-                'address': 'Paris',
-                'country': 'FR',
-                'sub_type': 'government',
-                'website': 'https://www.gov.fr'
-            }
+                "name": "French Government",
+                "address": "Paris",
+                "country": "FR",
+                "sub_type": "government",
+                "website": "https://www.gov.fr",
+            },
         ]
 
         for ultimate_end_user in data:
@@ -54,37 +58,51 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     def test_unsuccessful_add_ultimate_end_user(self):
         data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'website': 'https://www.gov.uk'
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "website": "https://www.gov.uk",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {'errors': {'sub_type': ['This field is required.']}})
+        self.assertEqual(
+            response_data, {"errors": {"sub_type": ["This field is required."]}}
+        )
 
     def test_get_ultimate_end_users(self):
         self.draft.ultimate_end_users.set([])
 
-        ultimate_end_user = self.create_ultimate_end_user('ultimate end user', self.organisation)
+        ultimate_end_user = self.create_ultimate_end_user(
+            "ultimate end user", self.organisation
+        )
         ultimate_end_user.save()
         self.draft.ultimate_end_users.add(ultimate_end_user)
         self.draft.save()
 
         response = self.client.get(self.url, **self.exporter_headers)
-        ultimate_end_users = response.json()['ultimate_end_users']
+        ultimate_end_users = response.json()["ultimate_end_users"]
 
         self.assertEqual(len(ultimate_end_users), 1)
-        self.assertEqual(ultimate_end_users[0]['id'], str(ultimate_end_user.id))
-        self.assertEqual(ultimate_end_users[0]['name'], str(ultimate_end_user.name))
-        self.assertEqual(ultimate_end_users[0]['country']['name'], str(ultimate_end_user.country.name))
-        self.assertEqual(ultimate_end_users[0]['website'], str(ultimate_end_user.website))
-        self.assertEqual(ultimate_end_users[0]['type'], str(ultimate_end_user.type))
-        self.assertEqual(ultimate_end_users[0]['organisation'], str(ultimate_end_user.organisation.id))
-        self.assertEqual(ultimate_end_users[0]['sub_type']['key'], str(ultimate_end_user.sub_type))
+        self.assertEqual(ultimate_end_users[0]["id"], str(ultimate_end_user.id))
+        self.assertEqual(ultimate_end_users[0]["name"], str(ultimate_end_user.name))
+        self.assertEqual(
+            ultimate_end_users[0]["country"]["name"],
+            str(ultimate_end_user.country.name),
+        )
+        self.assertEqual(
+            ultimate_end_users[0]["website"], str(ultimate_end_user.website)
+        )
+        self.assertEqual(ultimate_end_users[0]["type"], str(ultimate_end_user.type))
+        self.assertEqual(
+            ultimate_end_users[0]["organisation"],
+            str(ultimate_end_user.organisation.id),
+        )
+        self.assertEqual(
+            ultimate_end_users[0]["sub_type"]["key"], str(ultimate_end_user.sub_type)
+        )
 
     def test_set_ueu_on_draft_open_application_failure(self):
         """
@@ -95,22 +113,24 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         pre_test_ueu_count = UltimateEndUser.objects.all().count()
         data = {
-            'name': 'UK Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'commercial',
-            'website': 'https://www.gov.uk'
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "commercial",
+            "website": "https://www.gov.uk",
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse('applications:ultimate_end_users', kwargs={'pk': open_draft.id})
+        url = reverse("applications:ultimate_end_users", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)
 
-    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self):
+    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete an ultimate end user from the application
@@ -118,14 +138,16 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         ultimate_end_user = self.draft.ultimate_end_users.first()
         self.draft.ultimate_end_users.set([])
-        url = reverse('applications:remove_ultimate_end_user', kwargs={'pk': self.draft.id, 'ueu_pk':
-            ultimate_end_user.id})
+        url = reverse(
+            "applications:remove_ultimate_end_user",
+            kwargs={"pk": self.draft.id, "ueu_pk": ultimate_end_user.id},
+        )
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_post_ultimate_end_user_document_success(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -134,13 +156,17 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first()).delete()
+        PartyDocument.objects.filter(
+            party=self.draft.ultimate_end_users.first()
+        ).delete()
 
-        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+        response = self.client.post(
+            self.document_url, data=self.new_document_data, **self.exporter_headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_get_ultimate_end_user_document_success(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -150,16 +176,18 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then the data in the document is the same as the data in the attached ultimate end user document
         """
         response = self.client.get(self.document_url, **self.exporter_headers)
-        response_data = response.json()['document']
+        response_data = response.json()["document"]
         expected = self.new_document_data
 
-        self.assertEqual(response_data['name'], expected['name'])
-        self.assertEqual(response_data['s3_key'], expected['s3_key'])
-        self.assertEqual(response_data['size'], expected['size'])
+        self.assertEqual(response_data["name"], expected["name"])
+        self.assertEqual(response_data["s3_key"], expected["s3_key"])
+        self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_ultimate_end_user_document_success(self, delete_s3_function, prepare_document_function):
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
+    def test_delete_ultimate_end_user_document_success(
+        self, delete_s3_function, prepare_document_function
+    ):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -172,9 +200,11 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_ultimate_end_user_success(self, delete_s3_function, prepare_document_function):
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
+    def test_delete_ultimate_end_user_success(
+        self, delete_s3_function, prepare_document_function
+    ):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -182,8 +212,13 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 200 OK
         """
-        remove_ueu_url = reverse('applications:remove_ultimate_end_user',
-                                 kwargs={'pk': self.draft.id, 'ueu_pk': self.draft.ultimate_end_users.first().id})
+        remove_ueu_url = reverse(
+            "applications:remove_ultimate_end_user",
+            kwargs={
+                "pk": self.draft.id,
+                "ueu_pk": self.draft.ultimate_end_users.first().id,
+            },
+        )
 
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
 

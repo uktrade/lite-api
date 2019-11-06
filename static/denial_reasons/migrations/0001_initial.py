@@ -9,10 +9,10 @@ from conf.helpers import str_to_bool
 def initialize(apps, schema_editor):
     # We can't import the Queue model directly as it may be a newer
     # version than this migration expects. We use the historical version.
-    DenialReason = apps.get_model('denial_reasons', 'DenialReason')
+    DenialReason = apps.get_model("denial_reasons", "DenialReason")
 
-    with open('lite-content/lite-api/denial_reasons.csv', newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+    with open("lite-content/lite-api/denial_reasons.csv", newline="") as csvfile:
+        reader = csv.reader(csvfile, delimiter=",", quotechar='"')
         next(reader, None)  # skip the headers
         for row in reader:
             item_id = row[0]
@@ -23,7 +23,7 @@ def initialize(apps, schema_editor):
 
 
 def destroy(apps, schema_editor):
-    DenialReason = apps.get_model('denial_reasons', 'DenialReason')
+    DenialReason = apps.get_model("denial_reasons", "DenialReason")
     DenialReason.objects.all().delete()
 
 
@@ -31,15 +31,19 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DenialReason',
+            name="DenialReason",
             fields=[
-                ('id', models.CharField(editable=False, max_length=3, primary_key=True, serialize=False)),
-                ('deprecated', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.CharField(
+                        editable=False, max_length=3, primary_key=True, serialize=False
+                    ),
+                ),
+                ("deprecated", models.BooleanField(default=False)),
             ],
         ),
         migrations.RunPython(initialize, destroy),

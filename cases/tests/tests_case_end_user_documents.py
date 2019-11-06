@@ -26,13 +26,21 @@ class CaseEndUserDocumentTests(DataTestClient):
         case = Case.objects.get(application=application)
 
         # act
-        response = self.client.get(reverse('cases:case', kwargs={'pk': case.id}), **self.gov_headers)
+        response = self.client.get(
+            reverse("cases:case", kwargs={"pk": case.id}), **self.gov_headers
+        )
 
         # assert
         data = response.json()
 
-        self.assertIsNotNone(data['case']['application']['destinations']['data']['document'])
-        self.assertEquals('document_name.pdf',
-                          data['case']['application']['destinations']['data']['document']['name'])
-        self.assertEquals(True,
-                          data['case']['application']['destinations']['data']['document']['safe'])
+        self.assertIsNotNone(
+            data["case"]["application"]["destinations"]["data"]["document"]
+        )
+        self.assertEquals(
+            "document_name.pdf",
+            data["case"]["application"]["destinations"]["data"]["document"]["name"],
+        )
+        self.assertEquals(
+            True,
+            data["case"]["application"]["destinations"]["data"]["document"]["safe"],
+        )

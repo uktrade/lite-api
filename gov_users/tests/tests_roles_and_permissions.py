@@ -9,32 +9,32 @@ from users.models import Role, Permission
 
 class RolesAndPermissionsTests(DataTestClient):
 
-    url = reverse('gov_users:roles')
+    url = reverse("gov_users:roles")
 
     def test_create_new_role_with_permission_to_make_final_decisions(self):
         data = {
-            'name': 'some role',
-            'permissions': [Permissions.MANAGE_FINAL_ADVICE],
+            "name": "some role",
+            "permissions": [Permissions.MANAGE_FINAL_ADVICE],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Role.objects.get(name='some role').name, 'some role')
+        self.assertEqual(Role.objects.get(name="some role").name, "some role")
 
     def test_create_new_role_with_no_permissions(self):
         data = {
-            'name': 'some role',
-            'permissions': [],
+            "name": "some role",
+            "permissions": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Role.objects.get(name='some role').name, 'some role')
+        self.assertEqual(Role.objects.get(name="some role").name, "some role")
 
     def test_get_list_of_all_roles(self):
-        role = Role(name='some')
+        role = Role(name="some")
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
 
@@ -42,47 +42,40 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['roles']), 2)
+        self.assertEqual(len(response_data["roles"]), 2)
 
     def test_get_list_of_all_permissions(self):
-        url = reverse('gov_users:permissions')
+        url = reverse("gov_users:permissions")
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['permissions']), Permission.objects.count())
+        self.assertEqual(len(response_data["permissions"]), Permission.objects.count())
 
     def test_edit_a_role(self):
-        role_id = '00000000-0000-0000-0000-000000000001'
-        url = reverse('gov_users:role', kwargs={'pk': role_id})
+        role_id = "00000000-0000-0000-0000-000000000001"
+        url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {
-            'permissions': [Permissions.MANAGE_FINAL_ADVICE]
-        }
+        data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
 
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(Permissions.MANAGE_FINAL_ADVICE in
-                        Role.objects.get(id=role_id).permissions.values_list('id', flat=True))
+        self.assertTrue(
+            Permissions.MANAGE_FINAL_ADVICE
+            in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+        )
 
-    @parameterized.expand([
-        [{
-            'name': 'this is a name',
-            'permissions': []
-        }],
-        [{
-            'name': 'ThIs iS A NaMe',
-            'permissions': []
-        }],
-        [{
-            'name': ' this is a name    ',
-            'permissions': []
-        }],
-    ])
+    @parameterized.expand(
+        [
+            [{"name": "this is a name", "permissions": []}],
+            [{"name": "ThIs iS A NaMe", "permissions": []}],
+            [{"name": " this is a name    ", "permissions": []}],
+        ]
+    )
     def test_role_name_must_be_unique(self, data):
-        Role(name='this is a name').save()
+        Role(name="this is a name").save()
 
         response = self.client.post(self.url, data, **self.gov_headers)
 

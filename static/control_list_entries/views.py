@@ -18,13 +18,21 @@ class ControlListEntriesList(APIView):
         """
         Returns list of all Control List Entries
         """
-        if request.GET.get('flatten'):
-            return JsonResponse(data={'control_list_entries': list(ControlListEntry.objects
-                                                                   .filter(is_decontrolled=False, rating__isnull=False)
-                                                                   .values('rating', 'text'))})
+        if request.GET.get("flatten"):
+            return JsonResponse(
+                data={
+                    "control_list_entries": list(
+                        ControlListEntry.objects.filter(
+                            is_decontrolled=False, rating__isnull=False
+                        ).values("rating", "text")
+                    )
+                }
+            )
 
-        serializer = ControlListEntrySerializer(ControlListEntry.objects.filter(parent=None), many=True)
-        return JsonResponse(data={'control_list_entries': serializer.data})
+        serializer = ControlListEntrySerializer(
+            ControlListEntry.objects.filter(parent=None), many=True
+        )
+        return JsonResponse(data={"control_list_entries": serializer.data})
 
     def post(self, request):
         """
@@ -33,16 +41,20 @@ class ControlListEntriesList(APIView):
 
         # Update the parent of the data
         data = request.data
-        data['parent'] = None
+        data["parent"] = None
 
         serializer = ControlListEntrySerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(
+                data={"control_list_entry": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ControlListEntryDetail(APIView):
@@ -56,7 +68,7 @@ class ControlListEntryDetail(APIView):
         """
         control_list_entry = get_control_list_entry(rating)
         serializer = ControlListEntrySerializer(control_list_entry)
-        return JsonResponse(data={'control_list_entry': serializer.data})
+        return JsonResponse(data={"control_list_entry": serializer.data})
 
     def post(self, request, rating):
         """
@@ -66,16 +78,20 @@ class ControlListEntryDetail(APIView):
 
         # Update the parent of the data
         data = request.data
-        data['parent'] = str(control_list_entry.id)
+        data["parent"] = str(control_list_entry.id)
 
         serializer = ControlListEntrySerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(
+                data={"control_list_entry": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def put(self, request, rating):
         """
@@ -83,11 +99,17 @@ class ControlListEntryDetail(APIView):
         """
         control_list_entry = get_control_list_entry(rating)
 
-        serializer = ControlListEntrySerializer(instance=control_list_entry, data=request.data, partial=True)
+        serializer = ControlListEntrySerializer(
+            instance=control_list_entry, data=request.data, partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'control_list_entry': serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(
+                data={"control_list_entry": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )

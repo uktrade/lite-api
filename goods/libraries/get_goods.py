@@ -22,7 +22,7 @@ def get_good_document(good: Good, pk):
     try:
         return GoodDocument.objects.get(good=good, pk=pk)
     except GoodDocument.DoesNotExist:
-        raise NotFoundError({'document': get_string('documents.document_not_found')})
+        raise NotFoundError({"document": get_string("documents.document_not_found")})
 
 
 def get_goods_from_case(case):
@@ -34,7 +34,9 @@ def get_goods_from_case(case):
             return []
     else:
         application = BaseApplication.objects.get(case=case)
-        goods_on_applications = GoodOnApplication.objects.filter(application=application)
+        goods_on_applications = GoodOnApplication.objects.filter(
+            application=application
+        )
         return [x.good.id for x in goods_on_applications]
 
 

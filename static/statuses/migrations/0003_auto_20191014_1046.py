@@ -6,11 +6,13 @@ from static.statuses.enums import CaseStatusEnum
 
 
 def initialize(apps, schema_editor):
-    CaseStatus = apps.get_model('statuses', 'CaseStatus')
+    CaseStatus = apps.get_model("statuses", "CaseStatus")
 
     for choice in CaseStatusEnum.choices:
         if not CaseStatus.objects.filter(status=choice[0]).exists():
-            case_status = CaseStatus(status=choice[0], priority=CaseStatusEnum.priorities[choice[0]])
+            case_status = CaseStatus(
+                status=choice[0], priority=CaseStatusEnum.priorities[choice[0]]
+            )
             case_status.save()
 
 
@@ -20,18 +22,26 @@ def destroy(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('statuses', '0002_auto_20190919_1050'),
+        ("statuses", "0002_auto_20190919_1050"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casestatus',
-            name='status',
+            model_name="casestatus",
+            name="status",
             field=models.CharField(
-                choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'),
-                         ('under_review', 'Under review'), ('under_final_review', 'Under final review'),
-                         ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'Finalised'),
-                         ('applicant_editing', 'Applicant editing')], max_length=50),
+                choices=[
+                    ("submitted", "Submitted"),
+                    ("more_information_required", "More information required"),
+                    ("under_review", "Under review"),
+                    ("under_final_review", "Under final review"),
+                    ("resubmitted", "Resubmitted"),
+                    ("withdrawn", "Withdrawn"),
+                    ("finalised", "Finalised"),
+                    ("applicant_editing", "Applicant editing"),
+                ],
+                max_length=50,
+            ),
         ),
         migrations.RunPython(initialize, destroy),
     ]

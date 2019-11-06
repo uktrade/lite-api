@@ -11,24 +11,21 @@ from test_helpers.clients import DataTestClient
 
 
 class ConsigneeOnDraftTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.url = reverse('applications:consignee', kwargs={'pk': self.draft.id})
+        self.url = reverse("applications:consignee", kwargs={"pk": self.draft.id})
 
-        self.document_url = reverse('applications:consignee_document', kwargs={'pk': self.draft.id})
+        self.document_url = reverse(
+            "applications:consignee_document", kwargs={"pk": self.draft.id}
+        )
         self.new_document_data = {
-            'name': 'document_name.pdf',
-            's3_key': 's3_keykey.pdf',
-            'size': 123456
+            "name": "document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
         }
 
-    @parameterized.expand([
-        'government',
-        'commercial',
-        'other'
-    ])
+    @parameterized.expand(["government", "commercial", "other"])
     def test_set_consignee_on_draft_successful(self, data_type):
         """
         Given a standard draft has been created
@@ -40,39 +37,45 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.draft.save()
 
         data = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': data_type,
-            'website': 'https://www.gov.py'
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": data_type,
+            "website": "https://www.gov.py",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.consignee.name, data['name'])
-        self.assertEqual(self.draft.consignee.address, data['address'])
-        self.assertEqual(self.draft.consignee.country, get_country(data['country']))
+        self.assertEqual(self.draft.consignee.name, data["name"])
+        self.assertEqual(self.draft.consignee.address, data["address"])
+        self.assertEqual(self.draft.consignee.country, get_country(data["country"]))
         self.assertEqual(self.draft.consignee.sub_type, data_type)
-        self.assertEqual(self.draft.consignee.website, data['website'])
+        self.assertEqual(self.draft.consignee.website, data["website"])
 
-    @parameterized.expand([
-        [{}],
-        [{
-            'name': 'Lemonworld Org',
-            'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'US',
-            'website': 'https://www.americanmary.com'
-        }],
-        [{
-            'name': 'Lemonworld Org',
-            'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'US',
-            'sub_type': 'made-up',
-            'website': 'https://www.americanmary.com'
-        }],
-    ])
+    @parameterized.expand(
+        [
+            [{}],
+            [
+                {
+                    "name": "Lemonworld Org",
+                    "address": "3730 Martinsburg Rd, Gambier, Ohio",
+                    "country": "US",
+                    "website": "https://www.americanmary.com",
+                }
+            ],
+            [
+                {
+                    "name": "Lemonworld Org",
+                    "address": "3730 Martinsburg Rd, Gambier, Ohio",
+                    "country": "US",
+                    "sub_type": "made-up",
+                    "website": "https://www.americanmary.com",
+                }
+            ],
+        ]
+    )
     def test_set_consignee_on_draft_failure(self, data):
         """
         Given a standard draft has been created
@@ -89,7 +92,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.consignee, None)
 
-    @mock.patch('documents.models.Document.delete_s3')
+    @mock.patch("documents.models.Document.delete_s3")
     def test_consignee_deleted_when_new_one_added(self, delete_s3_function):
         """
         Given a standard draft has been created
@@ -99,11 +102,11 @@ class ConsigneeOnDraftTests(DataTestClient):
         """
         old_consignee = self.draft.consignee
         new_consignee = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': 'government',
-            'website': 'https://www.gov.py'
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
         }
 
         self.client.post(self.url, new_consignee, **self.exporter_headers)
@@ -125,22 +128,24 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.draft.save()
         Consignee.objects.filter(pk=consignee.pk).delete()
         data = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': 'government',
-            'website': 'https://www.gov.py'
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse('applications:consignee', kwargs={'pk': open_draft.id})
+        url = reverse("applications:consignee", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Consignee.objects.all().count(), 0)
 
-    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self):
+    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(
+        self,
+    ):
         """
         Given a draft standard application
         When I try to delete an consignee from the application
@@ -155,7 +160,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_post_consignee_document_success(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -166,11 +171,13 @@ class ConsigneeOnDraftTests(DataTestClient):
         """
         PartyDocument.objects.filter(party=self.draft.consignee).delete()
 
-        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+        response = self.client.post(
+            self.document_url, data=self.new_document_data, **self.exporter_headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_get_consignee_document_success(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -180,16 +187,18 @@ class ConsigneeOnDraftTests(DataTestClient):
         Then the data in the document is the same as the data in the attached consignee document
         """
         response = self.client.get(self.document_url, **self.exporter_headers)
-        response_data = response.json()['document']
+        response_data = response.json()["document"]
         expected = self.new_document_data
 
-        self.assertEqual(response_data['name'], expected['name'])
-        self.assertEqual(response_data['s3_key'], expected['s3_key'])
-        self.assertEqual(response_data['size'], expected['size'])
+        self.assertEqual(response_data["name"], expected["name"])
+        self.assertEqual(response_data["s3_key"], expected["s3_key"])
+        self.assertEqual(response_data["size"], expected["size"])
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_consignee_document_success(self, delete_s3_function, prepare_document_function):
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
+    def test_delete_consignee_document_success(
+        self, delete_s3_function, prepare_document_function
+    ):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -202,9 +211,11 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
-    def test_delete_consignee_success(self, delete_s3_function, prepare_document_function):
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
+    def test_delete_consignee_success(
+        self, delete_s3_function, prepare_document_function
+    ):
         """
         Given a standard draft has been created
         And the draft contains a consignee user

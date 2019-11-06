@@ -7,14 +7,16 @@ from static.control_list_entries.parser import parse_list_into_control_list_entr
 
 
 class Command(BaseCommand):
-    help = 'Creates and updates control list entries based off of the control list entry spreadsheet'
+    help = "Creates and updates control list entries based off of the control list entry spreadsheet"
 
     @transaction.atomic
     def handle(self, *args, **options):
         """
         pipenv run ./manage.py seedcontrollistentries
         """
-        wb = load_workbook('lite-content/lite-permissions-finder/spreadsheet.xlsx', data_only=True)
+        wb = load_workbook(
+            "lite-content/lite-permissions-finder/spreadsheet.xlsx", data_only=True
+        )
 
         # Ignore first two sheets as they aren't relevant to control list entries
         wb.remove_sheet(wb.worksheets[0])
@@ -27,4 +29,6 @@ class Command(BaseCommand):
         for sheet in wb.worksheets:
             parse_list_into_control_list_entries(sheet)
 
-        self.stdout.write(self.style.SUCCESS('Control List Entries updated successfully!'))
+        self.stdout.write(
+            self.style.SUCCESS("Control List Entries updated successfully!")
+        )

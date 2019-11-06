@@ -16,7 +16,9 @@ class CaseAssignments(views.APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(
+            pk
+        ):
             return self._get_all_case_assignments()
         else:
             return self._get_case_assignments_for_specific_queue(pk)
@@ -25,14 +27,14 @@ class CaseAssignments(views.APIView):
     def _get_all_case_assignments(self):
         case_assignments = CaseAssignment.objects.all()
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
-        return JsonResponse(data={'case_assignments': serializer.data})
+        return JsonResponse(data={"case_assignments": serializer.data})
 
     # noinspection PyMethodMayBeStatic
     def _get_case_assignments_for_specific_queue(self, pk):
         queue = get_queue(pk)
         case_assignments = CaseAssignment.objects.filter(queue=queue)
         serializer = CaseAssignmentSerializer(case_assignments, many=True)
-        return JsonResponse(data={'case_assignments': serializer.data})
+        return JsonResponse(data={"case_assignments": serializer.data})
 
     @swagger_auto_schema(request_body=CaseAssignmentSerializer)
     @transaction.atomic
@@ -43,9 +45,9 @@ class CaseAssignments(views.APIView):
         queue = get_queue(pk)
         data = request.data
 
-        for assignment in data.get('case_assignments'):
-            case = get_case(assignment['case_id'])
-            users = [get_user_by_pk(i) for i in assignment['users']]
+        for assignment in data.get("case_assignments"):
+            case = get_case(assignment["case_id"])
+            users = [get_user_by_pk(i) for i in assignment["users"]]
 
             # Delete existing case assignments
             CaseAssignment.objects.filter(case=case, queue=queue).delete()

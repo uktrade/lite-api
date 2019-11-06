@@ -1,161 +1,163 @@
 from django.urls import path
 
-from applications.views import views, application_goods, application_parties, application_party_document_views, \
-    application_external_locations_views, application_sites_views, application_countries, application_documents
+from applications.views import (
+    views,
+    application_goods,
+    application_parties,
+    application_party_document_views,
+    application_external_locations_views,
+    application_sites_views,
+    application_countries,
+    application_documents,
+)
 
-app_name = 'applications'
+app_name = "applications"
 
 urlpatterns = [
     # ex: /applications/ - List all applications
     # ex: /applications/?submitted=true - List only submitted applications
-    path(
-        route='',
-        view=views.ApplicationList.as_view(),
-        name='applications'
-    ),
+    path(route="", view=views.ApplicationList.as_view(), name="applications"),
     # ex: /applications/<uuid:pk>/ - View an application
     path(
-        route='<uuid:pk>/',
-        view=views.ApplicationDetail.as_view(),
-        name='application'
+        route="<uuid:pk>/", view=views.ApplicationDetail.as_view(), name="application"
     ),
     # ex: /applications/<uuid:pk>/submit/ - Submit an application
     path(
-        route='<uuid:pk>/submit/',
+        route="<uuid:pk>/submit/",
         view=views.ApplicationSubmission.as_view(),
-        name='application_submit'
+        name="application_submit",
     ),
     # ex: /applications/<uuid:pk>/status/ - Manage application status
     path(
-        route='<uuid:pk>/status/',
+        route="<uuid:pk>/status/",
         view=views.ApplicationManageStatus.as_view(),
-        name='manage_status'
+        name="manage_status",
     ),
     # ex: /applications/<uuid:pk>/goods/
     path(
-        route='<uuid:pk>/goods/',
+        route="<uuid:pk>/goods/",
         view=application_goods.ApplicationGoodsOnApplication.as_view(),
-        name='application_goods'
+        name="application_goods",
     ),
     # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
     path(
-        route='good-on-application/<uuid:good_on_application_pk>/',
+        route="good-on-application/<uuid:good_on_application_pk>/",
         view=application_goods.ApplicationGoodOnApplication.as_view(),
-        name='good_on_application'
+        name="good_on_application",
     ),
     # ex: /applications/<uuid:pk>/goodstype/
     path(
-        route='<uuid:pk>/goodstypes/',
+        route="<uuid:pk>/goodstypes/",
         view=application_goods.ApplicationGoodsTypes.as_view(),
-        name='application_goodstypes'
+        name="application_goodstypes",
     ),
     # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/
     path(
-        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/',
+        route="<uuid:pk>/goodstype/<uuid:goodstype_pk>/",
         view=application_goods.ApplicationGoodsType.as_view(),
-        name='application_goodstype'
+        name="application_goodstype",
     ),
     # TODO: verify why this endpoint receiving a list of goodstypes
     # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
     path(
-        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/',
+        route="<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/",
         view=application_goods.ApplicationGoodsTypeCountries.as_view(),
-        name='application_goodstype_assign_countries'
+        name="application_goodstype_assign_countries",
     ),
     # ex: /applications/<uuid:pk>/end-user/
     path(
-        route='<uuid:pk>/end-user/',
+        route="<uuid:pk>/end-user/",
         view=application_parties.ApplicationEndUser.as_view(),
-        name='end_user'
+        name="end_user",
     ),
     # ex: /applications/<uuid:pk>/end-user/document/
     path(
-        route='<uuid:pk>/end-user/document/',
+        route="<uuid:pk>/end-user/document/",
         view=application_party_document_views.EndUserDocumentView.as_view(),
-        name='end_user_document'
+        name="end_user_document",
     ),
     # ex: /applications/<uuid:pk>/ultimate-end-users/
     path(
-        route='<uuid:pk>/ultimate-end-users/',
+        route="<uuid:pk>/ultimate-end-users/",
         view=application_parties.ApplicationUltimateEndUsers.as_view(),
-        name='ultimate_end_users'
+        name="ultimate_end_users",
     ),
     # ex: /applications/<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>
     path(
-        route='<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>',
+        route="<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>",
         view=application_parties.RemoveApplicationUltimateEndUser.as_view(),
-        name='remove_ultimate_end_user'
+        name="remove_ultimate_end_user",
     ),
     # ex: /applications/<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/
     path(
-        route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
+        route="<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/",
         view=application_party_document_views.UltimateEndUserDocumentsView.as_view(),
-        name='ultimate_end_user_document'
+        name="ultimate_end_user_document",
     ),
     # ex: /applications/<uuid:pk>/consignee/
     path(
-        route='<uuid:pk>/consignee/',
+        route="<uuid:pk>/consignee/",
         view=application_parties.ApplicationConsignee.as_view(),
-        name='consignee'
+        name="consignee",
     ),
     # ex: /applications/<uuid:pk>/consignee/document/
     path(
-        route='<uuid:pk>/consignee/document/',
+        route="<uuid:pk>/consignee/document/",
         view=application_party_document_views.ConsigneeDocumentView.as_view(),
-        name='consignee_document'
+        name="consignee_document",
     ),
     # ex: /applications/<uuid:pk>/third-parties/
     path(
-        route='<uuid:pk>/third-parties/',
+        route="<uuid:pk>/third-parties/",
         view=application_parties.ApplicationThirdParties.as_view(),
-        name='third_parties'
+        name="third_parties",
     ),
     # ex: /applications/<uuid:pk>/third-parties/<uuid:tp_pk>
     path(
-        route='<uuid:pk>/third-parties/<uuid:tp_pk>',
+        route="<uuid:pk>/third-parties/<uuid:tp_pk>",
         view=application_parties.RemoveThirdParty.as_view(),
-        name='remove_third_party'
+        name="remove_third_party",
     ),
     # ex: /applications/<uuid:pk>/third-parties/<uuid:tp_pk>/document/
     path(
-        route='<uuid:pk>/third-parties/<uuid:tp_pk>/document/',
+        route="<uuid:pk>/third-parties/<uuid:tp_pk>/document/",
         view=application_party_document_views.ThirdPartyDocumentView.as_view(),
-        name='third_party_document'
+        name="third_party_document",
     ),
     # ex: /applications/<uuid:pk>/sites/
     path(
-        route='<uuid:pk>/sites/',
+        route="<uuid:pk>/sites/",
         view=application_sites_views.ApplicationSites.as_view(),
-        name='application_sites'
+        name="application_sites",
     ),
     # ex: /applications/<uuid:pk>/external_locations/
     path(
-        route='<uuid:pk>/external_locations/',
+        route="<uuid:pk>/external_locations/",
         view=application_external_locations_views.ApplicationExternalLocations.as_view(),
-        name='application_external_locations'
+        name="application_external_locations",
     ),
     # ex: /applications/<uuid:pk>/external_locations/<uuid:ext_loc_pk>/
     path(
-        route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/',
+        route="<uuid:pk>/external_locations/<uuid:ext_loc_pk>/",
         view=application_external_locations_views.ApplicationRemoveExternalLocation.as_view(),
-        name='application_remove_external_location'
+        name="application_remove_external_location",
     ),
     # ex: /applications/<uuid:pk>/countries/
     path(
-        route='<uuid:pk>/countries/',
+        route="<uuid:pk>/countries/",
         view=application_countries.ApplicationCountries.as_view(),
-        name='countries'
+        name="countries",
     ),
     # ex: /applications/<uuid:pk>/documents/
     path(
-        route='<uuid:pk>/documents/',
+        route="<uuid:pk>/documents/",
         view=application_documents.ApplicationDocumentView.as_view(),
-        name='application_documents'
+        name="application_documents",
     ),
     # ex: /applications/<uuid:pk>/documents/<uuid:doc_pk>/
     path(
-        route='<uuid:pk>/documents/<uuid:doc_pk>/',
+        route="<uuid:pk>/documents/<uuid:doc_pk>/",
         view=application_documents.ApplicationDocumentDetailView.as_view(),
-        name='application_document'
+        name="application_document",
     ),
 ]

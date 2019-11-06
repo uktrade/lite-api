@@ -5,7 +5,11 @@ from django.db.models.functions import Coalesce
 from django.http import Http404
 
 from conf.exceptions import NotFoundError
-from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.constants import (
+    MY_TEAMS_QUEUES_CASES_ID,
+    ALL_CASES_SYSTEM_QUEUE_ID,
+    OPEN_CASES_SYSTEM_QUEUE_ID,
+)
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -16,18 +20,22 @@ def _coalesce_case_status_priority(cases):
     if cases.count():
         case = cases.first()
         case = case.__dict__
-        if 'status__priority' not in case:
+        if "status__priority" not in case:
             return cases.annotate(
-                status__priority=Coalesce('application__status__priority', 'query__status__priority')
+                status__priority=Coalesce(
+                    "application__status__priority", "query__status__priority"
+                )
             )
 
     return cases
 
 
 def _all_cases_queue():
-    queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
-                  name='All cases',
-                  team=Team.objects.get(name='Admin'))
+    queue = Queue(
+        id=ALL_CASES_SYSTEM_QUEUE_ID,
+        name="All cases",
+        team=Team.objects.get(name="Admin"),
+    )
     queue.is_system_queue = True
     queue.query = Q()
     queue.reverse_ordering = True
@@ -36,22 +44,24 @@ def _all_cases_queue():
 
 
 def _open_cases_queue():
-    queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
-                  name='Open cases',
-                  team=Team.objects.get(name='Admin'))
+    queue = Queue(
+        id=OPEN_CASES_SYSTEM_QUEUE_ID,
+        name="Open cases",
+        team=Team.objects.get(name="Admin"),
+    )
     queue.is_system_queue = True
-    queue.query = (~Q(application__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(application__status__status=CaseStatusEnum.FINALISED) &
-                   ~Q(query__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(query__status__status=CaseStatusEnum.FINALISED))
+    queue.query = (
+        ~Q(application__status__status=CaseStatusEnum.WITHDRAWN)
+        & ~Q(application__status__status=CaseStatusEnum.FINALISED)
+        & ~Q(query__status__status=CaseStatusEnum.WITHDRAWN)
+        & ~Q(query__status__status=CaseStatusEnum.FINALISED)
+    )
 
     return queue
 
 
 def _all_my_team_cases_queue(team):
-    queue = Queue(id=MY_TEAMS_QUEUES_CASES_ID,
-                  name='All my queues',
-                  team=team)
+    queue = Queue(id=MY_TEAMS_QUEUES_CASES_ID, name="All my queues", team=team)
     queue.is_system_queue = True
     my_team_queues = Queue.objects.filter(team=team)
     queue.query = Q(queues__in=my_team_queues)
@@ -85,7 +95,7 @@ def get_queue(pk, team=None):
     if queue:
         return queue[0]
     else:
-        raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
+        raise NotFoundError({"queue": "Queue not found - " + str(pk)})
 
 
 def filter_cases(cases, filter_by: Dict[str, str]):
@@ -93,15 +103,15 @@ def filter_cases(cases, filter_by: Dict[str, str]):
     Given a list of cases, filter by filter parameter
     """
     kwargs = {}
-    case_type = filter_by.get('case_type', None)
+    case_type = filter_by.get("case_type", None)
     if case_type:
-        kwargs['type'] = case_type
+        kwargs["type"] = case_type
 
-    status = filter_by.get('status', None)
+    status = filter_by.get("status", None)
     if status:
         cases = _coalesce_case_status_priority(cases)
         priority = get_case_status_by_status(status).priority
-        kwargs['status__priority'] = priority
+        kwargs["status__priority"] = priority
 
     if kwargs:
         return cases.filter(**kwargs)
@@ -115,9 +125,9 @@ def sort_cases(cases, sort_by: str):
     Currently only supports: status
     """
     if sort_by:
-        if sort_by == 'status' or sort_by == '-status':
+        if sort_by == "status" or sort_by == "-status":
             cases = _coalesce_case_status_priority(cases)
-            return cases.order_by(sort_by + '__priority')
+            return cases.order_by(sort_by + "__priority")
         else:
             raise Http404
 

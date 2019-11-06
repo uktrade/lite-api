@@ -9,24 +9,25 @@ class CaseStatusEnum:
         table with the new data
     (see the `static/statuses/migrations/0003_auto_20191014_1046.py` migration file for an example)
     """
-    SUBMITTED = 'submitted'
-    MORE_INFORMATION_REQUIRED = 'more_information_required'
-    UNDER_REVIEW = 'under_review'
-    UNDER_FINAL_REVIEW = 'under_final_review'
-    RESUBMITTED = 'resubmitted'
-    WITHDRAWN = 'withdrawn'
-    FINALISED = 'finalised'
-    APPLICANT_EDITING = 'applicant_editing'
+
+    SUBMITTED = "submitted"
+    MORE_INFORMATION_REQUIRED = "more_information_required"
+    UNDER_REVIEW = "under_review"
+    UNDER_FINAL_REVIEW = "under_final_review"
+    RESUBMITTED = "resubmitted"
+    WITHDRAWN = "withdrawn"
+    FINALISED = "finalised"
+    APPLICANT_EDITING = "applicant_editing"
 
     choices = [
-        (SUBMITTED, 'Submitted'),
-        (MORE_INFORMATION_REQUIRED, 'More information required'),
-        (UNDER_REVIEW, 'Under review'),
-        (UNDER_FINAL_REVIEW, 'Under final review'),
-        (RESUBMITTED, 'Resubmitted'),
-        (WITHDRAWN, 'Withdrawn'),
-        (FINALISED, 'Finalised'),
-        (APPLICANT_EDITING, 'Applicant editing'),
+        (SUBMITTED, "Submitted"),
+        (MORE_INFORMATION_REQUIRED, "More information required"),
+        (UNDER_REVIEW, "Under review"),
+        (UNDER_FINAL_REVIEW, "Under final review"),
+        (RESUBMITTED, "Resubmitted"),
+        (WITHDRAWN, "Withdrawn"),
+        (FINALISED, "Finalised"),
+        (APPLICANT_EDITING, "Applicant editing"),
     ]
 
     priorities = {
@@ -37,5 +38,5 @@ class CaseStatusEnum:
         UNDER_FINAL_REVIEW: 5,
         WITHDRAWN: 6,
         FINALISED: 7,
-        APPLICANT_EDITING: 8
+        APPLICANT_EDITING: 8,
     }

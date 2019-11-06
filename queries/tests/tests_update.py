@@ -10,20 +10,22 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 class EndUserAdvisoryUpdate(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.end_user_advisory = \
-            self.create_end_user_advisory_case('end_user_advisory',
-                                               'my reasons',
-                                               organisation=self.organisation)
-        self.url = reverse('queries:end_user_advisories:end_user_advisory', kwargs={'pk': self.end_user_advisory.id})
+        self.end_user_advisory = self.create_end_user_advisory_case(
+            "end_user_advisory", "my reasons", organisation=self.organisation
+        )
+        self.url = reverse(
+            "queries:end_user_advisories:end_user_advisory",
+            kwargs={"pk": self.end_user_advisory.id},
+        )
 
     def test_update_end_user_advisory_status(self):
-        data = {
-            'status': CaseStatusEnum.MORE_INFORMATION_REQUIRED
-        }
+        data = {"status": CaseStatusEnum.MORE_INFORMATION_REQUIRED}
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        new_end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=self.end_user_advisory.id)
+        new_end_user_advisory = EndUserAdvisoryQuery.objects.get(
+            pk=self.end_user_advisory.id
+        )
         casestatus = get_case_status_by_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
         self.assertEqual(new_end_user_advisory.status, casestatus)

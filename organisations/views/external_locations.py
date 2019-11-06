@@ -19,18 +19,21 @@ class ExternalLocationList(APIView):
     def get(self, request, org_pk):
         external_locations = ExternalLocation.objects.filter(organisation=org_pk)
         serializer = ExternalLocationSerializer(external_locations, many=True)
-        return JsonResponse(data={'external_locations': serializer.data})
+        return JsonResponse(data={"external_locations": serializer.data})
 
     @transaction.atomic
     def post(self, request, org_pk):
         with reversion.create_revision():
             data = JSONParser().parse(request)
-            data['organisation'] = org_pk
+            data["organisation"] = org_pk
             serializer = ExternalLocationSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(data={'external_location': serializer.data},
-                                    status=status.HTTP_201_CREATED)
+                return JsonResponse(
+                    data={"external_location": serializer.data},
+                    status=status.HTTP_201_CREATED,
+                )
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )
