@@ -1,16 +1,15 @@
-from django.core.management import BaseCommand
-from django.db import transaction
 from openpyxl import load_workbook
 
 from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.parser import parse_list_into_control_list_entries
+from static.management.SeedCommand import SeedCommand
 
 
-class Command(BaseCommand):
+class Command(SeedCommand):
     help = 'Creates and updates control list entries based off of the control list entry spreadsheet'
+    success = 'Control List Entries updated successfully!'
 
-    @transaction.atomic
-    def handle(self, *args, **options):
+    def operation(self, *args, **options):
         """
         pipenv run ./manage.py seedcontrollistentries
         """
@@ -26,5 +25,3 @@ class Command(BaseCommand):
         # Loop through remaining sheets
         for sheet in wb.worksheets:
             parse_list_into_control_list_entries(sheet)
-
-        self.stdout.write(self.style.SUCCESS('Control List Entries updated successfully!'))

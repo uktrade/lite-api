@@ -1,20 +1,22 @@
-from django.core.management import BaseCommand
 from json import loads as serialize
 
 from addresses.models import Address
 from conf.settings import env
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
+from static.management.SeedCommand import SeedCommand
 from users.enums import UserStatuses
 from users.models import ExporterUser, UserOrganisationRelationship
 
 
-class Command(BaseCommand):
+class Command(SeedCommand):
     """
     pipenv run ./manage.py seedorgusers
     """
+    help = 'Seeds test organisation users'
+    success = 'Test org users seeded successfully!'
 
-    def handle(self, *args, **options):
+    def operation(self, *args, **options):
         organisation = _get_organisation()
         _seed_exporter_users_to_organisation(organisation)
 
