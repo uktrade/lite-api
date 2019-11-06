@@ -2,8 +2,11 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 
 from conf.authentication import GovAuthentication
-from letter_templates.models import LetterTemplate
-from letter_templates.serializers import LetterTemplateSerializer
+from letter_templates.models import LetterTemplate, LetterLayout
+from letter_templates.serializers import (
+    LetterTemplateSerializer,
+    LetterLayoutSerializer,
+)
 
 
 class LetterTemplatesList(generics.ListCreateAPIView):
@@ -42,3 +45,19 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             return JsonResponse(serializer.data)
 
         return JsonResponse({'errors': serializer.errors})
+
+
+class LetterLayoutsList(generics.ListAPIView):
+    """
+    Returns list of all letter layouts
+    """
+    queryset = LetterLayout.objects.all()
+    serializer_class = LetterLayoutSerializer
+
+
+class LetterLayoutDetail(generics.RetrieveAPIView):
+    """
+    Returns detail of a specific letter layout
+    """
+    queryset = LetterLayout.objects.all()
+    serializer_class = LetterLayoutSerializer

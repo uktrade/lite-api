@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 from django.db import transaction
 
-from static.letter_layouts.models import LetterLayout
+from letter_templates.models import LetterLayout
 
 layouts = {
     'licence': 'Licence',

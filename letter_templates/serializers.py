@@ -3,10 +3,14 @@ from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseType
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from letter_templates.models import LetterTemplate
+from letter_templates.models import LetterTemplate, LetterLayout
 from picklists.models import PicklistItem
-from static.letter_layouts.models import LetterLayout
-from static.letter_layouts.serializers import LetterLayoutSerializer
+
+
+class LetterLayoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LetterLayout
+        fields = ["id", "filename", "name"]
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):

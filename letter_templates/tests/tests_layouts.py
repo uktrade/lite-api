@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from static.letter_layouts.models import LetterLayout
+from letter_templates.models import LetterLayout
 from static.management.commands.seedlayouts import success_message, layouts
 from test_helpers.clients import DataTestClient
 
@@ -17,7 +17,7 @@ class LetterLayoutsTests(DataTestClient):
         # Seed layouts
         call_command('seedlayouts')
         self.letter_layout = LetterLayout.objects.first()
-        self.url = reverse('static:letter_layouts:letter_layouts')
+        self.url = reverse('letter_templates:letter_layouts')
 
     def test_get_letter_layouts_success(self):
         response = self.client.get(self.url)
@@ -36,7 +36,7 @@ class LetterLayoutTests(DataTestClient):
         call_command('seedlayouts')
         super().setUp()
         self.letter_layout = LetterLayout.objects.first()
-        self.url = reverse('static:letter_layouts:letter_layout', kwargs={'pk': self.letter_layout.id})
+        self.url = reverse('letter_templates:letter_layout', kwargs={'pk': self.letter_layout.id})
 
     def test_get_letter_layout_success(self):
         response = self.client.get(self.url)

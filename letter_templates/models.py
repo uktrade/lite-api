@@ -7,7 +7,15 @@ from sortedm2m.fields import SortedManyToManyField
 
 from cases.enums import CaseType
 from picklists.models import PicklistItem
-from static.letter_layouts.models import LetterLayout
+
+
+class LetterLayout(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.TextField()  # Friendly name
+    filename = models.TextField()  # Letter file name minus extension
+
+    class Meta:
+        ordering = ['name']
 
 
 class LetterTemplate(models.Model):

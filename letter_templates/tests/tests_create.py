@@ -5,9 +5,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseType
-from letter_templates.models import LetterTemplate
+from letter_templates.models import LetterTemplate, LetterLayout
 from picklists.enums import PickListStatus, PicklistType
-from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 
