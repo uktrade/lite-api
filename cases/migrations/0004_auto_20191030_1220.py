@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0002_goodcountrydecision'),
+        ('cases', '0003_notification_case_activity'),
     ]
 
     operations = [
