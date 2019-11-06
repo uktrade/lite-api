@@ -36,7 +36,7 @@ class CountrySerializerField(PrimaryKeyRelatedField):
         try:
             return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist:
-            raise serializers.ValidationError('Select a country')
+            raise serializers.ValidationError(get_string('address.null_country'))
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
 
