@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.libraries.case_activity import set_party_document_case_activity, \
     set_application_document_case_activity
 from applications.models import ApplicationDocument
-from applications.serializers.other import ApplicationDocumentSerializer
+from applications.serializers.document import ApplicationDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer

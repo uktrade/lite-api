@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from applications.libraries.case_activity import set_external_location_case_activity
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from applications.serializers.other import ExternalLocationOnApplicationSerializer
+from applications.serializers.location import ExternalLocationOnApplicationSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import get_location

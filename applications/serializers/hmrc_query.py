@@ -3,8 +3,8 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationListSerializer
-from applications.serializers.other import ApplicationDocumentSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from organisations.enums import OrganisationType

@@ -6,7 +6,7 @@ from applications.enums import ApplicationType
 from applications.libraries.document_helpers import upload_application_document, delete_application_document, \
     get_application_document, get_application_documents, upload_goods_type_document, delete_goods_type_document, \
     get_goods_type_document
-from applications.serializers.other import ApplicationDocumentSerializer
+from applications.serializers.document import ApplicationDocumentSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, allowed_application_types, application_in_major_editable_state
 from goodstype.document.serializers import GoodsTypeDocumentSerializer

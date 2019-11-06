@@ -5,7 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
-from applications.serializers.other import ApplicationDenialReasonSerializer
+from applications.serializers.denial_reasons import ApplicationDenialReasonSerializer
 from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField

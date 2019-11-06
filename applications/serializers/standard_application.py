@@ -3,7 +3,7 @@ from rest_framework import serializers
 from applications.models import StandardApplication
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer, GenericApplicationListSerializer
-from applications.serializers.other import GoodOnApplicationWithFlagsViewSerializer
+from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
