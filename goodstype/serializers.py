@@ -43,6 +43,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
             self.fields['control_code'] = ControlListEntryField(required=True)
+        else:
+            self.data['control_code'] = None
 
     def get_document(self, instance):
         docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
