@@ -22,7 +22,8 @@ class CasesSearchView(generics.ListAPIView):
             team=request.user.team,
             status=request.GET.get('status'),
             case_type=request.GET.get('case_type'),
-            sort=request.GET.get('sort', '')
+            sort=request.GET.get('sort'),
+            date_order='-' if queue_id in SYSTEM_QUEUES else '',
         )
 
         page = self.paginate_queryset(case_qs)
