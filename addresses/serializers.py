@@ -18,7 +18,7 @@ class AddressSerializer(serializers.ModelSerializer):
     region = serializers.CharField(error_messages={'blank': 'Enter a real region'})
     country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(),
                                                serializer=CountrySerializer,
-                                               error_messages={'null': get_string('address.null_country')})
+                                               error_messages={'does_not_exist': get_string('address.null_country')})
 
     class Meta:
         model = Address
