@@ -121,7 +121,6 @@ def _validate_open_licence(draft, errors):
 def _validate_hmrc_query(draft, errors):
     errors = _validate_goods_types(draft, errors)
     errors = _validate_end_user(draft, errors)
-    errors = _validate_consignee(draft, errors)
 
     return errors
 
