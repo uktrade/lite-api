@@ -1,3 +1,4 @@
+from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -12,8 +13,8 @@ class GoodsCreateTests(DataTestClient):
 
     @parameterized.expand([
         ('Widget', GoodControlled.YES, 'ML1a', True, '1337'),  # Create a new good successfully
-        ('Widget', GoodControlled.NO, '', True, '1337'),  # Control List Entry shouldn't be set
-        ('Test Unsure Good Name', GoodControlled.UNSURE, '', True, '1337'),  # CLC query
+        ('Widget', GoodControlled.NO, None, True, '1337'),  # Control List Entry shouldn't be set
+        ('Test Unsure Good Name', GoodControlled.UNSURE, None, True, '1337'),  # CLC query
     ])
     def test_create_good(self, description, is_good_controlled, control_code, is_good_end_product, part_number):
         data = {
