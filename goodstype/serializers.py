@@ -5,6 +5,7 @@ from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagStatuses
+from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -20,6 +21,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                                                  queryset=Country.objects.all(),
                                                  serializer=CountrySerializer,
                                                  many=True)
+    document = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodsType
@@ -29,7 +31,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                   'control_code',
                   'is_good_end_product',
                   'application',
-                  'countries',)
+                  'countries',
+                  'document',)
 
     def __init__(self, *args, **kwargs):
         """
@@ -40,6 +43,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
             self.fields['control_code'] = ControlListEntryField(required=True)
+
+    def get_document(self, instance):
+        docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
+        return docs[0] if docs else None
 
     def update(self, instance, validated_data):
         """
