@@ -29,17 +29,20 @@ class CasesSearchView(generics.ListAPIView):
 
         cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
 
-        queues = service.get_search_queues(user=request.user)
+        queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
+        queue_name = list(filter(lambda x: x['id'] == queue_id, queues)).pop()['name']
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_list()
 
         return self.get_paginated_response({
-                'queues': SearchQueueSerializer(queues, many=True).data,
+                'queues': queues,
                 'cases': cases,
                 'filters': {
                     'statuses': statuses,
                     'case_types': case_types,
                 },
-                'is_system_queue': context['is_system_queue']
+                'is_system_queue': context['is_system_queue'],
+                'queue_id': queue_id,
+                'queue_name': queue_name,
             }
         )
