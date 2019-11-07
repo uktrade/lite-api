@@ -83,7 +83,8 @@ class GoodSerializer(serializers.ModelSerializer):
         if self.get_initial().get('is_good_controlled') == GoodControlled.YES:
             self.fields['control_code'] = ControlListEntryField(required=True)
         else:
-            self.data['control_code'] = None
+            if hasattr(self, 'initial_data'):
+                self.initial_data['control_code'] = None
 
     # pylint: disable=W0703
     def get_case_id(self, instance):

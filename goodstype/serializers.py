@@ -44,7 +44,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         if str_to_bool(self.get_initial().get('is_good_controlled')) is True:
             self.fields['control_code'] = ControlListEntryField(required=True)
         else:
-            self.data['control_code'] = None
+            if hasattr(self, 'initial_data'):
+                self.initial_data['control_code'] = None
 
     def get_document(self, instance):
         docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
