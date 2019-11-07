@@ -69,8 +69,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response_data.get('type').get('key'), 'conflicting')
         self.assertEqual(response_data.get('proviso'), 'I am easy to proviso')
-        for denial_reason in ['1a', '1b', '1c']:
-            self.assertTrue(denial_reason in response_data['denial_reasons'])
+        self.assertCountEqual(['1a', '1b', '1c'], response_data['denial_reasons'])
 
     # Normal restrictions on team advice items
     @parameterized.expand([
@@ -123,9 +122,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             self.assertTrue('denial_reasons' not in response_data)
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
-            self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
-            self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
-                             data['denial_reasons'])
+            self.assertCountEqual(response_data['denial_reasons'], data['denial_reasons'])
+            self.assertCountEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
+                                  data['denial_reasons'])
 
     # User must have permission to create team advice
     def test_user_cannot_create_team_level_advice_without_permissions(self):
@@ -209,7 +208,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             'end_user': str(self.standard_application.end_user.id)
         }
 
-        response = self.client.post(reverse('cases:case_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
+        response = self.client.post(reverse('cases:case_advice', kwargs={'pk': self.standard_case.id}),
+                                    **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -228,7 +228,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             'end_user': str(self.standard_application.end_user.id)
         }
 
-        response = self.client.post(reverse('cases:case_advice', kwargs={'pk': self.standard_case.id}), **self.gov_headers, data=[data])
+        response = self.client.post(reverse('cases:case_advice', kwargs={'pk': self.standard_case.id}),
+                                    **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -257,7 +258,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.client.get(self.standard_case_url, **self.gov_headers)
 
         self.assertEqual(Advice.objects.count(), 2)
-
 
     @parameterized.expand([
         [AdviceType.APPROVE],
