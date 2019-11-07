@@ -5,7 +5,7 @@ from static.letter_layouts.models import LetterLayout
 
 layouts = {
     'licence': 'Licence',
-    'siel': 'SIEL'
+    'ecju': 'ECJU Letter'
 }
 success_message = 'Layouts seeded successfully!'
 
