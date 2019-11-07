@@ -8,6 +8,8 @@ from applications.serializers.generic_application import GenericApplicationCreat
     GenericApplicationUpdateSerializer, GenericApplicationListSerializer
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
 from content_strings.strings import get_string
+from organisations.models import ExternalLocation, Site
+from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ThirdPartySerializer, ConsigneeSerializer
 
 
@@ -18,6 +20,30 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
     consignee = ConsigneeSerializer()
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
+    goods_locations = serializers.SerializerMethodField()
+
+    def get_destinations(self, application):
+        if application.end_user:
+            serializer = EndUserSerializer(application.end_user)
+            return {'type': 'end_user', 'data': serializer.data}
+        else:
+            return {'type': 'end_user', 'data': ''}
+
+    def get_goods_locations(self, application):
+        sites = Site.objects.filter(sites_on_application__application=application)
+
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
+            return {'type': 'sites', 'data': serializer.data}
+
+        external_locations = ExternalLocation.objects.filter(
+            external_locations_on_application__application=application)
+
+        if external_locations:
+            serializer = ExternalLocationSerializer(external_locations, many=True)
+            return {'type': 'external_locations', 'data': serializer.data}
+
+        return {}
 
     class Meta:
         model = StandardApplication
@@ -29,15 +55,9 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
             'goods',
             'destinations',
             'have_you_been_informed',
-            'reference_number_on_information_form'
+            'reference_number_on_information_form',
+            'goods_locations',
         ]
-
-    def get_destinations(self, application):
-        if application.end_user:
-            serializer = EndUserSerializer(application.end_user)
-            return {'type': 'end_user', 'data': serializer.data}
-        else:
-            return {'type': 'end_user', 'data': ''}
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
