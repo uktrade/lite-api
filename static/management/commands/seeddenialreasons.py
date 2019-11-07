@@ -20,5 +20,4 @@ class Command(SeedCommand):
             for row in reader:
                 item_id = row[0]
                 item_is_deprecated = str_to_bool(row[1])
-                print("Seeded %s denial reasons" % item_id)
                 DenialReason.objects.create(id=item_id, deprecated=item_is_deprecated)

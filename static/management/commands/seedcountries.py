@@ -18,4 +18,3 @@ class Command(SeedCommand):
             next(reader, None)  # skip the headers
             for row in reader:
                 Country.objects.create(id=row[1], name=row[0], type=row[2])
-                print("Seeded %s " % row[0])
