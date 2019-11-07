@@ -69,7 +69,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response_data.get('type').get('key'), 'conflicting')
         self.assertEqual(response_data.get('proviso'), 'I am easy to proviso')
-        self.assertEqual(response_data.get('denial_reasons'), ['1a', '1b', '1c'])
+        for denial_reason in ['1a', '1b', '1c']:
+            self.assertTrue(denial_reason in response_data['denial_reasons'])
 
     # Normal restrictions on team advice items
     @parameterized.expand([

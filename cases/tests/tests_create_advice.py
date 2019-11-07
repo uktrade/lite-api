@@ -73,7 +73,8 @@ class CreateCaseAdviceTests(DataTestClient):
             self.assertTrue('denial_reasons' not in response_data)
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
-            self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
+            for denial_reason in data['denial_reasons']:
+                self.assertTrue(denial_reason in response_data['denial_reasons'])
             self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
                                     data['denial_reasons'])
 

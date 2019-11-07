@@ -71,7 +71,8 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.assertEqual(response_data.get('type').get('key'), 'conflicting')
         self.assertEqual(response_data.get('proviso'), 'I am easy to proviso')
-        self.assertEqual(response_data.get('denial_reasons'), ['1a', '1b', '1c'])
+        for denial_reason in ['1a', '1b', '1c']:
+            self.assertTrue(denial_reason in response_data['denial_reasons'])
 
     # Normal restrictions on team advice items
     @parameterized.expand([
@@ -125,8 +126,8 @@ class CreateCaseFinalAdviceTests(DataTestClient):
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
             self.assertEqual(response_data['denial_reasons'], data['denial_reasons'])
-            self.assertEqual(convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)),
-                             data['denial_reasons'])
+            for denial_reason in convert_queryset_to_str(advice_object.denial_reasons.values_list('id', flat=True)):
+                self.assertTrue(denial_reason in data['denial_reasons'])
 
     def test_user_cannot_create_final_advice_without_permissions(self):
         """
