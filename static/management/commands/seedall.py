@@ -17,6 +17,15 @@ class Command(SeedCommand):
 
     @staticmethod
     def essential_seeding(*args, **options):
+        # Seeding static resources
+        seeddenialreasons.Command().handle(*args, **options)
+        seedcountries.Command().handle(*args, **options)
+        seedtestteam.Command().handle(*args, **options)
+        seedpermissions.Command().handle(*args, **options)
+
+    @staticmethod
+    def test_seeding(*args, **options):
+        # Seeding that should be run in the unit test setup
         seeddenialreasons.Command().handle(*args, **options)
         seedcountries.Command().handle(*args, **options)
         seedtestteam.Command().handle(*args, **options)
@@ -25,14 +34,13 @@ class Command(SeedCommand):
 
     @staticmethod
     def non_essential_seeding(*args, **options):
+        # Helpful seed operations for adding test data
+        seedgovuser.Command().handle(*args, **options)
         seedorgusers.Command().handle(*args, **options)
 
     def operation(self, *args, **options):
         if options['essential']:
             self.essential_seeding(args, options)
-            # This operation will happen during normal seeding, but for performance
-            # not during test seeding
-            seedcontrollistentries.Command().handle(*args, **options)
         elif options['non_essential']:
             self.non_essential_seeding(args, options)
         else:

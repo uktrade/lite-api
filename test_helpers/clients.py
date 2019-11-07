@@ -48,7 +48,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUpClass(cls):
         """ Run seed operations for tests. """
         super(DataTestClient, cls).setUpClass()
-        seedall.Command().essential_seeding()
+        seedall.Command().test_seeding()
 
     def setUp(self):
         # Gov User Setup
