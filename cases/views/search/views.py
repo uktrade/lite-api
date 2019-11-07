@@ -17,23 +17,19 @@ class CasesSearchView(generics.ListAPIView):
         queue_id = request.GET.get('queue_id', ALL_CASES_SYSTEM_QUEUE_ID)
         context = {'is_system_queue': queue_id in SYSTEM_QUEUES, 'queue_id': queue_id}
 
-        case_qs = Case.objects.search(
+        page = self.paginate_queryset(Case.objects.search(
             queue_id=queue_id,
             team=request.user.team,
             status=request.GET.get('status'),
             case_type=request.GET.get('case_type'),
             sort=request.GET.get('sort'),
             date_order='-' if queue_id in SYSTEM_QUEUES else '',
-        )
-
-        page = self.paginate_queryset(case_qs)
-
+        ))
+        queues = SearchQueueSerializer(service.get_search_queues(team=request.user.team), many=True).data
         cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
-
-        queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
-        queue_name = list(filter(lambda x: x['id'] == queue_id, queues)).pop()['name']
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_list()
+        queue = list(filter(lambda q: q['id'] == queue_id, queues)).pop()
 
         return self.get_paginated_response({
                 'queues': queues,
@@ -43,7 +39,6 @@ class CasesSearchView(generics.ListAPIView):
                     'case_types': case_types,
                 },
                 'is_system_queue': context['is_system_queue'],
-                'queue_id': queue_id,
-                'queue_name': queue_name,
+                'queue': queue,
             }
         )

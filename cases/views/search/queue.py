@@ -2,15 +2,11 @@ from typing import List
 
 from cases.models import Case
 from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, MY_TEAMS_QUEUES_CASES_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.models import Queue
 from teams.models import Team
 
 
 class SearchQueue:
-    id = None
-    name = None
-    team = None
-    case_count = None
-
     def __init__(self, id, name, team, case_count):
         self.id = id
         self.name = name
@@ -54,3 +50,14 @@ class SearchQueue:
                 case_count=case_qs.in_team(team=team).count()
             ),
         ]
+
+    @classmethod
+    def all(cls, team, case_qs=None, queue_qs=None):
+        return cls.system(team, case_qs) + cls.from_queue_qs(queue_qs)
+
+    @classmethod
+    def from_queue_qs(cls, queue_qs=None):
+        if not queue_qs:
+            queue_qs = Queue.objects.all()
+
+        return [cls.from_queue(queue) for queue in queue_qs]

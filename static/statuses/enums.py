@@ -39,3 +39,12 @@ class CaseStatusEnum:
         FINALISED: 7,
         APPLICANT_EDITING: 8
     }
+
+    @classmethod
+    def as_list(cls):
+        return [
+            {
+                'status': choice[0],
+                'priority': cls.priorities[choice[0]]
+            } for choice in cls.choices
+        ]
