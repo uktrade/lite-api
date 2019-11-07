@@ -72,7 +72,7 @@ class ApplicationGoodOnApplication(APIView):
         good_on_application = get_good_on_application(good_on_application_pk)
         application = good_on_application.application
 
-        if application.status and application.status.status in get_case_statuses(is_read_only=True):
+        if application.status and application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(data={'errors': ['You can only perform this operation when the application '
                                                  'is in an editable state']},
                                 status=status.HTTP_400_BAD_REQUEST)

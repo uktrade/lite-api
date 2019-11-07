@@ -18,8 +18,8 @@ class DraftDocumentTests(DataTestClient):
         self.url_draft = reverse('applications:application_documents', kwargs={'pk': self.draft.id})
         self.test_filename = 'dog.jpg'
 
-        self.editable_case_statuses = get_case_statuses(is_read_only=False)
-        self.read_only_case_statuses = get_case_statuses(is_read_only=True)
+        self.editable_case_statuses = get_case_statuses(read_only=False)
+        self.read_only_case_statuses = get_case_statuses(read_only=True)
 
         self.data = {'name': self.test_filename,
                      's3_key': self.test_filename,
@@ -95,7 +95,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.json()['document']['s3_key'], application_document.s3_key)
         self.assertEqual(response.json()['document']['size'], application_document.size)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
     def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
         application = self.create_standard_application(self.organisation)
@@ -108,7 +108,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.applicationdocument_set.count(), 2)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
     def test_delete_document_when_application_in_editable_state_success(self, editable_status, mock_delete_s3,
@@ -125,7 +125,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(application.applicationdocument_set.count(), 0)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     def test_add_document_when_application_in_read_only_state_failure(self, read_only_status):
         application = self.create_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
@@ -137,7 +137,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.applicationdocument_set.count(), 1)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     @mock.patch('documents.tasks.prepare_document.now')
     @mock.patch('documents.models.Document.delete_s3')
     def test_delete_document_when_application_in_read_only_state_failure(self, read_only_status, mock_delete_s3,

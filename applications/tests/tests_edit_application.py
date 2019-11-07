@@ -30,7 +30,7 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(application.name, self.data['name'])
         self.assertNotEqual(application.last_modified_at, original_last_modified_at)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
@@ -46,7 +46,7 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(application.name, self.data['name'])
         self.assertNotEqual(application.last_modified_at, original_last_modified_at)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)

@@ -122,7 +122,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     def test_remove_external_locations_from_application_in_read_only_status_failure(self, read_only_status):
         ExternalLocationOnApplication(application=self.application, external_location=self.external_location).save()
         url = reverse('applications:application_remove_external_location',
@@ -136,7 +136,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.application.external_application_sites.count(), 1)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     def test_remove_external_locations_from_application_in_editable_status_success(self, editable_status):
         """ Test success in removing an external location from an application in an editable status that has
         more than one external location added.
@@ -158,7 +158,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(application.external_application_sites.count(), 1)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     def test_add_external_locations_to_application_in_editable_status_success(self, editable_status):
         data = {
             'external_locations': [
@@ -177,7 +177,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.external_application_sites.count(), 1)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     def test_add_external_locations_to_application_in_read_only_status_failure(self, read_only_status):
         data = {
             'external_locations': [

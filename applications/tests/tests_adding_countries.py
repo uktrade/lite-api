@@ -90,7 +90,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand(get_case_statuses(is_read_only=True))
+    @parameterized.expand(get_case_statuses(read_only=True))
     def test_add_countries_to_application_in_read_only_status_failure(self, read_only_status):
         application = self.create_open_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
@@ -120,7 +120,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.application_countries.count(), 1)
 
-    @parameterized.expand(get_case_statuses(is_read_only=False))
+    @parameterized.expand(get_case_statuses(read_only=False))
     def test_remove_countries_to_application_in_editable_status_success(self, editable_status):
         add_second_country_data = {
             'countries': Country.objects.filter(id__in=('GA', 'GB')).values_list('id', flat=True)
