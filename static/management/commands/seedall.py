@@ -25,12 +25,14 @@ class Command(SeedCommand):
 
     @staticmethod
     def non_essential_seeding(*args, **options):
-        seedcontrollistentries.Command().handle(*args, **options)
         seedorgusers.Command().handle(*args, **options)
 
     def operation(self, *args, **options):
         if options['essential']:
             self.essential_seeding(args, options)
+            # This operation will happen during normal seeding, but for performance
+            # not during test seeding
+            seedcontrollistentries.Command().handle(*args, **options)
         elif options['non_essential']:
             self.non_essential_seeding(args, options)
         else:

@@ -1,11 +1,9 @@
 from datetime import datetime, timezone
 
-from django.core.management import call_command
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
     StandardApplication, OpenApplication
 from cases.enums import AdviceType
@@ -26,6 +24,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.management.commands import seedall
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
@@ -36,7 +35,6 @@ from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
-from static.management.commands import seedall
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
