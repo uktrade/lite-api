@@ -18,6 +18,7 @@ class Command(SeedCommand):
     @staticmethod
     def essential_seeding(*args, **options):
         # Seeding static resources
+        seedcontrollistentries.Command().handle(*args, **options)
         seeddenialreasons.Command().handle(*args, **options)
         seedcountries.Command().handle(*args, **options)
         seedtestteam.Command().handle(*args, **options)
