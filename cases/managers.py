@@ -12,8 +12,8 @@ class CaseQuerySet(models.QuerySet):
     def is_open(self, is_open: bool = True):
         func = self.exclude if is_open else self.filter
         return func(
-            query__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED],
-            application__status__status=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
+            Q(application__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]) |
+            Q(query__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED])
         )
 
     def in_queues(self, queues: List):
@@ -58,11 +58,17 @@ class CaseManager(models.Manager):
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
 
-    def search(self, queue_id=None, team=None, status=None, case_type=None, sort=None):
+    def search(self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None):
         """
         Search for a user's available cases given a set of search parameters.
         """
-        case_qs = self.get_queryset()
+        case_qs = self.get_queryset().prefetch_related(
+            'queues',
+            'query__status',
+            'application__status',
+            'query__organisation__flags',
+            'application__organisation__flags'
+        )
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:
             case_qs = case_qs.in_team(team=team)
@@ -79,15 +85,10 @@ class CaseManager(models.Manager):
         if case_type:
             case_qs = case_qs.is_type(case_type=case_type)
 
-        case_qs = case_qs.order_by_date()
+        if isinstance(date_order, str):
+            case_qs = case_qs.order_by_date(date_order)
 
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order='-' if sort.startswith('-') else '')
 
-        return case_qs.prefetch_related(
-            'queues',
-            'query__status',
-            'application__status',
-            'query__organisation__flags',
-            'application__organisation__flags'
-        )
+        return case_qs

@@ -74,6 +74,7 @@ class TinyCaseSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
+    created_at = serializers.CharField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop('team', None)
