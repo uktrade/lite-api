@@ -106,9 +106,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
     @parameterized.expand([CaseStatusEnum.RESUBMITTED, CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.SUBMITTED])
     def test_add_countries_to_application_in_editable_status_failure(self, editable_status):
         """ Test failure in adding a country to an application in a minor editable status. Major editing
-         status of APPLICANT_EDITING is removed from the case status list.
-
-        """
+         status of APPLICANT_EDITING is removed from the case status list. """
         application = self.create_open_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()

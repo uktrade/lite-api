@@ -109,7 +109,7 @@ class ApplicationDenialTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json.loads(response.content).get('errors')[0],
+        self.assertEqual(response.json().get('errors')[0],
                          'Setting application status to "applicant_editing" when application status is '
                          '"initial_checks" is not allowed.')
         self.assertEqual(self.standard_application.status,
