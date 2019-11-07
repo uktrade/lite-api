@@ -9,6 +9,8 @@ from applications.serializers.generic_application import GenericApplicationCreat
 from content_strings.strings import get_string
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from organisations.models import Site, ExternalLocation
+from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -16,6 +18,7 @@ from static.countries.serializers import CountrySerializer
 class OpenApplicationViewSerializer(GenericApplicationListSerializer):
     destinations = serializers.SerializerMethodField()
     goods_types = serializers.SerializerMethodField()
+    goods_locations = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -23,7 +26,8 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             'destinations',
             'goods_types',
             'have_you_been_informed',
-            'reference_number_on_information_form'
+            'reference_number_on_information_form',
+            'goods_locations'
         ]
 
     def get_destinations(self, application):
@@ -35,6 +39,22 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
         goods_types = GoodsType.objects.filter(application=application)
         serializer = FullGoodsTypeSerializer(goods_types, many=True)
         return serializer.data
+
+    def get_goods_locations(self, application):
+        sites = Site.objects.filter(sites_on_application__application=application)
+
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
+            return {'type': 'sites', 'data': serializer.data}
+
+        external_locations = ExternalLocation.objects.filter(
+            external_locations_on_application__application=application)
+
+        if external_locations:
+            serializer = ExternalLocationSerializer(external_locations, many=True)
+            return {'type': 'external_locations', 'data': serializer.data}
+
+        return {}
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
