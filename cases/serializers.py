@@ -1,8 +1,10 @@
+import itertools
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.enums import ApplicationLicenceType
-from applications.models import StandardApplication, OpenApplication
+from applications.models import StandardApplication, OpenApplication, GoodOnApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
@@ -86,7 +88,15 @@ class TinyCaseSerializer(serializers.Serializer):
         case_flag_data = FlagSerializer(instance.flags.order_by('name'), many=True).data
         org_flag_data = FlagSerializer(org.flags.order_by('name'), many=True).data
 
-        flag_data = case_flag_data + org_flag_data
+        if instance.application:
+            goods = GoodOnApplication.objects.filter(application=instance.application).select_related('good')
+            goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by('name') for g in goods]))
+            good_flag_data = FlagSerializer(goods_flags, many=True).data
+
+        else:
+            good_flag_data = []
+
+        flag_data = case_flag_data + org_flag_data + good_flag_data
 
         if not self.team:
             return flag_data
@@ -95,7 +105,7 @@ class TinyCaseSerializer(serializers.Serializer):
         team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), flag_data))
         non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), flag_data))
 
-        return team_flags + non_team_flags
+        return sorted(team_flags, key=lambda x: x['name']) + sorted(non_team_flags, key=lambda x: x['name'])
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
