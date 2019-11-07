@@ -13,12 +13,12 @@ from users.models import ExporterUser
 @reversion.register()
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    description = models.TextField(max_length=280)
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
     control_code = models.TextField(default='', blank=True, null=True)
-    is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
+    is_good_end_product = models.BooleanField()
     part_number = models.TextField(default='', blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name='goods')
 
@@ -26,15 +26,6 @@ class Good(models.Model):
     comment = models.TextField(default=None, blank=True, null=True)
     report_summary = models.TextField(default=None, blank=True, null=True)
 
-
-# TODO: This model is going to be part of the Application/Draft rewrite - it'll replace goodstype
-# @reversion.register()
-# class GoodsClassification(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     description = models.TextField(default=None, blank=True, null=True, max_length=280)
-#     is_good_controlled = models.BooleanField(default=None, blank=True, null=True)
-#     control_code = models.TextField(default=None, blank=True, null=True)
-#     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
 
 class GoodDocument(Document):
     good = models.ForeignKey(Good, on_delete=models.CASCADE)

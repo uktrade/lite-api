@@ -11,7 +11,7 @@ from applications.models import BaseApplication, GoodOnApplication, ApplicationD
 from applications.models import Site, SiteOnApplication
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
-from content_strings.strings import get_string
+from content_strings.strings import get_string, get_const_string
 from documents.libraries.process_document import process_document
 from goods.models import Good
 from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
@@ -62,7 +62,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     quantity = DecimalField(max_digits=256, decimal_places=6,
                             error_messages={'invalid': get_string('goods.error_messages.invalid_qty')})
     value = DecimalField(max_digits=256, decimal_places=2,
-                         error_messages={'invalid': get_string('goods.error_messages.invalid_value')}),
+                         error_messages={'invalid': get_const_string('GOOD_ON_APPLICATION_ERROR_MISSING')}),
     unit = ChoiceField(choices=Units.choices, error_messages={
         'required': get_string('goods.error_messages.required_unit'),
         'invalid_choice': get_string('goods.error_messages.required_unit')})
