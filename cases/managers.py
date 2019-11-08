@@ -9,6 +9,15 @@ from static.statuses.enums import CaseStatusEnum
 
 
 class CaseQuerySet(models.QuerySet):
+    """
+    Custom queryset for the Case model. This allows us to chain application specific
+    filtering logic in a reusable way.
+
+    For example:
+
+    To get all open cases within a specific queue:
+       > qs = Case.objects.is_open().in_queue('0001')
+    """
     def is_open(self, is_open: bool = True):
         func = self.exclude if is_open else self.filter
         return func(
@@ -55,6 +64,10 @@ class CaseQuerySet(models.QuerySet):
 
 
 class CaseManager(models.Manager):
+    """
+    Custom manager for the Case model that uses CaseQuerySet and provides a reusable search
+    functionality to the Case model.
+    """
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
 

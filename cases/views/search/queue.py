@@ -7,6 +7,9 @@ from teams.models import Team
 
 
 class SearchQueue:
+    """
+    A SearchQueue is a representation of a Queue or a system Queue.
+    """
     def __init__(self, id, name, team, case_count):
         self.id = id
         self.name = name

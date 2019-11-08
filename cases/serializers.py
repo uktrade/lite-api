@@ -90,6 +90,8 @@ class TinyCaseSerializer(serializers.Serializer):
         if instance.application:
             goods = GoodOnApplication.objects.filter(application=instance.application).select_related('good')
             goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by('name') for g in goods]))
+            good_ids = {}
+            goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
             good_flag_data = FlagSerializer(goods_flags, many=True).data
         else:
             good_flag_data = []

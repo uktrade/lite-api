@@ -10,6 +10,9 @@ from queues.constants import SYSTEM_QUEUES, ALL_CASES_SYSTEM_QUEUE_ID
 
 
 class CasesSearchView(generics.ListAPIView):
+    """
+    Provides a search view for the Case model.
+    """
     authentication_classes = (GovAuthentication,)
     pagination_class = MaxPageNumberPagination
 
