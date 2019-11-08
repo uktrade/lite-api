@@ -84,29 +84,28 @@ class TinyCaseSerializer(serializers.Serializer):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        org = instance.organisation()
-
         case_flag_data = FlagSerializer(instance.flags.order_by('name'), many=True).data
-        org_flag_data = FlagSerializer(org.flags.order_by('name'), many=True).data
+        org_flag_data = FlagSerializer(instance.organisation.flags.order_by('name'), many=True).data
 
         if instance.application:
             goods = GoodOnApplication.objects.filter(application=instance.application).select_related('good')
             goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by('name') for g in goods]))
             good_flag_data = FlagSerializer(goods_flags, many=True).data
-
         else:
             good_flag_data = []
 
         flag_data = case_flag_data + org_flag_data + good_flag_data
+        flag_data = sorted(flag_data, key=lambda x: x['name'])
 
         if not self.team:
             return flag_data
 
         # Sort flags by user's team.
-        team_flags = list(filter(lambda x: x['team']['id'] == str(self.team.id), flag_data))
-        non_team_flags = list(filter(lambda x: x['team']['id'] != str(self.team.id), flag_data))
+        team_flags, non_team_flags = [], []
+        for flag in flag_data:
+            team_flags.append(flag) if flag['team']['id'] == str(self.team.id) else non_team_flags.append(flag)
 
-        return sorted(team_flags, key=lambda x: x['name']) + sorted(non_team_flags, key=lambda x: x['name'])
+        return team_flags + non_team_flags
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
