@@ -6,12 +6,14 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_application_goods_case_activity, \
     set_application_goods_type_case_activity
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers.good import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_users, application_in_major_editable_state
+from conf.decorators import application_licence_type, authorised_users, \
+    application_in_major_editable_state
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -63,13 +65,17 @@ class ApplicationGoodsOnApplication(APIView):
 
 
 class ApplicationGoodOnApplication(APIView):
-    """
-    Good on a standard application
-    """
+    """ Good on a standard application. """
     authentication_classes = (ExporterAuthentication,)
 
     def delete(self, request, good_on_application_pk):
         good_on_application = get_good_on_application(good_on_application_pk)
+        application = good_on_application.application
+
+        if application.status and application.status.status in get_case_statuses(read_only=True):
+            return JsonResponse(data={'errors': ['You can only perform this operation when the application '
+                                                 'is in an editable state']},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(data={'errors': 'Your organisation is not the owner of this good'},
@@ -90,9 +96,7 @@ class ApplicationGoodOnApplication(APIView):
 
 
 class ApplicationGoodsTypes(APIView):
-    """
-    Goodstypes belonging to an open application
-    """
+    """ Goodstypes belonging to an open application. """
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])

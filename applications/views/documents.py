@@ -34,6 +34,7 @@ class ApplicationDocumentView(APIView):
         })
     @transaction.atomic
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def post(self, request, application):
         """
         Upload additional document onto an application
@@ -61,6 +62,7 @@ class ApplicationDocumentDetailView(APIView):
         })
     @transaction.atomic
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def delete(self, request, application, doc_pk):
         """
         Delete an additional document on an application

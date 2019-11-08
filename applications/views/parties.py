@@ -6,7 +6,7 @@ from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_party_case_activity
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_users, application_in_major_editable_state
+from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state, application_in_editable_state
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
@@ -111,6 +111,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 
     @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def delete(self, request, application, ueu_pk):
         """
         Delete an ultimate end user and remove it from the application
@@ -229,10 +230,9 @@ class RemoveThirdParty(APIView):
 
     @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def delete(self, request, application, tp_pk):
-        """
-        Delete a third party and remove it from the application
-        """
+        """ Delete a third party and remove it from the application. """
         try:
             third_party = application.third_parties.get(pk=tp_pk)
         except ThirdParty.DoesNotExist:

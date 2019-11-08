@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.libraries.case_activity import set_site_case_activity
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from conf.authentication import ExporterAuthentication
@@ -17,10 +18,10 @@ from users.models import ExporterUser
 
 
 class ApplicationSites(APIView):
-    """
-    View sites belonging to an application or add them
-    """
+    """ View sites belonging to an application or add them. """
     authentication_classes = (ExporterAuthentication,)
+
+    TRADING = 'Trading'
 
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -35,7 +36,7 @@ class ApplicationSites(APIView):
         data = request.data
         site_ids = data.get('sites')
 
-        # Validate that there are actually sites
+        # Validate that there are sites
         if not site_ids:
             return JsonResponse(data={'errors': {'sites': ['You have to pick at least one site']}},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -44,9 +45,15 @@ class ApplicationSites(APIView):
         previous_sites_ids = [str(previous_site_id) for previous_site_id in
                               previous_sites.values_list('site__id', flat=True)]
 
+        if application.status and application.status.status in get_case_statuses(read_only=True):
+            return JsonResponse(data={'errors': {
+                'external_locations': [
+                    f'Application status {application.status.status} is read-only.']
+            }}, status=status.HTTP_400_BAD_REQUEST)
+
         if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
             new_sites = [get_site(site_id, request.user.organisation) for site_id in site_ids if site_id not in
-                         previous_sites_ids]
+                        previous_sites_ids]
         else:
             if has_previous_locations(application):
                 return JsonResponse(data={'errors': {
@@ -71,7 +78,7 @@ class ApplicationSites(APIView):
                     new_sites.append(new_site)
 
         # Update application activity
-        application.activity = 'Trading'
+        application.activity = self.TRADING
         application.save()
 
         # Get sites to be removed
@@ -83,11 +90,11 @@ class ApplicationSites(APIView):
         for new_site in new_sites:
             serializer = SiteOnApplicationCreateSerializer(data={'site': new_site.id, 'application': application.id})
 
-            if serializer.is_valid():
-                serializer.save()
-                response_data.append(serializer.data)
-            else:
+            if not serializer.is_valid():
                 return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            response_data.append(serializer.data)
 
         # Get external locations to be removed if a site is being added
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
