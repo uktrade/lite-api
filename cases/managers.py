@@ -58,9 +58,7 @@ class CaseQuerySet(models.QuerySet):
         """
         order = order if order in ['', '-'] else ''
 
-        return self.annotate(
-            created_at=Coalesce('application__submitted_at', 'query__submitted_at'),
-        ).order_by(f'{order}created_at')
+        return self.order_by(f'{order}created_at')
 
 
 class CaseManager(models.Manager):
