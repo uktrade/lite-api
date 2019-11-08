@@ -53,6 +53,6 @@ class CaseStatusEnum:
         return [
             {
                 'status': choice[0],
-                'priority': cls.priorities[choice[0]]
+                'priority': cls.priority[choice[0]]
             } for choice in cls.choices
         ]
