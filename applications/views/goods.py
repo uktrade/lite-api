@@ -12,8 +12,8 @@ from applications.models import GoodOnApplication
 from applications.serializers.good import GoodOnApplicationViewSerializer, GoodOnApplicationCreateSerializer
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_licence_type, authorised_users, \
-    application_in_major_editable_state
+from conf.decorators import authorised_users, \
+    application_in_major_editable_state, allowed_application_types
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument

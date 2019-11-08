@@ -8,7 +8,8 @@ from applications.libraries.document_helpers import upload_application_document,
     get_goods_type_document
 from applications.serializers.document import ApplicationDocumentSerializer
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, allowed_application_types, application_in_major_editable_state
+from conf.decorators import authorised_users, allowed_application_types, application_in_major_editable_state, \
+    application_in_editable_state
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from goodstype.helpers import get_goods_type
 from users.models import ExporterUser

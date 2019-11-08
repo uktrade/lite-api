@@ -6,7 +6,8 @@ from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_party_case_activity
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state, application_in_editable_state
+from conf.decorators import authorised_users, application_in_major_editable_state, \
+    application_in_editable_state, allowed_application_types
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
