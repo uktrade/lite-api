@@ -6,7 +6,7 @@ from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
+from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import TinyOrganisationViewSerializer, SiteViewSerializer, ExternalLocationSerializer
