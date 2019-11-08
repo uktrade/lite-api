@@ -3,7 +3,6 @@ import uuid
 
 import reversion
 from django.db import models
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
