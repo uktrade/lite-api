@@ -1,8 +1,10 @@
+import itertools
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.enums import ApplicationLicenceType
-from applications.models import StandardApplication, OpenApplication
+from applications.models import StandardApplication, OpenApplication, GoodOnApplication
 from applications.serializers import StandardApplicationSerializer, OpenApplicationSerializer
 from cases.enums import CaseType, AdviceType
 from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
@@ -10,6 +12,7 @@ from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, E
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import FlagSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
@@ -70,6 +73,41 @@ class TinyCaseSerializer(serializers.Serializer):
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
+    flags = serializers.SerializerMethodField()
+    created_at = serializers.CharField()
+
+    def __init__(self, *args, **kwargs):
+        self.team = kwargs.pop('team', None)
+        super().__init__(*args, **kwargs)
+
+    def get_flags(self, instance):
+        """
+        Gets flags for a case and returns in sorted order by team.
+        """
+        case_flag_data = FlagSerializer(instance.flags.order_by('name'), many=True).data
+        org_flag_data = FlagSerializer(instance.organisation.flags.order_by('name'), many=True).data
+
+        if instance.application:
+            goods = GoodOnApplication.objects.filter(application=instance.application).select_related('good')
+            goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by('name') for g in goods]))
+            good_ids = {}
+            goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
+            good_flag_data = FlagSerializer(goods_flags, many=True).data
+        else:
+            good_flag_data = []
+
+        flag_data = case_flag_data + org_flag_data + good_flag_data
+        flag_data = sorted(flag_data, key=lambda x: x['name'])
+
+        if not self.team:
+            return flag_data
+
+        # Sort flags by user's team.
+        team_flags, non_team_flags = [], []
+        for flag in flag_data:
+            team_flags.append(flag) if flag['team']['id'] == str(self.team.id) else non_team_flags.append(flag)
+
+        return team_flags + non_team_flags
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list('name', flat=True))
@@ -81,19 +119,29 @@ class TinyCaseSerializer(serializers.Serializer):
             return instance.application.organisation.name
 
     def get_users(self, instance):
-        try:
-            case_assignments = CaseAssignment.objects.filter(case=instance)
-            users = []
-            for case_assignment in case_assignments:
-                if self.context['is_system_queue'] or case_assignment.queue.name == self.context['queue']:
-                    queue_users = {'queue': case_assignment.queue.name}
-                    queue_users['users'] = [{'first_name': x[0], 'last_name': x[1], 'email': x[2]}
-                                            for x
-                                            in case_assignment.users.values_list('first_name', 'last_name', 'email')]
-                    users.append(queue_users)
-            return users
-        except CaseAssignment.DoesNotExist:
-            return []
+        case_assignments = CaseAssignment.objects.filter(
+            case=instance
+        ).order_by('queue__name').select_related('queue')
+
+        if not self.context['is_system_queue']:
+            case_assignments = case_assignments.filter(queue=self.context['queue_id'])
+
+        users = []
+
+        for case_assignment in case_assignments:
+            queue_users = [
+                {
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'email': email,
+                    'queue': case_assignment.queue.name
+                }
+                for first_name, last_name, email
+                in case_assignment.users.values_list('first_name', 'last_name', 'email')
+            ]
+
+            users.extend(queue_users)
+        return users
 
     def get_status(self, instance):
         if instance.query:
