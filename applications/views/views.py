@@ -19,7 +19,7 @@ from applications.serializers import BaseApplicationSerializer, ApplicationStatu
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import authorised_users, application_in_major_editable_state
+from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from static.statuses.enums import CaseStatusEnum
@@ -92,6 +92,7 @@ class ApplicationDetail(APIView):
         return JsonResponse(data={'application': serializer.data})
 
     @authorised_users(ExporterUser)
+    @application_in_editable_state()
     def put(self, request, application):
         """
         Update an application instance.

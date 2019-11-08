@@ -1,10 +1,13 @@
 from unittest import mock
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from parties.document.models import PartyDocument
 from parties.models import ThirdParty
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.case_status_helpers import get_case_statuses
 from test_helpers.clients import DataTestClient
 
 
@@ -193,3 +196,35 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    @parameterized.expand(get_case_statuses(read_only=False))
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_third_party_when_application_editable_success(self, editable_status, delete_s3_function,
+                                                                  prepare_document_function):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
+        url = reverse('applications:remove_third_party',
+                        kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.third_parties.count(), 0)
+
+    @parameterized.expand(get_case_statuses(read_only=True))
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_third_party_when_application_read_only_failure(self, read_only_status, delete_s3_function,
+                                                                   prepare_document_function):
+        application = self.create_standard_application(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+        url = reverse('applications:remove_third_party',
+                        kwargs={'pk': application.id, 'tp_pk': application.third_parties.first().id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.third_parties.count(), 1)

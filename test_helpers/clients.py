@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 
+from django.core.management import call_command
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
 
 from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
-    StandardApplication, OpenApplication
+    StandardApplication, OpenApplication, ApplicationDocument
 from cases.enums import AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
@@ -43,6 +44,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
+
+    @classmethod
+    def setUpClass(cls):
+        """ Run seed operations for tests. """
+        super(DataTestClient, cls).setUpClass()
+        call_command('seedcasestatuses')
 
     def setUp(self):
         # Gov User Setup
@@ -278,6 +285,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_doc.save()
         return case_doc
 
+    def create_application_document(self, application):
+        application_doc = ApplicationDocument(application=application,
+                                              description="document description",
+                                              name="document name",
+                                              s3_key='documentkey',
+                                              size=12,
+                                              virus_scanned_at=None,
+                                              safe=None)
+
+        application_doc.save()
+        return application_doc
+
     def create_good_document(self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str):
         good_doc = GoodDocument(good=good,
                                 description='This is a document',
@@ -395,6 +414,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
         self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_application_document(application)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
