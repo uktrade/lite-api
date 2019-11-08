@@ -11,7 +11,7 @@ from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
 from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
+from organisations.serializers import OrganisationDetailSerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum, get_case_status_by_status
@@ -27,7 +27,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     export_type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    organisation = TinyOrganisationViewSerializer()
+    organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
 
     def get_export_type(self, instance):

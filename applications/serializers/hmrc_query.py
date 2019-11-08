@@ -6,7 +6,7 @@ from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.serializers import GoodsTypeSerializer, FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import TinyOrganisationViewSerializer, SiteViewSerializer, ExternalLocationSerializer
@@ -25,7 +25,7 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
 
     def get_goods_types(self, instance):
         goods_types = GoodsType.objects.filter(application=instance)
-        return GoodsTypeSerializer(goods_types, many=True).data
+        return FullGoodsTypeSerializer(goods_types, many=True).data
 
     def get_goods_locations(self, application):
         sites = Site.objects.filter(sites_on_application__application=application)
