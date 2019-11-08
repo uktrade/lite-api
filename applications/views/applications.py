@@ -20,7 +20,6 @@ from applications.serializers.generic_application import GenericApplicationListS
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.pagination import MaxPageNumberPagination
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -33,7 +32,6 @@ from users.models import ExporterUser
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
-    pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
         """
