@@ -8,6 +8,7 @@ from django.utils import timezone
 from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
+from cases.managers import CaseManager
 from common.models import TimestampedModel
 from documents.models import Document
 from flags.models import Flag
@@ -34,8 +35,17 @@ class Case(TimestampedModel):
     queues = models.ManyToManyField(Queue, related_name='cases')
     flags = models.ManyToManyField(Flag, related_name='cases')
 
+    objects = CaseManager()
+
     class Meta:
         ordering = ('created_at',)
+
+    @property
+    def organisation(self):
+        """
+        The organisation for a case comes from the query or application associated with that case.
+        """
+        return self.query.organisation if self.query else self.application.organisation
 
 
 @reversion.register()
