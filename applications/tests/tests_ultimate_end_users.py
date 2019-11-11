@@ -5,7 +5,10 @@ from rest_framework import status
 
 from parties.document.models import PartyDocument
 from parties.models import UltimateEndUser
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.case_status_helpers import get_case_statuses
 from test_helpers.clients import DataTestClient
+from parameterized import parameterized
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
@@ -190,3 +193,33 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(UltimateEndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    @parameterized.expand(get_case_statuses(read_only=False))
+    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch('documents.models.Document.delete_s3')
+    def test_delete_ultimate_end_user_when_application_editable_success(self, editable_status, delete_s3_function,
+                                                                        prepare_document_function):
+        application = self.create_standard_application_with_incorporated_good(self.organisation)
+        application.status = get_case_status_by_status(editable_status)
+        application.save()
+        url = reverse('applications:remove_ultimate_end_user',
+                      kwargs={'pk': application.id, 'ueu_pk': application.ultimate_end_users.first().id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.ultimate_end_users.count(), 0)
+
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_delete_third_party_when_application_read_only_failure(self, read_only_status):
+        application = self.create_standard_application_with_incorporated_good(self.organisation)
+        application.status = get_case_status_by_status(read_only_status)
+        application.save()
+
+        url = reverse('applications:remove_ultimate_end_user',
+                        kwargs={'pk': application.id, 'ueu_pk': application.ultimate_end_users.first().id})
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(application.ultimate_end_users.count(), 1)

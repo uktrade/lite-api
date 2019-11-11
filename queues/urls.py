@@ -1,6 +1,6 @@
 from django.urls import path
 
-from queues.views import queues, cases, case_assignments
+from queues.views import queues, case_assignments
 
 app_name = 'queues'
 
@@ -9,8 +9,6 @@ urlpatterns = [
     path('', queues.QueuesList.as_view(), name='queues'),
     # ex: /queues/<uuid:pk>/ - View a specific queue
     path('<uuid:pk>/', queues.QueueDetail.as_view(), name='queue'),
-    # ex: /queues/<uuid:pk>/cases/ - View all cases pertaining to a queue
-    path('<uuid:pk>/cases/', cases.CasesList.as_view(), name='cases'),
     # ex: /queues/<uuid:pk>/case-assignments/ - Assign users to a case on that queue
     path('<uuid:pk>/case-assignments/', case_assignments.CaseAssignments.as_view(), name='case_assignments')
 ]

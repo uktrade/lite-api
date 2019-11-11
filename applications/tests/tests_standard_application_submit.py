@@ -164,7 +164,7 @@ class StandardApplicationTests(DataTestClient):
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_standard_application(self.organisation)
-        standard_application.status = get_case_status_by_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED)
+        standard_application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
@@ -174,7 +174,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(standard_application.status,
-                         get_case_status_by_status(CaseStatusEnum.MORE_INFORMATION_REQUIRED))
+                         get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS))
         self.assertEqual(standard_application.submitted_at, previous_submitted_at)
 
     def test_submit_standard_application_and_verified_good_status_is_not_altered(self):
