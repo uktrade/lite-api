@@ -10,6 +10,12 @@ class CaseType:
     ]
 
     @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
+    @classmethod
     def as_list(cls):
         return [
             {

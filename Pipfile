@@ -23,6 +23,8 @@ django-background-tasks = ">=1.2"
 packaging = "==19.0"
 coverage = ">=4.5.4"
 openpyxl = "*"
+pre-commit = "*"
+django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
 
