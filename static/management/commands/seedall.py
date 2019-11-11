@@ -24,6 +24,11 @@ class Command(SeedCommand):
             call_command(command)
 
     def operation(self, *args, **options):
+        """
+        pipenv run ./manage.py seedall [--essential] [--non-essential]
+
+        essential & non-essential are optional params to only run seed certain tasks
+        """
         if options['essential']:
             self.seed_list(ESSENTIAL)
         elif options['non_essential']:

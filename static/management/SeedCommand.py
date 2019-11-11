@@ -5,7 +5,7 @@ from django.core.management import BaseCommand
 
 class SeedCommand(ABC, BaseCommand):
     """
-    help and success message should be overridden
+    Help and Success message should be overridden
     with messages relevant to the operation
     """
     help = None

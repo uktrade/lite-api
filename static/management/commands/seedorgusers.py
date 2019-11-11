@@ -14,7 +14,7 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedorgusers
     """
     help = 'Seeds test organisation users'
-    success = 'Test org users seeded successfully!'
+    success = 'Successfully seeded test org'
 
     def operation(self, *args, **options):
         organisation = _get_organisation()

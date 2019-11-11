@@ -7,7 +7,7 @@ from static.management.SeedCommand import SeedCommand
 
 class Command(SeedCommand):
     help = 'Creates and updates control list entries based off of the control list entry spreadsheet'
-    success = 'Control List Entries updated successfully!'
+    success = 'Successfully seeded control list entries'
 
     def operation(self, *args, **options):
         """
