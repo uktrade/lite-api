@@ -100,6 +100,5 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
                 'reference_number_on_information_form', instance.reference_number_on_information_form)
         else:
             instance.reference_number_on_information_form = None
-        instance.last_modified_at = datetime.now(timezone.utc)
         instance = super().update(instance, validated_data)
         return instance

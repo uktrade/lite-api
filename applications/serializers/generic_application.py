@@ -5,7 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
-from applications.serializers.denial_reasons import ApplicationDenialReasonSerializer
+from applications.serializers.denial_reasons import ApplicationDenialReasonCreateSerializer
 from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
@@ -135,7 +135,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
                     'reason_details': validated_data.get('reason_details'),
                     'reasons': validated_data.get('reasons')}
 
-            application_denial_reason_serializer = ApplicationDenialReasonSerializer(data=data)
+            application_denial_reason_serializer = ApplicationDenialReasonCreateSerializer(data=data)
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
                 ApplicationDenialReason.objects.filter(

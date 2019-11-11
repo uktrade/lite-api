@@ -19,7 +19,6 @@ class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
 
 class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
     site = SiteViewSerializer(read_only=True, many=True)
-    # application = BaseApplicationSerializer(read_only=True)
 
     class Meta:
         model = SiteOnApplication

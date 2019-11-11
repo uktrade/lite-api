@@ -24,7 +24,6 @@ class BaseApplication(models.Model):
     status = models.ForeignKey(CaseStatus, related_name='application_status', on_delete=models.CASCADE, blank=True,
                                null=True)
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
-
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
 

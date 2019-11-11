@@ -1,3 +1,4 @@
+import json
 import operator
 from functools import reduce
 
@@ -6,7 +7,6 @@ from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
-from rest_framework.parsers import JSONParser
 
 from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
@@ -45,14 +45,12 @@ class OrganisationsList(generics.ListCreateAPIView):
         """
         Create a new organisation
         """
-        data = JSONParser().parse(request)
+        data = json.loads(request.body)
 
         if data.get('type') == 'individual':
             try:
                 data['name'] = data['user']['first_name'] + " " + data['user']['last_name']
-            except AttributeError:
-                pass
-            except KeyError:
+            except (AttributeError, KeyError):
                 pass
 
         serializer = OrganisationCreateSerializer(data=data)

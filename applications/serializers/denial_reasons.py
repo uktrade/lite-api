@@ -22,7 +22,7 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
                   'reasons',)
 
 
-class ApplicationDenialReasonSerializer(serializers.ModelSerializer):
+class ApplicationDenialReasonCreateSerializer(serializers.ModelSerializer):
     reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
 

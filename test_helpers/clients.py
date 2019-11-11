@@ -501,7 +501,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                                 hmrc_organisation=self.hmrc_organisation,
                                 end_user=self.create_end_user('End User', organisation),
                                 consignee=self.create_consignee('Consignee', organisation),
-                                reasoning='Because the exporter "forgot" to mention the nuclear submarine in his trunk')
+                                reasoning='I Am Easy to Find')
 
         application.save()
 
