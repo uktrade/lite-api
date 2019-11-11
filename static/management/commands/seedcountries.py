@@ -15,6 +15,6 @@ class Command(SeedCommand):
         Country.objects.all().delete()
         with open('lite-content/lite-api/countries.csv', newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            next(reader, None)  # skip the headers
+            next(reader)  # skip the headers
             for row in reader:
                 Country.objects.create(id=row[1], name=row[0], type=row[2])
