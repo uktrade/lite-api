@@ -24,4 +24,3 @@ class LoggingMiddleware:
         })
 
         return response
-

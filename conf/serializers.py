@@ -7,6 +7,11 @@ from conf.validators import ControlListEntryValidator
 
 
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
+    """
+    A PrimaryKeyRelatedField which serialises full objects when producing output.
+
+    That is, you can POST or PUT IDs, but GET will serialize the full object.
+    """
     def __init__(self, **kwargs):
         self.serializer = kwargs.pop('serializer', None)
 
