@@ -28,7 +28,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.submit_application(draft) # This will submit the application and set the good status to SUBMITTED
 
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': self.good_on_application.id})
+                      kwargs={'obj_pk': self.good_on_application.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -50,7 +50,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.good_on_application.good.save()
 
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': self.good_on_application.id})
+                      kwargs={'obj_pk': self.good_on_application.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -82,7 +82,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         good_on_application2.save()
 
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': good_on_application1.id})
+                      kwargs={'obj_pk': good_on_application1.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -101,7 +101,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': "7070dc05-0afa-482c-b4f7-ae0a8943e53c"})  # Imaginary UUID
+                      kwargs={'obj_pk': "7070dc05-0afa-482c-b4f7-ae0a8943e53c"})  # Imaginary UUID
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -112,7 +112,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         draft = self.create_standard_application(self.organisation)
 
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': self.good_on_application.id})
+                      kwargs={'obj_pk': self.good_on_application.id})
 
         response = self.client.delete(url, **self.gov_headers)
 
@@ -122,7 +122,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
     def test_remove_goods_from_application_not_in_users_organisation_failure(self):
         self.create_standard_application(self.organisation)
         url = reverse('applications:good_on_application',
-                      kwargs={'good_on_application_pk': self.good_on_application.id})
+                      kwargs={'obj_pk': self.good_on_application.id})
 
         other_organisation, _ = self.create_organisation_with_exporter_user()
         permission_denied_user = UserOrganisationRelationship.objects.get(organisation=other_organisation).user
@@ -141,7 +141,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         application.status = get_case_status_by_status(editable_status)
         application.save()
         url = reverse('applications:good_on_application',
-                        kwargs={'good_on_application_pk': self.good_on_application.id})
+                        kwargs={'obj_pk': self.good_on_application.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -154,7 +154,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         application.status = get_case_status_by_status(read_only_status)
         application.save()
         url = reverse('applications:good_on_application',
-                        kwargs={'good_on_application_pk': self.good_on_application.id})
+                        kwargs={'obj_pk': self.good_on_application.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
