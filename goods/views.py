@@ -106,7 +106,7 @@ class GoodList(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         if 'validate_only' in data and data['validate_only'] is True:
-            return HttpResponse(status=200)
+            return HttpResponse(status=status.HTTP_200_OK)
         else:
             serializer.save()
 
