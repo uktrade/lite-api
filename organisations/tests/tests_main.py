@@ -133,8 +133,8 @@ class OrganisationCreateTests(DataTestClient):
 
 
     @parameterized.expand([
-        ['1231234'],  # With data
-        [''],  # without data
+        ['1231234'],
+        [''],
     ])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
