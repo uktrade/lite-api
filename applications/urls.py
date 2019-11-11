@@ -20,7 +20,8 @@ urlpatterns = [
     path(route='<uuid:pk>/goodstypes/', view=goods.ApplicationGoodsTypes.as_view(), name='application_goodstypes'),
     path(route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/',  view=goods.ApplicationGoodsType.as_view(), name='application_goodstype'),
     path(route='<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/',view=documents.GoodsTypeDocumentView.as_view(), name='goods_type_document'),
-    path(route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/', view=goods.ApplicationGoodsTypeCountries.as_view(), name='application_goodstype_assign_countries'),
+    path(route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/', view=goods.ApplicationGoodsTypeCountries.as_view(),
+         name='application_goodstype_assign_countries'),
 
     # End user
     path(route='<uuid:pk>/end-user/', view=parties.ApplicationEndUser.as_view(), name='end_user'),
@@ -29,7 +30,8 @@ urlpatterns = [
     # Ultimate end users
     path(route='<uuid:pk>/ultimate-end-users/', view=parties.ApplicationUltimateEndUsers.as_view(), name='ultimate_end_users'),
     path(route='<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>', view=parties.RemoveApplicationUltimateEndUser.as_view(), name='remove_ultimate_end_user'),
-    path(route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/', view=party_documents.UltimateEndUserDocumentsView.as_view(), name='ultimate_end_user_document'),
+    path(route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/', view=party_documents.UltimateEndUserDocumentsView.as_view(),
+         name='ultimate_end_user_document'),
 
     # Consignee
     path(route='<uuid:pk>/consignee/', view=parties.ApplicationConsignee.as_view(), name='consignee'),
@@ -43,7 +45,8 @@ urlpatterns = [
     # Sites, locations and countries
     path(route='<uuid:pk>/sites/', view=sites.ApplicationSites.as_view(), name='application_sites'),
     path(route='<uuid:pk>/external_locations/', view=external_locations.ApplicationExternalLocations.as_view(), name='application_external_locations'),
-    path(route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/', view=external_locations.ApplicationRemoveExternalLocation.as_view(), name='application_remove_external_location'),
+    path(route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/', view=external_locations.ApplicationRemoveExternalLocation.as_view(),
+         name='application_remove_external_location'),
     path(route='<uuid:pk>/countries/', view=countries.ApplicationCountries.as_view(), name='countries'),
 
     # Supporting Documents

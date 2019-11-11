@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
