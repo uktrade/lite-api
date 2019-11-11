@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import OpenApplication
+from applications.models import OpenApplication, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer, GenericApplicationListSerializer
 from content_strings.strings import get_string
@@ -17,6 +18,8 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
     destinations = serializers.SerializerMethodField()
     goods_types = serializers.SerializerMethodField()
     goods_locations = serializers.SerializerMethodField()
+    # TODO: Rename to supporting_documentation when possible
+    additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -28,7 +31,12 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             'goods_locations',
             'activity',
             'usage',
+            'additional_documents'
         ]
+
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)

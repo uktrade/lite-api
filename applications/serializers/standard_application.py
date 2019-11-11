@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import StandardApplication
+from applications.models import StandardApplication, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
     GenericApplicationUpdateSerializer, GenericApplicationListSerializer
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
@@ -19,6 +20,29 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     goods_locations = serializers.SerializerMethodField()
+    # TODO: Rename to supporting_documentation when possible
+    additional_documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StandardApplication
+        fields = GenericApplicationListSerializer.Meta.fields + [
+            'end_user',
+            'ultimate_end_users',
+            'third_parties',
+            'consignee',
+            'goods',
+            'destinations',
+            'have_you_been_informed',
+            'reference_number_on_information_form',
+            'goods_locations',
+            'activity',
+            'usage',
+            'additional_documents'
+        ]
+
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_destinations(self, application):
         if application.end_user:
@@ -42,22 +66,6 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
             return {'type': 'external_locations', 'data': serializer.data}
 
         return {}
-
-    class Meta:
-        model = StandardApplication
-        fields = GenericApplicationListSerializer.Meta.fields + [
-            'end_user',
-            'ultimate_end_users',
-            'third_parties',
-            'consignee',
-            'goods',
-            'destinations',
-            'have_you_been_informed',
-            'reference_number_on_information_form',
-            'goods_locations',
-            'activity',
-            'usage',
-        ]
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
