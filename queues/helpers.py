@@ -1,27 +1,10 @@
-from typing import Dict
-
 from django.db.models import Q
-from django.db.models.functions import Coalesce
-from django.http import Http404
 
 from conf.exceptions import NotFoundError
 from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
-
-
-def _coalesce_case_status_priority(cases):
-    if cases.count():
-        case = cases.first()
-        case = case.__dict__
-        if 'status__priority' not in case:
-            return cases.annotate(
-                status__priority=Coalesce('application__status__priority', 'query__status__priority')
-            )
-
-    return cases
 
 
 def _all_cases_queue():
@@ -86,39 +69,3 @@ def get_queue(pk, team=None):
         return queue[0]
     else:
         raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
-
-
-def filter_cases(cases, filter_by: Dict[str, str]):
-    """
-    Given a list of cases, filter by filter parameter
-    """
-    kwargs = {}
-    case_type = filter_by.get('case_type', None)
-    if case_type:
-        kwargs['type'] = case_type
-
-    status = filter_by.get('status', None)
-    if status:
-        cases = _coalesce_case_status_priority(cases)
-        priority = get_case_status_by_status(status).priority
-        kwargs['status__priority'] = priority
-
-    if kwargs:
-        return cases.filter(**kwargs)
-
-    return cases.all()
-
-
-def sort_cases(cases, sort_by: str):
-    """
-    Given a list of cases, sort by the sort parameter
-    Currently only supports: status
-    """
-    if sort_by:
-        if sort_by == 'status' or sort_by == '-status':
-            cases = _coalesce_case_status_priority(cases)
-            return cases.order_by(sort_by + '__priority')
-        else:
-            raise Http404
-
-    return cases.all()

@@ -15,6 +15,15 @@ class CaseType:
             if key == choice:
                 return value
 
+    @classmethod
+    def as_list(cls):
+        return [
+            {
+                'value': choice[0],
+                'title': choice[1],
+            } for choice in cls.choices
+        ]
+
 
 class AdviceType:
     APPROVE = 'approve'
