@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from static.control_list_entries.models import ControlListEntry
+from static.management.commands import seedcontrollistentries
 from test_helpers.clients import DataTestClient
 
 
@@ -35,5 +36,5 @@ class SeedControlListEntriesTests(TestCase):
         out = StringIO()
         call_command('seedcontrollistentries', stdout=out)
 
-        self.assertIn('Control List Entries updated successfully!', out.getvalue())
+        self.assertIn(seedcontrollistentries.Command.success, out.getvalue())
         self.assertTrue(ControlListEntry.objects.count() > 3000)
