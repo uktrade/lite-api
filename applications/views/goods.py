@@ -68,8 +68,8 @@ class ApplicationGoodOnApplication(APIView):
     """ Good on a standard application. """
     authentication_classes = (ExporterAuthentication,)
 
-    def delete(self, request, good_on_application_pk):
-        good_on_application = get_good_on_application(good_on_application_pk)
+    def delete(self, request, obj_pk):
+        good_on_application = get_good_on_application(obj_pk)
         application = good_on_application.application
 
         if application.status and application.status.status in get_case_statuses(read_only=True):
