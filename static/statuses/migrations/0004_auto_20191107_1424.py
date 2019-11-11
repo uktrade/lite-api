@@ -19,5 +19,5 @@ class Migration(migrations.Migration):
             model_name='casestatus',
             name='status',
             field=models.CharField(choices=[('applicant_editing', 'Applicant editing'), ('finalised', 'Finalised'), ('initial_checks', 'Initial checks'), ('resubmitted', 'Resubmitted'), ('submitted', 'Submitted'), ('under_final_review', 'Under final review'), ('under_review', 'Under review'), ('withdrawn', 'Withdrawn')], max_length=50),
-        ),
+        )
     ]

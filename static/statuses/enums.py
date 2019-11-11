@@ -47,3 +47,12 @@ class CaseStatusEnum:
         UNDER_REVIEW: True,
         WITHDRAWN: True,
     }
+
+    @classmethod
+    def as_list(cls):
+        return [
+            {
+                'status': choice[0],
+                'priority': cls.priority[choice[0]]
+            } for choice in cls.choices
+        ]
