@@ -4,7 +4,7 @@ from users.models import Permission
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedcountries
+    pipenv run ./manage.py seedpermissions
     """
     help = 'Seeds permissions'
     success = 'Successfully seeded permissions'

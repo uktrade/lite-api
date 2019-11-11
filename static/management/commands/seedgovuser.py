@@ -8,7 +8,7 @@ from users.models import GovUser, Role, Permission
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedcountries
+    pipenv run ./manage.py seedgovuser
     """
     help = 'Seeds gov user'
     success = 'Successfully seeded gov user'

@@ -1,7 +1,10 @@
+from django.core.management import call_command
+
 from static.management.SeedCommand import SeedCommand
 
-from static.management.commands import seedcontrollistentries, seedorgusers, seeddenialreasons, seedcountries, \
-    seedgovuser, seedtestteam, seedpermissions
+ESSENTIAL = ['seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedtestteam', 'seedpermissions', 'seedcasestatuses']
+NON_ESSENTIAL = ['seedgovuser', 'seedorgusers']
+TESTS = ['seeddenialreasons', 'seedcountries', 'seedtestteam', 'seedpermissions', 'seedgovuser', 'seedcasestatuses']
 
 
 class Command(SeedCommand):
@@ -16,34 +19,15 @@ class Command(SeedCommand):
         parser.add_argument('--non-essential', action='store_true')
 
     @staticmethod
-    def essential_seeding(*args, **options):
-        # Seeding static resources
-        seedcontrollistentries.Command().handle(*args, **options)
-        seeddenialreasons.Command().handle(*args, **options)
-        seedcountries.Command().handle(*args, **options)
-        seedtestteam.Command().handle(*args, **options)
-        seedpermissions.Command().handle(*args, **options)
-
-    @staticmethod
-    def test_seeding(*args, **options):
-        # Seeding that should be run in the unit test setup
-        seeddenialreasons.Command().handle(*args, **options)
-        seedcountries.Command().handle(*args, **options)
-        seedtestteam.Command().handle(*args, **options)
-        seedpermissions.Command().handle(*args, **options)
-        seedgovuser.Command().handle(*args, **options)
-
-    @staticmethod
-    def non_essential_seeding(*args, **options):
-        # Helpful seed operations for adding test data
-        seedgovuser.Command().handle(*args, **options)
-        seedorgusers.Command().handle(*args, **options)
+    def seed_list(commands):
+        for command in commands:
+            call_command(command)
 
     def operation(self, *args, **options):
         if options['essential']:
-            self.essential_seeding(args, options)
+            self.seed_list(ESSENTIAL)
         elif options['non_essential']:
-            self.non_essential_seeding(args, options)
+            self.seed_list(NON_ESSENTIAL)
         else:
-            self.essential_seeding(args, options)
-            self.non_essential_seeding(args, options)
+            self.seed_list(ESSENTIAL)
+            self.seed_list(NON_ESSENTIAL)
