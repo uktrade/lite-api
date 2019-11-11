@@ -25,7 +25,9 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             'goods_types',
             'have_you_been_informed',
             'reference_number_on_information_form',
-            'goods_locations'
+            'goods_locations',
+            'activity',
+            'usage',
         ]
 
     def get_destinations(self, application):

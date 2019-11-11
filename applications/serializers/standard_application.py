@@ -55,6 +55,8 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
             'have_you_been_informed',
             'reference_number_on_information_form',
             'goods_locations',
+            'activity',
+            'usage',
         ]
 
 
