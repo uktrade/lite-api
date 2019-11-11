@@ -1,17 +1,17 @@
 from rest_framework import serializers
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from organisations.models import Organisation
+from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
 from parties.serializers import EndUserSerializer
-from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.helpers import get_exporter_query
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
-                                                    serializer=TinyOrganisationViewSerializer)
+                                                    serializer=OrganisationDetailSerializer)
     end_user = EndUserSerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)

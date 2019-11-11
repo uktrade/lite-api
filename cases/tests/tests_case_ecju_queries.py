@@ -65,7 +65,7 @@ class CaseEcjuQueriesTests(DataTestClient):
 
         # Assert
         response_json = response.json()
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_json.get('ecju_queries')), 2)
 

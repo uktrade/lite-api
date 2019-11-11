@@ -16,3 +16,6 @@ class PicklistItem(models.Model):
     type = models.CharField(choices=PicklistType.choices, max_length=50)
     status = models.CharField(choices=PickListStatus.choices, default=PickListStatus.ACTIVE, max_length=50)
     last_modified_at = models.DateTimeField(auto_now=True, blank=True)
+
+    class Meta:
+        ordering: ["-last_modified_at"]
