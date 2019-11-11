@@ -40,7 +40,7 @@ class ApplicationList(ListCreateAPIView):
         if self.request.user.organisation.type == OrganisationType.HMRC:
             return HmrcQuery.objects.filter(status__isnull=True,
                                             hmrc_organisation=self.request.user.organisation)
-        
+
         try:
             submitted = optional_str_to_bool(self.request.GET.get('submitted'))
         except ValueError as e:
