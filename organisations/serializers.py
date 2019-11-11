@@ -92,7 +92,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     standard_blank_error_message = 'This field may not be blank'
 
     def validate_eori_number(self, value):
-        if self.initial_data.get('type') == OrganisationType.COMMERCIAL and not value:
+        if self.initial_data.get('type') != OrganisationType.HMRC and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
