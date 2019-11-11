@@ -61,7 +61,7 @@ Endpoints for retrieving, creating and updating drafts.
         <td>200 <br> 404 </td>
         <td> updates the draft(ref. draft_id)  <br>
              with any combination of the  <br>
-             updatable fields: name,  <br> 
+             updatable fields: name,  <br>
              control_code, activity,  <br>
              usage, destination.
         </td>
@@ -172,8 +172,8 @@ sample GET /drafts/e9b2576b-6d69-4377-bbdf-2f5d6a7d54c4 response:
 <pre>
 {
     "id": [UUID]
-    "name":[free text] 
-    "control_code":[free text] 
+    "name":[free text]
+    "control_code":[free text]
     "activity":[free text]
     "usage":[free text]
     "destination":[free text]
@@ -222,7 +222,7 @@ Endpoints for retrieving, creating and updating applications:
         <td>/applications/{id}</td>
         <td>?</td>
         <td>Request:  DTO Structure <br>
-        (all elements optional except ID )       
+        (all elements optional except ID )
         </td>
         <td>200 <br> 404 </td>
         <td>Updates the application <br>
@@ -323,13 +323,13 @@ example PUT /applications/7ece1b1d-453c-440b-b877-1e337c66839a/ response:
 {
     "id":[UUID],
     "name":[free text],
-    "eori_number":[free text], 
+    "eori_number":[free text],
     "sic_number":[free text],
     "vat_number":[free text],
     "registration_number":[free text],
     "admin_user_email":[valid email address],
-    "user": {             
-        "first_name":[free text], 
+    "user": {
+        "first_name":[free text],
         "last_name":[free text],
         "email":[valid email address],
         "password":[free text]
@@ -388,13 +388,13 @@ example POST /organisations/ request:
 {
     "id":"UUID-24234",
     "name":"Test Organisation",
-    "eori_number":"4646", 
+    "eori_number":"4646",
     "sic_number":"43636",
     "vat_number":"43616",
     "registration_number":"4536",
     "admin_user_email":"admin@admin.admin",
-	"user":	{             
-        "first_name":"First", 
+	"user":	{
+        "first_name":"First",
         "last_name":"Last",
         "email":"first@last.com",
         "password":"secret32="
@@ -499,7 +499,7 @@ sample GET /organisations/71f3da6b-7b89-4ffc-9d60-a17f8036f331 response:
         "city":[free text],
         "region":[free text],
         "country":[free text]
-    }               
+    }
 }
 </pre>
 
@@ -612,13 +612,13 @@ sample POST /organisations/sites/ response:
 <pre>
 {
     "id":[UUID]
-    "name":[free text] 
+    "name":[free text]
     "cases":{
         "id":[UUID]
         "application": {
                ...
         }
-     }   
+     }
 }
 </pre>
 
@@ -707,10 +707,10 @@ sample GET /queues/00000000-0000-0000-0000-000000000001 response
 **Queues DTO Structure**
 <br> Last Updated 14/5/2019
 <pre>
-{             
-    "email":[valid email address] 
-    "password":[free text] 
-    "organisation":[foreign key]           
+{
+    "email":[valid email address]
+    "password":[free text]
+    "organisation":[foreign key]
 }
 </pre>
 Endpoints for retrieving, creating and updating users.
@@ -736,7 +736,7 @@ Endpoints for retrieving, creating and updating users.
 <pre>
 {
     "id": [UUID]
-    "name":[free text] 
+    "name":[free text]
 }
 </pre>
 

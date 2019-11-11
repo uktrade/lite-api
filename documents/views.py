@@ -20,4 +20,3 @@ class DocumentDetail(APIView):
             return JsonResponse({'document': serializer.data})
         except Document.DoesNotExist:
             raise NotFoundError({'document': 'Document not found'})
-
