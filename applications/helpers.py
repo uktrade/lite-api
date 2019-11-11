@@ -29,7 +29,7 @@ def get_application_create_serializer(application_type):
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
     else:
-        raise BadRequestError({'errors': f'get_application_update_serializer does '
+        raise BadRequestError({'errors': f'get_application_create_serializer does '
                                          f'not support this application type: {application_type}'})
 
 
