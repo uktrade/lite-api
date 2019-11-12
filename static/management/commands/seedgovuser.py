@@ -5,6 +5,9 @@ from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from teams.models import Team
 from users.models import GovUser, Role, Permission
 
+DEFAULT_ID = '00000000-0000-0000-0000-000000000001'
+TEAM_NAME = 'Admin'
+ROLE_NAME = 'Default'
 
 class Command(SeedCommand):
     """
@@ -15,8 +18,8 @@ class Command(SeedCommand):
     seed_command = 'seedgovuser'
 
     def operation(self, *args, **options):
-        Team.objects.get_or_create(id='00000000-0000-0000-0000-000000000001', name='Admin')
-        Role.objects.get_or_create(id='00000000-0000-0000-0000-000000000001', name='Default')
+        Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)
+        Role.objects.get_or_create(id=DEFAULT_ID, name=ROLE_NAME)
         for email in json.loads(env('SEED_USERS')):
             GovUser.objects.get_or_create(email=email, team=Team.objects.get())
 
