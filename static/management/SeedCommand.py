@@ -1,3 +1,4 @@
+import csv
 from abc import ABC
 from io import StringIO
 
@@ -26,6 +27,13 @@ class SeedCommand(ABC, BaseCommand):
     def handle(self, *args, **options):
         self.operation(*args, **options)
         self.stdout.write(self.style.SUCCESS(self.success))
+
+    @staticmethod
+    def read_csv(filename):
+        with open(filename, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            next(reader)  # skip the headers
+            return list(reader)
 
 
 class SeedCommandTest(TestCase):
