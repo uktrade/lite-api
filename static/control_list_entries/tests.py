@@ -28,45 +28,6 @@ class TriageStageTests(DataTestClient):
         self.assertEqual(response_data['text'], parent_rating.text)
         self.assertEqual(len(response_data['children']), 2)
 
-    def test_create_new_rating(self):
-        data = {
-            'rating': 'ML1b',
-            'text': 'This is an element'
-        }
-
-        url = reverse('static:control_list_entries:control_list_entries')
-        response = self.client.post(url, data)
-        response_data = response.json()['control_list_entry']
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        self.assertEqual(response_data['rating'], data['rating'])
-        self.assertEqual(response_data['text'], data['text'])
-
-        control_list_entry = ControlListEntry.objects.get(rating=data['rating'])
-        self.assertEqual(control_list_entry.rating, data['rating'])
-        self.assertEqual(control_list_entry.text, data['text'])
-
-    def test_create_new_child_rating(self):
-        data = {
-            'rating': 'ML1a.a',
-            'text': 'This is a child'
-        }
-
-        url = reverse('static:control_list_entries:control_list_entry', kwargs={'rating': ControlListEntry.objects.get().rating})
-
-        response = self.client.post(url, data)
-        response_data = response.json()['control_list_entry']
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        self.assertEqual(response_data['rating'], data['rating'])
-        self.assertEqual(response_data['text'], data['text'])
-
-        control_list_entry = ControlListEntry.objects.get(rating=data['rating'])
-        self.assertEqual(control_list_entry.rating, data['rating'])
-        self.assertEqual(control_list_entry.text, data['text'])
-
 
 class SeedControlListEntriesTests(TestCase):
 
