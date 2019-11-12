@@ -1,10 +1,7 @@
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
-layouts = {
-    'licence': 'Licence',
-    'ecju': 'ECJU Letter'
-}
+FILE = 'lite-content/lite-api/document_layouts.csv'
 
 
 class Command(SeedCommand):
@@ -17,12 +14,13 @@ class Command(SeedCommand):
         pipenv run ./manage.py seedlayouts
         """
         # Add layouts
-        for layout_filename, layout_name in layouts.items():
-            LetterLayout.objects.get_or_create(filename=layout_filename, name=layout_name)
-            print("Seeded %s layout" % layout_name)
+        reader = self.read_csv(FILE)
+        for row in reader:
+            LetterLayout.objects.get_or_create(filename=row[0], name=row[1])
+            print("Seeded %s layout" % row[1])
 
 
 class SeedLayoutsTests(SeedCommandTest):
     def test_seed_layouts(self):
         self.seed_command(Command)
-        self.assertTrue(LetterLayout.objects.count() == len(layouts))
+        self.assertTrue(LetterLayout.objects.count() == len(Command.read_csv(FILE)))
