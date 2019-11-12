@@ -11,7 +11,7 @@ def initialize(apps, schema_editor):
     # version than this migration expects. We use the historical version.
     DenialReason = apps.get_model('denial_reasons', 'DenialReason')
 
-    with open('lite-content/lite-api/denial_reasons.csv', newline='') as csvfile:
+    with open('lite_content/lite-api/denial_reasons.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         next(reader, None)  # skip the headers
         for row in reader:

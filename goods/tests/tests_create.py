@@ -52,3 +52,27 @@ class GoodsCreateTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Enter a valid control list entry', str(response_data))
+
+    # This data is the first successful created good in the test above, if both tests fail it may be related to that
+    # data being incorrect now
+    @parameterized.expand([
+        ('Widget', GoodControlled.YES, 'ML1a', True, '1337', True),
+        ('Widget', GoodControlled.YES, 'ML1a', True, '1337', False),
+    ])
+    def test_create_validate_only(self, description, is_good_controlled, control_code,
+                                  is_good_end_product, part_number, validate_only):
+        data = {
+            'description': description,
+            'is_good_controlled': is_good_controlled,
+            'control_code': control_code,
+            'is_good_end_product': is_good_end_product,
+            'part_number': part_number,
+            'validate_only': validate_only
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        if validate_only:
+            self.assertEquals(response.status_code, status.HTTP_200_OK)
+        else:
+            self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
