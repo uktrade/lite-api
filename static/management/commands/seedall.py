@@ -2,9 +2,9 @@ from django.core.management import call_command
 
 from static.management.SeedCommand import SeedCommand
 
-ESSENTIAL = ['seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedtestteam', 'seedpermissions', 'seedcasestatuses']
-NON_ESSENTIAL = ['seedgovuser', 'seedorgusers']
-TESTS = ['seeddenialreasons', 'seedcountries', 'seedtestteam', 'seedpermissions', 'seedgovuser', 'seedcasestatuses']
+ESSENTIAL = ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedcasestatuses']
+DEV = ['seedorgusers', 'seedgovuser']
+TESTS = ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser', 'seedcasestatuses']
 
 
 class Command(SeedCommand):
@@ -32,7 +32,7 @@ class Command(SeedCommand):
         if options['essential']:
             self.seed_list(ESSENTIAL)
         elif options['non_essential']:
-            self.seed_list(NON_ESSENTIAL)
+            self.seed_list(DEV)
         else:
             self.seed_list(ESSENTIAL)
-            self.seed_list(NON_ESSENTIAL)
+            self.seed_list(DEV)

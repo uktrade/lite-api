@@ -1,12 +1,7 @@
-from io import StringIO
-
-from django.core.management import call_command
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 
 from static.control_list_entries.models import ControlListEntry
-from static.management.commands import seedcontrollistentries
 from test_helpers.clients import DataTestClient
 
 
@@ -28,13 +23,3 @@ class TriageStageTests(DataTestClient):
         self.assertEqual(response_data['rating'], parent_rating.rating)
         self.assertEqual(response_data['text'], parent_rating.text)
         self.assertEqual(len(response_data['children']), 2)
-
-
-class SeedControlListEntriesTests(TestCase):
-
-    def test_seed_control_list_entries_command_output(self):
-        out = StringIO()
-        call_command('seedcontrollistentries', stdout=out)
-
-        self.assertIn(seedcontrollistentries.Command.success, out.getvalue())
-        self.assertTrue(ControlListEntry.objects.count() > 3000)

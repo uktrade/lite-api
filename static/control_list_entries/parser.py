@@ -26,6 +26,7 @@ def parse_list_into_control_list_entries(worksheet):
 
         # Give the control list entry a random rating if it is decontrolled
         # This is done as rating is unique
+        # TODO Drop this randint stuff and use uuid
         if is_decontrolled:
             is_unique = False
             pk = 0
@@ -42,9 +43,9 @@ def parse_list_into_control_list_entries(worksheet):
             parent = parents_at_depth[current_depth - 1]
 
         # Build the new control list entry
-        control_rating = ControlListEntry.create(rating=rating,
-                                                 text=text,
-                                                 parent=parent,
-                                                 is_decontrolled=is_decontrolled)
+        control_rating = ControlListEntry.objects.get_or_create(rating=rating,
+                                                                text=text,
+                                                                parent=parent,
+                                                                is_decontrolled=is_decontrolled)
 
         parents_at_depth[current_depth] = control_rating
