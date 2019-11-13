@@ -13,7 +13,9 @@ class Command(SeedCommand):
         pipenv run ./manage.py seedcasestatuses
         """
         for choice in CaseStatusEnum.choices:
-            CaseStatus.objects.get_or_create(status=choice[0], priority=CaseStatusEnum.priority[choice[0]],
+            CaseStatus.objects.get_or_create(status=choice[0],
+                                             display_value=choice[1],
+                                             priority=CaseStatusEnum.priority[choice[0]],
                                              is_read_only=CaseStatusEnum.is_read_only[choice[0]])
 
 
