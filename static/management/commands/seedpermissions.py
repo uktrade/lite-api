@@ -1,7 +1,7 @@
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from users.models import Permission, Role, GovUser
+from users.models import Permission
 
-FILE = 'lite-content/lite-api/permissions.csv'
+FILE = 'lite_content/lite-api/permissions.csv'
 
 
 class Command(SeedCommand):

@@ -2,7 +2,7 @@ from conf.helpers import str_to_bool
 from static.denial_reasons.models import DenialReason
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
-FILE = 'lite-content/lite-api/denial_reasons.csv'
+FILE = 'lite_content/lite-api/denial_reasons.csv'
 
 
 class Command(SeedCommand):

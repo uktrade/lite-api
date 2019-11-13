@@ -1,7 +1,7 @@
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
-FILE = 'lite-content/lite-api/document_layouts.csv'
+FILE = 'lite_content/lite-api/document_layouts.csv'
 
 
 class Command(SeedCommand):
