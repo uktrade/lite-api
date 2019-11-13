@@ -51,10 +51,6 @@ def seed_organisation(org):
     )[0]
 
     seed_organisation_site(organisation)
-    print('{"name: "' + organisation.name +
-          '", "type": "' + organisation.type +
-          '", "registration_number": "' + organisation.registration_number +
-          '", "id": "' + str(organisation.id) + '"}')
     return organisation
 
 
