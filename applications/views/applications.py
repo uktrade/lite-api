@@ -17,6 +17,7 @@ from applications.libraries.case_activity import set_application_ref_number_case
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from cases.enums import CaseType
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -178,6 +179,7 @@ class ApplicationSubmission(APIView):
         if not previous_application_status:
             # If the application is being submitted for the first time
             case = Case(application=application)
+            case.type = CaseType.HMRC_QUERY
             case.save()
             data['application']['case_id'] = case.id
         else:
