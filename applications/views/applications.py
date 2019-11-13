@@ -51,17 +51,17 @@ class ApplicationList(ListCreateAPIView):
                 applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
             if submitted is None:
-                applications = BaseApplication.objects. \
-                    filter(organisation=self.request.user.organisation). \
-                    exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects \
+                    .filter(organisation=self.request.user.organisation) \
+                    .exclude(application_type=ApplicationType.HMRC_QUERY)
             elif submitted:
-                applications = BaseApplication.objects. \
-                    submitted(organisation=self.request.user.organisation). \
-                    exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects \
+                    .submitted(organisation=self.request.user.organisation) \
+                    .exclude(application_type=ApplicationType.HMRC_QUERY)
             else:
-                applications = BaseApplication.objects. \
-                    drafts(organisation=self.request.user.organisation). \
-                    exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects \
+                    .drafts(organisation=self.request.user.organisation) \
+                    .exclude(application_type=ApplicationType.HMRC_QUERY)
 
         return applications
 
