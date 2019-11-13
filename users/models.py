@@ -117,6 +117,7 @@ class GovUser(BaseUser):
         """
         self.case_assignments.clear()
 
+    # pylint: disable=W0221
     def send_notification(self, case_activity=None):
         from cases.models import Notification
         # circular import prevention
