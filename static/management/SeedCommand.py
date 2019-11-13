@@ -31,7 +31,7 @@ class SeedCommand(ABC, BaseCommand):
     @staticmethod
     def read_csv(filename):
         with open(filename, newline='') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            reader = csv.reader(csvfile)
             next(reader)  # skip the headers
             return list(reader)
 
