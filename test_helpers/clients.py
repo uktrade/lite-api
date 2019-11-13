@@ -3,11 +3,28 @@ from datetime import datetime, timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
-from applications.enums import ApplicationLicenceType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import BaseApplication, GoodOnApplication, SiteOnApplication, CountryOnApplication, \
-    StandardApplication, OpenApplication, ApplicationDocument
+from applications.enums import (
+    ApplicationLicenceType,
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+)
+from applications.models import (
+    BaseApplication,
+    GoodOnApplication,
+    SiteOnApplication,
+    CountryOnApplication,
+    StandardApplication,
+    OpenApplication,
+    ApplicationDocument,
+)
 from cases.enums import AdviceType
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
+from cases.models import (
+    CaseNote,
+    Case,
+    CaseDocument,
+    CaseAssignment,
+    GoodCountryDecision,
+)
 from conf import settings
 from conf.urls import urlpatterns
 from flags.models import Flag
@@ -42,6 +59,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates an initial organisation and user
     """
+
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
 
@@ -49,31 +67,30 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUpClass(cls):
         """ Run seed operations for tests. """
         super(DataTestClient, cls).setUpClass()
-        seedall.Command.seed_list(SEED_COMMANDS['Tests'])
+        seedall.Command.seed_list(SEED_COMMANDS["Tests"])
 
     def setUp(self):
         # Gov User Setup
-        self.team = Team.objects.get(name='Admin')
-        self.gov_user = GovUser(email='test@mail.com',
-                                first_name='John',
-                                last_name='Smith',
-                                team=self.team)
+        self.team = Team.objects.get(name="Admin")
+        self.gov_user = GovUser(
+            email="test@mail.com", first_name="John", last_name="Smith", team=self.team
+        )
         self.gov_user.save()
-        self.gov_headers = {'HTTP_GOV_USER_TOKEN': user_to_token(self.gov_user)}
+        self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
 
         # Exporter User Setup
         self.organisation = self.create_organisation_with_exporter_user()
         self.exporter_user = ExporterUser.objects.get()
         self.exporter_headers = {
-            'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
-            'HTTP_ORGANISATION_ID': self.organisation.id
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
+            "HTTP_ORGANISATION_ID": self.organisation.id,
         }
 
-        self.queue = self.create_queue('Initial Queue', self.team)
+        self.queue = self.create_queue("Initial Queue", self.team)
 
         # Create a hardcoded control list entry rather than loading in the
         # spreadsheet each time
-        ControlListEntry.create('ML1a', 'Description', None, False)
+        ControlListEntry.create("ML1a", "Description", None, False)
 
         if settings.TIME_TESTS:
             self.tick = datetime.now()
@@ -88,15 +105,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             diff = self.tock - self.tick
             time = round(diff.microseconds / 1000, 2)
             colour = colours.green
-            emoji = ''
+            emoji = ""
 
             if time > 100:
                 colour = colours.orange
             if time > 300:
                 colour = colours.red
-                emoji = ' 🔥'
+                emoji = " 🔥"
 
-            print(self._testMethodName + emoji + ' ' + colour(str(time) + 'ms') + emoji)
+            print(self._testMethodName + emoji + " " + colour(str(time) + "ms") + emoji)
 
     def get(self, path, data=None, follow=False, **extra):
         response = self.client.get(path, data, follow, **extra)
@@ -106,31 +123,38 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
-        exporter_user = ExporterUser(first_name=first_name,
-                                     last_name=last_name,
-                                     email=f'{first_name}@{last_name}.com')
+        exporter_user = ExporterUser(
+            first_name=first_name,
+            last_name=last_name,
+            email=f"{first_name}@{last_name}.com",
+        )
         exporter_user.organisation = organisation
         exporter_user.save()
 
         if organisation:
-            UserOrganisationRelationship(user=exporter_user,
-                                         organisation=organisation).save()
+            UserOrganisationRelationship(
+                user=exporter_user, organisation=organisation
+            ).save()
             exporter_user.status = UserStatuses.ACTIVE
 
         return exporter_user
 
-    def create_organisation_with_exporter_user(self, name='Organisation', org_type=None):
+    def create_organisation_with_exporter_user(
+        self, name="Organisation", org_type=None
+    ):
 
-        organisation = Organisation(name=name,
-                                    eori_number='GB123456789000',
-                                    sic_number='2765',
-                                    vat_number='123456789',
-                                    registration_number='987654321')
+        organisation = Organisation(
+            name=name,
+            eori_number="GB123456789000",
+            sic_number="2765",
+            vat_number="123456789",
+            registration_number="987654321",
+        )
         if org_type:
             organisation.type = org_type
         organisation.save()
 
-        site, address = self.create_site('HQ', organisation)
+        site, address = self.create_site("HQ", organisation)
 
         organisation.primary_site = site
         organisation.save()
@@ -141,115 +165,138 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def add_exporter_user_to_org(organisation, exporter_user):
-        UserOrganisationRelationship(user=exporter_user,
-                                     organisation=organisation).save()
+        UserOrganisationRelationship(
+            user=exporter_user, organisation=organisation
+        ).save()
 
     @staticmethod
-    def create_site(name, org, country='GB'):
-        address = Address(address_line_1='42 Road',
-                          address_line_2='',
-                          country=get_country(country),
-                          city='London',
-                          region='Buckinghamshire',
-                          postcode='E14QW')
+    def create_site(name, org, country="GB"):
+        address = Address(
+            address_line_1="42 Road",
+            address_line_2="",
+            country=get_country(country),
+            city="London",
+            region="Buckinghamshire",
+            postcode="E14QW",
+        )
         address.save()
-        site = Site(name=name,
-                    organisation=org,
-                    address=address)
+        site = Site(name=name, organisation=org, address=address)
         site.save()
         return site, address
 
     @staticmethod
-    def create_external_location(name, org, country='GB'):
-        external_location = ExternalLocation(name=name,
-                                             address='20 Questions Road, Enigma',
-                                             country=get_country(country),
-                                             organisation=org)
+    def create_external_location(name, org, country="GB"):
+        external_location = ExternalLocation(
+            name=name,
+            address="20 Questions Road, Enigma",
+            country=get_country(country),
+            organisation=org,
+        )
         external_location.save()
         return external_location
 
     @staticmethod
     def create_end_user(name, organisation):
-        end_user = EndUser(name=name,
-                           organisation=organisation,
-                           address='42 Road, London, Buckinghamshire',
-                           website='www.' + name + '.com',
-                           sub_type=SubType.GOVERNMENT,
-                           type=PartyType.END,
-                           country=get_country('GB'))
+        end_user = EndUser(
+            name=name,
+            organisation=organisation,
+            address="42 Road, London, Buckinghamshire",
+            website="www." + name + ".com",
+            sub_type=SubType.GOVERNMENT,
+            type=PartyType.END,
+            country=get_country("GB"),
+        )
         end_user.save()
         return end_user
 
     @staticmethod
     def create_ultimate_end_user(name, organisation):
-        ultimate_end_user = UltimateEndUser(name=name,
-                                            organisation=organisation,
-                                            address='42 Road, London, Buckinghamshire',
-                                            website='www.' + name + '.com',
-                                            sub_type=SubType.GOVERNMENT,
-                                            type=PartyType.ULTIMATE,
-                                            country=get_country('GB'))
+        ultimate_end_user = UltimateEndUser(
+            name=name,
+            organisation=organisation,
+            address="42 Road, London, Buckinghamshire",
+            website="www." + name + ".com",
+            sub_type=SubType.GOVERNMENT,
+            type=PartyType.ULTIMATE,
+            country=get_country("GB"),
+        )
         ultimate_end_user.save()
         return ultimate_end_user
 
     @staticmethod
     def create_consignee(name, organisation):
-        consignee = Consignee(name=name,
-                              organisation=organisation,
-                              address='42 Road, London, Buckinghamshire',
-                              website='www.' + name + '.com',
-                              sub_type=SubType.GOVERNMENT,
-                              type=PartyType.CONSIGNEE,
-                              country=get_country('GB'))
+        consignee = Consignee(
+            name=name,
+            organisation=organisation,
+            address="42 Road, London, Buckinghamshire",
+            website="www." + name + ".com",
+            sub_type=SubType.GOVERNMENT,
+            type=PartyType.CONSIGNEE,
+            country=get_country("GB"),
+        )
         consignee.save()
         return consignee
 
     @staticmethod
     def create_third_party(name, organisation):
-        third_party = ThirdParty(name=name,
-                                 organisation=organisation,
-                                 address='42 Road, London, Buckinghamshire',
-                                 website='www.' + name + '.com',
-                                 sub_type=ThirdPartySubType.AGENT,
-                                 type=PartyType.THIRD,
-                                 country=get_country('GB'))
+        third_party = ThirdParty(
+            name=name,
+            organisation=organisation,
+            address="42 Road, London, Buckinghamshire",
+            website="www." + name + ".com",
+            sub_type=ThirdPartySubType.AGENT,
+            type=PartyType.THIRD,
+            country=get_country("GB"),
+        )
         third_party.save()
         return third_party
 
-    def create_case_note(self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False):
-        case_note = CaseNote(case=case,
-                             text=text,
-                             user=user,
-                             is_visible_to_exporter=is_visible_to_exporter)
+    def create_case_note(
+        self,
+        case: Case,
+        text: str,
+        user: BaseUser,
+        is_visible_to_exporter: bool = False,
+    ):
+        case_note = CaseNote(
+            case=case,
+            text=text,
+            user=user,
+            is_visible_to_exporter=is_visible_to_exporter,
+        )
         case_note.save()
         return case_note
 
-    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user('name', self.organisation)
-        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(end_user=end_user,
-                                                                      note=note,
-                                                                      reasoning=reasoning,
-                                                                      organisation=organisation,
-                                                                      contact_telephone='1234567890',
-                                                                      contact_name='Joe',
-                                                                      contact_email='joe@something.com',
-                                                                      contact_job_title='director',
-                                                                      nature_of_business='guns')
+    def create_end_user_advisory(
+        self, note: str, reasoning: str, organisation: Organisation
+    ):
+        end_user = self.create_end_user("name", self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
+            end_user=end_user,
+            note=note,
+            reasoning=reasoning,
+            organisation=organisation,
+            contact_telephone="1234567890",
+            contact_name="Joe",
+            contact_email="joe@something.com",
+            contact_job_title="director",
+            nature_of_business="guns",
+        )
         return end_user_advisory_query
 
-    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
+    def create_end_user_advisory_case(
+        self, note: str, reasoning: str, organisation: Organisation
+    ):
         eua_query = self.create_end_user_advisory(note, reasoning, organisation)
         return eua_query
 
     def create_queue(self, name: str, team: Team):
-        queue = Queue(name=name,
-                      team=team)
+        queue = Queue(name=name, team=team)
         queue.save()
         return queue
 
     def create_gov_user(self, email: str, team: Team):
-        gov_user = GovUser(email=email,
-                           team=team)
+        gov_user = GovUser(email=email, team=team)
         gov_user.save()
         return gov_user
 
@@ -267,58 +314,73 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case.save()
 
         if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
+            for good_on_application in GoodOnApplication.objects.filter(
+                application=application
+            ):
                 good_on_application.good.status = GoodStatus.SUBMITTED
                 good_on_application.good.save()
 
         return application
 
     def create_case_document(self, case: Case, user: GovUser, name: str):
-        case_doc = CaseDocument(case=case,
-                                description='This is a document',
-                                user=user,
-                                name=name,
-                                s3_key='thisisakey',
-                                size=123456,
-                                virus_scanned_at=None,
-                                safe=None)
+        case_doc = CaseDocument(
+            case=case,
+            description="This is a document",
+            user=user,
+            name=name,
+            s3_key="thisisakey",
+            size=123456,
+            virus_scanned_at=None,
+            safe=None,
+        )
         case_doc.save()
         return case_doc
 
     def create_application_document(self, application):
-        application_doc = ApplicationDocument(application=application,
-                                              description="document description",
-                                              name="document name",
-                                              s3_key='documentkey',
-                                              size=12,
-                                              virus_scanned_at=None,
-                                              safe=None)
+        application_doc = ApplicationDocument(
+            application=application,
+            description="document description",
+            name="document name",
+            s3_key="documentkey",
+            size=12,
+            virus_scanned_at=None,
+            safe=None,
+        )
 
         application_doc.save()
         return application_doc
 
-    def create_good_document(self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str):
-        good_doc = GoodDocument(good=good,
-                                description='This is a document',
-                                user=user,
-                                organisation=organisation,
-                                name=name,
-                                s3_key=s3_key,
-                                size=123456,
-                                virus_scanned_at=None,
-                                safe=None)
+    def create_good_document(
+        self,
+        good: Good,
+        user: ExporterUser,
+        organisation: Organisation,
+        name: str,
+        s3_key: str,
+    ):
+        good_doc = GoodDocument(
+            good=good,
+            description="This is a document",
+            user=user,
+            organisation=organisation,
+            name=name,
+            s3_key=s3_key,
+            size=123456,
+            virus_scanned_at=None,
+            safe=None,
+        )
         good_doc.save()
         return good_doc
 
     @staticmethod
-    def create_document_for_party(party: Party, name='document_name.pdf', safe=True):
+    def create_document_for_party(party: Party, name="document_name.pdf", safe=True):
         document = PartyDocument(
             party=party,
             name=name,
-            s3_key='s3_keykey.pdf',
+            s3_key="s3_keykey.pdf",
             size=123456,
             virus_scanned_at=None,
-            safe=safe
+            safe=safe,
         )
         document.save()
         return document
@@ -329,133 +391,172 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return flag
 
     def create_case_assignment(self, queue, case, users):
-        case_assignment = CaseAssignment(queue=queue,
-                                         case=case)
+        case_assignment = CaseAssignment(queue=queue, case=case)
         case_assignment.users.set(users)
         case_assignment.save()
         return case_assignment
 
     def create_goods_type(self, application):
-        goods_type = GoodsType(description='thing',
-                               is_good_controlled=False,
-                               control_code='ML1a',
-                               is_good_end_product=True,
-                               application=application)
+        goods_type = GoodsType(
+            description="thing",
+            is_good_controlled=False,
+            control_code="ML1a",
+            is_good_end_product=True,
+            application=application,
+        )
         goods_type.save()
         return goods_type
 
     def create_picklist_item(self, name, team: Team, picklist_type, status):
-        picklist_item = PicklistItem(team=team,
-                                     name=name,
-                                     text='This is a string of text, please do not disturb the milk argument',
-                                     type=picklist_type,
-                                     status=status)
+        picklist_item = PicklistItem(
+            team=team,
+            name=name,
+            text="This is a string of text, please do not disturb the milk argument",
+            type=picklist_type,
+            status=status,
+        )
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description: str, org: Organisation, control_code: str = 'ML1') -> Good:
-        good = Good(description=description,
-                    is_good_controlled=GoodControlled.YES,
-                    control_code=control_code,
-                    is_good_end_product=True,
-                    part_number='123456',
-                    organisation=org)
+    def create_controlled_good(
+        self, description: str, org: Organisation, control_code: str = "ML1"
+    ) -> Good:
+        good = Good(
+            description=description,
+            is_good_controlled=GoodControlled.YES,
+            control_code=control_code,
+            is_good_end_product=True,
+            part_number="123456",
+            organisation=org,
+        )
         good.save()
         return good
 
     @staticmethod
     def create_clc_query(description, organisation):
-        good = Good(description=description,
-                    is_good_controlled=GoodControlled.UNSURE,
-                    control_code='ML1',
-                    is_good_end_product=True,
-                    part_number='123456',
-                    organisation=organisation,
-                    comment=None,
-                    report_summary=None)
+        good = Good(
+            description=description,
+            is_good_controlled=GoodControlled.UNSURE,
+            control_code="ML1",
+            is_good_end_product=True,
+            part_number="123456",
+            organisation=organisation,
+            comment=None,
+            report_summary=None,
+        )
         good.save()
 
-        clc_query = ControlListClassificationQuery.objects.create(details='this is a test text',
-                                                                  good=good,
-                                                                  organisation=organisation)
+        clc_query = ControlListClassificationQuery.objects.create(
+            details="this is a test text", good=good, organisation=organisation
+        )
         return clc_query
 
     # Applications
 
-    def create_standard_application(self, organisation: Organisation, reference_name='Standard Draft', safe_document=True):
+    def create_standard_application(
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+    ):
         """
         Creates a standard draft application
         """
-        application = StandardApplication(name=reference_name,
-                                    licence_type=ApplicationLicenceType.STANDARD_LICENCE,
-                                    export_type=ApplicationExportType.PERMANENT,
-                                    have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                    reference_number_on_information_form='',
-                                    activity='Trade',
-                                    usage='Trade',
-                                    organisation=organisation,
-                                    end_user=self.create_end_user('End User', organisation),
-                                    consignee=self.create_consignee('Consignee', organisation))
+        application = StandardApplication(
+            name=reference_name,
+            licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+            export_type=ApplicationExportType.PERMANENT,
+            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+            reference_number_on_information_form="",
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+            end_user=self.create_end_user("End User", organisation),
+            consignee=self.create_consignee("Consignee", organisation),
+        )
 
         application.save()
 
-        application.third_parties.set([self.create_third_party('Third party', self.organisation)])
+        application.third_parties.set(
+            [self.create_third_party("Third party", self.organisation)]
+        )
 
         # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(good=self.create_controlled_good('a thing', organisation),
-                                                     application=application,
-                                                     quantity=10,
-                                                     unit=Units.NAR,
-                                                     value=500)
+        self.good_on_application = GoodOnApplication(
+            good=self.create_controlled_good("a thing", organisation),
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
 
         self.good_on_application.save()
 
         # Set the application party documents
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_document_for_party(
+            application.third_parties.first(), safe=safe_document
+        )
         self.create_application_document(application)
 
         # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        SiteOnApplication(
+            site=organisation.primary_site, application=application
+        ).save()
 
         return application
 
-    def create_standard_application_with_incorporated_good(self, organisation: Organisation,
-                                                           reference_name='Standard Draft', safe_document=True):
+    def create_standard_application_with_incorporated_good(
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+    ):
 
-        application = self.create_standard_application(organisation, reference_name, safe_document)
+        application = self.create_standard_application(
+            organisation, reference_name, safe_document
+        )
 
-        part_good = Good(is_good_end_product=False,
-                         is_good_controlled=True,
-                         control_code='ML17',
-                         organisation=self.organisation,
-                         description='a good',
-                         part_number='123456')
+        part_good = Good(
+            is_good_end_product=False,
+            is_good_controlled=True,
+            control_code="ML17",
+            organisation=self.organisation,
+            description="a good",
+            part_number="123456",
+        )
         part_good.save()
 
-        GoodOnApplication(good=part_good,
-                          application=application,
-                          quantity=17,
-                          value=18).save()
+        GoodOnApplication(
+            good=part_good, application=application, quantity=17, value=18
+        ).save()
 
-        application.ultimate_end_users.set([self.create_ultimate_end_user('Ultimate End User', self.organisation)])
-        self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)
+        application.ultimate_end_users.set(
+            [self.create_ultimate_end_user("Ultimate End User", self.organisation)]
+        )
+        self.create_document_for_party(
+            application.ultimate_end_users.first(), safe=safe_document
+        )
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name='Open Draft'):
+    def create_open_application(
+        self, organisation: Organisation, reference_name="Open Draft"
+    ):
         """
         Creates an open application
         """
-        application = OpenApplication(name=reference_name,
-                                licence_type=ApplicationLicenceType.OPEN_LICENCE,
-                                export_type=ApplicationExportType.PERMANENT,
-                                have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                reference_number_on_information_form='',
-                                activity='Trade',
-                                usage='Trade',
-                                organisation=organisation)
+        application = OpenApplication(
+            name=reference_name,
+            licence_type=ApplicationLicenceType.OPEN_LICENCE,
+            export_type=ApplicationExportType.PERMANENT,
+            have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
+            reference_number_on_information_form="",
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+        )
 
         application.save()
 
@@ -464,16 +565,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_goods_type(application)
 
         # Add a country to the application
-        CountryOnApplication(application=application, country=get_country('GB')).save()
+        CountryOnApplication(application=application, country=get_country("GB")).save()
 
         # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        SiteOnApplication(
+            site=organisation.primary_site, application=application
+        ).save()
 
         return application
 
     # Cases
 
-    def create_standard_application_case(self, organisation: Organisation, reference_name='Standard Application Case'):
+    def create_standard_application_case(
+        self, organisation: Organisation, reference_name="Standard Application Case"
+    ):
         """
         Creates a complete standard application case
         """
@@ -488,31 +593,34 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             user=user,
             case=case,
             type=advice_type,
-            note='This is a note to the exporter',
-            text='This is some text',
+            note="This is a note to the exporter",
+            text="This is some text",
         )
 
         advice.team = user.team
         advice.save()
 
-        if advice_field == 'end_user':
-            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
+        if advice_field == "end_user":
+            advice.end_user = StandardApplication.objects.get(
+                pk=case.application.id
+            ).end_user
 
-        if advice_field == 'good':
-            advice.good = GoodOnApplication.objects.get(application=case.application).good
+        if advice_field == "good":
+            advice.good = GoodOnApplication.objects.get(
+                application=case.application
+            ).good
 
         if advice_type == AdviceType.PROVISO:
-            advice.proviso = 'I am easy to proviso'
+            advice.proviso = "I am easy to proviso"
 
         if advice_type == AdviceType.REFUSE:
-            advice.denial_reasons.set(['1a', '1b', '1c'])
+            advice.denial_reasons.set(["1a", "1b", "1c"])
 
         advice.save()
         return advice
 
     @staticmethod
     def create_good_country_decision(case, goods_type, country, decision):
-        GoodCountryDecision(case=case,
-                            good=goods_type,
-                            country=country,
-                            decision=decision).save()
+        GoodCountryDecision(
+            case=case, good=goods_type, country=country, decision=decision
+        ).save()

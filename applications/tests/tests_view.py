@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 
 class DraftTests(DataTestClient):
 
-    url = reverse('applications:applications') + '?submitted=false'
+    url = reverse("applications:applications") + "?submitted=false"
 
     def test_view_drafts(self):
         """
@@ -19,7 +19,7 @@ class DraftTests(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['applications']), 1)
+        self.assertEqual(len(response.json()["applications"]), 1)
 
     def test_view_draft(self):
         """
@@ -27,7 +27,10 @@ class DraftTests(DataTestClient):
         """
         draft = self.create_standard_application(self.organisation)
 
-        url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
+        url = (
+            reverse("applications:application", kwargs={"pk": draft.id})
+            + "?submitted=false"
+        )
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -36,9 +39,12 @@ class DraftTests(DataTestClient):
         """
         Ensure we cannot get a draft if the id is incorrect.
         """
-        invalid_id = UUID('90D6C724-0339-425A-99D2-9D2B8E864EC6')
+        invalid_id = UUID("90D6C724-0339-425A-99D2-9D2B8E864EC6")
 
-        url = reverse('applications:application', kwargs={'pk': invalid_id}) + '?submitted=false'
+        url = (
+            reverse("applications:application", kwargs={"pk": invalid_id})
+            + "?submitted=false"
+        )
         response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -51,13 +57,16 @@ class DraftTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['applications']), 0)
+        self.assertEqual(len(response_data["applications"]), 0)
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2 = self.create_organisation_with_exporter_user()
         draft = self.create_standard_application(organisation_2)
 
-        url = reverse('applications:application', kwargs={'pk': draft.id}) + '?submitted=false'
+        url = (
+            reverse("applications:application", kwargs={"pk": draft.id})
+            + "?submitted=false"
+        )
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

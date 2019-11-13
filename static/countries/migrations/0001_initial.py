@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Country',
+            name="Country",
             fields=[
-                ('id', models.CharField(primary_key=True, max_length=100)),
-                ('name', models.CharField(max_length=100)),
-                ('type', models.CharField(max_length=100)),
+                ("id", models.CharField(primary_key=True, max_length=100)),
+                ("name", models.CharField(max_length=100)),
+                ("type", models.CharField(max_length=100)),
             ],
         ),
     ]

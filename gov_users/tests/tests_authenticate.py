@@ -7,16 +7,16 @@ from test_helpers.clients import DataTestClient
 
 class GovUserAuthenticateTests(DataTestClient):
 
-    url = reverse('gov_users:authenticate')
+    url = reverse("gov_users:authenticate")
 
     def test_authentication_success(self):
         """
         Authorises user then checks the token which is sent is valid upon another request
         """
         data = {
-            'email': self.gov_user.email,
-            'first_name': self.gov_user.first_name,
-            'last_name': self.gov_user.last_name
+            "email": self.gov_user.email,
+            "first_name": self.gov_user.first_name,
+            "last_name": self.gov_user.last_name,
         }
 
         response = self.client.post(self.url, data)
@@ -25,7 +25,7 @@ class GovUserAuthenticateTests(DataTestClient):
 
     def test_cannot_authenticate_gov_user_with_empty_data(self):
         data = {
-            'email': None,
+            "email": None,
         }
 
         response = self.client.post(self.url, data)
@@ -34,7 +34,7 @@ class GovUserAuthenticateTests(DataTestClient):
 
     def test_cannot_authenticate_gov_user_with_incorrect_details(self):
         data = {
-            'email': 'something@random.com',
+            "email": "something@random.com",
         }
 
         response = self.client.post(self.url, data)
@@ -45,9 +45,9 @@ class GovUserAuthenticateTests(DataTestClient):
         self.gov_user.status = GovUserStatuses.DEACTIVATED
         self.gov_user.save()
         data = {
-            'email': self.gov_user.email,
-            'first_name': self.gov_user.first_name,
-            'last_name': self.gov_user.last_name
+            "email": self.gov_user.email,
+            "first_name": self.gov_user.first_name,
+            "last_name": self.gov_user.last_name,
         }
 
         response = self.client.post(self.url, data)

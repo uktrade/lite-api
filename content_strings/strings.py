@@ -18,4 +18,4 @@ def get_const_string(value):
     try:
         return getattr(constants, value)
     except AttributeError:
-        return ''
+        return ""

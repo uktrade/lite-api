@@ -8,11 +8,12 @@ from queries.control_list_classifications.models import ControlListClassificatio
 
 
 class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
-    organisation = PrimaryKeyRelatedSerializerField(queryset=Organisation.objects.all(),
-                                                    serializer=TinyOrganisationViewSerializer)
+    organisation = PrimaryKeyRelatedSerializerField(
+        queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
+    )
     good = GoodWithFlagsSerializer(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ('id', 'details', 'good', 'submitted_at', 'organisation')
+        fields = ("id", "details", "good", "submitted_at", "organisation")

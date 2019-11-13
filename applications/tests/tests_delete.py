@@ -12,17 +12,19 @@ class DeleteApplication(DataTestClient):
     def test_delete_draft_application_as_exporter_user_success(self):
         draft = self.create_standard_application(self.organisation)
         number_of_applications = BaseApplication.objects.all().count()
-        url = reverse('applications:application', kwargs={'pk': draft.id})
+        url = reverse("applications:application", kwargs={"pk": draft.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertTrue(response.status_code, HTTP_200_OK)
-        self.assertEqual(number_of_applications - 1, BaseApplication.objects.all().count())
+        self.assertEqual(
+            number_of_applications - 1, BaseApplication.objects.all().count()
+        )
 
     def test_delete_draft_application_as_gov_user_failure(self):
         draft = self.create_standard_application(self.organisation)
         number_of_applications = BaseApplication.objects.all().count()
-        url = reverse('applications:application', kwargs={'pk': draft.id})
+        url = reverse("applications:application", kwargs={"pk": draft.id})
 
         response = self.client.delete(url, **self.gov_headers)
 
@@ -33,7 +35,7 @@ class DeleteApplication(DataTestClient):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
         number_of_applications = BaseApplication.objects.all().count()
-        url = reverse('applications:application', kwargs={'pk': application.id})
+        url = reverse("applications:application", kwargs={"pk": application.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 

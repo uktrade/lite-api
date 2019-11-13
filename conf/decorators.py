@@ -11,17 +11,19 @@ from users.models import ExporterUser
 
 
 def _get_application(request, kwargs):
-    if 'pk' in kwargs:
-        application = get_application(kwargs.pop('pk'))
-    elif 'application' in request.request.data:
-        application = get_application(request.request.data['application'])
-    elif 'application' in kwargs and isinstance(kwargs['application'], BaseApplication):
-        application = kwargs['application']
+    if "pk" in kwargs:
+        application = get_application(kwargs.pop("pk"))
+    elif "application" in request.request.data:
+        application = get_application(request.request.data["application"])
+    elif "application" in kwargs and isinstance(kwargs["application"], BaseApplication):
+        application = kwargs["application"]
     else:
-        return JsonResponse(data={'errors': ['Application was not found']},
-                            status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse(
+            data={"errors": ["Application was not found"]},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
-    kwargs['application'] = application
+    kwargs["application"] = application
 
     return application
 
@@ -37,9 +39,15 @@ def application_licence_type(licence_type):
             application = _get_application(request, kwargs)
 
             if application.licence_type != licence_type:
-                return JsonResponse(data={'errors': [f'This operation can only be used on applications of type '
-                                                     f'`{licence_type}`']},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            f"This operation can only be used on applications of type "
+                            f"`{licence_type}`"
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             return func(request, *args, **kwargs)
 
@@ -59,10 +67,19 @@ def application_in_major_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
-                return JsonResponse(data={'errors': [f'You can only perform this operation when the application is '
-                                                     f'in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state']},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            if (
+                application.status
+                and application.status.status != CaseStatusEnum.APPLICANT_EDITING
+            ):
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            f"You can only perform this operation when the application is "
+                            f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             return func(request, *args, **kwargs)
 
@@ -79,10 +96,18 @@ def application_in_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status in get_case_statuses(read_only=True):
-                return JsonResponse(data={'errors': ['You can only perform this operation when the application '
-                                                     'is in an editable state']},
-                                    status=status.HTTP_400_BAD_REQUEST)
+            if application.status and application.status.status in get_case_statuses(
+                read_only=True
+            ):
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            "You can only perform this operation when the application "
+                            "is in an editable state"
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             return func(request, *args, **kwargs)
 
@@ -100,15 +125,25 @@ def authorised_users(user_type):
         @wraps(func)
         def inner(request, *args, **kwargs):
             if not isinstance(request.request.user, user_type):
-                return JsonResponse(data={'errors': ['You are not authorised to perform this operation']},
-                                    status=status.HTTP_403_FORBIDDEN)
+                return JsonResponse(
+                    data={
+                        "errors": ["You are not authorised to perform this operation"]
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
                 if application.organisation.id != request.request.user.organisation.id:
-                    return JsonResponse(data={'errors': ['You can only perform this operation on an application '
-                                                         'that has been opened within your organisation']},
-                                        status=status.HTTP_403_FORBIDDEN)
+                    return JsonResponse(
+                        data={
+                            "errors": [
+                                "You can only perform this operation on an application "
+                                "that has been opened within your organisation"
+                            ]
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
             return func(request, *args, **kwargs)
 

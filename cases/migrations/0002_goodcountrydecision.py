@@ -8,20 +8,58 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('countries', '0002_auto_20190628_1252'),
-        ('goodstype', '0002_goodstype_countries'),
-        ('cases', '0001_initial'),
+        ("countries", "0002_auto_20190628_1252"),
+        ("goodstype", "0002_goodstype_countries"),
+        ("cases", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GoodCountryDecision',
+            name="GoodCountryDecision",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('decision', models.CharField(choices=[('approve', 'Approve'), ('proviso', 'Proviso'), ('refuse', 'Refuse'), ('no_licence_required', 'No Licence Required'), ('not_applicable', 'Not Applicable'), ('conflicting', 'Conflicting')], max_length=30)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.Case')),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='countries.Country')),
-                ('good', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='goodstype.GoodsType')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "decision",
+                    models.CharField(
+                        choices=[
+                            ("approve", "Approve"),
+                            ("proviso", "Proviso"),
+                            ("refuse", "Refuse"),
+                            ("no_licence_required", "No Licence Required"),
+                            ("not_applicable", "Not Applicable"),
+                            ("conflicting", "Conflicting"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
+                    ),
+                ),
+                (
+                    "country",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="countries.Country",
+                    ),
+                ),
+                (
+                    "good",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="goodstype.GoodsType",
+                    ),
+                ),
             ],
         ),
     ]

@@ -1,6 +1,12 @@
 import six
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.fields import Field, iter_options, to_choices_dict, flatten_choices_dict, CharField
+from rest_framework.fields import (
+    Field,
+    iter_options,
+    to_choices_dict,
+    flatten_choices_dict,
+    CharField,
+)
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.validators import ControlListEntryValidator
@@ -12,11 +18,14 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 
     That is, you can POST or PUT IDs, but GET will serialize the full object.
     """
+
     def __init__(self, **kwargs):
-        self.serializer = kwargs.pop('serializer', None)
+        self.serializer = kwargs.pop("serializer", None)
 
         if not self.serializer:
-            raise Exception("PrimaryKeyRelatedSerializerField must define a 'serializer' attribute.")
+            raise Exception(
+                "PrimaryKeyRelatedSerializerField must define a 'serializer' attribute."
+            )
 
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
@@ -25,37 +34,32 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 
 
 class KeyValueChoiceField(Field):
-    default_error_messages = {
-        'invalid_choice': _('"{input}" is not a valid choice.')
-    }
+    default_error_messages = {"invalid_choice": _('"{input}" is not a valid choice.')}
     html_cutoff = None
-    html_cutoff_text = _('More than {count} items...')
+    html_cutoff_text = _("More than {count} items...")
 
     def __init__(self, choices, **kwargs):
         self.choices = choices
-        self.html_cutoff = kwargs.pop('html_cutoff', self.html_cutoff)
-        self.html_cutoff_text = kwargs.pop('html_cutoff_text', self.html_cutoff_text)
+        self.html_cutoff = kwargs.pop("html_cutoff", self.html_cutoff)
+        self.html_cutoff_text = kwargs.pop("html_cutoff_text", self.html_cutoff_text)
 
-        self.allow_blank = kwargs.pop('allow_blank', False)
+        self.allow_blank = kwargs.pop("allow_blank", False)
 
         super(KeyValueChoiceField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
-        if data == '' and self.allow_blank:
-            return ''
+        if data == "" and self.allow_blank:
+            return ""
 
         try:
             return self.choice_strings_to_values[six.text_type(data)]
         except KeyError:
-            self.fail('invalid_choice', input=data)
+            self.fail("invalid_choice", input=data)
 
     def to_representation(self, value):
-        if value in ('', None):
+        if value in ("", None):
             return value
-        return {
-            'key': six.text_type(value),
-            'value': self.choices[value]
-        }
+        return {"key": six.text_type(value), "value": self.choices[value]}
 
     def iter_options(self):
         """
@@ -64,7 +68,7 @@ class KeyValueChoiceField(Field):
         return iter_options(
             self.grouped_choices,
             cutoff=self.html_cutoff,
-            cutoff_text=self.html_cutoff_text
+            cutoff_text=self.html_cutoff_text,
         )
 
     def _get_choices(self):
@@ -86,8 +90,8 @@ class KeyValueChoiceField(Field):
 
 class ControlListEntryField(CharField):
     default_error_messages = {
-        'blank': _('Enter a valid control list entry'),
-        'invalid': _('Enter a valid control list entry')
+        "blank": _("Enter a valid control list entry"),
+        "invalid": _("Enter a valid control list entry"),
     }
 
     def __init__(self, **kwargs):

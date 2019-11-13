@@ -12,8 +12,9 @@ from static.countries.serializers import CountrySerializer
 class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), required=True,
-                                               serializer=CountrySerializer)
+    country = PrimaryKeyRelatedSerializerField(
+        queryset=Country.objects.all(), required=True, serializer=CountrySerializer
+    )
     website = serializers.URLField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -21,14 +22,16 @@ class PartySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Party
-        fields = ('id',
-                  'name',
-                  'address',
-                  'country',
-                  'website',
-                  'type',
-                  'organisation',
-                  'document',)
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+        )
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance).values()
@@ -41,7 +44,7 @@ class EndUserSerializer(PartySerializer):
     class Meta:
         model = EndUser
 
-        fields = '__all__'
+        fields = "__all__"
 
 
 class UltimateEndUserSerializer(PartySerializer):
@@ -50,7 +53,7 @@ class UltimateEndUserSerializer(PartySerializer):
     class Meta:
         model = UltimateEndUser
 
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ConsigneeSerializer(PartySerializer):
@@ -59,7 +62,7 @@ class ConsigneeSerializer(PartySerializer):
     class Meta:
         model = Consignee
 
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ThirdPartySerializer(PartySerializer):
@@ -68,4 +71,4 @@ class ThirdPartySerializer(PartySerializer):
     class Meta:
         model = ThirdParty
 
-        fields = '__all__'
+        fields = "__all__"
