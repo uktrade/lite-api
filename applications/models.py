@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.managers import BaseApplicationManager
+from applications.managers import BaseApplicationManager, HmrcQueryManager
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -89,6 +89,8 @@ class HmrcQuery(BaseApplication):
                                   default=None, blank=True, null=True)
     third_parties = models.ManyToManyField(ThirdParty, related_name='hmrc_query_third_parties')
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
+
+    objects = HmrcQueryManager()
 
 
 class GoodOnApplication(models.Model):

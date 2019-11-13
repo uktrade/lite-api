@@ -37,27 +37,31 @@ class ApplicationList(ListCreateAPIView):
         """
         Filter applications on submitted
         """
-        if self.request.user.organisation.type == OrganisationType.HMRC:
-            return HmrcQuery.objects.filter(status__isnull=True,
-                                            hmrc_organisation=self.request.user.organisation)
-
         try:
             submitted = optional_str_to_bool(self.request.GET.get('submitted'))
         except ValueError as e:
             return JsonResponse(data={'errors': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if submitted is None:
-            applications = BaseApplication.objects. \
-                filter(organisation=self.request.user.organisation). \
-                exclude(application_type=ApplicationType.HMRC_QUERY)
-        elif submitted:
-            applications = BaseApplication.objects. \
-                submitted(organisation=self.request.user.organisation). \
-                exclude(application_type=ApplicationType.HMRC_QUERY)
+        if self.request.user.organisation.type == OrganisationType.HMRC:
+            if submitted is None:
+                applications = HmrcQuery.objects.filter(hmrc_organisation=self.request.user.organisation)
+            elif submitted:
+                applications = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation)
+            else:
+                applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
-            applications = BaseApplication.objects. \
-                drafts(organisation=self.request.user.organisation). \
-                exclude(application_type=ApplicationType.HMRC_QUERY)
+            if submitted is None:
+                applications = BaseApplication.objects. \
+                    filter(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
+            elif submitted:
+                applications = BaseApplication.objects. \
+                    submitted(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
+            else:
+                applications = BaseApplication.objects. \
+                    drafts(organisation=self.request.user.organisation). \
+                    exclude(application_type=ApplicationType.HMRC_QUERY)
 
         return applications
 
