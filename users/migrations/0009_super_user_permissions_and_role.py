@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from conf.constants import Permissions
+from conf.constants import Permissions, Roles
 
 
 def create_permission(apps, schema_editor):
@@ -11,8 +11,8 @@ def create_permission(apps, schema_editor):
         permission.save()
 
     Role = apps.get_model('users', 'Role')
-    if not Role.objects.filter(id='00000000-0000-0000-0000-000000000002'):
-        role = Role(id='00000000-0000-0000-0000-000000000002',
+    if not Role.objects.filter(id=Roles.SUPER_USER_ROLE_ID):
+        role = Role(id=Roles.SUPER_USER_ROLE_ID,
                     name='Super User')
         role.permissions.set([
             Permissions.MANAGE_FINAL_ADVICE,

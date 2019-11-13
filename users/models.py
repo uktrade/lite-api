@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from conf.constants import Roles
 from organisations.models import Organisation
 from queries.models import Query
 from teams.models import Team
@@ -108,7 +109,7 @@ class UserOrganisationRelationship(models.Model):
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
-    role = models.ForeignKey(Role, related_name='role', default='00000000-0000-0000-0000-000000000001', on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name='role', default=Roles.DEFAULT_ROLE_ID, on_delete=models.PROTECT)
 
     def unassign_from_cases(self):
         """
@@ -131,3 +132,9 @@ class GovUser(BaseUser):
                 Notification.objects.create(user=self, case_activity=case_activity)
         else:
             raise Exception("GovUser.send_notification: objects expected have not been added.")
+
+    # Adds the first user as a super user
+    def save(self, *args, **kwargs):
+        if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
+            self.role_id = Roles.SUPER_USER_ROLE_ID
+        super(BaseUser, self).save(*args, **kwargs)

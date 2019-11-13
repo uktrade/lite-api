@@ -1,9 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import Roles
 from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
-from users.models import GovUser, Role
+from users.models import GovUser
 
 
 class GovUserAuthenticateTests(DataTestClient):
@@ -14,7 +15,7 @@ class GovUserAuthenticateTests(DataTestClient):
             'last_name': 'Smith',
             'email': 'jsmith@name.com',
             'team': self.team.id,
-            'role': Role.objects.get(name='Default').id
+            'role': Roles.DEFAULT_ROLE_ID
         }
 
         url = reverse('gov_users:gov_users')
@@ -33,3 +34,39 @@ class GovUserAuthenticateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count)
+
+    def test_super_user_can_create_new_super_user(self):
+        data = {
+            'first_name': 'Jane',
+            'last_name': 'Smith',
+            'email': 'jsmith@name.com',
+            'team': self.team.id,
+            'role': Roles.SUPER_USER_ROLE_ID
+        }
+
+        url = reverse('gov_users:gov_users')
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_non_super_user_cannot_create_new_super_user(self):
+        self.gov_user.role = self.default_role
+        self.gov_user.save()
+
+        # create a second user to adopt the super user role as the override of
+        # the save method will create a new super user if one is not present
+        valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team)
+        valid_user.save()
+
+        data = {
+            'first_name': 'Jane',
+            'last_name': 'Smith',
+            'email': 'jsmith@name.com',
+            'team': self.team.id,
+            'role': Roles.SUPER_USER_ROLE_ID
+        }
+
+        url = reverse('gov_users:gov_users')
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

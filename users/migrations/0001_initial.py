@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import migrations, models
 
 import users.models
+from conf.constants import Roles
 from conf.settings import env
 
 
@@ -21,7 +22,7 @@ def initialize(apps, schema_editor):
 
     Role = apps.get_model('users', 'Role')
     if not Role.objects.all():
-        role = Role(id='00000000-0000-0000-0000-000000000001',
+        role = Role(id=Roles.DEFAULT_ROLE_ID,
                     name='Default')
         role.save()
 
