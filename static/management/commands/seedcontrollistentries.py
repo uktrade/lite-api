@@ -14,7 +14,7 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedcontrollistentries
         """
-        wb = load_workbook('lite-content/lite-permissions-finder/spreadsheet.xlsx', data_only=True)
+        wb = load_workbook('lite_content/lite-permissions-finder/spreadsheet.xlsx', data_only=True)
 
         # Ignore first two sheets as they aren't relevant to control list entries
         wb.remove_sheet(wb.worksheets[0])
