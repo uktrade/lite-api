@@ -5,27 +5,11 @@ import uuid
 from django.db import migrations, models
 
 
-def initialize(apps, schema_editor):
-    # We can't import the Team model directly as it may be a newer
-    # version than this migration expects. We use the historical version.
-    Team = apps.get_model('teams', 'Team')
-    if not Team.objects.all():
-        team = Team(id='00000000-0000-0000-0000-000000000001',
-                    name='Admin')
-        team.save()
-
-
-def destroy(apps, schema_editor):
-    Team = apps.get_model('teams', 'Team')
-    Team.objects.all().delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -35,5 +19,4 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(default=None, max_length=60)),
             ],
         ),
-        migrations.RunPython(initialize, destroy)
     ]

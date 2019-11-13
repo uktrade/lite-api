@@ -6,25 +6,6 @@ import django.db.models.functions.comparison
 import uuid
 
 
-def initialize(apps, schema_editor):
-    Permission = apps.get_model('users', 'Permission')
-    if not Permission.objects.filter(id='MANAGE_TEAM_ADVICE'):
-        permission = Permission(id='MANAGE_TEAM_ADVICE',
-                                name='Manage team advice')
-        permission.save()
-
-    if not Permission.objects.filter(id='MANAGE_FINAL_ADVICE'):
-        permission = Permission(id='MANAGE_FINAL_ADVICE',
-                                name='Manage final advice')
-        permission.save()
-        Permission.objects.get(id='MAKE_FINAL_DECISIONS').delete()
-
-
-def destroy(apps, schema_editor):
-    Permission = apps.get_model('users', 'Permission')
-    Permission.objects.all().delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True
@@ -209,5 +190,4 @@ class Migration(migrations.Migration):
             ],
             bases=('cases.baseactivity',),
         ),
-        migrations.RunPython(initialize, destroy),
     ]
