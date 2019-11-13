@@ -72,4 +72,3 @@ class NotificationTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
                          prev_notification_count)
-

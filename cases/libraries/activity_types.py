@@ -54,6 +54,7 @@ class CaseActivityType(BaseActivityType):
     DELETE_PARTY_DOCUMENT = 'delete_party_document'
     UPLOAD_APPLICATION_DOCUMENT = 'upload_application_document'
     DELETE_APPLICATION_DOCUMENT = 'delete_application_document'
+    UPLOAD_CASE_DOCUMENT = 'upload_case_document'
 
     BaseActivityType.choices.extend(
         [
@@ -105,5 +106,6 @@ class CaseActivityType(BaseActivityType):
             (DELETE_PARTY_DOCUMENT, 'deleted the document {file_name} for {party_type} {party_name}'),
             (UPLOAD_APPLICATION_DOCUMENT, 'uploaded the application document {file_name}'),
             (DELETE_APPLICATION_DOCUMENT, 'deleted the application document {file_name}'),
+            (UPLOAD_CASE_DOCUMENT, 'uploaded the case document {file_name}'),
         ]
     )
