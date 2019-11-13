@@ -1,10 +1,9 @@
-import csv
-
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
 
 FILE = 'lite_content/lite-api/countries.csv'
+
 
 class Command(SeedCommand):
     """
