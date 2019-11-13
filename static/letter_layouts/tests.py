@@ -1,12 +1,8 @@
-from io import StringIO
 from django.core.management import call_command
-
-from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from static.letter_layouts.models import LetterLayout
-from static.management.commands.seedlayouts import success_message, layouts
 from test_helpers.clients import DataTestClient
 
 
@@ -46,13 +42,3 @@ class LetterLayoutTests(DataTestClient):
         self.assertEqual(response_data['id'], str(self.letter_layout.id))
         self.assertEqual(response_data['filename'], self.letter_layout.filename)
         self.assertEqual(response_data['name'], self.letter_layout.name)
-
-
-class SeedTemplatesTests(TestCase):
-
-    def test_seed_layout_command_output(self):
-        out = StringIO()
-        call_command('seedlayouts', stdout=out)
-
-        self.assertIn(success_message, out.getvalue())
-        self.assertTrue(LetterLayout.objects.count() == len(layouts))

@@ -1,16 +1,16 @@
-from django.core.management import BaseCommand
-from django.db import transaction
 from openpyxl import load_workbook
 
 from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.parser import parse_list_into_control_list_entries
+from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
 
-class Command(BaseCommand):
+class Command(SeedCommand):
     help = 'Creates and updates control list entries based off of the control list entry spreadsheet'
+    success = 'Successfully seeded control list entries'
+    seed_command = 'seedcontrollistentries'
 
-    @transaction.atomic
-    def handle(self, *args, **options):
+    def operation(self, *args, **options):
         """
         pipenv run ./manage.py seedcontrollistentries
         """
@@ -20,11 +20,12 @@ class Command(BaseCommand):
         wb.remove_sheet(wb.worksheets[0])
         wb.remove_sheet(wb.worksheets[0])
 
-        # Clear the control list entry database
-        ControlListEntry.objects.all().delete()
-
         # Loop through remaining sheets
         for sheet in wb.worksheets:
             parse_list_into_control_list_entries(sheet)
 
-        self.stdout.write(self.style.SUCCESS('Control List Entries updated successfully!'))
+
+class SeedControlListEntriesTests(SeedCommandTest):
+    def test_seed_control_list_entries(self):
+        self.seed_command(Command)
+        self.assertTrue(ControlListEntry.objects.count() > 3000)
