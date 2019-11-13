@@ -1,6 +1,7 @@
-from django.core.management import BaseCommand
 from subprocess import call as execute_bash_command
+
 from django.apps import apps
+from django.core.management import BaseCommand
 from django.db import connection
 
 
@@ -8,6 +9,7 @@ class Command(BaseCommand):
     """
     pipenv run ./manage.py cleardb
     """
+    help = 'Clear the database'
 
     def add_arguments(self, parser):
         parser.add_argument('-f', type=bool, nargs='?', default=False, help='Flag for forcefully dropping tables.')

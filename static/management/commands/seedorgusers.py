@@ -1,58 +1,65 @@
-from django.core.management import BaseCommand
 from json import loads as serialize
+
+from django.core.management import call_command
 
 from addresses.models import Address
 from conf.settings import env
+from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
+from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.enums import UserStatuses
 from users.models import ExporterUser, UserOrganisationRelationship
 
+ORGANISATIONS = [
+    {
+        'name': 'Archway Communications',
+        'type': OrganisationType.COMMERCIAL,
+        'reg_no': '09876543'
+    },
+    {
+        'name': 'HMRC office at Battersea heliport',
+        'type': OrganisationType.HMRC,
+        'reg_no': '75863840'
+    }
+]
 
-class Command(BaseCommand):
+
+class Command(SeedCommand):
     """
     pipenv run ./manage.py seedorgusers
     """
+    help = 'Seeds test organisation users'
+    success = 'Successfully seeded org users'
+    seed_command = 'seedorgusers'
 
-    def handle(self, *args, **options):
-        organisation = _get_organisation()
-        _seed_exporter_users_to_organisation(organisation)
+    def operation(self, *args, **options):
+        call_command('seedcountries')
+        for org in ORGANISATIONS:
+            organisation = seed_organisation(org)
+            _seed_exporter_users_to_organisation(organisation)
 
 
-ORG_NAME = 'Archway Communications'
+def seed_organisation(org):
+    organisation = Organisation.objects.get_or_create(
+        name=org['name'],
+        type=org['type'],
+        eori_number='1234567890AAA',
+        sic_number='2345',
+        vat_number='GB1234567',
+        registration_number=org['reg_no']
+    )[0]
 
-
-def _get_organisation():
-    print('\nRetrieving organisation...')
-
-    try:
-        organisation = Organisation.objects.get(name=ORG_NAME)
-    except Organisation.DoesNotExist:
-        print('Organisation not found...')
-        organisation = _create_organisation()
-
-    print('{"name: "' + organisation.name + '", "id": "' + str(organisation.id) + '"}')
+    seed_organisation_site(organisation)
+    print('{"name: "' + organisation.name +
+          '", "type": "' + organisation.type +
+          '", "registration_number": "' + organisation.registration_number +
+          '", "id": "' + str(organisation.id) + '"}')
     return organisation
 
 
-def _create_organisation():
-    print('\nCreating organisation...')
-
-    organisation = Organisation(
-            name=ORG_NAME,
-            eori_number='1234567890AAA',
-            sic_number='2345',
-            vat_number='GB1234567',
-            registration_number='09876543'
-    )
-    organisation.save()
-
-    _add_site_to_organisation(organisation)
-    return organisation
-
-
-def _add_site_to_organisation(organisation: Organisation):
-    address = Address(
+def seed_organisation_site(organisation: Organisation):
+    address = Address.objects.create(
         address_line_1='42 Question Road',
         address_line_2='',
         country=get_country('GB'),
@@ -60,49 +67,37 @@ def _add_site_to_organisation(organisation: Organisation):
         region='London',
         postcode='Islington'
     )
-    address.save()
-
-    site = Site(
+    site = Site.objects.create(
         name='Headquarters',
         organisation=organisation,
         address=address
     )
-    site.save()
     organisation.primary_site = site
     organisation.save()
 
 
 def _seed_exporter_users_to_organisation(organisation: Organisation):
-    print('\nSeeding exporter users...')
 
     # Do not combine the TEST_EXPORTER_USERS and SEED_USERS env variables in `.env`;
     # this would grant GOV user permissions to the exporter test-user accounts.
-    # See `users/migrations/0001_initial.py`
-    test_exporter_users = serialize(env('TEST_EXPORTER_USERS'))
-    seed_users = serialize(env('SEED_USERS'))
-    exporter_users = test_exporter_users + seed_users
-
-    for email in exporter_users:
-        exporter_user = _get_exporter_user(email)
+    for email in _get_exporter_users():
+        exporter_user = _create_exporter_user(email)
         _add_user_to_organisation(exporter_user, organisation)
 
 
-def _get_exporter_user(exporter_user_email: str):
-    try:
-        exporter_user = ExporterUser.objects.get(email=exporter_user_email)
-    except ExporterUser.DoesNotExist:
-        exporter_user = _create_exporter_user(exporter_user_email)
-    return exporter_user
+def _get_exporter_users():
+    test_exporter_users = serialize(env('TEST_EXPORTER_USERS'))
+    seed_users = serialize(env('SEED_USERS'))
+    return test_exporter_users + seed_users
 
 
 def _create_exporter_user(exporter_user_email: str):
     first_name, last_name = _extract_names_from_email(exporter_user_email)
-    exporter_user = ExporterUser(
+    exporter_user = ExporterUser.objects.get_or_create(
         email=exporter_user_email,
         first_name=first_name,
         last_name=last_name
-    )
-    exporter_user.save()
+    )[0]
     return exporter_user
 
 
@@ -115,11 +110,20 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    if UserOrganisationRelationship.objects.filter(user=user).count() == 0:
-        UserOrganisationRelationship(
-            user=user,
-            organisation=organisation,
-            status=UserStatuses.ACTIVE
-        ).save()
-        print('{"email": "' + user.email + '", "first_name": "' + user.first_name + '", "last_name": "' +
-              user.last_name + '", id": "' + str(user.id) + '"}')
+    UserOrganisationRelationship.objects.get_or_create(
+        user=user,
+        organisation=organisation,
+        status=UserStatuses.ACTIVE
+    )
+    print('{"email": "' + user.email + '", "first_name": "' + user.first_name + '", "last_name": "' +
+          user.last_name + '", id": "' + str(user.id) + '"}')
+
+
+class SeedOrgUsersTests(SeedCommandTest):
+    def test_seed_org_users(self):
+        self.seed_command(Command)
+        self.assertTrue(Organisation.objects)
+        self.assertTrue(Site.objects)
+        num_exporter_users = len(_get_exporter_users())
+        self.assertTrue(num_exporter_users == ExporterUser.objects.count())
+        self.assertTrue(num_exporter_users <= UserOrganisationRelationship.objects.count())

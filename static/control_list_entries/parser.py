@@ -1,4 +1,4 @@
-from random import randint
+import uuid
 
 from static.control_list_entries.models import ControlListEntry
 
@@ -24,15 +24,9 @@ def parse_list_into_control_list_entries(worksheet):
         if text is None:
             break
 
-        # Give the control list entry a random rating if it is decontrolled
-        # This is done as rating is unique
         if is_decontrolled:
-            is_unique = False
-            pk = 0
-            while not is_unique:
-                pk = randint(1000000000, 1999999999)  # nosec
-                is_unique = (ControlListEntry.objects.filter(rating=pk).count() == 0)
-            rating = str(pk)
+            # If decontrolled, assign a random rating
+            rating = str(uuid.uuid4())
         elif not is_decontrolled and rating is None:
             raise Exception(f'Row {row[0].row} in {worksheet.title} doesn\'t have a rating and is controlled')
 
@@ -42,9 +36,9 @@ def parse_list_into_control_list_entries(worksheet):
             parent = parents_at_depth[current_depth - 1]
 
         # Build the new control list entry
-        control_rating = ControlListEntry.create(rating=rating,
-                                                 text=text,
-                                                 parent=parent,
-                                                 is_decontrolled=is_decontrolled)
+        control_rating = ControlListEntry.objects.get_or_create(rating=rating,
+                                                                text=text,
+                                                                parent=parent,
+                                                                is_decontrolled=is_decontrolled)
 
         parents_at_depth[current_depth] = control_rating
