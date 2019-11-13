@@ -34,7 +34,8 @@ class SuperUserTests(DataTestClient):
         )
 
     def test_cannot_remove_super_user_role_from_yourself(self):
-
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         data = {
             'role': self.default_role.id
         }
@@ -47,6 +48,8 @@ class SuperUserTests(DataTestClient):
     def test_super_user_role_can_be_removed_by_a_super_user(self):
         valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team, role=self.super_user_role)
         valid_user.save()
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         data = {
             'role': self.default_role.id
         }
@@ -57,8 +60,6 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_super_user_role_cannot_be_removed_by_someone_without_super_user_role(self):
-        self.gov_user.role = self.default_role
-        self.gov_user.save()
         valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team, role=self.super_user_role)
         valid_user.save()
         data = {
@@ -73,6 +74,8 @@ class SuperUserTests(DataTestClient):
     def test_super_user_can_assign_super_user_role(self):
         valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team, role=self.super_user_role)
         valid_user.save()
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         data = {
             'role': self.super_user_role.id
         }
@@ -83,8 +86,6 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_assign_super_user_without_super_user_role(self):
-        self.gov_user.role = self.default_role
-        self.gov_user.save()
         valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team, role=self.super_user_role)
         valid_user.save()
         data = {

@@ -36,6 +36,8 @@ class GovUserAuthenticateTests(DataTestClient):
         self.assertEqual(GovUser.objects.all().count(), self.gov_user_preexisting_count)
 
     def test_super_user_can_create_new_super_user(self):
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         data = {
             'first_name': 'Jane',
             'last_name': 'Smith',
@@ -50,14 +52,6 @@ class GovUserAuthenticateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_non_super_user_cannot_create_new_super_user(self):
-        self.gov_user.role = self.default_role
-        self.gov_user.save()
-
-        # create a second user to adopt the super user role as the override of
-        # the save method will create a new super user if one is not present
-        valid_user = GovUser(email='test2@mail.com', first_name='John', last_name='Smith', team=self.team)
-        valid_user.save()
-
         data = {
             'first_name': 'Jane',
             'last_name': 'Smith',

@@ -50,6 +50,8 @@ class GovUserDeactivateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_deactivate_a_super_user(self):
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         self.valid_user.role = self.super_user_role
         self.valid_user.save()
 
@@ -60,4 +62,4 @@ class GovUserDeactivateTests(DataTestClient):
         url = reverse('gov_users:gov_user', kwargs={'pk': self.valid_user.id})
 
         response = self.client.put(url, data, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

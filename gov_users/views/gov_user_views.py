@@ -144,8 +144,7 @@ class GovUserDetail(APIView):
                 return JsonResponse(data={'errors': 'A user cannot change their own status'},
                                     status=status.HTTP_400_BAD_REQUEST)
             elif gov_user.role_id == Roles.SUPER_USER_ROLE_ID and data['status'] == 'Deactivated':
-                return JsonResponse(data={'errors': 'You cannot deactivate a super user'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                raise PermissionDenied()
 
         # Cannot deactivate a super user
         if 'role' in data.keys():
