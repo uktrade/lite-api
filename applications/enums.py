@@ -1,28 +1,28 @@
 class ApplicationExportType:
-    PERMANENT = 'permanent'
-    TEMPORARY = 'temporary'
+    PERMANENT = "permanent"
+    TEMPORARY = "temporary"
 
     choices = [
-        (PERMANENT, 'Permanent'),
-        (TEMPORARY, 'Temporary'),
+        (PERMANENT, "Permanent"),
+        (TEMPORARY, "Temporary"),
     ]
 
 
 class ApplicationLicenceType:
-    STANDARD_LICENCE = 'standard_licence'
-    OPEN_LICENCE = 'open_licence'
+    STANDARD_LICENCE = "standard_licence"
+    OPEN_LICENCE = "open_licence"
 
     choices = [
-        (STANDARD_LICENCE, 'Standard Licence'),
-        (OPEN_LICENCE, 'Open Licence'),
+        (STANDARD_LICENCE, "Standard Licence"),
+        (OPEN_LICENCE, "Open Licence"),
     ]
 
 
 class ApplicationExportLicenceOfficialType:
-    YES = 'yes'
-    NO = 'no'
+    YES = "yes"
+    NO = "no"
 
     choices = [
-        (YES, 'Yes'),
-        (NO, 'No'),
+        (YES, "Yes"),
+        (NO, "No"),
     ]

@@ -14,4 +14,4 @@ def get_exporter_query(pk):
         try:
             return EndUserAdvisoryQuery.objects.get(pk=pk)
         except EndUserAdvisoryQuery.DoesNotExist:
-            raise NotFoundError({'query': 'Query not found - ' + str(pk)})
+            raise NotFoundError({"query": "Query not found - " + str(pk)})

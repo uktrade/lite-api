@@ -5,13 +5,13 @@ from organisations.libraries.get_organisation import get_organisation_by_pk
 
 
 def get_object_of_level(level, pk):
-    if level == 'good':
+    if level == "good":
         try:
             good = Good.objects.get(pk=pk)
         except Good.DoesNotExist:
             good = get_goods_type(pk)
         return good
-    elif level == 'case':
+    elif level == "case":
         return get_case(pk)
-    elif level == 'organisation':
+    elif level == "organisation":
         return get_organisation_by_pk(pk)

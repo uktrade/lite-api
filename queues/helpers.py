@@ -1,16 +1,22 @@
 from django.db.models import Q
 
 from conf.exceptions import NotFoundError
-from queues.constants import MY_TEAMS_QUEUES_CASES_ID, ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.constants import (
+    MY_TEAMS_QUEUES_CASES_ID,
+    ALL_CASES_SYSTEM_QUEUE_ID,
+    OPEN_CASES_SYSTEM_QUEUE_ID,
+)
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 
 
 def _all_cases_queue():
-    queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID,
-                  name='All cases',
-                  team=Team.objects.get(name='Admin'))
+    queue = Queue(
+        id=ALL_CASES_SYSTEM_QUEUE_ID,
+        name="All cases",
+        team=Team.objects.get(name="Admin"),
+    )
     queue.is_system_queue = True
     queue.query = Q()
     queue.reverse_ordering = True
@@ -19,22 +25,24 @@ def _all_cases_queue():
 
 
 def _open_cases_queue():
-    queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID,
-                  name='Open cases',
-                  team=Team.objects.get(name='Admin'))
+    queue = Queue(
+        id=OPEN_CASES_SYSTEM_QUEUE_ID,
+        name="Open cases",
+        team=Team.objects.get(name="Admin"),
+    )
     queue.is_system_queue = True
-    queue.query = (~Q(application__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(application__status__status=CaseStatusEnum.FINALISED) &
-                   ~Q(query__status__status=CaseStatusEnum.WITHDRAWN) &
-                   ~Q(query__status__status=CaseStatusEnum.FINALISED))
+    queue.query = (
+        ~Q(application__status__status=CaseStatusEnum.WITHDRAWN)
+        & ~Q(application__status__status=CaseStatusEnum.FINALISED)
+        & ~Q(query__status__status=CaseStatusEnum.WITHDRAWN)
+        & ~Q(query__status__status=CaseStatusEnum.FINALISED)
+    )
 
     return queue
 
 
 def _all_my_team_cases_queue(team):
-    queue = Queue(id=MY_TEAMS_QUEUES_CASES_ID,
-                  name='All my queues',
-                  team=team)
+    queue = Queue(id=MY_TEAMS_QUEUES_CASES_ID, name="All my queues", team=team)
     queue.is_system_queue = True
     my_team_queues = Queue.objects.filter(team=team)
     queue.query = Q(queues__in=my_team_queues)
@@ -68,4 +76,4 @@ def get_queue(pk, team=None):
     if queue:
         return queue[0]
     else:
-        raise NotFoundError({'queue': 'Queue not found - ' + str(pk)})
+        raise NotFoundError({"queue": "Queue not found - " + str(pk)})

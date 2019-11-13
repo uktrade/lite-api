@@ -25,9 +25,9 @@ class PickListItems(APIView):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_type = request.GET.get('type', None)
-        show_deactivated = str_to_bool(request.GET.get('show_deactivated', None))
-        ids = request.GET.get('ids', None)
+        picklist_type = request.GET.get("type", None)
+        show_deactivated = str_to_bool(request.GET.get("show_deactivated", None))
+        ids = request.GET.get("ids", None)
         query = [Q(team=request.user.team.id)]
 
         if picklist_type:
@@ -37,29 +37,31 @@ class PickListItems(APIView):
             query.append(Q(status=PickListStatus.ACTIVE))
 
         if ids:
-            ids = ids.split(',')
+            ids = ids.split(",")
             query.append(Q(id__in=ids))
 
         picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
         picklist_items = picklist_items.order_by("-last_modified_at")
         serializer = PicklistSerializer(picklist_items, many=True)
-        return JsonResponse(data={'picklist_items': serializer.data})
+        return JsonResponse(data={"picklist_items": serializer.data})
 
     def post(self, request):
         """
         Add a new picklist item
         """
         data = JSONParser().parse(request)
-        data['team'] = request.user.team.id
+        data["team"] = request.user.team.id
         serializer = PicklistSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'picklist_item': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(
+                data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED
+            )
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @permission_classes((permissions.AllowAny,))
@@ -72,7 +74,7 @@ class PicklistItemDetail(APIView):
         """
         picklist_item = get_picklist_item(pk)
         serializer = PicklistSerializer(picklist_item)
-        return JsonResponse(data={'picklist_item': serializer.data})
+        return JsonResponse(data={"picklist_item": serializer.data})
 
     def put(self, request, pk):
         """
@@ -81,14 +83,19 @@ class PicklistItemDetail(APIView):
         picklist_item = get_picklist_item(pk)
 
         if request.user.team != picklist_item.team:
-            return JsonResponse(data={'errors': get_string('picklist_items.error_messages.forbidden')},
-                                status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                data={"errors": get_string("picklist_items.error_messages.forbidden")},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
+        serializer = PicklistSerializer(
+            instance=picklist_item, data=request.data, partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'picklist_item': serializer.data})
+            return JsonResponse(data={"picklist_item": serializer.data})
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )

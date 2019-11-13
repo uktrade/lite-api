@@ -7,8 +7,9 @@ from static.control_list_entries.models import ControlListEntry
 @deconstructible
 class ControlListEntryValidator:
     """Validate that the string doesn't contain the null character."""
-    message = 'Enter a valid control list entry'
-    code = 'invalid_control_list_entry'
+
+    message = "Enter a valid control list entry"
+    code = "invalid_control_list_entry"
 
     def __init__(self, message=None, code=None):
         if message is not None:

@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('end_user_advisories', '0001_initial'),
+        ("end_user_advisories", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='contact_email',
+            model_name="enduseradvisoryquery",
+            name="contact_email",
             field=models.EmailField(default=None, max_length=254),
         ),
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='contact_job_title',
+            model_name="enduseradvisoryquery",
+            name="contact_job_title",
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='contact_name',
+            model_name="enduseradvisoryquery",
+            name="contact_name",
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='contact_telephone',
+            model_name="enduseradvisoryquery",
+            name="contact_telephone",
             field=models.CharField(default=None, max_length=15),
         ),
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='nature_of_business',
+            model_name="enduseradvisoryquery",
+            name="nature_of_business",
             field=models.TextField(blank=True, default=None, null=True),
         ),
     ]

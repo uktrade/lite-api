@@ -9,18 +9,33 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ControlListEntry',
+            name="ControlListEntry",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('rating', models.CharField(max_length=100, unique=True)),
-                ('text', models.TextField()),
-                ('is_decontrolled', models.BooleanField(default=False)),
-                ('parent', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='control_list_entries.ControlListEntry')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("rating", models.CharField(max_length=100, unique=True)),
+                ("text", models.TextField()),
+                ("is_decontrolled", models.BooleanField(default=False)),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="control_list_entries.ControlListEntry",
+                    ),
+                ),
             ],
         ),
     ]
