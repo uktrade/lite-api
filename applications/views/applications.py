@@ -179,7 +179,8 @@ class ApplicationSubmission(APIView):
         if not previous_application_status:
             # If the application is being submitted for the first time
             case = Case(application=application)
-            case.type = CaseType.HMRC_QUERY
+            if application.application_type == CaseType.HMRC_QUERY:
+                case.type = CaseType.HMRC_QUERY
             case.save()
             data['application']['case_id'] = case.id
         else:
