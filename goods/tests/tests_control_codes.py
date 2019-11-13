@@ -1,10 +1,9 @@
-from django.test import tag
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from rest_framework import status
 
 from applications.models import GoodOnApplication
 from cases.models import Case
-from conf.constants import Permissions, Roles
+from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from static.units.enums import Units
@@ -166,8 +165,6 @@ class GoodsVerifiedTests(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.flags.count(), 1)
 
-    # User must have permission to review goods
-    @tag('only')
     def test_user_cannot_respond_to_good_without_permissions(self):
         """
         Tests that the right level of permissions are required

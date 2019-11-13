@@ -9,7 +9,7 @@ from users.models import Role, Permission
 
 class RolesAndPermissionsTests(DataTestClient):
 
-    url = reverse('gov_users:roles')
+    url = reverse('gov_users:roles_views')
 
     def test_create_new_role_with_permission_to_make_final_decisions(self):
         data = {
