@@ -1,5 +1,7 @@
 from django.db import transaction
+from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
@@ -106,4 +108,7 @@ class GoodsTypeDocumentView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
+        if not goods_type:
+            return JsonResponse(data={'error': 'No such goods type'}, status=status.HTTP_400_BAD_REQUEST)
+
         return delete_goods_type_document(goods_type)

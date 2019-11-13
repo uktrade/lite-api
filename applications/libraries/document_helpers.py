@@ -135,9 +135,6 @@ def upload_goods_type_document(goods_type, data):
 
 
 def delete_goods_type_document(goods_type):
-    if not goods_type:
-        return JsonResponse(data={'error': 'No such goods type'}, status=status.HTTP_400_BAD_REQUEST)
-
     documents = GoodsTypeDocument.objects.filter(goods_type=goods_type)
     for document in documents:
         document.delete_s3()
