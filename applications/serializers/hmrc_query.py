@@ -89,4 +89,4 @@ class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = ['reasoning']
+        fields = ['reasoning', 'status']
