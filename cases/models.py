@@ -292,7 +292,7 @@ class CaseActivity(BaseActivity):
         activity = super(CaseActivity, cls).create(activity_type, case, user, additional_text, created_at,
                                                    save_object, **kwargs)
 
-        if save_object and isinstance(user, ExporterUser):
+        if isinstance(user, ExporterUser) and save_object:
             for gov_user in GovUser.objects.all():
                 gov_user.send_notification(case_activity=activity)
 
