@@ -22,12 +22,13 @@ from applications.models import (
 from applications.models import Site, SiteOnApplication
 from cases.models import Case
 from conf.serializers import KeyValueChoiceField
-from content_strings.strings import get_string, get_const_string
+from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.models import Good
 from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from organisations.models import ExternalLocation, Organisation
 from organisations.serializers import (
     SiteViewSerializer,
@@ -95,9 +96,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         DecimalField(
             max_digits=256,
             decimal_places=2,
-            error_messages={
-                "invalid": get_const_string("GOOD_ON_APPLICATION_ERROR_MISSING")
-            },
+            error_messages={"invalid": strings.GOOD_ON_APPLICATION_ERROR_MISSING},
         ),
     )
     unit = ChoiceField(
