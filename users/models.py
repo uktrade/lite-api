@@ -134,6 +134,8 @@ class GovUser(BaseUser):
             raise Exception("GovUser.send_notification: objects expected have not been added.")
 
     # Adds the first user as a super user
+    # pylint: disable=W0221
+    # pylint: disable=E1003
     def save(self, *args, **kwargs):
         if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
             self.role_id = Roles.SUPER_USER_ROLE_ID
