@@ -39,6 +39,6 @@ def parse_list_into_control_list_entries(worksheet):
         control_rating = ControlListEntry.objects.get_or_create(rating=rating,
                                                                 text=text,
                                                                 parent=parent,
-                                                                is_decontrolled=is_decontrolled)
+                                                                is_decontrolled=is_decontrolled)[0]
 
         parents_at_depth[current_depth] = control_rating

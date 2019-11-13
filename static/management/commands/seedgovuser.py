@@ -19,10 +19,10 @@ class Command(SeedCommand):
     seed_command = 'seedgovuser'
 
     def operation(self, *args, **options):
-        Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)
+        team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
         Role.objects.get_or_create(id=DEFAULT_ID, name=ROLE_NAME)
         for email in json.loads(env('SEED_USERS')):
-            GovUser.objects.get_or_create(email=email, team=Team.objects.get())
+            GovUser.objects.get_or_create(email=email, team=team)
 
 
 class SeedGovUserTests(SeedCommandTest):
