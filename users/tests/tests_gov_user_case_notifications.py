@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy, reverse
+from rest_framework import status
 
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import Notification, CaseActivity
@@ -12,9 +13,10 @@ class NotificationTests(DataTestClient):
         url = reverse('applications:application', kwargs={'pk': case.application.id})
         data = {'name': 'new app name!'}
 
-        self.client.put(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
 
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
                          prev_notification_count + 1)
 
@@ -31,10 +33,11 @@ class NotificationTests(DataTestClient):
         url = reverse('applications:application', kwargs={'pk': case.application.id})
         data = {'name': 'even newer app name!'}
 
-        self.client.put(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
         new_notification = Notification.objects.filter(user=self.gov_user, case_activity__case=case)
 
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(new_notification.count(), prev_notification_count)
         self.assertTrue(data['name'] in new_notification.first().case_activity.text)
         self.assertNotEqual(new_notification.first().case_activity, case_activity)
@@ -63,9 +66,10 @@ class NotificationTests(DataTestClient):
         url = reverse('applications:manage_status', kwargs={'pk': case.application.id})
         data = {'status': 'under_review'}
 
-        self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(url, data, **self.gov_headers)
         case.refresh_from_db()
 
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
                          prev_notification_count)
 
