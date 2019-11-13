@@ -1,5 +1,4 @@
 import uuid
-from random import randint
 
 from static.control_list_entries.models import ControlListEntry
 
