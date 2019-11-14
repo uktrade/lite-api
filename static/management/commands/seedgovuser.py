@@ -34,6 +34,9 @@ class Command(SeedCommand):
         role.save()
         for email in json.loads(env('SEED_USERS')):
             GovUser.objects.get_or_create(email=email, team=team)
+        user = GovUser.objects.get(email='test-uat-user@digital.trade.gov.uk')
+        user.role = Role.objects.get(id=SUPER_USER_ROLE_ID)
+        user.save()
 
 
 class SeedGovUserTests(SeedCommandTest):
