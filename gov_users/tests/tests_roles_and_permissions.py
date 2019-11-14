@@ -52,6 +52,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         role = Role(name='some')
+        initial_roles_count = Role.objects.count()
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
 
@@ -59,7 +60,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['roles']), 3)
+        self.assertEqual(len(response_data['roles']), initial_roles_count + 1)
 
     def test_get_list_of_all_permissions(self):
         url = reverse('gov_users:permissions')
@@ -103,11 +104,12 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_role_name_must_be_unique(self, data):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
+        initial_roles_count = Role.objects.count()
         Role(name='this is a name').save()
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        self.assertEqual(Role.objects.all().count(), 3)
+        self.assertEqual(Role.objects.all().count(), initial_roles_count + 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_create_role_without_permission(self):
