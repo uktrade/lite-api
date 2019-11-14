@@ -56,7 +56,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = [
+        fields = (
             'id',
             'name',
             'organisation',
@@ -67,7 +67,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             'submitted_at',
             'status',
             'case',
-        ]
+        )
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):
@@ -88,7 +88,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = [
+        fields = (
             'id',
             'name',
             'application_type',
@@ -96,7 +96,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
             'have_you_been_informed',
             'reference_number_on_information_form',
             'organisation',
-        ]
+        )
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
@@ -111,12 +111,12 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = [
+        fields = (
             'name',
             'status',
             'reasons',
             'reason_details',
-        ]
+        )
 
     def update(self, instance, validated_data):
         """

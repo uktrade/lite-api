@@ -23,7 +23,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationListSerializer.Meta.fields + [
+        fields = GenericApplicationListSerializer.Meta.fields + (
             'destinations',
             'goods_types',
             'have_you_been_informed',
@@ -31,8 +31,8 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             'goods_locations',
             'activity',
             'usage',
-            'additional_documents'
-        ]
+            'additional_documents',
+        )
 
     def get_additional_documents(self, instance):
         documents = ApplicationDocument.objects.filter(application=instance)
@@ -72,15 +72,15 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
     class Meta:
         model = OpenApplication
-        fields = [
+        fields = (
             'id',
             'name',
             'application_type',
             'export_type',
             'have_you_been_informed',
             'reference_number_on_information_form',
-            'organisation'
-        ]
+            'organisation',
+        )
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
@@ -96,10 +96,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + [
+        fields = GenericApplicationUpdateSerializer.Meta.fields + (
             'have_you_been_informed',
             'reference_number_on_information_form',
-        ]
+        )
 
     def update(self, instance, validated_data):
         instance.have_you_been_informed = validated_data.get('have_you_been_informed', instance.have_you_been_informed)

@@ -49,7 +49,7 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationListSerializer.Meta.fields + [
+        fields = GenericApplicationListSerializer.Meta.fields + (
             'goods_types',
             'end_user',
             'ultimate_end_users',
@@ -59,7 +59,7 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
             'reasoning',
             'goods_locations',
             'supporting_documentation',
-        ]
+        )
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
@@ -76,12 +76,12 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = [
+        fields = (
             'reasoning',
             'application_type',
             'organisation',
             'hmrc_organisation',
-        ]
+        )
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
@@ -89,4 +89,4 @@ class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = ['reasoning', 'status']
+        fields =('reasoning', 'status',)

@@ -218,7 +218,7 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'first_name',
                   'last_name',
-                  'email')
+                  'email',)
 
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
@@ -226,4 +226,4 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ['status']
+        fields = ('status',)

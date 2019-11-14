@@ -190,7 +190,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Good
-        fields = ['control_code', 'is_good_controlled', 'comment', 'report_summary']
+        fields = ('control_code', 'is_good_controlled', 'comment', 'report_summary',)
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)

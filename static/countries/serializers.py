@@ -6,8 +6,8 @@ from static.countries.models import Country
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = [
+        fields = (
             'id',
             'name',
             'type',
-        ]
+        )

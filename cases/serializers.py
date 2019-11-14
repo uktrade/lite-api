@@ -291,13 +291,13 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
 
-        application_fields = ['good',
+        application_fields = ('good',
                               'goods_type',
                               'country',
                               'end_user',
                               'ultimate_end_user',
                               'consignee',
-                              'third_party']
+                              'third_party',)
 
         # Ensure only one item is provided
         if hasattr(self, 'initial_data'):
