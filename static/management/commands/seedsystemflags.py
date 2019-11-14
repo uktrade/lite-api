@@ -1,8 +1,5 @@
 import uuid
 
-from django.core.management import BaseCommand
-from django.db import transaction
-
 from cases.models import Case
 from flags.models import Flag
 from flags.enums import SystemFlags
