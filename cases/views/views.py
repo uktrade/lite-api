@@ -116,6 +116,11 @@ class CaseDocuments(APIView):
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
+
+            for document in serializer.data:
+                case_activity = {'activity_type': 'upload_case_document', 'file_name': document['name']}
+                CaseActivity.create(case=case, user=request.user, **case_activity)
+
             return JsonResponse({'documents': serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)
