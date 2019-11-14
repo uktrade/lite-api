@@ -25,7 +25,7 @@ class AddressSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'address_line_1',
                   'address_line_2',
-                  'postcode',
                   'city',
                   'region',
+                  'postcode',
                   'country')

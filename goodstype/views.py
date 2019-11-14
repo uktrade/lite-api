@@ -30,3 +30,4 @@ class GoodsTypeDetail(APIView):
         good = get_goods_type(pk=pk)
         serializer = FullGoodsTypeSerializer(good)
         return JsonResponse(data={'good': serializer.data})
+
