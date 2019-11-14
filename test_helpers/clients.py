@@ -10,6 +10,7 @@ from applications.models import BaseApplication, GoodOnApplication, SiteOnApplic
 from cases.enums import AdviceType
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision
 from conf import settings
+from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus
@@ -38,7 +39,7 @@ from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
+from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship, Role
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -73,6 +74,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.exporter_user),
             'HTTP_ORGANISATION_ID': self.organisation.id
         }
+
+        self.default_role = Role.objects.get(id=Roles.DEFAULT_ROLE_ID)
+        self.super_user_role = Role.objects.get(id=Roles.SUPER_USER_ROLE_ID)
 
         self.hmrc_exporter_headers = {
             'HTTP_EXPORTER_USER_TOKEN': user_to_token(self.hmrc_exporter_user),
