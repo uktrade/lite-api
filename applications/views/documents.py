@@ -79,7 +79,7 @@ class GoodsTypeDocumentView(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.HMRC_QUERY)
+    @allowed_application_types([ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
@@ -91,7 +91,7 @@ class GoodsTypeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.HMRC_QUERY)
+    @allowed_application_types([ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, goods_type_pk):
@@ -104,7 +104,7 @@ class GoodsTypeDocumentView(APIView):
             400: 'JSON parse error'
         })
     @transaction.atomic
-    @allowed_application_types(ApplicationType.HMRC_QUERY)
+    @allowed_application_types([ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)

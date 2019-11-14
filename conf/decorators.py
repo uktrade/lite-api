@@ -26,7 +26,7 @@ def _get_application(request, kwargs):
     return application
 
 
-def allowed_application_types(application_types):
+def allowed_application_types(application_types: [str]):
     """
     Checks if application is the correct type for the request
     """
@@ -36,11 +36,9 @@ def allowed_application_types(application_types):
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            types = [application_types] if isinstance(application_types, str) else application_types
-
-            if application.application_type not in types:
+            if application.application_type not in application_types:
                 return JsonResponse(data={'errors': ['This operation can only be used '
-                                                     'on applications of type: ' + ', '.join(types)]},
+                                                     'on applications of type: ' + ', '.join(application_types)]},
                                     status=status.HTTP_400_BAD_REQUEST)
 
             return func(request, *args, **kwargs)

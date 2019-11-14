@@ -30,7 +30,7 @@ class ApplicationGoodsOnApplication(APIView):
     """
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -38,7 +38,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         return JsonResponse(data={'goods': goods_data})
 
-    @allowed_application_types(ApplicationType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -186,7 +186,7 @@ class ApplicationGoodsTypeCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE])
     @authorised_users(ExporterUser)
     def put(self, request, application, goodstype_pk):
         data = request.data

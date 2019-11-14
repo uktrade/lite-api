@@ -19,7 +19,7 @@ from users.models import ExporterUser
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -31,7 +31,7 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @allowed_application_types(ApplicationType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE])
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """ Add countries to an open licence application. """
