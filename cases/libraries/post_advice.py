@@ -5,6 +5,7 @@ from rest_framework.exceptions import ErrorDetail
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice
 from content_strings.strings import get_string
+from flags.enums import SystemFlags
 from flags.models import Flag
 
 
@@ -57,7 +58,7 @@ def post_advice(request, case, serializer_object, team=False):
 def case_advice_contains_refusal(case_id):
     case = get_case(case_id)
     team_advice = TeamAdvice.objects.filter(case=case)
-    flag = Flag.objects.get(id='00000000-0000-0000-0000-000000000001')
+    flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
 
     refuse_advice_found = False
 
