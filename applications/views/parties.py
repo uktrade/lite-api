@@ -2,12 +2,13 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
+from applications.libraries.case_activity import set_party_case_activity
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import application_licence_type, authorised_users, application_in_major_editable_state, application_in_editable_state
+from conf.decorators import authorised_users, application_in_major_editable_state, \
+    application_in_editable_state, allowed_application_types
 from parties.helpers import delete_party_document_if_exists
-from applications.libraries.case_activity import set_party_case_activity
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import EndUserSerializer, UltimateEndUserSerializer, ConsigneeSerializer, ThirdPartySerializer
 from users.models import ExporterUser
@@ -16,7 +17,7 @@ from users.models import ExporterUser
 class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -48,8 +49,8 @@ class ApplicationEndUser(APIView):
 
         return JsonResponse(data={'end_user': serializer.data}, status=status.HTTP_201_CREATED)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
-    @application_in_editable_state()
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         """
@@ -73,7 +74,7 @@ class ApplicationEndUser(APIView):
 class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -83,7 +84,7 @@ class ApplicationUltimateEndUsers(APIView):
 
         return JsonResponse(data={'ultimate_end_users': ueu_data})
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -109,7 +110,7 @@ class ApplicationUltimateEndUsers(APIView):
 class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     @application_in_editable_state()
     def delete(self, request, application, ueu_pk):
@@ -134,7 +135,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -166,7 +167,7 @@ class ApplicationConsignee(APIView):
 
         return JsonResponse(data={'consignee': serializer.data}, status=status.HTTP_201_CREATED)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -192,7 +193,7 @@ class ApplicationConsignee(APIView):
 class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -202,7 +203,7 @@ class ApplicationThirdParties(APIView):
 
         return JsonResponse(data={'third_parties': third_party_data})
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -228,7 +229,7 @@ class ApplicationThirdParties(APIView):
 class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     @application_in_editable_state()
     def delete(self, request, application, tp_pk):

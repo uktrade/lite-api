@@ -1,4 +1,4 @@
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.models import CountryOnApplication, GoodOnApplication, SiteOnApplication, \
     ExternalLocationOnApplication
 from content_strings.strings import get_string
@@ -45,7 +45,7 @@ def check_party_error(party, object_not_found_error, is_document_mandatory=True)
             return document_error
 
 
-def validate_standard_licence(draft, errors):
+def _validate_end_user(draft, errors):
     end_user_errors = check_party_error(
         draft.end_user,
         object_not_found_error=get_string('applications.standard.no_end_user_set'),
@@ -54,6 +54,10 @@ def validate_standard_licence(draft, errors):
     if end_user_errors:
         errors['end_user'] = end_user_errors
 
+    return errors
+
+
+def _validate_consignee(draft, errors):
     consignee_errors = check_party_error(
         draft.consignee,
         object_not_found_error=get_string('applications.standard.no_consignee_set'),
@@ -61,6 +65,20 @@ def validate_standard_licence(draft, errors):
     )
     if consignee_errors:
         errors['consignee'] = consignee_errors
+
+    return errors
+
+
+def _validate_goods_types(draft, errors):
+    results = GoodsType.objects.filter(application=draft)
+    if not results:
+        errors['goods'] = get_string('applications.open.no_goods_set')
+
+    return errors
+
+def _validate_standard_licence(draft, errors):
+    errors = _validate_end_user(draft, errors)
+    errors = _validate_consignee(draft, errors)
 
     ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=True)
     if ultimate_end_user_documents_error:
@@ -91,13 +109,18 @@ def validate_standard_licence(draft, errors):
     return errors
 
 
-def validate_open_licence(draft, errors):
+def _validate_open_licence(draft, errors):
     if len(CountryOnApplication.objects.filter(application=draft)) == 0:
         errors['countries'] = get_string('applications.open.no_countries_set')
 
-    results = GoodsType.objects.filter(application=draft)
-    if not results:
-        errors['goods'] = get_string('applications.open.no_goods_set')
+    errors = _validate_goods_types(draft, errors)
+
+    return errors
+
+
+def _validate_hmrc_query(draft, errors):
+    errors = _validate_goods_types(draft, errors)
+    errors = _validate_end_user(draft, errors)
 
     return errors
 
@@ -111,9 +134,13 @@ def validate_application_ready_for_submission(application):
         errors['location'] = get_string('applications.generic.no_location_set')
 
     # Perform additional validation and append errors if found
-    if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
-        validate_standard_licence(application, errors)
+    if application.application_type == ApplicationType.STANDARD_LICENCE:
+        _validate_standard_licence(application, errors)
+    elif application.application_type == ApplicationType.OPEN_LICENCE:
+        _validate_open_licence(application, errors)
+    elif application.application_type == ApplicationType.HMRC_QUERY:
+        _validate_hmrc_query(application, errors)
     else:
-        validate_open_licence(application, errors)
+        errors['unsupported_application'] = 'You can only validate a supported application type'
 
     return errors
