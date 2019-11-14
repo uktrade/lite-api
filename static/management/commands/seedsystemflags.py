@@ -1,10 +1,4 @@
-import uuid
-
-from cases.models import Case
 from flags.models import Flag
-from goods.models import Good
-from organisations.models import Organisation
-from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand
 from teams.models import Team
 
