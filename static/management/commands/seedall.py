@@ -3,9 +3,11 @@ from django.core.management import call_command
 from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
-    'Essential': ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedcasestatuses', 'seedsystemflags'],
+    'Essential': ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries',
+                  'seedcasestatuses', 'seedlayouts', 'seedsystemflags'],
     'Dev': ['seedorgusers', 'seedgovuser'],
-    'Tests': ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser', 'seedcasestatuses']
+    'Tests': ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser',
+              'seedcasestatuses', 'seedlayouts']
 }
 
 

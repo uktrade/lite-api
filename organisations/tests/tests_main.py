@@ -227,21 +227,27 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(str(site.address.country.id), data['site']['address']['country'])
 
     @parameterized.expand([
-        ['indi', 'individual', 1],
-        ['indi', 'hmrc', 0],
-        ['indi', 'commercial', 0],
-        ['comm', 'individual', 0],
-        ['comm', 'hmrc', 0],
-        ['comm', 'commercial', 1],
-        ['hmr', 'individual', 0],
-        ['hmr', 'hmrc', 1],
-        ['hmr', 'commercial', 0],
+        ['indi', ['individual'], 1],
+        ['indi', ['hmrc'], 0],
+        ['indi', ['commercial'], 0],
+        ['comm', ['individual'], 0],
+        ['comm', ['hmrc'], 0],
+        ['comm', ['commercial'], 1],
+        ['hmr', ['individual'], 0],
+        ['hmr', ['hmrc'], 2],
+        ['hmr', ['commercial'], 0],
+        ['al', ['commercial', 'individual'], 2],  # multiple org types
+        ['9876', ['individual'], 1]  # CRN as search term
     ])
-    def test_list_filter_organisations_by_name_and_type(self, name, org_type, expected_result):
+    def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
         self.create_organisation_with_exporter_user('Individual', org_type='individual')
         self.create_organisation_with_exporter_user('Commercial', org_type='commercial')
         self.create_organisation_with_exporter_user('HMRC', org_type='hmrc')
 
-        response = self.client.get(self.url + '?name=' + name + '&org_type=' + org_type, **self.gov_headers)
+        org_types_param = ''
+        for org_type in org_types:
+            org_types_param += '&org_type=' + org_type
+
+        response = self.client.get(self.url + '?search_term=' + name + org_types_param, **self.gov_headers)
 
         self.assertEqual(len(response.json()['results']), expected_result)

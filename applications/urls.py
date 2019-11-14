@@ -1,161 +1,55 @@
 from django.urls import path
 
-from applications.views import views, application_goods, application_parties, application_party_document_views, \
-    application_external_locations_views, application_sites_views, application_countries, application_documents
+from applications.views import applications, goods, parties, party_documents, \
+    external_locations, sites, countries, documents
 
 app_name = 'applications'
 
 urlpatterns = [
-    # ex: /applications/ - List all applications
-    # ex: /applications/?submitted=true - List only submitted applications
-    path(
-        route='',
-        view=views.ApplicationList.as_view(),
-        name='applications'
-    ),
-    # ex: /applications/<uuid:pk>/ - View an application
-    path(
-        route='<uuid:pk>/',
-        view=views.ApplicationDetail.as_view(),
-        name='application'
-    ),
-    # ex: /applications/<uuid:pk>/submit/ - Submit an application
-    path(
-        route='<uuid:pk>/submit/',
-        view=views.ApplicationSubmission.as_view(),
-        name='application_submit'
-    ),
-    # ex: /applications/<uuid:pk>/status/ - Manage application status
-    path(
-        route='<uuid:pk>/status/',
-        view=views.ApplicationManageStatus.as_view(),
-        name='manage_status'
-    ),
-    # ex: /applications/<uuid:pk>/goods/
-    path(
-        route='<uuid:pk>/goods/',
-        view=application_goods.ApplicationGoodsOnApplication.as_view(),
-        name='application_goods'
-    ),
-    # ex: /applications/good-on-application/<uuid:good_on_application_pk>/
-    path(
-        route='good-on-application/<uuid:good_on_application_pk>/',
-        view=application_goods.ApplicationGoodOnApplication.as_view(),
-        name='good_on_application'
-    ),
-    # ex: /applications/<uuid:pk>/goodstype/
-    path(
-        route='<uuid:pk>/goodstypes/',
-        view=application_goods.ApplicationGoodsTypes.as_view(),
-        name='application_goodstypes'
-    ),
-    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/
-    path(
-        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/',
-        view=application_goods.ApplicationGoodsType.as_view(),
-        name='application_goodstype'
-    ),
-    # TODO: verify why this endpoint receiving a list of goodstypes
-    # ex: /applications/<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/
-    path(
-        route='<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/',
-        view=application_goods.ApplicationGoodsTypeCountries.as_view(),
-        name='application_goodstype_assign_countries'
-    ),
-    # ex: /applications/<uuid:pk>/end-user/
-    path(
-        route='<uuid:pk>/end-user/',
-        view=application_parties.ApplicationEndUser.as_view(),
-        name='end_user'
-    ),
-    # ex: /applications/<uuid:pk>/end-user/document/
-    path(
-        route='<uuid:pk>/end-user/document/',
-        view=application_party_document_views.EndUserDocumentView.as_view(),
-        name='end_user_document'
-    ),
-    # ex: /applications/<uuid:pk>/ultimate-end-users/
-    path(
-        route='<uuid:pk>/ultimate-end-users/',
-        view=application_parties.ApplicationUltimateEndUsers.as_view(),
-        name='ultimate_end_users'
-    ),
-    # ex: /applications/<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>
-    path(
-        route='<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>',
-        view=application_parties.RemoveApplicationUltimateEndUser.as_view(),
-        name='remove_ultimate_end_user'
-    ),
-    # ex: /applications/<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/
-    path(
-        route='<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/',
-        view=application_party_document_views.UltimateEndUserDocumentsView.as_view(),
-        name='ultimate_end_user_document'
-    ),
-    # ex: /applications/<uuid:pk>/consignee/
-    path(
-        route='<uuid:pk>/consignee/',
-        view=application_parties.ApplicationConsignee.as_view(),
-        name='consignee'
-    ),
-    # ex: /applications/<uuid:pk>/consignee/document/
-    path(
-        route='<uuid:pk>/consignee/document/',
-        view=application_party_document_views.ConsigneeDocumentView.as_view(),
-        name='consignee_document'
-    ),
-    # ex: /applications/<uuid:pk>/third-parties/
-    path(
-        route='<uuid:pk>/third-parties/',
-        view=application_parties.ApplicationThirdParties.as_view(),
-        name='third_parties'
-    ),
-    # ex: /applications/<uuid:pk>/third-parties/<uuid:tp_pk>
-    path(
-        route='<uuid:pk>/third-parties/<uuid:tp_pk>',
-        view=application_parties.RemoveThirdParty.as_view(),
-        name='remove_third_party'
-    ),
-    # ex: /applications/<uuid:pk>/third-parties/<uuid:tp_pk>/document/
-    path(
-        route='<uuid:pk>/third-parties/<uuid:tp_pk>/document/',
-        view=application_party_document_views.ThirdPartyDocumentView.as_view(),
-        name='third_party_document'
-    ),
-    # ex: /applications/<uuid:pk>/sites/
-    path(
-        route='<uuid:pk>/sites/',
-        view=application_sites_views.ApplicationSites.as_view(),
-        name='application_sites'
-    ),
-    # ex: /applications/<uuid:pk>/external_locations/
-    path(
-        route='<uuid:pk>/external_locations/',
-        view=application_external_locations_views.ApplicationExternalLocations.as_view(),
-        name='application_external_locations'
-    ),
-    # ex: /applications/<uuid:pk>/external_locations/<uuid:ext_loc_pk>/
-    path(
-        route='<uuid:pk>/external_locations/<uuid:ext_loc_pk>/',
-        view=application_external_locations_views.ApplicationRemoveExternalLocation.as_view(),
-        name='application_remove_external_location'
-    ),
-    # ex: /applications/<uuid:pk>/countries/
-    path(
-        route='<uuid:pk>/countries/',
-        view=application_countries.ApplicationCountries.as_view(),
-        name='countries'
-    ),
-    # ex: /applications/<uuid:pk>/documents/
-    path(
-        route='<uuid:pk>/documents/',
-        view=application_documents.ApplicationDocumentView.as_view(),
-        name='application_documents'
-    ),
-    # ex: /applications/<uuid:pk>/documents/<uuid:doc_pk>/
-    path(
-        route='<uuid:pk>/documents/<uuid:doc_pk>/',
-        view=application_documents.ApplicationDocumentDetailView.as_view(),
-        name='application_document'
-    ),
+    # Applications
+    path('', applications.ApplicationList.as_view(), name='applications'),
+    path('<uuid:pk>/', applications.ApplicationDetail.as_view(), name='application'),
+    path('<uuid:pk>/submit/', applications.ApplicationSubmission.as_view(), name='application_submit'),
+    path('<uuid:pk>/status/', applications.ApplicationManageStatus.as_view(), name='manage_status'),
+
+    # Goods
+    path('<uuid:pk>/goods/', goods.ApplicationGoodsOnApplication.as_view(), name='application_goods'),
+    path('good-on-application/<uuid:obj_pk>/', goods.ApplicationGoodOnApplication.as_view(), name='good_on_application'),
+
+    # Goods types
+    path('<uuid:pk>/goodstypes/', goods.ApplicationGoodsTypes.as_view(), name='application_goodstypes'),
+    path('<uuid:pk>/goodstype/<uuid:goodstype_pk>/',  goods.ApplicationGoodsType.as_view(), name='application_goodstype'),
+    path('<uuid:pk>/goodstype/<uuid:goods_type_pk>/document/',documents.GoodsTypeDocumentView.as_view(), name='goods_type_document'),
+    path('<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/', goods.ApplicationGoodsTypeCountries.as_view(),
+         name='application_goodstype_assign_countries'),
+
+    # End user
+    path('<uuid:pk>/end-user/', parties.ApplicationEndUser.as_view(), name='end_user'),
+    path('<uuid:pk>/end-user/document/', party_documents.EndUserDocumentView.as_view(), name='end_user_document'),
+
+    # Ultimate end users
+    path('<uuid:pk>/ultimate-end-users/', parties.ApplicationUltimateEndUsers.as_view(), name='ultimate_end_users'),
+    path('<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>', parties.RemoveApplicationUltimateEndUser.as_view(), name='remove_ultimate_end_user'),
+    path('<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/', party_documents.UltimateEndUserDocumentsView.as_view(),
+         name='ultimate_end_user_document'),
+
+    # Consignee
+    path('<uuid:pk>/consignee/', parties.ApplicationConsignee.as_view(), name='consignee'),
+    path('<uuid:pk>/consignee/document/', party_documents.ConsigneeDocumentView.as_view(), name='consignee_document'),
+
+    # Third parties
+    path('<uuid:pk>/third-parties/', parties.ApplicationThirdParties.as_view(), name='third_parties'),
+    path('<uuid:pk>/third-parties/<uuid:tp_pk>', parties.RemoveThirdParty.as_view(), name='remove_third_party'),
+    path('<uuid:pk>/third-parties/<uuid:tp_pk>/document/', party_documents.ThirdPartyDocumentView.as_view(), name='third_party_document'),
+
+    # Sites, locations and countries
+    path('<uuid:pk>/sites/', sites.ApplicationSites.as_view(), name='application_sites'),
+    path('<uuid:pk>/external_locations/', external_locations.ApplicationExternalLocations.as_view(), name='application_external_locations'),
+    path('<uuid:pk>/external_locations/<uuid:ext_loc_pk>/', external_locations.ApplicationRemoveExternalLocation.as_view(),
+         name='application_remove_external_location'),
+    path('<uuid:pk>/countries/', countries.ApplicationCountries.as_view(), name='countries'),
+
+    # Supporting Documents
+    path('<uuid:pk>/documents/', documents.ApplicationDocumentView.as_view(), name='application_documents'),
+    path('<uuid:pk>/documents/<uuid:doc_pk>/', documents.ApplicationDocumentDetailView.as_view(), name='application_document'),
 ]

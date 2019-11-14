@@ -6,4 +6,4 @@ from letter_templates.models import LetterLayout
 class LetterLayoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = LetterLayout
-        fields = ["id", "filename", "name"]
+        fields = ('id', 'filename', 'name',)

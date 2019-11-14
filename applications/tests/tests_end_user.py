@@ -1,7 +1,8 @@
+from unittest import mock
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
-from unittest import mock
 
 from parties.document.models import PartyDocument
 from parties.models import EndUser
