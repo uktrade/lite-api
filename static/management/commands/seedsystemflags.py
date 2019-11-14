@@ -9,15 +9,17 @@ from flags.enums import SystemFlags
 from goods.models import Good
 from organisations.models import Organisation
 from static.countries.models import Country
+from static.management.SeedCommand import SeedCommand
 
 success_message = 'System flags seeded successfully!'
 
 
-class Command(BaseCommand):
+class Command(SeedCommand):
     help = 'Creates system flags'
+    success = 'Successfully seeded system flags'
+    seed_command = 'seedsystemflags'
 
-    @transaction.atomic
-    def handle(self, *args, **options):
+    def operation(self, *args, **options):
         """
         pipenv run ./manage.py seedsystemflags
         """

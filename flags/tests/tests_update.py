@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,6 +7,11 @@ from test_helpers.clients import DataTestClient
 
 
 class FlagsUpdateTest(DataTestClient):
+
+    def setUp(self):
+        super().setUp()
+        # Seed layouts
+        call_command('seedsystemflags')
 
     def test_flag_can_be_deactivated(self):
         flag = self.create_flag('New Flag', 'Case', self.team)

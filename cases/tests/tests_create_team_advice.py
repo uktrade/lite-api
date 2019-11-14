@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
@@ -16,6 +17,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
+        # seed system flags
+        call_command('seedsystemflags')
+
         self.standard_application = self.create_standard_application(self.organisation)
         self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)

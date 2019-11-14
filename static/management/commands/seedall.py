@@ -3,7 +3,7 @@ from django.core.management import call_command
 from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
-    'Essential': ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedcasestatuses'],
+    'Essential': ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries', 'seedcasestatuses', 'seedsystemflags'],
     'Dev': ['seedorgusers', 'seedgovuser'],
     'Tests': ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser', 'seedcasestatuses']
 }

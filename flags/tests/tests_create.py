@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -9,6 +10,11 @@ from test_helpers.clients import DataTestClient
 class FlagsCreateTest(DataTestClient):
 
     url = reverse('flags:flags')
+
+    def setUp(self):
+        super().setUp()
+        # Seed layouts
+        call_command('seedsystemflags')
 
     def test_gov_user_can_create_flags(self):
         data = {
