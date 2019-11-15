@@ -25,9 +25,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         else:
-            raise exceptions.PermissionDenied(
-                "You must supply the correct token in your headers."
-            )
+            raise exceptions.PermissionDenied("You must supply the correct token in your headers.")
 
         organisation_id = request.META.get(ORGANISATION_ID)
 
@@ -58,9 +56,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         else:
-            raise exceptions.PermissionDenied(
-                "You must supply the correct token in your headers."
-            )
+            raise exceptions.PermissionDenied("You must supply the correct token in your headers.")
 
         organisation_id = request.META.get(ORGANISATION_ID)
 
@@ -68,9 +64,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         organisation = get_organisation_by_pk(organisation_id)
 
         if organisation.type is not OrganisationType.HMRC:
-            raise exceptions.PermissionDenied(
-                "You don't belong to an HMRC organisation"
-            )
+            raise exceptions.PermissionDenied("You don't belong to an HMRC organisation")
 
         if organisation in get_user_organisations(exporter_user):
             user_organisation_relationship = UserOrganisationRelationship.objects.get(

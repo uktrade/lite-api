@@ -23,9 +23,7 @@ class FlagsListTests(DataTestClient):
         self.create_flag("Flag3", "Case", other_team)
         self.create_flag("Flag4", "Case", self.team)
 
-        response = self.client.get(
-            self.url + "?level=Case&team=" + self.team.name, **self.gov_headers
-        )
+        response = self.client.get(self.url + "?level=Case&team=" + self.team.name, **self.gov_headers)
 
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)

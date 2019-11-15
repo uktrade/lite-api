@@ -4,9 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
-from applications.serializers.generic_application import (
-    GenericApplicationListSerializer,
-)
+from applications.serializers.generic_application import GenericApplicationListSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
@@ -45,9 +43,7 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
             serializer = SiteViewSerializer(sites, many=True)
             return {"type": "sites", "data": serializer.data}
 
-        external_locations = ExternalLocation.objects.filter(
-            external_locations_on_application__application=application
-        )
+        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
 
         if external_locations:
             serializer = ExternalLocationSerializer(external_locations, many=True)
@@ -82,9 +78,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
         super().__init__(**kwargs)
 
         if self.context.type != OrganisationType.HMRC:
-            raise exceptions.PermissionDenied(
-                "User does not belong to an HMRC organisation"
-            )
+            raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
 
@@ -99,9 +93,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
-    reasoning = serializers.CharField(
-        max_length=1000, allow_null=True, allow_blank=True
-    )
+    reasoning = serializers.CharField(max_length=1000, allow_null=True, allow_blank=True)
 
     class Meta:
         model = HmrcQuery

@@ -24,9 +24,7 @@ class MoveCasesTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            set(self.case.queues.values_list("id", flat=True)), set(data["queues"])
-        )
+        self.assertEqual(set(self.case.queues.values_list("id", flat=True)), set(data["queues"]))
 
     def test_add_and_remove_case_to_queue(self):
         queues_data = {"queues": [queue.id for queue in self.queues]}
@@ -35,8 +33,7 @@ class MoveCasesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            set(self.case.queues.values_list("id", flat=True)),
-            set(queues_data["queues"]),
+            set(self.case.queues.values_list("id", flat=True)), set(queues_data["queues"]),
         )
 
         no_queues_data = {"queues": []}
@@ -45,8 +42,7 @@ class MoveCasesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            set(self.case.queues.values_list("id", flat=True)),
-            set(no_queues_data["queues"]),
+            set(self.case.queues.values_list("id", flat=True)), set(no_queues_data["queues"]),
         )
 
     def test_case_activity_created(self):
@@ -72,14 +68,7 @@ class MoveCasesTests(DataTestClient):
             # Invalid Queues
             [{"queues": "Not an array"}],
             [{"queues": ["00000000-0000-0000-0000-000000000002"]}],
-            [
-                {
-                    "queues": [
-                        "00000000-0000-0000-0000-000000000001",
-                        "00000000-0000-0000-0000-000000000002",
-                    ]
-                }
-            ],
+            [{"queues": ["00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002",]}],
         ]
     )
     def test_move_case_failure(self, data):
@@ -87,6 +76,4 @@ class MoveCasesTests(DataTestClient):
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            set(self.case.queues.values_list("id", flat=True)), existing_queues
-        )
+        self.assertEqual(set(self.case.queues.values_list("id", flat=True)), existing_queues)

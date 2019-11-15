@@ -55,13 +55,9 @@ class PickListItems(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -88,14 +84,10 @@ class PicklistItemDetail(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = PicklistSerializer(
-            instance=picklist_item, data=request.data, partial=True
-        )
+        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={"picklist_item": serializer.data})
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

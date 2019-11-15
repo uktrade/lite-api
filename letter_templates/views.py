@@ -24,9 +24,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
             data["restricted_to"] = list(data["restricted_to"])
             return JsonResponse(data=data, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
@@ -39,9 +37,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     serializer_class = LetterTemplateSerializer
 
     def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            self.get_object(), data=request.data, partial=True
-        )
+        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()

@@ -21,9 +21,7 @@ class LetterLayoutsTests(DataTestClient):
         self.assertEqual(response_data["name"], self.letter_layout.name)
 
     def test_get_letter_layout_success(self):
-        url = reverse(
-            "static:letter_layouts:letter_layout", kwargs={"pk": self.letter_layout.id}
-        )
+        url = reverse("static:letter_layouts:letter_layout", kwargs={"pk": self.letter_layout.id})
         response = self.client.get(url)
         response_data = response.json()
 

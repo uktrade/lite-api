@@ -19,9 +19,7 @@ from users.serializers import ExporterUserSimpleSerializer
 
 class GoodListSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
-    control_code = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True
-    )
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     documents = serializers.SerializerMethodField()
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
@@ -55,16 +53,11 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(
-        max_length=280, error_messages={"blank": strings.FORM_DEFAULT_ERROR_TEXT_BLANK}
-    )
+    description = serializers.CharField(max_length=280, error_messages={"blank": strings.FORM_DEFAULT_ERROR_TEXT_BLANK})
     is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices,
-        error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
+        choices=GoodControlled.choices, error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
-    control_code = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True
-    )
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField(
         error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
@@ -127,23 +120,15 @@ class GoodSerializer(serializers.ModelSerializer):
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
         if is_controlled_good and not value.get("control_code"):
-            raise serializers.ValidationError(
-                "Control Code must be set when good is controlled"
-            )
+            raise serializers.ValidationError("Control Code must be set when good is controlled")
 
         return value
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
-        instance.is_good_controlled = validated_data.get(
-            "is_good_controlled", instance.is_good_controlled
-        )
-        instance.control_code = validated_data.get(
-            "control_code", instance.control_code
-        )
-        instance.is_good_end_product = validated_data.get(
-            "is_good_end_product", instance.is_good_end_product
-        )
+        instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
+        instance.control_code = validated_data.get("control_code", instance.control_code)
+        instance.is_good_end_product = validated_data.get("is_good_end_product", instance.is_good_end_product)
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.save()
@@ -153,9 +138,7 @@ class GoodSerializer(serializers.ModelSerializer):
 class GoodDocumentCreateSerializer(serializers.ModelSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
-    organisation = serializers.PrimaryKeyRelatedField(
-        queryset=Organisation.objects.all()
-    )
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = GoodDocument
@@ -220,9 +203,7 @@ class GoodWithFlagsSerializer(GoodSerializer):
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, write_only=True
-    )
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
         allow_null=False,
@@ -230,9 +211,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         write_only=True,
         error_messages={"null": "This field is required."},
     )
-    comment = serializers.CharField(
-        allow_blank=True, max_length=500, required=True, allow_null=True
-    )
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
         queryset=PicklistItem.objects.all(), required=False, allow_null=True
     )
@@ -251,19 +230,13 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")):
-            self.fields["control_code"] = ControlListEntryField(
-                required=True, write_only=True
-            )
+            self.fields["control_code"] = ControlListEntryField(required=True, write_only=True)
             self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": get_string(
-                        "picklist_items.error_messages." "required_report_summary"
-                    ),
-                    "null": get_string(
-                        "picklist_items.error_messages.required_report_summary"
-                    ),
+                    "required": get_string("picklist_items.error_messages." "required_report_summary"),
+                    "null": get_string("picklist_items.error_messages.required_report_summary"),
                 },
             )
 

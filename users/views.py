@@ -41,17 +41,13 @@ class AuthenticateExporterUser(APIView):
         try:
             data = JSONParser().parse(request)
         except ParseError:
-            return JsonResponse(
-                data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
         email = data.get("email")
 
         try:
             user = ExporterUser.objects.get(email=email)
         except ExporterUser.DoesNotExist:
-            return JsonResponse(
-                data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN
-            )
+            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
         return JsonResponse(
@@ -85,13 +81,9 @@ class UserList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"user": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"user": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetail(APIView):
@@ -115,14 +107,10 @@ class UserDetail(APIView):
         data = JSONParser().parse(request)
 
         with reversion.create_revision():
-            serializer = ExporterUserCreateUpdateSerializer(
-                user, data=data, partial=True
-            )
+            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(
-                    data={"user": serializer.data}, status=status.HTTP_200_OK
-                )
+                return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
 
             return JsonResponse(data={"errors": serializer.errors}, status=400)
 
@@ -173,9 +161,7 @@ class CaseNotification(APIView):
         case = self.request.GET.get("case")
 
         try:
-            notification = Notification.objects.get(
-                user=user, case_activity__case__id=case
-            )
+            notification = Notification.objects.get(user=user, case_activity__case__id=case)
         except Notification.DoesNotExist:
             return JsonResponse(data={"notification": None})
 

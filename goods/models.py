@@ -14,16 +14,12 @@ from users.models import ExporterUser
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(max_length=280)
-    is_good_controlled = models.CharField(
-        choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20
-    )
+    is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
     control_code = models.TextField(default="", blank=True, null=True)
     is_good_end_product = models.BooleanField()
     part_number = models.TextField(default="", blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    status = models.CharField(
-        choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20
-    )
+    status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
 
     # Gov

@@ -23,9 +23,7 @@ class EndUserOnDraftTests(DataTestClient):
             "website": "https://www.gov.py",
         }
 
-        self.document_url = reverse(
-            "applications:end_user_document", kwargs={"pk": self.draft.id}
-        )
+        self.document_url = reverse("applications:end_user_document", kwargs={"pk": self.draft.id})
         self.new_document_data = {
             "name": "document_name.pdf",
             "s3_key": "s3_keykey.pdf",
@@ -64,9 +62,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft.end_user = None
         self.draft.save()
         pre_test_end_user_count = EndUser.objects.all().count()
-        draft_open_application = self.create_open_application(
-            organisation=self.organisation
-        )
+        draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
             "name": "Government",
             "address": "Westminster, London SW1A 0AA",
@@ -156,9 +152,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), 0)
 
-    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(
-        self,
-    ):
+    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
         """
         Given a draft standard application
         When I try to delete an end user from the application
@@ -207,9 +201,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_document_when_no_end_user_exists_failure(
-        self, prepare_document_function
-    ):
+    def test_post_document_when_no_end_user_exists_failure(self, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
@@ -219,9 +211,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft.end_user = None
         self.draft.save()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -266,16 +256,12 @@ class EndUserOnDraftTests(DataTestClient):
         """
         PartyDocument.objects.filter(party=self.draft.end_user).delete()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_end_user_document_when_a_document_already_exists_failure(
-        self, prepare_document_function
-    ):
+    def test_post_end_user_document_when_a_document_already_exists_failure(self, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -283,20 +269,14 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to post a document
         Then a 400 BAD REQUEST is returned
         """
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            PartyDocument.objects.filter(party=self.draft.end_user).count(), 1
-        )
+        self.assertEqual(PartyDocument.objects.filter(party=self.draft.end_user).count(), 1)
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_document_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_end_user_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -311,9 +291,7 @@ class EndUserOnDraftTests(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_end_user_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user

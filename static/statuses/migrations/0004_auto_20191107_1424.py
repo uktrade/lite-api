@@ -10,11 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="casestatus",
-            name="is_read_only",
-            field=models.BooleanField(null=True),
-        ),
+        migrations.AddField(model_name="casestatus", name="is_read_only", field=models.BooleanField(null=True),),
         migrations.AlterField(
             model_name="casestatus",
             name="status",

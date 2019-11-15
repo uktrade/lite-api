@@ -34,20 +34,14 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["id"], str(self.letter_template.id))
         self.assertEqual(response_data["name"], self.letter_template.name)
         self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
-        self.assertEqual(
-            response_data["letter_paragraphs"], [str(self.picklist_item.id)]
-        )
+        self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
         self.assertIn(CaseType.CLC_QUERY, str(response_data["restricted_to"]))
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, str(response_data["restricted_to"]))
         self.assertIn(
-            CaseType.END_USER_ADVISORY_QUERY, str(response_data["restricted_to"])
+            CaseType.get_text(CaseType.CLC_QUERY), str(response_data["restricted_to_display"]),
         )
         self.assertIn(
-            CaseType.get_text(CaseType.CLC_QUERY),
-            str(response_data["restricted_to_display"]),
-        )
-        self.assertIn(
-            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY),
-            str(response_data["restricted_to_display"]),
+            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), str(response_data["restricted_to_display"]),
         )
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("last_modified_at"))
@@ -68,9 +62,7 @@ class LetterTemplateDetailTests(DataTestClient):
             layout=self.letter_layout,
         )
         self.letter_template.letter_paragraphs.add(self.picklist_item)
-        self.url = reverse(
-            "letter_templates:letter_template", kwargs={"pk": self.letter_template.id}
-        )
+        self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
 
     def test_get_letter_template(self):
         response = self.client.get(self.url, **self.gov_headers)
@@ -80,18 +72,14 @@ class LetterTemplateDetailTests(DataTestClient):
         self.assertEqual(response_data["id"], str(self.letter_template.id))
         self.assertEqual(response_data["name"], self.letter_template.name)
         self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
-        self.assertEqual(
-            response_data["letter_paragraphs"], [str(self.picklist_item.id)]
-        )
+        self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
         self.assertIn(CaseType.CLC_QUERY, response_data["restricted_to"])
         self.assertIn(CaseType.END_USER_ADVISORY_QUERY, response_data["restricted_to"])
         self.assertIn(
-            CaseType.get_text(CaseType.CLC_QUERY),
-            response_data["restricted_to_display"],
+            CaseType.get_text(CaseType.CLC_QUERY), response_data["restricted_to_display"],
         )
         self.assertIn(
-            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY),
-            response_data["restricted_to_display"],
+            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), response_data["restricted_to_display"],
         )
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("last_modified_at"))

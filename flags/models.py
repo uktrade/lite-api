@@ -13,6 +13,4 @@ class Flag(models.Model):
     name = models.TextField(default="Untitled Flag")
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     level = models.CharField(choices=FlagLevels.choices, max_length=20)
-    status = models.CharField(
-        choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20
-    )
+    status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)

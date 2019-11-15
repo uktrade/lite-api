@@ -14,14 +14,9 @@ class EndUserAdvisoryViewTests(DataTestClient):
         """
         Ensure that the user can view all end user advisory queries
         """
-        query = self.create_end_user_advisory(
-            "a note", "because I am unsure", self.organisation
-        )
+        query = self.create_end_user_advisory("a note", "because I am unsure", self.organisation)
 
-        response = self.client.get(
-            reverse("queries:end_user_advisories:end_user_advisories"),
-            **self.exporter_headers
-        )
+        response = self.client.get(reverse("queries:end_user_advisories:end_user_advisories"), **self.exporter_headers)
         response_data = response.json()["end_user_advisories"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -43,15 +38,10 @@ class EndUserAdvisoryViewTests(DataTestClient):
         """
         Ensure that the user can view an end user advisory query
         """
-        query = self.create_end_user_advisory(
-            "a note", "because I am unsure", self.organisation
-        )
+        query = self.create_end_user_advisory("a note", "because I am unsure", self.organisation)
 
         response = self.client.get(
-            reverse(
-                "queries:end_user_advisories:end_user_advisory", kwargs={"pk": query.id}
-            ),
-            **self.exporter_headers
+            reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": query.id}), **self.exporter_headers
         )
         response_data = response.json()["end_user_advisory"]
 
@@ -157,25 +147,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (
-                "com",
-                "person",
-                "http://gov.co.uk",
-                "place street",
-                "GB",
-                "",
-                "",
-            ),  # invalid end user type
+            ("com", "person", "http://gov.co.uk", "place street", "GB", "", "",),  # invalid end user type
             ("commercial", "", "", "nowhere", "GB", "", ""),  # name is empty
-            (
-                "government",
-                "abc",
-                "abc",
-                "nowhere",
-                "GB",
-                "",
-                "",
-            ),  # invalid web address
+            ("government", "abc", "abc", "nowhere", "GB", "", "",),  # invalid web address
             ("government", "abc", "", "", "GB", "", ""),  # empty address
             ("government", "abc", "", "nowhere", "ALP", "", ""),  # invalid country code
             ("", "", "", "", "", "", ""),  # empty dataset
@@ -226,13 +200,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
 
         errors = response.json()["errors"]
 
-        self.assertEqual(
-            errors.get("nature_of_business"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("nature_of_business"), ["This field may not be blank"])
         self.assertEqual(errors.get("contact_name"), ["This field may not be blank"])
-        self.assertEqual(
-            errors.get("contact_job_title"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("contact_job_title"), ["This field may not be blank"])
 
     def test_create_end_user_advisory_query_for_government_failure(self):
         """
@@ -260,9 +230,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEqual(errors.get("contact_name"), ["This field may not be blank"])
-        self.assertEqual(
-            errors.get("contact_job_title"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("contact_job_title"), ["This field may not be blank"])
 
     def test_create_end_user_advisory_query_for_government(self):
         """

@@ -25,9 +25,7 @@ from applications.libraries.case_activity import (
 )
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
-from applications.serializers.generic_application import (
-    GenericApplicationListSerializer,
-)
+from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseType
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -56,36 +54,28 @@ class ApplicationList(ListCreateAPIView):
         try:
             submitted = optional_str_to_bool(self.request.GET.get("submitted"))
         except ValueError as e:
-            return JsonResponse(
-                data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         if self.request.user.organisation.type == OrganisationType.HMRC:
             if submitted is None:
-                applications = HmrcQuery.objects.filter(
-                    hmrc_organisation=self.request.user.organisation
-                )
+                applications = HmrcQuery.objects.filter(hmrc_organisation=self.request.user.organisation)
             elif submitted:
-                applications = HmrcQuery.objects.submitted(
-                    hmrc_organisation=self.request.user.organisation
-                )
+                applications = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation)
             else:
-                applications = HmrcQuery.objects.drafts(
-                    hmrc_organisation=self.request.user.organisation
-                )
+                applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
             if submitted is None:
-                applications = BaseApplication.objects.filter(
-                    organisation=self.request.user.organisation
-                ).exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation).exclude(
+                    application_type=ApplicationType.HMRC_QUERY
+                )
             elif submitted:
-                applications = BaseApplication.objects.submitted(
-                    organisation=self.request.user.organisation
-                ).exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation).exclude(
+                    application_type=ApplicationType.HMRC_QUERY
+                )
             else:
-                applications = BaseApplication.objects.drafts(
-                    organisation=self.request.user.organisation
-                ).exclude(application_type=ApplicationType.HMRC_QUERY)
+                applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation).exclude(
+                    application_type=ApplicationType.HMRC_QUERY
+                )
 
         return applications
 
@@ -99,9 +89,7 @@ class ApplicationList(ListCreateAPIView):
         serializer = serializer(data=data, context=request.user.organisation)
 
         if not serializer.is_valid():
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application = serializer.save()
 
@@ -127,43 +115,27 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         serializer = get_application_update_serializer(application)
-        serializer = serializer(
-            application,
-            data=request.data,
-            context=request.user.organisation,
-            partial=True,
-        )
+        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True,)
 
         if application.application_type == ApplicationType.HMRC_QUERY:
             if not serializer.is_valid():
-                return JsonResponse(
-                    data={"errors": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
 
             serializer.save()
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
         else:
             application_old_name = application.name
-            application_old_ref_number = (
-                application.reference_number_on_information_form
-            )
+            application_old_ref_number = application.reference_number_on_information_form
 
             if not serializer.is_valid():
-                return JsonResponse(
-                    data={"errors": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
 
             serializer.save()
 
             if request.data.get("name"):
                 set_application_name_case_activity(
-                    application_old_name,
-                    serializer.data.get("name"),
-                    request.user,
-                    application,
+                    application_old_name, serializer.data.get("name"), request.user, application,
                 )
             elif request.data.get("reference_number_on_information_form"):
                 set_application_ref_number_case_activity(
@@ -182,13 +154,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if application.submitted_at:
             return JsonResponse(
-                data={"errors": "Only draft applications can be deleted"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST,
             )
         application.delete()
-        return JsonResponse(
-            data={"status": "Draft application deleted"}, status=status.HTTP_200_OK
-        )
+        return JsonResponse(data={"status": "Draft application deleted"}, status=status.HTTP_200_OK)
 
 
 class ApplicationSubmission(APIView):
@@ -205,18 +174,14 @@ class ApplicationSubmission(APIView):
 
         errors = validate_application_ready_for_submission(application)
         if errors:
-            return JsonResponse(
-                data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application.submitted_at = timezone.now()
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
         if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(
-                application=application
-            ):
+            for good_on_application in GoodOnApplication.objects.filter(application=application):
                 if good_on_application.good.status == GoodStatus.DRAFT:
                     good_on_application.good.status = GoodStatus.SUBMITTED
                     good_on_application.good.save()
@@ -236,9 +201,7 @@ class ApplicationSubmission(APIView):
             data["application"]["case_id"] = case.id
         else:
             # If the application is being submitted after being edited
-            set_application_status_case_activity(
-                application.status.status, request.user, application
-            )
+            set_application_status_case_activity(application.status.status, request.user, application)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -257,18 +220,12 @@ class ApplicationManageStatus(APIView):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            validation_error = validate_status_can_be_set_by_exporter_user(
-                application.status.status, new_status_enum
-            )
+            validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(
-                application.status.status, new_status_enum
-            )
+            validation_error = validate_status_can_be_set_by_gov_user(application.status.status, new_status_enum)
 
         if validation_error:
-            return JsonResponse(
-                data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         # This can return 403 forbidden
@@ -293,14 +250,10 @@ class ApplicationManageStatus(APIView):
         serializer = serializer(application, data=data, partial=True)
 
         if not serializer.is_valid():
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
 
-        set_application_status_case_activity(
-            new_status.status, request.user, application
-        )
+        set_application_status_case_activity(new_status.status, request.user, application)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

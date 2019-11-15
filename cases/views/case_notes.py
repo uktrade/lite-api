@@ -18,9 +18,7 @@ class CaseNoteList(APIView):
         Gets all case notes
         """
         case = get_case(pk)
-        case_notes = get_case_notes_from_case(
-            case, isinstance(request.user, ExporterUser)
-        )
+        case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
         serializer = CaseNoteSerializer(case_notes, many=True)
 
         mark_notifications_as_viewed(request.user, case_notes)
@@ -40,10 +38,6 @@ class CaseNoteList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"case_note": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"case_note": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

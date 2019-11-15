@@ -22,8 +22,7 @@ def filter_out_duplicates(advice_list):
                 and advice.text == item.text
                 and advice.note == item.note
                 and advice.proviso == item.proviso
-                and [x for x in advice.denial_reasons.values_list()]
-                == [x for x in item.denial_reasons.values_list()]
+                and [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]
             ):
                 matches = True
             else:
@@ -35,15 +34,7 @@ def filter_out_duplicates(advice_list):
 
 
 def construct_coalesced_advice_values(
-    filtered_items,
-    text,
-    note,
-    proviso,
-    denial_reasons,
-    advice_type,
-    case,
-    advice_class,
-    user,
+    filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
 ):
     break_text = "\n-------\n"
     for advice in filtered_items:
@@ -72,9 +63,7 @@ def construct_coalesced_advice_values(
         else:
             advice_type = advice.type
 
-    advice = advice_class(
-        text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type
-    )
+    advice = advice_class(text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type)
 
     return advice
 
@@ -107,15 +96,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
         filtered_items = filter_out_duplicates(value)
 
         advice = construct_coalesced_advice_values(
-            filtered_items,
-            text,
-            note,
-            proviso,
-            denial_reasons,
-            advice_type,
-            case,
-            advice_class,
-            user,
+            filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
         )
 
         # Set outside the constructor so it can apply only when necessary
@@ -160,9 +141,7 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice("end_user", end_users.items(), case, request.user, level)
     collate_advice("good", goods.items(), case, request.user, level)
     collate_advice("country", countries.items(), case, request.user, level)
-    collate_advice(
-        "ultimate_end_user", ultimate_end_users.items(), case, request.user, level
-    )
+    collate_advice("ultimate_end_user", ultimate_end_users.items(), case, request.user, level)
     collate_advice("goods_type", goods_types.items(), case, request.user, level)
     collate_advice("consignee", consignees.items(), case, request.user, level)
     collate_advice("third_party", third_parties.items(), case, request.user, level)

@@ -18,9 +18,7 @@ class CaseFlagsManagementTests(DataTestClient):
         self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
         self.team_case_flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
         self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
-        self.other_team_case_flag = self.create_flag(
-            "Other Team Case Flag", "Case", self.other_team
-        )
+        self.other_team_case_flag = self.create_flag("Other Team Case Flag", "Case", self.other_team)
         self.all_flags = [
             self.team_case_flag_1,
             self.team_org_flag,

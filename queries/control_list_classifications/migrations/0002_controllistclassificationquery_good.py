@@ -18,9 +18,7 @@ class Migration(migrations.Migration):
             model_name="controllistclassificationquery",
             name="good",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.DO_NOTHING,
-                related_name="clc_query",
-                to="goods.Good",
+                on_delete=django.db.models.deletion.DO_NOTHING, related_name="clc_query", to="goods.Good",
             ),
         ),
     ]

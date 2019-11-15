@@ -69,7 +69,7 @@ jobs:
 
       - run:
           name: check code formatting
-          command: pipenv run black . --check --diff
+          command: pipenv run black . --line-length 120 --check --diff
 
       # Tests
       # this example uses Django's built-in test-runner

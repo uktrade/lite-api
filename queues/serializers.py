@@ -32,9 +32,7 @@ class QueueViewSerializer(serializers.ModelSerializer):
 
 
 class QueueCreateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        error_messages={"blank": get_string("queues.blank_name"),}
-    )
+    name = serializers.CharField(error_messages={"blank": get_string("queues.blank_name"),})
     cases = CaseSerializer(many=True, read_only=True, required=False)
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 

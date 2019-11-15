@@ -15,9 +15,7 @@ def _get_error_details(data, default_code=None):
             return ReturnList(ret, serializer=data.serializer)
         return ret
     elif isinstance(data, dict):
-        ret = {
-            key: _get_error_details(value, default_code) for key, value in data.items()
-        }
+        ret = {key: _get_error_details(value, default_code) for key, value in data.items()}
         if isinstance(data, ReturnDict):
             return ReturnDict(ret, serializer=data.serializer)
         return ret
