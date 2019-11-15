@@ -15,6 +15,8 @@ class FlagsListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_gov_user_can_see_filtered_flags(self):
+        system_flag_count = Flag.objects.all().count()
+
         other_team = self.create_team('Team')
 
         self.create_flag('Flag1', 'Case', self.team)
@@ -26,11 +28,5 @@ class FlagsListTests(DataTestClient):
 
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['flags']), 2)
+        self.assertEqual(len(response_data['flags']), (system_flag_count + 2))
 
-    def test_gov_user_can_see_no_flags_when_team_doesnt_exist(self):
-        response = self.client.get(self.url + '?level=Case&team=blah', **self.gov_headers)
-
-        response_data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['flags']), 0)

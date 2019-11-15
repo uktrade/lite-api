@@ -1,4 +1,3 @@
-from django.core.management import call_command
 from rest_framework.reverse import reverse
 
 from cases.enums import AdviceType
@@ -20,8 +19,6 @@ class CasesFilterAndSortTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        # seed system flags
-        call_command('seedsystemflags')
 
         self.standard_application = self.create_standard_application(self.organisation)
         self.submit_application(self.standard_application)
@@ -34,23 +31,21 @@ class CasesFilterAndSortTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
+        self.url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})
+
     def test_combine_user_refusal_creates_flag(self):
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, Advice)
 
         self.assertFalse(self.check_if_flag_exists())
 
-        url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})
-
-        self.client.get(url, **self.gov_headers)
+        self.client.get(self.url, **self.gov_headers)
 
         self.assertTrue(self.check_if_flag_exists())
 
     def test_clear_advice_back_to_user_level_removes_flag(self):
         self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, TeamAdvice)
 
-        url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})
-
-        self.client.delete(url, **self.gov_headers)
+        self.client.delete(self.url, **self.gov_headers)
 
         self.assertFalse(self.check_if_flag_exists())
 

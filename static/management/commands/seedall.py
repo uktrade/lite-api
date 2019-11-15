@@ -7,7 +7,7 @@ SEED_COMMANDS = {
                   'seedcasestatuses', 'seedlayouts', 'seedgovuser', 'seedsystemflags'],
     'Dev': ['seedorgusers', 'seedgovuser'],
     'Tests': ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser',
-              'seedcasestatuses', 'seedlayouts']
+              'seedcasestatuses', 'seedlayouts', 'seedsystemflags']
 }
 
 

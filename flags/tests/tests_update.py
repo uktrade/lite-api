@@ -8,11 +8,6 @@ from test_helpers.clients import DataTestClient
 
 class FlagsUpdateTest(DataTestClient):
 
-    def setUp(self):
-        super().setUp()
-        # Seed layouts
-        call_command('seedsystemflags')
-
     def test_flag_can_be_deactivated(self):
         flag = self.create_flag('New Flag', 'Case', self.team)
 

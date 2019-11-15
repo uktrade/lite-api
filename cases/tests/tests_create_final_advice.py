@@ -215,9 +215,6 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
-        # seed system flags
-        call_command('seedsystemflags')
-
         self.create_advice(self.gov_user_2, self.standard_case, 'good', AdviceType.PROVISO, FinalAdvice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)

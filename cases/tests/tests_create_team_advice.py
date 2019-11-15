@@ -17,8 +17,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        # seed system flags
-        call_command('seedsystemflags')
 
         self.standard_application = self.create_standard_application(self.organisation)
         self.submit_application(self.standard_application)
