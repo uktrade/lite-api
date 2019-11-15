@@ -11,10 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="controllistclassificationquery", name="comment",
-        ),
-        migrations.RemoveField(
-            model_name="controllistclassificationquery", name="report_summary",
-        ),
+        migrations.RemoveField(model_name="controllistclassificationquery", name="comment",),
+        migrations.RemoveField(model_name="controllistclassificationquery", name="report_summary",),
     ]

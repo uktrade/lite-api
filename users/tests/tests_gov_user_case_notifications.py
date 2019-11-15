@@ -9,9 +9,7 @@ from test_helpers.clients import DataTestClient
 class NotificationTests(DataTestClient):
     def tests_edit_application_creates_new_case_notification_success(self):
         case = self.create_standard_application_case(self.organisation, "Case")
-        prev_notification_count = Notification.objects.filter(
-            user=self.gov_user, case_activity__case=case
-        ).count()
+        prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
         url = reverse("applications:application", kwargs={"pk": case.application.id})
         data = {"name": "new app name!"}
 
@@ -20,9 +18,7 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
-            Notification.objects.filter(
-                user=self.gov_user, case_activity__case=case
-            ).count(),
+            Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
             prev_notification_count + 1,
         )
 
@@ -33,21 +29,15 @@ class NotificationTests(DataTestClient):
             "old_name": "old app name",
             "new_name": "new app name",
         }
-        case_activity = CaseActivity.create(
-            case=case, user=self.exporter_user, **case_activity
-        )
+        case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
         self.gov_user.send_notification(case_activity=case_activity)
-        prev_notification_count = Notification.objects.filter(
-            user=self.gov_user, case_activity__case=case
-        ).count()
+        prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
         url = reverse("applications:application", kwargs={"pk": case.application.id})
         data = {"name": "even newer app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
-        new_notification = Notification.objects.filter(
-            user=self.gov_user, case_activity__case=case
-        )
+        new_notification = Notification.objects.filter(user=self.gov_user, case_activity__case=case)
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(new_notification.count(), prev_notification_count)
@@ -61,9 +51,7 @@ class NotificationTests(DataTestClient):
             "old_name": "old app name",
             "new_name": "new app name",
         }
-        case_activity = CaseActivity.create(
-            case=case, user=self.exporter_user, **case_activity
-        )
+        case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
         self.gov_user.send_notification(case_activity=case_activity)
         url = reverse_lazy("users:case_notification") + "?case=" + str(case.id)
 
@@ -73,17 +61,12 @@ class NotificationTests(DataTestClient):
         self.assertEqual(len(notification), 1)
         self.assertEqual(notification["case_activity"], case_activity.id)
         self.assertEqual(
-            Notification.objects.filter(
-                user=self.gov_user, case_activity__case=case
-            ).count(),
-            0,
+            Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(), 0,
         )
 
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
         case = self.create_standard_application_case(self.organisation, "Case")
-        prev_notification_count = Notification.objects.filter(
-            user=self.gov_user, case_activity__case=case
-        ).count()
+        prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
         url = reverse("applications:manage_status", kwargs={"pk": case.application.id})
         data = {"status": "under_review"}
 
@@ -92,8 +75,5 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
-            Notification.objects.filter(
-                user=self.gov_user, case_activity__case=case
-            ).count(),
-            prev_notification_count,
+            Notification.objects.filter(user=self.gov_user, case_activity__case=case).count(), prev_notification_count,
         )

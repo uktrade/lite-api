@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="country",
             name="id",
-            field=models.CharField(
-                editable=False, max_length=10, primary_key=True, serialize=False
-            ),
+            field=models.CharField(editable=False, max_length=10, primary_key=True, serialize=False),
         ),
     ]

@@ -25,9 +25,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name="organisation",
-            name="eori_number",
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="organisation", name="eori_number", field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
             model_name="organisation",
@@ -35,13 +33,9 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
-            model_name="organisation",
-            name="sic_number",
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="organisation", name="sic_number", field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
-            model_name="organisation",
-            name="vat_number",
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="organisation", name="vat_number", field=models.TextField(blank=True, default=None, null=True),
         ),
     ]

@@ -26,6 +26,4 @@ class PicklistItemCreate(DataTestClient):
         self.assertEqual(response_data["picklist_item"]["text"], data["text"])
         self.assertEqual(response_data["picklist_item"]["type"]["key"], data["type"])
         self.assertEqual(response_data["picklist_item"]["team"], data["team"])
-        self.assertEqual(
-            response_data["picklist_item"]["status"]["key"], data["status"]
-        )
+        self.assertEqual(response_data["picklist_item"]["status"]["key"], data["status"])

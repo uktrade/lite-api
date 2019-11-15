@@ -20,9 +20,7 @@ class CaseGetTests(DataTestClient):
         Then the third party is present in the json data
         """
 
-        self.standard_application.third_parties.set(
-            [self.create_third_party("third party", self.organisation)]
-        )
+        self.standard_application.third_parties.set([self.create_third_party("third party", self.organisation)])
         self.standard_application.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -42,9 +40,7 @@ class CaseGetTests(DataTestClient):
         Then the consignee is present in the json data
         """
 
-        self.standard_application.consignee = self.create_consignee(
-            "consignee", self.organisation
-        )
+        self.standard_application.consignee = self.create_consignee("consignee", self.organisation)
         self.standard_application.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -68,6 +64,5 @@ class CaseGetTests(DataTestClient):
         sub_type = actual["sub_type"]
         # sub_type is not always a dict.
         self.assertEqual(
-            str(expected.sub_type),
-            sub_type["key"] if isinstance(sub_type, dict) else sub_type,
+            str(expected.sub_type), sub_type["key"] if isinstance(sub_type, dict) else sub_type,
         )

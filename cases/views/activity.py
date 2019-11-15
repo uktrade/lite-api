@@ -20,9 +20,7 @@ class Activity(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         activity = get_case_activity(case)
-        activity.extend(
-            convert_case_notes_to_activity(get_case_notes_from_case(case, False))
-        )
+        activity.extend(convert_case_notes_to_activity(get_case_notes_from_case(case, False)))
 
         # Sort the activity based on date (newest first)
         activity.sort(key=lambda x: x.created_at, reverse=True)

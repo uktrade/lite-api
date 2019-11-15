@@ -27,10 +27,7 @@ class SearchQueue:
             case_qs = Case.objects.all()
 
         return cls(
-            id=queue.id,
-            name=queue.name,
-            team=queue.team,
-            case_count=case_qs.in_queue(queue_id=queue.id).count(),
+            id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count(),
         )
 
     @classmethod

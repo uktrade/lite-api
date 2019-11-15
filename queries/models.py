@@ -15,16 +15,10 @@ class QueryManager(models.Manager):
         from cases.enums import CaseType
         from cases.models import Case
 
-        query = super().create(
-            **obj_data, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        )
+        query = super().create(**obj_data, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
         # Create a case with this query
-        case_type = (
-            CaseType.END_USER_ADVISORY_QUERY
-            if isinstance(query, EndUserAdvisoryQuery)
-            else CaseType.CLC_QUERY
-        )
+        case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) else CaseType.CLC_QUERY
         case = Case(query=query, type=case_type)
         case.save()
 
@@ -40,11 +34,7 @@ class Query(models.Model):
     id = models.BigAutoField(primary_key=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
     status = models.ForeignKey(
-        CaseStatus,
-        related_name="query_status",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
+        CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 

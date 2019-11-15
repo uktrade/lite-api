@@ -20,10 +20,7 @@ class QueuesList(APIView):
         Gets all queues.
         Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
         """
-        queues = get_queues(
-            request.user.team,
-            str_to_bool(request.GET.get("include_system_queues", False)),
-        )
+        queues = get_queues(request.user.team, str_to_bool(request.GET.get("include_system_queues", False)),)
 
         serializer = QueueViewSerializer(queues, many=True)
         return JsonResponse(data={"queues": serializer.data})
@@ -34,13 +31,9 @@ class QueuesList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"queue": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -66,6 +59,4 @@ class QueueDetail(APIView):
             serializer.save()
             return JsonResponse(data={"queue": serializer.data})
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

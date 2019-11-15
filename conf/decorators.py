@@ -18,10 +18,7 @@ def _get_application(request, kwargs):
     elif "application" in kwargs and isinstance(kwargs["application"], BaseApplication):
         application = kwargs["application"]
     else:
-        return JsonResponse(
-            data={"errors": ["Application was not found"]},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return JsonResponse(data={"errors": ["Application was not found"]}, status=status.HTTP_404_NOT_FOUND,)
 
     kwargs["application"] = application
 
@@ -67,10 +64,7 @@ def application_in_major_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if (
-                application.status
-                and application.status.status != CaseStatusEnum.APPLICANT_EDITING
-            ):
+            if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
                 return JsonResponse(
                     data={
                         "errors": [
@@ -96,14 +90,11 @@ def application_in_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status in get_case_statuses(
-                read_only=True
-            ):
+            if application.status and application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
                     data={
                         "errors": [
-                            "You can only perform this operation when the application "
-                            "is in an editable state"
+                            "You can only perform this operation when the application " "is in an editable state"
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -126,9 +117,7 @@ def authorised_users(user_type):
         def inner(request, *args, **kwargs):
             if not isinstance(request.request.user, user_type):
                 return JsonResponse(
-                    data={
-                        "errors": ["You are not authorised to perform this operation"]
-                    },
+                    data={"errors": ["You are not authorised to perform this operation"]},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
@@ -136,12 +125,10 @@ def authorised_users(user_type):
                 application = _get_application(request, kwargs)
                 if (
                     application.application_type == ApplicationType.HMRC_QUERY
-                    and application.hmrc_organisation.id
-                    != request.request.user.organisation.id
+                    and application.hmrc_organisation.id != request.request.user.organisation.id
                 ) or (
                     application.application_type != ApplicationType.HMRC_QUERY
-                    and application.organisation.id
-                    != request.request.user.organisation.id
+                    and application.organisation.id != request.request.user.organisation.id
                 ):
                     return JsonResponse(
                         data={

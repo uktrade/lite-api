@@ -14,9 +14,7 @@ class HmrcQueryTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_hmrc_query(self.organisation)
-        self.url = reverse(
-            "applications:application_submit", kwargs={"pk": self.draft.id}
-        )
+        self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
     def test_submit_hmrc_query_success(self):
         response = self.client.put(self.url, **self.hmrc_exporter_headers)
@@ -44,9 +42,7 @@ class HmrcQueryTests(DataTestClient):
         response = self.client.put(url, **self.hmrc_exporter_headers)
 
         self.assertContains(
-            response,
-            text=get_string("applications.standard.no_end_user_set"),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=get_string("applications.standard.no_end_user_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_hmrc_query_without_end_user_document_failure(self):
@@ -67,9 +63,7 @@ class HmrcQueryTests(DataTestClient):
         response = self.client.put(self.url, **self.hmrc_exporter_headers)
 
         self.assertContains(
-            response,
-            text=get_string("applications.open.no_goods_set"),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=get_string("applications.open.no_goods_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_status_code_post_with_untested_document_failure(self):

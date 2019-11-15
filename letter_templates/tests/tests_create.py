@@ -113,9 +113,7 @@ class LetterTemplateCreateTests(DataTestClient):
 
     def test_create_letter_templates_order_is_saved(self):
         """Check the order of letter paragraphs is saved."""
-        for i, picklist_items in enumerate(
-            permutations([self.picklist_item_1, self.picklist_item_2])
-        ):
+        for i, picklist_items in enumerate(permutations([self.picklist_item_1, self.picklist_item_2])):
             name = f"Test Template {i}"
             data = {
                 "name": name,

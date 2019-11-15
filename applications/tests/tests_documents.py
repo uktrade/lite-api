@@ -14,9 +14,7 @@ class DraftDocumentTests(DataTestClient):
         super().setUp()
 
         self.draft = self.create_standard_application(self.organisation, "Draft")
-        self.url_draft = reverse(
-            "applications:application_documents", kwargs={"pk": self.draft.id}
-        )
+        self.url_draft = reverse("applications:application_documents", kwargs={"pk": self.draft.id})
         self.test_filename = "dog.jpg"
 
         self.editable_case_statuses = get_case_statuses(read_only=False)
@@ -50,9 +48,7 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(response_data["description"], self.data["description"])
 
     @mock.patch("documents.tasks.prepare_document.now")
-    def test_upload_multiple_documents_on_unsubmitted_application(
-        self, mock_prepare_doc
-    ):
+    def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding multiple documents to an unsubmitted application. """
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         self.client.post(self.url_draft, data=self.data2, **self.exporter_headers)
@@ -82,10 +78,7 @@ class DraftDocumentTests(DataTestClient):
 
         url = reverse(
             "applications:application_document",
-            kwargs={
-                "pk": self.draft.id,
-                "doc_pk": response.json()["documents"][0]["id"],
-            },
+            kwargs={"pk": self.draft.id, "doc_pk": response.json()["documents"][0]["id"],},
         )
 
         self.client.delete(url, **self.exporter_headers)
@@ -98,29 +91,22 @@ class DraftDocumentTests(DataTestClient):
         """ Test success in downloading a document from an unsubmitted application. """
         application_document = self.draft.applicationdocument_set.first()
         url = reverse(
-            "applications:application_document",
-            kwargs={"pk": self.draft.id, "doc_pk": application_document.id},
+            "applications:application_document", kwargs={"pk": self.draft.id, "doc_pk": application_document.id},
         )
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.json()["document"]["name"], application_document.name)
-        self.assertEqual(
-            response.json()["document"]["s3_key"], application_document.s3_key
-        )
+        self.assertEqual(response.json()["document"]["s3_key"], application_document.s3_key)
         self.assertEqual(response.json()["document"]["size"], application_document.size)
 
     @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")
-    def test_add_document_when_application_in_editable_state_success(
-        self, editable_status, mock_prepare_doc
-    ):
+    def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
         application = self.create_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
-        url = reverse(
-            "applications:application_documents", kwargs={"pk": application.id}
-        )
+        url = reverse("applications:application_documents", kwargs={"pk": application.id})
         response = self.client.post(url, data=self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -138,10 +124,7 @@ class DraftDocumentTests(DataTestClient):
 
         url = reverse(
             "applications:application_document",
-            kwargs={
-                "pk": application.id,
-                "doc_pk": application.applicationdocument_set.first().id,
-            },
+            kwargs={"pk": application.id, "doc_pk": application.applicationdocument_set.first().id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -150,16 +133,12 @@ class DraftDocumentTests(DataTestClient):
         self.assertEqual(application.applicationdocument_set.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    def test_add_document_when_application_in_read_only_state_failure(
-        self, read_only_status
-    ):
+    def test_add_document_when_application_in_read_only_state_failure(self, read_only_status):
         application = self.create_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
-        url = reverse(
-            "applications:application_documents", kwargs={"pk": application.id}
-        )
+        url = reverse("applications:application_documents", kwargs={"pk": application.id})
         response = self.client.post(url, data=self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -175,10 +154,7 @@ class DraftDocumentTests(DataTestClient):
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
-        url = reverse(
-            "applications:application_document",
-            kwargs={"pk": application.id, "doc_pk": uuid.uuid4()},
-        )
+        url = reverse("applications:application_document", kwargs={"pk": application.id, "doc_pk": uuid.uuid4()},)
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

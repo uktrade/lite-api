@@ -12,12 +12,8 @@ def get_location(pk, organisation=None):
     try:
         return ExternalLocation.objects.get(**kwargs)
     except ExternalLocation.DoesNotExist:
-        raise NotFoundError(
-            {"external_location": "External location not found - " + str(pk)}
-        )
+        raise NotFoundError({"external_location": "External location not found - " + str(pk)})
 
 
 def has_previous_locations(application: BaseApplication):
-    return ExternalLocationOnApplication.objects.filter(
-        application=application
-    ).exists()
+    return ExternalLocationOnApplication.objects.filter(application=application).exists()

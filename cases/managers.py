@@ -26,18 +26,8 @@ class CaseQuerySet(models.QuerySet):
     def is_open(self, is_open: bool = True):
         func = self.exclude if is_open else self.filter
         return func(
-            Q(
-                application__status__status__in=[
-                    CaseStatusEnum.WITHDRAWN,
-                    CaseStatusEnum.FINALISED,
-                ]
-            )
-            | Q(
-                query__status__status__in=[
-                    CaseStatusEnum.WITHDRAWN,
-                    CaseStatusEnum.FINALISED,
-                ]
-            )
+            Q(application__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED,])
+            | Q(query__status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED,])
         )
 
     def in_queues(self, queues: List):
@@ -50,9 +40,7 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(queues__team=team).distinct()
 
     def has_status(self, status):
-        return self.filter(
-            Q(query__status__status=status) | Q(application__status__status=status)
-        )
+        return self.filter(Q(query__status__status=status) | Q(application__status__status=status))
 
     def is_type(self, case_type):
         return self.filter(type=case_type)
@@ -65,9 +53,7 @@ class CaseQuerySet(models.QuerySet):
         order = order if order in ["", "-"] else ""
 
         return self.annotate(
-            status__priority=Coalesce(
-                "application__status__priority", "query__status__priority"
-            )
+            status__priority=Coalesce("application__status__priority", "query__status__priority")
         ).order_by(f"{order}status__priority")
 
     def order_by_date(self, order=""):
@@ -77,9 +63,9 @@ class CaseQuerySet(models.QuerySet):
         """
         order = order if order in ["", "-"] else ""
 
-        return self.annotate(
-            created_at=Coalesce("application__submitted_at", "query__submitted_at"),
-        ).order_by(f"{order}created_at")
+        return self.annotate(created_at=Coalesce("application__submitted_at", "query__submitted_at"),).order_by(
+            f"{order}created_at"
+        )
 
 
 class CaseManager(models.Manager):
@@ -92,13 +78,7 @@ class CaseManager(models.Manager):
         return CaseQuerySet(self.model, using=self.db)
 
     def search(
-        self,
-        queue_id=None,
-        team=None,
-        status=None,
-        case_type=None,
-        sort=None,
-        date_order=None,
+        self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.

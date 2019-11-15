@@ -41,9 +41,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     def get_organisations(self, instance):
         try:
-            user_organisation_relationships = UserOrganisationRelationship.objects.filter(
-                user=instance
-            )
+            user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=instance)
             return_value = []
 
             for relationship in user_organisation_relationships:
@@ -75,9 +73,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-        error_messages={
-            "invalid": "Enter an email address in the correct format, like name@example.com"
-        }
+        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
@@ -95,12 +91,10 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                 organisation = get_organisation_by_pk(self.initial_data["organisation"])
 
                 if UserOrganisationRelationship.objects.get(
-                    user=get_exporter_user_by_email(self.initial_data["email"]),
-                    organisation=organisation,
+                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation,
                 ):
                     raise serializers.ValidationError(
-                        self.initial_data["email"]
-                        + " is already a member of this organisation."
+                        self.initial_data["email"] + " is already a member of this organisation."
                     )
             except (NotFoundError, UserOrganisationRelationship.DoesNotExist):
                 pass
@@ -109,9 +103,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(
-            email=validated_data["email"], defaults={**validated_data}
-        )
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
         UserOrganisationRelationship(user=exporter, organisation=organisation).save()
         return exporter
 
@@ -127,22 +119,16 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(
-        queryset=Organisation.objects.all(), required=True
-    )
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
     email = serializers.EmailField(
-        error_messages={
-            "invalid": "Enter an email address in the correct format, like name@example.com"
-        }
+        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(
-            email=validated_data["email"], defaults={**validated_data}
-        )
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
         UserOrganisationRelationship(user=exporter, organisation=organisation).save()
         return exporter
 
@@ -167,11 +153,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_object(self, obj):
         object = next(
             item
-            for item in [
-                getattr(obj, "case_note"),
-                getattr(obj, "query"),
-                getattr(obj, "ecju_query"),
-            ]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
             if item is not None
         )
         return object.id
@@ -179,11 +161,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_object_type(self, obj):
         object = next(
             item
-            for item in [
-                getattr(obj, "case_note"),
-                getattr(obj, "query"),
-                getattr(obj, "ecju_query"),
-            ]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
             if item is not None
         )
 
@@ -195,15 +173,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_parent(self, obj):
         if obj.case_note:
             object = next(
-                item
-                for item in [obj.case_note.case.application, obj.case_note.case.query]
-                if item is not None
+                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
             )
         if obj.ecju_query:
             object = next(
-                item
-                for item in [obj.ecju_query.case.application, obj.ecju_query.case.query]
-                if item is not None
+                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
             )
 
         if obj.query:
@@ -214,15 +188,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_parent_type(self, obj):
         if obj.case_note:
             object = next(
-                item
-                for item in [obj.case_note.case.application, obj.case_note.case.query]
-                if item is not None
+                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
             )
         if obj.ecju_query:
             object = next(
-                item
-                for item in [obj.ecju_query.case.application, obj.ecju_query.case.query]
-                if item is not None
+                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
             )
 
         if obj.query:
@@ -246,9 +216,7 @@ def _get_notification_case(notification):
     elif notification.query:
         return notification.query.case
     else:
-        raise Exception(
-            "Unexpected error, Notification object with no link to originating object"
-        )
+        raise Exception("Unexpected error, Notification object with no link to originating object")
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):

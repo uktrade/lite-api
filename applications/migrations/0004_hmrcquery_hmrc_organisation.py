@@ -16,9 +16,7 @@ class Migration(migrations.Migration):
             model_name="hmrcquery",
             name="hmrc_organisation",
             field=models.ForeignKey(
-                default=None,
-                on_delete=django.db.models.deletion.PROTECT,
-                to="organisations.Organisation",
+                default=None, on_delete=django.db.models.deletion.PROTECT, to="organisations.Organisation",
             ),
         ),
     ]
