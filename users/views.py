@@ -9,25 +9,30 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
+from conf.authentication import (
+    ExporterAuthentication,
+    ExporterOnlyAuthentication,
+    GovAuthentication,
+)
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
-from users.serializers import ExporterUserViewSerializer, ExporterUserCreateUpdateSerializer, NotificationSerializer, \
-    CaseNotificationGetSerializer
+from users.serializers import (
+    ExporterUserViewSerializer,
+    ExporterUserCreateUpdateSerializer,
+    NotificationSerializer,
+    CaseNotificationGetSerializer,
+)
 
 
 class AuthenticateExporterUser(APIView):
     """
     Authenticate user
     """
+
     permission_classes = (AllowAny,)
 
-    @swagger_auto_schema(
-        responses={
-            400: 'JSON parse error',
-            403: 'Forbidden'
-        })
+    @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -36,21 +41,27 @@ class AuthenticateExporterUser(APIView):
         try:
             data = JSONParser().parse(request)
         except ParseError:
-            return JsonResponse(data={'errors': 'Invalid Json'},
-                                status=status.HTTP_400_BAD_REQUEST)
-        email = data.get('email')
+            return JsonResponse(
+                data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        email = data.get("email")
 
         try:
             user = ExporterUser.objects.get(email=email)
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={'errors': 'User not found'},
-                                status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN
+            )
 
         token = user_to_token(user)
-        return JsonResponse(data={'token': token,
-                                  'first_name': user.first_name,
-                                  'last_name': user.last_name,
-                                  'lite_api_user_id': str(user.id)})
+        return JsonResponse(
+            data={
+                "token": token,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "lite_api_user_id": str(user.id),
+            }
+        )
 
 
 class UserList(APIView):
@@ -61,27 +72,26 @@ class UserList(APIView):
         Returns a list of Exporter users
         """
         serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
-        return JsonResponse(data={'users': serializer.data})
+        return JsonResponse(data={"users": serializer.data})
 
-    @swagger_auto_schema(
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create Exporter within the same organisation that current user is logged into
         """
         data = request.data
-        data['organisation'] = request.user.organisation.id
+        data["organisation"] = request.user.organisation.id
         serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'user': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(
+                data={"user": serializer.data}, status=status.HTTP_201_CREATED
+            )
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UserDetail(APIView):
@@ -94,12 +104,9 @@ class UserDetail(APIView):
         user = get_user_by_pk(pk)
 
         serializer = ExporterUserViewSerializer(user)
-        return JsonResponse(data={'user': serializer.data})
+        return JsonResponse(data={"user": serializer.data})
 
-    @swagger_auto_schema(
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         Update Exporter user
@@ -108,25 +115,28 @@ class UserDetail(APIView):
         data = JSONParser().parse(request)
 
         with reversion.create_revision():
-            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
+            serializer = ExporterUserCreateUpdateSerializer(
+                user, data=data, partial=True
+            )
             if serializer.is_valid():
                 serializer.save()
-                return JsonResponse(data={'user': serializer.data},
-                                    status=status.HTTP_200_OK)
+                return JsonResponse(
+                    data={"user": serializer.data}, status=status.HTTP_200_OK
+                )
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=400)
+            return JsonResponse(data={"errors": serializer.errors}, status=400)
 
 
 class UserMeDetail(APIView):
     """
     Get the user from request
     """
+
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
         serializer = ExporterUserViewSerializer(request.user)
-        return JsonResponse(data={'user': serializer.data})
+        return JsonResponse(data={"user": serializer.data})
 
 
 class NotificationViewSet(generics.ListAPIView):
@@ -137,19 +147,19 @@ class NotificationViewSet(generics.ListAPIView):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        organisation_id = self.request.META['HTTP_ORGANISATION_ID']
+        organisation_id = self.request.META["HTTP_ORGANISATION_ID"]
 
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects \
-            .filter(user=self.request.user) \
-            .filter(Q(case_note__case__application__organisation_id=organisation_id) |
-                    Q(case_note__case__query__organisation_id=organisation_id) |
-                    Q(query__organisation__id=organisation_id) |
-                    Q(ecju_query__case__application__organisation_id=organisation_id) |
-                    Q(ecju_query__case__query__organisation_id=organisation_id))
+        queryset = Notification.objects.filter(user=self.request.user).filter(
+            Q(case_note__case__application__organisation_id=organisation_id)
+            | Q(case_note__case__query__organisation_id=organisation_id)
+            | Q(query__organisation__id=organisation_id)
+            | Q(ecju_query__case__application__organisation_id=organisation_id)
+            | Q(ecju_query__case__query__organisation_id=organisation_id)
+        )
 
-        if self.request.GET.get('unviewed'):
+        if self.request.GET.get("unviewed"):
             queryset = queryset.filter(viewed_at__isnull=True)
 
         return queryset
@@ -160,14 +170,16 @@ class CaseNotification(APIView):
 
     def get(self, request):
         user = request.user
-        case = self.request.GET.get('case')
+        case = self.request.GET.get("case")
 
         try:
-            notification = Notification.objects.get(user=user, case_activity__case__id=case)
+            notification = Notification.objects.get(
+                user=user, case_activity__case__id=case
+            )
         except Notification.DoesNotExist:
-            return JsonResponse(data={'notification': None})
+            return JsonResponse(data={"notification": None})
 
         serializer = CaseNotificationGetSerializer(notification)
         notification.delete()
 
-        return JsonResponse(data={'notification': serializer.data})
+        return JsonResponse(data={"notification": serializer.data})

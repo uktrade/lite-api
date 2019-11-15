@@ -9,14 +9,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('goods', '0001_initial'),
-        ('control_list_classifications', '0001_initial'),
+        ("goods", "0001_initial"),
+        ("control_list_classifications", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='controllistclassificationquery',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='clc_query', to='goods.Good'),
+            model_name="controllistclassificationquery",
+            name="good",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="clc_query",
+                to="goods.Good",
+            ),
         ),
     ]

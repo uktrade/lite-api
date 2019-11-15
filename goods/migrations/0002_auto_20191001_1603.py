@@ -7,7 +7,9 @@ from queries.control_list_classifications.models import ControlListClassificatio
 
 
 def forwards_func(apps, schema_editor):
-    ControlListClassificationQuery = apps.get_model("control_list_classifications", "ControlListClassificationQuery")
+    ControlListClassificationQuery = apps.get_model(
+        "control_list_classifications", "ControlListClassificationQuery"
+    )
     for clc in ControlListClassificationQuery.objects.all():
         good = Good.objects.get(pk=clc.good.pk)
         good.comment = clc.comment
@@ -22,20 +24,20 @@ def backwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0001_initial'),
-        ('control_list_classifications', '0001_initial'),
+        ("goods", "0001_initial"),
+        ("control_list_classifications", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='good',
-            name='comment',
+            model_name="good",
+            name="comment",
             field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='good',
-            name='report_summary',
+            model_name="good",
+            name="report_summary",
             field=models.TextField(blank=True, default=None, null=True),
         ),
-        migrations.RunPython(forwards_func, backwards_func)
+        migrations.RunPython(forwards_func, backwards_func),
     ]

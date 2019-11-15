@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.models import BaseApplication, SiteOnApplication, ExternalLocationOnApplication
+from applications.models import (
+    BaseApplication,
+    SiteOnApplication,
+    ExternalLocationOnApplication,
+)
 from organisations.models import Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer
 
@@ -12,9 +16,11 @@ class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SiteOnApplication
-        fields = ('id',
-                  'site',
-                  'application',)
+        fields = (
+            "id",
+            "site",
+            "application",
+        )
 
 
 class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
@@ -22,9 +28,11 @@ class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SiteOnApplication
-        fields = ('id',
-                  'site',
-                  'application',)
+        fields = (
+            "id",
+            "site",
+            "application",
+        )
 
 
 class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
@@ -33,6 +41,8 @@ class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExternalLocationOnApplication
-        fields = ('id',
-                  'external_location',
-                  'application',)
+        fields = (
+            "id",
+            "external_location",
+            "application",
+        )

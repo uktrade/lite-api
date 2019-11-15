@@ -9,4 +9,4 @@ class DenialReasonsList(APIView):
     def get(self, request):
         denial_reasons = DenialReason.objects.all()
         serializer = DenialReasonSerializer(denial_reasons, many=True)
-        return JsonResponse(data={'denial_reasons': serializer.data})
+        return JsonResponse(data={"denial_reasons": serializer.data})

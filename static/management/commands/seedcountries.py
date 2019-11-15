@@ -2,16 +2,17 @@ from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
 
-FILE = 'lite_content/lite-api/countries.csv'
+FILE = "lite_content/lite-api/countries.csv"
 
 
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedcountries
     """
-    help = 'Seeds all countries'
-    success = 'Successfully seeded countries'
-    seed_command = 'seedcountries'
+
+    help = "Seeds all countries"
+    success = "Successfully seeded countries"
+    seed_command = "seedcountries"
 
     def operation(self, *args, **options):
         reader = self.read_csv(FILE)
