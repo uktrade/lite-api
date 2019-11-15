@@ -1,16 +1,17 @@
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.models import Permission
 
-FILE = 'lite_content/lite-api/permissions.csv'
+FILE = "lite_content/lite-api/permissions.csv"
 
 
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedpermissions
     """
-    help = 'Seeds permissions'
-    success = 'Successfully seeded permissions'
-    seed_command = 'seedpermissions'
+
+    help = "Seeds permissions"
+    success = "Successfully seeded permissions"
+    seed_command = "seedpermissions"
 
     def operation(self, *args, **options):
         reader = self.read_csv(FILE)

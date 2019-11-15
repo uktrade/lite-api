@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from queries.control_list_classifications.serializers import ControlListClassificationQuerySerializer
+from queries.control_list_classifications.serializers import (
+    ControlListClassificationQuerySerializer,
+)
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from queries.helpers import get_exporter_query
@@ -18,4 +20,4 @@ class QueryViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Query
-        fields = '__all__'
+        fields = "__all__"

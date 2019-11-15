@@ -7,8 +7,18 @@ from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
 from cases.enums import CaseType, AdviceType
-from cases.models import Case, CaseNote, CaseAssignment, CaseDocument, Advice, EcjuQuery, CaseActivity, TeamAdvice, \
-    FinalAdvice, GoodCountryDecision
+from cases.models import (
+    Case,
+    CaseNote,
+    CaseAssignment,
+    CaseDocument,
+    Advice,
+    EcjuQuery,
+    CaseActivity,
+    TeamAdvice,
+    FinalAdvice,
+    GoodCountryDecision,
+)
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -24,20 +34,30 @@ from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import BaseUser, GovUser, ExporterUser
-from users.serializers import BaseUserViewSerializer, GovUserViewSerializer, ExporterUserViewSerializer
+from users.serializers import (
+    BaseUserViewSerializer,
+    GovUserViewSerializer,
+    ExporterUserViewSerializer,
+)
 
 
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
     """
+
     type = KeyValueChoiceField(choices=CaseType.choices)
     application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'application', 'query',)
+        fields = (
+            "id",
+            "type",
+            "application",
+            "query",
+        )
 
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
@@ -55,10 +75,10 @@ class CaseSerializer(serializers.ModelSerializer):
         and only show 'query' if it has a CLC query inside
         """
         repr_dict = super(CaseSerializer, self).to_representation(value)
-        if not repr_dict['application']:
-            del repr_dict['application']
-        if not repr_dict['query']:
-            del repr_dict['query']
+        if not repr_dict["application"]:
+            del repr_dict["application"]
+        if not repr_dict["query"]:
+            del repr_dict["query"]
         return repr_dict
 
 
@@ -75,27 +95,37 @@ class TinyCaseSerializer(serializers.Serializer):
     created_at = serializers.CharField()
 
     def __init__(self, *args, **kwargs):
-        self.team = kwargs.pop('team', None)
+        self.team = kwargs.pop("team", None)
         super().__init__(*args, **kwargs)
 
     def get_flags(self, instance):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        case_flag_data = FlagSerializer(instance.flags.order_by('name'), many=True).data
-        org_flag_data = FlagSerializer(instance.organisation.flags.order_by('name'), many=True).data
+        case_flag_data = FlagSerializer(instance.flags.order_by("name"), many=True).data
+        org_flag_data = FlagSerializer(
+            instance.organisation.flags.order_by("name"), many=True
+        ).data
 
         if instance.application:
-            goods = GoodOnApplication.objects.filter(application=instance.application).select_related('good')
-            goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by('name') for g in goods]))
+            goods = GoodOnApplication.objects.filter(
+                application=instance.application
+            ).select_related("good")
+            goods_flags = list(
+                itertools.chain.from_iterable(
+                    [g.good.flags.order_by("name") for g in goods]
+                )
+            )
             good_ids = {}
-            goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
+            goods_flags = [
+                good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids
+            ]  # dedup
             good_flag_data = FlagSerializer(goods_flags, many=True).data
         else:
             good_flag_data = []
 
         flag_data = case_flag_data + org_flag_data + good_flag_data
-        flag_data = sorted(flag_data, key=lambda x: x['name'])
+        flag_data = sorted(flag_data, key=lambda x: x["name"])
 
         if not self.team:
             return flag_data
@@ -103,12 +133,14 @@ class TinyCaseSerializer(serializers.Serializer):
         # Sort flags by user's team.
         team_flags, non_team_flags = [], []
         for flag in flag_data:
-            team_flags.append(flag) if flag['team']['id'] == str(self.team.id) else non_team_flags.append(flag)
+            team_flags.append(flag) if flag["team"]["id"] == str(
+                self.team.id
+            ) else non_team_flags.append(flag)
 
         return team_flags + non_team_flags
 
     def get_queue_names(self, instance):
-        return list(instance.queues.values_list('name', flat=True))
+        return list(instance.queues.values_list("name", flat=True))
 
     def get_organisation(self, instance):
         if instance.query:
@@ -117,25 +149,28 @@ class TinyCaseSerializer(serializers.Serializer):
             return instance.application.organisation.name
 
     def get_users(self, instance):
-        case_assignments = CaseAssignment.objects.filter(
-            case=instance
-        ).order_by('queue__name').select_related('queue')
+        case_assignments = (
+            CaseAssignment.objects.filter(case=instance)
+            .order_by("queue__name")
+            .select_related("queue")
+        )
 
-        if not self.context['is_system_queue']:
-            case_assignments = case_assignments.filter(queue=self.context['queue_id'])
+        if not self.context["is_system_queue"]:
+            case_assignments = case_assignments.filter(queue=self.context["queue_id"])
 
         users = []
 
         for case_assignment in case_assignments:
             queue_users = [
                 {
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'email': email,
-                    'queue': case_assignment.queue.name
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                    "queue": case_assignment.queue.name,
                 }
-                for first_name, last_name, email
-                in case_assignment.users.values_list('first_name', 'last_name', 'email')
+                for first_name, last_name, email in case_assignment.users.values_list(
+                    "first_name", "last_name", "email"
+                )
             ]
 
             users.extend(queue_users)
@@ -157,23 +192,36 @@ class CaseDetailSerializer(CaseSerializer):
 
     class Meta:
         model = Case
-        fields = ('id', 'type', 'flags', 'queues', 'queue_names', 'application', 'query', 'has_advice')
+        fields = (
+            "id",
+            "type",
+            "flags",
+            "queues",
+            "queue_names",
+            "application",
+            "query",
+            "has_advice",
+        )
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values('id', 'name'))
+        return list(instance.flags.all().values("id", "name"))
 
     def get_queue_names(self, instance):
-        return list(instance.queues.values_list('name', flat=True))
+        return list(instance.queues.values_list("name", flat=True))
 
     def get_has_advice(self, instance):
-        has_advice = {'team': False, 'my_team': False, 'final': False}
+        has_advice = {"team": False, "my_team": False, "final": False}
         if TeamAdvice.objects.filter(case=instance).first():
-            has_advice['team'] = True
+            has_advice["team"] = True
         if FinalAdvice.objects.filter(case=instance).first():
-            has_advice['final'] = True
+            has_advice["final"] = True
         try:
             if Advice.objects.filter(case=instance, user=self.context.user).first():
                 has_advice['own_user'] = True
+            if TeamAdvice.objects.filter(
+                case=instance, team=self.context.user.team
+            ).first():
+                has_advice["my_team"] = True
         except AttributeError:
             pass
         return has_advice
@@ -183,15 +231,18 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
     """
+
     text = serializers.CharField(min_length=2, max_length=2200)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
+    user = PrimaryKeyRelatedSerializerField(
+        queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer
+    )
     created_at = serializers.DateTimeField(read_only=True)
     is_visible_to_exporter = serializers.BooleanField(default=False)
 
     class Meta:
         model = CaseNote
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
@@ -199,7 +250,7 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseAssignment
-        fields = ('case', 'users')
+        fields = ("case", "users")
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):
@@ -208,7 +259,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 's3_key', 'user', 'size', 'case', 'description')
+        fields = ("name", "s3_key", "user", "size", "case", "description")
 
     def create(self, validated_data):
         case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
@@ -224,57 +275,95 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     metadata_id = serializers.SerializerMethodField()
 
     def get_metadata_id(self, instance):
-        return instance.id if instance.safe else 'File not ready'
+        return instance.id if instance.safe else "File not ready"
 
     class Meta:
         model = CaseDocument
-        fields = ('name', 'metadata_id', 'user', 'size', 'case', 'created_at', 'safe', 'description')
+        fields = (
+            "name",
+            "metadata_id",
+            "user",
+            "size",
+            "case",
+            "created_at",
+            "safe",
+            "description",
+        )
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(),
-                                            serializer=GovUserViewSerializer)
-    proviso = serializers.CharField(required=False,
-                                    allow_blank=False,
-                                    allow_null=False,
-                                    error_messages={'blank': 'Enter a proviso'},
-                                    max_length=5000)
-    text = serializers.CharField(required=False,
-                                 allow_blank=True,
-                                 allow_null=True,
-                                 max_length=5000)
-    note = serializers.CharField(required=False,
-                                 allow_blank=True,
-                                 allow_null=True,
-                                 max_length=200)
+    user = PrimaryKeyRelatedSerializerField(
+        queryset=GovUser.objects.all(), serializer=GovUserViewSerializer
+    )
+    proviso = serializers.CharField(
+        required=False,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": "Enter a proviso"},
+        max_length=5000,
+    )
+    text = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=5000
+    )
+    note = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=200
+    )
     type = KeyValueChoiceField(choices=AdviceType.choices)
-    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(),
-                                                        many=True,
-                                                        required=False)
+    denial_reasons = serializers.PrimaryKeyRelatedField(
+        queryset=DenialReason.objects.all(), many=True, required=False
+    )
 
     # Optional fields
-    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
-    goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
-    consignee = serializers.PrimaryKeyRelatedField(queryset=Consignee.objects.all(), required=False)
-    third_party = serializers.PrimaryKeyRelatedField(queryset=ThirdParty.objects.all(), required=False)
+    good = serializers.PrimaryKeyRelatedField(
+        queryset=Good.objects.all(), required=False
+    )
+    goods_type = serializers.PrimaryKeyRelatedField(
+        queryset=GoodsType.objects.all(), required=False
+    )
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(), required=False
+    )
+    end_user = serializers.PrimaryKeyRelatedField(
+        queryset=EndUser.objects.all(), required=False
+    )
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(
+        queryset=UltimateEndUser.objects.all(), required=False
+    )
+    consignee = serializers.PrimaryKeyRelatedField(
+        queryset=Consignee.objects.all(), required=False
+    )
+    third_party = serializers.PrimaryKeyRelatedField(
+        queryset=ThirdParty.objects.all(), required=False
+    )
 
     class Meta:
         model = Advice
-        fields = ('case', 'user', 'text', 'note', 'type', 'proviso', 'denial_reasons',
-                  'good', 'goods_type', 'country', 'end_user', 'ultimate_end_user', 'created_at', 'consignee',
-                  'third_party',)
+        fields = (
+            "case",
+            "user",
+            "text",
+            "note",
+            "type",
+            "proviso",
+            "denial_reasons",
+            "good",
+            "goods_type",
+            "country",
+            "end_user",
+            "ultimate_end_user",
+            "created_at",
+            "consignee",
+            "third_party",
+        )
 
     def validate_denial_reasons(self, value):
         """
         Check that the denial reasons are set if type is REFUSE
         """
         for data in self.initial_data:
-            if data['type'] == AdviceType.REFUSE and not data['denial_reasons']:
-                raise serializers.ValidationError('Select at least one denial reason')
+            if data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
+                raise serializers.ValidationError("Select at least one denial reason")
 
         return value
 
@@ -283,58 +372,66 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         Check that the proviso is set if type is REFUSE
         """
         for data in self.initial_data:
-            if data['type'] == AdviceType.PROVISO and not data['proviso']:
-                raise ValidationError('Provide a proviso')
+            if data["type"] == AdviceType.PROVISO and not data["proviso"]:
+                raise ValidationError("Provide a proviso")
 
         return value
 
     def __init__(self, *args, **kwargs):
         super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
 
-        application_fields = ('good',
-                              'goods_type',
-                              'country',
-                              'end_user',
-                              'ultimate_end_user',
-                              'consignee',
-                              'third_party',)
+        application_fields = (
+            "good",
+            "goods_type",
+            "country",
+            "end_user",
+            "ultimate_end_user",
+            "consignee",
+            "third_party",
+        )
 
         # Ensure only one item is provided
-        if hasattr(self, 'initial_data'):
+        if hasattr(self, "initial_data"):
             for data in self.initial_data:
-                if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError('Only one item (such as an end_user) can be given at a time')
+                if not ensure_x_items_not_none(
+                    [data.get(x) for x in application_fields], 1
+                ):
+                    raise ValidationError(
+                        "Only one item (such as an end_user) can be given at a time"
+                    )
 
     def to_representation(self, instance):
         repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
         if instance.type != AdviceType.CONFLICTING:
             if instance.type == AdviceType.PROVISO:
-                repr_dict['proviso'] = instance.proviso
+                repr_dict["proviso"] = instance.proviso
             else:
-                del repr_dict['proviso']
+                del repr_dict["proviso"]
 
             if instance.type == AdviceType.REFUSE:
-                repr_dict['denial_reasons'] = convert_queryset_to_str(
-                    instance.denial_reasons.values_list('id', flat=True))
+                repr_dict["denial_reasons"] = convert_queryset_to_str(
+                    instance.denial_reasons.values_list("id", flat=True)
+                )
             else:
-                del repr_dict['denial_reasons']
+                del repr_dict["denial_reasons"]
 
         return repr_dict
 
 
 class CaseTeamAdviceSerializer(CaseAdviceSerializer):
-    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(),
-                                            serializer=TeamSerializer)
+    team = PrimaryKeyRelatedSerializerField(
+        queryset=Team.objects.all(), serializer=TeamSerializer
+    )
 
     class Meta:
         model = TeamAdvice
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CaseFinalAdviceSerializer(CaseAdviceSerializer):
     class Meta:
         model = FinalAdvice
-        fields = '__all__'
+        fields = "__all__"
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
@@ -343,14 +440,16 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EcjuQuery
-        fields = ('id',
-                  'question',
-                  'response',
-                  'case',
-                  'responded_by_user_name',
-                  'raised_by_user_name',
-                  'created_at',
-                  'responded_at',)
+        fields = (
+            "id",
+            "question",
+            "response",
+            "case",
+            "responded_by_user_name",
+            "raised_by_user_name",
+            "created_at",
+            "responded_at",
+        )
 
     def get_raised_by_user_name(self, instance):
         return instance.raised_by_user.get_full_name()
@@ -364,38 +463,48 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = PrimaryKeyRelatedSerializerField(queryset=ExporterUser.objects.all(),
-                                                         serializer=ExporterUserViewSerializer)
-    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+    responded_by_user = PrimaryKeyRelatedSerializerField(
+        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
+    )
+    response = serializers.CharField(
+        max_length=2200, allow_blank=False, allow_null=False
+    )
 
     def get_team(self, instance):
         return TeamSerializer(instance.raised_by_user.team).data
 
     class Meta:
         model = EcjuQuery
-        fields = ('id',
-                  'question',
-                  'response',
-                  'case',
-                  'responded_by_user',
-                  'team',
-                  'created_at',
-                  'responded_at',)
+        fields = (
+            "id",
+            "question",
+            "response",
+            "case",
+            "responded_by_user",
+            "team",
+            "created_at",
+            "responded_at",
+        )
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """
     Create specific serializer, which does not take a response as gov users don't respond to their own queries!
     """
-    question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
+
+    question = serializers.CharField(
+        max_length=5000, allow_blank=False, allow_null=False
+    )
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
 
     class Meta:
         model = EcjuQuery
-        fields = ('id',
-                  'question',
-                  'case',
-                  'raised_by_user',)
+        fields = (
+            "id",
+            "question",
+            "case",
+            "raised_by_user",
+        )
 
 
 class CaseActivitySerializer(serializers.ModelSerializer):
@@ -403,7 +512,7 @@ class CaseActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseActivity
-        fields = '__all__'
+        fields = "__all__"
 
 
 class GoodCountryDecisionSerializer(serializers.ModelSerializer):
@@ -414,4 +523,4 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodCountryDecision
-        fields = '__all__'
+        fields = "__all__"

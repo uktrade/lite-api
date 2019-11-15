@@ -8,8 +8,8 @@ class DocumentViewSerializer(serializers.ModelSerializer):
     s3_key = serializers.SerializerMethodField()
 
     def get_s3_key(self, instance):
-        return instance.s3_key if instance.safe else 'File not ready'
+        return instance.s3_key if instance.safe else "File not ready"
 
     class Meta:
         model = Document
-        fields = ('name', 's3_key', 'size', 'created_at', 'safe')
+        fields = ("name", "s3_key", "size", "created_at", "safe")

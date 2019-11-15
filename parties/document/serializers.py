@@ -10,7 +10,14 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PartyDocument
-        fields = ('id', 'name', 's3_key', 'size', 'party', 'safe',)
+        fields = (
+            "id",
+            "name",
+            "s3_key",
+            "size",
+            "party",
+            "safe",
+        )
 
     def create(self, validated_data):
         document = super(PartyDocumentSerializer, self).create(validated_data)
