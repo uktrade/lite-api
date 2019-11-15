@@ -476,8 +476,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = OpenApplication(name=reference_name,
                                       application_type=ApplicationType.OPEN_LICENCE,
                                       export_type=ApplicationExportType.PERMANENT,
-                                      have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
-                                      reference_number_on_information_form='',
                                       activity='Trade',
                                       usage='Trade',
                                       organisation=organisation)

@@ -75,8 +75,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             'name',
             'application_type',
             'export_type',
-            'have_you_been_informed',
-            'reference_number_on_information_form',
             'organisation',
         )
 
