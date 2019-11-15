@@ -2,7 +2,7 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.libraries.document_helpers import (
     upload_party_document,
     delete_party_document,
@@ -12,7 +12,7 @@ from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
     application_in_major_editable_state,
-    application_licence_type,
+    allowed_application_types,
 )
 from parties.document.serializers import PartyDocumentSerializer
 from parties.libraries.get_parties import (
@@ -31,7 +31,9 @@ class EndUserDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         end_user = get_end_user(application.pk)
@@ -41,7 +43,9 @@ class EndUserDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -52,7 +56,9 @@ class EndUserDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         end_user = get_end_user(application.pk)
@@ -66,7 +72,9 @@ class UltimateEndUserDocumentsView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
@@ -76,7 +84,9 @@ class UltimateEndUserDocumentsView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, ueu_pk):
@@ -89,7 +99,9 @@ class UltimateEndUserDocumentsView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
         ultimate_end_user = get_ultimate_end_user(ueu_pk)
@@ -103,7 +115,9 @@ class ConsigneeDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         consignee = get_consignee(application.pk)
@@ -113,7 +127,9 @@ class ConsigneeDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -124,7 +140,9 @@ class ConsigneeDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         consignee = get_consignee(application.pk)
@@ -138,7 +156,9 @@ class ThirdPartyDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)
@@ -148,7 +168,9 @@ class ThirdPartyDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, tp_pk):
@@ -161,7 +183,9 @@ class ThirdPartyDocumentView(APIView):
         request_body=PartyDocumentSerializer, responses={400: "JSON parse error"}
     )
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
         third_party = get_third_party(tp_pk)

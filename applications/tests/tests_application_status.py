@@ -237,7 +237,7 @@ class ApplicationDenialTests(DataTestClient):
         )
         self.standard_application.save()
 
-        other_organisation = self.create_organisation_with_exporter_user()
+        other_organisation, _ = self.create_organisation_with_exporter_user()
         permission_denied_user = UserOrganisationRelationship.objects.get(
             organisation=other_organisation
         ).user

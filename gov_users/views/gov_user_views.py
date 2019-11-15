@@ -2,18 +2,19 @@ import reversion
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.constants import Roles
+from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
-from conf.helpers import replace_default_string_for_form_select
 
 
 class AuthenticateGovUser(APIView):
@@ -92,6 +93,12 @@ class GovUserList(APIView):
         data = JSONParser().parse(request)
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
+        if (
+            data.get("role") == str(Roles.SUPER_USER_ROLE_ID)
+            and not request.user.role_id == Roles.SUPER_USER_ROLE_ID
+        ):
+            raise PermissionDenied()
+
         serializer = GovUserCreateSerializer(data=data)
 
         if serializer.is_valid():
@@ -131,10 +138,33 @@ class GovUserDetail(APIView):
         gov_user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
 
+        # Cannot perform actions on another super user without super user role
+        if (
+            gov_user.role_id == Roles.SUPER_USER_ROLE_ID
+            or data.get("roles") == Roles.SUPER_USER_ROLE_ID
+        ) and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
+            raise PermissionDenied()
+
         if "status" in data.keys():
             if gov_user.id == request.user.id:
                 return JsonResponse(
                     data={"errors": "A user cannot change their own status"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif (
+                gov_user.role_id == Roles.SUPER_USER_ROLE_ID
+                and data["status"] == "Deactivated"
+            ):
+                raise PermissionDenied()
+
+        # Cannot deactivate a super user
+        if "role" in data.keys():
+            if (
+                gov_user.id == request.user.id
+                and request.user.role_id == Roles.SUPER_USER_ROLE_ID
+            ):
+                return JsonResponse(
+                    data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

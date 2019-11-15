@@ -37,7 +37,6 @@ class OrganisationSitesTests(DataTestClient):
         response = self.client.post(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Site.objects.all().count(), 2)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
 
     def test_edit_site(self):

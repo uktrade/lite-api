@@ -1,10 +1,11 @@
+import uuid
 from datetime import datetime, timezone
 
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import (
-    ApplicationLicenceType,
+    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
@@ -15,6 +16,7 @@ from applications.models import (
     CountryOnApplication,
     StandardApplication,
     OpenApplication,
+    HmrcQuery,
     ApplicationDocument,
 )
 from cases.enums import AdviceType
@@ -26,11 +28,14 @@ from cases.models import (
     GoodCountryDecision,
 )
 from conf import settings
+from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
+from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.document.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
@@ -52,7 +57,13 @@ from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser, BaseUser, ExporterUser, UserOrganisationRelationship
+from users.models import (
+    GovUser,
+    BaseUser,
+    ExporterUser,
+    UserOrganisationRelationship,
+    Role,
+)
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -79,11 +90,28 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        self.organisation = self.create_organisation_with_exporter_user()
-        self.exporter_user = ExporterUser.objects.get()
+        (
+            self.organisation,
+            self.exporter_user,
+        ) = self.create_organisation_with_exporter_user()
+        (
+            self.hmrc_organisation,
+            self.hmrc_exporter_user,
+        ) = self.create_organisation_with_exporter_user(
+            "HMRC org 5843", org_type=OrganisationType.HMRC
+        )
+
         self.exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
             "HTTP_ORGANISATION_ID": self.organisation.id,
+        }
+
+        self.default_role = Role.objects.get(id=Roles.DEFAULT_ROLE_ID)
+        self.super_user_role = Role.objects.get(id=Roles.SUPER_USER_ROLE_ID)
+
+        self.hmrc_exporter_headers = {
+            "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user),
+            "HTTP_ORGANISATION_ID": self.hmrc_organisation.id,
         }
 
         self.queue = self.create_queue("Initial Queue", self.team)
@@ -123,10 +151,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
+        random_string = str(uuid.uuid4())
+
         exporter_user = ExporterUser(
             first_name=first_name,
             last_name=last_name,
-            email=f"{first_name}@{last_name}.com",
+            email=f"{first_name}.{last_name}@{random_string}.com",
         )
         exporter_user.organisation = organisation
         exporter_user.save()
@@ -142,7 +172,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_organisation_with_exporter_user(
         self, name="Organisation", org_type=None
     ):
-
         organisation = Organisation(
             name=name,
             eori_number="GB123456789000",
@@ -159,9 +188,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation.primary_site = site
         organisation.save()
 
-        self.create_exporter_user(organisation)
+        exporter_user = self.create_exporter_user(organisation)
 
-        return organisation
+        return organisation, exporter_user
 
     @staticmethod
     def add_exporter_user_to_org(organisation, exporter_user):
@@ -313,7 +342,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case = Case(application=application)
         case.save()
 
-        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(
                 application=application
             ):
@@ -376,6 +405,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_document_for_party(party: Party, name="document_name.pdf", safe=True):
         document = PartyDocument(
             party=party,
+            name=name,
+            s3_key="s3_keykey.pdf",
+            size=123456,
+            virus_scanned_at=None,
+            safe=safe,
+        )
+        document.save()
+        return document
+
+    @staticmethod
+    def create_document_for_goods_type(
+        goods_type: GoodsType, name="document_name.pdf", safe=True
+    ):
+        document = GoodsTypeDocument(
+            goods_type=goods_type,
             name=name,
             s3_key="s3_keykey.pdf",
             size=123456,
@@ -459,12 +503,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         reference_name="Standard Draft",
         safe_document=True,
     ):
-        """
-        Creates a standard draft application
-        """
         application = StandardApplication(
             name=reference_name,
-            licence_type=ApplicationLicenceType.STANDARD_LICENCE,
+            application_type=ApplicationType.STANDARD_LICENCE,
             export_type=ApplicationExportType.PERMANENT,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
@@ -480,6 +521,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.third_parties.set(
             [self.create_third_party("Third party", self.organisation)]
         )
+
+        application.save()
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(
@@ -544,12 +587,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_open_application(
         self, organisation: Organisation, reference_name="Open Draft"
     ):
-        """
-        Creates an open application
-        """
         application = OpenApplication(
             name=reference_name,
-            licence_type=ApplicationLicenceType.OPEN_LICENCE,
+            application_type=ApplicationType.OPEN_LICENCE,
             export_type=ApplicationExportType.PERMANENT,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
@@ -566,6 +606,48 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a country to the application
         CountryOnApplication(application=application, country=get_country("GB")).save()
+
+        # Add a site to the application
+        SiteOnApplication(
+            site=organisation.primary_site, application=application
+        ).save()
+
+        return application
+
+    def create_hmrc_query(
+        self,
+        organisation: Organisation,
+        reference_name="HMRC Query",
+        safe_document=True,
+    ):
+        application = HmrcQuery(
+            name=reference_name,
+            application_type=ApplicationType.HMRC_QUERY,
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+            hmrc_organisation=self.hmrc_organisation,
+            end_user=self.create_end_user("End User", organisation),
+            consignee=self.create_consignee("Consignee", organisation),
+            reasoning="I Am Easy to Find",
+        )
+
+        application.save()
+
+        application.third_parties.set(
+            [self.create_third_party("Third party", self.organisation)]
+        )
+
+        goods_type = self.create_goods_type(application)
+
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(
+            application.third_parties.first(), safe=safe_document
+        )
+
+        self.create_document_for_goods_type(goods_type)
 
         # Add a site to the application
         SiteOnApplication(

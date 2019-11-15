@@ -22,14 +22,14 @@ class GoodsCreateTests(DataTestClient):
             (
                 "Widget",
                 GoodControlled.NO,
-                "",
+                None,
                 True,
                 "1337",
             ),  # Control List Entry shouldn't be set
             (
                 "Test Unsure Good Name",
                 GoodControlled.UNSURE,
-                "",
+                None,
                 True,
                 "1337",
             ),  # CLC query

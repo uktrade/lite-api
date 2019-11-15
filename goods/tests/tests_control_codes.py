@@ -1,4 +1,4 @@
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from rest_framework import status
 
 from applications.models import GoodOnApplication
@@ -8,7 +8,7 @@ from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from users.models import Role, GovUser
 
 
 class GoodsVerifiedTests(DataTestClient):
@@ -172,12 +172,22 @@ class GoodsVerifiedTests(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.flags.count(), 1)
 
-    # User must have permission to create team advice
     def test_user_cannot_respond_to_good_without_permissions(self):
         """
         Tests that the right level of permissions are required
         """
-        self.gov_user.role.permissions.set([])
+        # create a second user to adopt the super user role as it will
+        # overwritten otherwise if we try and remove the role from the first
+        valid_user = GovUser(
+            email="test2@mail.com",
+            first_name="John",
+            last_name="Smith",
+            team=self.team,
+            role=self.super_user_role,
+        )
+        valid_user.save()
+
+        self.gov_user.role = self.default_role
         self.gov_user.save()
 
         response = self.client.post(self.url, **self.gov_headers)

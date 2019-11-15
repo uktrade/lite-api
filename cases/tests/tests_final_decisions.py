@@ -16,6 +16,8 @@ class CaseActivityTests(DataTestClient):
         self.url = reverse("cases:activity", kwargs={"pk": self.case.id})
 
     def test_cannot_make_final_decision_without_permission(self):
+        self.gov_user.role = self.default_role
+        self.gov_user.save()
         data = {
             "status": CaseStatusEnum.FINALISED,
         }

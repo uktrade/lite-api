@@ -25,7 +25,7 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_fail_view_other_organisations_goods_details(self):
-        organisation_2 = self.create_organisation_with_exporter_user()
+        organisation_2, _ = self.create_organisation_with_exporter_user()
         organisation_2_admin = get_users_from_organisation(organisation_2)[0]
 
         good = Good(

@@ -90,8 +90,10 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         self.assertEqual(len(response["countries"]), 1)
 
     def test_add_countries_to_another_orgs_draft_failure(self):
-        """ Test that a user cannot add countries to another organisation's draft. """
-        organisation_2 = self.create_organisation_with_exporter_user()
+        """
+        Ensure that a user cannot add countries to another organisation's draft
+        """
+        organisation_2, _ = self.create_organisation_with_exporter_user()
         self.draft = self.create_open_application(organisation_2)
         self.url = reverse("applications:countries", kwargs={"pk": self.draft.id})
 

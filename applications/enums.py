@@ -8,13 +8,15 @@ class ApplicationExportType:
     ]
 
 
-class ApplicationLicenceType:
+class ApplicationType:
     STANDARD_LICENCE = "standard_licence"
     OPEN_LICENCE = "open_licence"
+    HMRC_QUERY = "hmrc_query"
 
     choices = [
         (STANDARD_LICENCE, "Standard Licence"),
         (OPEN_LICENCE, "Open Licence"),
+        (HMRC_QUERY, "HMRC Query"),
     ]
 
 

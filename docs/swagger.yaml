@@ -2990,7 +2990,7 @@ definitions:
     title: Application
     required:
       - organisation
-      - licence_type
+      - application_type
       - export_type
       - reference_number_on_information_form
       - ultimate_end_users
@@ -3046,8 +3046,8 @@ definitions:
         title: Status
         type: string
         readOnly: true
-      licence_type:
-        title: Licence type
+      application_type:
+        title: Application type
         type: string
       export_type:
         title: Export type

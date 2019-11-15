@@ -3,11 +3,11 @@ import uuid
 from django.db import models
 
 from applications.enums import (
-    ApplicationLicenceType,
+    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from applications.managers import BaseApplicationManager
+from applications.managers import BaseApplicationManager, HmrcQueryManager
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -21,13 +21,11 @@ from static.units.enums import Units
 class BaseApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True, null=True)
-    activity = models.TextField(default=None, blank=True, null=True)
-    usage = models.TextField(default=None, blank=True, null=True)
     organisation = models.ForeignKey(
         Organisation, on_delete=models.CASCADE, default=None, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
+    last_modified_at = models.DateTimeField(auto_now=True, blank=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
     status = models.ForeignKey(
         CaseStatus,
@@ -36,18 +34,14 @@ class BaseApplication(models.Model):
         blank=True,
         null=True,
     )
-    licence_type = models.CharField(
-        choices=ApplicationLicenceType.choices, default=None, max_length=50
+    application_type = models.CharField(
+        choices=ApplicationType.choices, default=None, max_length=50
     )
-    export_type = models.CharField(
-        choices=ApplicationExportType.choices, default=None, max_length=50
-    )
-    reference_number_on_information_form = models.TextField(blank=True, null=True)
-    have_you_been_informed = models.CharField(
-        choices=ApplicationExportLicenceOfficialType.choices,
-        default=None,
-        max_length=50,
-    )
+    activity = models.TextField(default=None, blank=True, null=True)
+    usage = models.TextField(default=None, blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     objects = BaseApplicationManager()
 
@@ -95,6 +89,15 @@ class ExternalLocationOnApplication(models.Model):
 
 
 class StandardApplication(BaseApplication):
+    export_type = models.CharField(
+        choices=ApplicationExportType.choices, default=None, max_length=50
+    )
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    have_you_been_informed = models.CharField(
+        choices=ApplicationExportLicenceOfficialType.choices,
+        default=None,
+        max_length=50,
+    )
     end_user = models.ForeignKey(
         EndUser,
         related_name="application_end_user",
@@ -120,7 +123,46 @@ class StandardApplication(BaseApplication):
 
 
 class OpenApplication(BaseApplication):
-    pass
+    export_type = models.CharField(
+        choices=ApplicationExportType.choices, default=None, max_length=50
+    )
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    have_you_been_informed = models.CharField(
+        choices=ApplicationExportLicenceOfficialType.choices,
+        default=None,
+        max_length=50,
+    )
+
+
+class HmrcQuery(BaseApplication):
+    hmrc_organisation = models.ForeignKey(
+        Organisation, default=None, on_delete=models.PROTECT
+    )
+    end_user = models.ForeignKey(
+        EndUser,
+        related_name="hmrc_query_end_user",
+        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
+        null=True,
+    )
+    ultimate_end_users = models.ManyToManyField(
+        UltimateEndUser, related_name="hmrc_query_ultimate_end_users"
+    )
+    consignee = models.ForeignKey(
+        Consignee,
+        related_name="hmrc_query_consignee",
+        on_delete=models.CASCADE,
+        default=None,
+        blank=True,
+        null=True,
+    )
+    third_parties = models.ManyToManyField(
+        ThirdParty, related_name="hmrc_query_third_parties"
+    )
+    reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
+
+    objects = HmrcQueryManager()
 
 
 class GoodOnApplication(models.Model):

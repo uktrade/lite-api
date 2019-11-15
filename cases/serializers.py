@@ -3,12 +3,9 @@ import itertools
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.enums import ApplicationLicenceType
-from applications.models import StandardApplication, OpenApplication, GoodOnApplication
-from applications.serializers import (
-    StandardApplicationSerializer,
-    OpenApplicationSerializer,
-)
+from applications.helpers import get_application_view_serializer
+from applications.libraries.get_applications import get_application
+from applications.models import GoodOnApplication
 from cases.enums import CaseType, AdviceType
 from cases.models import (
     Case,
@@ -63,21 +60,12 @@ class CaseSerializer(serializers.ModelSerializer):
         )
 
     def get_application(self, instance):
-        # The case has a reference to a BaseApplication but we need the full details of the standard/open application
+        # The case has a reference to a BaseApplication but
+        # we need the full details of the application it points to
         if instance.application:
-            if (
-                instance.application.licence_type
-                == ApplicationLicenceType.STANDARD_LICENCE
-            ):
-                standard_application = StandardApplication.objects.get(
-                    pk=instance.application.id
-                )
-                return StandardApplicationSerializer(standard_application).data
-            else:
-                open_application = OpenApplication.objects.get(
-                    pk=instance.application.id
-                )
-                return OpenApplicationSerializer(open_application).data
+            application = get_application(instance.application.id)
+            serializer = get_application_view_serializer(application)
+            return serializer(application).data
 
         return None
 
@@ -390,7 +378,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
 
-        application_fields = [
+        application_fields = (
             "good",
             "goods_type",
             "country",
@@ -398,7 +386,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             "ultimate_end_user",
             "consignee",
             "third_party",
-        ]
+        )
 
         # Ensure only one item is provided
         if hasattr(self, "initial_data"):

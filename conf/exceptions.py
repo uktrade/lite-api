@@ -45,3 +45,23 @@ class NotFoundError(APIException):
             detail = [detail]
 
         self.detail = _get_error_details({"errors": detail}, code)
+
+
+class BadRequestError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Invalid input."
+    default_code = "invalid"
+
+    def __init__(self, detail=None, code=None):
+        super(BadRequestError, self).__init__()
+        if detail is None:
+            detail = self.default_detail
+        if code is None:
+            code = self.default_code
+
+        # For validation failures, we may collect many errors together,
+        # so the details should always be coerced to a list if not already.
+        if not isinstance(detail, dict) and not isinstance(detail, list):
+            detail = [detail]
+
+        self.detail = _get_error_details({"errors": detail}, code)

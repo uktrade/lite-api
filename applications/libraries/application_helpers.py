@@ -1,18 +1,6 @@
 from typing import Optional
 
-from applications.models import BaseApplication, StandardApplication
-from applications.serializers import (
-    StandardApplicationSerializer,
-    OpenApplicationSerializer,
-)
 from static.statuses.enums import CaseStatusEnum
-
-
-def get_serializer_for_application(application: BaseApplication, many=False):
-    if isinstance(application, StandardApplication):
-        return StandardApplicationSerializer(application, many=many)
-    else:
-        return OpenApplicationSerializer(application, many=many)
 
 
 def optional_str_to_bool(optional_string: str):

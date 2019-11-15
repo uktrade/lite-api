@@ -98,6 +98,9 @@ class GoodSerializer(serializers.ModelSerializer):
         # Only validate the control code if the good is controlled
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
             self.fields["control_code"] = ControlListEntryField(required=True)
+        else:
+            if hasattr(self, "initial_data"):
+                self.initial_data["control_code"] = None
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
@@ -236,7 +239,12 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Good
-        fields = ["control_code", "is_good_controlled", "comment", "report_summary"]
+        fields = (
+            "control_code",
+            "is_good_controlled",
+            "comment",
+            "report_summary",
+        )
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)

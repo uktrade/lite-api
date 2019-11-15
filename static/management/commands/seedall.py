@@ -9,6 +9,7 @@ SEED_COMMANDS = {
         "seeddenialreasons",
         "seedcountries",
         "seedcasestatuses",
+        "seedlayouts",
     ],
     "Dev": ["seedorgusers", "seedgovuser"],
     "Tests": [
@@ -18,6 +19,7 @@ SEED_COMMANDS = {
         "seedgovuser",
         "seedgovuser",
         "seedcasestatuses",
+        "seedlayouts",
     ],
 }
 

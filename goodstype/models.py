@@ -1,7 +1,8 @@
 import uuid
+
 from django.db import models
 
-from applications.models import OpenApplication
+from applications.models import BaseApplication
 from flags.models import Flag
 from static.countries.models import Country
 
@@ -14,9 +15,9 @@ class GoodsType(models.Model):
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
     limit = models.Q(app_label="applications", model="application")
     application = models.ForeignKey(
-        OpenApplication,
+        BaseApplication,
         on_delete=models.CASCADE,
-        related_name="open_application",
+        related_name="base_application",
         null=False,
     )
     flags = models.ManyToManyField(Flag, related_name="goods_type")

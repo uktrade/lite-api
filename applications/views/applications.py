@@ -3,13 +3,17 @@ from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
+from applications.helpers import (
+    get_application_create_serializer,
+    get_application_view_serializer,
+    get_application_update_serializer,
+)
 from applications.libraries.application_helpers import (
-    get_serializer_for_application,
     optional_str_to_bool,
     validate_status_can_be_set_by_exporter_user,
     validate_status_can_be_set_by_gov_user,
@@ -20,18 +24,11 @@ from applications.libraries.case_activity import (
     set_application_status_case_activity,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import (
-    GoodOnApplication,
-    StandardApplication,
-    OpenApplication,
-    BaseApplication,
+from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
+from applications.serializers.generic_application import (
+    GenericApplicationListSerializer,
 )
-from applications.serializers import (
-    BaseApplicationSerializer,
-    ApplicationStatusUpdateSerializer,
-    DraftApplicationCreateSerializer,
-    ApplicationUpdateSerializer,
-)
+from cases.enums import CaseType
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -42,121 +39,141 @@ from conf.decorators import (
 )
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
+from organisations.enums import OrganisationType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
 
 
-class ApplicationList(ListAPIView):
+class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = GenericApplicationListSerializer
 
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         """
-        List all applications
+        Filter applications on submitted
         """
         try:
-            submitted = optional_str_to_bool(request.GET.get("submitted"))
+            submitted = optional_str_to_bool(self.request.GET.get("submitted"))
         except ValueError as e:
             return JsonResponse(
                 data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        if submitted is None:
-            qs = BaseApplication.objects.filter(organisation=request.user.organisation)
-        elif submitted:
-            qs = BaseApplication.objects.submitted(
-                organisation=request.user.organisation
-            )
+        if self.request.user.organisation.type == OrganisationType.HMRC:
+            if submitted is None:
+                applications = HmrcQuery.objects.filter(
+                    hmrc_organisation=self.request.user.organisation
+                )
+            elif submitted:
+                applications = HmrcQuery.objects.submitted(
+                    hmrc_organisation=self.request.user.organisation
+                )
+            else:
+                applications = HmrcQuery.objects.drafts(
+                    hmrc_organisation=self.request.user.organisation
+                )
         else:
-            qs = BaseApplication.objects.draft(organisation=request.user.organisation)
+            if submitted is None:
+                applications = BaseApplication.objects.filter(
+                    organisation=self.request.user.organisation
+                ).exclude(application_type=ApplicationType.HMRC_QUERY)
+            elif submitted:
+                applications = BaseApplication.objects.submitted(
+                    organisation=self.request.user.organisation
+                ).exclude(application_type=ApplicationType.HMRC_QUERY)
+            else:
+                applications = BaseApplication.objects.drafts(
+                    organisation=self.request.user.organisation
+                ).exclude(application_type=ApplicationType.HMRC_QUERY)
 
-        applications = qs.order_by("created_at")
+        return applications
 
-        serializer = BaseApplicationSerializer(applications, many=True)
-
-        return JsonResponse(data={"applications": serializer.data})
-
-    def post(self, request):
+    def post(self, request, **kwargs):
+        """
+        Create a new application
+        Types include StandardApplication, OpenApplication and HmrcQuery
+        """
         data = request.data
-        data["organisation"] = str(request.user.organisation.id)
-
-        # Use generic serializer to validate all types of application as we may not yet know the application type
-        serializer = DraftApplicationCreateSerializer(data=data)
+        serializer = get_application_create_serializer(data.get("application_type"))
+        serializer = serializer(data=data, context=request.user.organisation)
 
         if not serializer.is_valid():
             return JsonResponse(
                 data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer.validated_data["organisation"] = request.user.organisation
+        application = serializer.save()
 
-        # Use the data from the generic serializer to determine which model to save to
-        if (
-            serializer.validated_data["licence_type"]
-            == ApplicationLicenceType.STANDARD_LICENCE
-        ):
-            application = StandardApplication(**serializer.validated_data)
-        else:
-            application = OpenApplication(**serializer.validated_data)
-
-        application.save()
-
-        return JsonResponse(
-            data={"application": {**serializer.data, "id": str(application.id)}},
-            status=status.HTTP_201_CREATED,
-        )
+        return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
 
-class ApplicationDetail(APIView):
-    """
-    Retrieve or update an application instance.
-    """
-
+class ApplicationDetail(RetrieveUpdateDestroyAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
-        Retrieve an application instance.
+        Retrieve an application instance
         """
-        serializer = get_serializer_for_application(application)
-        return JsonResponse(data={"application": serializer.data})
+        serializer = get_application_view_serializer(application)
+        serializer = serializer(application)
+        return JsonResponse(data=serializer.data)
 
     @authorised_users(ExporterUser)
     @application_in_editable_state()
     def put(self, request, application):
         """
-        Update an application instance.
+        Update an application instance
         """
-        application_old_name = application.name
-        application_old_ref_number = application.reference_number_on_information_form
-        serializer = ApplicationUpdateSerializer(
-            application, data=request.data, partial=True
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(
+            application,
+            data=request.data,
+            context=request.user.organisation,
+            partial=True,
         )
 
-        if not serializer.is_valid():
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        if application.application_type == ApplicationType.HMRC_QUERY:
+            if not serializer.is_valid():
+                return JsonResponse(
+                    data={"errors": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            serializer.save()
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        else:
+            application_old_name = application.name
+            application_old_ref_number = (
+                application.reference_number_on_information_form
             )
 
-        serializer.save()
+            if not serializer.is_valid():
+                return JsonResponse(
+                    data={"errors": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        if request.data.get("name"):
-            set_application_name_case_activity(
-                application_old_name,
-                serializer.data.get("name"),
-                request.user,
-                application,
-            )
-        elif request.data.get("reference_number_on_information_form"):
-            set_application_ref_number_case_activity(
-                application_old_ref_number,
-                serializer.data.get("reference_number_on_information_form"),
-                request.user,
-                application,
-            )
+            serializer.save()
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+            if request.data.get("name"):
+                set_application_name_case_activity(
+                    application_old_name,
+                    serializer.data.get("name"),
+                    request.user,
+                    application,
+                )
+            elif request.data.get("reference_number_on_information_form"):
+                set_application_ref_number_case_activity(
+                    application_old_ref_number,
+                    serializer.data.get("reference_number_on_information_form"),
+                    request.user,
+                    application,
+                )
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -196,7 +213,7 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.licence_type == ApplicationLicenceType.STANDARD_LICENCE:
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(
                 application=application
             ):
@@ -205,13 +222,16 @@ class ApplicationSubmission(APIView):
                     good_on_application.good.save()
 
         # Serialize for the response message
-        serializer = get_serializer_for_application(application)
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(application)
 
         data = {"application": {**serializer.data}}
 
         if not previous_application_status:
             # If the application is being submitted for the first time
             case = Case(application=application)
+            if application.application_type == CaseType.HMRC_QUERY:
+                case.type = CaseType.HMRC_QUERY
             case.save()
             data["application"]["case_id"] = case.id
         else:
@@ -257,9 +277,9 @@ class ApplicationManageStatus(APIView):
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)
-        serializer = ApplicationStatusUpdateSerializer(
-            application, data=data, partial=True
-        )
+
+        serializer = get_application_update_serializer(application)
+        serializer = serializer(application, data=data, partial=True)
 
         if not serializer.is_valid():
             return JsonResponse(

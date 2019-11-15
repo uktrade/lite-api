@@ -40,7 +40,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(len(response_data["goods"]), 2)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
-        organisation_2 = self.create_organisation_with_exporter_user()
+        organisation_2, _ = self.create_organisation_with_exporter_user()
         draft = self.create_standard_application(self.organisation)
         good = self.create_controlled_good("test", organisation_2)
         self.create_good_document(

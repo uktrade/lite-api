@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationLicenceType
+from applications.enums import ApplicationType
 from applications.libraries.case_activity import (
     set_application_goods_case_activity,
     set_application_goods_type_case_activity,
@@ -11,21 +11,21 @@ from applications.libraries.case_activity import (
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
-from applications.serializers import (
+from applications.serializers.good import (
     GoodOnApplicationViewSerializer,
     GoodOnApplicationCreateSerializer,
 )
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
-    application_licence_type,
     authorised_users,
     application_in_major_editable_state,
+    allowed_application_types,
 )
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
-from goodstype.helpers import get_goods_type
+from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
@@ -39,7 +39,7 @@ class ApplicationGoodsOnApplication(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -47,7 +47,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         return JsonResponse(data={"goods": goods_data})
 
-    @application_licence_type(ApplicationLicenceType.STANDARD_LICENCE)
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -110,8 +110,8 @@ class ApplicationGoodOnApplication(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    def delete(self, request, good_on_application_pk):
-        good_on_application = get_good_on_application(good_on_application_pk)
+    def delete(self, request, obj_pk):
+        good_on_application = get_good_on_application(obj_pk)
         application = good_on_application.application
 
         if application.status and application.status.status in get_case_statuses(
@@ -161,7 +161,9 @@ class ApplicationGoodsTypes(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application)
@@ -169,14 +171,16 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
         Post a goodstype
         """
-        request.data["application"] = application
+        request.data["application"] = application.id
 
         serializer = GoodsTypeSerializer(data=request.data)
 
@@ -202,7 +206,9 @@ class ApplicationGoodsTypes(APIView):
 class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
@@ -213,13 +219,17 @@ class ApplicationGoodsType(APIView):
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @allowed_application_types(
+        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
         Deletes a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
+        if application.application_type == ApplicationType.HMRC_QUERY:
+            delete_goods_type_document_if_exists(goods_type)
         goods_type.delete()
 
         set_application_goods_type_case_activity(
@@ -240,7 +250,7 @@ class ApplicationGoodsTypeCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @application_licence_type(ApplicationLicenceType.OPEN_LICENCE)
+    @allowed_application_types([ApplicationType.OPEN_LICENCE])
     @authorised_users(ExporterUser)
     def put(self, request, application, goodstype_pk):
         data = request.data

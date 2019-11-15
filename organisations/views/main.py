@@ -1,13 +1,12 @@
+import json
 import operator
 from functools import reduce
 
-import reversion
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
-from rest_framework.parsers import JSONParser
 
 from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
@@ -18,7 +17,7 @@ from organisations.serializers import (
 )
 
 
-class OrganisationsList(generics.ListAPIView):
+class OrganisationsList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
     serializer_class = OrganisationDetailSerializer
     pagination_class = MaxPageNumberPagination
@@ -27,16 +26,22 @@ class OrganisationsList(generics.ListAPIView):
         """
         List all organisations
         """
-        org_type = self.request.query_params.get("org_type", None)
-        name = self.request.query_params.get("name", "")
+        org_types = self.request.query_params.getlist("org_type", [])
+        search_term = self.request.query_params.get("search_term", "")
 
-        query = [Q(name__icontains=name)]
+        query = [
+            Q(name__icontains=search_term)
+            | Q(registration_number__icontains=search_term)
+        ]
 
-        if org_type:
-            query.append(Q(type=org_type))
-        return Organisation.objects.filter(reduce(operator.and_, query)).order_by(
+        result = Organisation.objects.filter(reduce(operator.and_, query)).order_by(
             "name"
         )
+
+        if org_types:
+            result = result.filter(Q(type__in=org_types))
+
+        return result
 
     @transaction.atomic
     @swagger_auto_schema(
@@ -46,29 +51,27 @@ class OrganisationsList(generics.ListAPIView):
         """
         Create a new organisation
         """
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            if data.get("type") == "individual":
-                try:
-                    data["name"] = (
-                        data["user"]["first_name"] + " " + data["user"]["last_name"]
-                    )
-                except AttributeError:
-                    pass
-                except KeyError:
-                    pass
-            serializer = OrganisationCreateSerializer(data=data)
+        data = json.loads(request.body)
 
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(
-                    data={"organisation": serializer.data},
-                    status=status.HTTP_201_CREATED,
+        if data.get("type") == "individual":
+            try:
+                data["name"] = (
+                    data["user"]["first_name"] + " " + data["user"]["last_name"]
                 )
+            except (AttributeError, KeyError):
+                pass
 
+        serializer = OrganisationCreateSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
             return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                data={"organisation": serializer.data}, status=status.HTTP_201_CREATED
             )
+
+        return JsonResponse(
+            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class OrganisationsDetail(generics.RetrieveAPIView):

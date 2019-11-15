@@ -1,8 +1,8 @@
-from functools import wraps
-
 from django.http import JsonResponse
+from functools import wraps
 from rest_framework import status
 
+from applications.enums import ApplicationType
 from applications.libraries.get_applications import get_application
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication
@@ -28,7 +28,7 @@ def _get_application(request, kwargs):
     return application
 
 
-def application_licence_type(licence_type):
+def allowed_application_types(application_types: [str]):
     """
     Checks if application is the correct type for the request
     """
@@ -38,12 +38,12 @@ def application_licence_type(licence_type):
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.licence_type != licence_type:
+            if application.application_type not in application_types:
                 return JsonResponse(
                     data={
                         "errors": [
-                            f"This operation can only be used on applications of type "
-                            f"`{licence_type}`"
+                            "This operation can only be used "
+                            "on applications of type: " + ", ".join(application_types)
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -134,7 +134,15 @@ def authorised_users(user_type):
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
-                if application.organisation.id != request.request.user.organisation.id:
+                if (
+                    application.application_type == ApplicationType.HMRC_QUERY
+                    and application.hmrc_organisation.id
+                    != request.request.user.organisation.id
+                ) or (
+                    application.application_type != ApplicationType.HMRC_QUERY
+                    and application.organisation.id
+                    != request.request.user.organisation.id
+                ):
                     return JsonResponse(
                         data={
                             "errors": [

@@ -254,7 +254,12 @@ def _get_notification_case(notification):
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExporterUser
-        fields = ("id", "first_name", "last_name", "email")
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )
 
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
@@ -262,4 +267,4 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ["status"]
+        fields = ("status",)

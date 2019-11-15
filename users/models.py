@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from conf.constants import Roles
 from organisations.models import Organisation
 from queries.models import Query
 from teams.models import Team
@@ -118,7 +119,7 @@ class GovUser(BaseUser):
     role = models.ForeignKey(
         Role,
         related_name="role",
-        default="00000000-0000-0000-0000-000000000001",
+        default=Roles.DEFAULT_ROLE_ID,
         on_delete=models.PROTECT,
     )
 
@@ -128,6 +129,7 @@ class GovUser(BaseUser):
         """
         self.case_assignments.clear()
 
+    # pylint: disable=W0221
     def send_notification(self, case_activity=None):
         from cases.models import Notification
 
@@ -148,3 +150,11 @@ class GovUser(BaseUser):
             raise Exception(
                 "GovUser.send_notification: objects expected have not been added."
             )
+
+    # Adds the first user as a super user
+    # pylint: disable=W0221
+    # pylint: disable=E1003
+    def save(self, *args, **kwargs):
+        if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
+            self.role_id = Roles.SUPER_USER_ROLE_ID
+        super(BaseUser, self).save(*args, **kwargs)

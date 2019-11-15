@@ -5,12 +5,14 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.constants import Roles, Permissions
+from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role, Permission
 
 
-class Roles(APIView):
+class RolesViews(APIView):
     """
     Manage roles
     """
@@ -22,6 +24,8 @@ class Roles(APIView):
         Return list of all roles
         """
         roles = Role.objects.all().order_by("name")
+        if request.user.role_id != Roles.SUPER_USER_ROLE_ID:
+            roles = roles.exclude(id=Roles.SUPER_USER_ROLE_ID)
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
@@ -32,6 +36,7 @@ class Roles(APIView):
         """
         Create a role
         """
+        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
 
         serializer = RoleSerializer(data=data)
@@ -70,6 +75,14 @@ class RoleDetail(APIView):
         """
         update a role
         """
+        if pk == Roles.SUPER_USER_ROLE_ID:
+            return JsonResponse(
+                data={"errors": "You cannot edit the super user role"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
+
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk)
 
@@ -86,7 +99,7 @@ class RoleDetail(APIView):
         )
 
 
-class Permissions(APIView):
+class PermissionsView(APIView):
     """
     Manage permissions
     """

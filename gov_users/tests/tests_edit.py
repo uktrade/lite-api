@@ -4,7 +4,7 @@ from rest_framework import status
 from conf.constants import Permissions
 from teams.models import Team
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from users.models import Role, GovUser
 
 
 class GovUserEditTests(DataTestClient):
@@ -29,6 +29,15 @@ class GovUserEditTests(DataTestClient):
         self.assertNotEqual(response_data["gov_user"]["team"], self.team)
 
     def test_change_role_of_a_gov_user(self):
+        self.gov_user.role = self.default_role
+        self.gov_user.save()
+
+        # create a second user to adopt the super user role as it will overwrite the save during the edit of the first user
+        valid_user = GovUser(
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
+        )
+        valid_user.save()
+
         role = Role(name="some role")
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()

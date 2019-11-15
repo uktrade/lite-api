@@ -9,7 +9,7 @@ from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from test_helpers.clients import DataTestClient
-from users.models import Role
+from users.models import Role, GovUser
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
@@ -137,7 +137,17 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         """
         Tests that the right level of permissions are required
         """
-        self.gov_user.role.permissions.set([])
+        # Make sure at least one user maintains the super user role
+        valid_user = GovUser(
+            email="test2@mail.com",
+            first_name="John",
+            last_name="Smith",
+            team=self.team,
+            role=self.super_user_role,
+        )
+        valid_user.save()
+
+        self.gov_user.role = self.default_role
         self.gov_user.save()
 
         response = self.client.put(self.url, **self.gov_headers)
