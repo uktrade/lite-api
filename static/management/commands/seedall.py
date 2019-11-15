@@ -10,6 +10,7 @@ SEED_COMMANDS = {
         "seedcountries",
         "seedcasestatuses",
         "seedlayouts",
+        "seedsystemflags",
     ],
     "Dev": ["seedorgusers", "seedgovuser"],
     "Tests": [
@@ -20,6 +21,7 @@ SEED_COMMANDS = {
         "seedgovuser",
         "seedcasestatuses",
         "seedlayouts",
+        "seedsystemflags",
     ],
 }
 
