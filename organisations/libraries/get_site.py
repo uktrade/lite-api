@@ -4,15 +4,15 @@ from organisations.models import Site
 
 
 def get_site(pk, organisation=None):
-    kwargs = {'pk': pk}
+    kwargs = {"pk": pk}
 
     if organisation:
-        kwargs['organisation'] = organisation
+        kwargs["organisation"] = organisation
 
     try:
         return Site.objects.get(**kwargs)
     except Site.DoesNotExist:
-        raise NotFoundError({'site': 'Site not found - ' + str(pk)})
+        raise NotFoundError({"site": "Site not found - " + str(pk)})
 
 
 def has_previous_sites(application: BaseApplication):

@@ -1,13 +1,13 @@
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
-FILE = 'lite_content/lite-api/document_layouts.csv'
+FILE = "lite_content/lite-api/document_layouts.csv"
 
 
 class Command(SeedCommand):
-    help = 'Creates template layouts'
-    success = 'Successfully seeded layouts'
-    seed_command = 'seedlayouts'
+    help = "Creates template layouts"
+    success = "Successfully seeded layouts"
+    seed_command = "seedlayouts"
 
     def operation(self, *args, **options):
         """

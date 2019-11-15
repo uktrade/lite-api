@@ -10,7 +10,14 @@ class GoodsTypeDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodsTypeDocument
-        fields = ('id', 'name', 's3_key', 'size', 'goods_type', 'safe',)
+        fields = (
+            "id",
+            "name",
+            "s3_key",
+            "size",
+            "goods_type",
+            "safe",
+        )
 
     def create(self, validated_data):
         document = super(GoodsTypeDocumentSerializer, self).create(validated_data)

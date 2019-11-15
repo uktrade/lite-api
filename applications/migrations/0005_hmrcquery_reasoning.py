@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0004_hmrcquery_hmrc_organisation'),
+        ("applications", "0004_hmrcquery_hmrc_organisation"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hmrcquery',
-            name='reasoning',
-            field=models.CharField(blank=True, default=None, max_length=1000, null=True),
+            model_name="hmrcquery",
+            name="reasoning",
+            field=models.CharField(
+                blank=True, default=None, max_length=1000, null=True
+            ),
         ),
     ]
