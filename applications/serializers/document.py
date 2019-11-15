@@ -7,7 +7,7 @@ from documents.libraries.process_document import process_document
 class ApplicationDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationDocument
-        fields = '__all__'
+        fields = "__all__"
 
     def create(self, validated_data):
         document = super(ApplicationDocumentSerializer, self).create(validated_data)

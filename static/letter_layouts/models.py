@@ -9,4 +9,4 @@ class LetterLayout(models.Model):
     filename = models.TextField()  # Letter file name minus extension
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]

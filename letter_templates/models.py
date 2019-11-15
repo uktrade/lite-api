@@ -16,11 +16,10 @@ class LetterTemplate(models.Model):
     layout = models.ForeignKey(LetterLayout, on_delete=models.CASCADE, null=False)
     letter_paragraphs = SortedManyToManyField(PicklistItem)
     restricted_to = ArrayField(
-        base_field=models.TextField(choices=CaseType.choices),
-        default=list,
+        base_field=models.TextField(choices=CaseType.choices), default=list,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]

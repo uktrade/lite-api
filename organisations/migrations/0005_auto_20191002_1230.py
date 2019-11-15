@@ -6,17 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0004_auto_20190927_0944'),
+        ("organisations", "0004_auto_20190927_0944"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='organisation',
-            name='sub_type',
-        ),
+        migrations.RemoveField(model_name="organisation", name="sub_type",),
         migrations.AddField(
-            model_name='organisation',
-            name='type',
-            field=models.CharField(choices=[('hmrc', 'Hmrc'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual')], default='commercial', max_length=20),
+            model_name="organisation",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("hmrc", "Hmrc"),
+                    ("commercial", "Commercial Organisation"),
+                    ("individual", "Individual"),
+                ],
+                default="commercial",
+                max_length=20,
+            ),
         ),
     ]

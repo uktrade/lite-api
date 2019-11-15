@@ -9,12 +9,12 @@ class CaseStatusEnum:
     WITHDRAWN = 'withdrawn'
 
     choices = [
-        (APPLICANT_EDITING, 'Applicant editing'),
-        (FINALISED, 'Finalised'),
-        (INITIAL_CHECKS, 'Initial checks'),
-        (RESUBMITTED, 'Resubmitted'),
-        (SUBMITTED, 'Submitted'),
-        (UNDER_FINAL_REVIEW, 'Under final review'),
-        (UNDER_REVIEW, 'Under review'),
-        (WITHDRAWN, 'Withdrawn'),
+        (APPLICANT_EDITING, "Applicant editing"),
+        (FINALISED, "Finalised"),
+        (INITIAL_CHECKS, "Initial checks"),
+        (RESUBMITTED, "Resubmitted"),
+        (SUBMITTED, "Submitted"),
+        (UNDER_FINAL_REVIEW, "Under final review"),
+        (UNDER_REVIEW, "Under review"),
+        (WITHDRAWN, "Withdrawn"),
     ]

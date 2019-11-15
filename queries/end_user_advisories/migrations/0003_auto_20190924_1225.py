@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('end_user_advisories', '0002_additional_details'),
+        ("end_user_advisories", "0002_additional_details"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='enduseradvisoryquery',
-            name='contact_email',
+            model_name="enduseradvisoryquery",
+            name="contact_email",
             field=models.EmailField(blank=True, default=None, max_length=254),
         ),
     ]

@@ -7,13 +7,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('letter_templates', '0001_initial'),
+        ("letter_templates", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='lettertemplate',
-            name='restricted_to',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(choices=[('application', 'Application'), ('clc_query', 'CLC Query'), ('end_user_advisory_query', 'End User Advisory Query'), ('hmrc_query', 'HMRC Query')]), default=list, size=None),
+            model_name="lettertemplate",
+            name="restricted_to",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.TextField(
+                    choices=[
+                        ("application", "Application"),
+                        ("clc_query", "CLC Query"),
+                        ("end_user_advisory_query", "End User Advisory Query"),
+                        ("hmrc_query", "HMRC Query"),
+                    ]
+                ),
+                default=list,
+                size=None,
+            ),
         ),
     ]

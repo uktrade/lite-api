@@ -17,6 +17,6 @@ class DocumentDetail(APIView):
         try:
             document = Document.objects.get(id=pk)
             serializer = DocumentViewSerializer(document)
-            return JsonResponse({'document': serializer.data})
+            return JsonResponse({"document": serializer.data})
         except Document.DoesNotExist:
-            raise NotFoundError({'document': 'Document not found'})
+            raise NotFoundError({"document": "Document not found"})

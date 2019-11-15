@@ -7,13 +7,17 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goodstype', '0002_goodstype_countries'),
+        ("goodstype", "0002_goodstype_countries"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goodstype',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='base_application', to='applications.BaseApplication'),
+            model_name="goodstype",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="base_application",
+                to="applications.BaseApplication",
+            ),
         ),
     ]

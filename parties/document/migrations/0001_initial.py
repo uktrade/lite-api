@@ -9,15 +9,25 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('documents', '0001_initial'),
+        ("documents", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PartyDocument',
+            name="PartyDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.Document",
+                    ),
+                ),
             ],
-            bases=('documents.document',),
+            bases=("documents.document",),
         ),
     ]
