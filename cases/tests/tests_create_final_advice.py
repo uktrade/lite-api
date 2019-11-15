@@ -1,5 +1,3 @@
-from django.core.management import call_command
-from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
