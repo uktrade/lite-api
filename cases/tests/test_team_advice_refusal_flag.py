@@ -11,7 +11,6 @@ from users.models import Role
 
 
 class CasesFilterAndSortTests(DataTestClient):
-
     def _check_if_flag_exists(self):
         self.standard_case = Case.objects.get(application=self.standard_application)
         flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
@@ -24,17 +23,21 @@ class CasesFilterAndSortTests(DataTestClient):
         self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
-        role = Role(name='team_level')
+        role = Role(name="team_level")
         role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
         role.save()
 
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.url = reverse('cases:case_team_advice', kwargs={'pk': self.standard_case.id})
+        self.url = reverse(
+            "cases:case_team_advice", kwargs={"pk": self.standard_case.id}
+        )
 
     def test_combine_user_refusal_creates_flag(self):
-        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, Advice)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, Advice
+        )
 
         self.assertFalse(self._check_if_flag_exists())
 
@@ -43,7 +46,9 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertTrue(self._check_if_flag_exists())
 
     def test_clear_advice_back_to_user_level_removes_flag(self):
-        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice
+        )
 
         self.client.delete(self.url, **self.gov_headers)
 
@@ -51,13 +56,21 @@ class CasesFilterAndSortTests(DataTestClient):
 
     # tests the function (case_advice_contains_refusal) which this is all based around
     def test_team_advice_contains_refusal_true(self):
-        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice
+        )
         case_advice_contains_refusal(self.standard_case.id)
 
         self.assertTrue(self._check_if_flag_exists())
 
     def test_team_advice_contains_refusal_false(self):
-        self.create_advice(self.gov_user, self.standard_case, 'end_user', AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(
+            self.gov_user,
+            self.standard_case,
+            "end_user",
+            AdviceType.PROVISO,
+            TeamAdvice,
+        )
         case_advice_contains_refusal(self.standard_case.id)
 
         self.assertFalse(self._check_if_flag_exists())

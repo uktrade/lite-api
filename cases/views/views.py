@@ -17,7 +17,8 @@ from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
     check_if_team_advice_exists,
-    case_advice_contains_refusal)
+    case_advice_contains_refusal,
+)
 from cases.models import (
     CaseDocument,
     EcjuQuery,

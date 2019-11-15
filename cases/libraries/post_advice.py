@@ -73,7 +73,7 @@ def case_advice_contains_refusal(case_id):
     refuse_advice_found = False
 
     for advice in team_advice:
-        if advice.type.lower() == 'refuse':
+        if advice.type.lower() == "refuse":
             refuse_advice_found = True
             if flag not in case.flags.all():
                 case.flags.add(flag)
