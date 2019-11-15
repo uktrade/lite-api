@@ -2,6 +2,8 @@ from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
+FILE = 'lite_content/lite-api/case_statuses.csv'
+
 
 class Command(SeedCommand):
     help = 'Creates case statuses'
@@ -12,12 +14,12 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedcasestatuses
         """
-        for choice in CaseStatusEnum.choices:
-            CaseStatus.objects.get_or_create(status=choice[0], priority=CaseStatusEnum.priority[choice[0]],
-                                             is_read_only=CaseStatusEnum.is_read_only[choice[0]])
+        reader = self.read_csv(FILE)
+        for row in reader:
+            CaseStatus.objects.get_or_create(status=row[0], priority=row[1], is_read_only=row[2])
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
     def test_seed_case_statuses(self):
         self.seed_command(Command)
-        self.assertTrue(CaseStatus.objects.count() == len(CaseStatusEnum.choices))
+        self.assertTrue(CaseStatus.objects.count() == len(self.read_csv(FILE)))
