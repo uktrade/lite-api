@@ -70,12 +70,14 @@ class GoodsListControlCode(APIView):
                     new_control_code = data.get("control_code", "No control code")
                     if new_control_code != old_control_code:
                         # Add an activity item for the query's case
-                        CaseActivity.create(activity_type=CaseActivityType.GOOD_REVIEWED,
-                                            good_name=good.description,
-                                            old_control_code=old_control_code,
-                                            new_control_code=new_control_code,
-                                            case=case,
-                                            user=request.user)
+                        CaseActivity.create(
+                            activity_type=CaseActivityType.GOOD_REVIEWED,
+                            good_name=good.description,
+                            old_control_code=old_control_code,
+                            new_control_code=new_control_code,
+                            case=case,
+                            user=request.user,
+                        )
                 except Http404:
                     error_occurred = True
 
