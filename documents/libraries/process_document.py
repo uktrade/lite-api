@@ -14,4 +14,4 @@ def process_document(document):
             prepare_document.now(str(document.id))
         except Exception as e:
             logging.error(e)
-            raise serializers.ValidationError({'errors': {'document': e}})
+            raise serializers.ValidationError({"errors": {"document": e}})

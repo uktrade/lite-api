@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0003_auto_20191014_1046'),
+        ("statuses", "0003_auto_20191014_1046"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='casestatus',
-            name='is_read_only',
+            model_name="casestatus",
+            name="is_read_only",
             field=models.BooleanField(null=True),
         ),
         migrations.AlterField(
-            model_name='casestatus',
-            name='status',
-            field=models.CharField(choices=[('applicant_editing', 'Applicant editing'), ('finalised', 'Finalised'), ('initial_checks', 'Initial checks'), ('resubmitted', 'Resubmitted'), ('submitted', 'Submitted'), ('under_final_review', 'Under final review'), ('under_review', 'Under review'), ('withdrawn', 'Withdrawn')], max_length=50),
-        )
+            model_name="casestatus",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("applicant_editing", "Applicant editing"),
+                    ("finalised", "Finalised"),
+                    ("initial_checks", "Initial checks"),
+                    ("resubmitted", "Resubmitted"),
+                    ("submitted", "Submitted"),
+                    ("under_final_review", "Under final review"),
+                    ("under_review", "Under review"),
+                    ("withdrawn", "Withdrawn"),
+                ],
+                max_length=50,
+            ),
+        ),
     ]

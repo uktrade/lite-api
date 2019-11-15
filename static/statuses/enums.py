@@ -6,24 +6,25 @@ class CaseStatusEnum:
         add it to this enum, specify the status' priority and if it is read-only below
         run `./manage.py makemigrations`
     """
-    APPLICANT_EDITING = 'applicant_editing'
-    FINALISED = 'finalised'
-    INITIAL_CHECKS = 'initial_checks'
-    RESUBMITTED = 'resubmitted'
-    SUBMITTED = 'submitted'
-    UNDER_FINAL_REVIEW = 'under_final_review'
-    UNDER_REVIEW = 'under_review'
-    WITHDRAWN = 'withdrawn'
+
+    APPLICANT_EDITING = "applicant_editing"
+    FINALISED = "finalised"
+    INITIAL_CHECKS = "initial_checks"
+    RESUBMITTED = "resubmitted"
+    SUBMITTED = "submitted"
+    UNDER_FINAL_REVIEW = "under_final_review"
+    UNDER_REVIEW = "under_review"
+    WITHDRAWN = "withdrawn"
 
     choices = [
-        (APPLICANT_EDITING, 'Applicant editing'),
-        (FINALISED, 'Finalised'),
-        (INITIAL_CHECKS, 'Initial checks'),
-        (RESUBMITTED, 'Resubmitted'),
-        (SUBMITTED, 'Submitted'),
-        (UNDER_FINAL_REVIEW, 'Under final review'),
-        (UNDER_REVIEW, 'Under review'),
-        (WITHDRAWN, 'Withdrawn'),
+        (APPLICANT_EDITING, "Applicant editing"),
+        (FINALISED, "Finalised"),
+        (INITIAL_CHECKS, "Initial checks"),
+        (RESUBMITTED, "Resubmitted"),
+        (SUBMITTED, "Submitted"),
+        (UNDER_FINAL_REVIEW, "Under final review"),
+        (UNDER_REVIEW, "Under review"),
+        (WITHDRAWN, "Withdrawn"),
     ]
 
     priority = {
@@ -51,8 +52,6 @@ class CaseStatusEnum:
     @classmethod
     def as_list(cls):
         return [
-            {
-                'status': choice[0],
-                'priority': cls.priority[choice[0]]
-            } for choice in cls.choices
+            {"status": choice[0], "priority": cls.priority[choice[0]]}
+            for choice in cls.choices
         ]

@@ -6,7 +6,6 @@ from test_helpers.clients import DataTestClient
 
 
 class GoodTypeFlagsManagementTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.open_application = self.create_open_application(self.organisation)
@@ -16,17 +15,26 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.goods_type_2 = self.goods_types[1]
 
         # Teams
-        self.other_team = self.create_team('Team')
+        self.other_team = self.create_team("Team")
 
         # Flags
-        self.team_good_flag_1 = self.create_flag('Good Flag 1', 'Good', self.team)
-        self.team_good_flag_2 = self.create_flag('Good Flag 2', 'Good', self.team)
-        self.team_org_flag = self.create_flag('Org Flag 1', 'Organisation', self.team)
-        self.other_team_good_flag = self.create_flag('Other Team Good Flag', 'Good', self.other_team)
-        self.all_flags = [self.team_good_flag_1, self.team_org_flag, self.team_good_flag_2, self.other_team_good_flag]
+        self.team_good_flag_1 = self.create_flag("Good Flag 1", "Good", self.team)
+        self.team_good_flag_2 = self.create_flag("Good Flag 2", "Good", self.team)
+        self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
+        self.other_team_good_flag = self.create_flag(
+            "Other Team Good Flag", "Good", self.other_team
+        )
+        self.all_flags = [
+            self.team_good_flag_1,
+            self.team_org_flag,
+            self.team_good_flag_2,
+            self.other_team_good_flag,
+        ]
 
-        self.good_url = reverse('goodstype:goodstypes_detail', kwargs={'pk': self.goods_type.id})
-        self.good_flag_url = reverse('flags:assign_flags')
+        self.good_url = reverse(
+            "goodstype:goodstypes_detail", kwargs={"pk": self.goods_type.id}
+        )
+        self.good_flag_url = reverse("flags:assign_flags")
 
     def test_no_flags_for_goods_type_are_returned(self):
         """
@@ -38,7 +46,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         response = self.client.get(self.good_url, **self.gov_headers)
 
         # Assert
-        self.assertEqual([], response.json()['good']['flags'])
+        self.assertEqual([], response.json()["good"]["flags"])
 
     def test_all_flags_for_goods_type_are_returned(self):
         """
@@ -49,9 +57,9 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.goods_type.flags.set(self.all_flags)
 
         response = self.client.get(self.good_url, **self.gov_headers)
-        returned_good = response.json()['good']
+        returned_good = response.json()["good"]
 
-        self.assertEquals(len(self.goods_type.flags.all()), len(returned_good['flags']))
+        self.assertEquals(len(self.goods_type.flags.all()), len(returned_good["flags"]))
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
@@ -60,15 +68,15 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         Then the Flag is successfully added
         """
         data = {
-            'level': 'goods',
-            'objects': [self.goods_type.pk],
-            'flags': [self.team_good_flag_1.pk],
-            'note': 'A reason for changing the flags'
+            "level": "goods",
+            "objects": [self.goods_type.pk],
+            "flags": [self.team_good_flag_1.pk],
+            "note": "A reason for changing the flags",
         }
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data['flags']), len(self.goods_type.flags.all()))
+        self.assertEquals(len(data["flags"]), len(self.goods_type.flags.all()))
         self.assertTrue(self.team_good_flag_1 in self.goods_type.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -78,10 +86,10 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         Then the Flag is not added
         """
         data = {
-            'level': 'goods',
-            'objects': [self.goods_type.pk],
-            'flags': [self.other_team_good_flag.pk],
-            'note': 'A reason for changing the flags'
+            "level": "goods",
+            "objects": [self.goods_type.pk],
+            "flags": [self.other_team_good_flag.pk],
+            "note": "A reason for changing the flags",
         }
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
@@ -96,10 +104,10 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         Then the Flag is not added
         """
         data = {
-            'level': 'goods',
-            'objects': [self.goods_type.pk],
-            'flags': [self.team_org_flag.pk],
-            'note': 'A reason for changing the flags'
+            "level": "goods",
+            "objects": [self.goods_type.pk],
+            "flags": [self.team_org_flag.pk],
+            "note": "A reason for changing the flags",
         }
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
@@ -116,10 +124,10 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.all_flags.remove(self.team_org_flag)
         self.goods_type.flags.set(self.all_flags)
         data = {
-            'level': 'goods',
-            'objects': [self.goods_type.pk],
-            'flags': [self.team_good_flag_2.pk],
-            'note': 'A reason for changing the flags'
+            "level": "goods",
+            "objects": [self.goods_type.pk],
+            "flags": [self.team_good_flag_2.pk],
+            "note": "A reason for changing the flags",
         }
         self.all_flags.remove(self.team_good_flag_1)
 
@@ -134,10 +142,10 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         Tests setting multiple flags on multiple goods types simultaneously
         """
         data = {
-            'level': 'goods',
-            'objects': [self.goods_type.id, self.goods_type_2.id],
-            'flags': [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
-            'note': 'A reason for changing the flags'
+            "level": "goods",
+            "objects": [self.goods_type.id, self.goods_type_2.id],
+            "flags": [self.team_good_flag_2.pk, self.team_good_flag_1.pk],
+            "note": "A reason for changing the flags",
         }
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)

@@ -9,7 +9,7 @@ class DenialReasonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DenialReason
-        fields = ('id',)
+        fields = ("id",)
 
 
 class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
@@ -17,26 +17,36 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApplicationDenialReason
-        fields = ('id',
-                  'reason_details',
-                  'reasons',)
+        fields = (
+            "id",
+            "reason_details",
+            "reasons",
+        )
 
 
 class ApplicationDenialReasonCreateSerializer(serializers.ModelSerializer):
-    reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
-    application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
+    reason_details = serializers.CharField(
+        max_length=2200, required=False, allow_blank=True, allow_null=True
+    )
+    application = serializers.PrimaryKeyRelatedField(
+        queryset=BaseApplication.objects.all()
+    )
 
     class Meta:
         model = ApplicationDenialReason
-        fields = ('reason_details',
-                  'application',)
+        fields = (
+            "reason_details",
+            "application",
+        )
 
     def create(self, validated_data):
-        if self.initial_data['reasons']:
-            application_denial_reason = ApplicationDenialReason.objects.create(**validated_data)
-            application_denial_reason.reasons.set(self.initial_data['reasons'])
+        if self.initial_data["reasons"]:
+            application_denial_reason = ApplicationDenialReason.objects.create(
+                **validated_data
+            )
+            application_denial_reason.reasons.set(self.initial_data["reasons"])
             application_denial_reason.save()
 
             return application_denial_reason
         else:
-            raise serializers.ValidationError('Select at least one denial reason')
+            raise serializers.ValidationError("Select at least one denial reason")

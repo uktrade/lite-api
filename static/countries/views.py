@@ -9,4 +9,4 @@ class CountriesList(APIView):
     def get(self, request):
         countries = Country.objects.all()
         serializer = CountrySerializer(countries, many=True)
-        return JsonResponse(data={'countries': serializer.data})
+        return JsonResponse(data={"countries": serializer.data})
