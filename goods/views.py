@@ -48,18 +48,21 @@ class GoodsListControlCode(APIView):
             for pk in objects:
                 try:
                     good = get_good(pk)
+                    old_control_code = good.control_code
+                    
                     serializer = ClcControlGoodSerializer(good, data=data)
                     if serializer.is_valid():
                         serializer.save()
 
-                    control_code = data.get('control_code')
-                    if control_code == "":
-                        control_code = "No control code"
+                    new_control_code = data.get('control_code')
+                    if new_control_code == "":
+                        new_control_code = "No control code"
 
                     # Add an activity item for the query's case
                     CaseActivity.create(activity_type=CaseActivityType.GOOD_REVIEWED,
                                         good_name=good.description,
-                                        control_code=control_code,
+                                        old_control_code=old_control_code,
+                                        new_control_code=new_control_code,
                                         case=case,
                                         user=request.user)
 
