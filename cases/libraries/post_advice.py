@@ -2,9 +2,12 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from cases.models import FinalAdvice, TeamAdvice, Advice
 from conf.constants import Permissions
+from cases.libraries.get_case import get_case
+from cases.models import FinalAdvice, TeamAdvice, Advice
 from content_strings.strings import get_string
+from flags.enums import SystemFlags
+from flags.models import Flag
 
 
 def check_if_user_own_advice_exists(case, user):
@@ -63,3 +66,22 @@ def post_advice(request, case, serializer_object, team=False):
     if refusal_error:
         errors[0].update(refusal_error)
     return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def case_advice_contains_refusal(case_id):
+    case = get_case(case_id)
+    team_advice = TeamAdvice.objects.filter(case=case)
+    flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
+
+    refuse_advice_found = False
+
+    for advice in team_advice:
+        if advice.type.lower() == "refuse":
+            refuse_advice_found = True
+            if flag not in case.flags.all():
+                case.flags.add(flag)
+                break
+
+    if not refuse_advice_found:
+        if flag in case.flags.all():
+            case.flags.remove(flag)

@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -15,6 +14,7 @@ from users.models import GovUser, Role
 class CreateCaseTeamAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
+
         self.standard_application = self.create_standard_application(self.organisation)
         self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)

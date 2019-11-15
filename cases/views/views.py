@@ -16,6 +16,7 @@ from cases.libraries.post_advice import (
     check_if_final_advice_exists,
     check_if_team_advice_exists,
     check_if_user_own_advice_exists,
+    case_advice_contains_refusal,
 )
 from cases.models import (
     CaseDocument,
@@ -229,6 +230,7 @@ class CaseTeamAdvice(APIView):
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
+            case_advice_contains_refusal(pk)
             CaseActivity.create(
                 activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user,
             )
@@ -253,7 +255,9 @@ class CaseTeamAdvice(APIView):
         if final_advice_exists:
             return final_advice_exists
 
-        return post_advice(request, self.case, self.serializer_object, team=True)
+        advice = post_advice(request, self.case, self.serializer_object, team=True)
+        case_advice_contains_refusal(pk)
+        return advice
 
     def delete(self, request, pk):
         """
@@ -261,6 +265,7 @@ class CaseTeamAdvice(APIView):
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
         self.team_advice.filter(team=self.request.user.team).delete()
+        case_advice_contains_refusal(pk)
         CaseActivity.create(
             activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user,
         )
