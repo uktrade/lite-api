@@ -7,29 +7,30 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0005_auto_20191108_1648'),
+        ("statuses", "0005_auto_20191108_1648"),
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='casestatus',
-            name='priority',
-            field=models.IntegerField(),
-        ),
-        migrations.AlterField(
-            model_name='casestatus',
-            name='status',
-            field=models.CharField(max_length=50),
-        ),
+        migrations.AlterField(model_name="casestatus", name="priority", field=models.IntegerField(),),
+        migrations.AlterField(model_name="casestatus", name="status", field=models.CharField(max_length=50),),
         migrations.CreateModel(
-            name='CaseStatusOnType',
+            name="CaseStatusOnType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('application', 'Application'), ('clc_query', 'CLC Query'), ('end_user_advisory_query', 'End User Advisory Query'), ('hmrc_query', 'HMRC Query')], max_length=35)),
-                ('status', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='statuses.CaseStatus')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("application", "Application"),
+                            ("clc_query", "CLC Query"),
+                            ("end_user_advisory_query", "End User Advisory Query"),
+                            ("hmrc_query", "HMRC Query"),
+                        ],
+                        max_length=35,
+                    ),
+                ),
+                ("status", models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="statuses.CaseStatus")),
             ],
-            options={
-                'unique_together': {('type', 'status')},
-            },
+            options={"unique_together": {("type", "status")},},
         ),
     ]
