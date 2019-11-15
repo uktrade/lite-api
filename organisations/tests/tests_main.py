@@ -8,11 +8,14 @@ from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
 from parameterized import parameterized
 
+from users.models import UserOrganisationRelationship
+
 
 class OrganisationCreateTests(DataTestClient):
 
     url = reverse("organisations:organisations")
 
+    @tag('only')
     def test_create_organisation_with_first_user(self):
         data = {
             "name": "Lemonworld Co",
@@ -56,7 +59,10 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(exporter_user.first_name, data["user"]["first_name"])
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
-        self.assertEqual(exporter_user.role_id, Roles.EXPORTER_SUPER_USER_ROLE_ID)
+        self.assertEqual(UserOrganisationRelationship.objects.get(
+            user=exporter_user,
+            organisation=organisation
+        ).role_id, Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(

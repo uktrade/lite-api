@@ -90,13 +90,6 @@ class BaseUser(AbstractUser):
 
 
 class ExporterUser(BaseUser):
-    role = models.ForeignKey(
-        Role,
-        related_name="exporter_role",
-        default=Roles.EXPORTER_DEFAULT_ROLE_ID,
-        on_delete=models.PROTECT,
-    )
-
     def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
 
@@ -118,6 +111,12 @@ class ExporterUser(BaseUser):
 class UserOrganisationRelationship(models.Model):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    role = models.ForeignKey(
+        Role,
+        related_name="exporter_role",
+        default=Roles.EXPORTER_DEFAULT_ROLE_ID,
+        on_delete=models.PROTECT,
+    )
     status = models.CharField(
         choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20
     )

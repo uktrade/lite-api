@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from cases.models import Notification
+from conf.constants import Roles
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
@@ -12,7 +13,7 @@ from queries.models import Query
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
+from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -112,7 +113,14 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         exporter, _ = ExporterUser.objects.get_or_create(
             email=validated_data["email"], defaults={**validated_data}
         )
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+        if UserOrganisationRelationship.objects.filter(organisation=organisation).count() > 1:
+            UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+        else:
+            UserOrganisationRelationship(user=exporter,
+                                         organisation=organisation,
+                                         role=Role.objects.get(
+                                             id=Roles.EXPORTER_SUPER_USER_ROLE_ID
+                                         )).save()
         return exporter
 
     def update(self, instance, validated_data):
