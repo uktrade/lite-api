@@ -12,7 +12,7 @@ from static.countries.serializers import CountrySerializer
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=280)
+    description = serializers.CharField(max_length=2000)
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()

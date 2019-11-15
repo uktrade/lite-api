@@ -91,6 +91,6 @@ class DraftTests(DataTestClient):
         Ensure we cannot create a new draft object with an invalid POST
         """
         response = self.client.post(self.url, data, **self.exporter_headers)
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(OpenApplication.objects.count(), 0)
