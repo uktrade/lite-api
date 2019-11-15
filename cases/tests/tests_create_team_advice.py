@@ -20,7 +20,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         role = Role(name="team_level")
-        role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE])
+        role.permissions.set(
+            [Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE]
+        )
         role.save()
 
         self.gov_user.role = role
