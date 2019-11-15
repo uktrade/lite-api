@@ -217,7 +217,7 @@ class CaseDetailSerializer(CaseSerializer):
             has_advice["final"] = True
         try:
             if Advice.objects.filter(case=instance, user=self.context.user).first():
-                has_advice['own_user'] = True
+                has_advice["own_user"] = True
             if TeamAdvice.objects.filter(
                 case=instance, team=self.context.user.team
             ).first():
