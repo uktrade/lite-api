@@ -2,8 +2,22 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from cases.models import FinalAdvice, TeamAdvice
+from cases.models import FinalAdvice, TeamAdvice, Advice
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
+
+
+def assert_user_can_create_or_edit_team_advice_on_case(case, user):
+    if not assert_user_has_permission(
+        user, Permissions.CONFIRM_OWN_ADVICE
+    ) and Advice.objects.filter(case=case, user=user):
+        return JsonResponse(
+            {
+                "errors": "You do not have permission to confirm your own user-level advice"
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 def check_if_final_advice_exists(case):

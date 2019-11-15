@@ -15,6 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="govuser",
             name="role",
-            field=models.ForeignKey(default=uuid.UUID("00000000-0000-0000-0000-000000000001"), on_delete=django.db.models.deletion.PROTECT, related_name="role", to="users.Role"),
+            field=models.ForeignKey(
+                default=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="role",
+                to="users.Role",
+            ),
         ),
     ]

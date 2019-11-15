@@ -17,6 +17,7 @@ from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
     check_if_team_advice_exists,
+    assert_user_can_create_or_edit_team_advice_on_case,
 )
 from cases.models import (
     CaseDocument,
@@ -281,6 +282,7 @@ class CaseTeamAdvice(APIView):
         Creates advice for a case
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        assert_user_can_create_or_edit_team_advice_on_case(pk, request.user)
         final_advice_exists = check_if_final_advice_exists(self.case)
         if final_advice_exists:
             return final_advice_exists
