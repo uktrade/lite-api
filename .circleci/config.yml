@@ -62,6 +62,10 @@ jobs:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
+      - run:
+          name: Check migrations are made
+          command: pipenv run ./manage.py makemigrations --check
+
       # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
       - run:
           name: Run Linting
