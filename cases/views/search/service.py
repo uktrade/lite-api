@@ -6,7 +6,7 @@ from static.statuses.models import CaseStatus
 
 
 def get_case_status_list() -> List[Dict]:
-    return CaseStatus.objects.all().values('status', 'priority')
+    return CaseStatus.objects.all().values("status", "priority")
 
 
 def get_case_type_list() -> List[Dict]:

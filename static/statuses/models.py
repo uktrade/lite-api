@@ -14,7 +14,7 @@ class CaseStatus(models.Model):
 
 class CaseStatusOnType(models.Model):
     class Meta:
-        unique_together = (('type', 'status'),)
+        unique_together = (("type", "status"),)
 
     type = models.CharField(choices=CaseType.choices, null=False, max_length=35)
     status = models.ForeignKey(CaseStatus, on_delete=models.PROTECT, null=False)

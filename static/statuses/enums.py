@@ -1,12 +1,12 @@
 class CaseStatusEnum:
-    APPLICANT_EDITING = 'applicant_editing'
-    FINALISED = 'finalised'
-    INITIAL_CHECKS = 'initial_checks'
-    RESUBMITTED = 'resubmitted'
-    SUBMITTED = 'submitted'
-    UNDER_FINAL_REVIEW = 'under_final_review'
-    UNDER_REVIEW = 'under_review'
-    WITHDRAWN = 'withdrawn'
+    APPLICANT_EDITING = "applicant_editing"
+    FINALISED = "finalised"
+    INITIAL_CHECKS = "initial_checks"
+    RESUBMITTED = "resubmitted"
+    SUBMITTED = "submitted"
+    UNDER_FINAL_REVIEW = "under_final_review"
+    UNDER_REVIEW = "under_review"
+    WITHDRAWN = "withdrawn"
 
     choices = [
         (APPLICANT_EDITING, "Applicant editing"),

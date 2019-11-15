@@ -7,19 +7,42 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0006_auto_20191115_1120'),
+        ("statuses", "0006_auto_20191115_1120"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CaseStatusOnType',
+            name="CaseStatusOnType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('application', 'Application'), ('clc_query', 'CLC Query'), ('end_user_advisory_query', 'End User Advisory Query'), ('hmrc_query', 'HMRC Query')], max_length=35)),
-                ('status', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='statuses.CaseStatus')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("application", "Application"),
+                            ("clc_query", "CLC Query"),
+                            ("end_user_advisory_query", "End User Advisory Query"),
+                            ("hmrc_query", "HMRC Query"),
+                        ],
+                        max_length=35,
+                    ),
+                ),
+                (
+                    "status",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="statuses.CaseStatus",
+                    ),
+                ),
             ],
-            options={
-                'unique_together': {('type', 'status')},
-            },
+            options={"unique_together": {("type", "status")},},
         ),
     ]

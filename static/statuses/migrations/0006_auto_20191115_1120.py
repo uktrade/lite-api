@@ -6,18 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0005_auto_20191108_1648'),
+        ("statuses", "0005_auto_20191108_1648"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casestatus',
-            name='priority',
-            field=models.IntegerField(),
+            model_name="casestatus", name="priority", field=models.IntegerField(),
         ),
         migrations.AlterField(
-            model_name='casestatus',
-            name='status',
+            model_name="casestatus",
+            name="status",
             field=models.CharField(max_length=50),
         ),
     ]
