@@ -6,4 +6,4 @@ def get_organisation_by_pk(pk):
     try:
         return Organisation.objects.get(pk=pk)
     except Organisation.DoesNotExist:
-        raise NotFoundError({'organisation': 'Organisation not found - ' + str(pk)})
+        raise NotFoundError({"organisation": "Organisation not found - " + str(pk)})

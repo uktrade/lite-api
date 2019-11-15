@@ -6,24 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_remove_baseuser_password'),
+        ("users", "0005_remove_baseuser_password"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='baseuser',
-            name='is_active',
-        ),
-        migrations.RemoveField(
-            model_name='baseuser',
-            name='is_staff',
-        ),
-        migrations.RemoveField(
-            model_name='baseuser',
-            name='is_superuser',
-        ),
-        migrations.RemoveField(
-            model_name='baseuser',
-            name='last_login',
-        ),
+        migrations.RemoveField(model_name="baseuser", name="is_active",),
+        migrations.RemoveField(model_name="baseuser", name="is_staff",),
+        migrations.RemoveField(model_name="baseuser", name="is_superuser",),
+        migrations.RemoveField(model_name="baseuser", name="last_login",),
     ]

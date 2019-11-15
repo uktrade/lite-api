@@ -11,183 +11,479 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('teams', '0001_initial'),
-        ('goods', '0001_initial'),
-        ('applications', '0001_initial'),
-        ('countries', '0002_auto_20190628_1252'),
+        ("teams", "0001_initial"),
+        ("goods", "0001_initial"),
+        ("applications", "0001_initial"),
+        ("countries", "0002_auto_20190628_1252"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('denial_reasons', '0001_initial'),
-        ('goodstype', '0001_initial'),
-        ('parties', '0001_initial'),
-        ('documents', '0001_initial'),
-        ('flags', '0001_initial'),
-        ('queries', '0001_initial'),
-        ('users', '0007_delete_govuserrevisionmeta'),
-        ('queues', '0004_merge_20190911_1610'),
+        ("denial_reasons", "0001_initial"),
+        ("goodstype", "0001_initial"),
+        ("parties", "0001_initial"),
+        ("documents", "0001_initial"),
+        ("flags", "0001_initial"),
+        ("queries", "0001_initial"),
+        ("users", "0007_delete_govuserrevisionmeta"),
+        ("queues", "0004_merge_20190911_1610"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Advice',
+            name="Advice",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('type', models.CharField(choices=[('approve', 'Approve'), ('proviso', 'Proviso'), ('refuse', 'Refuse'), ('no_licence_required', 'No Licence Required'), ('not_applicable', 'Not Applicable'), ('conflicting', 'Conflicting')], max_length=30)),
-                ('text', models.TextField(blank=True, default=None, null=True)),
-                ('note', models.TextField(blank=True, default=None, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('proviso', models.TextField(blank=True, default=None, null=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("approve", "Approve"),
+                            ("proviso", "Proviso"),
+                            ("refuse", "Refuse"),
+                            ("no_licence_required", "No Licence Required"),
+                            ("not_applicable", "Not Applicable"),
+                            ("conflicting", "Conflicting"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("text", models.TextField(blank=True, default=None, null=True)),
+                ("note", models.TextField(blank=True, default=None, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("proviso", models.TextField(blank=True, default=None, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='BaseActivity',
+            name="BaseActivity",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField(default=None)),
-                ('additional_text', models.TextField(default=None, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('type', models.CharField(max_length=50)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField(default=None)),
+                ("additional_text", models.TextField(default=None, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("type", models.CharField(max_length=50)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Case',
+            name="Case",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('type', models.CharField(choices=[('application', 'Application'), ('clc_query', 'CLC Query'), ('end_user_advisory_query', 'End User Advisory Query')], default='application', max_length=35)),
-                ('application', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='case', to='applications.BaseApplication')),
-                ('flags', models.ManyToManyField(related_name='cases', to='flags.Flag')),
-                ('query', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='case', to='queries.Query')),
-                ('queues', models.ManyToManyField(related_name='cases', to='queues.Queue')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("application", "Application"),
+                            ("clc_query", "CLC Query"),
+                            ("end_user_advisory_query", "End User Advisory Query"),
+                        ],
+                        default="application",
+                        max_length=35,
+                    ),
+                ),
+                (
+                    "application",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="case",
+                        to="applications.BaseApplication",
+                    ),
+                ),
+                (
+                    "flags",
+                    models.ManyToManyField(related_name="cases", to="flags.Flag"),
+                ),
+                (
+                    "query",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="case",
+                        to="queries.Query",
+                    ),
+                ),
+                (
+                    "queues",
+                    models.ManyToManyField(related_name="cases", to="queues.Queue"),
+                ),
             ],
             options={
-                'ordering': [django.db.models.functions.comparison.Coalesce('application__submitted_at', 'query__submitted_at')],
+                "ordering": [
+                    django.db.models.functions.comparison.Coalesce(
+                        "application__submitted_at", "query__submitted_at"
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='CaseNote',
+            name="CaseNote",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('text', models.TextField(blank=True, default=None, max_length=2200, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('is_visible_to_exporter', models.BooleanField(default=False)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_note', to='cases.Case')),
-                ('user', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='case_note', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "text",
+                    models.TextField(
+                        blank=True, default=None, max_length=2200, null=True
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("is_visible_to_exporter", models.BooleanField(default=False)),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="case_note",
+                        to="cases.Case",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        default=None,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="case_note",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='EcjuQuery',
+            name="EcjuQuery",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('question', models.CharField(max_length=5000)),
-                ('response', models.CharField(max_length=2200, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('responded_at', models.DateTimeField(blank=True, null=True)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_ecju_query', to='cases.Case')),
-                ('raised_by_user', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='govuser_ecju_query', to='users.GovUser')),
-                ('responded_by_user', models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='exportuser_ecju_query', to='users.ExporterUser')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("question", models.CharField(max_length=5000)),
+                ("response", models.CharField(max_length=2200, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("responded_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="case_ecju_query",
+                        to="cases.Case",
+                    ),
+                ),
+                (
+                    "raised_by_user",
+                    models.ForeignKey(
+                        default=None,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="govuser_ecju_query",
+                        to="users.GovUser",
+                    ),
+                ),
+                (
+                    "responded_by_user",
+                    models.ForeignKey(
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="exportuser_ecju_query",
+                        to="users.ExporterUser",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='FinalAdvice',
+            name="FinalAdvice",
             fields=[
-                ('advice_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.Advice')),
+                (
+                    "advice_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.Advice",
+                    ),
+                ),
             ],
-            bases=('cases.advice',),
+            bases=("cases.advice",),
         ),
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('viewed_at', models.DateTimeField(null=True)),
-                ('case_note', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='cases.CaseNote')),
-                ('ecju_query', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='cases.EcjuQuery')),
-                ('query', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='queries.Query')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("viewed_at", models.DateTimeField(null=True)),
+                (
+                    "case_note",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="cases.CaseNote",
+                    ),
+                ),
+                (
+                    "ecju_query",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="cases.EcjuQuery",
+                    ),
+                ),
+                (
+                    "query",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="queries.Query",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CaseDocument',
+            name="CaseDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
-                ('description', models.TextField(blank=True, default=None, max_length=280, null=True)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.Case')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='users.GovUser')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.Document",
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(
+                        blank=True, default=None, max_length=280, null=True
+                    ),
+                ),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="users.GovUser"
+                    ),
+                ),
             ],
-            bases=('documents.document',),
+            bases=("documents.document",),
         ),
         migrations.CreateModel(
-            name='CaseAssignment',
+            name="CaseAssignment",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.Case')),
-                ('queue', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='queues.Queue')),
-                ('users', models.ManyToManyField(related_name='case_assignments', to='users.GovUser')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
+                    ),
+                ),
+                (
+                    "queue",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="queues.Queue"
+                    ),
+                ),
+                (
+                    "users",
+                    models.ManyToManyField(
+                        related_name="case_assignments", to="users.GovUser"
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='advice',
-            name='case',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.Case'),
+            model_name="advice",
+            name="case",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='consignee',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='consignee', to='parties.Consignee'),
+            model_name="advice",
+            name="consignee",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="consignee",
+                to="parties.Consignee",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='country',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='countries.Country'),
+            model_name="advice",
+            name="country",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="countries.Country",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='denial_reasons',
-            field=models.ManyToManyField(to='denial_reasons.DenialReason'),
+            model_name="advice",
+            name="denial_reasons",
+            field=models.ManyToManyField(to="denial_reasons.DenialReason"),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='end_user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='parties.EndUser'),
+            model_name="advice",
+            name="end_user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="parties.EndUser",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='good',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='goods.Good'),
+            model_name="advice",
+            name="good",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.CASCADE, to="goods.Good"
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='goods_type',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='goodstype.GoodsType'),
+            model_name="advice",
+            name="goods_type",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="goodstype.GoodsType",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='third_party',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='third_party', to='parties.ThirdParty'),
+            model_name="advice",
+            name="third_party",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="third_party",
+                to="parties.ThirdParty",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='ultimate_end_user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ultimate_end_user', to='parties.UltimateEndUser'),
+            model_name="advice",
+            name="ultimate_end_user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="ultimate_end_user",
+                to="parties.UltimateEndUser",
+            ),
         ),
         migrations.AddField(
-            model_name='advice',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='users.GovUser'),
+            model_name="advice",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to="users.GovUser"
+            ),
         ),
         migrations.CreateModel(
-            name='TeamAdvice',
+            name="TeamAdvice",
             fields=[
-                ('advice_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.Advice')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.Team')),
+                (
+                    "advice_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.Advice",
+                    ),
+                ),
+                (
+                    "team",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="teams.Team"
+                    ),
+                ),
             ],
-            bases=('cases.advice',),
+            bases=("cases.advice",),
         ),
         migrations.CreateModel(
-            name='CaseActivity',
+            name="CaseActivity",
             fields=[
-                ('baseactivity_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.BaseActivity')),
-                ('case', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cases.Case')),
+                (
+                    "baseactivity_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.BaseActivity",
+                    ),
+                ),
+                (
+                    "case",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
+                    ),
+                ),
             ],
-            bases=('cases.baseactivity',),
+            bases=("cases.baseactivity",),
         ),
     ]

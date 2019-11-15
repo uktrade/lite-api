@@ -7,13 +7,17 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('control_list_classifications', '0002_controllistclassificationquery_good'),
+        ("control_list_classifications", "0002_controllistclassificationquery_good"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='controllistclassificationquery',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='good', to='goods.Good'),
+            model_name="controllistclassificationquery",
+            name="good",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="good",
+                to="goods.Good",
+            ),
         ),
     ]

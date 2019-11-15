@@ -5,17 +5,24 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('statuses', '0001_initial'),
+        ("statuses", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casestatus',
-            name='status',
+            model_name="casestatus",
+            name="status",
             field=models.CharField(
-                choices=[('submitted', 'Submitted'), ('more_information_required', 'More information required'),
-                         ('under_review', 'Under review'), ('under_final_review', 'Under final review'),
-                         ('resubmitted', 'Resubmitted'), ('withdrawn', 'Withdrawn'), ('finalised', 'finalised')],
-                max_length=50),
+                choices=[
+                    ("submitted", "Submitted"),
+                    ("more_information_required", "More information required"),
+                    ("under_review", "Under review"),
+                    ("under_final_review", "Under final review"),
+                    ("resubmitted", "Resubmitted"),
+                    ("withdrawn", "Withdrawn"),
+                    ("finalised", "finalised"),
+                ],
+                max_length=50,
+            ),
         ),
     ]

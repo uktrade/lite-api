@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 parameterized = "==0.7.0"
+black = "==19.10b0"
 
 [packages]
 Django = "==2.2.4"

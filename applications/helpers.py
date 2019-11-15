@@ -1,11 +1,20 @@
 from applications.enums import ApplicationType
 from applications.models import BaseApplication
-from applications.serializers.hmrc_query import HmrcQueryCreateSerializer, HmrcQueryViewSerializer, \
-    HmrcQueryUpdateSerializer
-from applications.serializers.open_application import OpenApplicationCreateSerializer, OpenApplicationUpdateSerializer, \
-    OpenApplicationViewSerializer
-from applications.serializers.standard_application import StandardApplicationCreateSerializer, \
-    StandardApplicationUpdateSerializer, StandardApplicationViewSerializer
+from applications.serializers.hmrc_query import (
+    HmrcQueryCreateSerializer,
+    HmrcQueryViewSerializer,
+    HmrcQueryUpdateSerializer,
+)
+from applications.serializers.open_application import (
+    OpenApplicationCreateSerializer,
+    OpenApplicationUpdateSerializer,
+    OpenApplicationViewSerializer,
+)
+from applications.serializers.standard_application import (
+    StandardApplicationCreateSerializer,
+    StandardApplicationUpdateSerializer,
+    StandardApplicationViewSerializer,
+)
 from conf.exceptions import BadRequestError
 
 
@@ -17,8 +26,12 @@ def get_application_view_serializer(application: BaseApplication):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryViewSerializer
     else:
-        raise BadRequestError({'errors': f'get_application_view_serializer does '
-                                         f'not support this application type: {application.application_type}'})
+        raise BadRequestError(
+            {
+                "errors": f"get_application_view_serializer does "
+                f"not support this application type: {application.application_type}"
+            }
+        )
 
 
 def get_application_create_serializer(application_type):
@@ -29,8 +42,12 @@ def get_application_create_serializer(application_type):
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
     else:
-        raise BadRequestError({'errors': f'get_application_create_serializer does '
-                                         f'not support this application type: {application_type}'})
+        raise BadRequestError(
+            {
+                "errors": f"get_application_create_serializer does "
+                f"not support this application type: {application_type}"
+            }
+        )
 
 
 def get_application_update_serializer(application: BaseApplication):
@@ -41,5 +58,9 @@ def get_application_update_serializer(application: BaseApplication):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryUpdateSerializer
     else:
-        raise BadRequestError({'errors': f'get_application_update_serializer does '
-                                         f'not support this application type: {application.application_type}'})
+        raise BadRequestError(
+            {
+                "errors": f"get_application_update_serializer does "
+                f"not support this application type: {application.application_type}"
+            }
+        )
