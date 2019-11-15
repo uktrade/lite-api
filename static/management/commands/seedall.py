@@ -4,7 +4,7 @@ from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
     'Essential': ['seedpermissions', 'seedcontrollistentries', 'seeddenialreasons', 'seedcountries',
-                  'seedcasestatuses', 'seedlayouts', 'seedgovuser', 'seedsystemflags'],
+                  'seedcasestatuses', 'seedlayouts', 'seedsystemflags'],
     'Dev': ['seedorgusers', 'seedgovuser'],
     'Tests': ['seedpermissions', 'seeddenialreasons', 'seedcountries', 'seedgovuser', 'seedgovuser',
               'seedcasestatuses', 'seedlayouts', 'seedsystemflags']
