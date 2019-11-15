@@ -28,8 +28,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user.role = self.role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(email="user@email.com", team=self.team, role=self.role)
-        self.gov_user_3 = GovUser(email="users@email.com", team=self.team, role=self.role)
+        self.gov_user_2 = GovUser(
+            email="user@email.com", team=self.team, role=self.role
+        )
+        self.gov_user_3 = GovUser(
+            email="users@email.com", team=self.team, role=self.role
+        )
         self.gov_user_2.save()
         self.gov_user_3.save()
 
@@ -383,10 +387,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
-    def test_create_team_advice_without_confirm_own_advice_permission_when_user_advice_exists_failure(self):
-        self.role.permissions.set(
-            [Permissions.MANAGE_TEAM_ADVICE]
-        )
+    def test_create_team_advice_without_confirm_own_advice_permission_when_user_advice_exists_failure(
+        self,
+    ):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
 
         self.create_advice(
             self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice
