@@ -1,5 +1,4 @@
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
 FILE = 'lite_content/lite-api/case_statuses.csv'

@@ -2,11 +2,11 @@ from typing import List, Dict
 
 from cases.enums import CaseType
 from cases.views.search.queue import SearchQueue
-from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus
 
 
 def get_case_status_list() -> List[Dict]:
-    return CaseStatusEnum.as_list()
+    return CaseStatus.objects.all().values('status', 'priority')
 
 
 def get_case_type_list() -> List[Dict]:
