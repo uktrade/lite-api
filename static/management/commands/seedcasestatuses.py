@@ -14,8 +14,8 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedcasestatuses
         """
-        reader = self.read_csv(STATUSES_FILE)
-        for row in reader:
+        # Case statuses
+        for row in self.read_csv(STATUSES_FILE):
             CaseStatus.objects.get_or_create(status=row[0], priority=row[1], is_read_only=row[2])
 
         status_ids = {status.status: status for status in CaseStatus.objects.all()}
@@ -28,4 +28,5 @@ class Command(SeedCommand):
 class SeedCaseStatusesTests(SeedCommandTest):
     def test_seed_case_statuses(self):
         self.seed_command(Command)
-        self.assertTrue(CaseStatus.objects.count() == len(self.read_csv(STATUSES_FILE)))
+        self.assertTrue(CaseStatus.objects.count() == len(Command.read_csv(STATUSES_FILE)))
+        self.assertTrue(CaseStatusOnType.objects.count() == len(Command.read_csv(STATUS_ON_TYPE_FILE)))
