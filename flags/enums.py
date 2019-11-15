@@ -23,7 +23,4 @@ class FlagStatuses:
 
 
 class SystemFlags:
-    # If this is updated please check the seeding script to ensure that it still makes sense for current flags.
     REFUSAL_FLAG_ID = '00000000-0000-0000-0000-000000000001'
-
-
