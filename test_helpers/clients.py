@@ -106,8 +106,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "HTTP_ORGANISATION_ID": self.organisation.id,
         }
 
-        self.default_role = Role.objects.get(id=Roles.DEFAULT_ROLE_ID)
-        self.super_user_role = Role.objects.get(id=Roles.SUPER_USER_ROLE_ID)
+        self.default_role = Role.objects.get(id=Roles.INTERNAL_DEFAULT_ROLE_ID)
+        self.super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
 
         self.hmrc_exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user),

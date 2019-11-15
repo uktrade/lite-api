@@ -74,7 +74,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_edit_a_role(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        role_id = Roles.DEFAULT_ROLE_ID
+        role_id = Roles.INTERNAL_DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
         data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
@@ -116,7 +116,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cannot_edit_role_without_permission(self):
-        role_id = Roles.DEFAULT_ROLE_ID
+        role_id = Roles.INTERNAL_DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
         data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}

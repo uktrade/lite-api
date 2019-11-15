@@ -94,8 +94,8 @@ class GovUserList(APIView):
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
         if (
-            data.get("role") == str(Roles.SUPER_USER_ROLE_ID)
-            and not request.user.role_id == Roles.SUPER_USER_ROLE_ID
+            data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
+            and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
         ):
             raise PermissionDenied()
 
@@ -140,9 +140,9 @@ class GovUserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-            gov_user.role_id == Roles.SUPER_USER_ROLE_ID
-            or data.get("roles") == Roles.SUPER_USER_ROLE_ID
-        ) and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
+            gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
+            or data.get("roles") == Roles.INTERNAL_SUPER_USER_ROLE_ID
+        ) and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
         if "status" in data.keys():
@@ -152,7 +152,7 @@ class GovUserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             elif (
-                gov_user.role_id == Roles.SUPER_USER_ROLE_ID
+                gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
                 and data["status"] == "Deactivated"
             ):
                 raise PermissionDenied()
@@ -161,7 +161,7 @@ class GovUserDetail(APIView):
         if "role" in data.keys():
             if (
                 gov_user.id == request.user.id
-                and request.user.role_id == Roles.SUPER_USER_ROLE_ID
+                and request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
             ):
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},

@@ -24,8 +24,8 @@ class RolesViews(APIView):
         Return list of all roles
         """
         roles = Role.objects.all().order_by("name")
-        if request.user.role_id != Roles.SUPER_USER_ROLE_ID:
-            roles = roles.exclude(id=Roles.SUPER_USER_ROLE_ID)
+        if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
+            roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
@@ -75,7 +75,7 @@ class RoleDetail(APIView):
         """
         update a role
         """
-        if pk == Roles.SUPER_USER_ROLE_ID:
+        if pk == Roles.INTERNAL_SUPER_USER_ROLE_ID:
             return JsonResponse(
                 data={"errors": "You cannot edit the super user role"},
                 status=status.HTTP_400_BAD_REQUEST,

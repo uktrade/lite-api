@@ -1,7 +1,15 @@
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from users.models import Permission
+from users.enums import UserType
+from users.models import Permission, Role
 
 FILE = "lite_content/lite-api/permissions.csv"
+DEFAULT_ID = "00000000-0000-0000-0000-000000000001"
+SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000002"
+EX_SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000003"
+EX_DEFAULT_ID = "00000000-0000-0000-0000-000000000004"
+TEAM_NAME = "Admin"
+ROLE_NAME = "Default"
+SUPER_USER = "Super User"
 
 
 class Command(SeedCommand):
@@ -17,6 +25,21 @@ class Command(SeedCommand):
         reader = self.read_csv(FILE)
         for row in reader:
             Permission.objects.get_or_create(id=row[0], name=row[1])
+
+        Role.objects.get_or_create(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
+        Role.objects.get_or_create(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)
+        Role.objects.get_or_create(id=SUPER_USER_ROLE_ID, type=UserType.INTERNAL, name=SUPER_USER)
+        Role.objects.get_or_create(id=EX_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=SUPER_USER)
+
+        role = Role.objects.get(id=SUPER_USER_ROLE_ID)
+        for permission in Permission.objects.filter(type=UserType.INTERNAL):
+            role.permissions.add(permission)
+        role.save()
+
+        role = Role.objects.get(id=EX_SUPER_USER_ROLE_ID)
+        for permission in Permission.objects.filter(type=UserType.EXPORTER):
+            role.permissions.add(permission)
+        role.save()
 
 
 class SeedPermissionsTests(SeedCommandTest):

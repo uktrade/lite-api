@@ -10,12 +10,16 @@ from conf.constants import Roles
 from organisations.models import Organisation
 from queries.models import Query
 from teams.models import Team
-from users.enums import UserStatuses
+from users.enums import UserStatuses, UserType
 
 
 class Permission(models.Model):
+    class Meta:
+        unique_together = (('id', 'type'),)
+
     id = models.CharField(primary_key=True, editable=False, max_length=30)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
 
 
 @reversion.register()
@@ -23,6 +27,8 @@ class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
     permissions = models.ManyToManyField(Permission, related_name="roles")
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, null=True, max_length=30)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, null=True)
 
 
 class CustomUserManager(BaseUserManager):
@@ -84,6 +90,13 @@ class BaseUser(AbstractUser):
 
 
 class ExporterUser(BaseUser):
+    role = models.ForeignKey(
+        Role,
+        related_name="exporter_role",
+        default=Roles.EXPORTER_DEFAULT_ROLE_ID,
+        on_delete=models.PROTECT,
+    )
+
     def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
 
@@ -112,16 +125,17 @@ class UserOrganisationRelationship(models.Model):
 
 
 class GovUser(BaseUser):
+    role = models.ForeignKey(
+        Role,
+        related_name="internal_role",
+        default=Roles.INTERNAL_DEFAULT_ROLE_ID,
+        on_delete=models.PROTECT,
+    )
+
     status = models.CharField(
         choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20
     )
     team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
-    role = models.ForeignKey(
-        Role,
-        related_name="role",
-        default=Roles.DEFAULT_ROLE_ID,
-        on_delete=models.PROTECT,
-    )
 
     def unassign_from_cases(self):
         """
@@ -155,6 +169,6 @@ class GovUser(BaseUser):
     # pylint: disable=W0221
     # pylint: disable=E1003
     def save(self, *args, **kwargs):
-        if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
-            self.role_id = Roles.SUPER_USER_ROLE_ID
+        if GovUser.objects.filter(role_id=Roles.INTERNAL_SUPER_USER_ROLE_ID).count() == 0:
+            self.role_id = Roles.INTERNAL_SUPER_USER_ROLE_ID
         super(BaseUser, self).save(*args, **kwargs)

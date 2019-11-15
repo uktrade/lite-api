@@ -2,6 +2,7 @@ from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from conf.constants import Roles
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
@@ -55,6 +56,7 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(exporter_user.first_name, data["user"]["first_name"])
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
+        self.assertEqual(exporter_user.role_id, Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(
