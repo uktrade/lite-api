@@ -23,12 +23,7 @@ class Migration(migrations.Migration):
             name="BaseUser",
             fields=[
                 ("password", models.CharField(max_length=128, verbose_name="password")),
-                (
-                    "last_login",
-                    models.DateTimeField(
-                        blank=True, null=True, verbose_name="last login"
-                    ),
-                ),
+                ("last_login", models.DateTimeField(blank=True, null=True, verbose_name="last login"),),
                 (
                     "is_superuser",
                     models.BooleanField(
@@ -37,18 +32,8 @@ class Migration(migrations.Migration):
                         verbose_name="superuser status",
                     ),
                 ),
-                (
-                    "first_name",
-                    models.CharField(
-                        blank=True, max_length=30, verbose_name="first name"
-                    ),
-                ),
-                (
-                    "last_name",
-                    models.CharField(
-                        blank=True, max_length=150, verbose_name="last name"
-                    ),
-                ),
+                ("first_name", models.CharField(blank=True, max_length=30, verbose_name="first name"),),
+                ("last_name", models.CharField(blank=True, max_length=150, verbose_name="last name"),),
                 (
                     "is_staff",
                     models.BooleanField(
@@ -65,33 +50,13 @@ class Migration(migrations.Migration):
                         verbose_name="active",
                     ),
                 ),
-                (
-                    "date_joined",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, verbose_name="date joined"
-                    ),
-                ),
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "email",
-                    models.EmailField(
-                        blank=True, default=None, max_length=254, unique=True
-                    ),
-                ),
+                ("date_joined", models.DateTimeField(default=django.utils.timezone.now, verbose_name="date joined"),),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("email", models.EmailField(blank=True, default=None, max_length=254, unique=True),),
                 (
                     "status",
                     models.CharField(
-                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")],
-                        default="Active",
-                        max_length=20,
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20,
                     ),
                 ),
                 (
@@ -117,52 +82,22 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "user",
-                "verbose_name_plural": "users",
-                "abstract": False,
-            },
+            options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
             managers=[("objects", users.models.CustomUserManager()),],
         ),
         migrations.CreateModel(
             name="Permission",
             fields=[
-                (
-                    "id",
-                    models.CharField(
-                        editable=False, max_length=30, primary_key=True, serialize=False
-                    ),
-                ),
-                (
-                    "name",
-                    models.CharField(
-                        blank=True, default=None, max_length=30, null=True
-                    ),
-                ),
+                ("id", models.CharField(editable=False, max_length=30, primary_key=True, serialize=False),),
+                ("name", models.CharField(blank=True, default=None, max_length=30, null=True),),
             ],
         ),
         migrations.CreateModel(
             name="Role",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "name",
-                    models.CharField(
-                        blank=True, default=None, max_length=30, null=True
-                    ),
-                ),
-                (
-                    "permissions",
-                    models.ManyToManyField(related_name="roles", to="users.Permission"),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("name", models.CharField(blank=True, default=None, max_length=30, null=True),),
+                ("permissions", models.ManyToManyField(related_name="roles", to="users.Permission"),),
             ],
         ),
         migrations.CreateModel(
@@ -191,17 +126,11 @@ class Migration(migrations.Migration):
                 (
                     "team",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT,
-                        related_name="team",
-                        to="teams.Team",
+                        on_delete=django.db.models.deletion.PROTECT, related_name="team", to="teams.Team",
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "user",
-                "verbose_name_plural": "users",
-                "abstract": False,
-            },
+            options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
             bases=("users.baseuser",),
             managers=[("objects", users.models.CustomUserManager()),],
         ),
@@ -229,11 +158,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "user",
-                "verbose_name_plural": "users",
-                "abstract": False,
-            },
+            options={"verbose_name": "user", "verbose_name_plural": "users", "abstract": False,},
             bases=("users.baseuser",),
             managers=[("objects", users.models.CustomUserManager()),],
         ),

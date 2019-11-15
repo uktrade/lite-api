@@ -28,9 +28,7 @@ def parse_list_into_control_list_entries(worksheet):
             # If decontrolled, assign a random rating
             rating = str(uuid.uuid4())
         elif not is_decontrolled and rating is None:
-            raise Exception(
-                f"Row {row[0].row} in {worksheet.title} doesn't have a rating and is controlled"
-            )
+            raise Exception(f"Row {row[0].row} in {worksheet.title} doesn't have a rating and is controlled")
 
         if current_depth > previous_depth:
             parent = parents_at_depth[previous_depth]

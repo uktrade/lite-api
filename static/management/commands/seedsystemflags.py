@@ -21,9 +21,5 @@ class Command(SeedCommand):
         reader = self.read_csv(FILE)
         for row in reader:
             Flag.objects.get_or_create(
-                id=row[0],
-                name=row[1],
-                level="Case",
-                status="Deactivated",
-                team_id=team.id,
+                id=row[0], name=row[1], level="Case", status="Deactivated", team_id=team.id,
             )

@@ -20,38 +20,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Good",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "description",
-                    models.TextField(
-                        blank=True, default=None, max_length=280, null=True
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
                 (
                     "is_good_controlled",
                     models.CharField(
-                        choices=[
-                            ("yes", "Yes"),
-                            ("no", "No"),
-                            ("unsure", "I don't know"),
-                        ],
+                        choices=[("yes", "Yes"), ("no", "No"), ("unsure", "I don't know"),],
                         default="unsure",
                         max_length=20,
                     ),
                 ),
                 ("control_code", models.TextField(blank=True, default=None, null=True)),
-                (
-                    "is_good_end_product",
-                    models.BooleanField(blank=True, default=None, null=True),
-                ),
+                ("is_good_end_product", models.BooleanField(blank=True, default=None, null=True),),
                 ("part_number", models.TextField(blank=True, default=None, null=True)),
                 (
                     "status",
@@ -66,16 +46,11 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
-                (
-                    "flags",
-                    models.ManyToManyField(related_name="goods", to="flags.Flag"),
-                ),
+                ("flags", models.ManyToManyField(related_name="goods", to="flags.Flag"),),
                 (
                     "organisation",
                     models.ForeignKey(
-                        default=None,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="organisations.Organisation",
+                        default=None, on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation",
                     ),
                 ),
             ],
@@ -94,32 +69,13 @@ class Migration(migrations.Migration):
                         to="documents.Document",
                     ),
                 ),
-                (
-                    "description",
-                    models.TextField(
-                        blank=True, default=None, max_length=280, null=True
-                    ),
-                ),
-                (
-                    "good",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="goods.Good"
-                    ),
-                ),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
+                ("good", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goods.Good"),),
                 (
                     "organisation",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING,
-                        to="organisations.Organisation",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="organisations.Organisation",),
                 ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING,
-                        to="users.ExporterUser",
-                    ),
-                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="users.ExporterUser",),),
             ],
             bases=("documents.document",),
         ),

@@ -38,9 +38,7 @@ def get_gov_user_by_email(email):
 
 def get_user_organisations(pk):
     try:
-        user_organisation_relationships = UserOrganisationRelationship.objects.filter(
-            user=pk
-        )
+        user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=pk)
         return [x.organisation for x in user_organisation_relationships]
     except UserOrganisationRelationship.DoesNotExist:
         raise NotFoundError({"user": "User not found - " + str(pk)})
@@ -48,9 +46,9 @@ def get_user_organisations(pk):
 
 def get_users_from_organisation(pk):
     try:
-        user_organisation_relationships = UserOrganisationRelationship.objects.filter(
-            organisation=pk
-        ).order_by("user__first_name")
+        user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=pk).order_by(
+            "user__first_name"
+        )
 
         for relationship in user_organisation_relationships:
             relationship.user.status = relationship.status
@@ -62,13 +60,7 @@ def get_users_from_organisation(pk):
 
 def get_user_organisation_relationship(user: ExporterUser, organisation: Organisation):
     try:
-        user_organisation_relationship = UserOrganisationRelationship.objects.get(
-            user=user, organisation=organisation
-        )
+        user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
         return user_organisation_relationship
     except UserOrganisationRelationship.DoesNotExist:
-        raise NotFoundError(
-            {
-                "user_organisation_relationship": "User Organisation Relationship not found"
-            }
-        )
+        raise NotFoundError({"user_organisation_relationship": "User Organisation Relationship not found"})

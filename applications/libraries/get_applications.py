@@ -24,9 +24,7 @@ def get_application(pk, organisation_id=None):
         elif application_type == ApplicationType.HMRC_QUERY:
             return HmrcQuery.objects.get(pk=pk)
         else:
-            raise NotImplementedError(
-                f"get_application does not support this application type: {application_type}"
-            )
+            raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (
         StandardApplication.DoesNotExist,
         OpenApplication.DoesNotExist,
@@ -37,8 +35,6 @@ def get_application(pk, organisation_id=None):
 
 def _get_application_type(pk):
     try:
-        return BaseApplication.objects.values_list("application_type", flat=True).get(
-            pk=pk
-        )
+        return BaseApplication.objects.values_list("application_type", flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:
         raise Http404

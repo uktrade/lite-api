@@ -11,8 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="baseapplication",
-            name="last_modified_at",
-            field=models.DateTimeField(auto_now=True),
+            model_name="baseapplication", name="last_modified_at", field=models.DateTimeField(auto_now=True),
         ),
     ]

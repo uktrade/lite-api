@@ -23,10 +23,7 @@ class CaseActivityTests(DataTestClient):
         }
 
         response = self.client.put(
-            reverse(
-                "applications:manage_status",
-                kwargs={"pk": self.standard_application.id},
-            ),
+            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id},),
             data=data,
             **self.gov_headers
         )
@@ -44,10 +41,7 @@ class CaseActivityTests(DataTestClient):
         }
 
         response = self.client.put(
-            reverse(
-                "applications:manage_status",
-                kwargs={"pk": self.standard_application.id},
-            ),
+            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id},),
             data=data,
             **self.gov_headers
         )

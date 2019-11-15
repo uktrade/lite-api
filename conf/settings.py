@@ -11,12 +11,7 @@ ENV_FILE = os.path.join(BASE_DIR, ".env")
 if os.path.exists(ENV_FILE):
     Env.read_env(ENV_FILE)
 
-env = Env(
-    ALLOWED_HOSTS=(str, ""),
-    DEBUG=(bool, False),
-    LOG_LEVEL=(str, "INFO"),
-    BACKGROUND_TASK_ENABLED=(bool, False),
-)
+env = Env(ALLOWED_HOSTS=(str, ""), DEBUG=(bool, False), LOG_LEVEL=(str, "INFO"), BACKGROUND_TASK_ENABLED=(bool, False),)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -108,10 +103,7 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     "DEFAULT_AUTHENTICATION_CLASSES": (),
     "DEFAULT_PERMISSION_CLASSES": (),
-    "DEFAULT_PARSER_CLASSES": (
-        "rest_framework.parsers.JSONParser",
-        "rest_framework.parsers.FormParser",
-    ),
+    "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 25,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
@@ -172,9 +164,7 @@ if "test" not in sys.argv:
                 "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
             },
         },
-        "handlers": {
-            "console": {"class": "logging.StreamHandler", "formatter": "json",},
-        },
+        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json",},},
         "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper(),},},
     }
 else:

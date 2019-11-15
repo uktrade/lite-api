@@ -26,18 +26,10 @@ class Migration(migrations.Migration):
                         to="documents.Document",
                     ),
                 ),
-                (
-                    "description",
-                    models.TextField(
-                        blank=True, default=None, max_length=280, null=True
-                    ),
-                ),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
                 (
                     "application",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="applications.BaseApplication",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="applications.BaseApplication",),
                 ),
             ],
             bases=("documents.document",),

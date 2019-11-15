@@ -18,30 +18,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="GoodsType",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "description",
-                    models.TextField(
-                        blank=True, default=None, max_length=280, null=True
-                    ),
-                ),
-                (
-                    "is_good_controlled",
-                    models.BooleanField(blank=True, default=None, null=True),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
+                ("is_good_controlled", models.BooleanField(blank=True, default=None, null=True),),
                 ("control_code", models.TextField(blank=True, default=None, null=True)),
-                (
-                    "is_good_end_product",
-                    models.BooleanField(blank=True, default=None, null=True),
-                ),
+                ("is_good_end_product", models.BooleanField(blank=True, default=None, null=True),),
                 (
                     "application",
                     models.ForeignKey(
@@ -50,10 +31,7 @@ class Migration(migrations.Migration):
                         to="applications.OpenApplication",
                     ),
                 ),
-                (
-                    "flags",
-                    models.ManyToManyField(related_name="goods_type", to="flags.Flag"),
-                ),
+                ("flags", models.ManyToManyField(related_name="goods_type", to="flags.Flag"),),
             ],
         ),
     ]

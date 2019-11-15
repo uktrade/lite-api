@@ -18,15 +18,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PicklistItem",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField()),
                 ("text", models.TextField(max_length=5000)),
                 (
@@ -46,18 +38,14 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.CharField(
-                        choices=[("active", "Active"), ("deactivated", "Deactivated")],
-                        default="active",
-                        max_length=50,
+                        choices=[("active", "Active"), ("deactivated", "Deactivated")], default="active", max_length=50,
                     ),
                 ),
                 ("last_modified_at", models.DateTimeField(auto_now=True)),
                 (
                     "team",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="organisation_team",
-                        to="teams.Team",
+                        on_delete=django.db.models.deletion.CASCADE, related_name="organisation_team", to="teams.Team",
                     ),
                 ),
             ],

@@ -11,9 +11,7 @@ class PicklistItemUpdate(DataTestClient):
         self.picklist_item = self.create_picklist_item(
             "Picklist item", self.team, PicklistType.ECJU, PickListStatus.ACTIVE
         )
-        self.url = reverse(
-            "picklist_items:picklist_item", kwargs={"pk": self.picklist_item.id}
-        )
+        self.url = reverse("picklist_items:picklist_item", kwargs={"pk": self.picklist_item.id})
 
     def test_deactivate_a_picklist_item(self):
         data = {"status": PickListStatus.DEACTIVATED}
@@ -23,8 +21,7 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["status"],
-            {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
+            response_data["picklist_item"]["status"], {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
         )
 
     def test_reactivate_a_picklist_item(self):
@@ -38,6 +35,5 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["picklist_item"]["status"],
-            {"key": PickListStatus.ACTIVE, "value": "Active"},
+            response_data["picklist_item"]["status"], {"key": PickListStatus.ACTIVE, "value": "Active"},
         )

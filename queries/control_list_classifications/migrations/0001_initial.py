@@ -29,10 +29,7 @@ class Migration(migrations.Migration):
                 ),
                 ("details", models.TextField(blank=True, default=None, null=True)),
                 ("comment", models.TextField(blank=True, default=None, null=True)),
-                (
-                    "report_summary",
-                    models.TextField(blank=True, default=None, null=True),
-                ),
+                ("report_summary", models.TextField(blank=True, default=None, null=True),),
             ],
             bases=("queries.query",),
         ),

@@ -12,10 +12,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.open_application = self.create_open_application(self.organisation)
-        self.url = reverse(
-            "applications:application_goodstypes",
-            kwargs={"pk": self.open_application.id},
-        )
+        self.url = reverse("applications:application_goodstypes", kwargs={"pk": self.open_application.id},)
         self.data = {
             "description": "Widget",
             "is_good_controlled": True,
@@ -26,10 +23,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.hmrc_query = self.create_hmrc_query(self.organisation)
         self.document_url = reverse(
             "applications:goods_type_document",
-            kwargs={
-                "pk": self.hmrc_query.id,
-                "goods_type_pk": GoodsType.objects.get(application=self.hmrc_query).id,
-            },
+            kwargs={"pk": self.hmrc_query.id, "goods_type_pk": GoodsType.objects.get(application=self.hmrc_query).id,},
         )
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -42,8 +36,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(
-            len(response.json()["goods"]),
-            GoodsType.objects.filter(application=self.open_application).count(),
+            len(response.json()["goods"]), GoodsType.objects.filter(application=self.open_application).count(),
         )
 
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
@@ -73,9 +66,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
         application = self.create_standard_application(self.organisation)
-        url = reverse(
-            "applications:application_goodstypes", kwargs={"pk": application.id}
-        )
+        url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
 
         data = {
             "description": "Widget",
@@ -101,9 +92,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(
-            GoodsType.objects.all().count(), initial_goods_types_count - 1
-        )
+        self.assertEquals(GoodsType.objects.all().count(), initial_goods_types_count - 1)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_post_goods_type_document_success(self, prepare_document_function):
@@ -117,9 +106,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         GoodsTypeDocument.objects.get(goods_type__application=self.hmrc_query).delete()
         count = GoodsTypeDocument.objects.count()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.hmrc_exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.hmrc_exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(count + 1, GoodsTypeDocument.objects.count())
@@ -142,9 +129,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_goods_type_document_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_goods_type_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a draft HMRC query has been created
         And the draft contains a goods type
@@ -159,9 +144,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_goods_type_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_goods_type_success(self, delete_s3_function, prepare_document_function):
         """
         Given a draft HMRC query has been created
         And the draft contains a goods type
@@ -171,10 +154,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         """
         url = reverse(
             "applications:application_goodstype",
-            kwargs={
-                "pk": self.hmrc_query.id,
-                "goodstype_pk": GoodsType.objects.get(application=self.hmrc_query).id,
-            },
+            kwargs={"pk": self.hmrc_query.id, "goodstype_pk": GoodsType.objects.get(application=self.hmrc_query).id,},
         )
         goods_type_count = GoodsType.objects.count()
         goods_type_doc_count = GoodsTypeDocument.objects.count()

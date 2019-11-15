@@ -11,12 +11,8 @@ class OrganisationFlagsManagementTests(DataTestClient):
         self.other_team = self.create_team("Team")
 
         # Flags
-        self.team_organisation_flag_1 = self.create_flag(
-            "Organisation Flag 1", "Organisation", self.team
-        )
-        self.team_organisation_flag_2 = self.create_flag(
-            "Organisation Flag 2", "Organisation", self.team
-        )
+        self.team_organisation_flag_1 = self.create_flag("Organisation Flag 1", "Organisation", self.team)
+        self.team_organisation_flag_2 = self.create_flag("Organisation Flag 2", "Organisation", self.team)
         self.good_flag = self.create_flag("Good flag", "Good", self.team)
         self.other_team_organisation_flag = self.create_flag(
             "Other Team Organisation Flag", "Organisation", self.other_team
@@ -27,9 +23,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
             self.other_team_organisation_flag,
         ]
 
-        self.organisation_url = reverse(
-            "organisations:organisation", kwargs={"pk": self.organisation.id}
-        )
+        self.organisation_url = reverse("organisations:organisation", kwargs={"pk": self.organisation.id})
         self.organisation_flag_url = reverse("flags:assign_flags")
 
     def test_no_flags_for_organisation_are_returned(self):
@@ -54,9 +48,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         response = self.client.get(self.organisation_url, **self.gov_headers)
         returned_organisation = response.json()
 
-        self.assertEquals(
-            self.organisation.flags.count(), len(returned_organisation["flags"])
-        )
+        self.assertEquals(self.organisation.flags.count(), len(returned_organisation["flags"]))
 
     def test_user_can_add_organisation_level_flags_from_their_own_team(self):
         """

@@ -23,8 +23,7 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response_data["flag"]["name"], "new flag")
         self.assertEqual(response_data["flag"]["level"], "Organisation")
         self.assertEqual(
-            response_data["flag"]["team"],
-            {"id": str(self.team.id), "name": self.team.name},
+            response_data["flag"]["team"], {"id": str(self.team.id), "name": self.team.name},
         )
 
     @parameterized.expand(

@@ -13,12 +13,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="DenialReason",
             fields=[
-                (
-                    "id",
-                    models.CharField(
-                        editable=False, max_length=3, primary_key=True, serialize=False
-                    ),
-                ),
+                ("id", models.CharField(editable=False, max_length=3, primary_key=True, serialize=False),),
                 ("deprecated", models.BooleanField(default=False)),
             ],
         ),

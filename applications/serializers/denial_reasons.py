@@ -25,12 +25,8 @@ class ApplicationDenialReasonViewSerializer(serializers.ModelSerializer):
 
 
 class ApplicationDenialReasonCreateSerializer(serializers.ModelSerializer):
-    reason_details = serializers.CharField(
-        max_length=2200, required=False, allow_blank=True, allow_null=True
-    )
-    application = serializers.PrimaryKeyRelatedField(
-        queryset=BaseApplication.objects.all()
-    )
+    reason_details = serializers.CharField(max_length=2200, required=False, allow_blank=True, allow_null=True)
+    application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
 
     class Meta:
         model = ApplicationDenialReason
@@ -41,9 +37,7 @@ class ApplicationDenialReasonCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if self.initial_data["reasons"]:
-            application_denial_reason = ApplicationDenialReason.objects.create(
-                **validated_data
-            )
+            application_denial_reason = ApplicationDenialReason.objects.create(**validated_data)
             application_denial_reason.reasons.set(self.initial_data["reasons"])
             application_denial_reason.save()
 

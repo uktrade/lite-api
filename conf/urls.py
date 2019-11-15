@@ -11,14 +11,10 @@ api_info = openapi.Info(
     default_version="v0.3",
     description="Service for handling backend calls in LITE.",
     terms_of_service="https://github.com/uktrade/lite-api/blob/master/LICENSE",
-    contact=openapi.Contact(
-        url="https://github.com/uktrade/lite-api/", email="tbd@local"
-    ),
+    contact=openapi.Contact(url="https://github.com/uktrade/lite-api/", email="tbd@local"),
     license=openapi.License(name="MIT License"),
 )
-schema_view = get_schema_view(
-    api_info, public=True, permission_classes=(permissions.AllowAny,),
-)
+schema_view = get_schema_view(api_info, public=True, permission_classes=(permissions.AllowAny,),)
 
 urlpatterns = [
     path("applications/", include("applications.urls")),
@@ -36,11 +32,7 @@ urlpatterns = [
     path("picklist/", include("picklists.urls")),
     path("documents/", include("documents.urls")),
     path("queries/", include("queries.urls")),
-    re_path(
-        r"^swagger(?P<format>\.json|\.yaml)$",
-        schema_view.without_ui(cache_timeout=0),
-        name="schema-json",
-    ),
+    re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ]
 
 if ADMIN_ENABLED:

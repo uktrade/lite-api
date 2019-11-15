@@ -26,15 +26,9 @@ class RetrieveAllCases(DataTestClient):
         self.case_3.query.save()
 
         self.url = reverse("queues:queues")
-        self.all_cases_system_queue_url = reverse(
-            "queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID}
-        )
-        self.open_cases_system_queue_url = reverse(
-            "queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID}
-        )
-        self.my_team_queues_cases_system_queue_url = reverse(
-            "queues:queue", kwargs={"pk": MY_TEAMS_QUEUES_CASES_ID}
-        )
+        self.all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID})
+        self.open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
+        self.my_team_queues_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": MY_TEAMS_QUEUES_CASES_ID})
 
     def test_get_all_case_assignments(self):
         """
@@ -47,9 +41,7 @@ class RetrieveAllCases(DataTestClient):
         case_assignment = CaseAssignment(queue=self.queue2, case=self.case_2)
         case_assignment.save()
 
-        url = reverse(
-            "queues:case_assignments", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID}
-        )
+        url = reverse("queues:case_assignments", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -111,9 +103,7 @@ class RetrieveAllCases(DataTestClient):
         self.case_3.queues.set([self.queue2.id])
         self.case_4.queues.set([self.queue3.id])
 
-        response = self.client.get(
-            self.my_team_queues_cases_system_queue_url, **self.gov_headers
-        )
+        response = self.client.get(self.my_team_queues_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()["queue"]
 
         self.assertEqual(response_data["cases_count"], 3)

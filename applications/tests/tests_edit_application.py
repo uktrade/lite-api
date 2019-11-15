@@ -74,7 +74,6 @@ class EditApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            application.reference_number_on_information_form,
-            data["reference_number_on_information_form"],
+            application.reference_number_on_information_form, data["reference_number_on_information_form"],
         )
         self.assertNotEqual(application.last_modified_at, original_last_modified_at)

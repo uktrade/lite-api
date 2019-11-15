@@ -29,9 +29,7 @@ class RolesViews(APIView):
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create a role
@@ -43,13 +41,9 @@ class RolesViews(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"role": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoleDetail(APIView):
@@ -68,17 +62,14 @@ class RoleDetail(APIView):
 
         return JsonResponse(data={"role": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         update a role
         """
         if pk == Roles.SUPER_USER_ROLE_ID:
             return JsonResponse(
-                data={"errors": "You cannot edit the super user role"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
@@ -90,13 +81,9 @@ class RoleDetail(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"role": serializer.data}, status=status.HTTP_200_OK
-            )
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_200_OK)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionsView(APIView):

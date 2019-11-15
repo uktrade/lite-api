@@ -28,9 +28,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         self.serializer = kwargs.pop("serializer", None)
 
         if not self.serializer:
-            raise Exception(
-                "PrimaryKeyRelatedSerializerField must define a 'serializer' attribute."
-            )
+            raise Exception("PrimaryKeyRelatedSerializerField must define a 'serializer' attribute.")
 
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
@@ -90,11 +88,7 @@ class KeyValueChoiceField(Field):
         """
         Helper method for use with templates rendering select widgets.
         """
-        return iter_options(
-            self.grouped_choices,
-            cutoff=self.html_cutoff,
-            cutoff_text=self.html_cutoff_text,
-        )
+        return iter_options(self.grouped_choices, cutoff=self.html_cutoff, cutoff_text=self.html_cutoff_text,)
 
     def _get_choices(self):
         return self._choices
@@ -106,9 +100,7 @@ class KeyValueChoiceField(Field):
         # Map the string representation of choices to the underlying value.
         # Allows us to deal with eg. integer choices while supporting either
         # integer or string input, but still get the correct datatype out.
-        self.choice_strings_to_values = {
-            six.text_type(key): key for key in self.choices
-        }
+        self.choice_strings_to_values = {six.text_type(key): key for key in self.choices}
 
     choices = property(_get_choices, _set_choices)
 

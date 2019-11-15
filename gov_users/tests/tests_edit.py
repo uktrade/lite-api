@@ -33,9 +33,7 @@ class GovUserEditTests(DataTestClient):
         self.gov_user.save()
 
         # create a second user to adopt the super user role as it will overwrite the save during the edit of the first user
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
-        )
+        valid_user = GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team)
         valid_user.save()
 
         role = Role(name="some role")
