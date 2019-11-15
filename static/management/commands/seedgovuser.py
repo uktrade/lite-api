@@ -27,6 +27,7 @@ class Command(SeedCommand):
         role = Role.objects.get(id=SUPER_USER_ROLE_ID)
         role.permissions.set([
             Permissions.MANAGE_FINAL_ADVICE,
+            Permissions.CONFIRM_OWN_ADVICE,
             Permissions.MANAGE_TEAM_ADVICE,
             Permissions.REVIEW_GOODS,
             Permissions.ADMINISTER_ROLES
