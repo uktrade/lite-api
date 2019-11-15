@@ -6,7 +6,6 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.enums import CaseType
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -18,7 +17,6 @@ from queries.end_user_advisories.libraries.get_end_user_advisory import (
     get_end_user_advisory_by_pk,
 )
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.helpers import check_status_is_applicable_for_a_case_type
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
@@ -96,18 +94,19 @@ class EndUserAdvisoryDetail(APIView):
                     request.user, Permissions.MANAGE_FINAL_ADVICE
                 )
 
-            new_status = get_case_status_by_status(data.get("status"))
-            if not check_status_is_applicable_for_a_case_type(
-                status=new_status, case_type=CaseType.END_USER_ADVISORY_QUERY
-            ):
-                return JsonResponse(
-                    data={
-                        "errors": [
-                            "Given status is invalid for end user advisory queries"
-                        ]
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # TODO: Add back in once statuses are corrected
+            # new_status = get_case_status_by_status(data.get("status"))
+            # if not check_status_is_applicable_for_a_case_type(
+            #     status=new_status, case_type=CaseType.END_USER_ADVISORY_QUERY
+            # ):
+            #     return JsonResponse(
+            #         data={
+            #             "errors": [
+            #                 "Given status is invalid for end user advisory queries"
+            #             ]
+            #         },
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 

@@ -41,7 +41,6 @@ from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from organisations.enums import OrganisationType
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.helpers import check_status_is_applicable_for_a_case_type
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
 
@@ -279,13 +278,14 @@ class ApplicationManageStatus(APIView):
         new_status = get_case_status_by_status(new_status_enum)
 
         # Validate that the status change is allowed
-        if not check_status_is_applicable_for_a_case_type(
-            status=new_status, case_type=CaseType.APPLICATION
-        ):
-            return JsonResponse(
-                data={"errors": ["Given status is invalid for applications"]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # TODO: Add back in once statuses are corrected
+        # if not check_status_is_applicable_for_a_case_type(
+        #     status=new_status, case_type=CaseType.APPLICATION
+        # ):
+        #     return JsonResponse(
+        #         data={"errors": ["Given status is invalid for applications"]},
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
 
         request.data["status"] = str(new_status.pk)
 
