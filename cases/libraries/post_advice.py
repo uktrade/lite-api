@@ -11,11 +11,15 @@ from flags.models import Flag
 
 
 def check_if_user_own_advice_exists(case, user):
-    if Permissions.CONFIRM_OWN_ADVICE not in user.role.permissions.values_list(
-        "id", flat=True
-    ) and Advice.objects.filter(case=case, user=user).exists():
+    if (
+        Permissions.CONFIRM_OWN_ADVICE
+        not in user.role.permissions.values_list("id", flat=True)
+        and Advice.objects.filter(case=case, user=user).exists()
+    ):
         return JsonResponse(
-            {"errors": "You do not have permission to confirm your own user-level advice"},
+            {
+                "errors": "You do not have permission to confirm your own user-level advice"
+            },
             status=status.HTTP_403_FORBIDDEN,
         )
 
@@ -23,20 +27,28 @@ def check_if_user_own_advice_exists(case, user):
 def check_if_final_advice_exists(case):
     if FinalAdvice.objects.filter(case=case):
         return JsonResponse(
-            {"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST,
+            {"errors": "Final advice already exists for this case"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
 def check_if_team_advice_exists(case, user):
     if TeamAdvice.objects.filter(case=case, team=user.team):
         return JsonResponse(
-            {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST,
+            {"errors": "Team advice from your team already exists for this case"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
 def check_refusal_errors(advice):
     if advice["type"].lower() == "refuse" and not advice["text"]:
-        return {"text": [ErrorDetail(string=get_string("cases.advice_refusal_error"), code="blank")]}
+        return {
+            "text": [
+                ErrorDetail(
+                    string=get_string("cases.advice_refusal_error"), code="blank"
+                )
+            ]
+        }
     return None
 
 
