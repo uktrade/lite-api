@@ -15,9 +15,8 @@ class Command(SeedCommand):
     seed_command = "seedcountries"
 
     def operation(self, *args, **options):
-        reader = self.read_csv(FILE)
-        for row in reader:
-            Country.objects.get_or_create(id=row[1], name=row[0], type=row[2])
+        csv = self.read_csv(FILE)
+        self.update_or_create(Country, csv)
 
 
 class SeedCountriesTests(SeedCommandTest):
