@@ -6,16 +6,10 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0008_auto_20191101_0900'),
+        ("applications", "0008_auto_20191101_0900"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='openapplication',
-            name='have_you_been_informed',
-        ),
-        migrations.RemoveField(
-            model_name='openapplication',
-            name='reference_number_on_information_form',
-        ),
+        migrations.RemoveField(model_name="openapplication", name="have_you_been_informed",),
+        migrations.RemoveField(model_name="openapplication", name="reference_number_on_information_form",),
     ]

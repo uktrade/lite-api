@@ -4,8 +4,10 @@ values = []
 
 
 def get_string(value):
-    warnings.warn('get_string is deprecated. Reference constants from strings directly like strings.CONSTANT_HERE',
-                  DeprecationWarning)
+    warnings.warn(
+        "get_string is deprecated. Reference constants from strings directly like strings.CONSTANT_HERE",
+        DeprecationWarning,
+    )
 
     def get(d, keys):
         if "." in keys:

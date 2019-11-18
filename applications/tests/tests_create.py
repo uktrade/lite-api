@@ -37,9 +37,9 @@ class DraftTests(DataTestClient):
         Ensure we can create a new open application draft object
         """
         data = {
-            'name': 'Test',
-            'application_type': ApplicationType.OPEN_LICENCE,
-            'export_type': ApplicationExportType.TEMPORARY
+            "name": "Test",
+            "application_type": ApplicationType.OPEN_LICENCE,
+            "export_type": ApplicationExportType.TEMPORARY,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

@@ -27,12 +27,12 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
     class Meta:
         model = OpenApplication
         fields = GenericApplicationListSerializer.Meta.fields + (
-            'destinations',
-            'goods_types',
-            'goods_locations',
-            'activity',
-            'usage',
-            'additional_documents',
+            "destinations",
+            "goods_types",
+            "goods_locations",
+            "activity",
+            "usage",
+            "additional_documents",
         )
 
     def get_additional_documents(self, instance):
@@ -73,20 +73,22 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     class Meta:
         model = OpenApplication
         fields = (
-            'id',
-            'name',
-            'application_type',
-            'export_type',
-            'organisation',
+            "id",
+            "name",
+            "application_type",
+            "export_type",
+            "organisation",
         )
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    name = CharField(max_length=100,
-                     required=True,
-                     allow_blank=False,
-                     allow_null=False,
-                     error_messages={'blank': get_string('goods.error_messages.ref_name')})
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+    )
 
     class Meta:
         model = OpenApplication
