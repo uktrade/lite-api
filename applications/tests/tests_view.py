@@ -29,12 +29,9 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
         self.assertEqual(
-            response_data[0]["application_type"]["key"],
-            standard_application.application_type,
+            response_data[0]["application_type"]["key"], standard_application.application_type,
         )
-        self.assertEqual(
-            response_data[0]["export_type"]["key"], standard_application.export_type
-        )
+        self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
         self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["last_modified_at"])
         self.assertIsNone(response_data[0]["submitted_at"])
@@ -62,12 +59,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(
-            response_data[0]["application_type"]["key"], hmrc_query.application_type
-        )
-        self.assertEqual(
-            response_data[0]["organisation"]["name"], hmrc_query.organisation.name
-        )
+        self.assertEqual(response_data[0]["application_type"]["key"], hmrc_query.application_type)
+        self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]["export_type"])
         self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["last_modified_at"])
@@ -77,9 +70,7 @@ class DraftTests(DataTestClient):
     def test_view_draft_standard_application_as_exporter_success(self):
         standard_application = self.create_standard_application(self.organisation)
 
-        url = reverse(
-            "applications:application", kwargs={"pk": standard_application.id}
-        )
+        url = reverse("applications:application", kwargs={"pk": standard_application.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -88,34 +79,26 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], standard_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"],
-            standard_application.application_type,
+            retrieved_application["application_type"]["key"], standard_application.application_type,
         )
         self.assertEqual(
-            retrieved_application["export_type"]["key"],
-            standard_application.export_type,
+            retrieved_application["export_type"]["key"], standard_application.export_type,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["last_modified_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertIsNone(retrieved_application["status"])
         self.assertEquals(
-            GoodOnApplication.objects.filter(
-                application__id=standard_application.id
-            ).count(),
-            1,
+            GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
         self.assertEqual(
-            retrieved_application["end_user"]["id"],
-            str(standard_application.end_user.id),
+            retrieved_application["end_user"]["id"], str(standard_application.end_user.id),
         )
         self.assertEqual(
-            retrieved_application["consignee"]["id"],
-            str(standard_application.consignee.id),
+            retrieved_application["consignee"]["id"], str(standard_application.consignee.id),
         )
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"],
-            str(standard_application.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().id),
         )
 
     def test_view_draft_open_application_as_exporter_success(self):
@@ -130,30 +113,19 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], open_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"],
-            open_application.application_type,
+            retrieved_application["application_type"]["key"], open_application.application_type,
         )
-        self.assertEqual(
-            retrieved_application["export_type"]["key"], open_application.export_type
-        )
+        self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["last_modified_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertIsNone(retrieved_application["status"])
-        self.assertEqual(
-            GoodsType.objects.filter(application__id=open_application.id).count(), 2
-        )
+        self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
         self.assertIsNotNone(
-            CountryOnApplication.objects.filter(
-                application__id=open_application.id
-            ).count(),
-            1,
+            CountryOnApplication.objects.filter(application__id=open_application.id).count(), 1,
         )
         self.assertEqual(
-            SiteOnApplication.objects.filter(
-                application__id=open_application.id
-            ).count(),
-            1,
+            SiteOnApplication.objects.filter(application__id=open_application.id).count(), 1,
         )
 
     def test_view_draft_hmrc_query_as_hmrc_exporter_success(self):
@@ -168,39 +140,27 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], hmrc_query.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"],
-            hmrc_query.application_type,
+            retrieved_application["application_type"]["key"], hmrc_query.application_type,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["last_modified_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertIsNone(retrieved_application["status"])
+        self.assertEqual(retrieved_application["organisation"]["id"], str(hmrc_query.organisation.id))
         self.assertEqual(
-            retrieved_application["organisation"]["id"], str(hmrc_query.organisation.id)
-        )
-        self.assertEqual(
-            retrieved_application["hmrc_organisation"]["id"],
-            str(hmrc_query.hmrc_organisation.id),
+            retrieved_application["hmrc_organisation"]["id"], str(hmrc_query.hmrc_organisation.id),
         )
         self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
+        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.id))
+        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.id))
         self.assertEqual(
-            retrieved_application["end_user"]["id"], str(hmrc_query.end_user.id)
-        )
-        self.assertEqual(
-            retrieved_application["consignee"]["id"], str(hmrc_query.consignee.id)
-        )
-        self.assertEqual(
-            retrieved_application["third_parties"][0]["id"],
-            str(hmrc_query.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(hmrc_query.third_parties.get().id),
         )
 
     def test_view_nonexisting_draft_failure(self):
         invalid_id = UUID("90D6C724-0339-425A-99D2-9D2B8E864EC6")
 
-        url = (
-            reverse("applications:application", kwargs={"pk": invalid_id})
-            + "?submitted=false"
-        )
+        url = reverse("applications:application", kwargs={"pk": invalid_id}) + "?submitted=false"
         response = self.client.get(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -219,10 +179,7 @@ class DraftTests(DataTestClient):
         organisation_2, _ = self.create_organisation_with_exporter_user()
         draft = self.create_standard_application(organisation_2)
 
-        url = (
-            reverse("applications:application", kwargs={"pk": draft.id})
-            + "?submitted=false"
-        )
+        url = reverse("applications:application", kwargs={"pk": draft.id}) + "?submitted=false"
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

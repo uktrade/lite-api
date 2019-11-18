@@ -14,11 +14,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "-f",
-            type=bool,
-            nargs="?",
-            default=False,
-            help="Flag for forcefully dropping tables.",
+            "-f", type=bool, nargs="?", default=False, help="Flag for forcefully dropping tables.",
         )
 
     def handle(self, *args, **options):
@@ -35,11 +31,5 @@ class Command(BaseCommand):
             for app in apps.get_app_configs():
                 if app.get_models():
                     app_name_index = app.name.rfind(".")
-                    app_name = (
-                        app.name[app_name_index + 1 :]
-                        if app_name_index > -1
-                        else app.name
-                    )
-                    execute_bash_command(
-                        "./manage.py migrate " + app_name.lower() + " zero", shell=True
-                    )
+                    app_name = app.name[app_name_index + 1 :] if app_name_index > -1 else app.name
+                    execute_bash_command("./manage.py migrate " + app_name.lower() + " zero", shell=True)

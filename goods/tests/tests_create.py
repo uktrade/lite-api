@@ -12,36 +12,13 @@ class GoodsCreateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (
-                "Widget",
-                GoodControlled.YES,
-                "ML1a",
-                True,
-                "1337",
-            ),  # Create a new good successfully
-            (
-                "Widget",
-                GoodControlled.NO,
-                None,
-                True,
-                "1337",
-            ),  # Control List Entry shouldn't be set
-            (
-                "Test Unsure Good Name",
-                GoodControlled.UNSURE,
-                None,
-                True,
-                "1337",
-            ),  # CLC query
+            ("Widget", GoodControlled.YES, "ML1a", True, "1337",),  # Create a new good successfully
+            ("Widget", GoodControlled.NO, None, True, "1337",),  # Control List Entry shouldn't be set
+            ("Test Unsure Good Name", GoodControlled.UNSURE, None, True, "1337",),  # CLC query
         ]
     )
     def test_create_good(
-        self,
-        description,
-        is_good_controlled,
-        control_code,
-        is_good_end_product,
-        part_number,
+        self, description, is_good_controlled, control_code, is_good_end_product, part_number,
     ):
         data = {
             "description": description,
@@ -63,29 +40,12 @@ class GoodsCreateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (
-                "Widget",
-                GoodControlled.YES,
-                "",
-                True,
-                "1337",
-            ),  # Controlled but is missing control list entry
-            (
-                "Widget",
-                GoodControlled.YES,
-                "invalid",
-                True,
-                "1337",
-            ),  # Controlled but has invalid control list entry
+            ("Widget", GoodControlled.YES, "", True, "1337",),  # Controlled but is missing control list entry
+            ("Widget", GoodControlled.YES, "invalid", True, "1337",),  # Controlled but has invalid control list entry
         ]
     )
     def test_create_good_failure(
-        self,
-        description,
-        is_good_controlled,
-        control_code,
-        is_good_end_product,
-        part_number,
+        self, description, is_good_controlled, control_code, is_good_end_product, part_number,
     ):
         data = {
             "description": description,
@@ -110,13 +70,7 @@ class GoodsCreateTests(DataTestClient):
         ]
     )
     def test_create_validate_only(
-        self,
-        description,
-        is_good_controlled,
-        control_code,
-        is_good_end_product,
-        part_number,
-        validate_only,
+        self, description, is_good_controlled, control_code, is_good_end_product, part_number, validate_only,
     ):
         data = {
             "description": description,

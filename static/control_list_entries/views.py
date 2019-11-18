@@ -22,16 +22,14 @@ class ControlListEntriesList(APIView):
             return JsonResponse(
                 data={
                     "control_list_entries": list(
-                        ControlListEntry.objects.filter(
-                            is_decontrolled=False, rating__isnull=False
-                        ).values("rating", "text")
+                        ControlListEntry.objects.filter(is_decontrolled=False, rating__isnull=False).values(
+                            "rating", "text"
+                        )
                     )
                 }
             )
 
-        serializer = ControlListEntrySerializer(
-            ControlListEntry.objects.filter(parent=None), many=True
-        )
+        serializer = ControlListEntrySerializer(ControlListEntry.objects.filter(parent=None), many=True)
         return JsonResponse(data={"control_list_entries": serializer.data})
 
 

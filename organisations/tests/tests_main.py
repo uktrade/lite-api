@@ -31,11 +31,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {
-                "first_name": "Trinity",
-                "last_name": "Fishburne",
-                "email": "trinity@bsg.com",
-            },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -57,18 +53,12 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
 
         self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(
-            site.address.address_line_1, data["site"]["address"]["address_line_1"]
-        )
-        self.assertEqual(
-            site.address.address_line_2, data["site"]["address"]["address_line_2"]
-        )
+        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(
-            str(site.address.country.id), data["site"]["address"]["country"]
-        )
+        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -89,12 +79,7 @@ class OrganisationCreateTests(DataTestClient):
                     "city": None,
                 },
             },
-            "user": {
-                "first_name": None,
-                "last_name": None,
-                "email": None,
-                "password": None,
-            },
+            "user": {"first_name": None, "last_name": None, "email": None, "password": None,},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -109,9 +94,7 @@ class OrganisationCreateTests(DataTestClient):
             ["", "1234", "1234", "1234"],
         ]
     )
-    def test_create_organisation_missing_fields_failure(
-        self, eori_number, vat_number, sic_number, registration_number
-    ):
+    def test_create_organisation_missing_fields_failure(self, eori_number, vat_number, sic_number, registration_number):
         data = {
             "name": "Lemonworld Co",
             "type": "commercial",
@@ -130,11 +113,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {
-                "first_name": "Trinity",
-                "last_name": "Fishburne",
-                "email": "trinity@bsg.com",
-            },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -160,26 +139,19 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {
-                "first_name": "Trinity",
-                "last_name": "Fishburne",
-                "email": "trinity@bsg.com",
-            },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        organisation = Organisation.objects.get(
-            name=data["user"]["first_name"] + " " + data["user"]["last_name"]
-        )
+        organisation = Organisation.objects.get(name=data["user"]["first_name"] + " " + data["user"]["last_name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(
-            organisation.name,
-            data["user"]["first_name"] + " " + data["user"]["last_name"],
+            organisation.name, data["user"]["first_name"] + " " + data["user"]["last_name"],
         )
         self.assertEqual(organisation.eori_number, data["eori_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
@@ -189,18 +161,12 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
 
         self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(
-            site.address.address_line_1, data["site"]["address"]["address_line_1"]
-        )
-        self.assertEqual(
-            site.address.address_line_2, data["site"]["address"]["address_line_2"]
-        )
+        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(
-            str(site.address.country.id), data["site"]["address"]["country"]
-        )
+        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
 
     def test_create_hmrc_organisation(self):
         data = {
@@ -217,17 +183,11 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {
-                "first_name": "Trinity",
-                "last_name": "Fishburne",
-                "email": "trinity@bsg.com",
-            },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        organisation = Organisation.objects.get(
-            id=response.json()["organisation"]["id"]
-        )
+        organisation = Organisation.objects.get(id=response.json()["organisation"]["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
@@ -240,18 +200,12 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
 
         self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(
-            site.address.address_line_1, data["site"]["address"]["address_line_1"]
-        )
-        self.assertEqual(
-            site.address.address_line_2, data["site"]["address"]["address_line_2"]
-        )
+        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(
-            str(site.address.country.id), data["site"]["address"]["country"]
-        )
+        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
 
     @parameterized.expand(
         [
@@ -268,9 +222,7 @@ class OrganisationCreateTests(DataTestClient):
             ["9876", ["individual"], 1],  # CRN as search term
         ]
     )
-    def test_list_filter_organisations_by_name_and_type(
-        self, name, org_types, expected_result
-    ):
+    def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
         self.create_organisation_with_exporter_user("Individual", org_type="individual")
         self.create_organisation_with_exporter_user("Commercial", org_type="commercial")
         self.create_organisation_with_exporter_user("HMRC", org_type="hmrc")
@@ -279,8 +231,6 @@ class OrganisationCreateTests(DataTestClient):
         for org_type in org_types:
             org_types_param += "&org_type=" + org_type
 
-        response = self.client.get(
-            self.url + "?search_term=" + name + org_types_param, **self.gov_headers
-        )
+        response = self.client.get(self.url + "?search_term=" + name + org_types_param, **self.gov_headers)
 
         self.assertEqual(len(response.json()["results"]), expected_result)

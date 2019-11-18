@@ -19,12 +19,8 @@ class CreateCaseAdviceTests(DataTestClient):
         self.submit_application(self.open_application)
         self.open_case = self.open_application.case.get()
 
-        self.standard_case_url = reverse(
-            "cases:case_advice", kwargs={"pk": self.standard_case.id}
-        )
-        self.open_case_url = reverse(
-            "cases:case_advice", kwargs={"pk": self.open_case.id}
-        )
+        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
+        self.open_case_url = reverse("cases:case_advice", kwargs={"pk": self.open_case.id})
 
     @parameterized.expand(
         [
@@ -53,9 +49,7 @@ class CreateCaseAdviceTests(DataTestClient):
         if advice_type == AdviceType.REFUSE:
             data["denial_reasons"] = ["1a", "1b", "1c"]
 
-        response = self.client.post(
-            self.standard_case_url, **self.gov_headers, data=[data]
-        )
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
         response_data = response.json()["advice"][0]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -80,13 +74,9 @@ class CreateCaseAdviceTests(DataTestClient):
             self.assertTrue("denial_reasons" not in response_data)
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
+            self.assertCountEqual(data["denial_reasons"], response_data["denial_reasons"])
             self.assertCountEqual(
-                data["denial_reasons"], response_data["denial_reasons"]
-            )
-            self.assertCountEqual(
-                convert_queryset_to_str(
-                    advice_object.denial_reasons.values_list("id", flat=True)
-                ),
+                convert_queryset_to_str(advice_object.denial_reasons.values_list("id", flat=True)),
                 data["denial_reasons"],
             )
 
@@ -100,9 +90,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "type": AdviceType.APPROVE,
         }
 
-        response = self.client.post(
-            self.standard_case_url, **self.gov_headers, data=[data]
-        )
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_create_advice_for_two_items(self):
@@ -117,8 +105,6 @@ class CreateCaseAdviceTests(DataTestClient):
             "good": str(self.standard_application.goods.first().id),
         }
 
-        response = self.client.post(
-            self.standard_case_url, **self.gov_headers, data=[data]
-        )
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Advice.objects.count(), 0)

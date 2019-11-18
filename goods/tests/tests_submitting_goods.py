@@ -75,9 +75,7 @@ class GoodTests(DataTestClient):
         draft_two = self.create_standard_application(self.organisation)
 
         good = Good.objects.get()
-        GoodOnApplication(
-            good=good, application=draft_two, quantity=10, unit=Units.NAR, value=500
-        ).save()
+        GoodOnApplication(good=good, application=draft_two, quantity=10, unit=Units.NAR, value=500).save()
 
         self.assertEqual(Good.objects.all().count(), 1)
         self.assertEqual(GoodOnApplication.objects.count(), 2)

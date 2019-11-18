@@ -19,15 +19,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Organisation",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(blank=True, default=None)),
                 ("eori_number", models.TextField(blank=True, default=None)),
                 ("sic_number", models.TextField(blank=True, default=None)),
@@ -40,22 +32,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Site",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(default=None)),
                 (
                     "address",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="site",
-                        to="addresses.Address",
+                        on_delete=django.db.models.deletion.CASCADE, related_name="site", to="addresses.Address",
                     ),
                 ),
                 (
@@ -85,24 +67,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ExternalLocation",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(default=None)),
                 ("address", models.TextField(default=None)),
-                (
-                    "country",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="countries.Country",
-                    ),
-                ),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country",),),
                 (
                     "organisation",
                     models.ForeignKey(

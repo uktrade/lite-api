@@ -50,10 +50,7 @@ def virus_scan_document(document_pk: str):
 def _process_document(document_pk: str):
     """Virus scans an uploaded document."""
     if not settings.AV_SERVICE_URL:
-        raise VirusScanException(
-            f"Cannot scan document with ID {document_pk}; AV service URL not"
-            f"configured"
-        )
+        raise VirusScanException(f"Cannot scan document with ID {document_pk}; AV service URL not" f"configured")
 
     doc = Document.objects.get(pk=document_pk)
     if doc.virus_scanned_at is not None:
@@ -61,9 +58,7 @@ def _process_document(document_pk: str):
         logging.warning(warn_msg)
         return
 
-    is_file_clean = _scan_s3_object(
-        doc.name, settings.AWS_STORAGE_BUCKET_NAME, doc.s3_key
-    )
+    is_file_clean = _scan_s3_object(doc.name, settings.AWS_STORAGE_BUCKET_NAME, doc.s3_key)
     if is_file_clean is not None:
         doc.virus_scanned_at = now()
         doc.safe = is_file_clean
@@ -75,9 +70,7 @@ def _scan_s3_object(original_filename, bucket, key):
     _client = s3_client()
     response = _client.get_object(Bucket=bucket, Key=key)
     with closing(response["Body"]):
-        return _scan_raw_file(
-            original_filename, S3StreamingBodyWrapper(response), response["ContentType"]
-        )
+        return _scan_raw_file(original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
 
 
 def _scan_raw_file(filename, file_object, content_type):

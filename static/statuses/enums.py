@@ -51,7 +51,4 @@ class CaseStatusEnum:
 
     @classmethod
     def as_list(cls):
-        return [
-            {"status": choice[0], "priority": cls.priority[choice[0]]}
-            for choice in cls.choices
-        ]
+        return [{"status": choice[0], "priority": cls.priority[choice[0]]} for choice in cls.choices]

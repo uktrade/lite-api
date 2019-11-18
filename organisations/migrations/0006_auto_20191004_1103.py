@@ -14,11 +14,7 @@ class Migration(migrations.Migration):
             model_name="organisation",
             name="type",
             field=models.CharField(
-                choices=[
-                    ("hmrc", "HMRC"),
-                    ("commercial", "Commercial Organisation"),
-                    ("individual", "Individual"),
-                ],
+                choices=[("hmrc", "HMRC"), ("commercial", "Commercial Organisation"), ("individual", "Individual"),],
                 default="commercial",
                 max_length=20,
             ),

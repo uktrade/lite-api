@@ -8,20 +8,11 @@ from test_helpers.clients import DataTestClient
 class TriageStageTests(DataTestClient):
     def test_get_triage_stage(self):
         parent_rating = ControlListEntry.create("ML1b", "Parent rating", None, False)
-        child_1 = ControlListEntry.create(
-            rating="ML1c", text="Child 1", parent=parent_rating, is_decontrolled=False
-        )
-        ControlListEntry.create(
-            rating="ML1d", text="Child 2", parent=parent_rating, is_decontrolled=False
-        )
-        ControlListEntry.create(
-            rating="ML1d1", text="Child 2-1", parent=child_1, is_decontrolled=False
-        )
+        child_1 = ControlListEntry.create(rating="ML1c", text="Child 1", parent=parent_rating, is_decontrolled=False)
+        ControlListEntry.create(rating="ML1d", text="Child 2", parent=parent_rating, is_decontrolled=False)
+        ControlListEntry.create(rating="ML1d1", text="Child 2-1", parent=child_1, is_decontrolled=False)
 
-        url = reverse(
-            "static:control_list_entries:control_list_entry",
-            kwargs={"rating": parent_rating.rating},
-        )
+        url = reverse("static:control_list_entries:control_list_entry", kwargs={"rating": parent_rating.rating},)
 
         response = self.client.get(url)
         response_data = response.json()["control_list_entry"]

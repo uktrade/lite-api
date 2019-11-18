@@ -14,8 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="goodstype",
             name="countries",
-            field=models.ManyToManyField(
-                default=[], related_name="goods_type", to="countries.Country"
-            ),
+            field=models.ManyToManyField(default=[], related_name="goods_type", to="countries.Country"),
         ),
     ]

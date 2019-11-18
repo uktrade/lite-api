@@ -10,26 +10,17 @@ from teams.serializers import TeamSerializer
 
 
 class FlagSerializer(serializers.ModelSerializer):
-    team = PrimaryKeyRelatedSerializerField(
-        queryset=Team.objects.all(), serializer=TeamSerializer
-    )
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices,
-        error_messages={
-            "invalid_choice": get_string("flags.error_messages.blank_level")
-        },
+        choices=FlagLevels.choices, error_messages={"invalid_choice": get_string("flags.error_messages.blank_level")},
     )
-    status = serializers.ChoiceField(
-        choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE
-    )
+    status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
         max_length=20,
         trim_whitespace=True,
         validators=[
             UniqueValidator(
-                queryset=Flag.objects.all(),
-                lookup="iexact",
-                message=get_string("flags.error_messages.non_unique"),
+                queryset=Flag.objects.all(), lookup="iexact", message=get_string("flags.error_messages.non_unique"),
             )
         ],
         error_messages={"blank": get_string("flags.error_messages.blank_name")},
@@ -59,14 +50,8 @@ class FlagAssignmentSerializer(serializers.Serializer):
 
     def validate_flags(self, flags):
         team_good_level_flags = list(
-            Flag.objects.filter(
-                level=self.context["level"],
-                team=self.context["team"],
-                status=FlagStatuses.ACTIVE,
-            )
+            Flag.objects.filter(level=self.context["level"], team=self.context["team"], status=FlagStatuses.ACTIVE,)
         )
         if not set(flags).issubset(list(team_good_level_flags)):
-            raise serializers.ValidationError(
-                "You can only assign case-level flags that are available to your team."
-            )
+            raise serializers.ValidationError("You can only assign case-level flags that are available to your team.")
         return flags

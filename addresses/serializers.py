@@ -12,12 +12,8 @@ class AddressSerializer(serializers.ModelSerializer):
     Used for serializing addresses
     """
 
-    address_line_1 = serializers.CharField(
-        error_messages={"blank": "Enter a real building and street name"}
-    )
-    postcode = serializers.CharField(
-        max_length=10, error_messages={"blank": "Enter a real postcode"}
-    )
+    address_line_1 = serializers.CharField(error_messages={"blank": "Enter a real building and street name"})
+    postcode = serializers.CharField(max_length=10, error_messages={"blank": "Enter a real postcode"})
     city = serializers.CharField(error_messages={"blank": "Enter a real city"})
     region = serializers.CharField(error_messages={"blank": "Enter a real region"})
     country = PrimaryKeyRelatedSerializerField(

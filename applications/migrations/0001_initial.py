@@ -22,15 +22,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="BaseApplication",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(blank=True, default=None, null=True)),
                 ("activity", models.TextField(blank=True, default=None, null=True)),
                 ("usage", models.TextField(blank=True, default=None, null=True)),
@@ -40,10 +32,7 @@ class Migration(migrations.Migration):
                 (
                     "licence_type",
                     models.CharField(
-                        choices=[
-                            ("standard_licence", "Standard Licence"),
-                            ("open_licence", "Open Licence"),
-                        ],
+                        choices=[("standard_licence", "Standard Licence"), ("open_licence", "Open Licence"),],
                         default=None,
                         max_length=50,
                     ),
@@ -51,25 +40,13 @@ class Migration(migrations.Migration):
                 (
                     "export_type",
                     models.CharField(
-                        choices=[
-                            ("permanent", "Permanent"),
-                            ("temporary", "Temporary"),
-                        ],
-                        default=None,
-                        max_length=50,
+                        choices=[("permanent", "Permanent"), ("temporary", "Temporary"),], default=None, max_length=50,
                     ),
                 ),
-                (
-                    "reference_number_on_information_form",
-                    models.TextField(blank=True, null=True),
-                ),
+                ("reference_number_on_information_form", models.TextField(blank=True, null=True),),
                 (
                     "have_you_been_informed",
-                    models.CharField(
-                        choices=[("yes", "Yes"), ("no", "No")],
-                        default=None,
-                        max_length=50,
-                    ),
+                    models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50,),
                 ),
                 (
                     "organisation",
@@ -112,15 +89,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="SiteOnApplication",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 (
                     "application",
                     models.ForeignKey(
@@ -142,15 +111,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ExternalLocationOnApplication",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 (
                     "application",
                     models.ForeignKey(
@@ -172,21 +133,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ApplicationDenialReason",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "reason_details",
-                    models.TextField(
-                        blank=True, default=None, max_length=2200, null=True
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("reason_details", models.TextField(blank=True, default=None, max_length=2200, null=True),),
                 (
                     "application",
                     models.ForeignKey(
@@ -236,16 +184,12 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "third_parties",
-                    models.ManyToManyField(
-                        related_name="application_third_parties",
-                        to="parties.ThirdParty",
-                    ),
+                    models.ManyToManyField(related_name="application_third_parties", to="parties.ThirdParty",),
                 ),
                 (
                     "ultimate_end_users",
                     models.ManyToManyField(
-                        related_name="application_ultimate_end_users",
-                        to="parties.UltimateEndUser",
+                        related_name="application_ultimate_end_users", to="parties.UltimateEndUser",
                     ),
                 ),
             ],
@@ -254,15 +198,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="GoodOnApplication",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("quantity", models.FloatField(blank=True, default=None, null=True)),
                 (
                     "unit",
@@ -302,15 +238,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CountryOnApplication",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 (
                     "country",
                     models.ForeignKey(

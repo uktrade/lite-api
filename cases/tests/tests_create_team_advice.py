@@ -20,20 +20,14 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         self.role = Role(name="team_level")
-        self.role.permissions.set(
-            [Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE]
-        )
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE])
         self.role.save()
 
         self.gov_user.role = self.role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(
-            email="user@email.com", team=self.team, role=self.role
-        )
-        self.gov_user_3 = GovUser(
-            email="users@email.com", team=self.team, role=self.role
-        )
+        self.gov_user_2 = GovUser(email="user@email.com", team=self.team, role=self.role)
+        self.gov_user_3 = GovUser(email="users@email.com", team=self.team, role=self.role)
         self.gov_user_2.save()
         self.gov_user_3.save()
 
@@ -41,36 +35,20 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.submit_application(self.open_application)
         self.open_case = Case.objects.get(application=self.open_application)
 
-        self.standard_case_url = reverse(
-            "cases:case_team_advice", kwargs={"pk": self.standard_case.id}
-        )
-        self.open_case_url = reverse(
-            "cases:case_team_advice", kwargs={"pk": self.open_case.id}
-        )
+        self.standard_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id})
+        self.open_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.open_case.id})
 
     def test_advice_is_concatenated_when_team_advice_first_created(self):
         """
         Team advice is created on first call
         """
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, Advice)
+        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, Advice)
         self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, Advice
+            self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice,
         )
         self.create_advice(
-            self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, Advice
-        )
-        self.create_advice(
-            self.gov_user,
-            self.standard_case,
-            "good",
-            AdviceType.NO_LICENCE_REQUIRED,
-            Advice,
-        )
-        self.create_advice(
-            self.gov_user_2,
-            self.standard_case,
-            "good",
-            AdviceType.NO_LICENCE_REQUIRED,
-            Advice,
+            self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice,
         )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
@@ -86,18 +64,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         The type should show conflicting if there are conflicting types in the advice on a single object
         """
         self.create_advice(
-            self.gov_user,
-            self.standard_case,
-            "good",
-            AdviceType.NO_LICENCE_REQUIRED,
-            Advice,
+            self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice,
         )
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice
-        )
-        self.create_advice(
-            self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"][0]
@@ -134,9 +104,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         if advice_type == AdviceType.REFUSE:
             data["denial_reasons"] = ["1a", "1b", "1c"]
 
-        response = self.client.post(
-            self.standard_case_url, **self.gov_headers, data=[data]
-        )
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
         response_data = response.json()["advice"][0]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -161,13 +129,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             self.assertTrue("denial_reasons" not in response_data)
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
+            self.assertCountEqual(response_data["denial_reasons"], data["denial_reasons"])
             self.assertCountEqual(
-                response_data["denial_reasons"], data["denial_reasons"]
-            )
-            self.assertCountEqual(
-                convert_queryset_to_str(
-                    advice_object.denial_reasons.values_list("id", flat=True)
-                ),
+                convert_queryset_to_str(advice_object.denial_reasons.values_list("id", flat=True)),
                 data["denial_reasons"],
             )
 
@@ -190,15 +154,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_user_can_see_already_created_team_advice_without_additional_permissions(
-        self,
-    ):
+    def test_user_can_see_already_created_team_advice_without_additional_permissions(self,):
         """
         No permissions are required to view any tier of advice
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice
-        )
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
         self.gov_user.role.permissions.set([])
         self.gov_user.save()
         response = self.client.get(self.standard_case_url, **self.gov_headers)
@@ -209,12 +169,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         Advice is visible to all users, no matter which team it belongs to
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice
-        )
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice
-        )
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice)
 
         team_2 = Team(name="2")
         team_2.save()
@@ -222,10 +178,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user.save()
 
         # Looks at the advice from the created which created it, using a user from another team
-        url = reverse(
-            "cases:view_team_advice",
-            kwargs={"pk": self.standard_case.id, "team_pk": self.team.id},
-        )
+        url = reverse("cases:view_team_advice", kwargs={"pk": self.standard_case.id, "team_pk": self.team.id},)
 
         response = self.client.get(url, **self.gov_headers)
 
@@ -237,16 +190,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         When collating advice, only the user's team's advice should be collated
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice
-        )
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         team_2 = Team(name="2")
         team_2.save()
         self.gov_user_2.team = team_2
         self.gov_user_2.save()
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -255,15 +204,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertNotEqual(response_data[0].get("type").get("key"), "conflicting")
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
 
-    def test_cannot_submit_user_level_advice_if_team_advice_exists_for_that_team_on_that_case(
-        self,
-    ):
+    def test_cannot_submit_user_level_advice_if_team_advice_exists_for_that_team_on_that_case(self,):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
 
         data = {
             "text": "I Am Easy to Find",
@@ -273,22 +218,16 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}),
-            **self.gov_headers,
-            data=[data]
+            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(
-        self,
-    ):
+    def test_can_submit_user_level_advice_if_team_advice_has_been_cleared_for_that_team_on_that_case(self,):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -300,40 +239,25 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}),
-            **self.gov_headers,
-            data=[data]
+            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(
-        self,
-    ):
+    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self,):
         """
         Audit trail is created when clearing or combining advice
         """
         self.create_advice(
-            self.gov_user,
-            self.standard_case,
-            "end_user",
-            AdviceType.NO_LICENCE_REQUIRED,
-            Advice,
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice,
         )
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice
-        )
-        self.create_advice(
-            self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         self.client.get(self.standard_case_url, **self.gov_headers)
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
-        response = self.client.get(
-            reverse("cases:activity", kwargs={"pk": self.standard_case.id}),
-            **self.gov_headers
-        )
+        response = self.client.get(reverse("cases:activity", kwargs={"pk": self.standard_case.id}), **self.gov_headers)
 
         self.assertEqual(len(response.json()["activity"]), 2)
 
@@ -342,18 +266,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
         self.create_advice(
-            self.gov_user,
-            self.standard_case,
-            "end_user",
-            AdviceType.NO_LICENCE_REQUIRED,
-            Advice,
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice,
         )
         self.create_advice(
-            self.gov_user,
-            self.standard_case,
-            "end_user",
-            AdviceType.NO_LICENCE_REQUIRED,
-            TeamAdvice,
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
         )
 
         self.client.get(self.standard_case_url, **self.gov_headers)
@@ -369,32 +285,22 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             [AdviceType.NOT_APPLICABLE],
         ]
     )
-    def test_coalesce_merges_duplicate_advice_instead_of_appending_it_simple(
-        self, advice_type
-    ):
+    def test_coalesce_merges_duplicate_advice_instead_of_appending_it_simple(self, advice_type):
         """
         Makes sure we strip out duplicates of advice on the same object
         """
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", advice_type, Advice
-        )
-        self.create_advice(
-            self.gov_user_3, self.standard_case, "good", advice_type, Advice
-        )
+        self.create_advice(self.gov_user_2, self.standard_case, "good", advice_type, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", advice_type, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
-    def test_create_team_advice_without_confirm_own_advice_permission_when_user_advice_exists_failure(
-        self,
-    ):
+    def test_create_team_advice_without_confirm_own_advice_permission_when_user_advice_exists_failure(self,):
         self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
 
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice
-        )
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         data = {
             "text": "I Am Easy to Find",
@@ -404,9 +310,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}),
-            **self.gov_headers,
-            data=[data]
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

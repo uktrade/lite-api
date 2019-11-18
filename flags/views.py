@@ -55,13 +55,9 @@ class FlagsList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"flag": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"flag": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -89,8 +85,7 @@ class FlagDetail(APIView):
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(
-                data={"errors": get_string("flags.error_messages.forbidden")},
-                status=status.HTTP_403_FORBIDDEN,
+                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
@@ -99,9 +94,7 @@ class FlagDetail(APIView):
             serializer.save()
             return JsonResponse(data={"flag": serializer.data})
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AssignFlags(APIView):
@@ -137,10 +130,7 @@ class AssignFlags(APIView):
                 )
                 response_data.append({level.lower(): serializer.data})
             else:
-                return JsonResponse(
-                    data={"errors": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
 
         return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
 
@@ -150,19 +140,11 @@ class AssignFlags(APIView):
         previously_assigned_deactivated_team_flags = obj.flags.filter(
             level=level, team=user.team, status=FlagStatuses.DEACTIVATED
         )
-        previously_assigned_not_team_flags = obj.flags.exclude(
-            level=level, team=user.team
-        )
+        previously_assigned_not_team_flags = obj.flags.exclude(level=level, team=user.team)
 
-        added_flags = [
-            flag.name for flag in flags if flag not in previously_assigned_team_flags
-        ]
+        added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
         ignored_flags = flags + [x for x in previously_assigned_deactivated_team_flags]
-        removed_flags = [
-            flag.name
-            for flag in previously_assigned_team_flags
-            if flag not in ignored_flags
-        ]
+        removed_flags = [flag.name for flag in previously_assigned_team_flags if flag not in ignored_flags]
 
         # Add activity item
 
@@ -174,34 +156,26 @@ class AssignFlags(APIView):
 
             cases.extend(
                 Case.objects.filter(
-                    query__id__in=ControlListClassificationQuery.objects.filter(
-                        good=obj
-                    ).values_list("id", flat=True)
+                    query__id__in=ControlListClassificationQuery.objects.filter(good=obj).values_list("id", flat=True)
                 )
             )
 
             cases.extend(
                 Case.objects.filter(
-                    application__id__in=GoodOnApplication.objects.filter(
-                        good=obj
-                    ).values_list("application_id", flat=True)
+                    application__id__in=GoodOnApplication.objects.filter(good=obj).values_list(
+                        "application_id", flat=True
+                    )
                 )
             )
 
             for case in cases:
-                self._set_case_activity_for_goods(
-                    added_flags, removed_flags, case, user, note, good=obj
-                )
+                self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
 
         obj.flags.set(
-            flags
-            + list(previously_assigned_not_team_flags)
-            + list(previously_assigned_deactivated_team_flags)
+            flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)
         )
 
-    def _set_case_activity(
-        self, added_flags, removed_flags, case, user, note, **kwargs
-    ):
+    def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
         # Add an activity item for the case
         if added_flags and removed_flags:
             CaseActivity.create(
@@ -234,9 +208,7 @@ class AssignFlags(APIView):
                 **kwargs
             )
 
-    def _set_case_activity_for_goods(
-        self, added_flags, removed_flags, case, user, note, good
-    ):
+    def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case
         if added_flags and removed_flags:
             CaseActivity.create(

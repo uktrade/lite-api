@@ -16,9 +16,7 @@ class CaseAssignments(views.APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(
-            pk
-        ):
+        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
             return self._get_all_case_assignments()
         else:
             return self._get_case_assignments_for_specific_queue(pk)

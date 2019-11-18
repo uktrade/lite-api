@@ -12,9 +12,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         super().setUp()
         self.open_draft = self.create_open_application(self.organisation)
 
-        self.goods_types = GoodsType.objects.filter(
-            application=self.open_draft
-        ).order_by("id")
+        self.goods_types = GoodsType.objects.filter(application=self.open_draft).order_by("id")
 
         self.goods_type_1 = self.goods_types[0]
         self.goods_type_2 = self.goods_types[1]
@@ -58,9 +56,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         response = self.client.get(self.good_url, **self.exporter_headers)
 
         returned_good = response.json()["good"]
-        self.assertEquals(
-            len(self.goods_type_1.countries.all()), len(returned_good["countries"])
-        )
+        self.assertEquals(len(self.goods_type_1.countries.all()), len(returned_good["countries"]))
 
     def test_state_can_be_over_written(self):
         """

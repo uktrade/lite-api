@@ -20,9 +20,7 @@ class Command(BaseCommand):
 
         # Named (optional) arguments
         parser.add_argument(
-            "--html",
-            help="String representing if the report generated should be in HTML format",
-            type=str,
+            "--html", help="String representing if the report generated should be in HTML format", type=str,
         )
 
         parser.add_argument(
@@ -33,19 +31,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         module_to_run_coverage_on = options["module_to_run_coverage_on"]
-        tests_to_run = (
-            options["tests_to_run"]
-            if options["tests_to_run"]
-            else module_to_run_coverage_on
-        )
+        tests_to_run = options["tests_to_run"] if options["tests_to_run"] else module_to_run_coverage_on
         self._gather_coverage(module_to_run_coverage_on, tests_to_run)
 
-        report_type = (
-            "html" if not options["html"] or options["html"] != "False" else "report"
-        )
-        threshold = (
-            options["threshold"] if options["threshold"] else self.DEFAULT_THRESHOLD
-        )
+        report_type = "html" if not options["html"] or options["html"] != "False" else "report"
+        threshold = options["threshold"] if options["threshold"] else self.DEFAULT_THRESHOLD
         self._show_report(report_type, threshold)
 
     def _gather_coverage(self, module_to_run_coverage_on, tests_to_run):
@@ -62,9 +52,7 @@ class Command(BaseCommand):
         execute_bash_command(gather_coverage_command, shell=True)
 
     def _show_report(self, report_type, threshold):
-        report_coverage_command = (
-            "pipenv run coverage " + report_type + " --fail-under=" + threshold
-        )
+        report_coverage_command = "pipenv run coverage " + report_type + " --fail-under=" + threshold
         print("\n`" + report_coverage_command + "`\n")
 
         status = execute_bash_command(report_coverage_command, shell=True)

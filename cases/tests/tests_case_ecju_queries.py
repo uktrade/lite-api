@@ -12,15 +12,11 @@ class CaseEcjuQueriesTests(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.case2 = self.create_standard_application_case(self.organisation)
-        self.no_ecju_queries_case = self.create_standard_application_case(
-            self.organisation
-        )
+        self.no_ecju_queries_case = self.create_standard_application_case(self.organisation)
 
         self.url = reverse("cases:case_ecju_queries", kwargs={"pk": self.case.id})
 
-        ecju_query = EcjuQuery(
-            question="ECJU Query 1", case=self.case, raised_by_user=self.gov_user
-        )
+        ecju_query = EcjuQuery(question="ECJU Query 1", case=self.case, raised_by_user=self.gov_user)
         ecju_query.save()
 
         self.team_2 = self.create_team("TAU")
@@ -35,9 +31,7 @@ class CaseEcjuQueriesTests(DataTestClient):
             responded_by_user=self.exporter_user,
         )
         ecju_query.save()
-        ecju_query = EcjuQuery(
-            question="ECJU Query 3", case=self.case2, raised_by_user=self.gov_user
-        )
+        ecju_query = EcjuQuery(question="ECJU Query 3", case=self.case2, raised_by_user=self.gov_user)
         ecju_query.save()
 
     def test_view_case_with_ecju_queries_as_gov_user_successful(self):
@@ -123,9 +117,7 @@ class CaseEcjuQueriesTests(DataTestClient):
         Then the request is successful and an empty list is returned
         """
         # Assemble
-        no_queries_url = reverse(
-            "cases:case_ecju_queries", kwargs={"pk": self.no_ecju_queries_case.id}
-        )
+        no_queries_url = reverse("cases:case_ecju_queries", kwargs={"pk": self.no_ecju_queries_case.id})
 
         # Act
         response = self.client.get(no_queries_url, **self.gov_headers)
@@ -205,9 +197,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         ecju_query = EcjuQuery(question="Ble", case=case, raised_by_user=self.gov_user)
         ecju_query.save()
 
-        url = reverse(
-            "cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id}
-        )
+        url = reverse("cases:case_ecju_query", kwargs={"pk": case.id, "ecju_pk": ecju_query.id})
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -217,8 +207,6 @@ class EcjuQueriesCreateTest(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data["ecju_query"]["id"])
-        self.assertEqual(
-            str(ecju_query.question), response_data["ecju_query"]["question"]
-        )
+        self.assertEqual(str(ecju_query.question), response_data["ecju_query"]["question"])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data["ecju_query"]["case"])

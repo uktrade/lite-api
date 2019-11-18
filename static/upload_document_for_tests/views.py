@@ -11,34 +11,24 @@ class UploadDocumentForTests(APIView):
     def get(self, request):
         upload_document_endpoint_enabled = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
-        if (
-            not upload_document_endpoint_enabled
-            or upload_document_endpoint_enabled.lower() != "true"
-        ):
+        if not upload_document_endpoint_enabled or upload_document_endpoint_enabled.lower() != "true":
             return JsonResponse(
-                data={"errors": "This endpoint is not enabled"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
         bucket_name = env("AWS_STORAGE_BUCKET_NAME")
         s3 = boto3.client(
-            "s3",
-            aws_access_key_id=env("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
+            "s3", aws_access_key_id=env("AWS_ACCESS_KEY_ID"), aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
         )
         s3_key = "lite-e2e-test-file.txt"
 
         file_to_upload_abs_path = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__), "resources", "lite-e2e-test-file.txt"
-            )
+            os.path.join(os.path.dirname(__file__), "resources", "lite-e2e-test-file.txt")
         )
 
         try:
             s3.upload_file(file_to_upload_abs_path, bucket_name, s3_key)
         except Exception as e:  # noqa
-            return JsonResponse(
-                data={"errors": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return JsonResponse(data={"errors": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse(data={"s3_key": s3_key}, status=status.HTTP_200_OK)

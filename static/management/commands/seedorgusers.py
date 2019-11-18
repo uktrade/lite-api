@@ -12,16 +12,8 @@ from users.enums import UserStatuses
 from users.models import ExporterUser, UserOrganisationRelationship
 
 ORGANISATIONS = [
-    {
-        "name": "Archway Communications",
-        "type": OrganisationType.COMMERCIAL,
-        "reg_no": "09876543",
-    },
-    {
-        "name": "HMRC office at Battersea heliport",
-        "type": OrganisationType.HMRC,
-        "reg_no": "75863840",
-    },
+    {"name": "Archway Communications", "type": OrganisationType.COMMERCIAL, "reg_no": "09876543",},
+    {"name": "HMRC office at Battersea heliport", "type": OrganisationType.HMRC, "reg_no": "75863840",},
 ]
 
 
@@ -64,9 +56,7 @@ def seed_organisation_site(organisation: Organisation):
         region="London",
         postcode="Islington",
     )
-    site = Site.objects.create(
-        name="Headquarters", organisation=organisation, address=address
-    )
+    site = Site.objects.create(name="Headquarters", organisation=organisation, address=address)
     organisation.primary_site = site
     organisation.save()
 
@@ -103,9 +93,7 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    UserOrganisationRelationship.objects.get_or_create(
-        user=user, organisation=organisation, status=UserStatuses.ACTIVE
-    )
+    UserOrganisationRelationship.objects.get_or_create(user=user, organisation=organisation, status=UserStatuses.ACTIVE)
     print(
         '{"email": "'
         + user.email
@@ -126,6 +114,4 @@ class SeedOrgUsersTests(SeedCommandTest):
         self.assertTrue(Site.objects)
         num_exporter_users = len(_get_exporter_users())
         self.assertTrue(num_exporter_users == ExporterUser.objects.count())
-        self.assertTrue(
-            num_exporter_users <= UserOrganisationRelationship.objects.count()
-        )
+        self.assertTrue(num_exporter_users <= UserOrganisationRelationship.objects.count())
