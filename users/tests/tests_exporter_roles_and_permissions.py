@@ -10,23 +10,22 @@ from users.models import Role, Permission
 
 class RolesAndPermissionsTests(DataTestClient):
 
-    url = reverse("gov_users:roles_views")
-
     @tag('only')
     def test_create_new_role_with_no_permissions(self):
-        print(self.exporter_user.get_role(self.organisation))
         self.exporter_user.update_role(self.organisation, self.exporter_super_user_role)
-        print(self.exporter_user.get_role(self.organisation))
         data = {
             "name": "some role",
             "permissions": [],
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.get(name="some role").name, "some role")
 
+    @tag('only')
     def test_get_list_of_all_roles_as_non_exporter_super_user(self):
         role = Role(name="some")
         role.permissions.set([Permissions.ADMINISTER_USERS])
@@ -38,9 +37,9 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["roles"]), 2)
 
+    @tag('only')
     def test_get_list_of_all_roles_as_exporter_super_user(self):
-        self.exporter_user.role = self.exporter_super_user_role
-        self.exporter_user.save()
+        self.exporter_user.update_role(self.organisation, self.exporter_super_user_role)
         role = Role(name="some", organisation=self.organisation)
         initial_roles_count = Role.objects.filter(type=UserType.EXPORTER).count()
         role.permissions.set([Permissions.ADMINISTER_USERS])
@@ -55,8 +54,9 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["roles"]), initial_roles_count + 1)
 
+    @tag('only')
     def test_get_list_of_all_permissions(self):
-        url = reverse("gov_users:permissions")
+        url = reverse("organisations:permissions")
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
@@ -64,11 +64,11 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["permissions"]), Permission.objects.count())
 
+    @tag('only')
     def test_edit_a_role(self):
-        self.exporter_user.role = self.exporter_super_user_role
-        self.exporter_user.save()
+        self.exporter_user.update_role(self.organisation, self.exporter_super_user_role)
         role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
-        url = reverse("gov_users:role", kwargs={"pk": role_id})
+        url = reverse("organisations:role", kwargs={"pk": role_id})
 
         data = {"permissions": [Permissions.ADMINISTER_USERS]}
 
@@ -80,6 +80,7 @@ class RolesAndPermissionsTests(DataTestClient):
             in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
         )
 
+    @tag('only')
     def test_cannot_create_role_without_permission(self):
         data = {
             "name": "some role",
@@ -90,9 +91,10 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @tag('only')
     def test_cannot_edit_role_without_permission(self):
         role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
-        url = reverse("gov_users:role", kwargs={"pk": role_id})
+        url = reverse("organisations:role", kwargs={"pk": role_id})
 
         data = {"permissions": [Permissions.ADMINISTER_USERS]}
 
