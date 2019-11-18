@@ -190,16 +190,23 @@ class CaseDetailSerializer(CaseSerializer):
 
     def get_has_advice(self, instance):
         has_advice = {"team": False, "my_team": False, "final": False}
+
         if TeamAdvice.objects.filter(case=instance).first():
             has_advice["team"] = True
+
         if FinalAdvice.objects.filter(case=instance).first():
             has_advice["final"] = True
+
         try:
-            team_advice = TeamAdvice.objects.filter(case=instance, team=self.context.user.team).values_list("id")
+            team_advice = TeamAdvice.objects.filter(case=instance, team=self.context.user.team).values_list(
+                "id", flat=True
+            )
+
             if team_advice:
                 has_advice["my_team"] = True
+
             if Advice.objects.filter(case=instance, user=self.context.user).exclude(id__in=team_advice).exists():
-                has_advice["own_user"] = True
+                has_advice["my_user"] = True
         except AttributeError:
             pass
         return has_advice
