@@ -13,11 +13,7 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedlayouts
         """
-        # Add layouts
-        reader = self.read_csv(FILE)
-        for row in reader:
-            LetterLayout.objects.get_or_create(filename=row[0], name=row[1])
-            print("Seeded %s layout" % row[1])
+        self.update_or_create(LetterLayout, FILE)
 
 
 class SeedLayoutsTests(SeedCommandTest):
