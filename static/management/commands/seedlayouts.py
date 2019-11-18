@@ -13,7 +13,8 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedlayouts
         """
-        self.update_or_create(LetterLayout, FILE)
+        csv = self.read_csv(FILE)
+        self.update_or_create(LetterLayout, csv)
 
 
 class SeedLayoutsTests(SeedCommandTest):

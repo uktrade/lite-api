@@ -36,8 +36,8 @@ class SeedCommand(ABC, BaseCommand):
             reader = csv.DictReader(csvfile)
             return list(reader)
 
-    def update_or_create(self, model: models.Model, filename: str):
-        rows = self.read_csv(filename)
+    @staticmethod
+    def update_or_create(model: models.Model, rows: list):
         for row in rows:
             if model.objects.filter(id=row['id']).exists():
                 model.objects.filter(id=row['id']).update(**row)
