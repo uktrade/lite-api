@@ -68,7 +68,7 @@ class ControlListClassificationDetail(APIView):
             if clc_good_serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
                     clc_good_serializer.save()
-                    query.status = get_case_status_by_status(CaseStatusEnum.RESUBMITTED)
+                    query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                     query.save()
 
                     # Add an activity item for the query's case

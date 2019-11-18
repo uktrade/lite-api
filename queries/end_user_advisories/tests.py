@@ -308,10 +308,3 @@ class EndUserAdvisoryUpdate(DataTestClient):
         new_end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=self.end_user_advisory.id)
         case_status = get_case_status_by_status(CaseStatusEnum.RESUBMITTED)
         self.assertEqual(new_end_user_advisory.status, case_status)
-
-    # TODO: Add back in once statuses are corrected
-    # def test_update_end_user_advisory_invalid_status_failure(self):
-    #     data = {"status": CaseStatusEnum.APPLICANT_EDITING}
-    #
-    #     response = self.client.put(self.url, data, **self.gov_headers)
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

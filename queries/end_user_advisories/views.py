@@ -81,20 +81,6 @@ class EndUserAdvisoryDetail(APIView):
             if data.get("status") == CaseStatusEnum.FINALISED:
                 assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
-            # TODO: Add back in once statuses are corrected
-            # new_status = get_case_status_by_status(data.get("status"))
-            # if not check_status_is_applicable_for_a_case_type(
-            #     status=new_status, case_type=CaseType.END_USER_ADVISORY_QUERY
-            # ):
-            #     return JsonResponse(
-            #         data={
-            #             "errors": [
-            #                 "Given status is invalid for end user advisory queries"
-            #             ]
-            #         },
-            #         status=status.HTTP_400_BAD_REQUEST,
-            #     )
-
             request.data["status"] = get_case_status_by_status(data.get("status"))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)

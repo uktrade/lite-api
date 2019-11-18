@@ -234,16 +234,6 @@ class ApplicationManageStatus(APIView):
 
         new_status = get_case_status_by_status(new_status_enum)
 
-        # Validate that the status change is allowed
-        # TODO: Add back in once statuses are corrected
-        # if not check_status_is_applicable_for_a_case_type(
-        #     status=new_status, case_type=CaseType.APPLICATION
-        # ):
-        #     return JsonResponse(
-        #         data={"errors": ["Given status is invalid for applications"]},
-        #         status=status.HTTP_400_BAD_REQUEST,
-        #     )
-
         request.data["status"] = str(new_status.pk)
 
         serializer = get_application_update_serializer(application)
