@@ -1,5 +1,5 @@
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from static.statuses.models import CaseStatus, CaseStatusOnType
+from static.statuses.models import CaseStatus, CaseStatusCaseType
 
 STATUSES_FILE = "lite_content/lite-api/case_statuses.csv"
 STATUS_ON_TYPE_FILE = "lite_content/lite-api/case_status_on_type.csv"
@@ -22,11 +22,11 @@ class Command(SeedCommand):
 
         # Case statuses on case types
         for row in self.read_csv(STATUS_ON_TYPE_FILE):
-            CaseStatusOnType.objects.get_or_create(type=row[0], status=status_ids[row[1]])
+            CaseStatusCaseType.objects.get_or_create(type=row[0], status=status_ids[row[1]])
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
     def test_seed_case_statuses(self):
         self.seed_command(Command)
         self.assertTrue(CaseStatus.objects.count() == len(Command.read_csv(STATUSES_FILE)))
-        self.assertTrue(CaseStatusOnType.objects.count() == len(Command.read_csv(STATUS_ON_TYPE_FILE)))
+        self.assertTrue(CaseStatusCaseType.objects.count() == len(Command.read_csv(STATUS_ON_TYPE_FILE)))

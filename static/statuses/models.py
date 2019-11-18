@@ -12,7 +12,7 @@ class CaseStatus(models.Model):
     is_read_only = models.BooleanField(blank=False, null=True)
 
 
-class CaseStatusOnType(models.Model):
+class CaseStatusCaseType(models.Model):
     class Meta:
         unique_together = (("type", "status"),)
 
