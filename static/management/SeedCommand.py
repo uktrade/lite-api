@@ -3,7 +3,7 @@ from abc import ABC
 from io import StringIO
 
 from django.core.management import BaseCommand, call_command
-from django.db import transaction
+from django.db import transaction, models
 from django.test import TestCase
 
 
@@ -33,9 +33,16 @@ class SeedCommand(ABC, BaseCommand):
     @staticmethod
     def read_csv(filename):
         with open(filename, newline="") as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # skip the headers
+            reader = csv.DictReader(csvfile)
             return list(reader)
+
+    def update_or_create(self, model: models.Model, filename: str):
+        rows = self.read_csv(filename)
+        for row in rows:
+            if model.objects.filter(id=row['id']).exists():
+                model.objects.filter(id=row['id']).update(**row)
+            else:
+                model.objects.create(**row)
 
 
 class SeedCommandTest(TestCase):
