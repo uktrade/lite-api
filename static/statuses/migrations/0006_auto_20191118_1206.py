@@ -11,26 +11,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="casestatus", name="priority", field=models.IntegerField(),
-        ),
-        migrations.AlterField(
-            model_name="casestatus",
-            name="status",
-            field=models.CharField(max_length=50),
-        ),
+        migrations.AlterField(model_name="casestatus", name="priority", field=models.IntegerField(),),
+        migrations.AlterField(model_name="casestatus", name="status", field=models.CharField(max_length=50),),
         migrations.CreateModel(
             name="CaseStatusCaseType",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID",),),
                 (
                     "type",
                     models.CharField(
@@ -43,13 +29,7 @@ class Migration(migrations.Migration):
                         max_length=35,
                     ),
                 ),
-                (
-                    "status",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT,
-                        to="statuses.CaseStatus",
-                    ),
-                ),
+                ("status", models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="statuses.CaseStatus",),),
             ],
             options={"unique_together": {("type", "status")},},
         ),
