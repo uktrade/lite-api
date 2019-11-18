@@ -32,6 +32,7 @@ class Command(SeedCommand):
                 Permissions.MANAGE_TEAM_ADVICE,
                 Permissions.REVIEW_GOODS,
                 Permissions.ADMINISTER_ROLES,
+                Permissions.CONFIRM_OWN_ADVICE,
             ]
         )
         role.save()
