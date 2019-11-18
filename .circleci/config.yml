@@ -71,6 +71,10 @@ jobs:
           name: Run Linting
           command: pipenv run prospector
 
+      - run:
+          name: check code formatting
+          command: pipenv run black . --line-length 120 --check --diff
+
       # Tests
       # this example uses Django's built-in test-runner
       # other common Python testing frameworks include pytest and nose

@@ -14,47 +14,43 @@ class EndUserOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.url = reverse('applications:end_user', kwargs={'pk': self.draft.id})
+        self.url = reverse("applications:end_user", kwargs={"pk": self.draft.id})
         self.new_end_user_data = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': 'government',
-            'website': 'https://www.gov.py'
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
         }
 
-        self.document_url = reverse('applications:end_user_document', kwargs={'pk': self.draft.id})
+        self.document_url = reverse("applications:end_user_document", kwargs={"pk": self.draft.id})
         self.new_document_data = {
-            'name': 'document_name.pdf',
-            's3_key': 's3_keykey.pdf',
-            'size': 123456
+            "name": "document_name.pdf",
+            "s3_key": "s3_keykey.pdf",
+            "size": 123456,
         }
 
-    @parameterized.expand([
-        'government',
-        'commercial',
-        'other'
-    ])
+    @parameterized.expand(["government", "commercial", "other"])
     def test_set_end_user_on_draft_standard_application_successful(self, data_type):
         self.draft.end_user = None
         self.draft.save()
         data = {
-            'name': 'Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': data_type,
-            'website': 'https://www.gov.uk'
+            "name": "Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": data_type,
+            "website": "https://www.gov.uk",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.end_user.name, data['name'])
-        self.assertEqual(self.draft.end_user.address, data['address'])
-        self.assertEqual(self.draft.end_user.country, get_country(data['country']))
+        self.assertEqual(self.draft.end_user.name, data["name"])
+        self.assertEqual(self.draft.end_user.address, data["address"])
+        self.assertEqual(self.draft.end_user.country, get_country(data["country"]))
         self.assertEqual(self.draft.end_user.sub_type, data_type)
-        self.assertEqual(self.draft.end_user.website, data['website'])
+        self.assertEqual(self.draft.end_user.website, data["website"])
 
     def test_set_end_user_on_draft_open_application_failure(self):
         """
@@ -68,35 +64,41 @@ class EndUserOnDraftTests(DataTestClient):
         pre_test_end_user_count = EndUser.objects.all().count()
         draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
-            'name': 'Government',
-            'address': 'Westminster, London SW1A 0AA',
-            'country': 'GB',
-            'sub_type': 'government',
-            'website': 'https://www.gov.uk'
+            "name": "Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
         }
-        url = reverse('applications:end_user', kwargs={'pk': draft_open_application.id})
+        url = reverse("applications:end_user", kwargs={"pk": draft_open_application.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), pre_test_end_user_count)
 
-    @parameterized.expand([
-        [{}],
-        [{
-            'name': 'Lemonworld Org',
-            'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'US',
-            'website': 'https://www.americanmary.com'
-        }],
-        [{
-            'name': 'Lemonworld Org',
-            'address': '3730 Martinsburg Rd, Gambier, Ohio',
-            'country': 'US',
-            'sub_type': 'business',
-            'website': 'https://www.americanmary.com'
-        }],
-    ])
+    @parameterized.expand(
+        [
+            [{}],
+            [
+                {
+                    "name": "Lemonworld Org",
+                    "address": "3730 Martinsburg Rd, Gambier, Ohio",
+                    "country": "US",
+                    "website": "https://www.americanmary.com",
+                }
+            ],
+            [
+                {
+                    "name": "Lemonworld Org",
+                    "address": "3730 Martinsburg Rd, Gambier, Ohio",
+                    "country": "US",
+                    "sub_type": "business",
+                    "website": "https://www.americanmary.com",
+                }
+            ],
+        ]
+    )
     def test_set_end_user_on_draft_standard_application_failure(self, data):
         self.draft.end_user = None
         self.draft.save()
@@ -106,7 +108,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.draft.end_user, None)
 
-    @mock.patch('documents.models.Document.delete_s3')
+    @mock.patch("documents.models.Document.delete_s3")
     def test_end_user_is_deleted_when_new_one_added(self, delete_s3_function):
         """
         Given a standard draft has been created
@@ -135,22 +137,22 @@ class EndUserOnDraftTests(DataTestClient):
         self.draft.save()
         EndUser.objects.filter(pk=end_user.pk).delete()
         data = {
-            'name': 'Government of Paraguay',
-            'address': 'Asuncion',
-            'country': 'PY',
-            'sub_type': 'government',
-            'website': 'https://www.gov.py'
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse('applications:end_user', kwargs={'pk': open_draft.id})
+        url = reverse("applications:end_user", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EndUser.objects.all().count(), 0)
 
-    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self):
+    def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
         """
         Given a draft standard application
         When I try to delete an end user from the application
@@ -165,7 +167,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_get_end_user_document_successful(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -175,13 +177,13 @@ class EndUserOnDraftTests(DataTestClient):
         Then the data in the document is the same as the data in the attached end user document
         """
         response = self.client.get(self.document_url, **self.exporter_headers)
-        response_data = response.json()['document']
+        response_data = response.json()["document"]
         expected = self.new_document_data
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data['name'], expected['name'])
-        self.assertEqual(response_data['s3_key'], expected['s3_key'])
-        self.assertEqual(response_data['size'], expected['size'])
+        self.assertEqual(response_data["name"], expected["name"])
+        self.assertEqual(response_data["s3_key"], expected["s3_key"])
+        self.assertEqual(response_data["size"], expected["size"])
 
     def test_get_document_when_no_end_user_exists_failure(self):
         """
@@ -198,7 +200,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_post_document_when_no_end_user_exists_failure(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -241,9 +243,9 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.get(self.document_url, **self.exporter_headers)
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
-        self.assertEqual(None, response.json()['document'])
+        self.assertEqual(None, response.json()["document"])
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_post_end_user_document_success(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -258,7 +260,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch('documents.tasks.prepare_document.now')
+    @mock.patch("documents.tasks.prepare_document.now")
     def test_post_end_user_document_when_a_document_already_exists_failure(self, prepare_document_function):
         """
         Given a standard draft has been created
@@ -272,8 +274,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(PartyDocument.objects.filter(party=self.draft.end_user).count(), 1)
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
     def test_delete_end_user_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
@@ -287,8 +289,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch('documents.tasks.prepare_document.now')
-    @mock.patch('documents.models.Document.delete_s3')
+    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.models.Document.delete_s3")
     def test_delete_end_user_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created

@@ -28,7 +28,7 @@ class ApplicationCountries(APIView):
         countries = Country.objects.filter(countries_on_application__application=application)
         countries_data = CountrySerializer(countries, many=True).data
 
-        return JsonResponse(data={'countries': countries_data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @allowed_application_types([ApplicationType.OPEN_LICENCE])
@@ -36,35 +36,49 @@ class ApplicationCountries(APIView):
     def post(self, request, application):
         """ Add countries to an open licence application. """
         data = request.data
-        country_ids = data.get('countries')
+        country_ids = data.get("countries")
 
         # Validate that there are countries
         if not country_ids:
-            return JsonResponse(data={'errors': {'countries': ['You have to pick at least one country']}},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                data={"errors": {"countries": ["You have to pick at least one country"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if application.status and application.status.status in get_case_statuses(read_only=True):
-            return JsonResponse(data={'errors': {'external_locations':
-                                                     [f'Application status {application.status.status} is read-only.']
-                                                 }},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                data={
+                    "errors": {"external_locations": [f"Application status {application.status.status} is read-only."]}
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         else:
             previous_countries = CountryOnApplication.objects.filter(application=application)
-            previous_country_ids = [str(previous_country_id) for previous_country_id in
-                                previous_countries.values_list('country__id', flat=True)]
+            previous_country_ids = [
+                str(previous_country_id)
+                for previous_country_id in previous_countries.values_list("country__id", flat=True)
+            ]
             new_countries = []
 
             if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
-                new_countries = [get_country(country_id) for country_id in country_ids
-                                 if country_id not in previous_country_ids]
+                new_countries = [
+                    get_country(country_id) for country_id in country_ids if country_id not in previous_country_ids
+                ]
             else:
                 for country_id in country_ids:
                     if previous_country_ids and country_id not in previous_country_ids:
                         return JsonResponse(
-                            data={'errors': {'countries': ["Go back and change your answer from ‘Change a site, or delete "
-                                                       "a good, third party or country’ to ’Change something else’."]}},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            data={
+                                "errors": {
+                                    "countries": [
+                                        "Go back and change your answer from ‘Change a site, or delete "
+                                        "a good, third party or country’ to ’Change something else’."
+                                    ]
+                                }
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
 
             # Get countries to be removed
             removed_country_ids = list(set(previous_country_ids) - set(country_ids))
@@ -80,4 +94,4 @@ class ApplicationCountries(APIView):
 
             removed_countries.delete()
 
-            return JsonResponse(data={'countries': countries_data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"countries": countries_data}, status=status.HTTP_201_CREATED)

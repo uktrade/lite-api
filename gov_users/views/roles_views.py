@@ -16,23 +16,20 @@ class RolesViews(APIView):
     """
     Manage roles
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
         Return list of all roles
         """
-        roles = Role.objects.all().order_by('name')
+        roles = Role.objects.all().order_by("name")
         if request.user.role_id != Roles.SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.SUPER_USER_ROLE_ID)
         serializer = RoleSerializer(roles, many=True)
-        return JsonResponse(data={'roles': serializer.data})
+        return JsonResponse(data={"roles": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer,
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create a role
@@ -44,17 +41,16 @@ class RolesViews(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'role': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoleDetail(APIView):
     """
     Manage a specific role
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -64,20 +60,17 @@ class RoleDetail(APIView):
         role = get_role_by_pk(pk)
         serializer = RoleSerializer(role)
 
-        return JsonResponse(data={'role': serializer.data})
+        return JsonResponse(data={"role": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer,
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         update a role
         """
         if pk == Roles.SUPER_USER_ROLE_ID:
-            return JsonResponse(data={'errors': 'You cannot edit the super user role'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST,
+            )
 
         assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
 
@@ -88,23 +81,22 @@ class RoleDetail(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'role': serializer.data},
-                                status=status.HTTP_200_OK)
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionsView(APIView):
     """
     Manage permissions
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
         Return list of all permissions
         """
-        roles = Permission.objects.all().order_by('name')
+        roles = Permission.objects.all().order_by("name")
         serializer = PermissionSerializer(roles, many=True)
-        return JsonResponse(data={'permissions': serializer.data})
+        return JsonResponse(data={"permissions": serializer.data})

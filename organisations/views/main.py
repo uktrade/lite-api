@@ -11,7 +11,10 @@ from rest_framework import status, generics
 from conf.authentication import SharedAuthentication
 from conf.pagination import MaxPageNumberPagination
 from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
+from organisations.serializers import (
+    OrganisationDetailSerializer,
+    OrganisationCreateSerializer,
+)
 
 
 class OrganisationsList(generics.ListCreateAPIView):
@@ -23,12 +26,12 @@ class OrganisationsList(generics.ListCreateAPIView):
         """
         List all organisations
         """
-        org_types = self.request.query_params.getlist('org_type', [])
-        search_term = self.request.query_params.get('search_term', '')
+        org_types = self.request.query_params.getlist("org_type", [])
+        search_term = self.request.query_params.get("search_term", "")
 
         query = [Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)]
 
-        result = Organisation.objects.filter(reduce(operator.and_, query)).order_by('name')
+        result = Organisation.objects.filter(reduce(operator.and_, query)).order_by("name")
 
         if org_types:
             result = result.filter(Q(type__in=org_types))
@@ -36,20 +39,16 @@ class OrganisationsList(generics.ListCreateAPIView):
         return result
 
     @transaction.atomic
-    @swagger_auto_schema(
-        request_body=OrganisationCreateSerializer,
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(request_body=OrganisationCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create a new organisation
         """
         data = json.loads(request.body)
 
-        if data.get('type') == 'individual':
+        if data.get("type") == "individual":
             try:
-                data['name'] = data['user']['first_name'] + " " + data['user']['last_name']
+                data["name"] = data["user"]["first_name"] + " " + data["user"]["last_name"]
             except (AttributeError, KeyError):
                 pass
 
@@ -57,11 +56,9 @@ class OrganisationsList(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'organisation': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrganisationsDetail(generics.RetrieveAPIView):

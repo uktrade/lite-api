@@ -28,17 +28,18 @@ class Case(models.Model):
     """
     Wrapper for application and query model intended for internal users.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
-    application = models.ForeignKey(BaseApplication, related_name='case', on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, related_name='case', on_delete=models.CASCADE, null=True)
-    queues = models.ManyToManyField(Queue, related_name='cases')
-    flags = models.ManyToManyField(Flag, related_name='cases')
+    application = models.ForeignKey(BaseApplication, related_name="case", on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey(Query, related_name="case", on_delete=models.CASCADE, null=True)
+    queues = models.ManyToManyField(Queue, related_name="cases")
+    flags = models.ManyToManyField(Flag, related_name="cases")
 
     objects = CaseManager()
 
     class Meta:
-        ordering = [Coalesce('application__submitted_at', 'query__submitted_at')]
+        ordering = [Coalesce("application__submitted_at", "query__submitted_at")]
 
     @property
     def organisation(self):
@@ -53,9 +54,10 @@ class CaseNote(models.Model):
     """
     Note on a case, visible to internal users and exporters depending on is_visible_to_exporter.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, related_name='case_note', on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name='case_note', on_delete=models.CASCADE, default=None, null=False)
+    case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
+    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
@@ -79,9 +81,10 @@ class CaseAssignment(models.Model):
     """
     Assigns users to a case on a particular queue
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    users = models.ManyToManyField(GovUser, related_name='case_assignments')
+    users = models.ManyToManyField(GovUser, related_name="case_assignments")
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
 
 
@@ -95,6 +98,7 @@ class Advice(models.Model):
     """
     Advice for goods and destinations on cases
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
@@ -108,12 +112,11 @@ class Advice(models.Model):
     goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(UltimateEndUser, on_delete=models.CASCADE, related_name='ultimate_end_user',
-                                          null=True)
-    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name='consignee',
-                                  null=True)
-    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name='third_party',
-                                    null=True)
+    ultimate_end_user = models.ForeignKey(
+        UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
+    )
+    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name="consignee", null=True)
+    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name="third_party", null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -124,15 +127,17 @@ class Advice(models.Model):
             self.proviso = None
 
         try:
-            existing_object = Advice.objects.get(case=self.case,
-                                                 user=self.user,
-                                                 good=self.good,
-                                                 goods_type=self.goods_type,
-                                                 country=self.country,
-                                                 end_user=self.end_user,
-                                                 ultimate_end_user=self.ultimate_end_user,
-                                                 consignee=self.consignee,
-                                                 third_party=self.third_party)
+            existing_object = Advice.objects.get(
+                case=self.case,
+                user=self.user,
+                good=self.good,
+                goods_type=self.goods_type,
+                country=self.country,
+                end_user=self.end_user,
+                ultimate_end_user=self.ultimate_end_user,
+                consignee=self.consignee,
+                third_party=self.third_party,
+            )
             existing_object.delete()
         except Advice.DoesNotExist:
             pass
@@ -151,15 +156,17 @@ class TeamAdvice(Advice):
             self.proviso = None
 
         try:
-            existing_object = TeamAdvice.objects.get(case=self.case,
-                                                     team=self.team,
-                                                     good=self.good,
-                                                     goods_type=self.goods_type,
-                                                     country=self.country,
-                                                     end_user=self.end_user,
-                                                     ultimate_end_user=self.ultimate_end_user,
-                                                     consignee=self.consignee,
-                                                     third_party=self.third_party)
+            existing_object = TeamAdvice.objects.get(
+                case=self.case,
+                team=self.team,
+                good=self.good,
+                goods_type=self.goods_type,
+                country=self.country,
+                end_user=self.end_user,
+                ultimate_end_user=self.ultimate_end_user,
+                consignee=self.consignee,
+                third_party=self.third_party,
+            )
             existing_object.delete()
         except TeamAdvice.DoesNotExist:
             pass
@@ -177,14 +184,16 @@ class FinalAdvice(Advice):
             self.proviso = None
 
         try:
-            existing_object = FinalAdvice.objects.get(case=self.case,
-                                                      good=self.good,
-                                                      goods_type=self.goods_type,
-                                                      country=self.country,
-                                                      end_user=self.end_user,
-                                                      ultimate_end_user=self.ultimate_end_user,
-                                                      consignee=self.consignee,
-                                                      third_party=self.third_party)
+            existing_object = FinalAdvice.objects.get(
+                case=self.case,
+                good=self.good,
+                goods_type=self.goods_type,
+                country=self.country,
+                end_user=self.end_user,
+                ultimate_end_user=self.ultimate_end_user,
+                consignee=self.consignee,
+                third_party=self.third_party,
+            )
             existing_object.delete()
         except FinalAdvice.DoesNotExist:
             pass
@@ -197,16 +206,19 @@ class EcjuQuery(models.Model):
     """
     Query from ECJU to exporters
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
     response = models.CharField(null=True, blank=False, max_length=2200)
-    case = models.ForeignKey(Case, related_name='case_ecju_query', on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
-    raised_by_user = models.ForeignKey(GovUser, related_name='govuser_ecju_query', on_delete=models.CASCADE,
-                                       default=None, null=False)
-    responded_by_user = models.ForeignKey(ExporterUser, related_name='exportuser_ecju_query', on_delete=models.CASCADE,
-                                          default=None, null=True)
+    raised_by_user = models.ForeignKey(
+        GovUser, related_name="govuser_ecju_query", on_delete=models.CASCADE, default=None, null=False,
+    )
+    responded_by_user = models.ForeignKey(
+        ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
+    )
 
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
@@ -237,46 +249,49 @@ class BaseActivity(models.Model):
         """
         # Get the placeholder for the supplied activity_type
         text = cls.activity_types.get_text(activity_type)
-        placeholders = re.findall('{(.+?)}', text)
+        placeholders = re.findall("{(.+?)}", text)
 
         # Raise an exception if the wrong amount of kwargs are given
         if len(placeholders) != len(kwargs):
-            raise Exception('Incorrect number of values for activity_type, expected ' +
-                            str(len(placeholders)) + ', got ' + str(len(kwargs)))
+            raise Exception(
+                "Incorrect number of values for activity_type, expected "
+                + str(len(placeholders))
+                + ", got "
+                + str(len(kwargs))
+            )
 
         # Raise an exception if all the placeholder parameters are not provided
         for placeholder in placeholders:
             if placeholder not in kwargs:
-                raise Exception(f'{placeholder} not provided in parameters for activity type: {activity_type}')
+                raise Exception(f"{placeholder} not provided in parameters for activity type: {activity_type}")
 
         # Loop over kwargs, if type is list, convert to comma delimited string
         for key, value in kwargs.items():
             if isinstance(value, list):
-                kwargs[key] = ', '.join(value)
+                kwargs[key] = ", ".join(value)
 
         # Format text by replacing the placeholders with values using kwargs given
         text = text.format(**kwargs)
 
         # Add a full stop unless the text ends with a colon
-        if not text.endswith(':') and not text.endswith('?'):
-            text = text + '.'
+        if not text.endswith(":") and not text.endswith("?"):
+            text = text + "."
 
         return text
 
     @classmethod
-    def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
+    def create(
+        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
+    ):
         # If activity_type isn't valid, raise an exception
         if activity_type not in [x[0] for x in cls.activity_types.choices]:
-            raise Exception(f'{activity_type} isn\'t in ' + cls.activity_types.__name__)
+            raise Exception(f"{activity_type} isn't in " + cls.activity_types.__name__)
 
         text = cls._replace_placeholders(activity_type, **kwargs)
 
-        activity = cls(type=activity_type,
-                       text=text,
-                       user=user,
-                       case=case,
-                       additional_text=additional_text,
-                       created_at=created_at)
+        activity = cls(
+            type=activity_type, text=text, user=user, case=case, additional_text=additional_text, created_at=created_at,
+        )
         if save_object:
             activity.save()
 
@@ -288,9 +303,12 @@ class CaseActivity(BaseActivity):
     activity_types = CaseActivityType
 
     @classmethod
-    def create(cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs):
-        activity = super(CaseActivity, cls).create(activity_type, case, user, additional_text, created_at,
-                                                   save_object, **kwargs)
+    def create(
+        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
+    ):
+        activity = super(CaseActivity, cls).create(
+            activity_type, case, user, additional_text, created_at, save_object, **kwargs,
+        )
 
         if isinstance(user, ExporterUser) and save_object:
             for gov_user in GovUser.objects.all():
@@ -307,9 +325,7 @@ class GoodCountryDecision(models.Model):
     decision = models.CharField(choices=AdviceType.choices, max_length=30)
 
     def save(self, *args, **kwargs):
-        GoodCountryDecision.objects.filter(case=self.case,
-                                           good=self.good,
-                                           country=self.country).delete()
+        GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
 

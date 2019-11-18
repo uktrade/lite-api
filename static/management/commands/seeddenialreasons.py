@@ -2,16 +2,17 @@ from conf.helpers import str_to_bool
 from static.denial_reasons.models import DenialReason
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
-FILE = 'lite_content/lite-api/denial_reasons.csv'
+FILE = "lite_content/lite-api/denial_reasons.csv"
 
 
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seeddenialreasons
     """
-    help = 'Seeds all denial reasons'
-    success = 'Successfully seeded denial reasons'
-    seed_command = 'seeddenialreasons'
+
+    help = "Seeds all denial reasons"
+    success = "Successfully seeded denial reasons"
+    seed_command = "seeddenialreasons"
 
     def operation(self, *args, **options):
         reader = self.read_csv(FILE)

@@ -5,21 +5,26 @@ from test_helpers.clients import DataTestClient
 
 
 class OrganisationFlagsManagementTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         # Teams
-        self.other_team = self.create_team('Team')
+        self.other_team = self.create_team("Team")
 
         # Flags
-        self.team_organisation_flag_1 = self.create_flag('Organisation Flag 1', 'Organisation', self.team)
-        self.team_organisation_flag_2 = self.create_flag('Organisation Flag 2', 'Organisation', self.team)
-        self.good_flag = self.create_flag('Good flag', 'Good', self.team)
-        self.other_team_organisation_flag = self.create_flag('Other Team Organisation Flag', 'Organisation', self.other_team)
-        self.all_flags = [self.team_organisation_flag_1, self.team_organisation_flag_2, self.other_team_organisation_flag]
+        self.team_organisation_flag_1 = self.create_flag("Organisation Flag 1", "Organisation", self.team)
+        self.team_organisation_flag_2 = self.create_flag("Organisation Flag 2", "Organisation", self.team)
+        self.good_flag = self.create_flag("Good flag", "Good", self.team)
+        self.other_team_organisation_flag = self.create_flag(
+            "Other Team Organisation Flag", "Organisation", self.other_team
+        )
+        self.all_flags = [
+            self.team_organisation_flag_1,
+            self.team_organisation_flag_2,
+            self.other_team_organisation_flag,
+        ]
 
-        self.organisation_url = reverse('organisations:organisation', kwargs={'pk': self.organisation.id})
-        self.organisation_flag_url = reverse('flags:assign_flags')
+        self.organisation_url = reverse("organisations:organisation", kwargs={"pk": self.organisation.id})
+        self.organisation_flag_url = reverse("flags:assign_flags")
 
     def test_no_flags_for_organisation_are_returned(self):
         """
@@ -30,7 +35,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
 
         response = self.client.get(self.organisation_url, **self.gov_headers)
 
-        self.assertEqual([], response.json()['flags'])
+        self.assertEqual([], response.json()["flags"])
 
     def test_all_flags_for_organisation_are_returned(self):
         """
@@ -43,7 +48,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         response = self.client.get(self.organisation_url, **self.gov_headers)
         returned_organisation = response.json()
 
-        self.assertEquals(self.organisation.flags.count(), len(returned_organisation['flags']))
+        self.assertEquals(self.organisation.flags.count(), len(returned_organisation["flags"]))
 
     def test_user_can_add_organisation_level_flags_from_their_own_team(self):
         """
@@ -52,15 +57,15 @@ class OrganisationFlagsManagementTests(DataTestClient):
         Then the Flag is successfully added
         """
         data = {
-            'level': 'organisations',
-            'objects': [self.organisation.pk],
-            'flags': [self.team_organisation_flag_1.pk],
-            'note': 'A reason for changing the flags'
+            "level": "organisations",
+            "objects": [self.organisation.pk],
+            "flags": [self.team_organisation_flag_1.pk],
+            "note": "A reason for changing the flags",
         }
 
         self.client.put(self.organisation_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data['flags']), self.organisation.flags.count())
+        self.assertEquals(len(data["flags"]), self.organisation.flags.count())
         self.assertTrue(self.team_organisation_flag_1 in self.organisation.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
@@ -70,10 +75,10 @@ class OrganisationFlagsManagementTests(DataTestClient):
         Then the Flag is not added
         """
         data = {
-            'level': 'organisations',
-            'objects': [self.organisation.pk],
-            'flags': [self.other_team_organisation_flag.pk],
-            'note': 'A reason for changing the flags'
+            "level": "organisations",
+            "objects": [self.organisation.pk],
+            "flags": [self.other_team_organisation_flag.pk],
+            "note": "A reason for changing the flags",
         }
 
         response = self.client.put(self.organisation_flag_url, data, **self.gov_headers)
@@ -88,10 +93,10 @@ class OrganisationFlagsManagementTests(DataTestClient):
         Then the Flag is not added
         """
         data = {
-            'level': 'organisations',
-            'objects': [self.organisation.pk],
-            'flags': [self.good_flag.id],
-            'note': 'A reason for changing the flags'
+            "level": "organisations",
+            "objects": [self.organisation.pk],
+            "flags": [self.good_flag.id],
+            "note": "A reason for changing the flags",
         }
 
         response = self.client.put(self.organisation_flag_url, data, **self.gov_headers)
@@ -108,10 +113,10 @@ class OrganisationFlagsManagementTests(DataTestClient):
         self.all_flags.remove(self.team_organisation_flag_1)
         self.organisation.flags.set(self.all_flags)
         data = {
-            'level': 'organisations',
-            'objects': [self.organisation.pk],
-            'flags': [self.team_organisation_flag_2.pk],
-            'note': 'A reason for changing the flags'
+            "level": "organisations",
+            "objects": [self.organisation.pk],
+            "flags": [self.team_organisation_flag_2.pk],
+            "note": "A reason for changing the flags",
         }
 
         self.client.put(self.organisation_flag_url, data, **self.gov_headers)

@@ -3,8 +3,11 @@ from rest_framework.fields import CharField
 
 from applications.models import OpenApplication, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
-from applications.serializers.generic_application import GenericApplicationCreateSerializer, \
-    GenericApplicationUpdateSerializer, GenericApplicationListSerializer
+from applications.serializers.generic_application import (
+    GenericApplicationCreateSerializer,
+    GenericApplicationUpdateSerializer,
+    GenericApplicationListSerializer,
+)
 from content_strings.strings import get_string
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -39,7 +42,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
         serializer = CountrySerializer(countries, many=True)
-        return {'type': 'countries', 'data': serializer.data}
+        return {"type": "countries", "data": serializer.data}
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(application=application)
@@ -51,14 +54,13 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
 
         if sites:
             serializer = SiteViewSerializer(sites, many=True)
-            return {'type': 'sites', 'data': serializer.data}
+            return {"type": "sites", "data": serializer.data}
 
-        external_locations = ExternalLocation.objects.filter(
-            external_locations_on_application__application=application)
+        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
 
         if external_locations:
             serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {'type': 'external_locations', 'data': serializer.data}
+            return {"type": "external_locations", "data": serializer.data}
 
         return {}
 
@@ -66,7 +68,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data['organisation'] = self.context.id
+        self.initial_data["organisation"] = self.context.id
 
     class Meta:
         model = OpenApplication

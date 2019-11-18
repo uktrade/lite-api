@@ -21,13 +21,10 @@ class AuthenticateGovUser(APIView):
     """
     Authenticate user
     """
+
     permission_classes = (AllowAny,)
 
-    @swagger_auto_schema(
-        responses={
-            400: 'JSON parse error',
-            403: 'Forbidden'
-        })
+    @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -39,11 +36,10 @@ class AuthenticateGovUser(APIView):
         try:
             data = JSONParser().parse(request)
         except ParseError:
-            return JsonResponse(data={'errors': 'Invalid Json'},
-                                status=status.HTTP_400_BAD_REQUEST)
-        email = data.get('email')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
+            return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
+        email = data.get("email")
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
 
         try:
             user = GovUser.objects.get(email=email)
@@ -53,15 +49,13 @@ class AuthenticateGovUser(APIView):
             user.last_name = last_name
             user.save()
         except GovUser.DoesNotExist:
-            return JsonResponse(data={'errors': 'User not found'},
-                                status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         if user.status == GovUserStatuses.DEACTIVATED:
-            return JsonResponse(data={'errors': 'User not found'},
-                                status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={'token': token, 'lite_api_user_id': str(user.id)})
+        return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
 
 
 class GovUserList(APIView):
@@ -71,46 +65,41 @@ class GovUserList(APIView):
         """
         Fetches all government users
         """
-        teams = request.GET.get('teams', None)
+        teams = request.GET.get("teams", None)
 
         if teams:
-            gov_users = GovUser.objects.filter(team__id__in=teams.split(',')).order_by('email')
+            gov_users = GovUser.objects.filter(team__id__in=teams.split(",")).order_by("email")
         else:
-            gov_users = GovUser.objects.all().order_by('email')
+            gov_users = GovUser.objects.all().order_by("email")
 
         serializer = GovUserViewSerializer(gov_users, many=True)
-        return JsonResponse(data={'gov_users': serializer.data})
+        return JsonResponse(data={"gov_users": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=GovUserCreateSerializer,
-        responses={
-            400: 'JSON parse error'
-        })
+    @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Add a new gov user
         """
         data = JSONParser().parse(request)
-        data = replace_default_string_for_form_select(data, fields=['role', 'team'])
+        data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
-        if data.get('role') == str(Roles.SUPER_USER_ROLE_ID) and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
+        if data.get("role") == str(Roles.SUPER_USER_ROLE_ID) and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
         serializer = GovUserCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'gov_user': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GovUserDetail(APIView):
     """
     Actions on a specific user
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -120,13 +109,9 @@ class GovUserDetail(APIView):
         gov_user = get_user_by_pk(pk)
 
         serializer = GovUserViewSerializer(gov_user)
-        return JsonResponse(data={'user': serializer.data})
+        return JsonResponse(data={"user": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=GovUserCreateSerializer,
-        responses={
-            400: 'Bad Request'
-        })
+    @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "Bad Request"})
     def put(self, request, pk):
         """
         Edit user from pk
@@ -135,24 +120,28 @@ class GovUserDetail(APIView):
         data = JSONParser().parse(request)
 
         # Cannot perform actions on another super user without super user role
-        if (gov_user.role_id == Roles.SUPER_USER_ROLE_ID or data.get('roles') == Roles.SUPER_USER_ROLE_ID) \
-                and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
+        if (
+            gov_user.role_id == Roles.SUPER_USER_ROLE_ID or data.get("roles") == Roles.SUPER_USER_ROLE_ID
+        ) and not request.user.role_id == Roles.SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
-        if 'status' in data.keys():
+        if "status" in data.keys():
             if gov_user.id == request.user.id:
-                return JsonResponse(data={'errors': 'A user cannot change their own status'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            elif gov_user.role_id == Roles.SUPER_USER_ROLE_ID and data['status'] == 'Deactivated':
+                return JsonResponse(
+                    data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif gov_user.role_id == Roles.SUPER_USER_ROLE_ID and data["status"] == "Deactivated":
                 raise PermissionDenied()
 
         # Cannot deactivate a super user
-        if 'role' in data.keys():
+        if "role" in data.keys():
             if gov_user.id == request.user.id and request.user.role_id == Roles.SUPER_USER_ROLE_ID:
-                return JsonResponse(data={'errors': 'A user cannot remove super user from themselves'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(
+                    data={"errors": "A user cannot remove super user from themselves"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        data = replace_default_string_for_form_select(data, fields=['role', 'team'])
+        data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
         with reversion.create_revision():
             serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
@@ -163,11 +152,9 @@ class GovUserDetail(APIView):
                 if gov_user.status == GovUserStatuses.DEACTIVATED:
                     gov_user.unassign_from_cases()
 
-                return JsonResponse(data={'gov_user': serializer.data},
-                                    status=status.HTTP_200_OK)
+                return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={'errors': serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):
@@ -178,4 +165,4 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
-        return JsonResponse(data={'user': serializer.data})
+        return JsonResponse(data={"user": serializer.data})

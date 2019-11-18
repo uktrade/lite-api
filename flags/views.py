@@ -23,14 +23,15 @@ class FlagsList(APIView):
     """
     List all flags and perform actions on the list
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
         Returns list of all flags
         """
-        level = request.GET.get('level', None)  # Case, Good
-        team = request.GET.get('team', None)  # True, False
+        level = request.GET.get("level", None)  # Case, Good
+        team = request.GET.get("team", None)  # True, False
 
         flags = Flag.objects.all()
 
@@ -40,25 +41,23 @@ class FlagsList(APIView):
         if team:
             flags = flags.filter(team=request.user.team.id)
 
-        flags = flags.order_by('name')
+        flags = flags.order_by("name")
         serializer = FlagSerializer(flags, many=True)
-        return JsonResponse(data={'flags': serializer.data})
+        return JsonResponse(data={"flags": serializer.data})
 
     def post(self, request):
         """
         Add a new flag
         """
         data = JSONParser().parse(request)
-        data['team'] = request.user.team.id
+        data["team"] = request.user.team.id
         serializer = FlagSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'flag': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"flag": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -66,6 +65,7 @@ class FlagDetail(APIView):
     """
     Details of a specific flag
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -74,7 +74,7 @@ class FlagDetail(APIView):
         """
         flag = get_flag(pk)
         serializer = FlagSerializer(flag)
-        return JsonResponse(data={'flag': serializer.data})
+        return JsonResponse(data={"flag": serializer.data})
 
     def put(self, request, pk):
         """
@@ -84,17 +84,17 @@ class FlagDetail(APIView):
 
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
-            return JsonResponse(data={'errors': get_string('flags.error_messages.forbidden')},
-                                status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN,
+            )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'flag': serializer.data})
+            return JsonResponse(data={"flag": serializer.data})
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AssignFlags(APIView):
@@ -105,37 +105,41 @@ class AssignFlags(APIView):
         Assigns flags to goods and cases
         """
         data = JSONParser().parse(request)
-        level = data.get('level')[:-1].lower()
+        level = data.get("level")[:-1].lower()
         response_data = []
 
         # If the data provided isn't in a list format, append it to a list
-        objects = data.get('objects')
+        objects = data.get("objects")
         if not isinstance(objects, list):
             objects = [objects]
 
         # Loop through all objects provided and append flags to them
         for pk in objects:
             obj = get_object_of_level(level, pk)
-            serializer = FlagAssignmentSerializer(data=data,
-                                                  context={'team': request.user.team, 'level': level.title()})
+            serializer = FlagAssignmentSerializer(
+                data=data, context={"team": request.user.team, "level": level.title()}
+            )
 
             if serializer.is_valid():
-                self._assign_flags(flags=serializer.validated_data.get('flags'),
-                                   level=level.title(),
-                                   note=serializer.validated_data.get('note'),
-                                   obj=obj,
-                                   user=request.user)
+                self._assign_flags(
+                    flags=serializer.validated_data.get("flags"),
+                    level=level.title(),
+                    note=serializer.validated_data.get("note"),
+                    obj=obj,
+                    user=request.user,
+                )
                 response_data.append({level.lower(): serializer.data})
             else:
-                return JsonResponse(data={'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
 
         return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
 
     def _assign_flags(self, flags, level, note, obj, user):
         level = level.title()
         previously_assigned_team_flags = obj.flags.filter(level=level, team=user.team)
-        previously_assigned_deactivated_team_flags = obj.flags.filter(level=level, team=user.team,
-                                                                      status=FlagStatuses.DEACTIVATED)
+        previously_assigned_deactivated_team_flags = obj.flags.filter(
+            level=level, team=user.team, status=FlagStatuses.DEACTIVATED
+        )
         previously_assigned_not_team_flags = obj.flags.exclude(level=level, team=user.team)
 
         added_flags = [flag.name for flag in flags if flag not in previously_assigned_team_flags]
@@ -150,70 +154,89 @@ class AssignFlags(APIView):
         if isinstance(obj, Good):
             cases = []
 
-            cases.extend(Case.objects.filter(query__id__in=
-                                             ControlListClassificationQuery.objects.filter(good=obj)
-                                             .values_list('id', flat=True)))
+            cases.extend(
+                Case.objects.filter(
+                    query__id__in=ControlListClassificationQuery.objects.filter(good=obj).values_list("id", flat=True)
+                )
+            )
 
-            cases.extend(Case.objects.filter(application__id__in=
-                                             GoodOnApplication.objects.filter(good=obj)
-                                             .values_list('application_id', flat=True)))
+            cases.extend(
+                Case.objects.filter(
+                    application__id__in=GoodOnApplication.objects.filter(good=obj).values_list(
+                        "application_id", flat=True
+                    )
+                )
+            )
 
             for case in cases:
                 self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
 
         obj.flags.set(
-            flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags))
+            flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)
+        )
 
     def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
         # Add an activity item for the case
         if added_flags and removed_flags:
-            CaseActivity.create(activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
-                                case=case,
-                                user=user,
-                                added_flags=added_flags,
-                                removed_flags=removed_flags,
-                                additional_text=note,
-                                **kwargs)
+            CaseActivity.create(
+                activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
+                case=case,
+                user=user,
+                added_flags=added_flags,
+                removed_flags=removed_flags,
+                additional_text=note,
+                **kwargs
+            )
 
         if added_flags:
-            CaseActivity.create(activity_type=CaseActivityType.ADD_FLAGS,
-                                case=case,
-                                user=user,
-                                added_flags=added_flags,
-                                additional_text=note,
-                                **kwargs)
+            CaseActivity.create(
+                activity_type=CaseActivityType.ADD_FLAGS,
+                case=case,
+                user=user,
+                added_flags=added_flags,
+                additional_text=note,
+                **kwargs
+            )
 
         if removed_flags:
-            CaseActivity.create(activity_type=CaseActivityType.REMOVE_FLAGS,
-                                case=case,
-                                user=user,
-                                removed_flags=removed_flags,
-                                additional_text=note,
-                                **kwargs)
+            CaseActivity.create(
+                activity_type=CaseActivityType.REMOVE_FLAGS,
+                case=case,
+                user=user,
+                removed_flags=removed_flags,
+                additional_text=note,
+                **kwargs
+            )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case
         if added_flags and removed_flags:
-            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,
-                                case=case,
-                                user=user,
-                                added_flags=added_flags,
-                                removed_flags=removed_flags,
-                                additional_text=note,
-                                good_name=good.description)
+            CaseActivity.create(
+                activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,
+                case=case,
+                user=user,
+                added_flags=added_flags,
+                removed_flags=removed_flags,
+                additional_text=note,
+                good_name=good.description,
+            )
 
         if added_flags:
-            CaseActivity.create(activity_type=CaseActivityType.GOOD_ADD_FLAGS,
-                                case=case,
-                                user=user,
-                                added_flags=added_flags,
-                                additional_text=note,
-                                good_name=good.description)
+            CaseActivity.create(
+                activity_type=CaseActivityType.GOOD_ADD_FLAGS,
+                case=case,
+                user=user,
+                added_flags=added_flags,
+                additional_text=note,
+                good_name=good.description,
+            )
 
         if removed_flags:
-            CaseActivity.create(activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
-                                case=case,
-                                user=user,
-                                removed_flags=removed_flags,
-                                additional_text=note,
-                                good_name=good.description)
+            CaseActivity.create(
+                activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
+                case=case,
+                user=user,
+                removed_flags=removed_flags,
+                additional_text=note,
+                good_name=good.description,
+            )

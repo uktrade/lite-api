@@ -10,36 +10,73 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('users', '0006_auto_20190819_1523'),
-        ('documents', '0001_initial'),
-        ('organisations', '0001_initial'),
-        ('flags', '0001_initial'),
+        ("users", "0006_auto_20190819_1523"),
+        ("documents", "0001_initial"),
+        ("organisations", "0001_initial"),
+        ("flags", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Good',
+            name="Good",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('description', models.TextField(blank=True, default=None, max_length=280, null=True)),
-                ('is_good_controlled', models.CharField(choices=[('yes', 'Yes'), ('no', 'No'), ('unsure', "I don't know")], default='unsure', max_length=20)),
-                ('control_code', models.TextField(blank=True, default=None, null=True)),
-                ('is_good_end_product', models.BooleanField(blank=True, default=None, null=True)),
-                ('part_number', models.TextField(blank=True, default=None, null=True)),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('submitted', 'Submitted'), ('clc_query', 'Control List Classification Query'), ('verified', 'Verified')], default='draft', max_length=20)),
-                ('flags', models.ManyToManyField(related_name='goods', to='flags.Flag')),
-                ('organisation', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to='organisations.Organisation')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
+                (
+                    "is_good_controlled",
+                    models.CharField(
+                        choices=[("yes", "Yes"), ("no", "No"), ("unsure", "I don't know"),],
+                        default="unsure",
+                        max_length=20,
+                    ),
+                ),
+                ("control_code", models.TextField(blank=True, default=None, null=True)),
+                ("is_good_end_product", models.BooleanField(blank=True, default=None, null=True),),
+                ("part_number", models.TextField(blank=True, default=None, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("submitted", "Submitted"),
+                            ("clc_query", "Control List Classification Query"),
+                            ("verified", "Verified"),
+                        ],
+                        default="draft",
+                        max_length=20,
+                    ),
+                ),
+                ("flags", models.ManyToManyField(related_name="goods", to="flags.Flag"),),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        default=None, on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='GoodDocument',
+            name="GoodDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
-                ('description', models.TextField(blank=True, default=None, max_length=280, null=True)),
-                ('good', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='goods.Good')),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='organisations.Organisation')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='users.ExporterUser')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.Document",
+                    ),
+                ),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
+                ("good", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goods.Good"),),
+                (
+                    "organisation",
+                    models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="organisations.Organisation",),
+                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="users.ExporterUser",),),
             ],
-            bases=('documents.document',),
+            bases=("documents.document",),
         ),
     ]

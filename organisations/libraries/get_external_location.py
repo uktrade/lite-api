@@ -4,15 +4,15 @@ from organisations.models import ExternalLocation
 
 
 def get_location(pk, organisation=None):
-    kwargs = {'pk': pk}
+    kwargs = {"pk": pk}
 
     if organisation:
-        kwargs['organisation'] = organisation
+        kwargs["organisation"] = organisation
 
     try:
         return ExternalLocation.objects.get(**kwargs)
     except ExternalLocation.DoesNotExist:
-        raise NotFoundError({'external_location': 'External location not found - ' + str(pk)})
+        raise NotFoundError({"external_location": "External location not found - " + str(pk)})
 
 
 def has_previous_locations(application: BaseApplication):

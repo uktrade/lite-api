@@ -11,46 +11,76 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('addresses', '0001_initial'),
-        ('countries', '0002_auto_20190628_1252'),
+        ("addresses", "0001_initial"),
+        ("countries", "0002_auto_20190628_1252"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Organisation',
+            name="Organisation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(blank=True, default=None)),
-                ('eori_number', models.TextField(blank=True, default=None)),
-                ('sic_number', models.TextField(blank=True, default=None)),
-                ('vat_number', models.TextField(blank=True, default=None)),
-                ('registration_number', models.TextField(blank=True, default=None)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('last_modified_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("name", models.TextField(blank=True, default=None)),
+                ("eori_number", models.TextField(blank=True, default=None)),
+                ("sic_number", models.TextField(blank=True, default=None)),
+                ("vat_number", models.TextField(blank=True, default=None)),
+                ("registration_number", models.TextField(blank=True, default=None)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("last_modified_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Site',
+            name="Site",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site', to='addresses.Address')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site', to='organisations.Organisation')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("name", models.TextField(default=None)),
+                (
+                    "address",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="site", to="addresses.Address",
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="site",
+                        to="organisations.Organisation",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='organisation',
-            name='primary_site',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organisation_primary_site', to='organisations.Site'),
+            model_name="organisation",
+            name="primary_site",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organisation_primary_site",
+                to="organisations.Site",
+            ),
         ),
         migrations.CreateModel(
-            name='ExternalLocation',
+            name="ExternalLocation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.TextField(default=None)),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='countries.Country')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='external_location', to='organisations.Organisation')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("name", models.TextField(default=None)),
+                ("address", models.TextField(default=None)),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country",),),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="external_location",
+                        to="organisations.Organisation",
+                    ),
+                ),
             ],
         ),
     ]

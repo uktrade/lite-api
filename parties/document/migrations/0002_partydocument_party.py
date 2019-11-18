@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('document', '0001_initial'),
-        ('parties', '0001_initial'),
+        ("document", "0001_initial"),
+        ("parties", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='partydocument',
-            name='party',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='parties.Party'),
+            model_name="partydocument",
+            name="party",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="parties.Party"),
         ),
     ]

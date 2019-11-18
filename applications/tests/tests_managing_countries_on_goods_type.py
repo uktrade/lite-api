@@ -8,7 +8,6 @@ from test_helpers.clients import DataTestClient
 
 
 class GoodTypeCountriesManagementTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.open_draft = self.create_open_application(self.organisation)
@@ -19,18 +18,22 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         self.goods_type_2 = self.goods_types[1]
 
         # Add a country to the draft
-        self.country_1 = get_country('ES')
-        self.country_2 = get_country('US')
-        self.country_3 = get_country('FR')
+        self.country_1 = get_country("ES")
+        self.country_2 = get_country("US")
+        self.country_3 = get_country("FR")
 
         self.all_countries = [self.country_1, self.country_2, self.country_3]
         for country in self.all_countries:
             CountryOnApplication(application=self.open_draft, country=country).save()
 
-        self.good_url = reverse('applications:application_goodstype', kwargs={'pk': self.open_draft.id,
-                                                                              'goodstype_pk': self.goods_type_1.id})
-        self.good_country_url = reverse('applications:application_goodstype_assign_countries',
-                                        kwargs={'pk': self.open_draft.id, 'goodstype_pk': self.goods_type_1.id})
+        self.good_url = reverse(
+            "applications:application_goodstype",
+            kwargs={"pk": self.open_draft.id, "goodstype_pk": self.goods_type_1.id},
+        )
+        self.good_country_url = reverse(
+            "applications:application_goodstype_assign_countries",
+            kwargs={"pk": self.open_draft.id, "goodstype_pk": self.goods_type_1.id},
+        )
 
     def test_no_county_for_goods_type_are_returned(self):
         """
@@ -40,7 +43,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         """
         response = self.client.get(self.good_url, **self.exporter_headers)
 
-        self.assertEqual([], response.json()['good']['countries'])
+        self.assertEqual([], response.json()["good"]["countries"])
 
     def test_all_countries_for_goods_type_are_returned(self):
         """
@@ -52,8 +55,8 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
         response = self.client.get(self.good_url, **self.exporter_headers)
 
-        returned_good = response.json()['good']
-        self.assertEquals(len(self.goods_type_1.countries.all()), len(returned_good['countries']))
+        returned_good = response.json()["good"]
+        self.assertEquals(len(self.goods_type_1.countries.all()), len(returned_good["countries"]))
 
     def test_state_can_be_over_written(self):
         """
@@ -62,11 +65,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         Then only that Country is removed
         """
         self.goods_type_1.countries.set(self.all_countries)
-        data = {
-            str(self.goods_type_1.id): [
-                self.country_1.id,
-                self.country_2.id]
-        }
+        data = {str(self.goods_type_1.id): [self.country_1.id, self.country_2.id]}
 
         self.client.put(self.good_country_url, data, **self.exporter_headers)
 
@@ -80,12 +79,8 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         """
 
         data = {
-            str(self.goods_type_1.id): [
-                self.country_1.id,
-                self.country_2.id],
-            str(self.goods_type_2.id): [
-                self.country_3.id,
-                self.country_1.id]
+            str(self.goods_type_1.id): [self.country_1.id, self.country_2.id],
+            str(self.goods_type_2.id): [self.country_3.id, self.country_1.id],
         }
 
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)
@@ -96,18 +91,14 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
     def test_goodstype_countries_black_box_data_persistence(self):
         data = {
-            str(self.goods_type_1.id): [
-                self.country_1.id,
-                self.country_2.id],
-            str(self.goods_type_2.id): [
-                self.country_3.id,
-                self.country_1.id]
+            str(self.goods_type_1.id): [self.country_1.id, self.country_2.id],
+            str(self.goods_type_2.id): [self.country_3.id, self.country_1.id],
         }
 
         self.client.put(self.good_country_url, data, **self.exporter_headers)
         response = self.client.get(self.good_url, data, **self.exporter_headers)
 
-        countries = [x.get('id') for x in response.json()['good']['countries']]
+        countries = [x.get("id") for x in response.json()["good"]["countries"]]
         self.assertEqual(len(countries), 2)
         self.assertIn(self.country_1.id, countries)
         self.assertIn(self.country_2.id, countries)
@@ -117,12 +108,8 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         404 with invalid request county key
         """
         data = {
-            str(self.goods_type_1.id): [
-                self.country_1.id,
-                self.country_2.id],
-            str(self.goods_type_2.id): [
-                'sdffsdfds',
-                self.country_1.id]
+            str(self.goods_type_1.id): [self.country_1.id, self.country_2.id],
+            str(self.goods_type_2.id): ["sdffsdfds", self.country_1.id],
         }
 
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)

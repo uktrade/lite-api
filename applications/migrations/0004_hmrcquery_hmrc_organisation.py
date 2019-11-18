@@ -7,14 +7,16 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0007_organisation_flags'),
-        ('applications', '0003_auto_20191030_1106'),
+        ("organisations", "0007_organisation_flags"),
+        ("applications", "0003_auto_20191030_1106"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hmrcquery',
-            name='hmrc_organisation',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, to='organisations.Organisation'),
+            model_name="hmrcquery",
+            name="hmrc_organisation",
+            field=models.ForeignKey(
+                default=None, on_delete=django.db.models.deletion.PROTECT, to="organisations.Organisation",
+            ),
         ),
     ]

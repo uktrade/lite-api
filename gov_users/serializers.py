@@ -13,22 +13,22 @@ from users.models import Role, Permission
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = ('id',
-                  'name')
+        fields = ("id", "name")
 
 
 class RoleSerializer(serializers.ModelSerializer):
     permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
-    name = serializers.CharField(max_length=30,
-                                 validators=[UniqueValidator(queryset=Role.objects.all(), lookup='iexact',
-                                                             message=get_string('roles.duplicate_name'))],
-                                 error_messages={'blank': get_string('roles.blank_name')})
+    name = serializers.CharField(
+        max_length=30,
+        validators=[
+            UniqueValidator(queryset=Role.objects.all(), lookup="iexact", message=get_string("roles.duplicate_name"),)
+        ],
+        error_messages={"blank": get_string("roles.blank_name")},
+    )
 
     class Meta:
         model = Role
-        fields = ('id',
-                  'name',
-                  'permissions')
+        fields = ("id", "name", "permissions")
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -37,48 +37,46 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GovUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'team',
-                  'role',)
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "status",
+            "team",
+            "role",
+        )
 
 
 class GovUserCreateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=GovUser.objects.all())],
-                                   error_messages={
-                                       'blank': get_string('users.invalid_email'),
-                                       'invalid': get_string('users.invalid_email'),
-                                   })
-    team = PrimaryKeyRelatedField(queryset=Team.objects.all(),
-                                  error_messages={
-                                      'null': get_string('users.null_team'),
-                                      'invalid': get_string('users.null_team'),
-                                  })
-    role = PrimaryKeyRelatedField(queryset=Role.objects.all(),
-                                  error_messages={
-                                      'null': get_string('users.null_role'),
-                                      'invalid': get_string('users.null_role'),
-                                  })
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=GovUser.objects.all())],
+        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"),},
+    )
+    team = PrimaryKeyRelatedField(
+        queryset=Team.objects.all(),
+        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"),},
+    )
+    role = PrimaryKeyRelatedField(
+        queryset=Role.objects.all(),
+        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"),},
+    )
 
     class Meta:
         model = GovUser
-        fields = ('id',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'status',
-                  'team',
-                  'role',)
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "status",
+            "team",
+            "role",
+        )
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = GovUser
-        fields = ('id',
-                  'first_name',
-                  'last_name',
-                  'email')
+        fields = ("id", "first_name", "last_name", "email")

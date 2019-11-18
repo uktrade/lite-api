@@ -22,20 +22,16 @@ def backwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0001_initial'),
-        ('control_list_classifications', '0001_initial'),
+        ("goods", "0001_initial"),
+        ("control_list_classifications", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='good',
-            name='comment',
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="good", name="comment", field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='good',
-            name='report_summary',
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="good", name="report_summary", field=models.TextField(blank=True, default=None, null=True),
         ),
-        migrations.RunPython(forwards_func, backwards_func)
+        migrations.RunPython(forwards_func, backwards_func),
     ]

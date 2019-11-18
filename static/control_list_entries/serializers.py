@@ -13,16 +13,16 @@ class ControlListEntryChildlessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ControlListEntry
-        fields = '__all__'
-        excludes = ['children']
+        fields = "__all__"
+        excludes = ["children"]
 
 
 class ControlListEntrySerializer(serializers.ModelSerializer):
-    parent = PrimaryKeyRelatedSerializerField(queryset=ControlListEntry.objects.all(),
-                                              serializer=ControlListEntryChildlessSerializer,
-                                              allow_null=True)
+    parent = PrimaryKeyRelatedSerializerField(
+        queryset=ControlListEntry.objects.all(), serializer=ControlListEntryChildlessSerializer, allow_null=True,
+    )
     children = ControlListEntryChildlessSerializer(many=True, read_only=True)
 
     class Meta:
         model = ControlListEntry
-        fields = '__all__'
+        fields = "__all__"

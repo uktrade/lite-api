@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('queues', '0001_initial'),
+        ("queues", "0001_initial"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='queue',
-            options={'ordering': ['name']},
-        ),
+        migrations.AlterModelOptions(name="queue", options={"ordering": ["name"]},),
     ]

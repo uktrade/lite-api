@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0003_auto_20190926_0952'),
+        ("organisations", "0003_auto_20190926_0952"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='site',
-            options={},
-        ),
+        migrations.AlterModelOptions(name="site", options={},),
     ]
