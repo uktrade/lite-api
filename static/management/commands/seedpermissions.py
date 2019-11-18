@@ -14,9 +14,8 @@ class Command(SeedCommand):
     seed_command = "seedpermissions"
 
     def operation(self, *args, **options):
-        reader = self.read_csv(FILE)
-        for row in reader:
-            Permission.objects.get_or_create(id=row[0], name=row[1])
+        csv = self.read_csv(FILE)
+        self.update_or_create(Permission, csv)
 
 
 class SeedPermissionsTests(SeedCommandTest):
