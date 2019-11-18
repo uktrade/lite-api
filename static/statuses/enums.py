@@ -18,3 +18,14 @@ class CaseStatusEnum:
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
     ]
+
+    is_read_only = {
+        APPLICANT_EDITING: False,
+        FINALISED: True,
+        INITIAL_CHECKS: False,
+        RESUBMITTED: False,
+        SUBMITTED: False,
+        UNDER_FINAL_REVIEW: True,
+        UNDER_REVIEW: True,
+        WITHDRAWN: True,
+    }
