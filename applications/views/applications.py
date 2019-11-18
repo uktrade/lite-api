@@ -233,7 +233,6 @@ class ApplicationManageStatus(APIView):
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
-
         request.data["status"] = str(new_status.pk)
 
         serializer = get_application_update_serializer(application)
