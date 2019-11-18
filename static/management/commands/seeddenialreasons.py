@@ -15,11 +15,8 @@ class Command(SeedCommand):
     seed_command = "seeddenialreasons"
 
     def operation(self, *args, **options):
-        reader = self.read_csv(FILE)
-        for row in reader:
-            item_id = row[0]
-            item_is_deprecated = str_to_bool(row[1])
-            DenialReason.objects.get_or_create(id=item_id, deprecated=item_is_deprecated)
+        csv = self.read_csv(FILE)
+        self.update_or_create(DenialReason, csv)
 
 
 class SeedDenialReasonsTests(SeedCommandTest):
