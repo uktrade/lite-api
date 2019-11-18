@@ -63,7 +63,7 @@ class CaseActivityType(BaseActivityType):
             (ADD_REMOVE_FLAGS, "added flags: {added_flags}, and removed: {removed_flags}",),
             (
                 GOOD_REVIEWED,
-                'good was reviewed: {good_name} control code was changed from "{old_control_code}" to '
+                'good was reviewed: {good_name} control code changed from "{old_control_code}" to '
                 '"{new_control_code}"',
             ),
             (GOOD_ADD_FLAGS, "added flags: {added_flags} to good: {good_name}"),
