@@ -17,9 +17,6 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedsystemflags
         """
-        team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
-        reader = self.read_csv(FILE)
-        for row in reader:
-            Flag.objects.get_or_create(
-                id=row[0], name=row[1], level="Case", status="Deactivated", team_id=team.id,
-            )
+        Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)
+        csv = self.read_csv(FILE)
+        self.update_or_create(Flag, csv)
