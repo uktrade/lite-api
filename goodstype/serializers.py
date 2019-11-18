@@ -5,6 +5,7 @@ from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagStatuses
+from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from static.countries.models import Country
@@ -12,13 +13,13 @@ from static.countries.serializers import CountrySerializer
 
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=2000)
+    description = serializers.CharField(max_length=DESCRIPTION_MAX_LENGTH)
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     countries = PrimaryKeyRelatedSerializerField(
-        required=False, queryset=Country.objects.all(), serializer=CountrySerializer, many=True,
+        required=False, queryset=Country.objects.all(), serializer=CountrySerializer, many=True
     )
     document = serializers.SerializerMethodField()
 
