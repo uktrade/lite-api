@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Roles, Permissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
@@ -17,7 +17,7 @@ class RolesViews(APIView):
     Manage roles
     """
 
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request):
         """
@@ -36,7 +36,7 @@ class RolesViews(APIView):
         """
         Create a role
         """
-        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
         data = JSONParser().parse(request)
 
         serializer = RoleSerializer(data=data)
@@ -81,7 +81,7 @@ class RoleDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk)

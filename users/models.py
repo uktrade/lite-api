@@ -107,6 +107,14 @@ class ExporterUser(BaseUser):
                 "ExporterUser.send_notification: objects expected have not been added."
             )
 
+    def get_role(self, organisation):
+        return self.userorganisationrelationship_set.get(organisation=organisation).role
+
+    def update_role(self, organisation, role):
+        uor = self.userorganisationrelationship_set.get(organisation=organisation)
+        uor.role = role
+        uor.save()
+
 
 class UserOrganisationRelationship(models.Model):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)

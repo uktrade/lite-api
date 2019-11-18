@@ -24,7 +24,7 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
         reader = self.read_csv(FILE)
         for row in reader:
-            Permission.objects.get_or_create(id=row[0], name=row[1])
+            Permission.objects.get_or_create(id=row[0], name=row[1], type=row[2])
 
         Role.objects.get_or_create(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
         Role.objects.get_or_create(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)

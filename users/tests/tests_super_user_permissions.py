@@ -3,6 +3,7 @@ from rest_framework import status
 
 from conf.constants import Permissions
 from test_helpers.clients import DataTestClient
+from users.enums import UserType
 from users.models import Permission, GovUser
 
 
@@ -25,10 +26,11 @@ class SuperUserTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_super_user_role_has_all_permissions(self):
+    def test_super_user_roles_have_all_permissions(self):
         self.assertEqual(
-            self.super_user_role.permissions.count(), Permission.objects.all().count()
+            self.super_user_role.permissions.count(), Permission.objects.filter(type=UserType.INTERNAL).count()
         )
+        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.objects.filter(type=UserType.EXPORTER).count())
 
     def test_cannot_remove_super_user_role_from_yourself(self):
         self.gov_user.role = self.super_user_role
