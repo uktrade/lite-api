@@ -14,16 +14,10 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
     end_user = EndUserSerializer()
-    reasoning = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=2000
-    )
-    note = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=2000
-    )
+    reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     contact_email = serializers.EmailField()
-    copy_of = serializers.PrimaryKeyRelatedField(
-        queryset=EndUserAdvisoryQuery.objects.all(), required=False
-    )
+    copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -56,26 +50,17 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         return repr_dict
 
     def validate_nature_of_business(self, value):
-        if (
-            self.initial_data.get("end_user").get("sub_type") == SubType.COMMERCIAL
-            and not value
-        ):
+        if self.initial_data.get("end_user").get("sub_type") == SubType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
     def validate_contact_name(self, value):
-        if (
-            self.initial_data.get("end_user").get("sub_type") != SubType.INDIVIDUAL
-            and not value
-        ):
+        if self.initial_data.get("end_user").get("sub_type") != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
     def validate_contact_job_title(self, value):
-        if (
-            self.initial_data.get("end_user").get("sub_type") != SubType.INDIVIDUAL
-            and not value
-        ):
+        if self.initial_data.get("end_user").get("sub_type") != SubType.INDIVIDUAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
         return value
 
@@ -92,9 +77,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
-        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
-            **validated_data, end_user=end_user
-        )
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 
         return end_user_advisory_query

@@ -14,10 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="notification",
             name="case_activity",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="cases.CaseActivity",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="cases.CaseActivity",),
         ),
     ]

@@ -23,11 +23,7 @@ class Migration(migrations.Migration):
                 max_length=50,
             ),
         ),
-        migrations.RenameField(
-            model_name="baseapplication",
-            old_name="licence_type",
-            new_name="application_type",
-        ),
+        migrations.RenameField(model_name="baseapplication", old_name="licence_type", new_name="application_type",),
         migrations.CreateModel(
             name="HmrcQuery",
             fields=[
@@ -66,16 +62,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "third_parties",
-                    models.ManyToManyField(
-                        related_name="hmrc_query_third_parties", to="parties.ThirdParty"
-                    ),
+                    models.ManyToManyField(related_name="hmrc_query_third_parties", to="parties.ThirdParty"),
                 ),
                 (
                     "ultimate_end_users",
-                    models.ManyToManyField(
-                        related_name="hmrc_query_ultimate_end_users",
-                        to="parties.UltimateEndUser",
-                    ),
+                    models.ManyToManyField(related_name="hmrc_query_ultimate_end_users", to="parties.UltimateEndUser",),
                 ),
             ],
             bases=("applications.baseapplication",),

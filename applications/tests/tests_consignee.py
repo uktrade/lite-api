@@ -16,9 +16,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.draft = self.create_standard_application(self.organisation)
         self.url = reverse("applications:consignee", kwargs={"pk": self.draft.id})
 
-        self.document_url = reverse(
-            "applications:consignee_document", kwargs={"pk": self.draft.id}
-        )
+        self.document_url = reverse("applications:consignee_document", kwargs={"pk": self.draft.id})
         self.new_document_data = {
             "name": "document_name.pdf",
             "s3_key": "s3_keykey.pdf",
@@ -143,9 +141,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Consignee.objects.all().count(), 0)
 
-    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(
-        self,
-    ):
+    def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self,):
         """
         Given a draft standard application
         When I try to delete an consignee from the application
@@ -171,9 +167,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         """
         PartyDocument.objects.filter(party=self.draft.consignee).delete()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -196,9 +190,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_consignee_document_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_consignee_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -213,9 +205,7 @@ class ConsigneeOnDraftTests(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_consignee_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_consignee_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains a consignee user

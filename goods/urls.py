@@ -12,15 +12,7 @@ urlpatterns = [
     # ex: /goods/<uuid:pk>/documents/ - View all documents on a good or add a new one
     path("<uuid:pk>/documents/", views.GoodDocuments.as_view(), name="documents"),
     # ex: /goods/<uuid:pk>/documents/<uuid:doc_pk>/ - View a specific document (get the download link etc.) or delete it
-    path(
-        "<uuid:pk>/documents/<uuid:doc_pk>/",
-        views.GoodDocumentDetail.as_view(),
-        name="document",
-    ),
+    path("<uuid:pk>/documents/<uuid:doc_pk>/", views.GoodDocumentDetail.as_view(), name="document",),
     # ex: /goods/controlcode/<uuid:case_pk>/ - Set control list codes on multiple goods
-    path(
-        "controlcode/<uuid:case_pk>/",
-        views.GoodsListControlCode.as_view(),
-        name="control_code",
-    ),
+    path("controlcode/<uuid:case_pk>/", views.GoodsListControlCode.as_view(), name="control_code",),
 ]

@@ -12,11 +12,7 @@ from teams.models import Team
 
 
 def _all_cases_queue():
-    queue = Queue(
-        id=ALL_CASES_SYSTEM_QUEUE_ID,
-        name="All cases",
-        team=Team.objects.get(name="Admin"),
-    )
+    queue = Queue(id=ALL_CASES_SYSTEM_QUEUE_ID, name="All cases", team=Team.objects.get(name="Admin"),)
     queue.is_system_queue = True
     queue.query = Q()
     queue.reverse_ordering = True
@@ -25,11 +21,7 @@ def _all_cases_queue():
 
 
 def _open_cases_queue():
-    queue = Queue(
-        id=OPEN_CASES_SYSTEM_QUEUE_ID,
-        name="Open cases",
-        team=Team.objects.get(name="Admin"),
-    )
+    queue = Queue(id=OPEN_CASES_SYSTEM_QUEUE_ID, name="Open cases", team=Team.objects.get(name="Admin"),)
     queue.is_system_queue = True
     queue.query = (
         ~Q(application__status__status=CaseStatusEnum.WITHDRAWN)

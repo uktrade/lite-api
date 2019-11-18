@@ -18,46 +18,25 @@ class Migration(migrations.Migration):
             model_name="govuser",
             name="status",
             field=models.CharField(
-                choices=[("Active", "Active"), ("Deactivated", "Deactivated")],
-                default="Active",
-                max_length=20,
+                choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20,
             ),
         ),
         migrations.CreateModel(
             name="UserOrganisationRelationship",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID",),),
                 (
                     "status",
                     models.CharField(
-                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")],
-                        default="Active",
-                        max_length=20,
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20,
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "organisation",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="organisations.Organisation",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation",),
                 ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="users.ExporterUser",
-                    ),
-                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="users.ExporterUser",),),
             ],
         ),
     ]

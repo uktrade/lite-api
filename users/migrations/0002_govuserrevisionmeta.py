@@ -15,27 +15,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="GovUserRevisionMeta",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "gov_user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="users.GovUser"
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID",),),
+                ("gov_user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="users.GovUser"),),
                 (
                     "revision",
-                    models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="reversion.Revision",
-                    ),
+                    models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to="reversion.Revision",),
                 ),
             ],
         ),

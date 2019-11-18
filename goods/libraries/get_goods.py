@@ -34,9 +34,7 @@ def get_goods_from_case(case):
             return []
     else:
         application = BaseApplication.objects.get(case=case)
-        goods_on_applications = GoodOnApplication.objects.filter(
-            application=application
-        )
+        goods_on_applications = GoodOnApplication.objects.filter(application=application)
         return [x.good.id for x in goods_on_applications]
 
 

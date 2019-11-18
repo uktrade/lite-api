@@ -21,10 +21,7 @@ class Migration(migrations.Migration):
                 ("submitted_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "organisation",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="organisations.Organisation",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation",),
                 ),
                 (
                     "status",

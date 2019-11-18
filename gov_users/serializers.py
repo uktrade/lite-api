@@ -21,11 +21,7 @@ class RoleSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=30,
         validators=[
-            UniqueValidator(
-                queryset=Role.objects.all(),
-                lookup="iexact",
-                message=get_string("roles.duplicate_name"),
-            )
+            UniqueValidator(queryset=Role.objects.all(), lookup="iexact", message=get_string("roles.duplicate_name"),)
         ],
         error_messages={"blank": get_string("roles.blank_name")},
     )
@@ -53,29 +49,18 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 
 class GovUserCreateSerializer(GovUserViewSerializer):
-    status = serializers.ChoiceField(
-        choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE
-    )
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
-        error_messages={
-            "blank": get_string("users.invalid_email"),
-            "invalid": get_string("users.invalid_email"),
-        },
+        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"),},
     )
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
-        error_messages={
-            "null": get_string("users.null_team"),
-            "invalid": get_string("users.null_team"),
-        },
+        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"),},
     )
     role = PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
-        error_messages={
-            "null": get_string("users.null_role"),
-            "invalid": get_string("users.null_role"),
-        },
+        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"),},
     )
 
     class Meta:

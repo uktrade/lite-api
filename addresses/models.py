@@ -18,6 +18,4 @@ class Address(models.Model):
     region = models.TextField(default=None, blank=False)
     postcode = models.CharField(max_length=10)
     city = models.TextField(default=None, blank=False)
-    country = models.ForeignKey(
-        Country, blank=False, null=False, on_delete=models.CASCADE
-    )
+    country = models.ForeignKey(Country, blank=False, null=False, on_delete=models.CASCADE)

@@ -45,17 +45,13 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
     quantity = DecimalField(
-        max_digits=256,
-        decimal_places=6,
-        error_messages={"invalid": get_string("goods.error_messages.invalid_qty")},
+        max_digits=256, decimal_places=6, error_messages={"invalid": get_string("goods.error_messages.invalid_qty")},
     )
     value = (
         DecimalField(
             max_digits=256,
             decimal_places=2,
-            error_messages={
-                "invalid": get_string("goods.error_messages.invalid_value")
-            },
+            error_messages={"invalid": get_string("goods.error_messages.invalid_value")},
         ),
     )
     unit = ChoiceField(

@@ -9,9 +9,7 @@ from applications.enums import (
 )
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
-from applications.serializers.denial_reasons import (
-    ApplicationDenialReasonCreateSerializer,
-)
+from applications.serializers.denial_reasons import ApplicationDenialReasonCreateSerializer
 from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
@@ -46,9 +44,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         if hasattr(instance, "export_type"):
             return {
                 "key": instance.export_type,
-                "value": get_value_from_enum(
-                    ApplicationExportType, instance.export_type
-                ),
+                "value": get_value_from_enum(ApplicationExportType, instance.export_type),
             }
         return None
 
@@ -127,9 +123,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"blank": get_string("goods.error_messages.ref_name")},
     )
-    reasons = serializers.PrimaryKeyRelatedField(
-        queryset=DenialReason.objects.all(), many=True, write_only=True
-    )
+    reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
 
@@ -150,31 +144,21 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
 
         # Remove any previous denial reasons
-        if validated_data.get("status") == get_case_status_by_status(
-            CaseStatusEnum.FINALISED
-        ):
-            ApplicationDenialReason.objects.filter(
-                application=get_application(instance.id)
-            ).delete()
+        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
+            ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
         # If the status has been set to under final review, add reason_details to application
-        if validated_data.get("status") == get_case_status_by_status(
-            CaseStatusEnum.UNDER_FINAL_REVIEW
-        ):
+        if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW):
             data = {
                 "application": instance.id,
                 "reason_details": validated_data.get("reason_details"),
                 "reasons": validated_data.get("reasons"),
             }
 
-            application_denial_reason_serializer = ApplicationDenialReasonCreateSerializer(
-                data=data
-            )
+            application_denial_reason_serializer = ApplicationDenialReasonCreateSerializer(data=data)
             if application_denial_reason_serializer.is_valid():
                 # Delete existing ApplicationDenialReasons
-                ApplicationDenialReason.objects.filter(
-                    application=get_application(instance.id)
-                ).delete()
+                ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
                 # Create a new ApplicationDenialReason
                 application_denial_reason_serializer.save()

@@ -42,9 +42,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
         return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_destinations(self, application):
-        countries = Country.objects.filter(
-            countries_on_application__application=application
-        )
+        countries = Country.objects.filter(countries_on_application__application=application)
         serializer = CountrySerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
@@ -60,9 +58,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             serializer = SiteViewSerializer(sites, many=True)
             return {"type": "sites", "data": serializer.data}
 
-        external_locations = ExternalLocation.objects.filter(
-            external_locations_on_application__application=application
-        )
+        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
 
         if external_locations:
             serializer = ExternalLocationSerializer(external_locations, many=True)
@@ -97,9 +93,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": get_string("goods.error_messages.ref_name")},
     )
-    reference_number_on_information_form = CharField(
-        max_length=100, required=False, allow_blank=True, allow_null=True
-    )
+    reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = OpenApplication
@@ -109,13 +103,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         )
 
     def update(self, instance, validated_data):
-        instance.have_you_been_informed = validated_data.get(
-            "have_you_been_informed", instance.have_you_been_informed
-        )
+        instance.have_you_been_informed = validated_data.get("have_you_been_informed", instance.have_you_been_informed)
         if instance.have_you_been_informed == "yes":
             instance.reference_number_on_information_form = validated_data.get(
-                "reference_number_on_information_form",
-                instance.reference_number_on_information_form,
+                "reference_number_on_information_form", instance.reference_number_on_information_form,
             )
         else:
             instance.reference_number_on_information_form = None

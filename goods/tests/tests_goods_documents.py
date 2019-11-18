@@ -17,18 +17,10 @@ class GoodDocumentsTests(DataTestClient):
 
     def test_can_view_all_documents_on_a_good(self):
         self.create_good_document(
-            good=self.good,
-            user=self.exporter_user,
-            organisation=self.organisation,
-            s3_key="doc1key",
-            name="doc1.pdf",
+            good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf",
         )
         self.create_good_document(
-            good=self.good,
-            user=self.exporter_user,
-            organisation=self.organisation,
-            s3_key="doc2key",
-            name="doc2.pdf",
+            good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key="doc2key", name="doc2.pdf",
         )
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -75,11 +67,7 @@ class GoodDocumentsTests(DataTestClient):
         draft = self.create_standard_application(self.organisation)
         good = GoodOnApplication.objects.get(application=draft).good
         document_1 = self.create_good_document(
-            good=good,
-            user=self.exporter_user,
-            organisation=self.organisation,
-            s3_key="doc1key",
-            name="doc1.pdf",
+            good=good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf",
         )
         self.submit_application(draft)
 

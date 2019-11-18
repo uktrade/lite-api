@@ -16,17 +16,12 @@ class GoodsVerifiedTests(DataTestClient):
         super().setUp()
 
         self.report_summary = self.create_picklist_item(
-            "Report Summary",
-            self.team,
-            PicklistType.REPORT_SUMMARY,
-            PickListStatus.ACTIVE,
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE,
         )
 
         self.good_1 = self.create_controlled_good("this is a good", self.organisation)
         self.good_1.flags.set([self.create_flag("New Flag", "Good", self.team)])
-        self.good_2 = self.create_controlled_good(
-            "this is a good as well", self.organisation
-        )
+        self.good_2 = self.create_controlled_good("this is a good as well", self.organisation)
 
         role = Role(name="review_goods")
         role.permissions.set([Permissions.REVIEW_GOODS])
@@ -35,20 +30,8 @@ class GoodsVerifiedTests(DataTestClient):
         self.gov_user.save()
 
         self.draft = self.create_standard_application(organisation=self.organisation)
-        GoodOnApplication(
-            good=self.good_1,
-            application=self.draft,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        ).save()
-        GoodOnApplication(
-            good=self.good_2,
-            application=self.draft,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        ).save()
+        GoodOnApplication(good=self.good_1, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
+        GoodOnApplication(good=self.good_2, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
         self.submit_application(self.draft)
         self.case = Case.objects.get(application=self.draft)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
@@ -179,11 +162,7 @@ class GoodsVerifiedTests(DataTestClient):
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
         valid_user = GovUser(
-            email="test2@mail.com",
-            first_name="John",
-            last_name="Smith",
-            team=self.team,
-            role=self.super_user_role,
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role,
         )
         valid_user.save()
 

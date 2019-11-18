@@ -18,15 +18,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Flag",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(default="Untitled Flag")),
                 (
                     "level",
@@ -43,17 +35,10 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.CharField(
-                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")],
-                        default="Active",
-                        max_length=20,
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20,
                     ),
                 ),
-                (
-                    "team",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="teams.Team"
-                    ),
-                ),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team"),),
             ],
         ),
     ]

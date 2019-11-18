@@ -10,17 +10,13 @@ def copy_fields_into_child(apps, schema_editor):
     for application in StandardApplication.objects.all():
         application.export_type = application.export_type_2
         application.have_you_been_informed = application.have_you_been_informed_2
-        application.reference_number_on_information_form = (
-            application.reference_number_on_information_form_2
-        )
+        application.reference_number_on_information_form = application.reference_number_on_information_form_2
         application.save()
 
     for application in OpenApplication.objects.all():
         application.export_type = application.export_type_2
         application.have_you_been_informed = application.have_you_been_informed_2
-        application.reference_number_on_information_form = (
-            application.reference_number_on_information_form_2
-        )
+        application.reference_number_on_information_form = application.reference_number_on_information_form_2
         application.save()
 
 
@@ -31,15 +27,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RenameField(model_name="baseapplication", old_name="export_type", new_name="export_type_2",),
         migrations.RenameField(
-            model_name="baseapplication",
-            old_name="export_type",
-            new_name="export_type_2",
-        ),
-        migrations.RenameField(
-            model_name="baseapplication",
-            old_name="have_you_been_informed",
-            new_name="have_you_been_informed_2",
+            model_name="baseapplication", old_name="have_you_been_informed", new_name="have_you_been_informed_2",
         ),
         migrations.RenameField(
             model_name="baseapplication",
@@ -59,12 +49,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="openapplication",
             name="have_you_been_informed",
-            field=models.CharField(
-                choices=[("yes", "Yes"), ("no", "No")],
-                default=None,
-                null=True,
-                max_length=50,
-            ),
+            field=models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, null=True, max_length=50,),
         ),
         migrations.AddField(
             model_name="openapplication",
@@ -84,12 +69,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="standardapplication",
             name="have_you_been_informed",
-            field=models.CharField(
-                choices=[("yes", "Yes"), ("no", "No")],
-                default=None,
-                null=True,
-                max_length=50,
-            ),
+            field=models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, null=True, max_length=50,),
         ),
         migrations.AddField(
             model_name="standardapplication",
@@ -98,42 +78,30 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(copy_fields_into_child),
         migrations.RemoveField(model_name="baseapplication", name="export_type_2",),
-        migrations.RemoveField(
-            model_name="baseapplication", name="have_you_been_informed_2",
-        ),
-        migrations.RemoveField(
-            model_name="baseapplication", name="reference_number_on_information_form_2",
-        ),
+        migrations.RemoveField(model_name="baseapplication", name="have_you_been_informed_2",),
+        migrations.RemoveField(model_name="baseapplication", name="reference_number_on_information_form_2",),
         migrations.AlterField(
             model_name="openapplication",
             name="export_type",
             field=models.CharField(
-                choices=[("permanent", "Permanent"), ("temporary", "Temporary")],
-                default=None,
-                max_length=50,
+                choices=[("permanent", "Permanent"), ("temporary", "Temporary")], default=None, max_length=50,
             ),
         ),
         migrations.AlterField(
             model_name="openapplication",
             name="have_you_been_informed",
-            field=models.CharField(
-                choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50
-            ),
+            field=models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50),
         ),
         migrations.AlterField(
             model_name="standardapplication",
             name="export_type",
             field=models.CharField(
-                choices=[("permanent", "Permanent"), ("temporary", "Temporary")],
-                default=None,
-                max_length=50,
+                choices=[("permanent", "Permanent"), ("temporary", "Temporary")], default=None, max_length=50,
             ),
         ),
         migrations.AlterField(
             model_name="standardapplication",
             name="have_you_been_informed",
-            field=models.CharField(
-                choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50
-            ),
+            field=models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50),
         ),
     ]

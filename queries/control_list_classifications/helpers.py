@@ -6,6 +6,4 @@ def get_clc_query_by_good(good):
     try:
         return ControlListClassificationQuery.objects.get(good=good)
     except ControlListClassificationQuery.DoesNotExist:
-        raise NotFoundError(
-            {"control_list_classification": "Control List Classification not found"}
-        )
+        raise NotFoundError({"control_list_classification": "Control List Classification not found"})

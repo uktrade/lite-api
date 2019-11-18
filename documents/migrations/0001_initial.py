@@ -15,15 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Document",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.CharField(max_length=1000)),
                 ("s3_key", models.CharField(default=None, max_length=1000)),
                 ("size", models.IntegerField(blank=True, null=True)),
