@@ -87,7 +87,12 @@ jobs:
       # Code Coverage
       - run:
           name: Run Code Coverage
-          command: pipenv run ./manage.py coverage --threshold=80 --html=False
+          command: |
+            pipenv run ./manage.py coverage --threshold=80
+            pipenv run ./manage.py coverage report
+            pipenv run ./manage.py coverage html
+      - store_artifacts:
+          path: htmlcov
 
       - run:
           name: Run Bandit tests
