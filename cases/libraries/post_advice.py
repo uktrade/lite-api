@@ -8,6 +8,7 @@ from cases.models import FinalAdvice, TeamAdvice, Advice
 from content_strings.strings import get_string
 from flags.enums import SystemFlags
 from flags.models import Flag
+from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
 
 
 def check_if_user_own_advice_exists(case, user):
@@ -16,8 +17,7 @@ def check_if_user_own_advice_exists(case, user):
         and Advice.objects.filter(case=case, user=user).exists()
     ):
         return JsonResponse(
-            {"errors": "You do not have permission to confirm your own user-level advice"},
-            status=status.HTTP_403_FORBIDDEN,
+            {"errors": ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR}, status=status.HTTP_403_FORBIDDEN,
         )
 
 
