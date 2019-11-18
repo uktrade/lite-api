@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+from cases.enums import CaseType
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -77,6 +79,8 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
+        validated_data["type"] = CaseType.END_USER_ADVISORY_QUERY
+        validated_data["organisation_id"] = end_user_data["organisation"]
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 

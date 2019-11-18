@@ -1,5 +1,6 @@
 from django.db import models
 
+from cases.enums import CaseType
 from parties.models import EndUser
 from queries.models import Query
 

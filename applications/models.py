@@ -8,6 +8,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
+from cases.models import Case
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -18,10 +19,8 @@ from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
 
-class BaseApplication(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class BaseApplication(Case):
     name = models.TextField(default=None, blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now=True, blank=True)
     submitted_at = models.DateTimeField(blank=True, null=True)
@@ -31,9 +30,6 @@ class BaseApplication(models.Model):
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-
-    class Meta:
-        ordering = ["-created_at"]
 
     objects = BaseApplicationManager()
 

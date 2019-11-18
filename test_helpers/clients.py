@@ -61,9 +61,9 @@ from users.models import (
     GovUser,
     BaseUser,
     ExporterUser,
-    UserOrganisationRelationship,
     Role,
 )
+from organisations.models import UserOrganisationRelationship
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):

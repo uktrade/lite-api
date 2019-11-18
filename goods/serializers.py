@@ -37,6 +37,8 @@ class GoodListSerializer(serializers.ModelSerializer):
             return clc_query.id
         except ControlListClassificationQuery.DoesNotExist:
             return None
+        except Exception:
+            pass
 
     class Meta:
         model = Good
@@ -127,7 +129,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_code = validated_data.get("control_code", instance.control_code)
+        instance.control_code = validated_data.get("control_code", "")
         instance.is_good_end_product = validated_data.get("is_good_end_product", instance.is_good_end_product)
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)

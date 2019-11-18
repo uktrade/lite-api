@@ -3,24 +3,20 @@ import uuid
 
 import reversion
 from django.db import models
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
 from flags.models import Flag
-from goods.models import Good
-from goodstype.models import GoodsType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
-from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
-from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
+from users.models import BaseUser, ExporterUser, GovUser
+from organisations.models import UserOrganisationRelationship, Organisation
 
 
 @reversion.register()
@@ -31,22 +27,11 @@ class Case(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
-    application = models.ForeignKey(BaseApplication, related_name="case", on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, related_name="case", on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 
     objects = CaseManager()
-
-    class Meta:
-        ordering = [Coalesce("application__submitted_at", "query__submitted_at")]
-
-    @property
-    def organisation(self):
-        """
-        The organisation for a case comes from the query or application associated with that case.
-        """
-        return self.query.organisation if self.query else self.application.organisation
 
 
 @reversion.register()
@@ -99,6 +84,8 @@ class Advice(models.Model):
     Advice for goods and destinations on cases
     """
 
+    from goods.models import Good
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
@@ -108,9 +95,9 @@ class Advice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     # Optional goods/destinations
-    good = models.ForeignKey(Good, on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
+    good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
+    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
+    country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
         UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
@@ -131,7 +118,7 @@ class Advice(models.Model):
                 case=self.case,
                 user=self.user,
                 good=self.good,
-                goods_type=self.goods_type,
+                # goods_type=self.goods_type,
                 country=self.country,
                 end_user=self.end_user,
                 ultimate_end_user=self.ultimate_end_user,
@@ -318,9 +305,10 @@ class CaseActivity(BaseActivity):
 
 
 class GoodCountryDecision(models.Model):
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
+    good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     decision = models.CharField(choices=AdviceType.choices, max_length=30)
 
@@ -333,7 +321,7 @@ class GoodCountryDecision(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey("queries.Query", on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)

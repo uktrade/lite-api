@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("countries", "0002_auto_20190628_1252"),
+        ("countries", "0001_initial"),
     ]
 
     operations = [

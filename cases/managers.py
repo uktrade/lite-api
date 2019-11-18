@@ -84,11 +84,7 @@ class CaseManager(models.Manager):
         Search for a user's available cases given a set of search parameters.
         """
         case_qs = self.get_queryset().prefetch_related(
-            "queues",
-            "query__status",
-            "application__status",
-            "query__organisation__flags",
-            "application__organisation__flags",
+            "queues", "query__status", "application__status", "organisation__flags",
         )
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:

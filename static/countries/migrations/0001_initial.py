@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Country",
             fields=[
-                ("id", models.CharField(primary_key=True, max_length=100)),
+                ("id", models.CharField(primary_key=True, max_length=10, editable=False, serialize=False)),
                 ("name", models.CharField(max_length=100)),
                 ("type", models.CharField(max_length=100)),
             ],

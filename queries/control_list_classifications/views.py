@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.enums import CaseType
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, GovAuthentication
@@ -18,7 +19,7 @@ from queries.control_list_classifications.models import ControlListClassificatio
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import UserOrganisationRelationship
+from organisations.models import UserOrganisationRelationship
 
 
 class ControlListClassificationsList(APIView):
@@ -38,16 +39,18 @@ class ControlListClassificationsList(APIView):
 
         good.status = GoodStatus.CLC_QUERY
         good.control_code = data["not_sure_details_control_code"]
-        good.save()
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details=data["not_sure_details_details"], good=good, organisation=data["organisation"],
+            details=data["not_sure_details_details"],
+            good=good,
+            organisation=data["organisation"],
+            type=CaseType.CLC_QUERY,
         )
+
+        good.save()
         clc_query.save()
 
-        return JsonResponse(
-            data={"id": clc_query.id, "case_id": clc_query.case.get().id}, status=status.HTTP_201_CREATED,
-        )
+        return JsonResponse(data={"id": clc_query.id}, status=status.HTTP_201_CREATED)
 
 
 class ControlListClassificationDetail(APIView):

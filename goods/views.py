@@ -95,13 +95,15 @@ class GoodList(APIView):
         """
         description = request.GET.get("description", "")
         part_number = request.GET.get("part_number", "")
-        control_rating = request.GET.get("control_rating", "")
+        control_rating = request.GET.get("control_rating", None)
         goods = Good.objects.filter(
             organisation_id=request.user.organisation.id,
             description__icontains=description,
             part_number__icontains=part_number,
-            control_code__icontains=control_rating,
         ).order_by("description")
+        if control_rating:
+            goods = goods.filter(control_code__icontains=control_rating)
+
         serializer = GoodListSerializer(goods, many=True)
         return JsonResponse(data={"goods": serializer.data})
 
@@ -140,9 +142,11 @@ class GoodDetail(APIView):
             # If there's a query with this good, update the notifications on it
             try:
                 query = ControlListClassificationQuery.objects.get(good=good)
-                request.user.notification_set.filter(case_note__case__query=query).update(viewed_at=timezone.now())
+                request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
                 request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
             except ControlListClassificationQuery.DoesNotExist:
+                pass
+            except Exception:
                 pass
         else:
             serializer = GoodWithFlagsSerializer(good)

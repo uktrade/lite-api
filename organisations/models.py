@@ -7,6 +7,7 @@ from conf.exceptions import NotFoundError
 from flags.models import Flag
 from organisations.enums import OrganisationType
 from static.countries.models import Country
+from users.enums import UserStatuses
 
 
 class Organisation(models.Model):
@@ -25,8 +26,6 @@ class Organisation(models.Model):
     flags = models.ManyToManyField(Flag, related_name="organisations")
 
     def get_user_relationship(self, user):
-        from users.models import UserOrganisationRelationship
-
         try:
             user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=self)
             return user_organisation_relationship
@@ -34,8 +33,6 @@ class Organisation(models.Model):
             raise NotFoundError({"user": "User does not belong to this organisation"})
 
     def get_users(self):
-        from users.models import UserOrganisationRelationship
-
         user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=self).order_by(
             "user__first_name"
         )
@@ -44,6 +41,13 @@ class Organisation(models.Model):
             relationship.user.status = relationship.status
 
         return [x.user for x in user_organisation_relationships]
+
+
+class UserOrganisationRelationship(models.Model):
+    user = models.ForeignKey("users.ExporterUser", on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
 
 class Site(models.Model):

@@ -25,7 +25,7 @@ class EndUserAdvisoriesList(APIView):
         """
         View all end user advisories belonging to an organisation.
         """
-        end_user_advisories = EndUserAdvisoryQuery.objects.filter(end_user__organisation=request.user.organisation)
+        end_user_advisories = EndUserAdvisoryQuery.objects.filter(organisation=request.user.organisation)
         serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
         return JsonResponse(data={"end_user_advisories": serializer.data})
 

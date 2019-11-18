@@ -6,13 +6,13 @@ from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Organisation
+from organisations.models import Organisation, UserOrganisationRelationship
 from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
+from users.models import ExporterUser, BaseUser, GovUser
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):

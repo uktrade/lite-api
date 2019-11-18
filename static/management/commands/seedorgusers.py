@@ -5,11 +5,11 @@ from django.core.management import call_command
 from addresses.models import Address
 from conf.settings import env
 from organisations.enums import OrganisationType
-from organisations.models import Organisation, Site
+from organisations.models import Organisation, Site, UserOrganisationRelationship
 from static.countries.helpers import get_country
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.enums import UserStatuses
-from users.models import ExporterUser, UserOrganisationRelationship
+from users.models import ExporterUser
 
 ORGANISATIONS = [
     {"name": "Archway Communications", "type": OrganisationType.COMMERCIAL, "reg_no": "09876543",},

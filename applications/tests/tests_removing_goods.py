@@ -9,7 +9,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
-from users.models import UserOrganisationRelationship
+from organisations.models import UserOrganisationRelationship
 from parameterized import parameterized
 
 

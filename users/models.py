@@ -8,7 +8,6 @@ from django.db import models
 
 from conf.constants import Roles
 from organisations.models import Organisation
-from queries.models import Query
 from teams.models import Team
 from users.enums import UserStatuses
 
@@ -86,6 +85,7 @@ class BaseUser(AbstractUser):
 class ExporterUser(BaseUser):
     def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
+        from queries.models import Query
 
         # circular import prevention
 
@@ -98,13 +98,6 @@ class ExporterUser(BaseUser):
             Notification.objects.create(user=self, ecju_query=ecju_query)
         else:
             raise Exception("ExporterUser.send_notification: objects expected have not been added.")
-
-
-class UserOrganisationRelationship(models.Model):
-    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
 
 class GovUser(BaseUser):
