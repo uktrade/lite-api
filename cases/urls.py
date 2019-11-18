@@ -2,6 +2,7 @@ from django.urls import path
 
 from cases.views import views, activity, case_notes
 from cases.views.search import views as search_views
+from cases.generated_document import views as generated_docs
 
 app_name = "cases"
 
@@ -38,4 +39,6 @@ urlpatterns = [
     path("<uuid:pk>/ecju-queries/", views.CaseEcjuQueries.as_view(), name="case_ecju_queries",),
     # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
+    # ex: /cases/<uuid:pk>/generated-documents/
+    path("<uuid:pk>/generated-documents/", generated_docs.GeneratedDocuments.as_view(), name="generated_documents"),
 ]
