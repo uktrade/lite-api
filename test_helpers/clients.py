@@ -511,13 +511,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name='Open Draft'):
-        application = OpenApplication(name=reference_name,
-                                      application_type=ApplicationType.OPEN_LICENCE,
-                                      export_type=ApplicationExportType.PERMANENT,
-                                      activity='Trade',
-                                      usage='Trade',
-                                      organisation=organisation)
+    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+        application = OpenApplication(
+            name=reference_name,
+            application_type=ApplicationType.OPEN_LICENCE,
+            export_type=ApplicationExportType.PERMANENT,
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+        )
 
         application.save()
 
