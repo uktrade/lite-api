@@ -15,14 +15,14 @@ class Command(SeedCommand):
         pipenv run ./manage.py seedcasestatuses
         """
         # Case statuses
+        statuses = {}
         for row in self.read_csv(STATUSES_FILE):
-            CaseStatus.objects.get_or_create(status=row[0], priority=row[2], is_read_only=row[3])
-
-        status_ids = {status.status: status for status in CaseStatus.objects.all()}
+            status = CaseStatus.objects.get_or_create(status=row[1], priority=row[2], is_read_only=row[3])[0]
+            statuses[row[0]] = status
 
         # Case statuses on case types
         for row in self.read_csv(STATUS_ON_TYPE_FILE):
-            CaseStatusCaseType.objects.get_or_create(type=row[1], status=status_ids[row[2]])
+            CaseStatusCaseType.objects.get_or_create(type=row[1], status=statuses[row[2]])
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
