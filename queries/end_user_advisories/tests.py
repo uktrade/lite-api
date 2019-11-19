@@ -3,6 +3,9 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.models import Case
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -11,14 +14,9 @@ class EndUserAdvisoryViewTests(DataTestClient):
         """
         Ensure that the user can view all end user advisory queries
         """
-        query = self.create_end_user_advisory(
-            "a note", "because I am unsure", self.organisation
-        )
+        query = self.create_end_user_advisory("a note", "because I am unsure", self.organisation)
 
-        response = self.client.get(
-            reverse("queries:end_user_advisories:end_user_advisories"),
-            **self.exporter_headers
-        )
+        response = self.client.get(reverse("queries:end_user_advisories:end_user_advisories"), **self.exporter_headers)
         response_data = response.json()["end_user_advisories"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -40,15 +38,10 @@ class EndUserAdvisoryViewTests(DataTestClient):
         """
         Ensure that the user can view an end user advisory query
         """
-        query = self.create_end_user_advisory(
-            "a note", "because I am unsure", self.organisation
-        )
+        query = self.create_end_user_advisory("a note", "because I am unsure", self.organisation)
 
         response = self.client.get(
-            reverse(
-                "queries:end_user_advisories:end_user_advisory", kwargs={"pk": query.id}
-            ),
-            **self.exporter_headers
+            reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": query.id}), **self.exporter_headers
         )
         response_data = response.json()["end_user_advisory"]
 
@@ -154,25 +147,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (
-                "com",
-                "person",
-                "http://gov.co.uk",
-                "place street",
-                "GB",
-                "",
-                "",
-            ),  # invalid end user type
+            ("com", "person", "http://gov.co.uk", "place street", "GB", "", "",),  # invalid end user type
             ("commercial", "", "", "nowhere", "GB", "", ""),  # name is empty
-            (
-                "government",
-                "abc",
-                "abc",
-                "nowhere",
-                "GB",
-                "",
-                "",
-            ),  # invalid web address
+            ("government", "abc", "abc", "nowhere", "GB", "", "",),  # invalid web address
             ("government", "abc", "", "", "GB", "", ""),  # empty address
             ("government", "abc", "", "nowhere", "ALP", "", ""),  # invalid country code
             ("", "", "", "", "", "", ""),  # empty dataset
@@ -223,13 +200,9 @@ class EndUserAdvisoryCreateTests(DataTestClient):
 
         errors = response.json()["errors"]
 
-        self.assertEqual(
-            errors.get("nature_of_business"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("nature_of_business"), ["This field may not be blank"])
         self.assertEqual(errors.get("contact_name"), ["This field may not be blank"])
-        self.assertEqual(
-            errors.get("contact_job_title"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("contact_job_title"), ["This field may not be blank"])
 
     def test_create_end_user_advisory_query_for_government_failure(self):
         """
@@ -257,9 +230,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEqual(errors.get("contact_name"), ["This field may not be blank"])
-        self.assertEqual(
-            errors.get("contact_job_title"), ["This field may not be blank"]
-        )
+        self.assertEqual(errors.get("contact_job_title"), ["This field may not be blank"])
 
     def test_create_end_user_advisory_query_for_government(self):
         """
@@ -318,3 +289,22 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data["address"], data["end_user"]["address"])
         self.assertEqual(end_user_data["country"]["id"], data["end_user"]["country"])
         self.assertEqual(Case.objects.count(), 1)
+
+
+class EndUserAdvisoryUpdate(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.end_user_advisory = self.create_end_user_advisory_case(
+            "end_user_advisory", "my reasons", organisation=self.organisation
+        )
+        self.url = reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": self.end_user_advisory.id},)
+
+    def test_update_end_user_advisory_status_success(self):
+        data = {"status": CaseStatusEnum.RESUBMITTED}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        new_end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=self.end_user_advisory.id)
+        case_status = get_case_status_by_status(CaseStatusEnum.RESUBMITTED)
+        self.assertEqual(new_end_user_advisory.status, case_status)

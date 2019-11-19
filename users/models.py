@@ -103,9 +103,7 @@ class ExporterUser(BaseUser):
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
         else:
-            raise Exception(
-                "ExporterUser.send_notification: objects expected have not been added."
-            )
+            raise Exception("ExporterUser.send_notification: objects expected have not been added.")
 
     def get_role(self, organisation):
         return self.userorganisationrelationship_set.get(organisation=organisation).role
@@ -125,19 +123,14 @@ class UserOrganisationRelationship(models.Model):
         default=Roles.EXPORTER_DEFAULT_ROLE_ID,
         on_delete=models.PROTECT,
     )
-    status = models.CharField(
-        choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20
-    )
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
 
 class GovUser(BaseUser):
-    role = models.ForeignKey(
-        Role,
-        related_name="internal_role",
-        default=Roles.INTERNAL_DEFAULT_ROLE_ID,
-        on_delete=models.PROTECT,
-    )
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+    team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name="role", default=Roles.DEFAULT_ROLE_ID, on_delete=models.PROTECT,)
 
     status = models.CharField(
         choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20
@@ -160,17 +153,13 @@ class GovUser(BaseUser):
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                notification = Notification.objects.get(
-                    user=self, case_activity__case=case_activity.case
-                )
+                notification = Notification.objects.get(user=self, case_activity__case=case_activity.case)
                 notification.case_activity = case_activity
                 notification.save()
             except Notification.DoesNotExist:
                 Notification.objects.create(user=self, case_activity=case_activity)
         else:
-            raise Exception(
-                "GovUser.send_notification: objects expected have not been added."
-            )
+            raise Exception("GovUser.send_notification: objects expected have not been added.")
 
     # Adds the first user as a super user
     # pylint: disable=W0221

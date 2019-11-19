@@ -13,19 +13,12 @@ from static.countries.serializers import CountrySerializer
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
-    control_code = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True
-    )
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
-    application = serializers.PrimaryKeyRelatedField(
-        queryset=BaseApplication.objects.all()
-    )
+    application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     countries = PrimaryKeyRelatedSerializerField(
-        required=False,
-        queryset=Country.objects.all(),
-        serializer=CountrySerializer,
-        many=True,
+        required=False, queryset=Country.objects.all(), serializer=CountrySerializer, many=True,
     )
     document = serializers.SerializerMethodField()
 
@@ -64,15 +57,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         Update Goods Type Serializer
         """
         instance.description = validated_data.get("description", instance.description)
-        instance.is_good_controlled = validated_data.get(
-            "is_good_controlled", instance.is_good_controlled
-        )
-        instance.control_code = validated_data.get(
-            "control_code", instance.control_code
-        )
-        instance.is_good_end_product = validated_data.get(
-            "is_good_end_product", instance.is_good_end_product
-        )
+        instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
+        instance.control_code = validated_data.get("control_code", instance.control_code)
+        instance.is_good_end_product = validated_data.get("is_good_end_product", instance.is_good_end_product)
         instance.save()
         return instance
 
@@ -81,9 +68,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        return list(
-            instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name")
-        )
+        return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name"))
 
     class Meta:
         model = GoodsType

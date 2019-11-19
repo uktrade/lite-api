@@ -32,9 +32,7 @@ class TeamList(APIView):
         serializer = TeamSerializer(teams, many=True)
         return JsonResponse(data={"teams": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=TeamSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=TeamSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Create a new team
@@ -44,13 +42,9 @@ class TeamList(APIView):
         serializer = TeamSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"team": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"team": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TeamDetail(APIView):
@@ -75,9 +69,7 @@ class TeamDetail(APIView):
         serializer = TeamSerializer(team)
         return JsonResponse(data={"team": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=TeamSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=TeamSerializer, responses={400: "JSON parse error"})
     def put(self, request, pk):
         """
         Update a team instance
@@ -89,9 +81,7 @@ class TeamDetail(APIView):
             serializer.save()
             return JsonResponse(data={"team": serializer.data})
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersByTeamsList(APIView):

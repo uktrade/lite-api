@@ -18,15 +18,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Party",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("name", models.TextField(blank=True, default=None)),
                 ("address", models.TextField(blank=True, default=None)),
                 ("website", models.URLField(blank=True, default=None)),
@@ -42,13 +34,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
-                (
-                    "country",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="countries.Country",
-                    ),
-                ),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country",),),
                 (
                     "organisation",
                     models.ForeignKey(

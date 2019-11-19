@@ -16,13 +16,9 @@ from users.serializers import ExporterUserCreateUpdateSerializer
 
 
 class SiteSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        error_messages={"blank": "Enter a name for your site"}, write_only=True
-    )
+    name = serializers.CharField(error_messages={"blank": "Enter a name for your site"}, write_only=True)
     address = AddressSerializer(write_only=True)
-    organisation = serializers.PrimaryKeyRelatedField(
-        queryset=Organisation.objects.all(), required=False
-    )
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
         model = Site
@@ -50,9 +46,7 @@ class SiteSerializer(serializers.ModelSerializer):
 
         address_data = validated_data.pop("address")
         address_data["country"] = address_data["country"].id
-        address_serializer = AddressSerializer(
-            instance.address, partial=True, data=address_data
-        )
+        address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
         if address_serializer.is_valid():
             instance.address.address_line_1 = address_serializer.validated_data.get(
                 "address_line_1", instance.address.address_line_1
@@ -60,18 +54,10 @@ class SiteSerializer(serializers.ModelSerializer):
             instance.address.address_line_2 = address_serializer.validated_data.get(
                 "address_line_2", instance.address.address_line_2
             )
-            instance.address.region = address_serializer.validated_data.get(
-                "region", instance.address.region
-            )
-            instance.address.postcode = address_serializer.validated_data.get(
-                "postcode", instance.address.postcode
-            )
-            instance.address.city = address_serializer.validated_data.get(
-                "city", instance.address.city
-            )
-            instance.address.country = address_serializer.validated_data.get(
-                "country", instance.address.country
-            )
+            instance.address.region = address_serializer.validated_data.get("region", instance.address.region)
+            instance.address.postcode = address_serializer.validated_data.get("postcode", instance.address.postcode)
+            instance.address.city = address_serializer.validated_data.get("city", instance.address.city)
+            instance.address.country = address_serializer.validated_data.get("country", instance.address.country)
             instance.address.save()
         else:
             raise serializers.ValidationError(address_serializer.errors)
@@ -174,9 +160,7 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
 
 
 class OrganisationDetailSerializer(serializers.ModelSerializer):
-    primary_site = PrimaryKeyRelatedSerializerField(
-        queryset=Site.objects.all(), serializer=SiteViewSerializer
-    )
+    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
     type = KeyValueChoiceField(OrganisationType.choices)
     flags = serializers.SerializerMethodField()
 
@@ -196,9 +180,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         """
         Update and return an existing `Organisation` instance, given the validated data.
         """
-        instance.primary_site = validated_data.get(
-            "primary_site", instance.primary_site
-        )
+        instance.primary_site = validated_data.get("primary_site", instance.primary_site)
         instance.save()
         return instance
 
@@ -207,9 +189,7 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = CountrySerializerField()
-    organisation = serializers.PrimaryKeyRelatedField(
-        queryset=Organisation.objects.all()
-    )
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = ExternalLocation

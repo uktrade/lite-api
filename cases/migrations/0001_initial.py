@@ -30,15 +30,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Advice",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 (
                     "type",
                     models.CharField(
@@ -62,40 +54,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="BaseActivity",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID",),),
                 ("text", models.TextField(default=None)),
                 ("additional_text", models.TextField(default=None, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("type", models.CharField(max_length=50)),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL,),),
             ],
         ),
         migrations.CreateModel(
             name="Case",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 (
                     "type",
                     models.CharField(
@@ -117,58 +87,32 @@ class Migration(migrations.Migration):
                         to="applications.BaseApplication",
                     ),
                 ),
-                (
-                    "flags",
-                    models.ManyToManyField(related_name="cases", to="flags.Flag"),
-                ),
+                ("flags", models.ManyToManyField(related_name="cases", to="flags.Flag"),),
                 (
                     "query",
                     models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="case",
-                        to="queries.Query",
+                        null=True, on_delete=django.db.models.deletion.CASCADE, related_name="case", to="queries.Query",
                     ),
                 ),
-                (
-                    "queues",
-                    models.ManyToManyField(related_name="cases", to="queues.Queue"),
-                ),
+                ("queues", models.ManyToManyField(related_name="cases", to="queues.Queue"),),
             ],
             options={
                 "ordering": [
-                    django.db.models.functions.comparison.Coalesce(
-                        "application__submitted_at", "query__submitted_at"
-                    )
+                    django.db.models.functions.comparison.Coalesce("application__submitted_at", "query__submitted_at")
                 ],
             },
         ),
         migrations.CreateModel(
             name="CaseNote",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "text",
-                    models.TextField(
-                        blank=True, default=None, max_length=2200, null=True
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("text", models.TextField(blank=True, default=None, max_length=2200, null=True),),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("is_visible_to_exporter", models.BooleanField(default=False)),
                 (
                     "case",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="case_note",
-                        to="cases.Case",
+                        on_delete=django.db.models.deletion.CASCADE, related_name="case_note", to="cases.Case",
                     ),
                 ),
                 (
@@ -185,15 +129,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="EcjuQuery",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
                 ("question", models.CharField(max_length=5000)),
                 ("response", models.CharField(max_length=2200, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
@@ -201,9 +137,7 @@ class Migration(migrations.Migration):
                 (
                     "case",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="case_ecju_query",
-                        to="cases.Case",
+                        on_delete=django.db.models.deletion.CASCADE, related_name="case_ecju_query", to="cases.Case",
                     ),
                 ),
                 (
@@ -247,47 +181,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Notification",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID",),),
                 ("viewed_at", models.DateTimeField(null=True)),
                 (
                     "case_note",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="cases.CaseNote",
-                    ),
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="cases.CaseNote",),
                 ),
                 (
                     "ecju_query",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="cases.EcjuQuery",
-                    ),
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="cases.EcjuQuery",),
                 ),
                 (
                     "query",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="queries.Query",
-                    ),
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="queries.Query",),
                 ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL,),),
             ],
         ),
         migrations.CreateModel(
@@ -304,65 +212,25 @@ class Migration(migrations.Migration):
                         to="documents.Document",
                     ),
                 ),
-                (
-                    "description",
-                    models.TextField(
-                        blank=True, default=None, max_length=280, null=True
-                    ),
-                ),
-                (
-                    "case",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
-                    ),
-                ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="users.GovUser"
-                    ),
-                ),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True),),
+                ("case", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="users.GovUser"),),
             ],
             bases=("documents.document",),
         ),
         migrations.CreateModel(
             name="CaseAssignment",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "case",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
-                    ),
-                ),
-                (
-                    "queue",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="queues.Queue"
-                    ),
-                ),
-                (
-                    "users",
-                    models.ManyToManyField(
-                        related_name="case_assignments", to="users.GovUser"
-                    ),
-                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False,),),
+                ("case", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),),
+                ("queue", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="queues.Queue"),),
+                ("users", models.ManyToManyField(related_name="case_assignments", to="users.GovUser"),),
             ],
         ),
         migrations.AddField(
             model_name="advice",
             name="case",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
-            ),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),
         ),
         migrations.AddField(
             model_name="advice",
@@ -377,41 +245,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="advice",
             name="country",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="countries.Country",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="countries.Country",),
         ),
         migrations.AddField(
-            model_name="advice",
-            name="denial_reasons",
-            field=models.ManyToManyField(to="denial_reasons.DenialReason"),
+            model_name="advice", name="denial_reasons", field=models.ManyToManyField(to="denial_reasons.DenialReason"),
         ),
         migrations.AddField(
             model_name="advice",
             name="end_user",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="parties.EndUser",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="parties.EndUser",),
         ),
         migrations.AddField(
             model_name="advice",
             name="good",
-            field=models.ForeignKey(
-                null=True, on_delete=django.db.models.deletion.CASCADE, to="goods.Good"
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="goods.Good"),
         ),
         migrations.AddField(
             model_name="advice",
             name="goods_type",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="goodstype.GoodsType",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="goodstype.GoodsType",),
         ),
         migrations.AddField(
             model_name="advice",
@@ -436,9 +288,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="advice",
             name="user",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.PROTECT, to="users.GovUser"
-            ),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="users.GovUser"),
         ),
         migrations.CreateModel(
             name="TeamAdvice",
@@ -454,12 +304,7 @@ class Migration(migrations.Migration):
                         to="cases.Advice",
                     ),
                 ),
-                (
-                    "team",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="teams.Team"
-                    ),
-                ),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team"),),
             ],
             bases=("cases.advice",),
         ),
@@ -477,12 +322,7 @@ class Migration(migrations.Migration):
                         to="cases.BaseActivity",
                     ),
                 ),
-                (
-                    "case",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="cases.Case"
-                    ),
-                ),
+                ("case", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),),
             ],
             bases=("cases.baseactivity",),
         ),

@@ -30,15 +30,9 @@ class Case(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(
-        choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35
-    )
-    application = models.ForeignKey(
-        BaseApplication, related_name="case", on_delete=models.CASCADE, null=True
-    )
-    query = models.ForeignKey(
-        Query, related_name="case", on_delete=models.CASCADE, null=True
-    )
+    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
+    application = models.ForeignKey(BaseApplication, related_name="case", on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey(Query, related_name="case", on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
 
@@ -63,13 +57,7 @@ class CaseNote(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
-    user = models.ForeignKey(
-        BaseUser,
-        related_name="case_note",
-        on_delete=models.CASCADE,
-        default=None,
-        null=False,
-    )
+    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
@@ -84,14 +72,8 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = (
-                self.case.query.organisation
-                if self.case.query
-                else self.case.application.organisation
-            )
-            for user_relationship in UserOrganisationRelationship.objects.filter(
-                organisation=organisation
-            ):
+            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(case_note=self)
 
 
@@ -131,17 +113,10 @@ class Advice(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
-        UltimateEndUser,
-        on_delete=models.CASCADE,
-        related_name="ultimate_end_user",
-        null=True,
+        UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
     )
-    consignee = models.ForeignKey(
-        Consignee, on_delete=models.CASCADE, related_name="consignee", null=True
-    )
-    third_party = models.ForeignKey(
-        ThirdParty, on_delete=models.CASCADE, related_name="third_party", null=True
-    )
+    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name="consignee", null=True)
+    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name="third_party", null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -235,24 +210,14 @@ class EcjuQuery(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.CharField(null=False, blank=False, max_length=5000)
     response = models.CharField(null=True, blank=False, max_length=2200)
-    case = models.ForeignKey(
-        Case, related_name="case_ecju_query", on_delete=models.CASCADE
-    )
+    case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(
-        GovUser,
-        related_name="govuser_ecju_query",
-        on_delete=models.CASCADE,
-        default=None,
-        null=False,
+        GovUser, related_name="govuser_ecju_query", on_delete=models.CASCADE, default=None, null=False,
     )
     responded_by_user = models.ForeignKey(
-        ExporterUser,
-        related_name="exportuser_ecju_query",
-        on_delete=models.CASCADE,
-        default=None,
-        null=True,
+        ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
 
     def save(self, *args, **kwargs):
@@ -261,14 +226,8 @@ class EcjuQuery(models.Model):
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = (
-                self.case.query.organisation
-                if self.case.query
-                else self.case.application.organisation
-            )
-            for user_relationship in UserOrganisationRelationship.objects.filter(
-                organisation=organisation
-            ):
+            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(ecju_query=self)
         else:
             self.responded_at = timezone.now()
@@ -304,9 +263,7 @@ class BaseActivity(models.Model):
         # Raise an exception if all the placeholder parameters are not provided
         for placeholder in placeholders:
             if placeholder not in kwargs:
-                raise Exception(
-                    f"{placeholder} not provided in parameters for activity type: {activity_type}"
-                )
+                raise Exception(f"{placeholder} not provided in parameters for activity type: {activity_type}")
 
         # Loop over kwargs, if type is list, convert to comma delimited string
         for key, value in kwargs.items():
@@ -324,14 +281,7 @@ class BaseActivity(models.Model):
 
     @classmethod
     def create(
-        cls,
-        activity_type,
-        case,
-        user,
-        additional_text=None,
-        created_at=None,
-        save_object=True,
-        **kwargs,
+        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
     ):
         # If activity_type isn't valid, raise an exception
         if activity_type not in [x[0] for x in cls.activity_types.choices]:
@@ -340,12 +290,7 @@ class BaseActivity(models.Model):
         text = cls._replace_placeholders(activity_type, **kwargs)
 
         activity = cls(
-            type=activity_type,
-            text=text,
-            user=user,
-            case=case,
-            additional_text=additional_text,
-            created_at=created_at,
+            type=activity_type, text=text, user=user, case=case, additional_text=additional_text, created_at=created_at,
         )
         if save_object:
             activity.save()
@@ -359,23 +304,10 @@ class CaseActivity(BaseActivity):
 
     @classmethod
     def create(
-        cls,
-        activity_type,
-        case,
-        user,
-        additional_text=None,
-        created_at=None,
-        save_object=True,
-        **kwargs,
+        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
     ):
         activity = super(CaseActivity, cls).create(
-            activity_type,
-            case,
-            user,
-            additional_text,
-            created_at,
-            save_object,
-            **kwargs,
+            activity_type, case, user, additional_text, created_at, save_object, **kwargs,
         )
 
         if isinstance(user, ExporterUser) and save_object:
@@ -393,9 +325,7 @@ class GoodCountryDecision(models.Model):
     decision = models.CharField(choices=AdviceType.choices, max_length=30)
 
     def save(self, *args, **kwargs):
-        GoodCountryDecision.objects.filter(
-            case=self.case, good=self.good, country=self.country
-        ).delete()
+        GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
 

@@ -47,14 +47,9 @@ class SitesList(APIView):
                 # reversion.set_user(request.user)
                 # reversion.set_comment("Created Site")
                 serializer.save()
-                return JsonResponse(
-                    data={"site": serializer.data}, status=status.HTTP_201_CREATED
-                )
+                return JsonResponse(data={"site": serializer.data}, status=status.HTTP_201_CREATED)
 
-            return JsonResponse(
-                data={"errors": serializer.errors},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,)
 
 
 class SiteDetail(APIView):
@@ -85,8 +80,6 @@ class SiteDetail(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                return JsonResponse(
-                    data={"site": serializer.data}, status=status.HTTP_200_OK
-                )
+                return JsonResponse(data={"site": serializer.data}, status=status.HTTP_200_OK)
 
             return JsonResponse(data={"errors": serializer.errors}, status=400)

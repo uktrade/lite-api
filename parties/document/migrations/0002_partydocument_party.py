@@ -17,8 +17,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="partydocument",
             name="party",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="parties.Party"
-            ),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="parties.Party"),
         ),
     ]

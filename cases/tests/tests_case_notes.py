@@ -30,9 +30,7 @@ class CaseNotesGovCreateTests(DataTestClient):
             [{}],  # Empty data
             [{"text": ""}],  # Empty text field
             [{"text": "🙂"}],  # Less than two character minimum
-            [
-                {"text": "🙂" * 2201}
-            ],  # More than two thousand, two hundred character maximum
+            [{"text": "🙂" * 2201}],  # More than two thousand, two hundred character maximum
         ]
     )
     def test_create_case_note_failure(self, data):
@@ -63,9 +61,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
             [{}],  # Empty data
             [{"text": ""}],  # Empty text field
             [{"text": "🍌"}],  # Less than two character minimum
-            [
-                {"text": "🍌" * 2201}
-            ],  # More than two thousand, two hundred character maximum
+            [{"text": "🍌" * 2201}],  # More than two thousand, two hundred character maximum
         ]
     )
     def test_create_case_note_failure(self, data):

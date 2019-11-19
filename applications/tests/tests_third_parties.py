@@ -75,9 +75,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response_data, {"errors": {"sub_type": ["This field is required."]}}
-        )
+        self.assertEqual(response_data, {"errors": {"sub_type": ["This field is required."]}})
 
     def test_get_third_parties(self):
         third_party = self.draft.third_parties.first()
@@ -87,14 +85,10 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(len(third_parties), 1)
         self.assertEqual(third_parties[0]["id"], str(third_party.id))
         self.assertEqual(third_parties[0]["name"], str(third_party.name))
-        self.assertEqual(
-            third_parties[0]["country"]["name"], str(third_party.country.name)
-        )
+        self.assertEqual(third_parties[0]["country"]["name"], str(third_party.country.name))
         self.assertEqual(third_parties[0]["website"], str(third_party.website))
         self.assertEqual(third_parties[0]["type"], str(third_party.type))
-        self.assertEqual(
-            third_parties[0]["organisation"], str(third_party.organisation.id)
-        )
+        self.assertEqual(third_parties[0]["organisation"], str(third_party.organisation.id))
         self.assertEqual(third_parties[0]["sub_type"]["key"], str(third_party.sub_type))
 
     def test_set_third_parties_on_draft_open_application_failure(self):
@@ -120,9 +114,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
 
-    def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(
-        self,
-    ):
+    def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(self,):
         """
         Given a draft standard application
         When I try to delete a third party from the application
@@ -130,10 +122,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         third_party = self.draft.third_parties.first()
         self.draft.third_parties.set([])
-        url = reverse(
-            "applications:remove_third_party",
-            kwargs={"pk": self.draft.id, "tp_pk": third_party.id},
-        )
+        url = reverse("applications:remove_third_party", kwargs={"pk": self.draft.id, "tp_pk": third_party.id},)
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -150,9 +139,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         PartyDocument.objects.filter(party=self.draft.third_parties.first()).delete()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -175,9 +162,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_third_party_document_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_third_party_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -192,9 +177,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_third_party_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_third_party_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains a third party
@@ -224,10 +207,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         application.save()
         url = reverse(
             "applications:remove_third_party",
-            kwargs={
-                "pk": application.id,
-                "tp_pk": application.third_parties.first().id,
-            },
+            kwargs={"pk": application.id, "tp_pk": application.third_parties.first().id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -246,10 +226,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         application.save()
         url = reverse(
             "applications:remove_third_party",
-            kwargs={
-                "pk": application.id,
-                "tp_pk": application.third_parties.first().id,
-            },
+            kwargs={"pk": application.id, "tp_pk": application.third_parties.first().id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)

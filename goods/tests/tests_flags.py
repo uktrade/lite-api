@@ -21,9 +21,7 @@ class GoodFlagsManagementTests(DataTestClient):
         self.team_good_flag_1 = self.create_flag("Good Flag 1", "Good", self.team)
         self.team_good_flag_2 = self.create_flag("Good Flag 2", "Good", self.team)
         self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
-        self.other_team_good_flag = self.create_flag(
-            "Other Team Good Flag", "Good", self.other_team
-        )
+        self.other_team_good_flag = self.create_flag("Other Team Good Flag", "Good", self.other_team)
         self.all_flags = [
             self.team_good_flag_1,
             self.team_org_flag,
@@ -162,13 +160,7 @@ class GoodFlagsManagementTests(DataTestClient):
         # Set the query and application's good
         query.good = self.good
         query.save()
-        GoodOnApplication(
-            good=self.good,
-            application=application,
-            quantity=1,
-            unit=Units.GRM,
-            value=10,
-        ).save()
+        GoodOnApplication(good=self.good, application=application, quantity=1, unit=Units.GRM, value=10,).save()
 
         data = {
             "level": "goods",

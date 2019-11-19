@@ -42,9 +42,7 @@ class Migration(migrations.Migration):
                 (
                     "end_user",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING,
-                        related_name="euae_query",
-                        to="parties.EndUser",
+                        on_delete=django.db.models.deletion.DO_NOTHING, related_name="euae_query", to="parties.EndUser",
                     ),
                 ),
             ],

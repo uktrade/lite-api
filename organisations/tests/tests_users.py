@@ -10,10 +10,8 @@ from users.models import UserOrganisationRelationship, ExporterUser
 class OrganisationUsersViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse(
-            "organisations:users", kwargs={"org_pk": self.organisation.id}
-        )
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        self.url = reverse("organisations:users", kwargs={"org_pk": self.organisation.id})
+		self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_view_all_users_belonging_to_organisation(self):
         """
@@ -35,10 +33,7 @@ class OrganisationUsersViewTests(DataTestClient):
         Ensure that a user can see an individual user belonging
         to an organisation
         """
-        url = reverse(
-            "organisations:user",
-            kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
-        )
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},)
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["user"]
@@ -67,9 +62,7 @@ class OrganisationUsersViewTests(DataTestClient):
 class OrganisationUsersCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.url = reverse(
-            "organisations:users", kwargs={"org_pk": self.organisation.id}
-        )
+        self.url = reverse("organisations:users", kwargs={"org_pk": self.organisation.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_add_user_to_organisation_success(self):
@@ -82,11 +75,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "email": "matt.berninger@americanmary.com",
         }
 
-        ExporterUser(
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            email=data["email"],
-        ).save()
+        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"],).save()
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -126,8 +115,7 @@ class OrganisationUsersCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            "is already a member of this organisation.",
-            response_data["errors"]["email"][0],
+            "is already a member of this organisation.", response_data["errors"]["email"][0],
         )
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
 
@@ -145,8 +133,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse(
-            "organisations:user",
-            kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
+            "organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -155,17 +142,12 @@ class OrganisationUsersUpdateTests(DataTestClient):
         Ensure that a user can be deactivated
         """
         exporter_user_2 = self.create_exporter_user(self.organisation)
-        url = reverse(
-            "organisations:user",
-            kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id},
-        )
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id},)
 
         data = {"status": UserStatuses.DEACTIVATED}
 
         response = self.client.put(url, data, **self.exporter_headers)
-        exporter_user_2_relationship = self.organisation.get_user_relationship(
-            exporter_user_2
-        )
+        exporter_user_2_relationship = self.organisation.get_user_relationship(exporter_user_2)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(exporter_user_2_relationship.status, data["status"])

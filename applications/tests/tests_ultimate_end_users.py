@@ -14,19 +14,12 @@ from parameterized import parameterized
 class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application_with_incorporated_good(
-            self.organisation
-        )
-        self.url = reverse(
-            "applications:ultimate_end_users", kwargs={"pk": self.draft.id}
-        )
+        self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
+        self.url = reverse("applications:ultimate_end_users", kwargs={"pk": self.draft.id})
 
         self.document_url = reverse(
             "applications:ultimate_end_user_document",
-            kwargs={
-                "pk": self.draft.id,
-                "ueu_pk": self.draft.ultimate_end_users.first().id,
-            },
+            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id,},
         )
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -71,16 +64,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response_data, {"errors": {"sub_type": ["This field is required."]}}
-        )
+        self.assertEqual(response_data, {"errors": {"sub_type": ["This field is required."]}})
 
     def test_get_ultimate_end_users(self):
         self.draft.ultimate_end_users.set([])
 
-        ultimate_end_user = self.create_ultimate_end_user(
-            "ultimate end user", self.organisation
-        )
+        ultimate_end_user = self.create_ultimate_end_user("ultimate end user", self.organisation)
         ultimate_end_user.save()
         self.draft.ultimate_end_users.add(ultimate_end_user)
         self.draft.save()
@@ -92,20 +81,14 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(ultimate_end_users[0]["id"], str(ultimate_end_user.id))
         self.assertEqual(ultimate_end_users[0]["name"], str(ultimate_end_user.name))
         self.assertEqual(
-            ultimate_end_users[0]["country"]["name"],
-            str(ultimate_end_user.country.name),
+            ultimate_end_users[0]["country"]["name"], str(ultimate_end_user.country.name),
         )
-        self.assertEqual(
-            ultimate_end_users[0]["website"], str(ultimate_end_user.website)
-        )
+        self.assertEqual(ultimate_end_users[0]["website"], str(ultimate_end_user.website))
         self.assertEqual(ultimate_end_users[0]["type"], str(ultimate_end_user.type))
         self.assertEqual(
-            ultimate_end_users[0]["organisation"],
-            str(ultimate_end_user.organisation.id),
+            ultimate_end_users[0]["organisation"], str(ultimate_end_user.organisation.id),
         )
-        self.assertEqual(
-            ultimate_end_users[0]["sub_type"]["key"], str(ultimate_end_user.sub_type)
-        )
+        self.assertEqual(ultimate_end_users[0]["sub_type"]["key"], str(ultimate_end_user.sub_type))
 
     def test_set_ueu_on_draft_open_application_failure(self):
         """
@@ -131,9 +114,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)
 
-    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(
-        self,
-    ):
+    def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self,):
         """
         Given a draft standard application
         When I try to delete an ultimate end user from the application
@@ -142,8 +123,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         ultimate_end_user = self.draft.ultimate_end_users.first()
         self.draft.ultimate_end_users.set([])
         url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": self.draft.id, "ueu_pk": ultimate_end_user.id},
+            "applications:remove_ultimate_end_user", kwargs={"pk": self.draft.id, "ueu_pk": ultimate_end_user.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -159,13 +139,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        PartyDocument.objects.filter(
-            party=self.draft.ultimate_end_users.first()
-        ).delete()
+        PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first()).delete()
 
-        response = self.client.post(
-            self.document_url, data=self.new_document_data, **self.exporter_headers
-        )
+        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -188,9 +164,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_document_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_ultimate_end_user_document_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -205,9 +179,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_success(
-        self, delete_s3_function, prepare_document_function
-    ):
+    def test_delete_ultimate_end_user_success(self, delete_s3_function, prepare_document_function):
         """
         Given a standard draft has been created
         And the draft contains an ultimate end user
@@ -217,10 +189,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         remove_ueu_url = reverse(
             "applications:remove_ultimate_end_user",
-            kwargs={
-                "pk": self.draft.id,
-                "ueu_pk": self.draft.ultimate_end_users.first().id,
-            },
+            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id,},
         )
 
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
@@ -235,17 +204,12 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def test_delete_ultimate_end_user_when_application_editable_success(
         self, editable_status, delete_s3_function, prepare_document_function
     ):
-        application = self.create_standard_application_with_incorporated_good(
-            self.organisation
-        )
+        application = self.create_standard_application_with_incorporated_good(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
         url = reverse(
             "applications:remove_ultimate_end_user",
-            kwargs={
-                "pk": application.id,
-                "ueu_pk": application.ultimate_end_users.first().id,
-            },
+            kwargs={"pk": application.id, "ueu_pk": application.ultimate_end_users.first().id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -254,21 +218,14 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(application.ultimate_end_users.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    def test_delete_third_party_when_application_read_only_failure(
-        self, read_only_status
-    ):
-        application = self.create_standard_application_with_incorporated_good(
-            self.organisation
-        )
+    def test_delete_third_party_when_application_read_only_failure(self, read_only_status):
+        application = self.create_standard_application_with_incorporated_good(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
         url = reverse(
             "applications:remove_ultimate_end_user",
-            kwargs={
-                "pk": application.id,
-                "ueu_pk": application.ultimate_end_users.first().id,
-            },
+            kwargs={"pk": application.id, "ueu_pk": application.ultimate_end_users.first().id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)

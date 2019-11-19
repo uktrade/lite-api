@@ -56,8 +56,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(
-                data={"error": "Invalid value supplied for validate_only"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"error": "Invalid value supplied for validate_only"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if "validate_only" in data and data["validate_only"] is True:
@@ -75,14 +74,11 @@ class ApplicationGoodsOnApplication(APIView):
 
             data["good"] = data["good_id"]
 
-            good = get_good_with_organisation(
-                data.get("good"), request.user.organisation
-            )
+            good = get_good_with_organisation(data.get("good"), request.user.organisation)
 
             if GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(
-                    data={"error": "Cannot attach a good with no documents"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": "Cannot attach a good with no documents"}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
@@ -90,19 +86,12 @@ class ApplicationGoodsOnApplication(APIView):
                 serializer.save()
 
                 set_application_goods_case_activity(
-                    CaseActivityType.ADD_GOOD_TO_APPLICATION,
-                    good.description,
-                    request.user,
-                    application,
+                    CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user, application,
                 )
 
-                return JsonResponse(
-                    data={"good": serializer.data}, status=status.HTTP_201_CREATED
-                )
+                return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationGoodOnApplication(APIView):
@@ -114,32 +103,22 @@ class ApplicationGoodOnApplication(APIView):
         good_on_application = get_good_on_application(obj_pk)
         application = good_on_application.application
 
-        if application.status and application.status.status in get_case_statuses(
-            read_only=True
-        ):
+        if application.status and application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
                 data={
-                    "errors": [
-                        "You can only perform this operation when the application "
-                        "is in an editable state"
-                    ]
+                    "errors": ["You can only perform this operation when the application " "is in an editable state"]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if (
-            good_on_application.application.organisation.id
-            != request.user.organisation.id
-        ):
+        if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(
-                data={"errors": "Your organisation is not the owner of this good"},
-                status=status.HTTP_403_FORBIDDEN,
+                data={"errors": "Your organisation is not the owner of this good"}, status=status.HTTP_403_FORBIDDEN,
             )
 
         if (
             good_on_application.good.status == GoodStatus.SUBMITTED
-            and GoodOnApplication.objects.filter(good=good_on_application.good).count()
-            == 1
+            and GoodOnApplication.objects.filter(good=good_on_application.good).count() == 1
         ):
             good_on_application.good.status = GoodStatus.DRAFT
             good_on_application.good.save()
@@ -161,9 +140,7 @@ class ApplicationGoodsTypes(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
-    )
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application)
@@ -171,9 +148,7 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(
-        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
-    )
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -185,30 +160,21 @@ class ApplicationGoodsTypes(APIView):
         serializer = GoodsTypeSerializer(data=request.data)
 
         if not serializer.is_valid():
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
 
         set_application_goods_type_case_activity(
-            CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION,
-            serializer.data["description"],
-            request.user,
-            application,
+            CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION, serializer.data["description"], request.user, application,
         )
 
-        return JsonResponse(
-            data={"good": serializer.data}, status=status.HTTP_201_CREATED
-        )
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
-    )
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
@@ -219,9 +185,7 @@ class ApplicationGoodsType(APIView):
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(
-        [ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY]
-    )
+    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
@@ -233,10 +197,7 @@ class ApplicationGoodsType(APIView):
         goods_type.delete()
 
         set_application_goods_type_case_activity(
-            CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
-            goods_type.description,
-            request.user,
-            application,
+            CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description, request.user, application,
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

@@ -41,9 +41,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            response_data["id"], ControlListClassificationQuery.objects.get().id
-        )
+        self.assertEqual(response_data["id"], ControlListClassificationQuery.objects.get().id)
         self.assertEqual(Case.objects.count(), 1)
 
 
@@ -51,10 +49,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.report_summary = self.create_picklist_item(
-            "Report Summary",
-            self.team,
-            PicklistType.REPORT_SUMMARY,
-            PickListStatus.ACTIVE,
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE,
         )
 
         self.query = self.create_clc_query("This is a widget", self.organisation)
@@ -66,8 +61,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.gov_user.save()
 
         self.url = reverse(
-            "queries:control_list_classifications:control_list_classification",
-            kwargs={"pk": self.query.pk},
+            "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk},
         )
 
     def test_respond_to_control_list_classification_query(self):
@@ -87,9 +81,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, data["control_code"])
-        self.assertEqual(
-            self.query.good.is_good_controlled, str(data["is_good_controlled"])
-        )
+        self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
@@ -111,9 +103,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, "")
-        self.assertEqual(
-            self.query.good.is_good_controlled, str(data["is_good_controlled"])
-        )
+        self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
@@ -139,11 +129,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         """
         # Make sure at least one user maintains the super user role
         valid_user = GovUser(
-            email="test2@mail.com",
-            first_name="John",
-            last_name="Smith",
-            team=self.team,
-            role=self.super_user_role,
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role,
         )
         valid_user.save()
 

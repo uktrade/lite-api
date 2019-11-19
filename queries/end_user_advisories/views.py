@@ -13,9 +13,7 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
-from queries.end_user_advisories.libraries.get_end_user_advisory import (
-    get_end_user_advisory_by_pk,
-)
+from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -27,9 +25,7 @@ class EndUserAdvisoriesList(APIView):
         """
         View all end user advisories belonging to an organisation.
         """
-        end_user_advisories = EndUserAdvisoryQuery.objects.filter(
-            end_user__organisation=request.user.organisation
-        )
+        end_user_advisories = EndUserAdvisoryQuery.objects.filter(end_user__organisation=request.user.organisation)
         serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
         return JsonResponse(data={"end_user_advisories": serializer.data})
 
@@ -51,16 +47,11 @@ class EndUserAdvisoriesList(APIView):
             if serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
                     serializer.save()
-                    return JsonResponse(
-                        data={"end_user_advisory": serializer.data},
-                        status=status.HTTP_201_CREATED,
-                    )
+                    return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED,)
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
             return JsonResponse(data={"errors": e}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,9 +66,7 @@ class EndUserAdvisoryDetail(APIView):
         end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=pk)
         case_id = end_user_advisory.case.get().id
         serializer = EndUserAdvisorySerializer(end_user_advisory)
-        return JsonResponse(
-            data={"end_user_advisory": serializer.data, "case_id": case_id}
-        )
+        return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id})
 
     def put(self, request, pk):
         """
@@ -90,15 +79,11 @@ class EndUserAdvisoryDetail(APIView):
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
             if data.get("status") == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(
-                    request.user, Permissions.MANAGE_FINAL_ADVICE
-                )
+                assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 
-            serializer = EndUserAdvisorySerializer(
-                end_user_advisory, data=request.data, partial=True
-            )
+            serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
             if serializer.is_valid():
                 CaseActivity.create(
@@ -111,6 +96,4 @@ class EndUserAdvisoryDetail(APIView):
                 serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={"end_user_advisory": serializer.data})
 
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

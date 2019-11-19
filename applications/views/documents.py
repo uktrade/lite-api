@@ -41,9 +41,7 @@ class ApplicationDocumentView(APIView):
         """
         return get_application_documents(application)
 
-    @swagger_auto_schema(
-        request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -68,9 +66,7 @@ class ApplicationDocumentDetailView(APIView):
         """
         return get_application_document(doc_pk)
 
-    @swagger_auto_schema(
-        request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -94,9 +90,7 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return get_goods_type_document(goods_type)
 
-    @swagger_auto_schema(
-        request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([ApplicationType.HMRC_QUERY])
     @application_in_major_editable_state()
@@ -105,17 +99,13 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return upload_goods_type_document(goods_type, request.data)
 
-    @swagger_auto_schema(
-        request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
         if not goods_type:
-            return JsonResponse(
-                data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
 
         return delete_goods_type_document(goods_type)

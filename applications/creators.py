@@ -85,15 +85,11 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_end_user(draft, errors)
     errors = _validate_consignee(draft, errors)
 
-    ultimate_end_user_documents_error = check_parties_documents(
-        draft.ultimate_end_users.all(), is_mandatory=True
-    )
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=True)
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = ultimate_end_user_documents_error
 
-    third_parties_documents_error = check_parties_documents(
-        draft.third_parties.all(), is_mandatory=False
-    )
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory=False)
     if third_parties_documents_error:
         errors["third_parties_documents"] = third_parties_documents_error
 
@@ -102,27 +98,18 @@ def _validate_standard_licence(draft, errors):
 
     ultimate_end_user_required = False
     if next(
-        filter(
-            lambda x: x.good.is_good_end_product is False,
-            GoodOnApplication.objects.filter(application=draft),
-        ),
+        filter(lambda x: x.good.is_good_end_product is False, GoodOnApplication.objects.filter(application=draft),),
         None,
     ):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
         if len(draft.ultimate_end_users.values_list()) == 0:
-            errors["ultimate_end_users"] = get_string(
-                "applications.standard.no_ultimate_end_users_set"
-            )
+            errors["ultimate_end_users"] = get_string("applications.standard.no_ultimate_end_users_set")
         else:
             # We make sure that an ultimate end user is not also the end user
-            for ultimate_end_user in draft.ultimate_end_users.values_list(
-                "id", flat=True
-            ):
-                if "end_user" not in errors and str(ultimate_end_user) == str(
-                    draft.end_user.id
-                ):
+            for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
+                if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.id):
                     errors["ultimate_end_users"] = get_string(
                         "applications.standard.matching_end_user_and_ultimate_end_user"
                     )
@@ -152,9 +139,7 @@ def validate_application_ready_for_submission(application):
     # Site & External location errors
     if (
         not SiteOnApplication.objects.filter(application=application).exists()
-        and not ExternalLocationOnApplication.objects.filter(
-            application=application
-        ).exists()
+        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
     ):
         errors["location"] = get_string("applications.generic.no_location_set")
 
@@ -166,8 +151,6 @@ def validate_application_ready_for_submission(application):
     elif application.application_type == ApplicationType.HMRC_QUERY:
         _validate_hmrc_query(application, errors)
     else:
-        errors[
-            "unsupported_application"
-        ] = "You can only validate a supported application type"
+        errors["unsupported_application"] = "You can only validate a supported application type"
 
     return errors

@@ -77,21 +77,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def setUp(self):
         # Gov User Setup
         self.team = Team.objects.get(name="Admin")
-        self.gov_user = GovUser(
-            email="test@mail.com", first_name="John", last_name="Smith", team=self.team
-        )
+        self.gov_user = GovUser(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
         self.gov_user.save()
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        (
-            self.organisation,
-            self.exporter_user,
-        ) = self.create_organisation_with_exporter_user()
-        (
-            self.hmrc_organisation,
-            self.hmrc_exporter_user,
-        ) = self.create_organisation_with_exporter_user(
+        (self.organisation, self.exporter_user,) = self.create_organisation_with_exporter_user()
+        (self.hmrc_organisation, self.hmrc_exporter_user,) = self.create_organisation_with_exporter_user(
             "HMRC org 5843", org_type=OrganisationType.HMRC
         )
 
@@ -150,9 +142,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         random_string = str(uuid.uuid4())
 
         exporter_user = ExporterUser(
-            first_name=first_name,
-            last_name=last_name,
-            email=f"{first_name}.{last_name}@{random_string}.com",
+            first_name=first_name, last_name=last_name, email=f"{first_name}.{last_name}@{random_string}.com",
         )
         exporter_user.organisation = organisation
         exporter_user.save()
@@ -160,16 +150,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if organisation:
             if not role:
                 role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-            UserOrganisationRelationship(
-                user=exporter_user, organisation=organisation, role=role
-            ).save()
+            UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
             exporter_user.status = UserStatuses.ACTIVE
 
         return exporter_user
 
-    def create_organisation_with_exporter_user(
-        self, name="Organisation", org_type=None
-    ):
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
         organisation = Organisation(
             name=name,
             eori_number="GB123456789000",
@@ -194,9 +180,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def add_exporter_user_to_org(organisation, exporter_user, role=None):
         if not role:
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        UserOrganisationRelationship(
-            user=exporter_user, organisation=organisation, role=role
-        ).save()
+        UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
 
     @staticmethod
     def create_site(name, org, country="GB"):
@@ -216,10 +200,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_external_location(name, org, country="GB"):
         external_location = ExternalLocation(
-            name=name,
-            address="20 Questions Road, Enigma",
-            country=get_country(country),
-            organisation=org,
+            name=name, address="20 Questions Road, Enigma", country=get_country(country), organisation=org,
         )
         external_location.save()
         return external_location
@@ -281,24 +262,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return third_party
 
     def create_case_note(
-        self,
-        case: Case,
-        text: str,
-        user: BaseUser,
-        is_visible_to_exporter: bool = False,
+        self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
     ):
-        case_note = CaseNote(
-            case=case,
-            text=text,
-            user=user,
-            is_visible_to_exporter=is_visible_to_exporter,
-        )
+        case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter,)
         case_note.save()
         return case_note
 
-    def create_end_user_advisory(
-        self, note: str, reasoning: str, organisation: Organisation
-    ):
+    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_end_user("name", self.organisation)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
             end_user=end_user,
@@ -313,9 +283,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         return end_user_advisory_query
 
-    def create_end_user_advisory_case(
-        self, note: str, reasoning: str, organisation: Organisation
-    ):
+    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
         eua_query = self.create_end_user_advisory(note, reasoning, organisation)
         return eua_query
 
@@ -343,9 +311,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case.save()
 
         if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(
-                application=application
-            ):
+            for good_on_application in GoodOnApplication.objects.filter(application=application):
                 good_on_application.good.status = GoodStatus.SUBMITTED
                 good_on_application.good.save()
 
@@ -380,12 +346,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application_doc
 
     def create_good_document(
-        self,
-        good: Good,
-        user: ExporterUser,
-        organisation: Organisation,
-        name: str,
-        s3_key: str,
+        self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
     ):
         good_doc = GoodDocument(
             good=good,
@@ -404,27 +365,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_document_for_party(party: Party, name="document_name.pdf", safe=True):
         document = PartyDocument(
-            party=party,
-            name=name,
-            s3_key="s3_keykey.pdf",
-            size=123456,
-            virus_scanned_at=None,
-            safe=safe,
+            party=party, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe,
         )
         document.save()
         return document
 
     @staticmethod
-    def create_document_for_goods_type(
-        goods_type: GoodsType, name="document_name.pdf", safe=True
-    ):
+    def create_document_for_goods_type(goods_type: GoodsType, name="document_name.pdf", safe=True):
         document = GoodsTypeDocument(
-            goods_type=goods_type,
-            name=name,
-            s3_key="s3_keykey.pdf",
-            size=123456,
-            virus_scanned_at=None,
-            safe=safe,
+            goods_type=goods_type, name=name, s3_key="s3_keykey.pdf", size=123456, virus_scanned_at=None, safe=safe,
         )
         document.save()
         return document
@@ -462,9 +411,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(
-        self, description: str, org: Organisation, control_code: str = "ML1"
-    ) -> Good:
+    def create_controlled_good(self, description: str, org: Organisation, control_code: str = "ML1") -> Good:
         good = Good(
             description=description,
             is_good_controlled=GoodControlled.YES,
@@ -498,10 +445,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     # Applications
 
     def create_standard_application(
-        self,
-        organisation: Organisation,
-        reference_name="Standard Draft",
-        safe_document=True,
+        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
         application = StandardApplication(
             name=reference_name,
@@ -518,9 +462,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-        application.third_parties.set(
-            [self.create_third_party("Third party", self.organisation)]
-        )
+        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
 
         application.save()
 
@@ -538,28 +480,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Set the application party documents
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(
-            application.third_parties.first(), safe=safe_document
-        )
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
         self.create_application_document(application)
 
         # Add a site to the application
-        SiteOnApplication(
-            site=organisation.primary_site, application=application
-        ).save()
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
 
     def create_standard_application_with_incorporated_good(
-        self,
-        organisation: Organisation,
-        reference_name="Standard Draft",
-        safe_document=True,
+        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
 
-        application = self.create_standard_application(
-            organisation, reference_name, safe_document
-        )
+        application = self.create_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
             is_good_end_product=False,
@@ -571,22 +504,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         part_good.save()
 
-        GoodOnApplication(
-            good=part_good, application=application, quantity=17, value=18
-        ).save()
+        GoodOnApplication(good=part_good, application=application, quantity=17, value=18).save()
 
-        application.ultimate_end_users.set(
-            [self.create_ultimate_end_user("Ultimate End User", self.organisation)]
-        )
-        self.create_document_for_party(
-            application.ultimate_end_users.first(), safe=safe_document
-        )
+        application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
+        self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)
 
         return application
 
-    def create_open_application(
-        self, organisation: Organisation, reference_name="Open Draft"
-    ):
+    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
             application_type=ApplicationType.OPEN_LICENCE,
@@ -608,17 +533,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         CountryOnApplication(application=application, country=get_country("GB")).save()
 
         # Add a site to the application
-        SiteOnApplication(
-            site=organisation.primary_site, application=application
-        ).save()
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
 
     def create_hmrc_query(
-        self,
-        organisation: Organisation,
-        reference_name="HMRC Query",
-        safe_document=True,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -634,33 +554,25 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-        application.third_parties.set(
-            [self.create_third_party("Third party", self.organisation)]
-        )
+        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
 
         goods_type = self.create_goods_type(application)
 
         # Set the application party documents
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(
-            application.third_parties.first(), safe=safe_document
-        )
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
 
         self.create_document_for_goods_type(goods_type)
 
         # Add a site to the application
-        SiteOnApplication(
-            site=organisation.primary_site, application=application
-        ).save()
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
 
     # Cases
 
-    def create_standard_application_case(
-        self, organisation: Organisation, reference_name="Standard Application Case"
-    ):
+    def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case"):
         """
         Creates a complete standard application case
         """
@@ -672,25 +584,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level):
         advice = advice_level(
-            user=user,
-            case=case,
-            type=advice_type,
-            note="This is a note to the exporter",
-            text="This is some text",
+            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text",
         )
 
         advice.team = user.team
         advice.save()
 
         if advice_field == "end_user":
-            advice.end_user = StandardApplication.objects.get(
-                pk=case.application.id
-            ).end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
 
         if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(
-                application=case.application
-            ).good
+            advice.good = GoodOnApplication.objects.get(application=case.application).good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -703,6 +607,4 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_good_country_decision(case, goods_type, country, decision):
-        GoodCountryDecision(
-            case=case, good=goods_type, country=country, decision=decision
-        ).save()
+        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()

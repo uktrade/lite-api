@@ -15,10 +15,7 @@ class GoodsType(models.Model):
     is_good_end_product = models.BooleanField(default=None, blank=True, null=True)
     limit = models.Q(app_label="applications", model="application")
     application = models.ForeignKey(
-        BaseApplication,
-        on_delete=models.CASCADE,
-        related_name="base_application",
-        null=False,
+        BaseApplication, on_delete=models.CASCADE, related_name="base_application", null=False,
     )
     flags = models.ManyToManyField(Flag, related_name="goods_type")
     countries = models.ManyToManyField(Country, related_name="goods_type", default=[])

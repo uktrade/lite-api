@@ -13,10 +13,8 @@ class OpenApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_open_application(self.organisation)
-        self.url = reverse(
-            "applications:application_submit", kwargs={"pk": self.draft.id}
-        )
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+		self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_submit_open_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
@@ -33,9 +31,7 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=get_string("applications.generic.no_location_set"),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=get_string("applications.generic.no_location_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_goods_type_failure(self):
@@ -44,9 +40,7 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=get_string("applications.open.no_goods_set"),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=get_string("applications.open.no_goods_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_destination_failure(self):
@@ -55,7 +49,5 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=get_string("applications.open.no_countries_set"),
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=get_string("applications.open.no_countries_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )

@@ -45,19 +45,12 @@ class OrganisationSitesTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse(
             "organisations:site",
-            kwargs={
-                "org_pk": self.organisation.id,
-                "site_pk": self.organisation.primary_site.id,
-            },
+            kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id,},
         )
 
         data = {
             "name": "regional site",
-            "address": {
-                "address_line_1": "43 Commercial Road",
-                "address_line_2": "The place",
-                "country": "GB",
-            },
+            "address": {"address_line_1": "43 Commercial Road", "address_line_2": "The place", "country": "GB",},
         }
         response = self.client.put(url, data, **self.exporter_headers)
 

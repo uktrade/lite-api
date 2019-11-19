@@ -23,9 +23,7 @@ def create_exporter_users(organisation, quantity=1):
         first_name, last_name = random_name()
         email = f"{first_name}@{last_name}.com"
         if ExporterUser.objects.filter(email=email).count() == 1:
-            email = (
-                first_name + "." + last_name + str(i) + "@" + organisation.name + ".com"
-            )
+            email = first_name + "." + last_name + str(i) + "@" + organisation.name + ".com"
         user = ExporterUser(first_name=first_name, last_name=last_name, email=email)
         user.organisation = organisation
 

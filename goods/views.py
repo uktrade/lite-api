@@ -16,9 +16,7 @@ from conf.authentication import (
 )
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
-from documents.libraries.delete_documents_on_bad_request import (
-    delete_documents_on_bad_request,
-)
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
@@ -57,26 +55,31 @@ class GoodsListControlCode(APIView):
         if serializer.is_valid():
             error_occurred = False
             case = get_case(case_pk)
+
             for pk in objects:
                 try:
                     good = get_good(pk)
+                    old_control_code = good.control_code
+                    if not old_control_code:
+                        old_control_code = "No control code"
+
+                    new_control_code = "No control code"
+                    if data.get("is_good_controlled", "no").lower() == "yes":
+                        new_control_code = data.get("control_code", "No control code")
+
                     serializer = ClcControlGoodSerializer(good, data=data)
                     if serializer.is_valid():
                         serializer.save()
 
-                    control_code = data.get("control_code")
-                    if control_code == "":
-                        control_code = "No control code"
-
-                    # Add an activity item for the query's case
-                    CaseActivity.create(
-                        activity_type=CaseActivityType.GOOD_REVIEWED,
-                        good_name=good.description,
-                        control_code=control_code,
-                        case=case,
-                        user=request.user,
-                    )
-
+                    if new_control_code != old_control_code:
+                        CaseActivity.create(
+                            activity_type=CaseActivityType.GOOD_REVIEWED,
+                            good_name=good.description,
+                            old_control_code=old_control_code,
+                            new_control_code=new_control_code,
+                            case=case,
+                            user=request.user,
+                        )
                 except Http404:
                     error_occurred = True
 
@@ -85,9 +88,7 @@ class GoodsListControlCode(APIView):
             else:
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         else:
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodList(APIView):
@@ -119,18 +120,14 @@ class GoodList(APIView):
         serializer = GoodSerializer(data=data)
 
         if not serializer.is_valid():
-            return JsonResponse(
-                data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         if "validate_only" in data and data["validate_only"] is True:
             return HttpResponse(status=status.HTTP_200_OK)
         else:
             serializer.save()
 
-            return JsonResponse(
-                data={"good": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class GoodDetail(APIView):
@@ -148,12 +145,8 @@ class GoodDetail(APIView):
             # If there's a query with this good, update the notifications on it
             try:
                 query = ControlListClassificationQuery.objects.get(good=good)
-                request.user.notification_set.filter(
-                    case_note__case__query=query
-                ).update(viewed_at=timezone.now())
-                request.user.notification_set.filter(query=query.id).update(
-                    viewed_at=timezone.now()
-                )
+                request.user.notification_set.filter(case_note__case__query=query).update(viewed_at=timezone.now())
+                request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
             except ControlListClassificationQuery.DoesNotExist:
                 pass
         else:
@@ -169,8 +162,7 @@ class GoodDetail(APIView):
 
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         data = request.data.copy()
@@ -184,9 +176,7 @@ class GoodDetail(APIView):
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={"good": serializer.data})
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         good = get_good(pk)
@@ -196,8 +186,7 @@ class GoodDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "Good is already on a submitted application"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "Good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         for document in GoodDocument.objects.filter(good=good):
@@ -220,9 +209,7 @@ class GoodDocuments(APIView):
 
         return JsonResponse({"documents": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=GoodDocumentCreateSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=GoodDocumentCreateSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     def post(self, request, pk):
         """
@@ -239,8 +226,7 @@ class GoodDocuments(APIView):
         if good.status != GoodStatus.DRAFT:
             delete_documents_on_bad_request(data)
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         for document in data:
@@ -251,14 +237,10 @@ class GoodDocuments(APIView):
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                {"documents": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)
-        return JsonResponse(
-            {"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoodDocumentDetail(APIView):
@@ -275,8 +257,7 @@ class GoodDocumentDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         good_document = get_good_document(good, doc_pk)
@@ -295,8 +276,7 @@ class GoodDocumentDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         good_document = Document.objects.get(id=doc_pk)

@@ -46,13 +46,9 @@ class UsersList(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"user": serializer.data}, status=status.HTTP_201_CREATED
-            )
+            return JsonResponse(data={"user": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetail(APIView):
@@ -120,9 +116,7 @@ class UserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        serializer = UserOrganisationRelationshipSerializer(
-            instance=self.user_relationship, data=data, partial=True
-        )
+        serializer = UserOrganisationRelationshipSerializer(instance=self.user_relationship, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()

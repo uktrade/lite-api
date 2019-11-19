@@ -84,8 +84,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Permissions.MANAGE_FINAL_ADVICE
-            in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+            Permissions.MANAGE_FINAL_ADVICE in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
         )
 
     @parameterized.expand(

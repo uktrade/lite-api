@@ -23,11 +23,7 @@ class TeamCreateTests(DataTestClient):
         self.assertEqual(Team.objects.get(name="new team").name, "new team")
 
     @parameterized.expand(
-        [
-            [{"name": "this is a name"}],
-            [{"name": "ThIs iS A NaMe"}],
-            [{"name": " this is a name    "}],
-        ]
+        [[{"name": "this is a name"}], [{"name": "ThIs iS A NaMe"}], [{"name": " this is a name    "}],]
     )
     def test_team_name_must_be_unique(self, data):
         Team(name="this is a name").save()
