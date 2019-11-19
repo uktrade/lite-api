@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="permission",
             name="name",
-            field=models.CharField(blank=True, default=None, max_length=32, null=True),
+            field=models.CharField(blank=True, default=None, max_length=50, null=True),
         ),
     ]
