@@ -41,18 +41,6 @@ class CaseStatusEnum:
         WITHDRAWN: True,
     }
 
-    # Used for seeding
-    ids = {
-        APPLICANT_EDITING: "00000000-0000-0000-0000-000000000001",
-        FINALISED: "00000000-0000-0000-0000-000000000002",
-        INITIAL_CHECKS: "00000000-0000-0000-0000-000000000003",
-        RESUBMITTED: "00000000-0000-0000-0000-000000000004",
-        SUBMITTED: "00000000-0000-0000-0000-000000000005",
-        UNDER_FINAL_REVIEW: "00000000-0000-0000-0000-000000000006",
-        UNDER_REVIEW: "00000000-0000-0000-0000-000000000007",
-        WITHDRAWN: "00000000-0000-0000-0000-000000000008",
-    }
-
     @classmethod
     def as_list(cls):
         return [{"status": choice[0], "priority": cls.priority[choice[0]]} for choice in cls.choices]
