@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -23,11 +24,9 @@ class ExporterUserAuthenticateTests(DataTestClient):
             "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
 
-        users_url = reverse(
-            "organisations:users", kwargs={"org_pk": str(self.organisation.id)}
-        )
+        goods_url = reverse("goods:goods")
 
-        response = self.client.get(users_url, **headers)
+        response = self.client.get(goods_url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -47,7 +47,7 @@ class SuperUserTests(DataTestClient):
     def test_super_user_role_can_be_removed_by_a_super_user(self):
         valid_user = self.create_exporter_user(self.organisation)
         valid_user.save()
-        self.exporter_user.set_role(self.organisation, self.super_user_role)
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
         data = {"role": self.default_role.id}
         url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
@@ -69,7 +69,7 @@ class SuperUserTests(DataTestClient):
     def test_super_user_can_assign_super_user_role(self):
         valid_user = self.create_exporter_user(self.organisation)
         valid_user.save()
-        self.exporter_user.set_role(self.organisation, self.super_user_role)
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
         data = {"role": self.super_user_role.id}
         url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})

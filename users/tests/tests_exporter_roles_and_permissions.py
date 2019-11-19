@@ -1,5 +1,6 @@
 from django.test import tag
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from conf.constants import Permissions, Roles
@@ -98,3 +99,37 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(
+        [
+            [{"name": "this is a name", "permissions": []}],
+            [{"name": "ThIs iS A NaMe", "permissions": []}],
+            [{"name": " this is a name    ", "permissions": []}],
+        ]
+    )
+    def test_role_name_must_be_unique(self, data):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        initial_roles_count = Role.objects.count()
+        Role(name="this is a name", organisation=self.organisation).save()
+
+        url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(Role.objects.all().count(), initial_roles_count + 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_role_name_not_have_to_be_unique_different_organisations(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        org, _ = self.create_organisation_with_exporter_user()
+        role_name = "duplicate name"
+        Role(name=role_name, organisation=org).save()
+
+        data = {
+            "name": role_name,
+            "permissions": [],
+        }
+
+        url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

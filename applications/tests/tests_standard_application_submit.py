@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -18,7 +19,9 @@ class StandardApplicationTests(DataTestClient):
         self.url = reverse(
             "applications:application_submit", kwargs={"pk": self.draft.id}
         )
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
+    @tag('only')
     def test_submit_standard_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -255,3 +258,9 @@ class StandardApplicationTests(DataTestClient):
             application=case.application
         ):
             self.assertEqual(good_on_application.good.status, GoodStatus.VERIFIED)
+
+    def test_cannot_submit_application_without_permission(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_default_role)
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

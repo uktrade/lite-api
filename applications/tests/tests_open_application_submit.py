@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -16,6 +17,7 @@ class OpenApplicationTests(DataTestClient):
         self.url = reverse(
             "applications:application_submit", kwargs={"pk": self.draft.id}
         )
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_submit_open_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)

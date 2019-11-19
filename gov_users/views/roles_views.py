@@ -39,6 +39,7 @@ class RolesViews(APIView):
         """
         assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
         data = JSONParser().parse(request)
+        data["type"] = UserType.INTERNAL
 
         serializer = RoleSerializer(data=data)
 

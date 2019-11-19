@@ -6,9 +6,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from conf.constants import Roles
+from conf.constants import Roles, Permissions
+from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
+from users.models import ExporterUser
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
@@ -24,6 +26,8 @@ class UsersList(APIView):
         List all users from the specified organisation
         """
         organisation = get_organisation_by_pk(org_pk)
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
 
         users = get_users_from_organisation(organisation)
         view_serializer = ExporterUserViewSerializer(users, many=True)
@@ -34,6 +38,8 @@ class UsersList(APIView):
         """
         Create an exporter user within the specified organisation
         """
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
         data = JSONParser().parse(request)
         data["organisation"] = str(org_pk)
         serializer = ExporterUserCreateUpdateSerializer(data=data)
@@ -69,6 +75,8 @@ class UserDetail(APIView):
         """
         Return a user from the specified organisation
         """
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
         view_serializer = ExporterUserViewSerializer(self.user)
         return JsonResponse(data={"user": view_serializer.data})
 
@@ -76,7 +84,8 @@ class UserDetail(APIView):
         """
         Update the status of a user
         """
-
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
         data = JSONParser().parse(request)
         user = get_user_by_pk(user_pk)
 
