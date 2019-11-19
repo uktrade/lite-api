@@ -8,9 +8,7 @@ from conf.authentication import GovAuthentication, ExporterAuthentication
 from conf.constants import Roles, Permissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
-from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_role import get_role_by_pk
-from users.models import Role, Permission
 
 
 class RolesViews(APIView):
@@ -24,10 +22,10 @@ class RolesViews(APIView):
         """
         Return list of all roles
         """
-        organisation = get_organisation_by_pk(org_pk)
-        roles = Role.objects.filter(organisation=organisation).order_by("name")
-        if request.user.get_role(organisation).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
-            roles = roles.include(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+        roles = [x for x in Role.objects.filter(organisation=org_pk)]
+        roles.append(Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
+        if request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            roles.append(Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID))
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
@@ -38,8 +36,7 @@ class RolesViews(APIView):
         """
         Create a role
         """
-        organisation = get_organisation_by_pk(org_pk)
-        assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, organisation)
+        assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, org_pk)
         data = JSONParser().parse(request)
 
         serializer = RoleSerializer(data=data)
@@ -60,13 +57,14 @@ class RoleDetail(APIView):
     Manage a specific role
     """
 
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, pk):
+    def get(self, request, org_pk, pk):
         """
         Get the details of a specific role
         """
-        role = get_role_by_pk(pk)
+
+        role = get_role_by_pk(pk, org_pk)
         serializer = RoleSerializer(role)
 
         return JsonResponse(data={"role": serializer.data})
@@ -74,20 +72,20 @@ class RoleDetail(APIView):
     @swagger_auto_schema(
         request_body=RoleSerializer, responses={400: "JSON parse error"}
     )
-    def put(self, request, pk):
+    def put(self, request, org_pk, pk):
         """
         update a role
         """
-        if pk == Roles.INTERNAL_SUPER_USER_ROLE_ID:
+        if pk == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             return JsonResponse(
                 data={"errors": "You cannot edit the super user role"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, org_pk)
 
         data = JSONParser().parse(request)
-        role = get_role_by_pk(pk)
+        role = get_role_by_pk(pk, org_pk)
 
         serializer = RoleSerializer(role, data=data, partial=True)
 
@@ -107,7 +105,7 @@ class PermissionsView(APIView):
     Manage permissions
     """
 
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         """

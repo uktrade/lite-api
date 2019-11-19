@@ -1,10 +1,12 @@
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
+from conf.constants import Roles
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
 from users.serializers import (
@@ -74,11 +76,40 @@ class UserDetail(APIView):
         """
         Update the status of a user
         """
-        data = {"status": request.data["status"]}
+
+        data = JSONParser().parse(request)
+        user = get_user_by_pk(user_pk)
 
         # Don't allow a user to update their own status
-        if user_pk == request.user.pk:
-            raise Http404
+        # Cannot perform actions on another super user without super user role
+        if (
+            user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+            or data.get("roles") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+        ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            raise PermissionDenied()
+
+        if "status" in data.keys():
+            if user.id == request.user.id:
+                return JsonResponse(
+                    data={"errors": "A user cannot change their own status"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif (
+                user.role_id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                and data["status"] == "Deactivated"
+            ):
+                raise PermissionDenied()
+
+        # Cannot deactivate a super user
+        if "role" in data.keys():
+            if (
+                user.id == request.user.id
+                and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+            ):
+                return JsonResponse(
+                    data={"errors": "A user cannot remove super user from themselves"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         serializer = UserOrganisationRelationshipSerializer(
             instance=self.user_relationship, data=data, partial=True

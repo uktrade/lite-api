@@ -57,13 +57,7 @@ from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
-from users.models import (
-    GovUser,
-    BaseUser,
-    ExporterUser,
-    UserOrganisationRelationship,
-    Role,
-)
+
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -149,7 +143,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         response = self.client.get(path, data, follow, **extra)
         return response.json(), response.status_code
 
-    def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
+    def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=Roles.EXPORTER_DEFAULT_ROLE):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
@@ -165,7 +159,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if organisation:
             UserOrganisationRelationship(
-                user=exporter_user, organisation=organisation
+                user=exporter_user, organisation=organisation, role=role
             ).save()
             exporter_user.status = UserStatuses.ACTIVE
 
@@ -195,9 +189,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return organisation, exporter_user
 
     @staticmethod
-    def add_exporter_user_to_org(organisation, exporter_user):
+    def add_exporter_user_to_org(organisation, exporter_user, role=Roles.EXPORTER_DEFAULT_ROLE_ID):
         UserOrganisationRelationship(
-            user=exporter_user, organisation=organisation
+            user=exporter_user, organisation=organisation, role=role
         ).save()
 
     @staticmethod
