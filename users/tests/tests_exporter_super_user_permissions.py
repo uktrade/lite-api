@@ -31,9 +31,9 @@ class SuperUserTests(DataTestClient):
 
     def test_super_user_roles_have_all_permissions(self):
         self.assertEqual(
-            self.super_user_role.permissions.count(), Permission.objects.filter(type=UserType.INTERNAL).count()
+            self.super_user_role.permissions.count(), Permission.objects.internal().count()
         )
-        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.objects.filter(type=UserType.EXPORTER).count())
+        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.objects.exporter().count())
 
     def test_cannot_remove_super_user_role_from_yourself(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)

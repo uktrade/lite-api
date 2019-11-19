@@ -32,12 +32,12 @@ class Command(SeedCommand):
         Role.objects.get_or_create(id=EX_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=SUPER_USER)
 
         role = Role.objects.get(id=SUPER_USER_ROLE_ID)
-        for permission in Permission.objects.filter(type=UserType.INTERNAL):
+        for permission in Permission.objects.internal():
             role.permissions.add(permission)
         role.save()
 
         role = Role.objects.get(id=EX_SUPER_USER_ROLE_ID)
-        for permission in Permission.objects.filter(type=UserType.EXPORTER):
+        for permission in Permission.objects.exporter():
             role.permissions.add(permission)
         role.save()
 

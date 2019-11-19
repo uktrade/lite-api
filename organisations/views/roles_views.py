@@ -119,6 +119,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        roles = Permission.objects.filter(type=UserType.EXPORTER).order_by("name")
+        roles = Permission.objects.exporter()
         serializer = PermissionSerializer(roles, many=True)
         return JsonResponse(data={"permissions": serializer.data})
