@@ -16,6 +16,7 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
         csv = self.read_csv(FILE)
         self.update_or_create(DenialReason, csv)
+        self.delete_unused_objects(DenialReason, csv)
 
 
 class SeedDenialReasonsTests(SeedCommandTest):

@@ -60,6 +60,24 @@ class SeedCommand(ABC, BaseCommand):
             else:
                 model.objects.create(**row)
 
+    @staticmethod
+    def delete_unused_objects(model: models.Model, rows: list):
+        """
+        Takes a list of dicts with an id field and checks that no other
+        records exist other than this given list
+        :param model: A given Django model to check
+        :param rows: A list of dictionaries (csv entries) to extract ID's from for checking
+        """
+        ids = [row["id"] for row in rows]
+        for obj in model.objects.all():
+            id = str(obj.id)
+            if id not in ids:
+                try:
+                    obj.delete()
+                    print(f"Unused object deleted {id}")
+                except:
+                    print(f"Object {id} could not be deleted due to foreign key constraint")
+
 
 class SeedCommandTest(TestCase):
     """

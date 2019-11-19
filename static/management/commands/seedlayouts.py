@@ -15,6 +15,7 @@ class Command(SeedCommand):
         """
         csv = self.read_csv(FILE)
         self.update_or_create(LetterLayout, csv)
+        self.delete_unused_objects(LetterLayout, csv)
 
 
 class SeedLayoutsTests(SeedCommandTest):

@@ -21,6 +21,7 @@ class Command(SeedCommand):
                 "is_read_only": CaseStatusEnum.is_read_only[choice[0]]
             })
         self.update_or_create(CaseStatus, statuses)
+        self.delete_unused_objects(CaseStatus, statuses)
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
