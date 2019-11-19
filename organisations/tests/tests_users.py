@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -16,7 +15,6 @@ class OrganisationUsersViewTests(DataTestClient):
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    @tag('only')
     def test_view_all_users_belonging_to_organisation(self):
         """
         Ensure that a user can see all users belonging to an organisation
@@ -32,7 +30,6 @@ class OrganisationUsersViewTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["status"], UserStatuses.ACTIVE)
 
-    @tag('only')
     def test_view_user_belonging_to_organisation(self):
         """
         Ensure that a user can see an individual user belonging
@@ -49,14 +46,12 @@ class OrganisationUsersViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["status"], UserStatuses.ACTIVE)
 
-    @tag('only')
     def test_cannot_see_users_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         response = self.client.get(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @tag('only')
     def test_cannot_see_user_details_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         url = reverse(
@@ -77,7 +72,6 @@ class OrganisationUsersCreateTests(DataTestClient):
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    @tag('only')
     def test_add_user_to_organisation_success(self):
         """
         Ensure that a user can be added to an organisation
@@ -99,7 +93,6 @@ class OrganisationUsersCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 2)
 
-    @tag('only')
     def test_add_user_to_another_organisation_success(self):
         """
         Ensure that a user can be added to multiple organisations
@@ -117,7 +110,6 @@ class OrganisationUsersCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(get_users_from_organisation(self.organisation)), 2)
 
-    @tag('only')
     def test_add_existing_user_to_organisation_failure(self):
         """
         Ensure that a user cannot be added twice
@@ -139,7 +131,6 @@ class OrganisationUsersCreateTests(DataTestClient):
         )
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
 
-    @tag('only')
     def test_cannot_add_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         data = {}
@@ -159,7 +150,6 @@ class OrganisationUsersUpdateTests(DataTestClient):
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    @tag('only')
     def test_can_deactivate_user(self):
         """
         Ensure that a user can be deactivated
@@ -180,7 +170,6 @@ class OrganisationUsersUpdateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(exporter_user_2_relationship.status, data["status"])
 
-    @tag('only')
     def test_user_cannot_deactivate_themselves(self):
         """
         Ensure that a user can be deactivated
@@ -191,7 +180,6 @@ class OrganisationUsersUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag('only')
     def test_cannot_edit_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         data = {}

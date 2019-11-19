@@ -1,4 +1,4 @@
-from django.test import tag
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -6,8 +6,6 @@ from conf.constants import Roles
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
-from parameterized import parameterized
-
 from users.models import UserOrganisationRelationship
 
 
@@ -15,7 +13,6 @@ class OrganisationCreateTests(DataTestClient):
 
     url = reverse("organisations:organisations")
 
-    @tag('only')
     def test_create_organisation_with_first_user(self):
         data = {
             "name": "Lemonworld Co",

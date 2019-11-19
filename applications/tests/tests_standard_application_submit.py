@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -21,7 +20,6 @@ class StandardApplicationTests(DataTestClient):
         )
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    @tag('only')
     def test_submit_standard_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 

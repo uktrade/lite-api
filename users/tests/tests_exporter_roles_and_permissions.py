@@ -1,9 +1,8 @@
-from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from conf.constants import Permissions, Roles
+from conf.constants import Permissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
 from users.models import Role, Permission
