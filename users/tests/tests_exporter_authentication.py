@@ -22,7 +22,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
             "HTTP_EXPORTER_USER_TOKEN": response_data["token"],
             "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
-        
+
         response = self.client.get(reverse("goods:goods"), **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

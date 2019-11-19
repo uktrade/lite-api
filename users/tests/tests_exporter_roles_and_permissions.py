@@ -35,7 +35,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["roles"]), 2)
+        self.assertEqual(len(response_data["results"]), 2)
 
     def test_get_list_of_all_roles_as_exporter_super_user(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -50,7 +50,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["roles"]), initial_roles_count + 1)
+        self.assertEqual(len(response_data["results"]), initial_roles_count + 1)
 
     def test_get_list_of_all_permissions(self):
         url = reverse("organisations:permissions")

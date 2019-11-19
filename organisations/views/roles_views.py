@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -14,23 +15,18 @@ from users.libraries.get_role import get_role_by_pk
 from users.models import Role, Permission
 
 
-class RolesViews(APIView):
-    """
-    Manage roles
-    """
+class RolesViews(ListCreateAPIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, org_pk):
-        """
-        Return list of all roles
-        """
-        roles = [x for x in Role.objects.filter(organisation=org_pk)]
+    serializer_class = RoleSerializer
+
+    def get_queryset(self):
+        roles = [x for x in Role.objects.filter(organisation=self.kwargs.get("org_pk"))]
         roles.append(Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
-        if request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+        if self.request.user.get_role(self.kwargs.get("org_pk")).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             roles.append(Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID))
-        serializer = RoleSerializer(roles, many=True)
-        return JsonResponse(data={"roles": serializer.data})
+        return roles
 
     @swagger_auto_schema(
         request_body=RoleSerializer, responses={400: "JSON parse error"}
