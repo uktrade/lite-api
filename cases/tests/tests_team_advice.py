@@ -297,6 +297,46 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
+    def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.get(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_when_user_advice_exists_combine_team_advice_without_confirm_own_advice_failure(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.get(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_when_user_advice_exists_clear_team_advice_with_confirm_own_advice_success(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.delete(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_when_user_advice_exists_clear_team_advice_without_confirm_own_advice_failure(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.delete(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
@@ -314,10 +354,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_when_user_advice_exists_create_team_advice_without_confirm_own_advice_failure(self,):
-        """
-        Assert that "Confirm Own Advice" permission is required
-        """
-
         self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         data = {
