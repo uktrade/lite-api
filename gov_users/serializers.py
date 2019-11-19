@@ -13,7 +13,10 @@ from users.models import Role, Permission
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = ("id", "name")
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -28,7 +31,11 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ("id", "name", "permissions")
+        fields = (
+            "id",
+            "name",
+            "permissions",
+        )
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -79,4 +86,9 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 class GovUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = GovUser
-        fields = ("id", "first_name", "last_name", "email")
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )
