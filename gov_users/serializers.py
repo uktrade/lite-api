@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
-from conf.constants import Permissions
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
 from teams.models import Team
