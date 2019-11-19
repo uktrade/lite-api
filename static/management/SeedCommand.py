@@ -38,7 +38,7 @@ class SeedCommand(ABC, BaseCommand):
         a csv with two headers 'id' and 'name' would iterate through all rows
         in the csv producing {'id': ID, 'name': Name} for each row.
         :param filename: filename of csv
-        :return: list of dict objects containing csv proprrties
+        :return: list of dict objects containing csv properties
         """
         with open(filename, newline="") as csvfile:
             reader = csv.DictReader(csvfile)
