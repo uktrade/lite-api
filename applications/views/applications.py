@@ -152,7 +152,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Deleting an application should only be allowed for draft applications
         """
-        if application.submitted_at:
+        if application.status:
             return JsonResponse(
                 data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST,
             )

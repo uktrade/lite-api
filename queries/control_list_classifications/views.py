@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import json
 
 import reversion
@@ -46,6 +47,7 @@ class ControlListClassificationsList(APIView):
             organisation=data["organisation"],
             type=CaseType.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=datetime.now(timezone.utc),
         )
 
         good.save()

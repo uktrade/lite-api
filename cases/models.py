@@ -31,7 +31,7 @@ class Case(models.Model):
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    submitted_at = models.DateTimeField(blank=True, null=True)
     status = models.ForeignKey(
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )

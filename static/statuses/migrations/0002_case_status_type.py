@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("statuses", "0005_auto_20191108_1648"),
+        ("statuses", "0001_initial"),
     ]
 
     operations = [
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                         max_length=35,
                     ),
                 ),
-                ("status", models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="statuses.CaseStatus",),),
+                ("status", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="statuses.CaseStatus",),),
             ],
             options={"unique_together": {("type", "status")},},
         ),

@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from rest_framework import serializers
 
 from cases.enums import CaseType
@@ -84,6 +86,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         validated_data["type"] = CaseType.END_USER_ADVISORY_QUERY
         validated_data["organisation_id"] = end_user_data["organisation"]
         validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        validated_data["submitted_at"] = datetime.now(timezone.utc)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 
