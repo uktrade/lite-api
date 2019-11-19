@@ -12,10 +12,7 @@ from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVI
 
 
 def check_if_user_own_advice_exists(case, user):
-    if (
-        Permissions.CONFIRM_OWN_ADVICE not in user.role.permissions.values_list("id", flat=True)
-        and Advice.objects.filter(case=case, user=user).exists()
-    ):
+    if Advice.objects.filter(case=case, user=user).exists():
         return JsonResponse(
             {"errors": ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR}, status=status.HTTP_403_FORBIDDEN,
         )

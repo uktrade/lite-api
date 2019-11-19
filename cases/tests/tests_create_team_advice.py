@@ -20,7 +20,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         self.role = Role(name="team_level")
-        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE])
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
         self.role.save()
 
         self.gov_user.role = self.role
@@ -298,7 +298,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
     def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(self,):
-        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.CONFIRM_OWN_ADVICE])
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         data = {
             "text": "I Am Easy to Find",
@@ -315,33 +315,10 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
     def test_when_user_advice_exists_create_team_advice_without_confirm_own_advice_failure(self,):
         """
-        Assert that "Confirm Own Advice" permission is required to give advice when the user has given user-level advice
+        Assert that "Confirm Own Advice" permission is required
         """
 
         self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
-        }
-
-        response = self.client.post(
-            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_and_without_manage_team_advice_failure(
-        self,
-    ):
-        """
-        Assert that "Confirm Own Advice" permission must be accompanied with "Manage Team Advice" permission to give
-        advice when the user has given user-level advice
-        """
-
-        self.role.permissions.set([Permissions.CONFIRM_OWN_ADVICE])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         data = {
             "text": "I Am Easy to Find",

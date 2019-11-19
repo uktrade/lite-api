@@ -15,7 +15,7 @@ from users.enums import UserStatuses
 
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    name = models.CharField(default=None, blank=True, null=True, max_length=32)
 
 
 @reversion.register()

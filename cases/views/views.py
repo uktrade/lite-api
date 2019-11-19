@@ -245,11 +245,12 @@ class CaseTeamAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        if Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE not in request.user.role.permissions.values_list("id", flat=True):
+            assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
 
-        user_own_advice_exists = check_if_user_own_advice_exists(pk, request.user)
-        if user_own_advice_exists:
-            return user_own_advice_exists
+            user_own_advice_exists = check_if_user_own_advice_exists(pk, request.user)
+            if user_own_advice_exists:
+                return user_own_advice_exists
 
         final_advice_exists = check_if_final_advice_exists(self.case)
         if final_advice_exists:
