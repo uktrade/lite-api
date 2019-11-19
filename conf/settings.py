@@ -119,6 +119,7 @@ SWAGGER_SETTINGS = {
     "DEFAULT_INFO": "conf.urls.api_info",
 }
 
+STATIC_URL = "/assets/"
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 
 # Database
