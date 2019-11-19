@@ -78,7 +78,7 @@ class RoleDetail(APIView):
         """
         update a role
         """
-        if pk == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+        if pk in Roles.IMMUTABLE_ROLES:
             return JsonResponse(
                 data={"errors": "You cannot edit the super user role"},
                 status=status.HTTP_400_BAD_REQUEST,

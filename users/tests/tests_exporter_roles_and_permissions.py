@@ -90,7 +90,9 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cannot_edit_role_without_permission(self):
-        role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
+        role = Role(name="some", organisation=self.organisation, type=UserType.EXPORTER)
+        role.save()
+        role_id = role.id
         url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role_id})
 
         data = {"permissions": [Permissions.ADMINISTER_USERS]}
