@@ -39,8 +39,8 @@ class SeedCommand(ABC, BaseCommand):
     @staticmethod
     def update_or_create(model: models.Model, rows: list):
         for row in rows:
-            if model.objects.filter(id=row['id']).exists():
-                model.objects.filter(id=row['id']).update(**row)
+            if model.objects.filter(id=row["id"]).exists():
+                model.objects.filter(id=row["id"]).update(**row)
             else:
                 model.objects.create(**row)
 

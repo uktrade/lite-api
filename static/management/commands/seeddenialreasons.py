@@ -1,4 +1,3 @@
-from conf.helpers import str_to_bool
 from static.denial_reasons.models import DenialReason
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
