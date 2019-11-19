@@ -31,16 +31,32 @@ class SeedCommand(ABC, BaseCommand):
         self.stdout.write(self.style.SUCCESS(self.success))
 
     @staticmethod
-    def read_csv(filename):
+    def read_csv(filename: str):
+        """
+        Takes a given csv filename and reads it into a list of dictionaries
+        where the headers are used as keys and rows as value. For example
+        a csv with two headers 'id' and 'name' would iterate through all rows
+        in the csv producing {'id': ID, 'name': Name} for each row.
+        :param filename: filename of csv
+        :return: list of dict objects containing csv proprrties
+        """
         with open(filename, newline="") as csvfile:
             reader = csv.DictReader(csvfile)
             return list(reader)
 
     @staticmethod
     def update_or_create(model: models.Model, rows: list):
+        """
+        Takes a list of dicts with an id field and other properties applicable
+        to a given model. If an object with the given id exists, it will update all
+        the fields to match what is given. If it does not exist a new entry will be created
+        :param model: A given Django model to populate
+        :param rows: A list of dictionaries (csv entries) to populate to the model
+        """
         for row in rows:
-            if model.objects.filter(id=row["id"]).exists():
-                model.objects.filter(id=row["id"]).update(**row)
+            obj = model.objects.filter(id=row["id"])
+            if obj.exists():
+                obj.update(**row)
             else:
                 model.objects.create(**row)
 
