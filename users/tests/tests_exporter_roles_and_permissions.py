@@ -65,8 +65,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         role = Role(name="some", organisation=self.organisation, type=UserType.EXPORTER)
         role.save()
-        role_id = role.id
-        url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role_id})
+        url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role.id})
 
         data = {"permissions": [Permissions.ADMINISTER_USERS]}
 
@@ -75,7 +74,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
             Permissions.ADMINISTER_USERS
-            in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+            in Role.objects.get(id=role.id).permissions.values_list("id", flat=True)
         )
 
     def test_cannot_create_role_without_permission(self):
@@ -92,8 +91,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_cannot_edit_role_without_permission(self):
         role = Role(name="some", organisation=self.organisation, type=UserType.EXPORTER)
         role.save()
-        role_id = role.id
-        url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role_id})
+        url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role.id})
 
         data = {"permissions": [Permissions.ADMINISTER_USERS]}
 
