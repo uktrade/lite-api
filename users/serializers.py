@@ -172,13 +172,9 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_parent(self, obj):
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            object = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            object = next(item for item in [obj.ecju_query.case] if item is not None)
 
         if obj.query:
             return None
@@ -187,13 +183,9 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_parent_type(self, obj):
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            object = next(item for item in [obj.case_note.case.type] if item is not None)
         if obj.ecju_query:
-            object = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            object = next(item for item in [obj.ecju_query.case.type] if item is not None)
 
         if obj.query:
             return None

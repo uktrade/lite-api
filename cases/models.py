@@ -62,7 +62,7 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(case_note=self)
 
@@ -218,7 +218,7 @@ class EcjuQuery(models.Model):
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(ecju_query=self)
         else:
