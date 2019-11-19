@@ -39,11 +39,26 @@ class RoleSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        permissions = [permission.id for permission in validated_data["permissions"]]
+        new_permissions = [permission.id for permission in validated_data["permissions"]]
+        confirm_own_advice = Permissions.CONFIRM_OWN_ADVICE in new_permissions
+        manage_team_advice = Permissions.MANAGE_TEAM_ADVICE in new_permissions
 
-        if Permissions.CONFIRM_OWN_ADVICE in permissions and Permissions.MANAGE_TEAM_ADVICE not in permissions:
-            validated_data["permissions"].append(Permission.objects.get(id=Permissions.MANAGE_TEAM_ADVICE))
+        # If the request contains the `confirm own advice` permission without the `manage team advice` permission
+        if confirm_own_advice and not manage_team_advice:
+            previous_permissions = instance.permissions.all().values_list("id", flat=True)
 
+            if Permissions.CONFIRM_OWN_ADVICE in previous_permissions:
+                # If `manage team advice` was not sent with the request
+                # and `confirm own advice` is in previously set permissions
+                # then the request was made to remove the `manage team advice` permission
+                new_permissions.remove(Permissions.CONFIRM_OWN_ADVICE)
+            else:
+                # If `manage team advice` was not sent with the request
+                # and `confirm own advice` is not in previously set permissions
+                # then the request was made to add the `confirm own advice` permission
+                new_permissions.append(Permissions.MANAGE_TEAM_ADVICE)
+
+        validated_data["permissions"] = new_permissions
         return super(RoleSerializer, self).update(instance, validated_data)
 
 
