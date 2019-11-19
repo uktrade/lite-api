@@ -45,7 +45,7 @@ class ControlListClassificationsList(APIView):
             good=good,
             organisation=data["organisation"],
             type=CaseType.CLC_QUERY,
-            status=CaseStatusEnum.SUBMITTED,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 
         good.save()
