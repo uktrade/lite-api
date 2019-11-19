@@ -20,7 +20,7 @@ class Command(SeedCommand):
 
         case_to_status_csv = self.read_csv(STATUS_ON_TYPE_FILE)
         for row in case_to_status_csv:
-            row['status'] = CaseStatus.objects.get(id=row['status'])
+            row["status"] = CaseStatus.objects.get(id=row["status"])
         self.update_or_create(CaseStatusCaseType, case_to_status_csv)
 
         self.delete_unused_objects(CaseStatus, status_csv)
