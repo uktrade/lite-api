@@ -29,6 +29,7 @@ django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
 weasyprint = "*"
+Markdown = "*"
 
 [requires]
 python_version = "3.7"
