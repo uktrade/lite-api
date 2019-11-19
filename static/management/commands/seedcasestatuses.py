@@ -12,12 +12,15 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedcasestatuses
         """
+        statuses = []
         for choice in CaseStatusEnum.choices:
-            CaseStatus.objects.get_or_create(
-                status=choice[0],
-                priority=CaseStatusEnum.priority[choice[0]],
-                is_read_only=CaseStatusEnum.is_read_only[choice[0]],
-            )
+            statuses.append({
+                "id": CaseStatusEnum.ids[choice[0]],
+                "status": choice[0],
+                "priority": CaseStatusEnum.priority[choice[0]],
+                "is_read_only": CaseStatusEnum.is_read_only[choice[0]]
+            })
+        self.update_or_create(CaseStatus, statuses)
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
