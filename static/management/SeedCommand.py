@@ -74,7 +74,7 @@ class SeedCommand(ABC, BaseCommand):
             if id not in ids:
                 try:
                     obj.delete()
-                    print(f"Unused object deleted {id}")
+                    print(f"Unused object deleted {id} from {model}")
                 except:
                     print(f"Object {id} could not be deleted due to foreign key constraint")
 
