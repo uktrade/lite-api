@@ -16,13 +16,13 @@ class Command(SeedCommand):
         """
         # Case statuses
         for row in self.read_csv(STATUSES_FILE):
-            CaseStatus.objects.get_or_create(status=row[0], priority=row[1], is_read_only=row[2])
+            CaseStatus.objects.get_or_create(status=row[0], priority=row[2], is_read_only=row[3])
 
         status_ids = {status.status: status for status in CaseStatus.objects.all()}
 
         # Case statuses on case types
         for row in self.read_csv(STATUS_ON_TYPE_FILE):
-            CaseStatusCaseType.objects.get_or_create(type=row[0], status=status_ids[row[1]])
+            CaseStatusCaseType.objects.get_or_create(type=row[1], status=status_ids[row[2]])
 
 
 class SeedCaseStatusesTests(SeedCommandTest):
