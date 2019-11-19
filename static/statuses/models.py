@@ -17,4 +17,4 @@ class CaseStatusCaseType(models.Model):
         unique_together = (("type", "status"),)
 
     type = models.CharField(choices=CaseType.choices, null=False, max_length=35)
-    status = models.ForeignKey(CaseStatus, on_delete=models.PROTECT, null=False)
+    status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, null=False)
