@@ -4,6 +4,7 @@ from rest_framework import status
 from conf.constants import Permissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
+from users.models import GovUser, Permission
 
 
 class SuperUserTests(DataTestClient):

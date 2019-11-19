@@ -110,7 +110,7 @@ class ExporterUser(BaseUser):
     def get_role(self, organisation):
         return self.userorganisationrelationship_set.get(organisation=organisation).role
 
-    def update_role(self, organisation, role):
+    def set_role(self, organisation, role):
         uor = self.userorganisationrelationship_set.get(organisation=organisation)
         uor.role = role
         uor.save()

@@ -4,6 +4,7 @@ from rest_framework import status
 
 from conf.constants import Permissions, Roles
 from test_helpers.clients import DataTestClient
+from users.enums import UserType
 from users.models import Role, Permission
 
 
@@ -52,7 +53,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         role = Role(name="some")
-        initial_roles_count = Role.objects.count()
+        initial_roles_count = Role.objects.filter(type=UserType.INTERNAL).count()
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
 

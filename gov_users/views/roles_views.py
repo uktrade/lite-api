@@ -8,6 +8,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Roles, Permissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
+from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role, Permission
 
@@ -23,7 +24,7 @@ class RolesViews(APIView):
         """
         Return list of all roles
         """
-        roles = Role.objects.all().order_by("name")
+        roles = Role.objects.filter(type=UserType.INTERNAL).order_by("name")
         if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
         serializer = RoleSerializer(roles, many=True)

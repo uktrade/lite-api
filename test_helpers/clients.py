@@ -57,7 +57,7 @@ from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
-
+from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 
 
 class DataTestClient(APITestCase, URLPatternsTestCase):
@@ -143,7 +143,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         response = self.client.get(path, data, follow, **extra)
         return response.json(), response.status_code
 
-    def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=Roles.EXPORTER_DEFAULT_ROLE):
+    def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
@@ -158,6 +158,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         exporter_user.save()
 
         if organisation:
+            if not role:
+                role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
             UserOrganisationRelationship(
                 user=exporter_user, organisation=organisation, role=role
             ).save()
@@ -189,7 +191,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return organisation, exporter_user
 
     @staticmethod
-    def add_exporter_user_to_org(organisation, exporter_user, role=Roles.EXPORTER_DEFAULT_ROLE_ID):
+    def add_exporter_user_to_org(organisation, exporter_user, role=None):
+        if not role:
+            role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         UserOrganisationRelationship(
             user=exporter_user, organisation=organisation, role=role
         ).save()

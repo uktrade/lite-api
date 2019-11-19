@@ -95,7 +95,7 @@ class UserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             elif (
-                user.role_id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
                 and data["status"] == "Deactivated"
             ):
                 raise PermissionDenied()

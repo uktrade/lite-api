@@ -149,4 +149,4 @@ class OrganisationUsersUpdateTests(DataTestClient):
 
         response = self.client.put(self.url, data, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

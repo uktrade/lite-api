@@ -4,11 +4,13 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication, ExporterAuthentication
+from conf.authentication import ExporterAuthentication
 from conf.constants import Roles, Permissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
+from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
+from users.models import Role, Permission
 
 
 class RolesViews(APIView):
@@ -111,6 +113,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        roles = Permission.objects.all().order_by("name")
+        roles = Permission.objects.filter(type=UserType.EXPORTER).order_by("name")
         serializer = PermissionSerializer(roles, many=True)
         return JsonResponse(data={"permissions": serializer.data})
