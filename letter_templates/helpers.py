@@ -1,14 +1,11 @@
 import os
 
 from django.template import Context, Engine
-from weasyprint import HTML, CSS
+from markdown import Markdown
 
 from conf import settings
 from conf.exceptions import NotFoundError
-from conf.settings import BASE_DIR
 from letter_templates.models import LetterTemplate
-
-CSS_LOCATION = '/assets/css/styles.css'
 
 
 def get_letter_template(pk):
@@ -51,14 +48,11 @@ def markdown_to_html(text):
     return Markdown().convert(text)
 
 
-def html_to_pdf(html):
-    html = HTML(string=html)
-    css = CSS(filename=BASE_DIR+CSS_LOCATION)
-    return html.write_pdf(stylesheets=[css])
+def paragraphs_to_markdown(letter_paragraphs: list):
+    return "\n\n".join([markdown_to_html(paragraph) for paragraph in letter_paragraphs])
 
 
 def generate_preview(layout, content: dict, allow_missing_variables=True):
     django_engine = template_engine_factory(allow_missing_variables)
     template = django_engine.get_template(f"{layout}.html")
     return template.render(Context(content))
-
