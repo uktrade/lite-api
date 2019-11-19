@@ -23,10 +23,6 @@ class BaseApplication(Case):
     name = models.TextField(default=None, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     last_modified_at = models.DateTimeField(auto_now=True, blank=True)
-    submitted_at = models.DateTimeField(blank=True, null=True)
-    status = models.ForeignKey(
-        CaseStatus, related_name="application_status", on_delete=models.CASCADE, blank=True, null=True,
-    )
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)

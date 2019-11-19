@@ -10,8 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("cases", "0001_initial"),
-        ("organisations", "0001_initial"),
-        ("statuses", "0001_initial"),
     ]
 
     operations = [
@@ -27,17 +25,6 @@ class Migration(migrations.Migration):
                         primary_key=True,
                         serialize=False,
                         to="cases.Case",
-                    ),
-                ),
-                ("submitted_at", models.DateTimeField(auto_now_add=True)),
-                (
-                    "status",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="query_status",
-                        to="statuses.CaseStatus",
                     ),
                 ),
             ],

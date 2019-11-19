@@ -33,7 +33,6 @@ class Migration(migrations.Migration):
                 ("name", models.TextField(blank=True, default=None, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("last_modified_at", models.DateTimeField(auto_now=True)),
-                ("submitted_at", models.DateTimeField(blank=True, null=True)),
                 (
                     "application_type",
                     models.CharField(

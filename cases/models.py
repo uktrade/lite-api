@@ -14,6 +14,7 @@ from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.models import BaseUser, ExporterUser, GovUser
 from organisations.models import UserOrganisationRelationship, Organisation
@@ -22,14 +23,18 @@ from organisations.models import UserOrganisationRelationship, Organisation
 @reversion.register()
 class Case(models.Model):
     """
-    Wrapper for application and query model intended for internal users.
+    Base model for applications and queries
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
+    type = models.CharField(choices=CaseType.choices, max_length=35)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
+    status = models.ForeignKey(
+        CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
+    )
 
     objects = CaseManager()
 

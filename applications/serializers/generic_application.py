@@ -10,7 +10,6 @@ from applications.enums import (
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from applications.serializers.denial_reasons import ApplicationDenialReasonCreateSerializer
-from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from content_strings.strings import get_string
@@ -57,11 +56,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         return None
 
     def get_case(self, instance):
-        try:
-            return Case.objects.get(application=instance).id
-        except Case.DoesNotExist:
-            # Case will only exist if application has been submitted
-            return None
+        return instance.pk
 
     class Meta:
         model = BaseApplication

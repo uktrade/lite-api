@@ -192,14 +192,7 @@ class ApplicationSubmission(APIView):
 
         data = {"application": {**serializer.data}}
 
-        if not previous_application_status:
-            # If the application is being submitted for the first time
-            case = Case(application=application)
-            if application.application_type == CaseType.HMRC_QUERY:
-                case.type = CaseType.HMRC_QUERY
-            case.save()
-            data["application"]["case_id"] = case.id
-        else:
+        if previous_application_status:
             # If the application is being submitted after being edited
             set_application_status_case_activity(application.status.status, request.user, application)
 

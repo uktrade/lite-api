@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("statuses", "0001_initial"),
         ("countries", "0001_initial"),
         (
             "applications",
@@ -52,17 +51,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="countries_on_application",
                 to="countries.Country",
-            ),
-        ),
-        migrations.AddField(
-            model_name="baseapplication",
-            name="status",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="application_status",
-                to="statuses.CaseStatus",
             ),
         ),
         migrations.AddField(
