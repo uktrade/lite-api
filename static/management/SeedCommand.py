@@ -3,7 +3,7 @@ from abc import ABC
 from io import StringIO
 
 from django.core.management import BaseCommand, call_command
-from django.db import transaction, models
+from django.db import transaction, models, IntegrityError
 from django.test import TestCase
 
 
@@ -75,7 +75,7 @@ class SeedCommand(ABC, BaseCommand):
                 try:
                     obj.delete()
                     print(f"Unused object deleted {id} from {model}")
-                except:
+                except IntegrityError:
                     print(f"Object {id} could not be deleted due to foreign key constraint")
 
 
