@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
+from conf.constants import Permissions
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
 from teams.models import Team
@@ -13,7 +14,10 @@ from users.models import Role, Permission
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = ("id", "name")
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -28,7 +32,19 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ("id", "name", "permissions")
+        fields = (
+            "id",
+            "name",
+            "permissions",
+        )
+
+    def update(self, instance, validated_data):
+        permissions = [permission.id for permission in validated_data["permissions"]]
+
+        if Permissions.CONFIRM_OWN_ADVICE in permissions and Permissions.MANAGE_TEAM_ADVICE not in permissions:
+            validated_data["permissions"].append(Permission.objects.get(id=Permissions.MANAGE_TEAM_ADVICE))
+
+        return super(RoleSerializer, self).update(instance, validated_data)
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -79,4 +95,9 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 class GovUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = GovUser
-        fields = ("id", "first_name", "last_name", "email")
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )

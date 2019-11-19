@@ -123,3 +123,21 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_edit_a_role_add_confirm_own_advice_adds_manage_team_advice(self):
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+        role_id = Roles.DEFAULT_ROLE_ID
+        url = reverse("gov_users:role", kwargs={"pk": role_id})
+
+        data = {"permissions": [Permissions.CONFIRM_OWN_ADVICE]}
+
+        response = self.client.put(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            Permissions.CONFIRM_OWN_ADVICE in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+        )
+        self.assertTrue(
+            Permissions.MANAGE_TEAM_ADVICE in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+        )
