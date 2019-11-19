@@ -20,7 +20,7 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_exporter_default_user_role_cannot_be_edited(self):
-        role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
+        role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
         url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
 
         data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
