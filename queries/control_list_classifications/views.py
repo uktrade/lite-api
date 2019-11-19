@@ -45,6 +45,7 @@ class ControlListClassificationsList(APIView):
             good=good,
             organisation=data["organisation"],
             type=CaseType.CLC_QUERY,
+            status=CaseStatusEnum.SUBMITTED,
         )
 
         good.save()
@@ -76,7 +77,7 @@ class ControlListClassificationDetail(APIView):
 
                     # Add an activity item for the query's case
                     CaseActivity.create(
-                        activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                        activity_type=CaseActivityType.CLC_RESPONSE, case=query, user=request.user,
                     )
 
                     # Send a notification to the user

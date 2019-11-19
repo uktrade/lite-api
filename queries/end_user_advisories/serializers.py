@@ -9,6 +9,8 @@ from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.helpers import get_exporter_query
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
@@ -81,6 +83,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
         validated_data["type"] = CaseType.END_USER_ADVISORY_QUERY
         validated_data["organisation_id"] = end_user_data["organisation"]
+        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 

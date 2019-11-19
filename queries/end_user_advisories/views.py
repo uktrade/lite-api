@@ -88,7 +88,7 @@ class EndUserAdvisoryDetail(APIView):
             if serializer.is_valid():
                 CaseActivity.create(
                     activity_type=CaseActivityType.UPDATED_STATUS,
-                    case=end_user_advisory.case.get(),
+                    case=end_user_advisory,
                     user=request.user,
                     status=data.get("status"),
                 )
