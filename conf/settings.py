@@ -119,6 +119,8 @@ SWAGGER_SETTINGS = {
     "DEFAULT_INFO": "conf.urls.api_info",
 }
 
+LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
+
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
