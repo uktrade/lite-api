@@ -3,7 +3,7 @@ from abc import ABC
 from io import StringIO
 
 from django.core.management import BaseCommand, call_command
-from django.db import transaction
+from django.db import transaction, models, IntegrityError
 from django.test import TestCase
 
 
@@ -31,11 +31,52 @@ class SeedCommand(ABC, BaseCommand):
         self.stdout.write(self.style.SUCCESS(self.success))
 
     @staticmethod
-    def read_csv(filename):
+    def read_csv(filename: str):
+        """
+        Takes a given csv filename and reads it into a list of dictionaries
+        where the headers are used as keys and rows as value. For example
+        a csv with two headers 'id' and 'name' would iterate through all rows
+        in the csv producing {'id': ID, 'name': Name} for each row.
+        :param filename: filename of csv
+        :return: list of dict objects containing csv properties
+        """
         with open(filename, newline="") as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # skip the headers
+            reader = csv.DictReader(csvfile)
             return list(reader)
+
+    @staticmethod
+    def update_or_create(model: models.Model, rows: list):
+        """
+        Takes a list of dicts with an id field and other properties applicable
+        to a given model. If an object with the given id exists, it will update all
+        the fields to match what is given. If it does not exist a new entry will be created
+        :param model: A given Django model to populate
+        :param rows: A list of dictionaries (csv entries) to populate to the model
+        """
+        for row in rows:
+            obj = model.objects.filter(id=row["id"])
+            if obj.exists():
+                obj.update(**row)
+            else:
+                model.objects.create(**row)
+
+    @staticmethod
+    def delete_unused_objects(model: models.Model, rows: list):
+        """
+        Takes a list of dicts with an id field and checks that no other
+        records exist other than this given list
+        :param model: A given Django model to check
+        :param rows: A list of dictionaries (csv entries) to extract ID's from for checking
+        """
+        ids = [row["id"] for row in rows]
+        for obj in model.objects.all():
+            id = str(obj.id)
+            if id not in ids:
+                try:
+                    obj.delete()
+                    print(f"Unused object deleted {id} from {model}")
+                except IntegrityError:
+                    print(f"Object {id} could not be deleted due to foreign key constraint")
 
 
 class SeedCommandTest(TestCase):
