@@ -38,3 +38,13 @@ class AdviceType:
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
     ]
+
+
+class CaseDocumentType:
+    UPLOADED = "UPLOADED"
+    GENERATED = "GENERATED"
+
+    choices = [
+        (UPLOADED, "Uploaded"),
+        (GENERATED, "Generated")
+    ]

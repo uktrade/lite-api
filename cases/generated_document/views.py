@@ -1,15 +1,14 @@
-from datetime import datetime
-
 from django.http import JsonResponse
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.views import APIView
 
+from cases.enums import CaseDocumentType
 from cases.generated_document.helpers import html_to_pdf
 from cases.generated_document.models import GeneratedDocument
-from cases.generated_document.serialzers import GeneratedDocumentSerializer
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
 from documents.helpers import DocumentOperation
-from documents.models import Document
 from letter_templates.helpers import generate_preview, paragraphs_to_markdown
 from letter_templates.models import LetterTemplate
 
@@ -17,7 +16,6 @@ from letter_templates.models import LetterTemplate
 class GeneratedDocuments(APIView):
     authentication_classes = (GovAuthentication,)
     queryset = GeneratedDocument.objects.all()
-    serializer_class = GeneratedDocumentSerializer
 
     def post(self, request, pk):
         # TODO Add validation
@@ -31,18 +29,18 @@ class GeneratedDocuments(APIView):
         pdf = html_to_pdf(html)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
 
-        document = Document.objects.create(
-            name=s3_key,
-            s3_key=s3_key,
-            virus_scanned_at=datetime.now(),
-            safe=True
-        )
-
         generated_doc = GeneratedDocument.objects.create(
-            document=document,
+            name=s3_key,
+            user=request.user,
+            s3_key=s3_key,
+            virus_scanned_at=timezone.now(),
+            safe=True,
+            type=CaseDocumentType.GENERATED,
             case=case,
             template=template,
-            name=template.name+str(case.id)
         )
 
-        return JsonResponse(data={"generated_document": generated_doc})
+        return JsonResponse(
+            data={"generated_document": str(generated_doc.id)},
+            status=status.HTTP_201_CREATED
+        )
