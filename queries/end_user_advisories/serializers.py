@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from cases.enums import CaseType
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -51,7 +50,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         if repr_dict["copy_of"]:
             repr_dict["copy_of"] = {
                 "reference_code": repr_dict["copy_of"],
-                "case_id": get_exporter_query(repr_dict["copy_of"]).case.get().id,
+                "case_id": get_exporter_query(repr_dict["copy_of"]).id,
             }
         return repr_dict
 
