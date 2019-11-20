@@ -29,6 +29,7 @@ class Command(SeedCommand):
         role.permissions.set(
             [
                 Permissions.MANAGE_FINAL_ADVICE,
+                Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
                 Permissions.MANAGE_TEAM_ADVICE,
                 Permissions.REVIEW_GOODS,
                 Permissions.ADMINISTER_ROLES,
