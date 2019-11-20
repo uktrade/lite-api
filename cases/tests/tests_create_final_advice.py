@@ -27,6 +27,13 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         team_3.save()
 
         role = Role(name="team_level")
+        role.permissions.set(
+            [
+                Permissions.MANAGE_FINAL_ADVICE,
+                Permissions.MANAGE_TEAM_ADVICE,
+                Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
+            ]
+        )
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
         role.save()
 

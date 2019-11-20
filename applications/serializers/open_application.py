@@ -29,8 +29,6 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
         fields = GenericApplicationListSerializer.Meta.fields + (
             "destinations",
             "goods_types",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
             "goods_locations",
             "activity",
             "usage",
@@ -79,8 +77,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "name",
             "application_type",
             "export_type",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
             "organisation",
         )
 
@@ -93,22 +89,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": get_string("goods.error_messages.ref_name")},
     )
-    reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + (
-            "have_you_been_informed",
-            "reference_number_on_information_form",
-        )
-
-    def update(self, instance, validated_data):
-        instance.have_you_been_informed = validated_data.get("have_you_been_informed", instance.have_you_been_informed)
-        if instance.have_you_been_informed == "yes":
-            instance.reference_number_on_information_form = validated_data.get(
-                "reference_number_on_information_form", instance.reference_number_on_information_form,
-            )
-        else:
-            instance.reference_number_on_information_form = None
-        instance = super().update(instance, validated_data)
-        return instance
+        fields = GenericApplicationUpdateSerializer.Meta.fields

@@ -1,12 +1,4 @@
 class CaseStatusEnum:
-    """
-    This enum is used in this application's model and `0001_initial` migration file to create and populate the
-    `statuses_casestatus table`
-    If you want to add a status to that table:
-        add it to this enum, specify the status' priority and if it is read-only below
-        run `./manage.py makemigrations`
-    """
-
     APPLICANT_EDITING = "applicant_editing"
     CLOSED = "closed"
     FINALISED = "finalised"

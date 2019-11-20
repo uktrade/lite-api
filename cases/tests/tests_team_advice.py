@@ -21,15 +21,15 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.submit_application(self.standard_application)
         self.standard_case = Case.objects.get(application=self.standard_application)
 
-        role = Role(name="team_level")
-        role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
-        role.save()
+        self.role = Role(name="team_level")
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.role.save()
 
-        self.gov_user.role = role
+        self.gov_user.role = self.role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(email="user@email.com", team=self.team, role=role)
-        self.gov_user_3 = GovUser(email="users@email.com", team=self.team, role=role)
+        self.gov_user_2 = GovUser(email="user@email.com", team=self.team, role=self.role)
+        self.gov_user_3 = GovUser(email="users@email.com", team=self.team, role=self.role)
         self.gov_user_2.save()
         self.gov_user_3.save()
 
@@ -299,17 +299,84 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
-    @parameterized.expand(get_terminal_case_statuses())
-    def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
-        self.standard_application.status = get_case_status_by_status(terminal_status)
-        self.standard_application.save()
 
+    def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.get(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_when_user_advice_exists_combine_team_advice_without_confirm_own_advice_failure(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.get(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_when_user_advice_exists_clear_team_advice_with_confirm_own_advice_success(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.delete(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_when_user_advice_exists_clear_team_advice_without_confirm_own_advice_failure(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+
+        response = self.client.delete(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_when_user_advice_exists_create_team_advice_with_confirm_own_advice_success(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         data = {
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
             "end_user": str(self.standard_application.end_user.id),
         }
+
+        response = self.client.post(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_when_user_advice_exists_create_team_advice_without_confirm_own_advice_failure(self,):
+        self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE])
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.standard_application.end_user.id),
+        }
+
+        response = self.client.post(
+            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+    @parameterized.expand(get_terminal_case_statuses())
+    def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
+        self.standard_application.status = get_case_status_by_status(terminal_status)
+        self.standard_application.save()
 
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
 
