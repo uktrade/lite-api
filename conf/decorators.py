@@ -94,7 +94,7 @@ def application_in_editable_state():
                 return JsonResponse(
                     data={
                         "errors": [
-                            "You can only perform this operation when the application " "is in an editable state"
+                            "You can only perform this operation when the application is in an editable state"
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,

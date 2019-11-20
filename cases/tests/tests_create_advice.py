@@ -2,25 +2,22 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.enums import AdviceType
 from cases.models import Advice
 from conf.helpers import convert_queryset_to_str
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
 class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = self.standard_application.case.get()
-
-        self.open_application = self.create_open_application(self.organisation)
-        self.submit_application(self.open_application)
-        self.open_case = self.open_application.case.get()
+        self.application = self.create_standard_application(self.organisation)
+        self.submit_application(self.application)
+        self.standard_case = self.application.case.get()
 
         self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
-        self.open_case_url = reverse("cases:case_advice", kwargs={"pk": self.open_case.id})
 
     @parameterized.expand(
         [
@@ -40,7 +37,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": advice_type,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.application.end_user.id),
         }
 
         if advice_type == AdviceType.PROVISO:
@@ -101,10 +98,27 @@ class CreateCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
-            "good": str(self.standard_application.goods.first().id),
+            "end_user": str(self.application.end_user.id),
+            "good": str(self.application.goods.first().id),
         }
 
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Advice.objects.count(), 0)
+
+    @parameterized.expand(get_terminal_case_statuses())
+    def test_cannot_create_advice_when_case_in_terminal_state(self, terminal_status):
+        self.application.status = get_case_status_by_status(terminal_status)
+        self.application.save()
+
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.id),
+            "good": str(self.application.goods.first().id),
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

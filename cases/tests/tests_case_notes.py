@@ -2,7 +2,9 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.models import Case, CaseNote
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -13,16 +15,16 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.submit_application(self.standard_application)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
-
-    def test_create_case_note_successful(self):
-        data = {
+        self.data = {
             "text": "I Am Easy to Find",
         }
 
-        response = self.client.post(self.url, data=data, **self.gov_headers)
+    def test_create_case_note_successful(self):
+        response = self.client.post(self.url, data=self.data, **self.gov_headers)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaseNote.objects.count(), 1)
-        self.assertEqual(CaseNote.objects.get().text, data.get("text"))
+        self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
         self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, False)
 
     @parameterized.expand(
@@ -35,8 +37,18 @@ class CaseNotesGovCreateTests(DataTestClient):
     )
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=data, **self.gov_headers)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
+
+    @parameterized.expand(get_terminal_case_statuses())
+    def test_create_case_note_case_terminal_state_failure(self, terminal_status):
+        self.standard_application.status = get_case_status_by_status(terminal_status)
+        self.standard_application.save()
+
+        response = self.client.post(self.url, data=self.data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class CaseNotesExporterCreateTests(DataTestClient):
@@ -46,14 +58,14 @@ class CaseNotesExporterCreateTests(DataTestClient):
         self.submit_application(self.standard_application)
         self.case = Case.objects.get(application=self.standard_application)
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
+        self.data = {"text": "Days of brutalism"}
 
     def test_create_case_note_successful(self):
-        data = {"text": "Days of brutalism"}
+        response = self.client.post(self.url, data=self.data, **self.exporter_headers)
 
-        response = self.client.post(self.url, data=data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CaseNote.objects.count(), 1)
-        self.assertEqual(CaseNote.objects.get().text, data.get("text"))
+        self.assertEqual(CaseNote.objects.get().text, self.data.get("text"))
         self.assertEqual(CaseNote.objects.get().is_visible_to_exporter, True)
 
     @parameterized.expand(
@@ -66,8 +78,18 @@ class CaseNotesExporterCreateTests(DataTestClient):
     )
     def test_create_case_note_failure(self, data):
         response = self.client.post(self.url, data=data, **self.exporter_headers)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
+
+    @parameterized.expand(get_terminal_case_statuses())
+    def test_create_case_note_case_terminal_state_failure(self, terminal_status):
+        self.standard_application.status = get_case_status_by_status(terminal_status)
+        self.standard_application.save()
+
+        response = self.client.post(self.url, data=self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class CaseNotesViewTests(DataTestClient):

@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, GovAuthentication
@@ -54,12 +55,20 @@ class ControlListClassificationDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
-        """
-        Respond to a control list classification.
-        """
+        """ Respond to a control list classification."""
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
+        if query.status.status in get_terminal_case_statuses():
+            return JsonResponse(
+                data={
+                    "errors": [
+                        "You can only perform this operation on a case in a non-terminal state."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         data = json.loads(request.body)
 
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)

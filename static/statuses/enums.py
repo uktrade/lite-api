@@ -8,6 +8,7 @@ class CaseStatusEnum:
     """
 
     APPLICANT_EDITING = "applicant_editing"
+    CLOSED = "closed"
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
     RESUBMITTED = "resubmitted"
@@ -18,6 +19,7 @@ class CaseStatusEnum:
 
     choices = [
         (APPLICANT_EDITING, "Applicant editing"),
+        (CLOSED, "Closed"),
         (FINALISED, "Finalised"),
         (INITIAL_CHECKS, "Initial checks"),
         (RESUBMITTED, "Resubmitted"),
@@ -36,16 +38,30 @@ class CaseStatusEnum:
         UNDER_FINAL_REVIEW: 6,
         FINALISED: 7,
         WITHDRAWN: 8,
+        CLOSED: 9
     }
 
     is_read_only = {
         APPLICANT_EDITING: False,
+        CLOSED: True,
         FINALISED: True,
         INITIAL_CHECKS: False,
         RESUBMITTED: False,
         SUBMITTED: False,
         UNDER_FINAL_REVIEW: True,
         UNDER_REVIEW: True,
+        WITHDRAWN: True,
+    }
+
+    is_terminal = {
+        APPLICANT_EDITING: False,
+        CLOSED: True,
+        FINALISED: True,
+        INITIAL_CHECKS: False,
+        RESUBMITTED: False,
+        SUBMITTED: False,
+        UNDER_FINAL_REVIEW: False,
+        UNDER_REVIEW: False,
         WITHDRAWN: True,
     }
 

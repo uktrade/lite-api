@@ -6,9 +6,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
-from cases.models import CaseActivity
+from cases.models import CaseActivity, Case
 from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
@@ -18,7 +19,7 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from applications.models import GoodOnApplication
+from applications.models import GoodOnApplication, BaseApplication
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -39,10 +40,21 @@ class GoodsListControlCode(APIView):
 
     @transaction.atomic
     def post(self, request, case_pk):
-        """
-        Set control list codes on multiple goods.
-        """
+        """ Set control list codes on multiple goods. """
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
+
+        application_id = Case.objects.values_list('application_id', flat=True).get(pk=case_pk)
+        application = BaseApplication.objects.get(id=application_id)
+
+        if application.status.status in get_terminal_case_statuses():
+            return JsonResponse(
+                data={
+                    "errors": [
+                        "You can only perform this operation on an application in a non-terminal state"
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         data = JSONParser().parse(request)
         objects = data.get("objects")
