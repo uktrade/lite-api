@@ -20,7 +20,7 @@ class GeneratedDocuments(APIView):
     def post(self, request, pk):
         # TODO Add validation
         case = get_case(pk)
-        template = LetterTemplate.objects.get(id=request.data["template"])
+        template = LetterTemplate.objects.get(id=request.data["template"], restricted_to__contains=[case.type])
 
         paragraphs = [paragraph.text for paragraph in template.letter_paragraphs.all()]
         paragraphs = paragraphs_to_markdown(paragraphs)

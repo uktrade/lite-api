@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
 
+from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
@@ -12,8 +13,15 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
+
+    def get_queryset(self):
+        case = self.request.GET.get("case")
+
+        if case:
+            return LetterTemplate.objects.filter(restricted_to=get_case(pk=case).type)
+
+        return LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
