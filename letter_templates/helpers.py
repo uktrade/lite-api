@@ -1,8 +1,10 @@
 import os
+from typing import Optional
 
 from django.template import Context, Engine
 from markdown import Markdown
 
+from cases.models import Case
 from conf import settings
 from conf.exceptions import NotFoundError
 from letter_templates.models import LetterTemplate
@@ -21,7 +23,6 @@ class InvalidVarException(Exception):
     find a context variable. This exception should be handled in places where the
     template may use an invalid variable (user entered variables)
     """
-
     def __mod__(self, missing):
         raise InvalidVarException("Invalid template variable {{ %s }}" % missing)
 
@@ -44,15 +45,19 @@ def template_engine_factory(allow_missing_variables):
     )
 
 
-def markdown_to_html(text):
-    return Markdown().convert(text)
-
-
-def paragraphs_to_markdown(letter_paragraphs: list):
-    return "\n\n".join([markdown_to_html(paragraph) for paragraph in letter_paragraphs])
+def get_paragraphs_as_html(template: LetterTemplate):
+    paragraphs = [paragraph.text for paragraph in template.letter_paragraphs.all()]
+    return "\n\n".join([Markdown().convert(paragraph) for paragraph in paragraphs])
 
 
 def generate_preview(layout, content: dict, allow_missing_variables=True):
     django_engine = template_engine_factory(allow_missing_variables)
     template = django_engine.get_template(f"{layout}.html")
     return template.render(Context(content))
+
+
+def get_html_preview(template: LetterTemplate, case: Optional[Case]):
+    content = {"content": get_paragraphs_as_html(template)}
+    if case:
+        content["case"] = case
+    return generate_preview(template.layout.filename, content)
