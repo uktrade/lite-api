@@ -55,7 +55,7 @@ def generate_preview(layout, content: dict, allow_missing_variables=True):
     return template.render(Context(content))
 
 
-def get_html_preview(template: LetterTemplate, case: Optional[Case]):
+def get_html_preview(template: LetterTemplate, case=None):
     content = {"content": get_paragraphs_as_html(template)}
     if case:
         content["case"] = case

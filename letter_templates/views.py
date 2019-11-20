@@ -1,7 +1,9 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
+from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from letter_templates.helpers import get_html_preview
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 
@@ -44,3 +46,13 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             return JsonResponse(serializer.data)
 
         return JsonResponse({"errors": serializer.errors})
+
+
+class TemplatePreview(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @staticmethod
+    def get(request, tpk):
+        template = LetterTemplate.objects.get(id=tpk)
+        html = get_html_preview(template=template)
+        return JsonResponse({"preview": html}, status=status.HTTP_200_OK)

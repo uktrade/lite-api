@@ -9,4 +9,8 @@ urlpatterns = [
     path("", views.LetterTemplatesList.as_view(), name="letter_templates"),
     # ex: /letter-templates/<uuid:pk>/ - Details of a particular letter template
     path("<uuid:pk>/", views.LetterTemplateDetail.as_view(), name="letter_template"),
+
+    # ex: /letter-templates/preview/ - Generate preview for a given template
+    path("<uuid:tpk>/preview/", views.TemplatePreview.as_view(), name="preview_template"),
+
 ]
