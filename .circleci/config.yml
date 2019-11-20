@@ -62,6 +62,10 @@ jobs:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
+      - run:
+          name: Check migrations are made
+          command: pipenv run ./manage.py makemigrations --check
+
       # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
       - run:
           name: Run Linting
@@ -69,7 +73,7 @@ jobs:
 
       - run:
           name: check code formatting
-          command: pipenv run black . --line-length 120 --check --diff
+          command: pipenv run black . --check --diff
 
       # Tests
       # this example uses Django's built-in test-runner
@@ -79,6 +83,8 @@ jobs:
       - run:
           name: Run Unit Tests
           command: pipenv run ./manage.py test --parallel
+      - store_test_results:
+          path: test-results
 
       # Code Coverage
       - run:

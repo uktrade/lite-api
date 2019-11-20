@@ -163,3 +163,5 @@ fabric.properties
 # Other
 *.css
 *.css.map
+
+test-results

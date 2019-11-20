@@ -120,11 +120,6 @@ class Migration(migrations.Migration):
                         choices=[("permanent", "Permanent"), ("temporary", "Temporary")], default=None, max_length=50
                     ),
                 ),
-                ("reference_number_on_information_form", models.TextField(blank=True, null=True)),
-                (
-                    "have_you_been_informed",
-                    models.CharField(choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50),
-                ),
             ],
             bases=("applications.baseapplication",),
         ),

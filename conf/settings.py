@@ -11,7 +11,7 @@ ENV_FILE = os.path.join(BASE_DIR, ".env")
 if os.path.exists(ENV_FILE):
     Env.read_env(ENV_FILE)
 
-env = Env(ALLOWED_HOSTS=(str, ""), DEBUG=(bool, False), LOG_LEVEL=(str, "INFO"), BACKGROUND_TASK_ENABLED=(bool, False),)
+env = Env(ALLOWED_HOSTS=(str, ""), DEBUG=(bool, False), LOG_LEVEL=(str, "INFO"), BACKGROUND_TASK_ENABLED=(bool, False))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -91,9 +91,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+            ]
         },
-    },
+    }
 ]
 
 AUTH_USER_MODEL = "users.BaseUser"
@@ -103,21 +103,20 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     "DEFAULT_AUTHENTICATION_CLASSES": (),
     "DEFAULT_PERMISSION_CLASSES": (),
-    "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser",),
+    "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-]
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
-SWAGGER_SETTINGS = {
-    "DEFAULT_INFO": "conf.urls.api_info",
-}
+SWAGGER_SETTINGS = {"DEFAULT_INFO": "conf.urls.api_info"}
+
+TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
+TEST_OUTPUT_DIR = "test-results/unittest/"
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -162,16 +161,13 @@ if "test" not in sys.argv:
             "json": {
                 "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                 "format": "(asctime)(levelname)(message)(filename)(lineno)(threadName)(name)(thread)(created)(process)(processName)(relativeCreated)(module)(funcName)(levelno)(msecs)(pathname)",  # noqa
-            },
+            }
         },
-        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json",},},
-        "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper(),},},
+        "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
+        "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()}},
     }
 else:
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": True,
-    }
+    LOGGING = {"version": 1, "disable_existing_loggers": True}
 
 ADMIN_TEAM_ID = "00000000-0000-0000-0000-000000000001"
 

@@ -85,7 +85,7 @@ class FlagDetail(APIView):
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(
-                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN
             )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
@@ -130,7 +130,7 @@ class AssignFlags(APIView):
                 )
                 response_data.append({level.lower(): serializer.data})
             else:
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data=response_data, status=status.HTTP_200_OK, safe=False)
 
@@ -183,7 +183,7 @@ class AssignFlags(APIView):
                 added_flags=added_flags,
                 removed_flags=removed_flags,
                 additional_text=note,
-                **kwargs
+                **kwargs,
             )
 
         if added_flags:
@@ -193,7 +193,7 @@ class AssignFlags(APIView):
                 user=user,
                 added_flags=added_flags,
                 additional_text=note,
-                **kwargs
+                **kwargs,
             )
 
         if removed_flags:
@@ -203,7 +203,7 @@ class AssignFlags(APIView):
                 user=user,
                 removed_flags=removed_flags,
                 additional_text=note,
-                **kwargs
+                **kwargs,
             )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):

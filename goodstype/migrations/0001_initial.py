@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name="GoodsType",
             fields=[
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("description", models.TextField(blank=True, default=None, max_length=280, null=True)),
+                ("description", models.TextField(blank=True, default=None, max_length=2000, null=True)),
                 ("is_good_controlled", models.BooleanField(blank=True, default=None, null=True)),
                 ("control_code", models.TextField(blank=True, default=None, null=True)),
                 ("is_good_end_product", models.BooleanField(blank=True, default=None, null=True)),

@@ -28,11 +28,7 @@ from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
-from conf.decorators import (
-    authorised_users,
-    application_in_major_editable_state,
-    application_in_editable_state,
-)
+from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from organisations.enums import OrganisationType
@@ -113,29 +109,34 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         serializer = get_application_update_serializer(application)
-        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True,)
+        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if application.application_type == ApplicationType.HMRC_QUERY:
             if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer.save()
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
         else:
             application_old_name = application.name
-            application_old_ref_number = application.reference_number_on_information_form
+
+            if application.application_type == ApplicationType.STANDARD_LICENCE:
+                application_old_ref_number = application.reference_number_on_information_form
 
             if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer.save()
 
             if request.data.get("name"):
                 set_application_name_case_activity(
-                    application_old_name, serializer.data.get("name"), request.user, application,
+                    application_old_name, serializer.data.get("name"), request.user, application
                 )
-            elif request.data.get("reference_number_on_information_form"):
+            elif (
+                request.data.get("reference_number_on_information_form")
+                and application.application_type == ApplicationType.STANDARD_LICENCE
+            ):
                 set_application_ref_number_case_activity(
                     application_old_ref_number,
                     serializer.data.get("reference_number_on_information_form"),
@@ -152,7 +153,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if application.status:
             return JsonResponse(
-                data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST
             )
         application.delete()
         return JsonResponse(data={"status": "Draft application deleted"}, status=status.HTTP_200_OK)
