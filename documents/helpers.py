@@ -20,7 +20,5 @@ class DocumentOperation:
         if not s3_key:
             s3_key = str(uuid.uuid4()) + file_extension
         bucket = self._get_bucket()
-        bucket.put_object(Bucket=self._get_bucket_name(),
-                          Key=s3_key,
-                          Body=raw_file)
+        bucket.put_object(Bucket=self._get_bucket_name(), Key=s3_key, Body=raw_file)
         return s3_key

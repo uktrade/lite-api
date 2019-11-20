@@ -20,7 +20,7 @@ class GeneratedDocuments(APIView):
     def post(self, request, pk):
         # TODO Add validation
         case = get_case(pk)
-        template = LetterTemplate.objects.get(id=request.data['template'])
+        template = LetterTemplate.objects.get(id=request.data["template"])
 
         paragraphs = [paragraph.text for paragraph in template.letter_paragraphs.all()]
         paragraphs = paragraphs_to_markdown(paragraphs)
@@ -40,7 +40,4 @@ class GeneratedDocuments(APIView):
             template=template,
         )
 
-        return JsonResponse(
-            data={"generated_document": str(generated_doc.id)},
-            status=status.HTTP_201_CREATED
-        )
+        return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)

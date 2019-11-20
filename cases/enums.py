@@ -44,7 +44,4 @@ class CaseDocumentType:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"
 
-    choices = [
-        (UPLOADED, "Uploaded"),
-        (GENERATED, "Generated")
-    ]
+    choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated")]
