@@ -1,9 +1,6 @@
-import uuid
-
 from django.db import models
 
-from cases.models import Case, CaseDocument
-from documents.models import Document
+from cases.models import CaseDocument
 from letter_templates.models import LetterTemplate
 
 
