@@ -1,7 +1,7 @@
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
-FILE = "lite_content/lite-api/document_layouts.csv"
+LAYOUTS_FILE = "lite_content/lite-api/document_layouts.csv"
 
 
 class Command(SeedCommand):
@@ -13,7 +13,7 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedlayouts
         """
-        csv = self.read_csv(FILE)
+        csv = self.read_csv(LAYOUTS_FILE)
         self.update_or_create(LetterLayout, csv)
         self.delete_unused_objects(LetterLayout, csv)
 
@@ -21,4 +21,4 @@ class Command(SeedCommand):
 class SeedLayoutsTests(SeedCommandTest):
     def test_seed_layouts(self):
         self.seed_command(Command)
-        self.assertTrue(LetterLayout.objects.count() == len(Command.read_csv(FILE)))
+        self.assertTrue(LetterLayout.objects.count() == len(Command.read_csv(LAYOUTS_FILE)))
