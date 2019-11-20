@@ -38,6 +38,13 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
 
+    def get(self, request, *args, **kwargs):
+        template_object = self.get_object()
+        template = self.get_serializer(template_object).data
+        html = get_html_preview(template=template_object)
+        return JsonResponse({"template": template, "preview": html},
+                            status=status.HTTP_200_OK)
+
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
 
@@ -46,13 +53,3 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             return JsonResponse(serializer.data)
 
         return JsonResponse({"errors": serializer.errors})
-
-
-class TemplatePreview(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    @staticmethod
-    def get(request, tpk):
-        template = LetterTemplate.objects.get(id=tpk)
-        html = get_html_preview(template=template)
-        return JsonResponse({"preview": html}, status=status.HTTP_200_OK)
