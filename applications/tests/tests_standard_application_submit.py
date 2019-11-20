@@ -22,10 +22,10 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
-        self.assertEqual(case.application.id, self.draft.id)
-        self.assertIsNotNone(case.application.submitted_at)
-        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
-        for good_on_application in GoodOnApplication.objects.filter(application=case.application):
+        self.assertEqual(case.id, self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
@@ -36,9 +36,9 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
-        self.assertEqual(case.application.id, draft.id)
-        self.assertIsNotNone(case.application.submitted_at)
-        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.id, draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_submit_standard_application_with_invalid_id_failure(self):
         draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
@@ -213,5 +213,5 @@ class StandardApplicationTests(DataTestClient):
 
         case = Case.objects.get()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for good_on_application in GoodOnApplication.objects.filter(application=case.application):
+        for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.VERIFIED)

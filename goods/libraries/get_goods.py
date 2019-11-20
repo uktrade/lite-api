@@ -27,7 +27,7 @@ def get_good_document(good: Good, pk):
 
 def get_goods_from_case(case):
     if case.query:
-        query = get_exporter_query(case.query.id)
+        query = get_exporter_query(case.id)
         if isinstance(query, ControlListClassificationQuery):
             return [query.good.id]
         else:

@@ -21,9 +21,9 @@ class HmrcQueryTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
-        self.assertEqual(case.application.id, self.draft.id)
-        self.assertIsNotNone(case.application.submitted_at)
-        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.id, self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         self.assertEqual(case.type, CaseType.HMRC_QUERY)
 
     def test_submit_hmrc_query_with_invalid_id_failure(self):

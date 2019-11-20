@@ -29,7 +29,7 @@ class CasesSearchView(generics.ListAPIView):
                 case_type=request.GET.get("case_type"),
                 sort=request.GET.get("sort"),
                 date_order="-" if queue_id in SYSTEM_QUEUES else "",
-            )
+            ).filter(status__isnull=False)
         )
         queues = SearchQueueSerializer(service.get_search_queues(team=request.user.team), many=True).data
         cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data

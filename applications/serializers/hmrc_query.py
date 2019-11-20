@@ -5,6 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from cases.enums import CaseType
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
@@ -81,15 +82,11 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
+        self.initial_data["type"] = CaseType.APPLICATION
 
     class Meta:
         model = HmrcQuery
-        fields = (
-            "reasoning",
-            "application_type",
-            "organisation",
-            "hmrc_organisation",
-        )
+        fields = ("reasoning", "application_type", "organisation", "hmrc_organisation", "type")
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):

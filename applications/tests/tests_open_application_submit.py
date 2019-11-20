@@ -20,9 +20,9 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
-        self.assertEqual(case.application.id, self.draft.id)
-        self.assertIsNotNone(case.application.submitted_at)
-        self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.id, self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_submit_open_application_without_site_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()
