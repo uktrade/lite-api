@@ -16,8 +16,8 @@ class Command(SeedCommand):
         # Add layouts
         reader = self.read_csv(FILE)
         for row in reader:
-            LetterLayout.objects.get_or_create(filename=row[0], name=row[1])
-            print("Seeded %s layout" % row[1])
+            LetterLayout.objects.get_or_create(filename=row[1], name=row[2])
+            print("Seeded %s layout" % row[2])
 
 
 class SeedLayoutsTests(SeedCommandTest):
