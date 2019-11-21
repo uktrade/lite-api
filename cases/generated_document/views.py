@@ -9,7 +9,7 @@ from cases.generated_document.models import GeneratedDocument
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
 from documents.helpers import DocumentOperation
-from letter_templates.helpers import generate_preview, paragraphs_to_markdown
+from letter_templates.helpers import get_html_preview
 from letter_templates.models import LetterTemplate
 
 
@@ -21,16 +21,12 @@ class GeneratedDocuments(APIView):
         # TODO Add validation
         case = get_case(pk)
         template = LetterTemplate.objects.get(id=request.data["template"], restricted_to__contains=[case.type])
-
-        paragraphs = [paragraph.text for paragraph in template.letter_paragraphs.all()]
-        paragraphs = paragraphs_to_markdown(paragraphs)
-        html = generate_preview(template.layout.filename, paragraphs)
-
+        html = get_html_preview(template=template, case=case)
         pdf = html_to_pdf(html)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
 
         generated_doc = GeneratedDocument.objects.create(
-            name=s3_key,
+            name=template.name + s3_key,
             user=request.user,
             s3_key=s3_key,
             virus_scanned_at=timezone.now(),

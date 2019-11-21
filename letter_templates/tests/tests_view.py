@@ -69,17 +69,18 @@ class LetterTemplateDetailTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], str(self.letter_template.id))
-        self.assertEqual(response_data["name"], self.letter_template.name)
-        self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
-        self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseType.CLC_QUERY, response_data["restricted_to"])
-        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, response_data["restricted_to"])
+        template = response_data["template"]
+        self.assertEqual(template["id"], str(self.letter_template.id))
+        self.assertEqual(template["name"], self.letter_template.name)
+        self.assertEqual(template["layout"]["id"], str(self.letter_layout.id))
+        self.assertEqual(template["letter_paragraphs"], [str(self.picklist_item.id)])
+        self.assertIn(CaseType.CLC_QUERY, template["restricted_to"])
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, template["restricted_to"])
         self.assertIn(
-            CaseType.get_text(CaseType.CLC_QUERY), response_data["restricted_to_display"],
+            CaseType.get_text(CaseType.CLC_QUERY), template["restricted_to_display"],
         )
         self.assertIn(
-            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), response_data["restricted_to_display"],
+            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), template["restricted_to_display"],
         )
-        self.assertIsNotNone(response_data.get("created_at"))
-        self.assertIsNotNone(response_data.get("last_modified_at"))
+        self.assertIsNotNone(template.get("created_at"))
+        self.assertIsNotNone(template.get("last_modified_at"))
