@@ -66,9 +66,13 @@ from users.models import (
 )
 
 
+class Static:
+    seeded = False
+
+
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
-    Test client which creates an initial organisation and user
+    Test client which creates seeds the database with system data and sets up an initial organisation and user
     """
 
     urlpatterns = urlpatterns + static_urlpatterns
@@ -76,9 +80,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @classmethod
     def setUpClass(cls):
-        """ Run seed operations for tests. """
-        super(DataTestClient, cls).setUpClass()
-        seedall.Command.seed_list(SEED_COMMANDS["Tests"])
+        """ Run seed operations ONCE for the entire test suite. """
+        if not Static.seeded:
+            seedall.Command.seed_list(SEED_COMMANDS["Tests"])
+            Static.seeded = True
+
+    @classmethod
+    def tearDownClass(cls):
+        """ tearDownClass is required if `super()` isn't called within `setUpClass` """
+        pass
 
     def setUp(self):
         # Gov User Setup
@@ -135,11 +145,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
             print(self._testMethodName + emoji + " " + colour(str(time) + "ms") + emoji)
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
-    def create_exporter_user(self, organisation=None, first_name=None, last_name=None):
+    @staticmethod
+    def create_exporter_user(organisation=None, first_name=None, last_name=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
@@ -156,27 +163,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             exporter_user.status = UserStatuses.ACTIVE
 
         return exporter_user
-
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
-        organisation = Organisation(
-            name=name,
-            eori_number="GB123456789000",
-            sic_number="2765",
-            vat_number="123456789",
-            registration_number="987654321",
-        )
-        if org_type:
-            organisation.type = org_type
-        organisation.save()
-
-        site, address = self.create_site("HQ", organisation)
-
-        organisation.primary_site = site
-        organisation.save()
-
-        exporter_user = self.create_exporter_user(organisation)
-
-        return organisation, exporter_user
 
     @staticmethod
     def add_exporter_user_to_org(organisation, exporter_user):
@@ -261,48 +247,34 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         third_party.save()
         return third_party
 
+    @staticmethod
     def create_case_note(
-        self, case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
+        case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
     ):
         case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter,)
         case_note.save()
         return case_note
 
-    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user("name", self.organisation)
-        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
-            end_user=end_user,
-            note=note,
-            reasoning=reasoning,
-            organisation=organisation,
-            contact_telephone="1234567890",
-            contact_name="Joe",
-            contact_email="joe@something.com",
-            contact_job_title="director",
-            nature_of_business="guns",
-        )
-        return end_user_advisory_query
-
-    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
-        eua_query = self.create_end_user_advisory(note, reasoning, organisation)
-        return eua_query
-
-    def create_queue(self, name: str, team: Team):
+    @staticmethod
+    def create_queue(name: str, team: Team):
         queue = Queue(name=name, team=team)
         queue.save()
         return queue
 
-    def create_gov_user(self, email: str, team: Team):
+    @staticmethod
+    def create_gov_user(email: str, team: Team):
         gov_user = GovUser(email=email, team=team)
         gov_user.save()
         return gov_user
 
-    def create_team(self, name: str):
+    @staticmethod
+    def create_team(name: str):
         team = Team(name=name)
         team.save()
         return team
 
-    def submit_application(self, application: BaseApplication):
+    @staticmethod
+    def submit_application(application: BaseApplication):
         application.submitted_at = datetime.now(timezone.utc)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
@@ -317,7 +289,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_case_document(self, case: Case, user: GovUser, name: str):
+    @staticmethod
+    def create_case_document(case: Case, user: GovUser, name: str):
         case_doc = CaseDocument(
             case=case,
             description="This is a document",
@@ -331,7 +304,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_doc.save()
         return case_doc
 
-    def create_application_document(self, application):
+    @staticmethod
+    def create_application_document(application):
         application_doc = ApplicationDocument(
             application=application,
             description="document description",
@@ -345,8 +319,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application_doc.save()
         return application_doc
 
+    @staticmethod
     def create_good_document(
-        self, good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
+        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
     ):
         good_doc = GoodDocument(
             good=good,
@@ -378,18 +353,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         document.save()
         return document
 
-    def create_flag(self, name: str, level: str, team: Team):
+    @staticmethod
+    def create_flag(name: str, level: str, team: Team):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
 
-    def create_case_assignment(self, queue, case, users):
+    @staticmethod
+    def create_case_assignment(queue, case, users):
         case_assignment = CaseAssignment(queue=queue, case=case)
         case_assignment.users.set(users)
         case_assignment.save()
         return case_assignment
 
-    def create_goods_type(self, application):
+    @staticmethod
+    def create_goods_type(application):
         goods_type = GoodsType(
             description="thing",
             is_good_controlled=False,
@@ -400,7 +378,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         goods_type.save()
         return goods_type
 
-    def create_picklist_item(self, name, team: Team, picklist_type, status):
+    @staticmethod
+    def create_picklist_item(name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(
             team=team,
             name=name,
@@ -411,7 +390,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         picklist_item.save()
         return picklist_item
 
-    def create_controlled_good(self, description: str, org: Organisation, control_code: str = "ML1") -> Good:
+    @staticmethod
+    def create_controlled_good(description: str, org: Organisation, control_code: str = "ML1") -> Good:
         good = Good(
             description=description,
             is_good_controlled=GoodControlled.YES,
@@ -442,7 +422,58 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         return clc_query
 
-    # Applications
+    @staticmethod
+    def create_advice(user, case, advice_field, advice_type, advice_level):
+        advice = advice_level(
+            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text",
+        )
+
+        advice.team = user.team
+        advice.save()
+
+        if advice_field == "end_user":
+            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
+
+        if advice_field == "good":
+            advice.good = GoodOnApplication.objects.get(application=case.application).good
+
+        if advice_type == AdviceType.PROVISO:
+            advice.proviso = "I am easy to proviso"
+
+        if advice_type == AdviceType.REFUSE:
+            advice.denial_reasons.set(["1a", "1b", "1c"])
+
+        advice.save()
+        return advice
+
+    @staticmethod
+    def create_good_country_decision(case, goods_type, country, decision):
+        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
+
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
+
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
+        organisation = Organisation(
+            name=name,
+            eori_number="GB123456789000",
+            sic_number="2765",
+            vat_number="123456789",
+            registration_number="987654321",
+        )
+        if org_type:
+            organisation.type = org_type
+        organisation.save()
+
+        site, address = self.create_site("HQ", organisation)
+
+        organisation.primary_site = site
+        organisation.save()
+
+        exporter_user = self.create_exporter_user(organisation)
+
+        return organisation, exporter_user
 
     def create_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
@@ -461,9 +492,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         application.save()
-
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
-
         application.save()
 
         # Add a good to the standard application
@@ -568,8 +597,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    # Cases
-
     def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case"):
         """
         Creates a complete standard application case
@@ -579,30 +606,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = self.submit_application(draft)
         return Case.objects.get(application=application)
 
-    @staticmethod
-    def create_advice(user, case, advice_field, advice_type, advice_level):
-        advice = advice_level(
-            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text",
+    def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
+        end_user = self.create_end_user("name", self.organisation)
+        end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
+            end_user=end_user,
+            note=note,
+            reasoning=reasoning,
+            organisation=organisation,
+            contact_telephone="1234567890",
+            contact_name="Joe",
+            contact_email="joe@something.com",
+            contact_job_title="director",
+            nature_of_business="guns",
         )
+        return end_user_advisory_query
 
-        advice.team = user.team
-        advice.save()
-
-        if advice_field == "end_user":
-            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
-
-        if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case.application).good
-
-        if advice_type == AdviceType.PROVISO:
-            advice.proviso = "I am easy to proviso"
-
-        if advice_type == AdviceType.REFUSE:
-            advice.denial_reasons.set(["1a", "1b", "1c"])
-
-        advice.save()
-        return advice
-
-    @staticmethod
-    def create_good_country_decision(case, goods_type, country, decision):
-        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
+    def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
+        eua_query = self.create_end_user_advisory(note, reasoning, organisation)
+        return eua_query
