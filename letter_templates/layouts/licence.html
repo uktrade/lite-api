@@ -29,13 +29,15 @@
         <td class="border-black" rowspan="4" colspan="5">
           <span class="cell__heading">1. Exporter</span>
           <span class="cell__uppercase">
-              {{ applicant.name }}<br>
-              {{ applicant.primary_site.address.address_line_1 }}<br>
-              {{ applicant.primary_site.address.address_line_2 }}<br>
-              {{ applicant.primary_site.address.postcode }}<br>
-              {{ applicant.primary_site.address.city }}<br>
-              {{ applicant.primary_site.address.region }}<br>
-              {{ applicant.primary_site.address.country.name }}
+              {% with exporter=case.application.organisation %}
+                  {{ exporter.name }}<br>
+                  {{ exporter.primary_site.address.address_line_1 }}<br>
+                  {{ exporter.primary_site.address.address_line_2 }}<br>
+                  {{ exporter.primary_site.address.postcode }}<br>
+                  {{ exporter.primary_site.address.city }}<br>
+                  {{ exporter.primary_site.address.region }}<br>
+                  {{ exporter.primary_site.address.country.name }}
+              {% endwith %}
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -50,7 +52,7 @@
       <tr>
         <td class="border-black" colspan="3">
           <span class="cell__heading">2a. Application number</span>
-          <span class="cell__uppercase">{{ application.id }}</span>
+          <span class="cell__uppercase">{{ case.application.id }}</span>
         </td>
         <td class="border-black" colspan="3">
           <span class="cell__heading">3b. Expiry date</span>
@@ -60,7 +62,7 @@
       <tr>
         <td class="border-black" colspan="6">
           <span class="cell__heading">2b. Applicant reference</span>
-          <span class="cell__uppercase">{{ application.reference }}</span>
+          <span class="cell__uppercase">{{ case.application.name }}</span>
         </td>
       </tr>
       <tr>
@@ -77,13 +79,11 @@
           <span class="cell__heading">5. Consignee(s)/Destination(s)</span>
           <span class="cell__uppercase">
               <span class="cell__uppercase">
-                {{ consignee.name }}<br>
-                {{ consignee.address.address_line_1 }}<br>
-                {{ consignee.address.address_line_2 }}<br>
-                {{ consignee.address.postcode }}<br>
-                {{ consignee.address.city }}<br>
-                {{ consignee.address.region }}<br>
-                {{ consignee.address.country.name }}
+                  {% with consignee=case.application.standardapplication.consignee %}
+                      {{ consignee.name }}<br>
+                      {{ consignee.address }}<br>
+                      {{ consignee.country.name }}
+                  {% endwith %}
               </span>
           </span>
         </td>
