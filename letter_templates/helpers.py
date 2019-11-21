@@ -5,7 +5,11 @@ from markdown import Markdown
 
 from conf import settings
 from conf.exceptions import NotFoundError
+from conf.settings import BASE_DIR
 from letter_templates.models import LetterTemplate
+
+
+CSS_LOCATION = "assets/css/"
 
 
 def get_letter_template(pk):
@@ -39,8 +43,7 @@ def template_engine_factory(allow_missing_variables):
     string_if_invalid = "{{ %s }}" if allow_missing_variables else InvalidVarException()
     return Engine(
         string_if_invalid=string_if_invalid,
-        dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
-        libraries={"sass_tags": "sass_processor.templatetags.sass_tags"},
+        dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)]
     )
 
 
@@ -48,10 +51,21 @@ def get_paragraphs_as_html(paragraphs: list):
     return "\n\n".join([Markdown().convert(paragraph.text) for paragraph in paragraphs])
 
 
+def get_css_location(filename):
+    return BASE_DIR + "/" + CSS_LOCATION + filename + ".css"
+
+
+def load_css(filename):
+    with open(get_css_location(filename)) as css_file:
+        css = css_file.read()
+    return "<style>\n"+css+"</style>\n"
+
+
 def generate_preview(layout, content: dict, allow_missing_variables=True):
     django_engine = template_engine_factory(allow_missing_variables)
+    css = load_css(layout)
     template = django_engine.get_template(f"{layout}.html")
-    return template.render(Context(content))
+    return css + template.render(Context(content))
 
 
 def get_html_preview(template: LetterTemplate, case=None):
