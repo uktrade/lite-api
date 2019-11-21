@@ -19,7 +19,7 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
 )
-from cases.enums import AdviceType
+from cases.enums import AdviceType, CaseType
 from cases.models import (
     CaseNote,
     Case,
@@ -307,9 +307,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        case = Case(application=application)
-        case.save()
-
         if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(application=application):
                 good_on_application.good.status = GoodStatus.SUBMITTED
@@ -438,7 +435,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good.save()
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text", good=good, organisation=organisation
+            details="this is a test text", good=good, organisation=organisation, type=CaseType.CLC_QUERY
         )
         return clc_query
 
@@ -458,6 +455,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
+            type=CaseType.APPLICATION,
         )
 
         application.save()
@@ -548,6 +546,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
+            type=CaseType.HMRC_QUERY,
         )
 
         application.save()
@@ -576,8 +575,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         draft = self.create_standard_application(organisation, reference_name)
 
-        application = self.submit_application(draft)
-        return Case.objects.get(application=application)
+        return self.submit_application(draft)
 
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level):

@@ -89,8 +89,6 @@ class Advice(models.Model):
     Advice for goods and destinations on cases
     """
 
-    from goods.models import Good
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
@@ -123,7 +121,7 @@ class Advice(models.Model):
                 case=self.case,
                 user=self.user,
                 good=self.good,
-                # goods_type=self.goods_type,
+                goods_type=self.goods_type,
                 country=self.country,
                 end_user=self.end_user,
                 ultimate_end_user=self.ultimate_end_user,

@@ -35,8 +35,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         for country in self.all_countries:
             CountryOnApplication(application=self.open_draft, country=country).save()
 
-        application = self.submit_application(self.open_draft)
-        self.case = Case.objects.get(application=application)
+        self.case = self.submit_application(self.open_draft)
 
         self.goods_countries_url = reverse("cases:goods_countries_decisions", kwargs={"pk": self.case.id})
 

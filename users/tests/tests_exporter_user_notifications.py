@@ -11,7 +11,7 @@ class NotificationTests(DataTestClient):
     url = reverse_lazy("users:notifications")
 
     def tests_create_new_clc_query_notification(self):
-        clc_case = self.create_clc_query("Example CLC Query", self.organisation).case.get()
+        clc_case = self.create_clc_query("Example CLC Query", self.organisation)
 
         self.create_case_note(clc_case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 2", self.gov_user, True)
@@ -23,7 +23,7 @@ class NotificationTests(DataTestClient):
     def test_create_new_application_notification(self):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
-        case = Case.objects.get(application=application)
+        case = application
 
         self.create_case_note(case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case, "This is a test note 2", self.gov_user, False)
@@ -32,10 +32,9 @@ class NotificationTests(DataTestClient):
 
     def test_create_both_clc_and_application_notifications(self):
         application = self.create_standard_application(self.organisation)
-        self.submit_application(application)
-        case = Case.objects.get(application=application)
+        case = self.submit_application(application)
 
-        clc_case = self.create_clc_query("Example CLC Query", self.organisation).case.get()
+        clc_case = self.create_clc_query("Example CLC Query", self.organisation)
 
         self.create_case_note(case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case, "This is a test note 2", self.gov_user, True)
@@ -48,10 +47,10 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(Notification.objects.all().count(), 7)
         self.assertEqual(
-            Notification.objects.filter(case_note__case__query_id__isnull=True).count(), 4,
+            Notification.objects.filter(case_note__case__id=case.id).count(), 4,
         )
         self.assertEqual(
-            Notification.objects.filter(case_note__case__application_id__isnull=True).count(), 3,
+            Notification.objects.filter(case_note__case__id=clc_case.id).count(), 3,
         )
 
     def tests_get_notifications_for_user_in_multiple_orgs(self):
@@ -65,7 +64,7 @@ class NotificationTests(DataTestClient):
 
         application1 = self.create_standard_application(self.organisation)
         self.submit_application(application1)
-        case1 = Case.objects.get(application=application1)
+        case1 = application1
 
         self.create_case_note(case1, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case1, "This is a test note 2", self.gov_user, True)
@@ -77,7 +76,7 @@ class NotificationTests(DataTestClient):
 
         application2 = self.create_standard_application(org_2)
         self.submit_application(application2)
-        case2 = Case.objects.get(application=application2)
+        case2 = application2
 
         self.create_case_note(case2, "This is a test note 3", self.gov_user, True)
         self.create_case_note(case2, "This is a test note 4", self.gov_user, True)

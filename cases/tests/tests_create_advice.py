@@ -12,12 +12,10 @@ class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = self.standard_application.case.get()
+        self.standard_case = self.submit_application(self.standard_application)
 
         self.open_application = self.create_open_application(self.organisation)
-        self.submit_application(self.open_application)
-        self.open_case = self.open_application.case.get()
+        self.open_case = self.submit_application(self.open_application)
 
         self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
         self.open_case_url = reverse("cases:case_advice", kwargs={"pk": self.open_case.id})

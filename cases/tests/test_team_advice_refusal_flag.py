@@ -12,7 +12,7 @@ from users.models import Role
 
 class CasesFilterAndSortTests(DataTestClient):
     def _check_if_flag_exists(self):
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = Case.objects.get(id=self.standard_case.id)
         flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
         return flag in self.standard_case.flags.all()
 
@@ -20,8 +20,7 @@ class CasesFilterAndSortTests(DataTestClient):
         super().setUp()
 
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.submit_application(self.standard_application)
 
         role = Role(name="team_level")
         role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])

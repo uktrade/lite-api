@@ -21,8 +21,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case = Case.objects.get()
-        self.assertEqual(case.id, self.draft.id)
+        case = Case.objects.get(id=self.draft.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
@@ -35,8 +34,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case = Case.objects.get()
-        self.assertEqual(case.id, draft.id)
+        case = Case.objects.get(id=draft.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
 

@@ -32,8 +32,7 @@ class GoodsVerifiedTests(DataTestClient):
         self.draft = self.create_standard_application(organisation=self.organisation)
         GoodOnApplication(good=self.good_1, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
         GoodOnApplication(good=self.good_2, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
-        self.submit_application(self.draft)
-        self.case = Case.objects.get(application=self.draft)
+        self.case = self.submit_application(self.draft)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):

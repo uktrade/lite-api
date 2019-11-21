@@ -26,9 +26,9 @@ class CasesFilterAndSortTests(DataTestClient):
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
             clc_query.status = get_case_status_by_status(clc_status[0])
             clc_query.save()
-            self.queue.cases.add(clc_query.case.get())
+            self.queue.cases.add(clc_query)
             self.queue.save()
-            self.clc_cases.append(clc_query.case.get())
+            self.clc_cases.append(clc_query)
 
     def test_get_cases_no_filter(self):
         """

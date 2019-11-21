@@ -16,8 +16,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         super().setUp()
 
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.submit_application(self.standard_application)
 
         self.role = Role(name="team_level")
         self.role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
@@ -32,8 +31,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user_3.save()
 
         self.open_application = self.create_open_application(self.organisation)
-        self.submit_application(self.open_application)
-        self.open_case = Case.objects.get(application=self.open_application)
+        self.open_case = self.submit_application(self.open_application)
 
         self.standard_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id})
         self.open_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.open_case.id})

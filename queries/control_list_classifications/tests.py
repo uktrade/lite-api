@@ -41,7 +41,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["id"], ControlListClassificationQuery.objects.get().id)
+        self.assertEqual(response_data["id"], str(ControlListClassificationQuery.objects.get().id))
         self.assertEqual(Case.objects.count(), 1)
 
 
@@ -85,7 +85,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        self.assertEqual(len(get_case_activity(self.query)), 1)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
@@ -107,7 +107,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        self.assertEqual(len(get_case_activity(self.query)), 1)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """

@@ -174,5 +174,5 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(query.case.get())), 1)
-        self.assertEqual(len(get_case_activity(application.case.get())), 1)
+        self.assertEqual(len(get_case_activity(query)), 1)
+        self.assertEqual(len(get_case_activity(application)), 1)
