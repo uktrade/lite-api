@@ -32,13 +32,10 @@ class GoodListSerializer(serializers.ModelSerializer):
         return None
 
     def get_query_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        if clc_query:
             return clc_query.id
-        except ControlListClassificationQuery.DoesNotExist:
-            return None
-        except Exception:
-            pass
+        return None
 
     class Meta:
         model = Good

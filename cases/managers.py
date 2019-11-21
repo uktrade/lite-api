@@ -1,8 +1,6 @@
 from typing import List
 
 from django.db import models
-from django.db.models import Q
-from django.db.models.functions import Coalesce
 
 from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,

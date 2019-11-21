@@ -7,7 +7,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from conf.constants import Roles
-from organisations.models import Organisation
 from teams.models import Team
 from users.enums import UserStatuses
 

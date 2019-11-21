@@ -145,14 +145,11 @@ class GoodDetail(APIView):
             serializer = GoodSerializer(good)
 
             # If there's a query with this good, update the notifications on it
-            try:
-                query = ControlListClassificationQuery.objects.get(good=good)
+
+            query = ControlListClassificationQuery.objects.filter(good=good)
+            if query:
                 request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
                 request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
-            except ControlListClassificationQuery.DoesNotExist:
-                pass
-            except Exception:
-                pass
         else:
             serializer = GoodWithFlagsSerializer(good)
 
