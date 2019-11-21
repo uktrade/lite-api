@@ -49,9 +49,10 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         template_object = self.get_object()
-        template = self.get_serializer(template_object).data
-        html = get_html_preview(template=template_object)
-        return JsonResponse({"template": template, "preview": html}, status=status.HTTP_200_OK)
+        data = {"template": self.get_serializer(template_object).data }
+        if 'generate_preview' in request.GET and bool(request.GET['generate_preview']):
+            data["preview"] = get_html_preview(template=template_object)
+        return JsonResponse(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
