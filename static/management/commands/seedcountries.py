@@ -11,6 +11,7 @@ class Command(SeedCommand):
     """
 
     help = "Seeds all countries"
+    info = "Seeding countries..."
     success = "Successfully seeded countries"
     seed_command = "seedcountries"
 

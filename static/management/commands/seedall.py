@@ -12,13 +12,13 @@ SEED_COMMANDS = {
         "seedlayouts",
         "seedsystemflags",
     ],
-    "Dev": ["seedorgusers", "seedgovuser"],
+    "Dev": ["seedorgusers", "seedgovusers"],
     "Tests": [
         "seedpermissions",
         "seeddenialreasons",
         "seedcountries",
         "seedgovuser",
-        "seedgovuser",
+        "seedgovusers",
         "seedcasestatuses",
         "seedlayouts",
         "seedsystemflags",
@@ -32,6 +32,7 @@ class Command(SeedCommand):
     """
 
     help = "Executes all seed operations"
+    info = "Executing all seed operations..."
     success = "All seed operations executed!"
 
     def add_arguments(self, parser):

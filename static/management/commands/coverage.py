@@ -1,5 +1,4 @@
 from subprocess import call as execute_bash_command
-from sys import exit as sys_exit
 
 from django.core.management import BaseCommand
 
@@ -75,4 +74,4 @@ class Command(BaseCommand):
             )
             print(message)
 
-        sys_exit(status)
+        exit(status)

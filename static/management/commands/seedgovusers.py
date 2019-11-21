@@ -18,9 +18,10 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedgovuser
     """
 
-    help = "Seeds gov user"
-    success = "Successfully seeded gov user"
-    seed_command = "seedgovuser"
+    help = "Seeds gov users"
+    info = "Seeding gov users..."
+    success = "Successfully seeded gov users"
+    seed_command = "seedgovusers"
 
     def operation(self, *args, **options):
         # Default team
@@ -33,8 +34,7 @@ class Command(SeedCommand):
         super_user = Role.objects.get_or_create(id=SUPER_USER_ROLE_ID, name=SUPER_USER_ROLE_NAME)[0]
 
         # Add all permissions to the super user role
-        role = Role.objects.get(id=SUPER_USER_ROLE_ID)
-        role.permissions.set(
+        super_user.permissions.set(
             [
                 Permissions.MANAGE_FINAL_ADVICE,
                 Permissions.MANAGE_TEAM_ADVICE,
@@ -43,11 +43,21 @@ class Command(SeedCommand):
                 Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
             ]
         )
-        role.save()
+        super_user.save()
 
         # Create all SEED_USERS and give them the super user role
         for email in json.loads(env("SEED_USERS")):
-            GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            gov_user = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            if gov_user[1]:
+                print(
+                    '{"email": "'
+                    + gov_user[0].email
+                    + '", "first_name": "'
+                    + gov_user[0].first_name
+                    + '", "last_name": "'
+                    + gov_user[0].last_name
+                    + '"}'
+                )
 
 
 class SeedGovUserTests(SeedCommandTest):

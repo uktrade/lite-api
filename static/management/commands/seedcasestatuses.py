@@ -6,15 +6,16 @@ STATUS_ON_TYPE_FILE = "lite_content/lite-api/case_status_on_type.csv"
 
 
 class Command(SeedCommand):
-    help = "Creates case statuses and case statuses on case types."
+    """
+    pipenv run ./manage.py seedcasestatuses
+    """
+
+    help = "Creates case statuses and case statuses on case types"
+    info = "Seeded case statuses..."
     success = "Successfully seeded case statuses"
     seed_command = "seedcasestatuses"
 
     def operation(self, *args, **options):
-        """
-        pipenv run ./manage.py seedcasestatuses
-        """
-        # Case statuses
         status_csv = self.read_csv(STATUSES_FILE)
         self.update_or_create(CaseStatus, status_csv)
 

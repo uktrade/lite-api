@@ -9,7 +9,12 @@ TEAM_NAME = "Admin"
 
 
 class Command(SeedCommand):
+    """
+    pipenv run ./manage.py seedsystemflags
+    """
+
     help = "Creates system flags"
+    info = "Seeding system flags..."
     success = "Successfully seeded system flags"
     seed_command = "seedsystemflags"
 

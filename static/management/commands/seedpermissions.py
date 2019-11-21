@@ -10,6 +10,7 @@ class Command(SeedCommand):
     """
 
     help = "Seeds permissions"
+    info = "Seeding permissions..."
     success = "Successfully seeded permissions"
     seed_command = "seedpermissions"
 

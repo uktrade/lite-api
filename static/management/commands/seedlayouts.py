@@ -5,7 +5,12 @@ LAYOUTS_FILE = "lite_content/lite-api/document_layouts.csv"
 
 
 class Command(SeedCommand):
+    """
+    pipenv run ./manage.py seedlayouts
+    """
+
     help = "Creates template layouts"
+    info = "Seeding layouts..."
     success = "Successfully seeded layouts"
     seed_command = "seedlayouts"
 
