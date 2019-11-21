@@ -31,7 +31,7 @@ class SeedCommand(ABC, BaseCommand):
         self.stdout.write(self.style.WARNING(self.info))
         try:
             self.operation(*args, **options)
-        except Exception as e:
+        except Exception as e:  # noqa
             if hasattr(e, "message"):
                 message = e.message
             else:
