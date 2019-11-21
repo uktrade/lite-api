@@ -435,7 +435,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good.save()
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text", good=good, organisation=organisation, type=CaseType.CLC_QUERY
+            details="this is a test text",
+            good=good,
+            organisation=organisation,
+            type=CaseType.CLC_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         return clc_query
 
