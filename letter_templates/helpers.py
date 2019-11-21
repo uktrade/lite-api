@@ -1,10 +1,8 @@
 import os
-from typing import Optional
 
 from django.template import Context, Engine
 from markdown import Markdown
 
-from cases.models import Case
 from conf import settings
 from conf.exceptions import NotFoundError
 from letter_templates.models import LetterTemplate

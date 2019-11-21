@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
-from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
