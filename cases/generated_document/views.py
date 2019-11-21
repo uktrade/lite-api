@@ -17,23 +17,37 @@ class GeneratedDocuments(APIView):
     authentication_classes = (GovAuthentication,)
     queryset = GeneratedDocument.objects.all()
 
-    def post(self, request, pk):
-        # TODO Add validation
-        case = get_case(pk)
-        template = LetterTemplate.objects.get(id=request.data["template"], restricted_to__contains=[case.type])
-        html = get_html_preview(template=template, case=case)
-        pdf = html_to_pdf(html)
-        s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
+    def _fetch_generated_document_data(self, pk, tpk):
+        self.case = get_case(pk)
+        self.template = LetterTemplate.objects.get(id=tpk, restricted_to__contains=[self.case.type])
+        self.html = get_html_preview(template=self.template, case=self.case)
 
+    def get(self, request, pk):
+        """
+        Get a preview of the document to be generated
+        """
+        # TODO Add validation
+        tpk = request.GET["template"]
+        self._fetch_generated_document_data(pk, tpk)
+        return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        """
+        Create a generated document
+        """
+        # TODO Add validation
+        tpk = request.data["template"]
+        self._fetch_generated_document_data(pk, tpk)
+        pdf = html_to_pdf(self.html)
+        s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
         generated_doc = GeneratedDocument.objects.create(
-            name=template.name + s3_key,
+            name=self.template.name + s3_key,
             user=request.user,
             s3_key=s3_key,
             virus_scanned_at=timezone.now(),
             safe=True,
             type=CaseDocumentType.GENERATED,
-            case=case,
-            template=template,
+            case=self.case,
+            template=self.template,
         )
-
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
