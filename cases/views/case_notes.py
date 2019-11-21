@@ -9,6 +9,7 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
+from queries.models import Query
 from users.models import ExporterUser
 
 
@@ -28,9 +29,13 @@ class  CaseNoteList(APIView):
     def post(self, request, pk):
         """ Create a case note on a case. """
         case = get_case(pk)
-        application = BaseApplication.objects.get(id=case.application_id)
 
-        if application.status.status in get_terminal_case_statuses():
+        if case.application_id:
+            obj = BaseApplication.objects.get(id=case.application_id)
+        else:
+            obj = Query.objects.get(id=case.query_id)
+
+        if obj.status.status in get_terminal_case_statuses():
             return JsonResponse(
                 data={
                     "errors": [
