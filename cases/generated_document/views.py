@@ -20,13 +20,13 @@ class GeneratedDocuments(APIView):
     def post(self, request, pk):
         # TODO Add validation
         case = get_case(pk)
-        template = LetterTemplate.objects.get(id=request.data["template"])
+        template = LetterTemplate.objects.get(id=request.data["template"], restricted_to__contains=[case.type])
         html = get_html_preview(template=template, case=case)
         pdf = html_to_pdf(html)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
 
         generated_doc = GeneratedDocument.objects.create(
-            name=template.name+s3_key,
+            name=template.name + s3_key,
             user=request.user,
             s3_key=s3_key,
             virus_scanned_at=timezone.now(),

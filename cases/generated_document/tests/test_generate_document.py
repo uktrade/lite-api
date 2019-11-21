@@ -8,7 +8,7 @@ from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 
-class LetterTemplateEditTests(DataTestClient):
+class GenerateDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.picklist_item = self.create_picklist_item(
@@ -16,18 +16,14 @@ class LetterTemplateEditTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(
-            name="SIEL",
-            restricted_to=[CaseType.CLC_QUERY, CaseType.END_USER_ADVISORY_QUERY],
-            layout=self.letter_layout,
+            name="SIEL", restricted_to=[CaseType.APPLICATION], layout=self.letter_layout,
         )
         self.letter_template.letter_paragraphs.add(self.picklist_item)
-        self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
+        self.case = self.create_standard_application_case(self.organisation)
+        self.data = {"template": str(self.letter_template.id)}
+        self.url = reverse("cases:generated_documents", kwargs={"pk": str(self.case.pk)})
 
-    def test_edit_letter_template(self):
-        data = {"name": "Letter Template Edit"}
+    def test_generate_document_success(self):
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
-        response = self.client.put(self.url, data, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], data["name"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

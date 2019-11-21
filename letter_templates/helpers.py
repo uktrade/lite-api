@@ -1,10 +1,8 @@
 import os
-from typing import Optional
 
 from django.template import Context, Engine
 from markdown import Markdown
 
-from cases.models import Case
 from conf import settings
 from conf.exceptions import NotFoundError
 from letter_templates.models import LetterTemplate
@@ -23,6 +21,7 @@ class InvalidVarException(Exception):
     find a context variable. This exception should be handled in places where the
     template may use an invalid variable (user entered variables)
     """
+
     def __mod__(self, missing):
         raise InvalidVarException("Invalid template variable {{ %s }}" % missing)
 

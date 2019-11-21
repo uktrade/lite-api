@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
-from rest_framework.views import APIView
 
+from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
 from letter_templates.helpers import get_html_preview, generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
@@ -16,8 +16,15 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     Returns list of all letter templates or creates a letter template
     """
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
+
+    def get_queryset(self):
+        case = self.request.GET.get("case")
+
+        if case:
+            return LetterTemplate.objects.filter(restricted_to=get_case(pk=case).type)
+
+        return LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -43,8 +50,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         template_object = self.get_object()
         template = self.get_serializer(template_object).data
         html = get_html_preview(template=template_object)
-        return JsonResponse({"template": template, "preview": html},
-                            status=status.HTTP_200_OK)
+        return JsonResponse({"template": template, "preview": html}, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
