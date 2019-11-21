@@ -38,7 +38,7 @@ class GeneratedDocuments(APIView):
         # TODO Add validation
         tpk = request.data["template"]
         self._fetch_generated_document_data(pk, tpk)
-        pdf = html_to_pdf(self.html)
+        pdf = html_to_pdf(self.html, self.template.layout.name)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
         generated_doc = GeneratedDocument.objects.create(
             name=self.template.name + s3_key,
