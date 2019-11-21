@@ -45,8 +45,8 @@ def template_engine_factory(allow_missing_variables):
     )
 
 
-def get_paragraphs_as_html(template: LetterTemplate):
-    return "\n\n".join([Markdown().convert(paragraph.text) for paragraph in template.letter_paragraphs.all()])
+def get_paragraphs_as_html(paragraphs: list):
+    return "\n\n".join([Markdown().convert(paragraph.text) for paragraph in paragraphs])
 
 
 def generate_preview(layout, content: dict, allow_missing_variables=True):
@@ -56,7 +56,8 @@ def generate_preview(layout, content: dict, allow_missing_variables=True):
 
 
 def get_html_preview(template: LetterTemplate, case=None):
-    content = {"content": get_paragraphs_as_html(template)}
+    paragraphs = template.letter_paragraphs.all()
+    content = {"content": get_paragraphs_as_html(paragraphs)}
     if case:
         content["case"] = case
     return generate_preview(template.layout.filename, content)

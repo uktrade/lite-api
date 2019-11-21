@@ -3,16 +3,18 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from letter_templates.helpers import get_html_preview
+from letter_templates.helpers import get_html_preview, generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
+from picklists.enums import PicklistType
+from picklists.models import PicklistItem
+from static.letter_layouts.models import LetterLayout
 
 
 class LetterTemplatesList(generics.ListCreateAPIView):
     """
     Returns list of all letter templates or creates a letter template
     """
-
     authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
@@ -33,7 +35,6 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     """
     Returns detail of a specific letter template
     """
-
     authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
@@ -53,3 +54,17 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             return JsonResponse(serializer.data)
 
         return JsonResponse({"errors": serializer.errors})
+
+
+class TemplatePreview(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @staticmethod
+    def get(request):
+        paragraphs = PicklistItem.objects.filter(
+            type=PicklistType.LETTER_PARAGRAPH,
+            id__in=request.GET.getlist("paragraphs")
+        )
+        layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
+        preview = generate_preview(layout, {"content": get_paragraphs_as_html(paragraphs)})
+        return JsonResponse({"preview": preview})
