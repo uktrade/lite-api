@@ -29,15 +29,15 @@ class SeedCommand(ABC, BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.WARNING(self.info))
-        # try:
-        self.operation(*args, **options)
-        # except Exception as e:
-        #     if hasattr(e, "message"):
-        #         message = e.message
-        #     else:
-        #         message = e
-        #     self.stdout.write(self.style.ERROR(message))
-        #     exit(1)
+        try:
+            self.operation(*args, **options)
+        except Exception as e:
+            if hasattr(e, "message"):
+                message = e.message
+            else:
+                message = e
+            self.stdout.write(self.style.ERROR(message))
+            exit(1)
         self.stdout.write(self.style.SUCCESS(self.success))
 
     @staticmethod

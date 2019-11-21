@@ -16,6 +16,7 @@ ROLE_NAME = "Default"
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedgovuser
+    Must be run after `seedcountries`
     """
 
     help = "Seeds gov users"
@@ -52,10 +53,10 @@ class Command(SeedCommand):
                 print(
                     '{"email": "'
                     + gov_user[0].email
-                    + '", "first_name": "'
-                    + gov_user[0].first_name
-                    + '", "last_name": "'
-                    + gov_user[0].last_name
+                    + '", "team": "'
+                    + gov_user[0].team.name
+                    + '", "role": "'
+                    + gov_user[0].role.name
                     + '"}'
                 )
 

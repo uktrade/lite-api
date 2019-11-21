@@ -17,7 +17,6 @@ SEED_COMMANDS = {
         "seedpermissions",
         "seeddenialreasons",
         "seedcountries",
-        "seedgovuser",
         "seedgovusers",
         "seedcasestatuses",
         "seedlayouts",
