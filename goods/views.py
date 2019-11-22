@@ -148,6 +148,7 @@ class GoodDetail(APIView):
 
             query = ControlListClassificationQuery.objects.filter(good=good)
             if query:
+                query = query.first()
                 request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
                 request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
         else:
