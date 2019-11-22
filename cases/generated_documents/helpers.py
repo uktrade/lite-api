@@ -3,12 +3,12 @@ from weasyprint import CSS, HTML
 from conf.exceptions import NotFoundError
 from letter_templates.helpers import get_css_location
 from letter_templates.models import LetterTemplate, TemplateCaseTypes
-from lite_content.lite_internal_frontend.letter_templates import LetterTemplatesPage
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
-def html_to_pdf(html, template_name):
+def html_to_pdf(html: str, template_name: str):
     html = HTML(string=html)
-    css = CSS(filename=get_css_location(template_name.split(" ")[0].lower()))
+    css = CSS(filename=get_css_location(template_name))
     return html.write_pdf(stylesheets=[css])
 
 
