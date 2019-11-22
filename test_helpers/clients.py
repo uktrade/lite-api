@@ -433,10 +433,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.save()
 
         if advice_field == "end_user":
-            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user
 
         if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case.application).good
+            advice.good = GoodOnApplication.objects.get(application=case).good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -620,7 +620,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             contact_email="joe@something.com",
             contact_job_title="director",
             nature_of_business="guns",
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            type=CaseType.END_USER_ADVISORY_QUERY,
         )
+        end_user_advisory_query.save()
         return end_user_advisory_query
 
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
