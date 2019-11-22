@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
@@ -5,10 +7,16 @@ LAYOUTS_FILE = "lite_content/lite-api/document_layouts.csv"
 
 
 class Command(SeedCommand):
+    """
+    pipenv run ./manage.py seedlayouts
+    """
+
     help = "Creates template layouts"
+    info = "Seeding layouts"
     success = "Successfully seeded layouts"
     seed_command = "seedlayouts"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         """
         pipenv run ./manage.py seedlayouts

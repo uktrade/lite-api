@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from cases.enums import CaseType
 from letter_templates.models import LetterTemplate
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -28,7 +29,7 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_get_document_preview(self):
+    def test_get_document_preview_success(self):
         url = self.url + "?template=" + str(self.letter_template.id)
         response = self.client.get(url, **self.gov_headers)
 
@@ -37,3 +38,12 @@ class GenerateDocumentTests(DataTestClient):
         preview = response.json()["preview"]
         for html_tag in ["<style>", "</style>"]:
             self.assertTrue(html_tag in preview)
+
+    def test_get_document_preview_failure(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        body = response.json()
+        self.assertTrue("errors" in body)
+        self.assertTrue(body["errors"] == LetterTemplatesPage.MISSING_TEMPLATE)
+

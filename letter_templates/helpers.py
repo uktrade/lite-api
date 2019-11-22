@@ -7,7 +7,7 @@ from conf import settings
 from conf.exceptions import NotFoundError
 from conf.settings import BASE_DIR
 from letter_templates.models import LetterTemplate
-
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 CSS_LOCATION = "assets/css/"
 
@@ -73,7 +73,7 @@ def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_var
 
         return css + template
     except (FileNotFoundError, TemplateDoesNotExist):
-        return {"error": "Document preview is not available at this time"}
+        return {"error": LetterTemplatesPage.PREVIEW_ERROR}
 
 
 def get_preview(template: LetterTemplate, case=None):
