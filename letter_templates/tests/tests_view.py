@@ -63,7 +63,8 @@ class LetterTemplateDetailTests(DataTestClient):
         self.assertEqual(template["name"], self.letter_template.name)
         self.assertEqual(template["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(template["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseType.CLC_QUERY, template["restricted_to"])
-        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, template["restricted_to"])
+        restricted_to_list = [restricted_to["key"] for restricted_to in template["restricted_to"]]
+        self.assertIn(CaseType.CLC_QUERY, restricted_to_list)
+        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, restricted_to_list)
         self.assertIsNotNone(template.get("created_at"))
         self.assertIsNotNone(template.get("last_modified_at"))
