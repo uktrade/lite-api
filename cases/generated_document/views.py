@@ -12,7 +12,7 @@ from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.helpers import DocumentOperation
 from letter_templates.helpers import get_preview
-from letter_templates.models import LetterTemplate
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
 class GeneratedDocuments(APIView):
@@ -32,8 +32,10 @@ class GeneratedDocuments(APIView):
         """
         Get a preview of the document to be generated
         """
-        # TODO Add validation
+        if "template" not in request.GET:
+            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
         tpk = request.GET["template"]
+
         errors = self._fetch_generated_document_data(pk, tpk)
         if errors:
             return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -44,14 +46,17 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        # TODO Add validation
-        tpk = request.data["template"]
+        if "template" not in request.data:
+            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
+        tpk = ["template"]
+
         errors = self._fetch_generated_document_data(pk, tpk)
         if errors:
             return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         pdf = html_to_pdf(self.html, self.template.layout.name)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
+
         document_name = self.template.name + "-" + s3_key[:4]
         generated_doc = GeneratedDocument.objects.create(
             name=document_name,
