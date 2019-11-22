@@ -299,7 +299,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
-
     def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
