@@ -18,14 +18,12 @@ class CaseActivityTests(DataTestClient):
     def test_cannot_make_final_decision_without_permission(self):
         self.gov_user.role = self.default_role
         self.gov_user.save()
-        data = {
-            "status": CaseStatusEnum.FINALISED,
-        }
+        data = {"status": CaseStatusEnum.FINALISED}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id},),
+            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
             data=data,
-            **self.gov_headers
+            **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -36,13 +34,11 @@ class CaseActivityTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        data = {
-            "status": CaseStatusEnum.FINALISED,
-        }
+        data = {"status": CaseStatusEnum.FINALISED}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id},),
+            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
             data=data,
-            **self.gov_headers
+            **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

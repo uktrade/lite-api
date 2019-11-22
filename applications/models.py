@@ -38,6 +38,41 @@ class BaseApplication(models.Model):
     objects = BaseApplicationManager()
 
 
+class StandardApplication(BaseApplication):
+    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    have_you_been_informed = models.CharField(
+        choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
+    )
+    end_user = models.ForeignKey(
+        EndUser, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="application_ultimate_end_users")
+    consignee = models.ForeignKey(
+        Consignee, related_name="application_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="application_third_parties")
+
+
+class OpenApplication(BaseApplication):
+    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+
+
+class HmrcQuery(BaseApplication):
+    hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
+    end_user = models.ForeignKey(
+        EndUser, related_name="hmrc_query_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="hmrc_query_ultimate_end_users")
+    consignee = models.ForeignKey(
+        Consignee, related_name="hmrc_query_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="hmrc_query_third_parties")
+    reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
+
+    objects = HmrcQueryManager()
+
+
 class ApplicationDocument(Document):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
@@ -66,45 +101,6 @@ class ExternalLocationOnApplication(models.Model):
     application = models.ForeignKey(
         BaseApplication, related_name="external_application_sites", on_delete=models.CASCADE,
     )
-
-
-class StandardApplication(BaseApplication):
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    reference_number_on_information_form = models.TextField(blank=True, null=True)
-    have_you_been_informed = models.CharField(
-        choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
-    )
-    end_user = models.ForeignKey(
-        EndUser, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="application_ultimate_end_users")
-    consignee = models.ForeignKey(
-        Consignee, related_name="application_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="application_third_parties")
-
-
-class OpenApplication(BaseApplication):
-    export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    reference_number_on_information_form = models.TextField(blank=True, null=True)
-    have_you_been_informed = models.CharField(
-        choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
-    )
-
-
-class HmrcQuery(BaseApplication):
-    hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
-    end_user = models.ForeignKey(
-        EndUser, related_name="hmrc_query_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="hmrc_query_ultimate_end_users")
-    consignee = models.ForeignKey(
-        Consignee, related_name="hmrc_query_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="hmrc_query_third_parties")
-    reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
-
-    objects = HmrcQueryManager()
 
 
 class GoodOnApplication(models.Model):

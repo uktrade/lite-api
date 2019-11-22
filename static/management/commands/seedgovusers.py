@@ -1,5 +1,7 @@
 import json
 
+from django.db import transaction
+
 from conf.constants import Permissions
 from conf.settings import env
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
@@ -16,12 +18,15 @@ ROLE_NAME = "Default"
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedgovuser
+    Must be run after `seedcountries`
     """
 
-    help = "Seeds gov user"
-    success = "Successfully seeded gov user"
-    seed_command = "seedgovuser"
+    help = "Seeds gov users"
+    info = "Seeding gov users"
+    success = "Successfully seeded gov users"
+    seed_command = "seedgovusers"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         # Default team
         team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
@@ -33,8 +38,7 @@ class Command(SeedCommand):
         super_user = Role.objects.get_or_create(id=SUPER_USER_ROLE_ID, name=SUPER_USER_ROLE_NAME)[0]
 
         # Add all permissions to the super user role
-        role = Role.objects.get(id=SUPER_USER_ROLE_ID)
-        role.permissions.set(
+        super_user.permissions.set(
             [
                 Permissions.MANAGE_FINAL_ADVICE,
                 Permissions.MANAGE_TEAM_ADVICE,
@@ -43,11 +47,19 @@ class Command(SeedCommand):
                 Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
             ]
         )
-        role.save()
+        super_user.save()
 
         # Create all SEED_USERS and give them the super user role
         for email in json.loads(env("SEED_USERS")):
-            GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            gov_user, created = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            if created:
+                gov_user = dict(
+                    email=gov_user.email,
+                    first_name=gov_user.first_name,
+                    last_name=gov_user.last_name,
+                    role=gov_user.role.name,
+                )
+                print(f"CREATED: {gov_user}")
 
 
 class SeedGovUserTests(SeedCommandTest):
