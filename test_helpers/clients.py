@@ -37,6 +37,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
+from organisations.models import UserOrganisationRelationship
 from parties.document.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
@@ -63,7 +64,6 @@ from users.models import (
     ExporterUser,
     Role,
 )
-from organisations.models import UserOrganisationRelationship
 
 
 class Static:

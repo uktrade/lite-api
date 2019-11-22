@@ -2,7 +2,6 @@ from django.urls import reverse_lazy
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.models import Case
 from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus

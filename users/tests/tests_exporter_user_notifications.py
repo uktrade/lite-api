@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from rest_framework import status
 
-from cases.models import Case, Notification
+from cases.models import Notification
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 

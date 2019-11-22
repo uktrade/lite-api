@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Case, Advice, TeamAdvice
+from cases.models import Advice, TeamAdvice
 from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
 from teams.models import Team

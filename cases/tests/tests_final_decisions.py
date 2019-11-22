@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from users.models import Role, Permission

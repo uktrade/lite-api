@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from content_strings.strings import get_string
@@ -10,8 +9,8 @@ from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from picklists.models import PicklistItem
 from organisations.serializers import OrganisationDetailSerializer
+from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer

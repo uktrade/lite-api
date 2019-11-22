@@ -10,6 +10,7 @@ from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
 from flags.models import Flag
+from organisations.models import UserOrganisationRelationship, Organisation
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
@@ -17,7 +18,6 @@ from static.denial_reasons.models import DenialReason
 from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.models import BaseUser, ExporterUser, GovUser
-from organisations.models import UserOrganisationRelationship, Organisation
 
 
 @reversion.register()

@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 from cases.enums import AdviceType
-from cases.models import Case, Advice
+from cases.models import Advice
 from test_helpers.clients import DataTestClient
 
 

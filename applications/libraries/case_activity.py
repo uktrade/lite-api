@@ -1,5 +1,5 @@
 from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity, Case
+from cases.models import CaseActivity
 
 
 def set_case_activity(case_activity, user, application):

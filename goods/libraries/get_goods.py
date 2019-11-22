@@ -1,11 +1,8 @@
 from django.http import Http404
 
-from applications.models import BaseApplication, GoodOnApplication
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 from goods.models import Good, GoodDocument
-from queries.control_list_classifications.models import ControlListClassificationQuery
-from queries.helpers import get_exporter_query
 
 
 def get_good(pk):

@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 

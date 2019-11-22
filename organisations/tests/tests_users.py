@@ -1,11 +1,11 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from organisations.models import UserOrganisationRelationship
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation
 from users.models import ExporterUser
-from organisations.models import UserOrganisationRelationship
 
 
 class OrganisationUsersViewTests(DataTestClient):

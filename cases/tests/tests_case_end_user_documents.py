@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 

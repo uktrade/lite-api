@@ -1,8 +1,9 @@
 import uuid
 
 from django.db import models
-from parties.enums import PartyType, SubType, ThirdPartySubType
+
 from organisations.models import Organisation
+from parties.enums import PartyType, SubType, ThirdPartySubType
 from static.countries.models import Country
 
 
