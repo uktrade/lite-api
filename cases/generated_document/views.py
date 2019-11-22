@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentType
-from cases.generated_document.helpers import html_to_pdf
+from cases.generated_document.helpers import html_to_pdf, get_letter_template
 from cases.generated_document.models import GeneratedDocument
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
@@ -21,7 +21,7 @@ class GeneratedDocuments(APIView):
 
     def _fetch_generated_document_data(self, pk, tpk):
         self.case = get_case(pk)
-        self.template = LetterTemplate.objects.get(id=tpk, restricted_to__contains=[self.case.type])
+        self.template = get_letter_template(id=tpk, case_type=self.case.type)
         self.html = get_preview(template=self.template, case=self.case)
 
     def get(self, request, pk):
