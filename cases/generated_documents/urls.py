@@ -1,6 +1,6 @@
 from django.urls import path
 
-from cases.generated_document import views
+from cases.generated_documents import views
 
 app_name = "generated_documents"
 

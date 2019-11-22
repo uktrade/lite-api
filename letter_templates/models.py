@@ -22,17 +22,15 @@ class LetterTemplate(models.Model):
 
     @property
     def restricted_to(self):
-        return TemplateCaseTypes.objects.filter(letter_template=self).values()
+        return TemplateCaseTypes.objects.filter(letter_template=self).values_list("case_type", flat=True)
 
     @restricted_to.setter
     @transaction.atomic
     def restricted_to(self, case_types: [str]):
-        old_values = TemplateCaseTypes.objects.filter(letter_template=self)
+        TemplateCaseTypes.objects.filter(letter_template=self).delete()
 
         for case_type in case_types:
             TemplateCaseTypes.objects.create(letter_template=self, case_type=case_type)
-
-        old_values.delete()
 
 
 class TemplateCaseTypes(models.Model):

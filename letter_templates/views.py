@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
-from letter_templates.helpers import get_preview, generate_preview, get_paragraphs_as_html
+from letter_templates.helpers import get_preview, generate_preview
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
@@ -24,7 +24,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         case = self.request.GET.get("case")
 
         if case:
-            return LetterTemplate.objects.filter(restricted_to=get_case(pk=case).type)
+            return get_letter_templates_for_case_type(get_case(pk=case).type)
 
         return LetterTemplate.objects.all()
 

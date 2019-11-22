@@ -4,15 +4,14 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentType
-from cases.generated_document.helpers import html_to_pdf, get_letter_template
-from cases.generated_document.models import GeneratedDocument
+from cases.generated_documents.helpers import html_to_pdf, get_letter_template_for_case
+from cases.generated_documents.models import GeneratedDocument
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.helpers import DocumentOperation
 from letter_templates.helpers import get_preview
-from letter_templates.models import LetterTemplate
 
 
 class GeneratedDocuments(APIView):
@@ -21,12 +20,11 @@ class GeneratedDocuments(APIView):
 
     def _fetch_generated_document_data(self, pk, tpk):
         self.case = get_case(pk)
-        self.template = get_letter_template(id=tpk, case_type=self.case.type)
+        self.template = get_letter_template_for_case(tpk, self.case)
         self.html = get_preview(template=self.template, case=self.case)
         if "error" in self.html:
             return self.html["error"]
-        else:
-            return None
+        return None
 
     def get(self, request, pk):
         """
@@ -72,4 +70,4 @@ class GeneratedDocuments(APIView):
         }
         CaseActivity.create(case=self.case, user=request.user, **case_activity)
 
-        return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"generated_documents": str(generated_doc.id)}, status=status.HTTP_201_CREATED)

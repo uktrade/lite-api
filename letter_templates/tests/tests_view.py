@@ -34,12 +34,6 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
         self.assertIn(CaseType.CLC_QUERY, str(response_data["restricted_to"]))
         self.assertIn(CaseType.END_USER_ADVISORY_QUERY, str(response_data["restricted_to"]))
-        self.assertIn(
-            CaseType.get_text(CaseType.CLC_QUERY), str(response_data["restricted_to_display"]),
-        )
-        self.assertIn(
-            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), str(response_data["restricted_to_display"]),
-        )
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("last_modified_at"))
 
@@ -71,11 +65,5 @@ class LetterTemplateDetailTests(DataTestClient):
         self.assertEqual(template["letter_paragraphs"], [str(self.picklist_item.id)])
         self.assertIn(CaseType.CLC_QUERY, template["restricted_to"])
         self.assertIn(CaseType.END_USER_ADVISORY_QUERY, template["restricted_to"])
-        self.assertIn(
-            CaseType.get_text(CaseType.CLC_QUERY), template["restricted_to_display"],
-        )
-        self.assertIn(
-            CaseType.get_text(CaseType.END_USER_ADVISORY_QUERY), template["restricted_to_display"],
-        )
         self.assertIsNotNone(template.get("created_at"))
         self.assertIsNotNone(template.get("last_modified_at"))

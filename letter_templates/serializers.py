@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseType
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
@@ -23,17 +23,17 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
 
-    restricted_to = serializers.ListField(
-        child=serializers.CharField(),
-        error_messages={"required": "Select which types of case this letter template can apply to",},
-    )
-    restricted_to_display = serializers.SerializerMethodField()
+    restricted_to = serializers.SerializerMethodField()
 
     layout = PrimaryKeyRelatedSerializerField(
         queryset=LetterLayout.objects.all(),
         serializer=LetterLayoutSerializer,
         error_messages={"required": "Select the layout you want to use for this letter template"},
     )
+
+    class Meta:
+        model = LetterTemplate
+        fields = "__all__"
 
     @staticmethod
     def validate_restricted_to(attrs):
@@ -47,13 +47,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You'll need to add at least one letter paragraph")
         return attrs
 
-    def get_restricted_to_display(self, instance):
-        """
-        Provide display values for restricted_to.
-        """
-        display_names = dict(CaseType.choices)
-        return [display_names.get(restricted_to) for restricted_to in instance.restricted_to]
-
-    class Meta:
-        model = LetterTemplate
-        fields = "__all__"
+    @staticmethod
+    def get_restricted_to(instance):
+        dicts = []
+        case_types = dict(CaseType.choices)
+        for value in instance.restricted_to:
+            dicts.append(dict(key=value, value=case_types[value]))
+        return dicts
