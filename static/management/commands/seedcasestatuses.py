@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
@@ -11,10 +13,11 @@ class Command(SeedCommand):
     """
 
     help = "Creates case statuses and case statuses on case types"
-    info = "Seeded case statuses..."
+    info = "Seeded case statuses"
     success = "Successfully seeded case statuses"
     seed_command = "seedcasestatuses"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         status_csv = self.read_csv(STATUSES_FILE)
         self.update_or_create(CaseStatus, status_csv)

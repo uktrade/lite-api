@@ -28,17 +28,15 @@ class SeedCommand(ABC, BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.WARNING(self.info))
+        self.stdout.write(
+            self.style.WARNING("\n=============================\n" + self.info + "\n=============================\n")
+        )
         try:
             self.operation(*args, **options)
-        except Exception as e:  # noqa
-            if hasattr(e, "message"):
-                message = e.message
-            else:
-                message = e
-            self.stdout.write(self.style.ERROR(message))
-            exit(1)
-        self.stdout.write(self.style.SUCCESS(self.success))
+        except Exception as error:  # noqa
+            self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
+            return
+        self.stdout.write(self.style.SUCCESS("\n" + self.success))
 
     @staticmethod
     def read_csv(filename: str):
@@ -64,19 +62,19 @@ class SeedCommand(ABC, BaseCommand):
         :param rows: A list of dictionaries (csv entries) to populate to the model
         """
         for row in rows:
-            id = row["id"]
-            obj = model.objects.filter(id=id)
-            if obj.exists():
+            obj_id = row["id"]
+            obj = model.objects.filter(id=obj_id)
+            if not obj.exists():
+                model.objects.create(**row)
+                print(dict(row))
+            else:
                 # Can not delete the "id" key-value from `rows` as it will manipulate the data which is later used in
                 # `delete_unused_objects`
                 attributes = {k: v for k, v in row.items() if k != "id"}
                 obj = obj.exclude(**attributes)
                 if obj.exists():
                     obj.update(**attributes)
-                    print(obj)
-            else:
-                obj = model.objects.create(**row)
-                print(obj)
+                    print(dict(row))
 
     @staticmethod
     def delete_unused_objects(model: models.Model, rows: list):

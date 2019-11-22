@@ -1,3 +1,4 @@
+from django.db import transaction
 from openpyxl import load_workbook
 
 from static.control_list_entries.models import ControlListEntry
@@ -11,10 +12,11 @@ class Command(SeedCommand):
     """
 
     help = "Creates and updates control list entries based off of the control list entry spreadsheet"
-    info = "Seeding control list entries..."
+    info = "Seeding control list entries"
     success = "Successfully seeded control list entries"
     seed_command = "seedcontrollistentries"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         wb = load_workbook("lite_content/lite-permissions-finder/spreadsheet.xlsx", data_only=True)
 

@@ -1,5 +1,7 @@
 import json
 
+from django.db import transaction
+
 from conf.constants import Permissions
 from conf.settings import env
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
@@ -20,10 +22,11 @@ class Command(SeedCommand):
     """
 
     help = "Seeds gov users"
-    info = "Seeding gov users..."
+    info = "Seeding gov users"
     success = "Successfully seeded gov users"
     seed_command = "seedgovusers"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         # Default team
         team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
@@ -51,13 +54,12 @@ class Command(SeedCommand):
             gov_user = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
             if gov_user[1]:
                 print(
-                    '{"email": "'
-                    + gov_user[0].email
-                    + '", "team": "'
-                    + gov_user[0].team.name
-                    + '", "role": "'
-                    + gov_user[0].role.name
-                    + '"}'
+                    dict(
+                        email=gov_user[0].email,
+                        first_name=gov_user[0].first_name,
+                        last_name=gov_user[0].last_name,
+                        role=gov_user[0].role.name,
+                    )
                 )
 
 

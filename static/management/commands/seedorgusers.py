@@ -1,5 +1,7 @@
 from json import loads as serialize
 
+from django.db import transaction
+
 from addresses.models import Address
 from conf.settings import env
 from organisations.enums import OrganisationType
@@ -21,10 +23,11 @@ class Command(SeedCommand):
     """
 
     help = "Seeds test organisation users"
-    info = "Seeding org users..."
+    info = "Seeding org users"
     success = "Successfully seeded org users"
     seed_command = "seedorgusers"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         for org in ORGANISATIONS:
             organisation = seed_organisation(org)
@@ -93,18 +96,9 @@ def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
     user_org = UserOrganisationRelationship.objects.get_or_create(
         user=user, organisation=organisation, status=UserStatuses.ACTIVE
     )
-
     if user_org[1]:
         print(
-            '{"email": "'
-            + user.email
-            + '", "first_name": "'
-            + user.first_name
-            + '", "last_name": "'
-            + user.last_name
-            + '", "organisation": "'
-            + str(organisation.id)
-            + '"}'
+            dict(email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name)
         )
 
 
