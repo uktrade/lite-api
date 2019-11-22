@@ -30,7 +30,7 @@ class CaseStatusEnum:
         UNDER_FINAL_REVIEW: 6,
         FINALISED: 7,
         WITHDRAWN: 8,
-        CLOSED: 9
+        CLOSED: 9,
     }
 
     is_read_only = {

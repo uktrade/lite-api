@@ -142,7 +142,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_cannot_respond_to_clc_with_case_in_terminal_state(self):
-        self.query.status = CaseStatus.objects.get(status='finalised')
+        self.query.status = CaseStatus.objects.get(status="finalised")
         self.query.save()
 
         response = self.client.put(self.url, self.data, **self.gov_headers)

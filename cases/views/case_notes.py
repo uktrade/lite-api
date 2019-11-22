@@ -37,9 +37,7 @@ class CaseNoteList(APIView):
 
         if obj.status.status in get_terminal_case_statuses() and isinstance(request.user, ExporterUser):
             return JsonResponse(
-                data={
-                    "errors": {"text": ["You can only perform this operation on a case in a non-terminal state."]}
-                },
+                data={"errors": {"text": ["You can only perform this operation on a case in a non-terminal state."]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

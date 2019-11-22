@@ -35,7 +35,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             "contact_email",
             "contact_job_title",
             "contact_telephone",
-            "status"
+            "status",
         )
 
     standard_blank_error_message = "This field may not be blank"

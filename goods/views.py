@@ -43,16 +43,12 @@ class GoodsListControlCode(APIView):
         """ Set control list codes on multiple goods. """
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
-        application_id = Case.objects.values_list('application_id', flat=True).get(pk=case_pk)
+        application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
         application = BaseApplication.objects.get(id=application_id)
 
         if application.status.status in get_terminal_case_statuses():
             return JsonResponse(
-                data={
-                    "errors": [
-                        "You can only perform this operation on an application in a non-terminal state"
-                    ]
-                },
+                data={"errors": ["You can only perform this operation on an application in a non-terminal state"]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

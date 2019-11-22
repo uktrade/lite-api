@@ -93,9 +93,7 @@ def application_in_editable_state():
             if application.status and application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
                     data={
-                        "errors": [
-                            "You can only perform this operation when the application is in an editable state"
-                        ]
+                        "errors": ["You can only perform this operation when the application is in an editable state"]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )

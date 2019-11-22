@@ -61,11 +61,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         if query.status.status in get_terminal_case_statuses():
             return JsonResponse(
-                data={
-                    "errors": [
-                        "You can only perform this operation on a case in a non-terminal state."
-                    ]
-                },
+                data={"errors": ["You can only perform this operation on a case in a non-terminal state."]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

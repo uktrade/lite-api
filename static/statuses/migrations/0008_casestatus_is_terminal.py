@@ -6,13 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0007_auto_20191119_1724'),
+        ("statuses", "0007_auto_20191119_1724"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='casestatus',
-            name='is_terminal',
-            field=models.BooleanField(null=True),
-        ),
+        migrations.AddField(model_name="casestatus", name="is_terminal", field=models.BooleanField(null=True),),
     ]
