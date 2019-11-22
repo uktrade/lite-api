@@ -27,3 +27,13 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_document_preview(self):
+        url = self.url + "?template=" + str(self.letter_template.id)
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("preview" in response.json())
+        preview = response.json()["preview"]
+        for html_tag in ["<style>", "</style>"]:
+            self.assertTrue(html_tag in preview)

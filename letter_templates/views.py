@@ -2,7 +2,10 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
 
+<<<<<<< HEAD
 from cases.enums import CaseType
+=======
+>>>>>>> 4d787731f029f1ce3491fa6866586ad8af6bfadd
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
@@ -26,7 +29,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         case = self.request.GET.get("case")
 
         if case:
-            return get_letter_templates_for_case(get_case(pk=case).type)
+            return get_letter_templates_for_case(get_case(pk=case))
 
         return LetterTemplate.objects.all()
 

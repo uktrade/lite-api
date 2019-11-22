@@ -47,13 +47,13 @@ class GeneratedDocuments(APIView):
         """
         if "template" not in request.data:
             return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
-        tpk = ["template"]
+        tpk = request.data["template"]
 
         errors = self._fetch_generated_document_data(pk, tpk)
         if errors:
             return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        pdf = html_to_pdf(self.html, self.template.layout.name)
+        pdf = html_to_pdf(self.html, self.template.layout.filename)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
 
         document_name = self.template.name + "-" + s3_key[:4]
