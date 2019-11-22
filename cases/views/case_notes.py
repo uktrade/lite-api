@@ -13,7 +13,7 @@ from queries.models import Query
 from users.models import ExporterUser
 
 
-class  CaseNoteList(APIView):
+class CaseNoteList(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -35,12 +35,10 @@ class  CaseNoteList(APIView):
         else:
             obj = Query.objects.get(id=case.query_id)
 
-        if obj.status.status in get_terminal_case_statuses():
+        if obj.status.status in get_terminal_case_statuses() and isinstance(request.user, ExporterUser):
             return JsonResponse(
                 data={
-                    "errors": [
-                        "You can only perform this operation on a case in a non-terminal state."
-                    ]
+                    "errors": {"text": ["You can only perform this operation on a case in a non-terminal state."]}
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
