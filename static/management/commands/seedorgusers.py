@@ -93,14 +93,14 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    user_org = UserOrganisationRelationship.objects.get_or_create(
+    user_org, created = UserOrganisationRelationship.objects.get_or_create(
         user=user, organisation=organisation, status=UserStatuses.ACTIVE
     )
-    if user_org[1]:
-        created = dict(
+    if created:
+        created_org_user = dict(
             email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
         )
-        print(f"CREATED: {created}")
+        print(f"CREATED: {created_org_user}")
 
 
 class SeedOrgUsersTests(SeedCommandTest):

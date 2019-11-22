@@ -51,15 +51,15 @@ class Command(SeedCommand):
 
         # Create all SEED_USERS and give them the super user role
         for email in json.loads(env("SEED_USERS")):
-            gov_user = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
-            if gov_user[1]:
-                created = dict(
-                    email=gov_user[0].email,
-                    first_name=gov_user[0].first_name,
-                    last_name=gov_user[0].last_name,
-                    role=gov_user[0].role.name,
+            gov_user, created = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            if created:
+                created_gov_user = dict(
+                    email=gov_user.email,
+                    first_name=gov_user.first_name,
+                    last_name=gov_user.last_name,
+                    role=gov_user.role.name,
                 )
-                print(f"CREATED: {created}")
+                print(f"CREATED: {created_gov_user}")
 
 
 class SeedGovUserTests(SeedCommandTest):
