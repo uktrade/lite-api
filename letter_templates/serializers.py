@@ -49,3 +49,9 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         if not attrs:
             raise serializers.ValidationError("You'll need to add at least one letter paragraph")
         return attrs
+
+    def create(self, validated_data):
+        restricted_to = validated_data.pop("restricted_to")
+        letter_template = super(LetterTemplateSerializer, self).create(validated_data)
+        letter_template.restricted_to = restricted_to
+        return letter_template

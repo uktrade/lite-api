@@ -35,9 +35,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
         if serializer.is_valid():
             serializer.save()
-            data = serializer.data
-            data["restricted_to"] = list(data["restricted_to"])
-            return JsonResponse(data=data, status=status.HTTP_201_CREATED)
+            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
