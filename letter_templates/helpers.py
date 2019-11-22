@@ -1,6 +1,6 @@
 import os
 
-from django.template import Context, Engine
+from django.template import Context, Engine, TemplateDoesNotExist
 from markdown import Markdown
 
 from conf import settings
@@ -75,7 +75,7 @@ def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_var
             template = template.render(Context(context))
 
         return css + template
-    except FileNotFoundError:
+    except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": "Document preview is not available at this time"}
 
 
