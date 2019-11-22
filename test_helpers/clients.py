@@ -622,5 +622,4 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return end_user_advisory_query
 
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
-        eua_query = self.create_end_user_advisory(note, reasoning, organisation)
-        return eua_query
+        return self.create_end_user_advisory(note, reasoning, organisation)

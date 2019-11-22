@@ -68,9 +68,9 @@ class Command(BaseCommand):
             execute_bash_command("open htmlcov/index.html", shell=True)
         else:
             message = (
-                "\n\n--FAILURE--\nCoverage was less than " + threshold + "%\n"
+                f"\n\n--FAILURE--\nCoverage was less than {threshold}%\n"
                 if status == 2
-                else "\n\n--SUCCESS--\nCoverage was more than " + threshold + "%\n"
+                else f"\n\n--SUCCESS--\nCoverage was more than{threshold}%\n"
             )
             print(message)
 
