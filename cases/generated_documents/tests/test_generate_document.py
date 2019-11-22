@@ -46,4 +46,3 @@ class GenerateDocumentTests(DataTestClient):
         body = response.json()
         self.assertTrue("errors" in body)
         self.assertTrue(body["errors"] == LetterTemplatesPage.MISSING_TEMPLATE)
-
