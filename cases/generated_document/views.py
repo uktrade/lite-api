@@ -23,6 +23,10 @@ class GeneratedDocuments(APIView):
         self.case = get_case(pk)
         self.template = get_letter_template(id=tpk, case_type=self.case.type)
         self.html = get_preview(template=self.template, case=self.case)
+        if "error" in self.html:
+            return self.html["error"]
+        else:
+            return None
 
     def get(self, request, pk):
         """
@@ -30,8 +34,11 @@ class GeneratedDocuments(APIView):
         """
         # TODO Add validation
         tpk = request.GET["template"]
-        self._fetch_generated_document_data(pk, tpk)
-        return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
+        errors = self._fetch_generated_document_data(pk, tpk)
+        if errors:
+            return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
@@ -39,7 +46,10 @@ class GeneratedDocuments(APIView):
         """
         # TODO Add validation
         tpk = request.data["template"]
-        self._fetch_generated_document_data(pk, tpk)
+        errors = self._fetch_generated_document_data(pk, tpk)
+        if errors:
+            return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
         pdf = html_to_pdf(self.html, self.template.layout.name)
         s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
         document_name = self.template.name + "-" + s3_key[:4]

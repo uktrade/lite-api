@@ -52,6 +52,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         data = {"template": self.get_serializer(template_object).data }
         if 'generate_preview' in request.GET and bool(request.GET['generate_preview']):
             data["preview"] = get_preview(template=template_object)
+            if "error" in data["preview"]:
+                return JsonResponse(data["preview"], status=status.HTTP_400_BAD_REQUEST)
+
         return JsonResponse(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
@@ -75,4 +78,7 @@ class TemplatePreview(APIView):
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         preview = generate_preview(layout, paragraphs=paragraphs)
-        return JsonResponse({"preview": preview})
+        if "error" in preview:
+            return JsonResponse(preview, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return JsonResponse({"preview": preview}, status=status.HTTP_200_OK)
