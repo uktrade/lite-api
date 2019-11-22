@@ -97,10 +97,10 @@ def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
         user=user, organisation=organisation, status=UserStatuses.ACTIVE
     )
     if created:
-        created_org_user = dict(
+        user_org = dict(
             email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
         )
-        print(f"CREATED: {created_org_user}")
+        print(f"CREATED: {user_org}")
 
 
 class SeedOrgUsersTests(SeedCommandTest):

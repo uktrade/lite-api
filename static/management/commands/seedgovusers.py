@@ -53,13 +53,13 @@ class Command(SeedCommand):
         for email in json.loads(env("SEED_USERS")):
             gov_user, created = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
             if created:
-                created_gov_user = dict(
+                gov_user = dict(
                     email=gov_user.email,
                     first_name=gov_user.first_name,
                     last_name=gov_user.last_name,
                     role=gov_user.role.name,
                 )
-                print(f"CREATED: {created_gov_user}")
+                print(f"CREATED: {gov_user}")
 
 
 class SeedGovUserTests(SeedCommandTest):
