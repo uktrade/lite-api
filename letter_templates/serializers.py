@@ -23,7 +23,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
 
-    restricted_to = serializers.SerializerMethodField()
+    restricted_to = serializers.ListField(
+        child=serializers.CharField(),
+        error_messages={"required": "Select which types of case this letter template can apply to",},
+    )
 
     layout = PrimaryKeyRelatedSerializerField(
         queryset=LetterLayout.objects.all(),
@@ -46,11 +49,3 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         if not attrs:
             raise serializers.ValidationError("You'll need to add at least one letter paragraph")
         return attrs
-
-    @staticmethod
-    def get_restricted_to(instance):
-        dicts = []
-        case_types = dict(CaseType.choices)
-        for value in instance.restricted_to:
-            dicts.append(dict(key=value, value=case_types[value]))
-        return dicts
