@@ -36,7 +36,7 @@ class SeedCommand(ABC, BaseCommand):
         except Exception as error:  # noqa
             self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
             return
-        self.stdout.write(self.style.SUCCESS("\n" + self.success))
+        self.stdout.write(self.style.SUCCESS("\n" + self.success + "\n"))
 
     @staticmethod
     def read_csv(filename: str):
