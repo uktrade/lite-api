@@ -3,7 +3,7 @@ from weasyprint import CSS, HTML
 from conf.exceptions import NotFoundError
 from letter_templates.helpers import get_css_location
 from letter_templates.models import LetterTemplate
-from lite_content.lite_internal_frontend.letter_templates import LetterTemplatesPage
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
 def html_to_pdf(html, template_name):
