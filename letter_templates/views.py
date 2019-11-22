@@ -16,6 +16,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
     Returns list of all letter templates or creates a letter template
     """
+
     authentication_classes = (GovAuthentication,)
     serializer_class = LetterTemplateSerializer
 
@@ -43,14 +44,15 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     """
     Returns detail of a specific letter template
     """
+
     authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
 
     def get(self, request, *args, **kwargs):
         template_object = self.get_object()
-        data = {"template": self.get_serializer(template_object).data }
-        if 'generate_preview' in request.GET and bool(request.GET['generate_preview']):
+        data = {"template": self.get_serializer(template_object).data}
+        if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):
             data["preview"] = get_html_preview(template=template_object)
         return JsonResponse(data, status=status.HTTP_200_OK)
 
@@ -70,8 +72,7 @@ class TemplatePreview(APIView):
     @staticmethod
     def get(request):
         paragraphs = PicklistItem.objects.filter(
-            type=PicklistType.LETTER_PARAGRAPH,
-            id__in=request.GET.getlist("paragraphs")
+            type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         preview = generate_preview(layout, {"content": get_paragraphs_as_html(paragraphs)})

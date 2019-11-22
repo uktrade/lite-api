@@ -41,10 +41,7 @@ def template_engine_factory(allow_missing_variables):
     """
     # Put the variable name in if missing variables. Else trigger an InvalidVarException.
     string_if_invalid = "{{ %s }}" if allow_missing_variables else InvalidVarException()
-    return Engine(
-        string_if_invalid=string_if_invalid,
-        dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)]
-    )
+    return Engine(string_if_invalid=string_if_invalid, dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)])
 
 
 def get_paragraphs_as_html(paragraphs: list):
@@ -58,7 +55,7 @@ def get_css_location(filename):
 def load_css(filename):
     with open(get_css_location(filename)) as css_file:
         css = css_file.read()
-    return "<style>\n"+css+"</style>\n"
+    return "<style>\n" + css + "</style>\n"
 
 
 def generate_preview(layout, content: dict, allow_missing_variables=True):

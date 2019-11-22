@@ -21,7 +21,7 @@ class GenerateDocumentTests(DataTestClient):
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id)}
-        self.url = reverse("cases:generated_documents", kwargs={"pk": str(self.case.pk)})
+        self.url = reverse("generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
 
     def test_generate_document_success(self):
         response = self.client.post(self.url, **self.gov_headers, data=self.data)

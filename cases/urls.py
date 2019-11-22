@@ -39,6 +39,5 @@ urlpatterns = [
     path("<uuid:pk>/ecju-queries/", views.CaseEcjuQueries.as_view(), name="case_ecju_queries",),
     # ex: /cases/<uuid:pk>/ecju-queries/<uuid:ecju_pk>/
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
-
     path("<uuid:pk>/generated-documents/", include("cases.generated_document.urls")),
 ]
