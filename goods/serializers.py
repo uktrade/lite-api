@@ -33,7 +33,7 @@ class GoodListSerializer(serializers.ModelSerializer):
     def get_query_id(self, instance):
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
         if clc_query:
-            return clc_query.id
+            return clc_query.first().id
 
     class Meta:
         model = Good
@@ -95,11 +95,13 @@ class GoodSerializer(serializers.ModelSerializer):
     # pylint: disable=W0703
     def get_case_id(self, instance):
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        return clc_query.id
+        if clc_query:
+            return clc_query.first().id
 
     def get_query_id(self, instance):
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        return clc_query.id
+        if clc_query:
+            return clc_query.first().id
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
