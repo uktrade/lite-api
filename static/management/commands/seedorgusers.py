@@ -1,6 +1,6 @@
 from json import loads as serialize
 
-from django.core.management import call_command
+from django.db import transaction
 
 from addresses.models import Address
 from conf.settings import env
@@ -23,11 +23,12 @@ class Command(SeedCommand):
     """
 
     help = "Seeds test organisation users"
+    info = "Seeding org users"
     success = "Successfully seeded org users"
     seed_command = "seedorgusers"
 
+    @transaction.atomic
     def operation(self, *args, **options):
-        call_command("seedcountries")
         for org in ORGANISATIONS:
             organisation = seed_organisation(org)
             _seed_exporter_users_to_organisation(organisation)
@@ -48,21 +49,20 @@ def seed_organisation(org):
 
 
 def seed_organisation_site(organisation: Organisation):
-    address = Address.objects.create(
+    address = Address.objects.get_or_create(
         address_line_1="42 Question Road",
         address_line_2="",
         country=get_country("GB"),
         city="London",
         region="London",
         postcode="Islington",
-    )
-    site = Site.objects.create(name="Headquarters", organisation=organisation, address=address)
+    )[0]
+    site = Site.objects.get_or_create(name="Headquarters", organisation=organisation, address=address)[0]
     organisation.primary_site = site
     organisation.save()
 
 
 def _seed_exporter_users_to_organisation(organisation: Organisation):
-
     # Do not combine the TEST_EXPORTER_USERS and SEED_USERS env variables in `.env`;
     # this would grant GOV user permissions to the exporter test-user accounts.
     for email in _get_exporter_users():
@@ -93,18 +93,14 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    UserOrganisationRelationship.objects.get_or_create(user=user, organisation=organisation, status=UserStatuses.ACTIVE)
-    print(
-        '{"email": "'
-        + user.email
-        + '", "first_name": "'
-        + user.first_name
-        + '", "last_name": "'
-        + user.last_name
-        + '", id": "'
-        + str(user.id)
-        + '"}'
+    user_org, created = UserOrganisationRelationship.objects.get_or_create(
+        user=user, organisation=organisation, status=UserStatuses.ACTIVE
     )
+    if created:
+        user_org = dict(
+            email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
+        )
+        print(f"CREATED: {user_org}")
 
 
 class SeedOrgUsersTests(SeedCommandTest):

@@ -1,4 +1,5 @@
 from django.core.management import call_command
+from django.db import transaction
 
 from static.management.SeedCommand import SeedCommand
 
@@ -12,13 +13,12 @@ SEED_COMMANDS = {
         "seedlayouts",
         "seedsystemflags",
     ],
-    "Dev": ["seedorgusers", "seedgovuser"],
+    "Dev": ["seedorgusers", "seedgovusers"],
     "Tests": [
         "seedpermissions",
         "seeddenialreasons",
         "seedcountries",
-        "seedgovuser",
-        "seedgovuser",
+        "seedgovusers",
         "seedcasestatuses",
         "seedlayouts",
         "seedsystemflags",
@@ -31,8 +31,9 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedall
     """
 
-    help = "Executes all seed operations"
-    success = "All seed operations executed!"
+    help = "executes all seed operations"
+    info = "EXECUTING ALL SEED OPERATIONS"
+    success = "ALL SEED OPERATIONS EXECUTED"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -47,6 +48,7 @@ class Command(SeedCommand):
         for command in commands:
             call_command(command)
 
+    @transaction.atomic
     def operation(self, *args, **options):
         """
         pipenv run ./manage.py seedall [--essential] [--non-essential]

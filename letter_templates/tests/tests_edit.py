@@ -1,4 +1,3 @@
-from django.core.management import call_command
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -12,8 +11,6 @@ from test_helpers.clients import DataTestClient
 class LetterTemplateEditTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        # Seed layouts
-        call_command("seedlayouts")
         self.picklist_item = self.create_picklist_item(
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )

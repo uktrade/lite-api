@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.models import Permission
 
@@ -10,9 +12,11 @@ class Command(SeedCommand):
     """
 
     help = "Seeds permissions"
+    info = "Seeding permissions"
     success = "Successfully seeded permissions"
     seed_command = "seedpermissions"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         csv = self.read_csv(PERMISSIONS_FILE)
         self.update_or_create(Permission, csv)

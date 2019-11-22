@@ -4,6 +4,7 @@ from io import StringIO
 
 from django.core.management import BaseCommand, call_command
 from django.db import transaction, models, IntegrityError
+from django.db.models import QuerySet
 from django.test import TestCase
 
 
@@ -14,6 +15,7 @@ class SeedCommand(ABC, BaseCommand):
     """
 
     help = None
+    info = None
     success = None
     seed_command = None
 
@@ -27,8 +29,15 @@ class SeedCommand(ABC, BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        self.operation(*args, **options)
-        self.stdout.write(self.style.SUCCESS(self.success))
+        self.stdout.write(
+            self.style.WARNING(f"\n=============================\n{self.info}\n=============================\n")
+        )
+        try:
+            self.operation(*args, **options)
+        except Exception as error:  # noqa
+            self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
+            return
+        self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
 
     @staticmethod
     def read_csv(filename: str):
@@ -54,11 +63,23 @@ class SeedCommand(ABC, BaseCommand):
         :param rows: A list of dictionaries (csv entries) to populate to the model
         """
         for row in rows:
-            obj = model.objects.filter(id=row["id"])
-            if obj.exists():
-                obj.update(**row)
-            else:
+            obj_id = row["id"]
+            obj = model.objects.filter(id=obj_id)
+            if not obj.exists():
                 model.objects.create(**row)
+                print(f"CREATED: {dict(row)}")
+            else:
+                SeedCommand.update_if_not_equal(obj, row)
+
+    @staticmethod
+    def update_if_not_equal(obj: QuerySet, row: dict):
+        # Can not delete the "id" key-value from `rows` as it will manipulate the data which is later used in
+        # `delete_unused_objects`
+        attributes = {k: v for k, v in row.items() if k != "id"}
+        obj = obj.exclude(**attributes)
+        if obj.exists():
+            obj.update(**attributes)
+            print(f"UPDATED: {dict(row)}")
 
     @staticmethod
     def delete_unused_objects(model: models.Model, rows: list):
