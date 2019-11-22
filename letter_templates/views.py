@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
-from letter_templates.helpers import get_html_preview, generate_preview, get_paragraphs_as_html
+from letter_templates.helpers import get_preview, generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
@@ -51,7 +51,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         template_object = self.get_object()
         data = {"template": self.get_serializer(template_object).data }
         if 'generate_preview' in request.GET and bool(request.GET['generate_preview']):
-            data["preview"] = get_html_preview(template=template_object)
+            data["preview"] = get_preview(template=template_object)
         return JsonResponse(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
@@ -74,5 +74,5 @@ class TemplatePreview(APIView):
             id__in=request.GET.getlist("paragraphs")
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
-        preview = generate_preview(layout, {"content": get_paragraphs_as_html(paragraphs)})
+        preview = generate_preview(layout, paragraphs=paragraphs)
         return JsonResponse({"preview": preview})
