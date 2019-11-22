@@ -58,16 +58,21 @@ def load_css(filename):
     return "<style>\n" + css + "</style>\n"
 
 
-def generate_preview(layout, content: dict, allow_missing_variables=True):
+def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_variables=True):
     django_engine = template_engine_factory(allow_missing_variables)
     css = load_css(layout)
     template = django_engine.get_template(f"{layout}.html")
-    return css + template.render(Context(content))
 
-
-def get_html_preview(template: LetterTemplate, case=None):
-    paragraphs = template.letter_paragraphs.all()
-    content = {"content": get_paragraphs_as_html(paragraphs)}
+    context = {"content": get_paragraphs_as_html(paragraphs)}
+    template = template.render(Context(context))
     if case:
-        content["case"] = case
-    return generate_preview(template.layout.filename, content)
+        context = {"case": case}
+        template = django_engine.from_string(template)
+        template = template.render(Context(context))
+
+    return css + template
+
+
+def get_preview(template: LetterTemplate, case=None):
+    paragraphs = template.letter_paragraphs.all()
+    return generate_preview(template.layout.filename, paragraphs=paragraphs, case=case)
