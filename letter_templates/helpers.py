@@ -67,10 +67,13 @@ def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_var
     template = django_engine.get_template(f"{layout}.html")
 
     context = {"content": get_paragraphs_as_html(paragraphs)}
+    template = template.render(Context(context))
     if case:
-        context["case"] = case
+        context = {"case": case}
+        template = django_engine.from_string(template)
+        template = template.render(Context(context))
 
-    return css + template.render(Context(context))
+    return css + template
 
 
 def get_preview(template: LetterTemplate, case=None):
