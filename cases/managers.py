@@ -66,7 +66,7 @@ class CaseManager(models.Manager):
     """
 
     def get_queryset(self):
-        return CaseQuerySet(self.model, using=self.db)
+        return CaseQuerySet(self.model, using=self.db).filter(status__isnull=False)
 
     def search(
         self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None,

@@ -29,13 +29,11 @@ class GoodListSerializer(serializers.ModelSerializer):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
-        return None
 
     def get_query_id(self, instance):
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
         if clc_query:
             return clc_query.id
-        return None
 
     class Meta:
         model = Good
@@ -96,25 +94,17 @@ class GoodSerializer(serializers.ModelSerializer):
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
-            case = Case.objects.get(query=clc_query)
-            return case.id
-        except Exception:
-            return None
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        return clc_query.id
 
     def get_query_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
-            return clc_query.id
-        except Exception:
-            return None
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        return clc_query.id
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
-        return None
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES

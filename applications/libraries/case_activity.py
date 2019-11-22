@@ -2,17 +2,8 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 
 
-def _get_case_from_application(application):
-    try:
-        return application.status != None
-    except Case.DoesNotExist:
-        return None
-
-
 def set_case_activity(case_activity, user, application):
-    case = _get_case_from_application(application)
-
-    if case:
+    if application.status:
         CaseActivity.create(case=application, user=user, **case_activity)
 
 

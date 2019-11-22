@@ -25,19 +25,6 @@ def get_good_document(good: Good, pk):
         raise NotFoundError({"document": get_string("documents.document_not_found")})
 
 
-def get_goods_from_case(case):
-    if case.query:
-        query = get_exporter_query(case.id)
-        if isinstance(query, ControlListClassificationQuery):
-            return [query.good.id]
-        else:
-            return []
-    else:
-        application = BaseApplication.objects.get(case=case)
-        goods_on_applications = GoodOnApplication.objects.filter(application=application)
-        return [x.good.id for x in goods_on_applications]
-
-
 def get_good_with_organisation(pk, organisation):
     try:
         good = Good.objects.get(pk=pk)
