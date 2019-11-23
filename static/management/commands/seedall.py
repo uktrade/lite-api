@@ -12,6 +12,7 @@ SEED_COMMANDS = {
         "seedcasestatuses",
         "seedlayouts",
         "seedsystemflags",
+        "seedcasetypes",
     ],
     "Dev": ["seedorgusers", "seedgovusers"],
     "Tests": [
@@ -22,6 +23,7 @@ SEED_COMMANDS = {
         "seedcasestatuses",
         "seedlayouts",
         "seedsystemflags",
+        "seedcasetypes",
     ],
 }
 

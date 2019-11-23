@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
 
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
@@ -25,10 +25,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     def get_queryset(self):
         case = self.request.GET.get("case")
 
-        if case:
-            return get_letter_templates_for_case(get_case(pk=case))
-
-        return LetterTemplate.objects.all()
+        return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -52,8 +49,6 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     def get(self, request, *args, **kwargs):
         template_object = self.get_object()
         template = self.get_serializer(template_object).data
-        case_types = dict(CaseType.choices)
-        template["restricted_to"] = [dict(key=value, value=case_types[value]) for value in template["restricted_to"]]
         data = {"template": template}
 
         if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):

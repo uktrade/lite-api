@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case_activity
 from cases.models import Case
 from static.units.enums import Units

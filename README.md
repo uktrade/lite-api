@@ -47,7 +47,7 @@ Service for handling backend calls in LITE.
     - `pipenv run ./manage.py coverage cases` will collect coverage on the `cases` module and run only the `cases` tests
 3. The second positional argument implies what tests to run in order to collect coverage for the given module:
     - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module and run all tests
-    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only the `queues` tests
+    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only run the `queues` tests
 
 ## LITE Repositories
 

@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from cases.enums import CaseType
-from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from cases.models import CaseType
+from cases.serializers import CaseTypeSerializer
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from letter_templates.models import LetterTemplate
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
@@ -23,9 +24,11 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
 
-    restricted_to = serializers.ListField(
-        child=serializers.CharField(),
-        error_messages={"required": "Select which types of case this letter template can apply to",},
+    case_types = PrimaryKeyRelatedSerializerField(
+        queryset=CaseType.objects.all(),
+        serializer=CaseTypeSerializer,
+        error_messages={"required": "Select the case types you want to use for this letter template"},
+        many=True,
     )
 
     layout = PrimaryKeyRelatedSerializerField(
@@ -39,19 +42,13 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     @staticmethod
-    def validate_restricted_to(attrs):
+    def validate_case_types(attrs):
         if not attrs:
-            raise serializers.ValidationError("Select at least one case restriction for your letter template")
+            raise serializers.ValidationError("You need at least one case type for your letter template")
         return attrs
 
     @staticmethod
     def validate_letter_paragraphs(attrs):
         if not attrs:
-            raise serializers.ValidationError("You'll need to add at least one letter paragraph")
+            raise serializers.ValidationError("You need at one letter paragraph for your letter template")
         return attrs
-
-    def create(self, validated_data):
-        restricted_to = validated_data.pop("restricted_to")
-        letter_template = super(LetterTemplateSerializer, self).create(validated_data)
-        letter_template.restricted_to = restricted_to
-        return letter_template

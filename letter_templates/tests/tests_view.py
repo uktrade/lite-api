@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
@@ -15,16 +15,14 @@ class LetterTemplatesListTests(DataTestClient):
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
         self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(
-            name="SIEL",
-            restricted_to=[CaseType.CLC_QUERY, CaseType.END_USER_ADVISORY_QUERY],
-            layout=self.letter_layout,
-        )
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
-        self.url = reverse("letter_templates:letter_templates")
 
-    def test_get_letter_templates(self):
-        response = self.client.get(self.url, **self.gov_headers)
+    def test_get_letter_templates_success(self):
+        url = reverse("letter_templates:letter_templates")
+
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -32,29 +30,31 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["name"], self.letter_template.name)
         self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseType.CLC_QUERY, str(response_data["restricted_to"]))
-        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, str(response_data["restricted_to"]))
+        self.assertIn(CaseTypeEnum.CLC_QUERY, str(response_data["case_types"]))
+        self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(response_data["case_types"]))
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("last_modified_at"))
 
+    def test_get_letter_templates_for_case_success(self):
+        url = reverse("letter_templates:letter_templates")
+        self.letter_template.case_types.set([CaseTypeEnum.APPLICATION])
+        case = self.create_standard_application_case(self.organisation)
 
-class LetterTemplateDetailTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.picklist_item = self.create_picklist_item(
-            "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
-        )
-        self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(
-            name="SIEL",
-            restricted_to=[CaseType.CLC_QUERY, CaseType.END_USER_ADVISORY_QUERY],
-            layout=self.letter_layout,
-        )
-        self.letter_template.letter_paragraphs.add(self.picklist_item)
-        self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
+        response = self.client.get(url + "?case=" + str(case.id), **self.gov_headers)
+        response_data = response.json()["results"][0]
 
-    def test_get_letter_template(self):
-        response = self.client.get(self.url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], str(self.letter_template.id))
+        self.assertEqual(response_data["name"], self.letter_template.name)
+        self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
+        self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
+        self.assertIn(CaseTypeEnum.APPLICATION, str(response_data["case_types"]))
+        self.assertIsNotNone(response_data.get("created_at"))
+        self.assertIsNotNone(response_data.get("last_modified_at"))
+
+    def test_get_letter_template_success(self):
+        url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -63,8 +63,7 @@ class LetterTemplateDetailTests(DataTestClient):
         self.assertEqual(template["name"], self.letter_template.name)
         self.assertEqual(template["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(template["letter_paragraphs"], [str(self.picklist_item.id)])
-        restricted_to_list = [restricted_to["key"] for restricted_to in template["restricted_to"]]
-        self.assertIn(CaseType.CLC_QUERY, restricted_to_list)
-        self.assertIn(CaseType.END_USER_ADVISORY_QUERY, restricted_to_list)
+        self.assertIn(CaseTypeEnum.CLC_QUERY, str(template["case_types"]))
+        self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(template["case_types"]))
         self.assertIsNotNone(template.get("created_at"))
         self.assertIsNotNone(template.get("last_modified_at"))

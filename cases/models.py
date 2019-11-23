@@ -7,7 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
-from cases.enums import CaseType, AdviceType, CaseDocumentType
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
@@ -30,7 +30,7 @@ class Case(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
+    type = models.CharField(choices=CaseTypeEnum.choices, default=CaseTypeEnum.APPLICATION, max_length=35)
     application = models.ForeignKey(BaseApplication, related_name="case", on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, related_name="case", on_delete=models.CASCADE, null=True)
     queues = models.ManyToManyField(Queue, related_name="cases")
@@ -340,3 +340,8 @@ class Notification(models.Model):
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+
+class CaseType(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

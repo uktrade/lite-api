@@ -1,7 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
@@ -16,9 +17,8 @@ class GenerateDocumentTests(DataTestClient):
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
         self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(
-            name="SIEL", restricted_to=[CaseType.APPLICATION], layout=self.letter_layout,
-        )
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template.case_types.add(CaseTypeEnum.APPLICATION)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id)}
