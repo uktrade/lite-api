@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
 
-from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
