@@ -72,7 +72,6 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(valid_user.get_role(self.organisation), self.exporter_super_user_role)
 
-    @tag('only')
     def test_super_user_can_assign_super_user_role(self):
         valid_user = self.create_exporter_user(self.organisation)
         valid_user.save()

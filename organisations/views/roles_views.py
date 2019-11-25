@@ -54,7 +54,6 @@ class RolesViews(ListCreateAPIView):
             return JsonResponse(
                 data={"role": serializer.data}, status=status.HTTP_201_CREATED
             )
-        print(serializer.errors)
         return JsonResponse(
             data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
         )
