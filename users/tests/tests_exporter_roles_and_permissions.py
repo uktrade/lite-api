@@ -124,7 +124,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         org, _ = self.create_organisation_with_exporter_user()
         role_name = "duplicate name"
-        Role(name=role_name, organisation=org).save()
+        Role(name=role_name, organisation=org, type=UserType.EXPORTER).save()
 
         data = {
             "name": role_name,
@@ -135,4 +135,4 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Role.objects.filter(name=role_name), 2)
+        self.assertEqual(Role.objects.filter(name=role_name).count(), 2)
