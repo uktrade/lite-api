@@ -3,13 +3,13 @@ import uuid
 
 import reversion
 from django.db import models
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
-from common.models import TimestampedModel
 from documents.models import Document
 from flags.models import Flag
 from goods.models import Good
@@ -24,7 +24,7 @@ from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelati
 
 
 @reversion.register()
-class Case(TimestampedModel):
+class Case(models.Model):
     """
     Wrapper for application and query model intended for internal users.
     """
@@ -38,7 +38,7 @@ class Case(TimestampedModel):
     objects = CaseManager()
 
     class Meta:
-        ordering = ('created_at',)
+        ordering = [Coalesce('application__submitted_at', 'query__submitted_at')]
 
     @property
     def organisation(self):
