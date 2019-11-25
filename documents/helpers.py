@@ -22,3 +22,7 @@ class DocumentOperation:
         bucket = self._get_bucket()
         bucket.put_object(Bucket=self._get_bucket_name(), Key=s3_key, Body=raw_file)
         return s3_key
+
+    def delete_bytes_file(self, s3_key):
+        bucket = self._get_bucket()
+        bucket.delete_object(Bucket=self._get_bucket_name(), Key=s3_key)

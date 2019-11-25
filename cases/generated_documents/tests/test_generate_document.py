@@ -2,7 +2,6 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
-from cases.models import CaseType
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
@@ -31,6 +30,7 @@ class GenerateDocumentTests(DataTestClient):
 
     def test_get_document_preview_success(self):
         url = self.url + "?template=" + str(self.letter_template.id)
+
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

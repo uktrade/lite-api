@@ -19,61 +19,72 @@ class GeneratedDocuments(APIView):
     authentication_classes = (GovAuthentication,)
     queryset = GeneratedDocument.objects.all()
 
-    def _fetch_generated_document_data(self, pk, tpk):
+    def _fetch_generated_document_data(self, request_params, pk):
+        if "template" not in request_params:
+            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
+        tpk = request_params["template"]
+
         self.case = get_case(pk)
         self.template = get_letter_template_for_case(tpk, self.case)
         self.html = get_preview(template=self.template, case=self.case)
+
         if "error" in self.html:
-            return self.html["error"]
+            return JsonResponse({"errors": self.html["error"]}, status=status.HTTP_400_BAD_REQUEST)
+
         return None
 
     def get(self, request, pk):
         """
         Get a preview of the document to be generated
         """
-        if "template" not in request.GET:
-            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
-        tpk = request.GET["template"]
+        error_response = self._fetch_generated_document_data(request.GET, pk)
+        if error_response:
+            return error_response
 
-        errors = self._fetch_generated_document_data(pk, tpk)
-        if errors:
-            return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
         Create a generated document
         """
-        if "template" not in request.data:
-            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
-        tpk = request.data["template"]
+        # TODO Catch particular exceptions
 
-        errors = self._fetch_generated_document_data(pk, tpk)
-        if errors:
-            return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+        error_response = self._fetch_generated_document_data(request.data, pk)
+        if error_response:
+            return error_response
 
-        pdf = html_to_pdf(self.html, self.template.layout.filename)
-        s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
+        try:
+            pdf = html_to_pdf(self.html, self.template.layout.filename)
+        except Exception:  # noqa
+            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        document_name = self.template.name + "-" + s3_key[:4]
-        generated_doc = GeneratedDocument.objects.create(
-            name=document_name,
-            user=request.user,
-            s3_key=s3_key,
-            virus_scanned_at=timezone.now(),
-            safe=True,
-            type=CaseDocumentType.GENERATED,
-            case=self.case,
-            template=self.template,
-        )
+        try:
+            s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
+        except Exception:  # noqa
+            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Generate timeline entry
-        case_activity = {
-            "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
-            "file_name": document_name,
-            "template": self.template.name,
-        }
-        CaseActivity.create(case=self.case, user=request.user, **case_activity)
+        try:
+            document_name = self.template.name + "-" + s3_key[:4]
+            generated_doc = GeneratedDocument.objects.create(
+                name=document_name,
+                user=request.user,
+                s3_key=s3_key,
+                virus_scanned_at=timezone.now(),
+                safe=True,
+                type=CaseDocumentType.GENERATED,
+                case=self.case,
+                template=self.template,
+            )
+
+            # Generate timeline entry
+            case_activity = {
+                "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
+                "file_name": document_name,
+                "template": self.template.name,
+            }
+            CaseActivity.create(case=self.case, user=request.user, **case_activity)
+        except Exception:  # noqa
+            DocumentOperation().delete_bytes_file(s3_key=s3_key)
+            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse(data={"generated_documents": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
