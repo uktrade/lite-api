@@ -85,7 +85,6 @@ class UserDetail(APIView):
         data = JSONParser().parse(request)
         user = get_user_by_pk(user_pk)
 
-        # Don't allow a user to update their own status
         # Cannot perform actions on another super user without super user role
         if (
             user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
@@ -93,6 +92,7 @@ class UserDetail(APIView):
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
+        # Don't allow a user to update their own status or that of a super user
         if "status" in data.keys():
             if user.id == request.user.id:
                 return JsonResponse(
