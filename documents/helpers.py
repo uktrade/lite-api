@@ -1,8 +1,10 @@
+import logging
 import uuid
 
 import boto3
 
 from conf.settings import env
+from lite_content.lite_api.documents import DocumentsEndpoint
 
 
 class DocumentOperation:
@@ -28,4 +30,7 @@ class DocumentOperation:
 
     def delete_file(self, s3_key):
         bucket = self.get_client()
-        bucket.delete_object(Bucket=self._get_bucket_name(), Key=s3_key)
+        try:
+            bucket.delete_object(Bucket=self._get_bucket_name(), Key=s3_key)
+        except Exception:  # noqa
+            logging.warning(DocumentsEndpoint.DELETE_ERROR)
