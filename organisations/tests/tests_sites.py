@@ -81,13 +81,16 @@ class OrganisationSitesTests(DataTestClient):
 
     def cannot_edit_site_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
-        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
-
-        data = {}
+        url = reverse("organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site_id})
+        payload_name = "Not headquarters"
+        data = {
+            "name": payload_name
+        }
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertNotEqual(self.organisation.primary_site.name, payload_name)
 
     def cannot_see_sites_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)

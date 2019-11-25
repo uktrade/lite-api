@@ -73,7 +73,7 @@ class UserDetail(APIView):
         """
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
-        view_serializer = ExporterUserViewSerializer(self.user)
+        view_serializer = ExporterUserViewSerializer(self.user, context=org_pk)
         return JsonResponse(data={"user": view_serializer.data})
 
     def put(self, request, org_pk, user_pk):

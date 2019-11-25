@@ -11,7 +11,7 @@ class OrganisationUsersViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("organisations:users", kwargs={"org_pk": self.organisation.id})
-		self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_view_all_users_belonging_to_organisation(self):
         """
@@ -33,7 +33,7 @@ class OrganisationUsersViewTests(DataTestClient):
         Ensure that a user can see an individual user belonging
         to an organisation
         """
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},)
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["user"]
@@ -122,11 +122,12 @@ class OrganisationUsersCreateTests(DataTestClient):
     def test_cannot_add_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         data = {}
+        initial_users_count = ExporterUser.objects.count()
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
+        self.assertEqual(ExporterUser.objects.count(), initial_users_count)
 
 
 class OrganisationUsersUpdateTests(DataTestClient):
@@ -161,11 +162,17 @@ class OrganisationUsersUpdateTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(UserOrganisationRelationship.objects.get(user=self.exporter_user, organisation=self.organisation).status,
+                         UserStatuses.ACTIVE)
 
     def test_cannot_edit_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
-        data = {}
+        payload_name = "changed name"
+        data = {
+            "first_name": payload_name
+        }
 
         response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertNotEqual(self.exporter_user.first_name, payload_name)
