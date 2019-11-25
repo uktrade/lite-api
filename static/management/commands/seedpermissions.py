@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.enums import UserType
 from users.models import Permission, Role
@@ -12,15 +14,18 @@ ROLE_NAME = "Default"
 SUPER_USER = "Super User"
 
 
+
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedpermissions
     """
 
     help = "Seeds permissions"
+    info = "Seeding permissions"
     success = "Successfully seeded permissions"
     seed_command = "seedpermissions"
 
+    @transaction.atomic
     def operation(self, *args, **options):
         reader = self.read_csv(FILE)
         for row in reader:
@@ -45,4 +50,4 @@ class Command(SeedCommand):
 class SeedPermissionsTests(SeedCommandTest):
     def test_seed_org_users(self):
         self.seed_command(Command)
-        self.assertTrue(Permission.objects.count() >= len(Command.read_csv(FILE)))
+        self.assertTrue(Permission.objects.count() >= len(Command.read_csv(PERMISSIONS_FILE)))

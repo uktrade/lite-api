@@ -15,6 +15,7 @@ from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
     check_if_team_advice_exists,
+    check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
 from cases.models import (
@@ -223,9 +224,12 @@ class CaseTeamAdvice(APIView):
         """
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
+
         if self.team_advice.filter(team=request.user.team).count() == 0:
-            # We pass in the class of advice we are creating
-            assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+            user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+            if user_cannot_manage_team_advice:
+                return user_cannot_manage_team_advice
+
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
@@ -244,20 +248,26 @@ class CaseTeamAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+        if user_cannot_manage_team_advice:
+            return user_cannot_manage_team_advice
+
         final_advice_exists = check_if_final_advice_exists(self.case)
         if final_advice_exists:
             return final_advice_exists
-        else:
-            advice = post_advice(request, self.case, self.serializer_object, team=True)
-            case_advice_contains_refusal(pk)
-            return advice
+
+        advice = post_advice(request, self.case, self.serializer_object, team=True)
+        case_advice_contains_refusal(pk)
+        return advice
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_TEAM_ADVICE)
+        user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
+        if user_cannot_manage_team_advice:
+            return user_cannot_manage_team_advice
+
         self.team_advice.filter(team=self.request.user.team).delete()
         case_advice_contains_refusal(pk)
         CaseActivity.create(

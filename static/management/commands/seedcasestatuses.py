@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
@@ -6,23 +8,27 @@ STATUS_ON_TYPE_FILE = "lite_content/lite-api/case_status_on_type.csv"
 
 
 class Command(SeedCommand):
-    help = "Creates case statuses and case statuses on case types."
+    """
+    pipenv run ./manage.py seedcasestatuses
+    """
+
+    help = "Creates case statuses and case statuses on case types"
+    info = "Seeded case statuses"
     success = "Successfully seeded case statuses"
     seed_command = "seedcasestatuses"
 
+    @transaction.atomic
     def operation(self, *args, **options):
-        """
-        pipenv run ./manage.py seedcasestatuses
-        """
-        # Case statuses
-        for row in self.read_csv(STATUSES_FILE):
-            CaseStatus.objects.get_or_create(status=row[0], priority=row[1], is_read_only=row[2])
+        status_csv = self.read_csv(STATUSES_FILE)
+        self.update_or_create(CaseStatus, status_csv)
 
-        status_ids = {status.status: status for status in CaseStatus.objects.all()}
+        case_to_status_csv = self.read_csv(STATUS_ON_TYPE_FILE)
+        for row in case_to_status_csv:
+            row["status"] = CaseStatus.objects.get(id=row["status"])
+        self.update_or_create(CaseStatusCaseType, case_to_status_csv)
 
-        # Case statuses on case types
-        for row in self.read_csv(STATUS_ON_TYPE_FILE):
-            CaseStatusCaseType.objects.get_or_create(type=row[0], status=status_ids[row[1]])
+        self.delete_unused_objects(CaseStatus, status_csv)
+        self.delete_unused_objects(CaseStatusCaseType, case_to_status_csv)
 
 
 class SeedCaseStatusesTests(SeedCommandTest):

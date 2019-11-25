@@ -42,7 +42,7 @@ class GoodViewTests(DataTestClient):
             **{
                 "HTTP_EXPORTER_USER_TOKEN": user_to_token(organisation_2_admin),
                 "HTTP_ORGANISATION_ID": str(organisation_2.id),
-            }
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -130,9 +130,7 @@ class GoodViewTests(DataTestClient):
         response_data = response.json()["goods"]
         self.assertEqual(len(response_data), 2)
 
-    @parameterized.expand(
-        [("ML3", 2), ("ML3a", 1),]
-    )
+    @parameterized.expand([("ML3", 2), ("ML3a", 1)])
     def test_view_good__query_filter_by_control_rating(self, control_rating, size):
         org = self.organisation
 

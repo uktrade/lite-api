@@ -57,7 +57,7 @@ class PicklistsViews(DataTestClient):
             + str(self.picklist_item_1.id)
             + ","
             + str(self.picklist_item_2.id),
-            **self.gov_headers
+            **self.gov_headers,
         )
         response_data = response.json()
 

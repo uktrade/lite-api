@@ -3,10 +3,23 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from cases.libraries.get_case import get_case
-from cases.models import FinalAdvice, TeamAdvice
+from cases.models import FinalAdvice, TeamAdvice, Advice
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from content_strings.strings import get_string
 from flags.enums import SystemFlags
 from flags.models import Flag
+from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
+
+
+def check_if_user_cannot_manage_team_advice(case, user):
+    if Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE not in user.role.permissions.values_list("id", flat=True):
+        assert_user_has_permission(user, Permissions.MANAGE_TEAM_ADVICE)
+
+        if Advice.objects.filter(case=case, user=user).exists():
+            return JsonResponse(
+                {"errors": ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR}, status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 def check_if_final_advice_exists(case):
