@@ -1,23 +1,9 @@
-<div class="licence-template">
-    <table id="first-page-table" class="fixed-layout page-break-after">
+<div class="document">
+    <table id="first-page-table" class="fixed-layout">
       <!--
         Table is broken up into 12 evenly-spaced columns.
         Cell width is controlled by colspan attributes on cells.
        -->
-      <tr class="set-width-hack">
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-      </tr>
       <tr>
         <td class="border-top-black padding-none align-centre" rowspan="999">
           <div class="text-large border-left-black border-bottom-black">1</div>
@@ -200,7 +186,7 @@
           <span class="cell__uppercase">TBC</span>
         </td>
       </tr>
-      <tr>
+      <tr class="page-break-after">
         <td class="border-black" colspan="11">
           <span class="cell__heading">Digital Signature</span>
           <span class="cell__uppercase">TBC</span>
@@ -208,32 +194,9 @@
       </tr>
     </table>
 
-    <table id="page-header" class="fixed-layout">
-      <!--
-        Table is broken up into 12 evenly-spaced columns.
-        Cell width is controlled by colspan attributes on cells.
-       -->
-      <tr class="set-width-hack">
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-      </tr>
+    <br>
+    <table>
       <tr>
-        <td class="border-top-black border-right-black padding-none align-centre" rowspan="999">
-          <div class="text-large border-left-black border-bottom-black">1<br>DIT</div>
-          <div class="sidebar-cell text-large border-left-black border-bottom-black bold uppercase">
-            <div class="rotate">Licence</div>
-          </div>
-        </td>
         <td class="border-black" rowspan="3" colspan="5">
           <span class="cell__heading">1. Exporter</span>
           <span class="cell__uppercase">{{ applicant.name }}<br>
@@ -262,7 +225,7 @@
           <span class="cell__heading">3b. Expiry date</span>
           <span class="cell__uppercase">TBC</span>
         </td>
-        </tr>
+      </tr>
       <tr>
         <td class="border-black" colspan="6">
           <span class="cell__heading">2b. Applicant reference</span>
@@ -270,30 +233,23 @@
         </td>
       </tr>
       <tr>
-        <td></td>
-      </tr>
-    </table>
-
-    <table class="page-break-after">
-      <tr>
         <td class="border-black italic">Item</td>
-        <td class="border-black italic">14. Description of the items</td>
+        <td class="border-black italic" colspan="5">14. Description of the items</td>
         <td class="border-black italic">16. Control list no</td>
         <td class="border-black italic">17. Currency and Value</td>
         <td class="border-black italic">18. Quantity of the items</td>
       </tr>
-        {% for good in goods %}
-        <tr>
-            <td class="border-black">{{ good.id }}</td>
-            <td class="border-black">{{ good.name }}</td>
-            <td class="border-black">{{ good.clc }}</td>
-            <td class="border-black">£{{ good.value }}</td>
-            <td class="border-black">{{ good.quantity }}</td>
-        </tr>
-        {% endfor %}
+    {% for good in goods %}
+    <tr>
+        <td class="border-black">{{ good.id }}</td>
+        <td class="border-black">{{ good.name }}</td>
+        <td class="border-black">{{ good.clc }}</td>
+        <td class="border-black">£{{ good.value }}</td>
+        <td class="border-black">{{ good.quantity }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td class="border-black" colspan="12">{{ content|safe }}</td>
+    </tr>
     </table>
-
-    <div class="border-black padding page-break-after" id="paragraph_content">
-      {{ content|safe }}
-    </div>
 </div>
