@@ -96,10 +96,6 @@ class UserDetail(APIView):
         Get user from pk
         """
         user = get_user_by_pk(pk)
-        print('\n')
-        print('hello I"m here')
-        print(request.user.organisation)
-        print('\n')
         if request.user.id != pk:
             assert_user_has_permission(user, Permissions.ADMINISTER_USERS, request.user.organisation)
 

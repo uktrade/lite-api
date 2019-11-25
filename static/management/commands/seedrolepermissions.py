@@ -14,6 +14,16 @@ ROLE_NAME = "Default"
 SUPER_USER = "Super User"
 
 
+def _create_role_and_output(id, type, name):
+    role, created = Role.objects.get_or_create(id=id, type=type, name=name)
+    if created:
+        role = dict(
+            id=role.id,
+            type=role.type,
+            name=role.name,
+        )
+        print(f"CREATED: {role}")
+
 
 class Command(SeedCommand):
     """
@@ -23,18 +33,19 @@ class Command(SeedCommand):
     help = "Seeds permissions"
     info = "Seeding permissions"
     success = "Successfully seeded permissions"
-    seed_command = "seedpermissions"
+    seed_command = "seedrolepermissions"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        reader = self.read_csv(FILE)
-        for row in reader:
-            Permission.objects.get_or_create(id=row[0], name=row[1], type=row[2])
 
-        Role.objects.get_or_create(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
-        Role.objects.get_or_create(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)
-        Role.objects.get_or_create(id=SUPER_USER_ROLE_ID, type=UserType.INTERNAL, name=SUPER_USER)
-        Role.objects.get_or_create(id=EX_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=SUPER_USER)
+        csv = self.read_csv(FILE)
+        self.update_or_create(Permission, csv)
+        self.delete_unused_objects(Permission, csv)
+
+        _create_role_and_output(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
+        _create_role_and_output(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)
+        _create_role_and_output(id=SUPER_USER_ROLE_ID, type=UserType.INTERNAL, name=SUPER_USER)
+        _create_role_and_output(id=EX_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=SUPER_USER)
 
         role = Role.objects.get(id=SUPER_USER_ROLE_ID)
         for permission in Permission.objects.internal():
@@ -50,4 +61,4 @@ class Command(SeedCommand):
 class SeedPermissionsTests(SeedCommandTest):
     def test_seed_org_users(self):
         self.seed_command(Command)
-        self.assertTrue(Permission.objects.count() >= len(Command.read_csv(PERMISSIONS_FILE)))
+        self.assertTrue(Permission.objects.count() >= len(Command.read_csv(FILE)))
