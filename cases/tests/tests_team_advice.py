@@ -2,11 +2,11 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.enums import AdviceType
 from cases.models import Case, Advice, TeamAdvice
 from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
 from test_helpers.clients import DataTestClient
@@ -371,7 +371,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand(get_terminal_case_statuses())
+    @parameterized.expand(CaseStatusEnum.terminal_statuses)
     def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
         data = {
             "text": "I Am Easy to Find",

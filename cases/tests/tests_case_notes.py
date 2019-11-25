@@ -2,8 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.models import Case, CaseNote
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -41,7 +41,7 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
-    @parameterized.expand(get_terminal_case_statuses())
+    @parameterized.expand(CaseStatusEnum.terminal_statuses)
     def test_create_case_note_case_terminal_state_success_gov_user(self, terminal_status):
         self.standard_application.status = get_case_status_by_status(terminal_status)
         self.standard_application.save()
@@ -82,7 +82,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
-    @parameterized.expand(get_terminal_case_statuses())
+    @parameterized.expand(CaseStatusEnum.terminal_statuses)
     def test_create_case_note_case_terminal_state_failure_exporter_user(self, terminal_status):
         self.standard_application.status = get_case_status_by_status(terminal_status)
         self.standard_application.save()

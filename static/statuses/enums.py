@@ -9,6 +9,9 @@ class CaseStatusEnum:
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
 
+    read_only_statuses = [CLOSED, FINALISED, UNDER_REVIEW, UNDER_FINAL_REVIEW, WITHDRAWN]
+    terminal_statuses = [CLOSED, FINALISED, WITHDRAWN]
+
     choices = [
         (APPLICANT_EDITING, "Applicant editing"),
         (CLOSED, "Closed"),
@@ -33,29 +36,13 @@ class CaseStatusEnum:
         CLOSED: 9,
     }
 
-    is_read_only = {
-        APPLICANT_EDITING: False,
-        CLOSED: True,
-        FINALISED: True,
-        INITIAL_CHECKS: False,
-        RESUBMITTED: False,
-        SUBMITTED: False,
-        UNDER_FINAL_REVIEW: True,
-        UNDER_REVIEW: True,
-        WITHDRAWN: True,
-    }
+    @classmethod
+    def is_read_only(cls, status):
+        return status in cls.read_only_statuses
 
-    is_terminal = {
-        APPLICANT_EDITING: False,
-        CLOSED: True,
-        FINALISED: True,
-        INITIAL_CHECKS: False,
-        RESUBMITTED: False,
-        SUBMITTED: False,
-        UNDER_FINAL_REVIEW: False,
-        UNDER_REVIEW: False,
-        WITHDRAWN: True,
-    }
+    @classmethod
+    def is_terminal(cls, status):
+        return status in cls.read_only_statuses
 
     @classmethod
     def as_list(cls):

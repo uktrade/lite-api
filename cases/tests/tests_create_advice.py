@@ -2,10 +2,10 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.enums import AdviceType
 from cases.models import Advice
 from conf.helpers import convert_queryset_to_str
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -106,7 +106,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Advice.objects.count(), 0)
 
-    @parameterized.expand(get_terminal_case_statuses())
+    @parameterized.expand(CaseStatusEnum.terminal_statuses)
     def test_cannot_create_advice_when_case_in_terminal_state(self, terminal_status):
         self.application.status = get_case_status_by_status(terminal_status)
         self.application.save()

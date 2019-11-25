@@ -2,12 +2,12 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from applications.models import GoodOnApplication
 from cases.models import Case
 from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -180,7 +180,7 @@ class GoodsVerifiedTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand(get_terminal_case_statuses())
+    @parameterized.expand(CaseStatusEnum.terminal_statuses)
     def test_cannot_set_control_codes_when_application_in_terminal_state(self, terminal_status):
         self.application.status = get_case_status_by_status(terminal_status)
         self.application.save()

@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from applications.models import BaseApplication
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
@@ -10,6 +9,7 @@ from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_v
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
 from queries.models import Query
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -35,7 +35,7 @@ class CaseNoteList(APIView):
         else:
             obj = Query.objects.get(id=case.query_id)
 
-        if obj.status.status in get_terminal_case_statuses() and isinstance(request.user, ExporterUser):
+        if obj.status.status in CaseStatusEnum.terminal_statuses and isinstance(request.user, ExporterUser):
             return JsonResponse(
                 data={"errors": {"text": ["You can only perform this operation on a case in a non-terminal state."]}},
                 status=status.HTTP_400_BAD_REQUEST,

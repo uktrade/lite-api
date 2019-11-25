@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.case_status_helpers import get_terminal_case_statuses
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity, Case
@@ -32,6 +31,7 @@ from goods.serializers import (
     GoodWithFlagsSerializer,
 )
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -46,7 +46,7 @@ class GoodsListControlCode(APIView):
         application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
         application = BaseApplication.objects.get(id=application_id)
 
-        if application.status.status in get_terminal_case_statuses():
+        if application.status.status in CaseStatusEnum.terminal_statuses:
             return JsonResponse(
                 data={"errors": ["You can only perform this operation on an application in a non-terminal state"]},
                 status=status.HTTP_400_BAD_REQUEST,
