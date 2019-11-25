@@ -83,10 +83,12 @@ class RolesAndPermissionsTests(DataTestClient):
             "name": "some role",
             "permissions": [],
         }
+        initial_roles_count = Role.objects.count()
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Role.objects.all().count(), initial_roles_count)
 
     def test_cannot_edit_role_without_permission(self):
         role = Role(name="some", organisation=self.organisation, type=UserType.EXPORTER)
@@ -98,6 +100,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Role.objects.get(id=role.id).permissions.values().count(), 0)
 
     @parameterized.expand(
         [
@@ -108,14 +111,14 @@ class RolesAndPermissionsTests(DataTestClient):
     )
     def test_role_name_must_be_unique(self, data):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        initial_roles_count = Role.objects.count()
         Role(name="this is a name", organisation=self.organisation).save()
+        initial_roles_count = Role.objects.count()
 
         url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEqual(Role.objects.all().count(), initial_roles_count + 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Role.objects.all().count(), initial_roles_count)
 
     def test_role_name_not_have_to_be_unique_different_organisations(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -132,3 +135,4 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Role.objects.filter(name=role_name), 2)
