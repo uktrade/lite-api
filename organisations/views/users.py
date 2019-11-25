@@ -30,7 +30,7 @@ class UsersList(APIView):
             assert_user_has_permission(request.user, Permissions.ADMINISTER_USERS, org_pk)
 
         users = get_users_from_organisation(organisation)
-        view_serializer = ExporterUserViewSerializer(users, many=True)
+        view_serializer = ExporterUserViewSerializer(users, many=True, context=org_pk)
         return JsonResponse(data={"users": view_serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})

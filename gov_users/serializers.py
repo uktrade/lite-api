@@ -21,7 +21,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
 
 class RoleSerializer(serializers.ModelSerializer):
-    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True)
+    permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, required=False)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
     type = serializers.ChoiceField(
         choices=UserType.choices

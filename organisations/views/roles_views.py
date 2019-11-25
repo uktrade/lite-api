@@ -22,6 +22,7 @@ class RolesViews(ListCreateAPIView):
     serializer_class = RoleSerializer
 
     def get_queryset(self):
+        assert_user_has_permission(self.request.user, Permissions.EXPORTER_ADMINISTER_ROLES)
         roles = [x for x in Role.objects.filter(organisation=self.kwargs.get("org_pk"))]
         roles.append(Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
         if self.request.user.get_role(self.kwargs.get("org_pk")).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:

@@ -14,6 +14,8 @@ from conf.authentication import (
     ExporterOnlyAuthentication,
     GovAuthentication,
 )
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
@@ -94,8 +96,14 @@ class UserDetail(APIView):
         Get user from pk
         """
         user = get_user_by_pk(pk)
+        print('\n')
+        print('hello I"m here')
+        print(request.user.organisation)
+        print('\n')
+        if request.user.id != pk:
+            assert_user_has_permission(user, Permissions.ADMINISTER_USERS, request.user.organisation)
 
-        serializer = ExporterUserViewSerializer(user)
+        serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
         return JsonResponse(data={"user": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
@@ -123,7 +131,10 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        serializer = ExporterUserViewSerializer(request.user)
+
+        org_pk = request.headers["Organisation-Id"]
+
+        serializer = ExporterUserViewSerializer(request.user, context=org_pk)
         return JsonResponse(data={"user": serializer.data})
 
 

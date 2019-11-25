@@ -33,6 +33,7 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
@@ -57,6 +58,10 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             return return_value
         except UserOrganisationRelationship.DoesNotExist:
             raise NotFoundError({"user": "User not found - " + str(instance.id)})
+
+    def get_role(self, instance):
+        role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
+        return RoleSerializer(role).data
 
     class Meta:
         model = ExporterUser
