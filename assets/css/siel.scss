@@ -4,6 +4,16 @@
     font-family: Helvetica, Arial, "Liberation Sans", sans-serif;
     word-wrap: break-word;
   }
+  h1 {
+    font-size: 24px;
+    display: inline-block;
+  }
+  img {
+	display: inline-block;
+	float: right;
+	width: 25%;
+    margin-bottom: 20px;
+  }
   table {
     border-collapse: collapse;
     width: 100%;
@@ -15,11 +25,6 @@
   }
   table.fixed-layout {
     table-layout: fixed;
-  }
-  table.fixed-layout tr.set-width-hack td {
-    width: 8.33%; /* 100% / 12 */
-    height: 0;
-    padding: 0;
   }
   .border-black {
     border: 1px solid black;
@@ -82,8 +87,5 @@
   }
   .page-break-after {
     page-break-after: always;
-  }
-  .padding {
-    padding: 5mm;
   }
 }

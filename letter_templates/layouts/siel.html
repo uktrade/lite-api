@@ -1,4 +1,9 @@
+{% load static %}
+
 <div class="document">
+    <h1>Standard Individual Export Licence</h1>
+    <img src="{% static 'images/dit.png' %}">
+
     <table id="first-page-table" class="fixed-layout">
       <!--
         Table is broken up into 12 evenly-spaced columns.
@@ -196,8 +201,15 @@
 
     <br>
     <table>
-      <tr>
-        <td class="border-black" rowspan="3" colspan="5">
+        <tr>
+        <td class="border-top-black padding-none align-centre" rowspan="999">
+          <div class="text-large border-left-black border-bottom-black">1</div>
+          <div class="sidebar-cell text-large border-left-black border-bottom-black bold uppercase">
+            <div class="rotate">Licence</div>
+          </div>
+          <div class="text-large border-left-black border-bottom-black">1</div>
+        </td>
+        <td class="border-black" rowspan="3" colspan="6">
           <span class="cell__heading">1. Exporter</span>
           <span class="cell__uppercase">{{ applicant.name }}<br>
           {{ applicant.primary_site.address.address_line_1 }}<br>
@@ -233,11 +245,11 @@
         </td>
       </tr>
       <tr>
-        <td class="border-black italic">Item</td>
+        <td class="border-black italic" colspan="1">Item</td>
         <td class="border-black italic" colspan="5">14. Description of the items</td>
-        <td class="border-black italic">16. Control list no</td>
-        <td class="border-black italic">17. Currency and Value</td>
-        <td class="border-black italic">18. Quantity of the items</td>
+        <td class="border-black italic" colspan="2">16. Control list no</td>
+        <td class="border-black italic" colspan="2">17. Currency and Value</td>
+        <td class="border-black italic" colspan="2">18. Quantity of the items</td>
       </tr>
     {% for good in goods %}
     <tr>
@@ -249,7 +261,7 @@
     </tr>
     {% endfor %}
     <tr>
-        <td class="border-black" colspan="12">{{ content|safe }}</td>
+        <td class="border-black" colspan="12" style="height: 200px">{{ content|safe }}</td>
     </tr>
     </table>
 </div>
