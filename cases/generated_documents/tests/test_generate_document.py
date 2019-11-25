@@ -29,6 +29,12 @@ class GenerateDocumentTests(DataTestClient):
         self.data = {"template": str(self.letter_template.id)}
         self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
 
+    def test_generate_document_success(self):
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(GeneratedDocument.objects.count() == 1)
+
     def test_get_document_preview_success(self):
         url = self.url + "?template=" + str(self.letter_template.id)
 
@@ -40,33 +46,13 @@ class GenerateDocumentTests(DataTestClient):
         for html_tag in ["<style>", "</style>"]:
             self.assertTrue(html_tag in preview)
 
-    def test_get_document_preview_without_template_id_parameter_failure(self):
+    def test_get_document_preview_failure(self):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
         self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
-
-    @mock.patch("cases.generated_documents.views.get_preview")
-    def test_get_document_preview_when_get_html_contains_errors_failure(self, get_preview_func):
-        get_preview_func.return_value = dict(error="Failed to get preview")
-        url = self.url + "?template=" + str(self.letter_template.id)
-
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        body = response.json()
-        self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], ["Failed to get preview"])
-
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
-    def test_generate_document_success(self):
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(GeneratedDocument.objects.count() == 1)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     def test_generate_document_when_html_to_pdf_throws_error_failure(self, html_to_pdf_func):
@@ -79,9 +65,8 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
 
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
-    def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func):
         upload_bytes_file_func.side_effect = Exception("Failed to upload document")
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
