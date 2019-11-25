@@ -8,7 +8,7 @@ def get_case(pk):
     Returns a case or returns a 404 on failure
     """
     try:
-        return Case.objects.filter(status__isnull=False).get(pk=pk)
+        return Case.objects.submitted().get(pk=pk)
     except Case.DoesNotExist:
         raise NotFoundError({"case": get_string("cases.case_not_found")})
 

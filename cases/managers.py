@@ -66,7 +66,7 @@ class CaseManager(models.Manager):
     """
 
     def get_queryset(self):
-        return CaseQuerySet(self.model, using=self.db).filter(status__isnull=False)
+        return CaseQuerySet(self.model, using=self.db)
 
     def search(
         self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None,
@@ -74,7 +74,7 @@ class CaseManager(models.Manager):
         """
         Search for a user's available cases given a set of search parameters.
         """
-        case_qs = self.get_queryset().prefetch_related("queues", "status", "organisation__flags",)
+        case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:
             case_qs = case_qs.in_team(team=team)
@@ -98,3 +98,6 @@ class CaseManager(models.Manager):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
         return case_qs
+
+    def submitted(self):
+        return self.get_queryset().filter(status__isnull=False)

@@ -67,8 +67,6 @@ class CaseSerializer(serializers.ModelSerializer):
             serializer = get_application_view_serializer(application)
             return serializer(application).data
 
-        return None
-
     def to_representation(self, value):
         """
         Only show 'application' if it has an application inside,
@@ -184,8 +182,6 @@ class CaseDetailSerializer(CaseSerializer):
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
-
-        return None
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name"))
@@ -417,8 +413,6 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     def get_responded_by_user_name(self, instance):
         if instance.responded_by_user:
             return instance.responded_by_user.get_full_name()
-        else:
-            return None
 
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):

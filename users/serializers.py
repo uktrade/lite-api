@@ -151,49 +151,48 @@ class NotificationSerializer(serializers.ModelSerializer):
     parent_type = serializers.SerializerMethodField()
 
     def get_object(self, obj):
-        object = next(
+        return next(
             item
             for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
             if item is not None
-        )
-        return object.id
+        ).id
 
     def get_object_type(self, obj):
-        object = next(
+        object_item = next(
             item
             for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
             if item is not None
         )
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if isinstance(object_item, Query):
+            object_item = get_exporter_query(object_item)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
 
     def get_parent(self, obj):
         if obj.case_note:
-            object = next(item for item in [obj.case_note.case] if item is not None)
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(item for item in [obj.ecju_query.case] if item is not None)
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
 
         if obj.query:
             return None
 
-        return object.id
+        return parent.id
 
     def get_parent_type(self, obj):
         if obj.case_note:
-            object = next(item for item in [obj.case_note.case.type] if item is not None)
+            parent = next(item for item in [obj.case_note.case.type] if item is not None)
         if obj.ecju_query:
-            object = next(item for item in [obj.ecju_query.case.type] if item is not None)
+            parent = next(item for item in [obj.ecju_query.case.type] if item is not None)
 
         if obj.query:
             return None
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if isinstance(parent, Query):
+            parent = get_exporter_query(parent)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
 
     class Meta:
         model = Notification
