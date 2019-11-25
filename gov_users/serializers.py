@@ -1,11 +1,9 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ErrorDetail
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 
 from content_strings.strings import get_string
 from gov_users.enums import GovUserStatuses
-from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from teams.models import Team
 from teams.serializers import TeamSerializer
@@ -40,8 +38,8 @@ class RoleSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "permissions",
-			"type",
-			"organisation"
+            "type",
+            "organisation"
         )
 
 
@@ -66,15 +64,15 @@ class GovUserCreateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
-        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"),},
+        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"), },
     )
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
-        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"),},
+        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"), },
     )
     role = PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
-        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"),},
+        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"), },
     )
 
     class Meta:
