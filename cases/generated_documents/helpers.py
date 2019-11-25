@@ -6,8 +6,8 @@ from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
-def html_to_pdf(html: str, template_name: str):
-    html = HTML(string=html)
+def html_to_pdf(request, html: str, template_name: str):
+    html = HTML(string=html, base_url=request.build_absolute_uri())
     css = CSS(filename=get_css_location(template_name))
     return html.write_pdf(stylesheets=[css])
 
