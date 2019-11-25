@@ -21,12 +21,13 @@ class DocumentOperation:
     def _get_bucket_name():
         return env("AWS_STORAGE_BUCKET_NAME")
 
-    def upload_bytes_file(self, raw_file, file_extension=None, s3_key=None):
-        if not s3_key:
-            s3_key = str(uuid.uuid4()) + file_extension
+    @staticmethod
+    def generate_s3_key(document_type, file_extension):
+        return f"{document_type}/{uuid.uuid4()}.{file_extension}"
+
+    def upload_bytes_file(self, raw_file, s3_key):
         bucket = self.get_client()
         bucket.put_object(Bucket=self._get_bucket_name(), Key=s3_key, Body=raw_file)
-        return s3_key
 
     def delete_file(self, s3_key):
         bucket = self.get_client()
