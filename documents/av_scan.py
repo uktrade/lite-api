@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from documents.helpers import DocumentOperation
 from documents.models import Document
 from .utils import s3_client
 
@@ -67,7 +68,7 @@ def _process_document(document_pk: str):
 
 def _scan_s3_object(original_filename, bucket, key):
     """Virus scans a file stored in S3."""
-    _client = s3_client()
+    _client = DocumentOperation().get_client()
     response = _client.get_object(Bucket=bucket, Key=key)
     with closing(response["Body"]):
         return _scan_raw_file(original_filename, S3StreamingBodyWrapper(response), response["ContentType"])

@@ -84,7 +84,7 @@ class GeneratedDocuments(APIView):
             }
             CaseActivity.create(case=self.case, user=request.user, **case_activity)
         except Exception:  # noqa
-            DocumentOperation().delete_bytes_file(s3_key=s3_key)
+            DocumentOperation().delete_file(s3_key=s3_key)
             return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse(data={"generated_documents": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
