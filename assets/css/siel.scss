@@ -1,65 +1,8 @@
-.licence-template {
-  .app-document-generator__preview-container {
-    font-size: 10px;
-    font-family: Helvetica, Arial, "Liberation Sans", sans-serif;
-    color: #6f777b;
-  }
+.document {
   * {
-      word-wrap: break-word;
-  }
-  @page {
-    size: A4;
-    margin: 10mm;
-    /* Set up padding so that content of pages appears aligned with #page-header */
-    padding-top: 62.2mm;
-    padding-left: 15mm;
-    counter-increment: page;
-    background-image: url("/assets/images/dit.png");
-    background-repeat: no-repeat;
-    background-position: right top;
-    background-size: auto 15mm;
-    @top-left {
-      content: "Standard Individual Export Licence";
-      font-size: 18px;
-      color: #6f777b;
-      padding-top: 20mm;
-    }
-    @bottom-center {
-      content: "Page " counter(page) " of " counter(pages);
-      color: #6f777b;
-      font-size: 16px;
-    }
-  }
-  @media print {
-    #first-page-table {
-      background: white; /* white background #page-header can hide behind */
-      z-index: 2; /* be above #page-header so it can hide */
-      position: relative; /* positioning required to appear above a fixed element */
-      top: -34.5mm;
-      left: -15.7mm;
-      width: 187mm;
-    }
-    #page-header {
-      position: fixed;
-      top: -32.25mm;
-      left: -13.2mm;
-      width: 185.9mm;
-      z-index: 1; /* hide under #first-page-table */
-    }
-    /* No fonts are set in print view, so set them. */
-    * {
-      font-size: 11px;
-      font-family: Helvetica, Arial, "Liberation Sans", sans-serif;
-      color: #6f777b;
-    }
-  }
-  @media screen {
-    .page-break-after {
-      margin-bottom: 10mm;
-    }
-    #page-header {
-      display: none;
-    }
+    font-size: 12px;
+    font-family: Helvetica, Arial, "Liberation Sans", sans-serif;
+    word-wrap: break-word;
   }
   table {
     border-collapse: collapse;
@@ -102,7 +45,6 @@
     display: block;
     text-transform: uppercase;
     font-weight: bold;
-    font-size: 14px;
   }
   .cell__subheading {
     display: block;
@@ -123,7 +65,8 @@
     text-align: center;
   }
   .rotate {
-    transform: rotate(270deg);
+    transform: rotate(-90deg);
+    white-space: nowrap;
   }
   .uppercase {
     text-transform: uppercase;
