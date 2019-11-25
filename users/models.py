@@ -13,23 +13,30 @@ from teams.models import Team
 from users.enums import UserStatuses, UserType
 
 
-class PermissionManager(models.Manager):
-    def internal(self):
-        return self.get_queryset().filter(type=UserType.INTERNAL)
-
-    def exporter(self):
-        return self.get_queryset().filter(type=UserType.EXPORTER)
+# class InternalManager(models.Manager):
+#
+#
+# class ExporterManager(models.Manager):
+#
+#
+#
+# class PermissionManager(models.Manager):
+#     def internal(self):
+#         return self.get_queryset().filter(type=UserType.INTERNAL)
+#
+#     def exporter(self):
+#         return self.get_queryset().filter(type=UserType.EXPORTER)
 
 
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    name = models.CharField(default="permission - FIX", max_length=30)
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
-
-    objects = PermissionManager()
+    #
+    # internal = InternalManager()
+    # exporter = ExporterManager()
 
     class Meta:
-        unique_together = (('id', 'type'),)
         ordering = ["name"]
 
 
