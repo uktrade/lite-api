@@ -36,7 +36,7 @@ class RolesViews(APIView):
         """
         Create a role
         """
-        assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
 
@@ -81,7 +81,7 @@ class RoleDetail(APIView):
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk)
