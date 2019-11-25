@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseType
 from cases.models import Notification
