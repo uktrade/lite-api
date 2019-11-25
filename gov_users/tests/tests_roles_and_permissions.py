@@ -53,15 +53,15 @@ class RolesAndPermissionsTests(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         role = Role(name="some")
-        initial_roles_count = Role.objects.filter(type=UserType.INTERNAL).count()
         role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
+        initial_roles_count = Role.objects.filter(type=UserType.INTERNAL).count()
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["roles"]), initial_roles_count + 1)
+        self.assertEqual(len(response_data["roles"]), initial_roles_count)
 
     def test_get_list_of_all_permissions(self):
         url = reverse("gov_users:permissions")
@@ -70,7 +70,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["permissions"]), Permission.objects.count())
+        self.assertEqual(len(response_data["permissions"]), Permission.objects.internal().count())
 
     def test_edit_a_role(self):
         self.gov_user.role = self.super_user_role
@@ -97,13 +97,13 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_role_name_must_be_unique(self, data):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        initial_roles_count = Role.objects.count()
         Role(name="this is a name").save()
+        initial_roles_count = Role.objects.count()
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
-        self.assertEqual(Role.objects.all().count(), initial_roles_count + 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Role.objects.all().count(), initial_roles_count)
 
     def test_cannot_create_role_without_permission(self):
         data = {

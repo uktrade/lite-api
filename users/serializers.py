@@ -11,7 +11,7 @@ from organisations.models import Organisation
 from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer
-from users.enums import UserStatuses
+from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
 
@@ -60,8 +60,10 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             raise NotFoundError({"user": "User not found - " + str(instance.id)})
 
     def get_role(self, instance):
-        role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
-        return RoleSerializer(role).data
+        if self.context:
+            role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
+            return RoleSerializer(role).data
+        return None
 
     class Meta:
         model = ExporterUser
@@ -245,7 +247,8 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=UserStatuses.choices)
+    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.filter(type=UserType.EXPORTER))
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ("status",)
+        fields = ("status", "role")

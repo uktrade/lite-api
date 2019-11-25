@@ -43,8 +43,7 @@ class RolesViews(ListCreateAPIView):
         if Role.objects.filter(organisation=org_pk, name__iexact=data["name"].strip()):
             error = {'name': [
                 ErrorDetail(string="Name is not unique.",
-                            code='invalid')]}
-
+                            code="invalid")]}
             return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RoleSerializer(data=data)

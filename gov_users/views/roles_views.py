@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -38,6 +39,12 @@ class RolesViews(APIView):
         assert_user_has_permission(request.user, Permissions.INTERNAL_ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
+
+        if Role.objects.filter(organisation=None, name__iexact=data["name"].strip()):
+            error = {'name': [
+                ErrorDetail(string="Name is not unique.",
+                            code="invalid")]}
+            return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RoleSerializer(data=data)
 
