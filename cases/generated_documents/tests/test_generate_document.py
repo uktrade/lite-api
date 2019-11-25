@@ -75,3 +75,25 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
         self.assertTrue(GeneratedDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
+
+    @mock.patch("cases.generated_documents.views.GeneratedDocument.objects.create")
+    def test_generate_document_when_creating_document_metadata_error_failure(self, create_gen_obj_func):
+        create_gen_obj_func.side_effect = Exception("Failed to create document metadata")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
+
+    @mock.patch("cases.generated_documents.views.CaseActivity.create")
+    def test_generate_document_when_creating_case_activity_failure(self, create_case_activity_func):
+        create_case_activity_func.side_effect = Exception("Failed to create case activity")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
