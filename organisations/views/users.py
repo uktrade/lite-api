@@ -88,7 +88,7 @@ class UserDetail(APIView):
         # Cannot perform actions on another super user without super user role
         if (
             user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-            or data.get("roles") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+            or data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
@@ -105,7 +105,7 @@ class UserDetail(APIView):
             ):
                 raise PermissionDenied()
 
-        # Cannot deactivate a super user
+        # Cannot remove super user from yourself
         if "role" in data.keys():
             if (
                 user.id == request.user.id

@@ -112,7 +112,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        if UserOrganisationRelationship.objects.filter(organisation=organisation).count() > 1:
+        if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             UserOrganisationRelationship(user=exporter, organisation=organisation).save()
         else:
             UserOrganisationRelationship(user=exporter,
