@@ -9,7 +9,6 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from documents.helpers import DocumentOperation
 from documents.models import Document
-from .utils import s3_client
 
 
 class S3StreamingBodyWrapper:
