@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -22,11 +23,11 @@ class RolesViews(ListCreateAPIView):
     serializer_class = RoleSerializer
 
     def get_queryset(self):
-        roles = [x for x in Role.objects.filter(organisation=self.kwargs.get("org_pk"))]
-        roles.append(Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
+        system_ids = [Roles.EXPORTER_DEFAULT_ROLE_ID]
         if self.request.user.get_role(self.kwargs.get("org_pk")).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
-            roles.append(Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID))
-        return roles
+            system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
+
+        return Role.objects.filter(Q(organisation=self.kwargs.get('org_pk')) | Q(id__in=system_ids))
 
     @swagger_auto_schema(
         request_body=RoleSerializer, responses={400: "JSON parse error"}

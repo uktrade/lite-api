@@ -22,15 +22,15 @@ class PermissionManager(models.Manager):
 
 
 class Permission(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+
     objects = PermissionManager()
 
     class Meta:
         unique_together = (('id', 'type'),)
         ordering = ["name"]
-
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default=None, blank=True, null=True, max_length=30)
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
 
 
 @reversion.register()
