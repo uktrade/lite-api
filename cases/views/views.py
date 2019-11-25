@@ -1,11 +1,11 @@
 from django.db import transaction
 from django.http.response import JsonResponse
-from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
@@ -21,7 +21,6 @@ from cases.libraries.post_advice import (
 from cases.models import (
     CaseDocument,
     EcjuQuery,
-    CaseAssignment,
     Advice,
     TeamAdvice,
     FinalAdvice,
@@ -43,6 +42,7 @@ from cases.serializers import (
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
 from static.countries.helpers import get_country
 from users.models import ExporterUser
@@ -70,29 +70,7 @@ class CaseDetail(APIView):
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
 
         if serializer.is_valid():
-            initial_queues = case.queues.values("id", "name")
-
-            queues_to_remove = set([str(q["id"]) for q in initial_queues]) - set(request.data["queues"])
-
-            if queues_to_remove:
-                CaseAssignment.objects.filter(queue__in=list(queues_to_remove)).delete()
-                CaseActivity.create(
-                    activity_type=CaseActivityType.REMOVE_CASE,
-                    case=case,
-                    user=request.user,
-                    queues=[q["name"] for q in initial_queues if str(q["id"]) in queues_to_remove],
-                )
-
-            new_queues = set(request.data["queues"]) - set([str(q["id"]) for q in initial_queues])
-
-            if new_queues:
-                CaseActivity.create(
-                    activity_type=CaseActivityType.MOVE_CASE,
-                    case=case,
-                    user=request.user,
-                    queues=[q.name for q in serializer.validated_data["queues"] if str(q.id) in new_queues],
-                )
-
+            service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
 
             return JsonResponse(data={"case": serializer.data})

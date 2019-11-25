@@ -1,7 +1,12 @@
+import json
+from unittest import mock
+
+from actstream.models import Action
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.constants import Verb, AuditType
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from test_helpers.clients import DataTestClient
@@ -45,23 +50,36 @@ class MoveCasesTests(DataTestClient):
             set(self.case.queues.values_list("id", flat=True)), set(no_queues_data["queues"]),
         )
 
-    def test_case_activity_created(self):
-        self.assertEqual(CaseActivity.objects.all().count(), 0)
+    @mock.patch('audit_trail.service.create')
+    def test_case_activity_created(self, mock_create):
+        self.assertEqual(mock_create.call_count, 0)
 
-        queues_data = {"queues": [queue.id for queue in self.queues]}
+        queues_data = {"queues": [str(queue.id) for queue in self.queues]}
+        expected_action_payload = {"queues": sorted([queue.name for queue in self.queues])}
 
         self.client.put(self.url, data=queues_data, **self.gov_headers)
 
-        add_case_activity = CaseActivity.objects.first()
-        self.assertEqual(add_case_activity.type, CaseActivityType.MOVE_CASE)
+        self.assertEqual(mock_create.call_count, 1)
 
-        no_queues_data = {"queues": []}
+        mock_create.assert_called_once_with(
+            audit_type=AuditType.CASE,
+            actor=self.gov_user,
+            verb=Verb.ADDED_QUEUES,
+            target=self.case,
+            payload=expected_action_payload
+        )
 
-        self.client.put(self.url, data=no_queues_data, **self.gov_headers)
+        queues_data_rm = {"queues": []}
 
-        remove_case_activity = CaseActivity.objects.last()
-        self.assertEqual(remove_case_activity.type, CaseActivityType.REMOVE_CASE)
-        self.assertEqual(CaseActivity.objects.all().count(), 2)
+        self.client.put(self.url, data=queues_data_rm, **self.gov_headers)
+
+        mock_create.assert_called_with(
+            audit_type=AuditType.CASE,
+            actor=self.gov_user,
+            verb=Verb.REMOVED_QUEUES,
+            target=self.case,
+            payload=expected_action_payload
+        )
 
     @parameterized.expand(
         [
