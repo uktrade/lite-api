@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from applications.libraries.get_applications import get_application
+from applications.models import BaseApplication
+from cases.enums import CaseType
 from cases.models import Notification
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_pascal_case_to_snake_case
@@ -182,14 +185,13 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_parent_type(self, obj):
         if obj.case_note:
-            parent = next(item for item in [obj.case_note.case.type] if item is not None)
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            parent = next(item for item in [obj.ecju_query.case.type] if item is not None)
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
 
-        if obj.query:
-            return None
-
-        if isinstance(parent, Query):
+        if parent.type == CaseType.APPLICATION or parent.type == CaseType.HMRC_QUERY:
+            parent = BaseApplication.objects.get(pk=parent.id)
+        else:
             parent = get_exporter_query(parent)
 
         return convert_pascal_case_to_snake_case(parent.__class__.__name__)
