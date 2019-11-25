@@ -11,37 +11,23 @@ from organisations.models import Organisation
 from queries.models import Query
 from teams.models import Team
 from users.enums import UserStatuses, UserType
-
-
-# class InternalManager(models.Manager):
-#
-#
-# class ExporterManager(models.Manager):
-#
-#
-#
-# class PermissionManager(models.Manager):
-#     def internal(self):
-#         return self.get_queryset().filter(type=UserType.INTERNAL)
-#
-#     def exporter(self):
-#         return self.get_queryset().filter(type=UserType.EXPORTER)
+from users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default="permission - FIX", max_length=30)
+    name = models.CharField(default="permission - FIX", max_length=80)
     # For convenience using UserType as a proxy for Permission Type
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
-    #
-    # internal = InternalManager()
-    # exporter = ExporterManager()
+
+    objects = models.Manager()
+    exporter = ExporterManager()
+    internal = InternalManager()
 
     class Meta:
         ordering = ["name"]
 
 
-@reversion.register()
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)

@@ -4,12 +4,12 @@ from rest_framework import status
 
 from conf.constants import Permissions, Roles
 from test_helpers.clients import DataTestClient
-from users.enums import UserType
 from users.models import Permission
 
 
 class SuperUserTests(DataTestClient):
 
+    @tag('only')
     def test_super_user_role_cannot_be_edited(self):
         role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
         url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
@@ -19,7 +19,7 @@ class SuperUserTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.objects.exporter().count())
+        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.exporter.all().count())
 
     def test_exporter_default_user_role_cannot_be_edited(self):
         role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
@@ -34,9 +34,9 @@ class SuperUserTests(DataTestClient):
 
     def test_super_user_roles_have_all_permissions(self):
         self.assertEqual(
-            self.super_user_role.permissions.count(), Permission.objects.internal().count()
+            self.super_user_role.permissions.count(), Permission.internal.all().count()
         )
-        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.objects.exporter().count())
+        self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.exporter.all().count())
 
     def test_cannot_remove_super_user_role_from_yourself(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)

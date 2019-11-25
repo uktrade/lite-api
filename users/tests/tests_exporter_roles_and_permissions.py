@@ -59,7 +59,7 @@ class RolesAndPermissionsTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["permissions"]), Permission.objects.exporter().count())
+        self.assertEqual(len(response_data["permissions"]), Permission.exporter.all().count())
 
     def test_edit_a_role(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)

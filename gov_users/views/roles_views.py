@@ -106,6 +106,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        roles = Permission.objects.internal()
+        roles = Permission.internal.all()
         serializer = PermissionSerializer(roles, many=True)
         return JsonResponse(data={"permissions": serializer.data})
