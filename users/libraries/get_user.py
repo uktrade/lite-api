@@ -13,7 +13,7 @@ def get_user_by_pk(pk):
         try:
             return GovUser.objects.get(pk=pk)
         except GovUser.DoesNotExist:
-            raise NotFoundError({'user': 'User not found - ' + str(pk)})
+            raise NotFoundError({"user": "User not found - " + str(pk)})
 
 
 def get_exporter_user_by_email(email):
@@ -23,7 +23,7 @@ def get_exporter_user_by_email(email):
     try:
         return ExporterUser.objects.get(email=email)
     except ExporterUser.DoesNotExist:
-        raise NotFoundError({'user': 'User not found - ' + email})
+        raise NotFoundError({"user": "User not found - " + email})
 
 
 def get_gov_user_by_email(email):
@@ -33,7 +33,7 @@ def get_gov_user_by_email(email):
     try:
         return GovUser.objects.get(email=email)
     except GovUser.DoesNotExist:
-        raise NotFoundError({'user': 'User not found - ' + email})
+        raise NotFoundError({"user": "User not found - " + email})
 
 
 def get_user_organisations(pk):
@@ -41,27 +41,26 @@ def get_user_organisations(pk):
         user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=pk)
         return [x.organisation for x in user_organisation_relationships]
     except UserOrganisationRelationship.DoesNotExist:
-        raise NotFoundError({'user': 'User not found - ' + str(pk)})
+        raise NotFoundError({"user": "User not found - " + str(pk)})
 
 
 def get_users_from_organisation(pk):
     try:
-        user_organisation_relationships = UserOrganisationRelationship.objects\
-            .filter(organisation=pk)\
-            .order_by('user__first_name')
+        user_organisation_relationships = UserOrganisationRelationship.objects.filter(organisation=pk).order_by(
+            "user__first_name"
+        )
 
         for relationship in user_organisation_relationships:
             relationship.user.status = relationship.status
 
         return [x.user for x in user_organisation_relationships]
     except UserOrganisationRelationship.DoesNotExist:
-        raise NotFoundError({'organisation': 'Organisation not found - ' + str(pk)})
+        raise NotFoundError({"organisation": "Organisation not found - " + str(pk)})
 
 
 def get_user_organisation_relationship(user: ExporterUser, organisation: Organisation):
     try:
-        user_organisation_relationship = UserOrganisationRelationship.objects\
-            .get(user=user, organisation=organisation)
+        user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
         return user_organisation_relationship
     except UserOrganisationRelationship.DoesNotExist:
-        raise NotFoundError({'user_organisation_relationship': 'User Organisation Relationship not found'})
+        raise NotFoundError({"user_organisation_relationship": "User Organisation Relationship not found"})

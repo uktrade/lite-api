@@ -10,26 +10,26 @@ from test_helpers.clients import DataTestClient
 
 
 class GoodDocumentsTests(DataTestClient):
-
     def setUp(self):
         super().setUp()
-        self.good = self.create_controlled_good('this is a good', self.organisation)
-        self.url = reverse('goods:documents', kwargs={'pk': self.good.id})
+        self.good = self.create_controlled_good("this is a good", self.organisation)
+        self.url = reverse("goods:documents", kwargs={"pk": self.good.id})
 
     def test_can_view_all_documents_on_a_good(self):
-        self.create_good_document(good=self.good, user=self.exporter_user, organisation=self.organisation,
-                                  s3_key='doc1key', name='doc1.pdf')
-        self.create_good_document(good=self.good, user=self.exporter_user, organisation=self.organisation,
-                                  s3_key='doc2key', name='doc2.pdf')
+        self.create_good_document(
+            good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf",
+        )
+        self.create_good_document(
+            good=self.good, user=self.exporter_user, organisation=self.organisation, s3_key="doc2key", name="doc2.pdf",
+        )
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data['documents']), 2)
+        self.assertEqual(len(response_data["documents"]), 2)
 
     # Circle CI cannot handle this test as the AWS bucket name is invalid
-    # @tag('slow')
     # def test_can_remove_document_from_unsubmitted_good(self):
     #     doc1 = self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc1key', name='doc1.pdf')
     #     self.create_good_document(good=self.good, user=self.exporter_user, s3_key='doc2key', name='doc2.pdf')
@@ -54,7 +54,7 @@ class GoodDocumentsTests(DataTestClient):
         good_id = GoodOnApplication.objects.get(application=draft).good.id
         self.submit_application(draft)
 
-        url = reverse('goods:documents', kwargs={'pk': good_id})
+        url = reverse("goods:documents", kwargs={"pk": good_id})
         data = {}
         response = self.client.post(url, data, **self.exporter_headers)
 
@@ -66,14 +66,12 @@ class GoodDocumentsTests(DataTestClient):
         """
         draft = self.create_standard_application(self.organisation)
         good = GoodOnApplication.objects.get(application=draft).good
-        document_1 = self.create_good_document(good=good,
-                                               user=self.exporter_user,
-                                               organisation=self.organisation,
-                                               s3_key='doc1key',
-                                               name='doc1.pdf')
+        document_1 = self.create_good_document(
+            good=good, user=self.exporter_user, organisation=self.organisation, s3_key="doc1key", name="doc1.pdf",
+        )
         self.submit_application(draft)
 
-        url = reverse('goods:document', kwargs={'pk': good.id, 'doc_pk': document_1.id})
+        url = reverse("goods:document", kwargs={"pk": good.id, "doc_pk": document_1.id})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

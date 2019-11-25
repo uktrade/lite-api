@@ -17,7 +17,7 @@ class GoodsTypeList(APIView):
         """
         goods = GoodsType.objects.all()
         serializer = GoodsTypeSerializer(goods, many=True)
-        return JsonResponse(data={'goods': serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"goods": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GoodsTypeDetail(APIView):
@@ -29,4 +29,4 @@ class GoodsTypeDetail(APIView):
         """
         good = get_goods_type(pk=pk)
         serializer = FullGoodsTypeSerializer(good)
-        return JsonResponse(data={'good': serializer.data})
+        return JsonResponse(data={"good": serializer.data})

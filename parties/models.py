@@ -13,13 +13,13 @@ class Party(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
-    organisation = models.ForeignKey(Organisation, blank=True,
-                                     null=True, related_name='organisation_party', on_delete=models.DO_NOTHING)
+    organisation = models.ForeignKey(
+        Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
+    )
 
 
 class Consignee(Party):
-    sub_type = models.CharField(choices=SubType.choices,
-                                default=SubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.CONSIGNEE
@@ -27,8 +27,7 @@ class Consignee(Party):
 
 
 class EndUser(Party):
-    sub_type = models.CharField(choices=SubType.choices,
-                                default=SubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.END
@@ -36,8 +35,7 @@ class EndUser(Party):
 
 
 class UltimateEndUser(Party):
-    sub_type = models.CharField(choices=SubType.choices,
-                                default=SubType.OTHER, max_length=20)
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.ULTIMATE
@@ -45,8 +43,7 @@ class UltimateEndUser(Party):
 
 
 class ThirdParty(Party):
-    sub_type = models.CharField(choices=ThirdPartySubType.choices,
-                                default=ThirdPartySubType.OTHER, max_length=22)
+    sub_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=22,)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.THIRD

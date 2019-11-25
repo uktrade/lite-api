@@ -23,7 +23,7 @@ class CaseNoteList(APIView):
 
         mark_notifications_as_viewed(request.user, case_notes)
 
-        return JsonResponse(data={'case_notes': serializer.data})
+        return JsonResponse(data={"case_notes": serializer.data})
 
     def post(self, request, pk):
         """
@@ -31,15 +31,13 @@ class CaseNoteList(APIView):
         """
         case = get_case(pk)
         data = request.data
-        data['case'] = str(case.id)
-        data['user'] = str(request.user.id)
+        data["case"] = str(case.id)
+        data["user"] = str(request.user.id)
 
         serializer = CaseNoteSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={'case_note': serializer.data},
-                                status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"case_note": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={'errors': serializer.errors},
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

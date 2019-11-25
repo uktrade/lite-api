@@ -17,8 +17,8 @@ class S3StreamingBodyWrapper:
     def __init__(self, s3_obj):
         """Init wrapper, and grab interesting bits from s3 object."""
         self._obj = s3_obj
-        self._body = s3_obj['Body']
-        self._remaining_bytes = s3_obj['ContentLength']
+        self._body = s3_obj["Body"]
+        self._remaining_bytes = s3_obj["ContentLength"]
 
     def read(self, amt=-1):
         """Read given amount of bytes, and decrease remaining len."""
@@ -43,19 +43,18 @@ def virus_scan_document(document_pk: str):
     anti-virus service.
     Any errors are logged and sent to Sentry.
     """
-    with advisory_lock(f'av-scan-{document_pk}'):
+    with advisory_lock(f"av-scan-{document_pk}"):
         _process_document(document_pk)
 
 
 def _process_document(document_pk: str):
     """Virus scans an uploaded document."""
     if not settings.AV_SERVICE_URL:
-        raise VirusScanException(f'Cannot scan document with ID {document_pk}; AV service URL not'
-                                 f'configured')
+        raise VirusScanException(f"Cannot scan document with ID {document_pk}; AV service URL not" f"configured")
 
     doc = Document.objects.get(pk=document_pk)
     if doc.virus_scanned_at is not None:
-        warn_msg = f'Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}'
+        warn_msg = f"Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}"
         logging.warning(warn_msg)
         return
 
@@ -70,21 +69,13 @@ def _scan_s3_object(original_filename, bucket, key):
     """Virus scans a file stored in S3."""
     _client = s3_client()
     response = _client.get_object(Bucket=bucket, Key=key)
-    with closing(response['Body']):
-        return _scan_raw_file(
-            original_filename, S3StreamingBodyWrapper(response), response['ContentType']
-        )
+    with closing(response["Body"]):
+        return _scan_raw_file(original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
 
 
 def _scan_raw_file(filename, file_object, content_type):
     """Virus scans a file-like object."""
-    multipart_fields = {
-        'file': (
-            filename,
-            file_object,
-            content_type,
-        )
-    }
+    multipart_fields = {"file": (filename, file_object, content_type,)}
     encoder = MultipartEncoder(fields=multipart_fields)
 
     response = requests.post(
@@ -93,14 +84,14 @@ def _scan_raw_file(filename, file_object, content_type):
         settings.AV_SERVICE_URL,
         data=encoder,
         auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
-        headers={'Content-Type': encoder.content_type},
+        headers={"Content-Type": encoder.content_type},
     )
     response.raise_for_status()
     report = response.json()
-    if 'malware' not in report:
-        raise VirusScanException(f'File identified as malware: {response.text}')
+    if "malware" not in report:
+        raise VirusScanException(f"File identified as malware: {response.text}")
 
-    return not report.get('malware')
+    return not report.get("malware")
 
 
 class VirusScanException(Exception):

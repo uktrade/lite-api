@@ -17,11 +17,13 @@ def filter_out_duplicates(advice_list):
     for advice in advice_list:
         for item in filtered_items:
             # Compare each piece of unique advice against the new piece of advice being introduced
-            if advice.type == item.type \
-                    and advice.text == item.text \
-                    and advice.note == item.note \
-                    and advice.proviso == item.proviso \
-                    and [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]:
+            if (
+                advice.type == item.type
+                and advice.text == item.text
+                and advice.note == item.note
+                and advice.proviso == item.proviso
+                and [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]
+            ):
                 matches = True
             else:
                 matches = False
@@ -31,8 +33,10 @@ def filter_out_duplicates(advice_list):
     return filtered_items
 
 
-def construct_coalesced_advice_values(filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user):
-    break_text = '\n-------\n'
+def construct_coalesced_advice_values(
+    filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
+):
+    break_text = "\n-------\n"
     for advice in filtered_items:
         if text:
             text += break_text + advice.text
@@ -50,7 +54,7 @@ def construct_coalesced_advice_values(filtered_items, text, note, proviso, denia
             else:
                 proviso = advice.proviso
 
-        for denial_reason in advice.denial_reasons.values_list('id', flat=True):
+        for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
 
         if advice_type:
@@ -59,30 +63,25 @@ def construct_coalesced_advice_values(filtered_items, text, note, proviso, denia
         else:
             advice_type = advice.type
 
-    advice = advice_class(text=text,
-                          case=case,
-                          note=note,
-                          proviso=proviso,
-                          user=user,
-                          type=advice_type)
+    advice = advice_class(text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type)
 
     return advice
 
 
 def assign_field(application_field, advice, key):
-    if application_field == 'good':
+    if application_field == "good":
         advice.good = Good.objects.get(pk=key)
-    elif application_field == 'end_user':
+    elif application_field == "end_user":
         advice.end_user = EndUser.objects.get(pk=key)
-    elif application_field == 'country':
+    elif application_field == "country":
         advice.country = Country.objects.get(pk=key)
-    elif application_field == 'ultimate_end_user':
+    elif application_field == "ultimate_end_user":
         advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
-    elif application_field == 'goods_type':
+    elif application_field == "goods_type":
         advice.goods_type = GoodsType.objects.get(pk=key)
-    elif application_field == 'consignee':
+    elif application_field == "consignee":
         advice.consignee = Consignee.objects.get(pk=key)
-    elif application_field == 'third_party':
+    elif application_field == "third_party":
         advice.third_party = ThirdParty.objects.get(pk=key)
 
 
@@ -96,15 +95,9 @@ def collate_advice(application_field, collection, case, user, advice_class):
 
         filtered_items = filter_out_duplicates(value)
 
-        advice = construct_coalesced_advice_values(filtered_items,
-                                                   text,
-                                                   note,
-                                                   proviso,
-                                                   denial_reasons,
-                                                   advice_type,
-                                                   case,
-                                                   advice_class,
-                                                   user)
+        advice = construct_coalesced_advice_values(
+            filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
+        )
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
@@ -145,10 +138,10 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.third_party:
             third_parties[advice.third_party.id].append(advice)
 
-    collate_advice('end_user', end_users.items(), case, request.user, level)
-    collate_advice('good', goods.items(), case, request.user, level)
-    collate_advice('country', countries.items(), case, request.user, level)
-    collate_advice('ultimate_end_user', ultimate_end_users.items(), case, request.user, level)
-    collate_advice('goods_type', goods_types.items(), case, request.user, level)
-    collate_advice('consignee', consignees.items(), case, request.user, level)
-    collate_advice('third_party', third_parties.items(), case, request.user, level)
+    collate_advice("end_user", end_users.items(), case, request.user, level)
+    collate_advice("good", goods.items(), case, request.user, level)
+    collate_advice("country", countries.items(), case, request.user, level)
+    collate_advice("ultimate_end_user", ultimate_end_users.items(), case, request.user, level)
+    collate_advice("goods_type", goods_types.items(), case, request.user, level)
+    collate_advice("consignee", consignees.items(), case, request.user, level)
+    collate_advice("third_party", third_parties.items(), case, request.user, level)

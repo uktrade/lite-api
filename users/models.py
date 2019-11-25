@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from conf.constants import Roles
 from organisations.models import Organisation
 from queries.models import Query
 from teams.models import Team
@@ -14,14 +15,14 @@ from users.enums import UserStatuses
 
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default=None, blank=True, null=True, max_length=30)
+    name = models.CharField(default=None, blank=True, null=True, max_length=50)
 
 
 @reversion.register()
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
-    permissions = models.ManyToManyField(Permission, related_name='roles')
+    permissions = models.ManyToManyField(Permission, related_name="roles")
 
 
 class CustomUserManager(BaseUserManager):
@@ -32,7 +33,7 @@ class CustomUserManager(BaseUserManager):
         Create and save a user with the given email, and password.
         """
         if not email:
-            raise ValueError('The given email must be set')
+            raise ValueError("The given email must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -40,18 +41,18 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_user(self, email=None, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
 
@@ -69,7 +70,7 @@ class BaseUser(AbstractUser):
 
     # Set this to use id as email cannot be unique in the base user model
     # (and we couldn't think of anything else to use instead)
-    USERNAME_FIELD = 'id'
+    USERNAME_FIELD = "id"
     REQUIRED_FIELDS = []
 
     def __str__(self):
@@ -85,6 +86,7 @@ class BaseUser(AbstractUser):
 class ExporterUser(BaseUser):
     def send_notification(self, case_note=None, query=None, ecju_query=None):
         from cases.models import Notification
+
         # circular import prevention
 
         if case_note:
@@ -107,8 +109,8 @@ class UserOrganisationRelationship(models.Model):
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    team = models.ForeignKey(Team, related_name='team', on_delete=models.PROTECT)
-    role = models.ForeignKey(Role, related_name='role', default='00000000-0000-0000-0000-000000000001', on_delete=models.PROTECT)
+    team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name="role", default=Roles.DEFAULT_ROLE_ID, on_delete=models.PROTECT,)
 
     def unassign_from_cases(self):
         """
@@ -116,8 +118,10 @@ class GovUser(BaseUser):
         """
         self.case_assignments.clear()
 
+    # pylint: disable=W0221
     def send_notification(self, case_activity=None):
         from cases.models import Notification
+
         # circular import prevention
 
         if case_activity:
@@ -131,3 +135,11 @@ class GovUser(BaseUser):
                 Notification.objects.create(user=self, case_activity=case_activity)
         else:
             raise Exception("GovUser.send_notification: objects expected have not been added.")
+
+    # Adds the first user as a super user
+    # pylint: disable=W0221
+    # pylint: disable=E1003
+    def save(self, *args, **kwargs):
+        if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
+            self.role_id = Roles.SUPER_USER_ROLE_ID
+        super(BaseUser, self).save(*args, **kwargs)

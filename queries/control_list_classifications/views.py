@@ -29,24 +29,25 @@ class ControlListClassificationsList(APIView):
         Create a new CLC query case instance
         """
         data = JSONParser().parse(request)
-        good = get_good(data['good_id'])
-        data['organisation'] = request.user.organisation
+        good = get_good(data["good_id"])
+        data["organisation"] = request.user.organisation
 
         # A CLC Query can only be created if the good is in draft status
         if good.status != GoodStatus.DRAFT:
             raise Http404
 
         good.status = GoodStatus.CLC_QUERY
-        good.control_code = data['not_sure_details_control_code']
+        good.control_code = data["not_sure_details_control_code"]
         good.save()
 
-        clc_query = ControlListClassificationQuery.objects.create(details=data['not_sure_details_details'],
-                                                                  good=good,
-                                                                  organisation=data['organisation'])
+        clc_query = ControlListClassificationQuery.objects.create(
+            details=data["not_sure_details_details"], good=good, organisation=data["organisation"],
+        )
         clc_query.save()
 
-        return JsonResponse(data={'id': clc_query.id, 'case_id': clc_query.case.get().id},
-                            status=status.HTTP_201_CREATED)
+        return JsonResponse(
+            data={"id": clc_query.id, "case_id": clc_query.case.get().id}, status=status.HTTP_201_CREATED,
+        )
 
 
 class ControlListClassificationDetail(APIView):
@@ -65,22 +66,24 @@ class ControlListClassificationDetail(APIView):
 
         with reversion.create_revision():
             if clc_good_serializer.is_valid():
-                if 'validate_only' not in data or data['validate_only'] == 'False':
+                if "validate_only" not in data or data["validate_only"] == "False":
                     clc_good_serializer.save()
                     query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                     query.save()
 
                     # Add an activity item for the query's case
-                    CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE,
-                                        case=query.case.get(),
-                                        user=request.user)
+                    CaseActivity.create(
+                        activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                    )
 
                     # Send a notification to the user
-                    for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
+                    for user_relationship in UserOrganisationRelationship.objects.filter(
+                        organisation=query.organisation
+                    ):
                         user_relationship.user.send_notification(query=query)
 
-                    return JsonResponse(data={'control_list_classification_query': clc_good_serializer.data})
+                    return JsonResponse(data={"control_list_classification_query": clc_good_serializer.data})
                 else:
-                    return JsonResponse(data={'control_list_classification_query': data}, status=status.HTTP_200_OK)
+                    return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK,)
 
-            return JsonResponse(data={'errors': clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)

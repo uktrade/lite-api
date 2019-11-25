@@ -18,8 +18,7 @@ class QueryManager(models.Manager):
         query = super().create(**obj_data, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
         # Create a case with this query
-        case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) \
-            else CaseType.CLC_QUERY
+        case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) else CaseType.CLC_QUERY
         case = Case(query=query, type=case_type)
         case.save()
 
@@ -31,14 +30,16 @@ class Query(models.Model):
     """
     Base query class
     """
+
     id = models.BigAutoField(primary_key=True)
     submitted_at = models.DateTimeField(auto_now_add=True, blank=True)
-    status = models.ForeignKey(CaseStatus, related_name='query_status', on_delete=models.CASCADE,
-                               blank=True, null=True)
+    status = models.ForeignKey(
+        CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
+    )
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ['-submitted_at']
+        ordering = ["-submitted_at"]
 
     # pylint: disable=W0221
     def save(self, **kwargs):
@@ -46,7 +47,7 @@ class Query(models.Model):
             is_unique = False
             while not is_unique:
                 pk = randint(1000000000, 1999999999)  # nosec
-                is_unique = (Query.objects.filter(id=pk).count() == 0)
+                is_unique = Query.objects.filter(id=pk).count() == 0
             self.pk = pk
         super(Query, self).save()
 

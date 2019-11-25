@@ -52,7 +52,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:  # ensure this step occurs *before* installing dependencies
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-          
+
       - run:
           name: Install Dependencies
           command: pipenv sync --dev
@@ -61,11 +61,19 @@ jobs:
           paths:
             - ./venv
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-        
+
+      - run:
+          name: Check migrations are made
+          command: pipenv run ./manage.py makemigrations --check
+
       # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
       - run:
           name: Run Linting
           command: pipenv run prospector
+
+      - run:
+          name: check code formatting
+          command: pipenv run black . --check --diff
 
       # Tests
       # this example uses Django's built-in test-runner
@@ -75,6 +83,8 @@ jobs:
       - run:
           name: Run Unit Tests
           command: pipenv run ./manage.py test --parallel
+      - store_test_results:
+          path: test-results
 
       # Code Coverage
       - run:
