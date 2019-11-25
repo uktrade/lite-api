@@ -1,8 +1,13 @@
+from unittest import mock
+from unittest.mock import Mock
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
+from cases.generated_documents.models import GeneratedDocument
 from letter_templates.models import LetterTemplate
+from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
@@ -45,4 +50,14 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertTrue(body["errors"] == LetterTemplatesPage.MISSING_TEMPLATE)
+        self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    def test_generate_document_when_html_to_pdf_throws_error_failure(self, html_to_pdf_func):
+        html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)

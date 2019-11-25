@@ -22,7 +22,7 @@ class GeneratedDocuments(APIView):
 
     def _fetch_generated_document_data(self, request_params, pk):
         if "template" not in request_params:
-            return JsonResponse({"errors": LetterTemplatesPage.MISSING_TEMPLATE}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"errors": [LetterTemplatesPage.MISSING_TEMPLATE]}, status=status.HTTP_400_BAD_REQUEST)
         tpk = request_params["template"]
 
         self.case = get_case(pk)
@@ -30,7 +30,7 @@ class GeneratedDocuments(APIView):
         self.html = get_preview(template=self.template, case=self.case)
 
         if "error" in self.html:
-            return JsonResponse({"errors": self.html["error"]}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"errors": [self.html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
 
         return None
 
@@ -48,7 +48,6 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        # TODO Catch particular exceptions
 
         error_response = self._fetch_generated_document_data(request.data, pk)
         if error_response:
@@ -57,14 +56,16 @@ class GeneratedDocuments(APIView):
         try:
             pdf = html_to_pdf(self.html, self.template.layout.filename)
         except Exception:  # noqa
-            return JsonResponse({"errors": GeneratedDocumentsEndpoint.PDF_ERROR},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(
+                {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         try:
             s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
         except Exception:  # noqa
-            return JsonResponse({"errors": GeneratedDocumentsEndpoint.UPLOAD_ERROR},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(
+                {"errors": [GeneratedDocumentsEndpoint.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         try:
             document_name = self.template.name + "-" + s3_key[:4]
@@ -88,7 +89,9 @@ class GeneratedDocuments(APIView):
             CaseActivity.create(case=self.case, user=request.user, **case_activity)
         except Exception:  # noqa
             DocumentOperation().delete_file(s3_key=s3_key)
-            return JsonResponse({"errors": GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(
+                {"errors": [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR]},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-        return JsonResponse(data={"generated_documents": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
