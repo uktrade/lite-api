@@ -12,6 +12,7 @@ from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.helpers import DocumentOperation
 from letter_templates.helpers import get_preview
+from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
@@ -56,12 +57,14 @@ class GeneratedDocuments(APIView):
         try:
             pdf = html_to_pdf(self.html, self.template.layout.filename)
         except Exception:  # noqa
-            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({"errors": GeneratedDocumentsEndpoint.PDF_ERROR},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
             s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
         except Exception:  # noqa
-            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({"errors": GeneratedDocumentsEndpoint.UPLOAD_ERROR},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
             document_name = self.template.name + "-" + s3_key[:4]
@@ -85,6 +88,7 @@ class GeneratedDocuments(APIView):
             CaseActivity.create(case=self.case, user=request.user, **case_activity)
         except Exception:  # noqa
             DocumentOperation().delete_file(s3_key=s3_key)
-            return JsonResponse({"errors": ["placeholder error message"]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({"errors": GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse(data={"generated_documents": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
