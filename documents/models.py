@@ -3,9 +3,7 @@ import uuid
 
 from django.db import models
 
-from conf import settings
 from documents.helpers import DocumentOperation
-from documents.utils import s3_client
 
 
 class Document(models.Model):
