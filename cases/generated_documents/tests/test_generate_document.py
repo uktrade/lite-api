@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedDocument
+from cases.models import CaseActivity
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
@@ -32,6 +33,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(GeneratedDocument.objects.count() == 1)
 
     def test_get_document_preview_success(self):
         url = self.url + "?template=" + str(self.letter_template.id)
@@ -61,3 +63,37 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
+
+    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func):
+        upload_bytes_file_func.side_effect = Exception("Failed to upload document")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
+
+    @mock.patch("cases.generated_documents.views.GeneratedDocument.objects.create")
+    def test_generate_document_when_creating_document_metadata_error_failure(self, create_gen_obj_func):
+        create_gen_obj_func.side_effect = Exception("Failed to create document metadata")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
+
+    @mock.patch("cases.generated_documents.views.CaseActivity.create")
+    def test_generate_document_when_creating_case_activity_failure(self, create_case_activity_func):
+        create_case_activity_func.side_effect = Exception("Failed to create case activity")
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR])
+        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(CaseActivity.objects.count() == 0)
