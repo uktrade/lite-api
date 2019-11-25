@@ -31,6 +31,7 @@ from users.enums import UserStatuses, UserType
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
     name = models.CharField(default="permission - FIX", max_length=30)
+    # For convenience using UserType as a proxy for Permission Type
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
     #
     # internal = InternalManager()
@@ -40,13 +41,12 @@ class Permission(models.Model):
         ordering = ["name"]
 
 
-
 @reversion.register()
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
     permissions = models.ManyToManyField(Permission, related_name="roles")
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, null=True, max_length=30)
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, null=True)
 
 
