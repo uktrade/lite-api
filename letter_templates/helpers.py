@@ -41,7 +41,12 @@ def template_engine_factory(allow_missing_variables):
     """
     # Put the variable name in if missing variables. Else trigger an InvalidVarException.
     string_if_invalid = "{{ %s }}" if allow_missing_variables else InvalidVarException()
-    return Engine(string_if_invalid=string_if_invalid, dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)])
+
+    return Engine(
+        string_if_invalid=string_if_invalid,
+        dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
+        libraries={"static": "django.templatetags.static"}
+    )
 
 
 def get_paragraphs_as_html(paragraphs: list):

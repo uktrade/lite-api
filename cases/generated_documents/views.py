@@ -54,7 +54,7 @@ class GeneratedDocuments(APIView):
             return error_response
 
         try:
-            pdf = html_to_pdf(self.html, self.template.layout.filename)
+            pdf = html_to_pdf(request, self.html, self.template.layout.filename)
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

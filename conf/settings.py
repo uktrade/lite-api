@@ -118,6 +118,7 @@ TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-results/unittest/"
 
 STATIC_URL = "/assets/"
+STATIC_ROOT = "assets/"
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 
 # Database
