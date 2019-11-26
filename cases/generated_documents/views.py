@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
@@ -23,14 +24,14 @@ class GeneratedDocuments(APIView):
     def _fetch_generated_document_data(self, request_params, pk):
         if "template" not in request_params:
             return JsonResponse({"errors": [LetterTemplatesPage.MISSING_TEMPLATE]}, status=status.HTTP_400_BAD_REQUEST)
-        tpk = request_params["template"]
 
+        tpk = request_params["template"]
         self.case = get_case(pk)
         self.template = get_letter_template_for_case(tpk, self.case)
         self.html = get_preview(template=self.template, case=self.case)
 
         if "error" in self.html:
-            return JsonResponse({"errors": [self.html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": [self.html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
 
         return None
 
@@ -44,6 +45,7 @@ class GeneratedDocuments(APIView):
 
         return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def post(self, request, pk):
         """
         Create a generated document
@@ -60,38 +62,35 @@ class GeneratedDocuments(APIView):
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        s3_key = DocumentOperation().generate_s3_key(self.template.name, "pdf")
+        document_name = f"{s3_key[:len(self.template.name) + 6]}.pdf"
+
+        generated_doc = GeneratedDocument.objects.create(
+            name=document_name,
+            user=request.user,
+            s3_key=s3_key,
+            virus_scanned_at=timezone.now(),
+            safe=True,
+            type=CaseDocumentType.GENERATED,
+            case=self.case,
+            template=self.template,
+        )
+
+        # Generate timeline entry
+        case_activity = {
+            "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
+            "file_name": document_name,
+            "template": self.template.name,
+        }
+        case_activity = CaseActivity.create(case=self.case, user=request.user, **case_activity)
+
         try:
-            s3_key = DocumentOperation().upload_bytes_file(raw_file=pdf, file_extension=".pdf")
+            DocumentOperation().upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
+            case_activity.delete()
+            generated_doc.delete()
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        try:
-            document_name = self.template.name + "-" + s3_key[:4]
-            generated_doc = GeneratedDocument.objects.create(
-                name=document_name,
-                user=request.user,
-                s3_key=s3_key,
-                virus_scanned_at=timezone.now(),
-                safe=True,
-                type=CaseDocumentType.GENERATED,
-                case=self.case,
-                template=self.template,
-            )
-
-            # Generate timeline entry
-            case_activity = {
-                "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
-                "file_name": document_name,
-                "template": self.template.name,
-            }
-            CaseActivity.create(case=self.case, user=request.user, **case_activity)
-        except Exception:  # noqa
-            DocumentOperation().delete_file(s3_key=s3_key)
-            return JsonResponse(
-                {"errors": [GeneratedDocumentsEndpoint.GENERATE_DOCUMENT_ERROR]},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
