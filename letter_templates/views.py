@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 
 from conf.authentication import GovAuthentication
+from conf.pagination import MaxPageNumberPagination
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 
@@ -12,8 +13,11 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
+    pagination_class = MaxPageNumberPagination
+
+    def get_queryset(self):
+        return LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
