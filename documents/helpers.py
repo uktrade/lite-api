@@ -22,8 +22,8 @@ class DocumentOperation:
         return env("AWS_STORAGE_BUCKET_NAME")
 
     @staticmethod
-    def generate_s3_key(document_type, file_extension):
-        return f"{document_type}-{uuid.uuid4()}.{file_extension}"
+    def generate_s3_key(document_name, file_extension):
+        return f"{document_name}-{uuid.uuid4()}.{file_extension}"
 
     def upload_bytes_file(self, raw_file, s3_key):
         bucket = self.get_client()
