@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.template import Context, Engine, TemplateDoesNotExist
@@ -66,15 +67,20 @@ def load_css(filename):
 def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
+        logging.warning("Fetched engine")
         css = load_css(layout)
+        logging.warning("Fetched CSS")
         template = django_engine.get_template(f"{layout}.html")
+        logging.warning("Fetched HTML")
 
         context = {"content": get_paragraphs_as_html(paragraphs)}
         template = template.render(Context(context))
+        logging.warning("Paragraph data")
         if case:
             context = {"case": case}
             template = django_engine.from_string(template)
             template = template.render(Context(context))
+            logging.warning("Case data")
 
         return css + template
     except (FileNotFoundError, TemplateDoesNotExist):

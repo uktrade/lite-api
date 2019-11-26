@@ -1,3 +1,5 @@
+import logging
+
 from django.http import JsonResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -72,11 +74,15 @@ class TemplatePreview(APIView):
 
     @staticmethod
     def get(request):
+        logging.warning("Recieved request")
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
+        logging.warning("Fetched paragraphs")
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
+        logging.warning("Fetched layout")
         preview = generate_preview(layout, paragraphs=paragraphs)
+        logging.warning("Generated preview")
         if "error" in preview:
             return JsonResponse(preview, status=status.HTTP_400_BAD_REQUEST)
         else:
