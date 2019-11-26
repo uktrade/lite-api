@@ -125,7 +125,7 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @parameterized.expand(
-        [["1231234"], [""], ]
+        [["1231234"], [""]]
     )
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
