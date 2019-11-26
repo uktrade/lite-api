@@ -72,7 +72,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "email": "matt.berninger@americanmary.com",
         }
 
-        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"], ).save()
+        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"]).save()
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -140,7 +140,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
         Ensure that a user can be deactivated
         """
         exporter_user_2 = self.create_exporter_user(self.organisation)
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id}, )
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id})
 
         data = {"status": UserStatuses.DEACTIVATED}
 
