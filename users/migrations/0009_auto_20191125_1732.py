@@ -13,10 +13,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name="permission",
-            options={"ordering": ["name"]},
-        ),
+        migrations.AlterModelOptions(name="permission", options={"ordering": ["name"]}),
         migrations.AddField(
             model_name="permission",
             name="type",
@@ -45,7 +42,8 @@ class Migration(migrations.Migration):
                 default=uuid.UUID("00000000-0000-0000-0000-000000000004"),
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name="exporter_role",
-                to="users.Role"),
+                to="users.Role",
+            ),
         ),
         migrations.AlterField(
             model_name="permission", name="name", field=models.CharField(default="permission - FIX", max_length=80),

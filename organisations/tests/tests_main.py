@@ -31,7 +31,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com", },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -83,7 +83,7 @@ class OrganisationCreateTests(DataTestClient):
                     "city": None,
                 },
             },
-            "user": {"first_name": None, "last_name": None, "email": None, "password": None, },
+            "user": {"first_name": None, "last_name": None, "email": None, "password": None},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -117,7 +117,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com", },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -143,7 +143,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com", },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -187,7 +187,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com", },
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
