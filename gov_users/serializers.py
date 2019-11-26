@@ -24,23 +24,12 @@ class PermissionSerializer(serializers.ModelSerializer):
 class RoleSerializer(serializers.ModelSerializer):
     permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, required=False)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
-    type = serializers.ChoiceField(
-        choices=UserType.choices
-    )
-    name = serializers.CharField(
-        max_length=30,
-        error_messages={"blank": get_string("roles.blank_name")},
-    )
+    type = serializers.ChoiceField(choices=UserType.choices)
+    name = serializers.CharField(max_length=30, error_messages={"blank": get_string("roles.blank_name")},)
 
     class Meta:
         model = Role
-        fields = (
-            "id",
-            "name",
-            "permissions",
-            "type",
-            "organisation"
-        )
+        fields = ("id", "name", "permissions", "type", "organisation")
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -64,15 +53,15 @@ class GovUserCreateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
-        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"), },
+        error_messages={"blank": get_string("users.invalid_email"), "invalid": get_string("users.invalid_email"),},
     )
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
-        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"), },
+        error_messages={"null": get_string("users.null_team"), "invalid": get_string("users.null_team"),},
     )
     role = PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
-        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"), },
+        error_messages={"null": get_string("users.null_role"), "invalid": get_string("users.null_role"),},
     )
 
     class Meta:

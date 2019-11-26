@@ -8,8 +8,6 @@ from users.models import Permission
 
 
 class SuperUserTests(DataTestClient):
-
-    @tag('only')
     def test_super_user_role_cannot_be_edited(self):
         role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
         url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
@@ -33,9 +31,7 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(self.exporter_default_role.permissions.count(), 0)
 
     def test_super_user_roles_have_all_permissions(self):
-        self.assertEqual(
-            self.super_user_role.permissions.count(), Permission.internal.all().count()
-        )
+        self.assertEqual(self.super_user_role.permissions.count(), Permission.internal.all().count())
         self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.exporter.all().count())
 
     def test_cannot_remove_super_user_role_from_yourself(self):

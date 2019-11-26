@@ -27,11 +27,9 @@ class RolesViews(ListCreateAPIView):
         if self.request.user.get_role(self.kwargs.get("org_pk")).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
-        return Role.objects.filter(Q(organisation=self.kwargs.get('org_pk')) | Q(id__in=system_ids))
+        return Role.objects.filter(Q(organisation=self.kwargs.get("org_pk")) | Q(id__in=system_ids))
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request, org_pk):
         """
         Create a role
@@ -42,21 +40,15 @@ class RolesViews(ListCreateAPIView):
         data["type"] = UserType.EXPORTER
 
         if Role.objects.filter(organisation=org_pk, name__iexact=data["name"].strip()):
-            error = {'name': [
-                ErrorDetail(string="Name is not unique.",
-                            code="invalid")]}
+            error = {'name': [ErrorDetail(string="Name is not unique.", code="invalid")]}
             return JsonResponse(data={"errors": error}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RoleSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"role": serializer.data}, status=status.HTTP_201_CREATED
-            )
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoleDetail(APIView):
@@ -76,17 +68,14 @@ class RoleDetail(APIView):
 
         return JsonResponse(data={"role": serializer.data})
 
-    @swagger_auto_schema(
-        request_body=RoleSerializer, responses={400: "JSON parse error"}
-    )
+    @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def put(self, request, org_pk, pk):
         """
         update a role
         """
         if pk in Roles.IMMUTABLE_ROLES:
             return JsonResponse(
-                data={"errors": "You cannot edit the super user role"},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, org_pk)
@@ -98,13 +87,8 @@ class RoleDetail(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(
-                data={"role": serializer.data}, status=status.HTTP_200_OK
-            )
-
-        return JsonResponse(
-            data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+            return JsonResponse(data={"role": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionsView(APIView):

@@ -115,11 +115,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             UserOrganisationRelationship(user=exporter, organisation=organisation).save()
         else:
-            UserOrganisationRelationship(user=exporter,
-                                         organisation=organisation,
-                                         role=Role.objects.get(
-                                             id=Roles.EXPORTER_SUPER_USER_ROLE_ID
-                                         )).save()
+            UserOrganisationRelationship(
+                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+            ).save()
         return exporter
 
     def update(self, instance, validated_data):

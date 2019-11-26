@@ -17,7 +17,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft = self.create_standard_application(self.organisation)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-		
+
     def test_submit_standard_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -49,7 +49,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submit_standard_application_without_site_or_external_location_failure(self,):
+    def test_submit_standard_application_without_site_or_external_location_failure(self, ):
         SiteOnApplication.objects.get(application=self.draft).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
@@ -117,7 +117,7 @@ class StandardApplicationTests(DataTestClient):
             response, text=get_string("applications.standard.no_goods_set"), status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self,):
+    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self, ):
         """
         This should be unsuccessful as an ultimate end user is required when
         there is a part which is to be incorporated into another good
@@ -134,7 +134,7 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self,):
+    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self, ):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
         for ueu in draft.ultimate_end_users.all():
             PartyDocument.objects.filter(party=ueu).delete()
@@ -172,7 +172,7 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self,):
+    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self, ):
         standard_application = self.create_standard_application(self.organisation)
         self.submit_application(standard_application)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -189,7 +189,7 @@ class StandardApplicationTests(DataTestClient):
         )
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
 
-    def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self,):
+    def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self, ):
         standard_application = self.create_standard_application(self.organisation)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
         standard_application.save()

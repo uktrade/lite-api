@@ -96,21 +96,14 @@ class UserDetail(APIView):
         if "status" in data.keys():
             if user.id == request.user.id:
                 return JsonResponse(
-                    data={"errors": "A user cannot change their own status"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"errors": "A user cannot change their own status"}, status=status.HTTP_400_BAD_REQUEST
                 )
-            elif (
-                user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-                and data["status"] == "Deactivated"
-            ):
+            elif user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID and data["status"] == "Deactivated":
                 raise PermissionDenied()
 
         # Cannot remove super user from yourself
         if "role" in data.keys():
-            if (
-                user.id == request.user.id
-                and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-            ):
+            if user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,

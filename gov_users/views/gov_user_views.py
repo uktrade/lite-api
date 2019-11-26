@@ -83,7 +83,10 @@ class GovUserList(APIView):
         data = JSONParser().parse(request)
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
-        if data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID) and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
+        if (
+            data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
+            and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
+        ):
             raise PermissionDenied()
 
         serializer = GovUserCreateSerializer(data=data)
@@ -121,7 +124,8 @@ class GovUserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-            gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID or data.get("roles") == Roles.INTERNAL_SUPER_USER_ROLE_ID
+            gov_user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
+            or data.get("roles") == Roles.INTERNAL_SUPER_USER_ROLE_ID
         ) and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 

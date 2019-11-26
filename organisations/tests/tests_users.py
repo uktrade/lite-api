@@ -49,10 +49,7 @@ class OrganisationUsersViewTests(DataTestClient):
 
     def test_cannot_see_user_details_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
-        url = reverse(
-            "organisations:user",
-            kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
-        )
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -75,7 +72,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "email": "matt.berninger@americanmary.com",
         }
 
-        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"],).save()
+        ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"], ).save()
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -143,7 +140,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
         Ensure that a user can be deactivated
         """
         exporter_user_2 = self.create_exporter_user(self.organisation)
-        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id},)
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": exporter_user_2.id}, )
 
         data = {"status": UserStatuses.DEACTIVATED}
 
@@ -162,15 +159,15 @@ class OrganisationUsersUpdateTests(DataTestClient):
         response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(UserOrganisationRelationship.objects.get(user=self.exporter_user, organisation=self.organisation).status,
-                         UserStatuses.ACTIVE)
+        self.assertEqual(
+            UserOrganisationRelationship.objects.get(user=self.exporter_user, organisation=self.organisation).status,
+            UserStatuses.ACTIVE
+        )
 
     def test_cannot_edit_user_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         payload_name = "changed name"
-        data = {
-            "first_name": payload_name
-        }
+        data = {"first_name": payload_name}
 
         response = self.client.put(self.url, data, **self.exporter_headers)
 

@@ -17,11 +17,7 @@ SUPER_USER = "Super User"
 def _create_role_and_output(id, type, name):
     role, created = Role.objects.get_or_create(id=id, type=type, name=name)
     if created:
-        role = dict(
-            id=role.id,
-            type=role.type,
-            name=role.name,
-        )
+        role = dict(id=role.id, type=role.type, name=role.name)
         print(f"CREATED: {role}")
 
 

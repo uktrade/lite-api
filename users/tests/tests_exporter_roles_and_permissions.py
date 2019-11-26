@@ -9,7 +9,6 @@ from users.models import Role, Permission
 
 
 class RolesAndPermissionsTests(DataTestClient):
-
     def test_create_new_role_with_no_permissions(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         data = {
@@ -73,8 +72,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Permissions.ADMINISTER_USERS
-            in Role.objects.get(id=role.id).permissions.values_list("id", flat=True)
+            Permissions.ADMINISTER_USERS in Role.objects.get(id=role.id).permissions.values_list("id", flat=True)
         )
 
     def test_cannot_create_role_without_permission(self):

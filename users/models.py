@@ -123,10 +123,7 @@ class UserOrganisationRelationship(models.Model):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     role = models.ForeignKey(
-        Role,
-        related_name="exporter_role",
-        default=Roles.EXPORTER_DEFAULT_ROLE_ID,
-        on_delete=models.PROTECT,
+        Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -135,7 +132,9 @@ class UserOrganisationRelationship(models.Model):
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
-    role = models.ForeignKey(Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT,)
+    role = models.ForeignKey(
+        Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
+    )
 
     def unassign_from_cases(self):
         """
