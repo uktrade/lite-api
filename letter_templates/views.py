@@ -74,15 +74,15 @@ class TemplatePreview(APIView):
 
     @staticmethod
     def get(request):
-        print("Recieved request")
+        logging.warning("Recieved request")
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
-        print("Fetched paragraphs")
+        logging.warning("Fetched paragraphs")
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
-        print("Fetched layout")
+        logging.warning("Fetched layout")
         preview = generate_preview(layout, paragraphs=paragraphs)
-        print("Generated preview")
+        logging.warning("Generated preview")
         if "error" in preview:
             return JsonResponse(preview, status=status.HTTP_400_BAD_REQUEST)
         else:
