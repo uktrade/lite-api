@@ -8,46 +8,46 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0007_organisation_flags'),
-        ('users', '0008_auto_20191120_1348'),
+        ("organisations", "0007_organisation_flags"),
+        ("users", "0008_auto_20191120_1348"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='permission',
-            options={'ordering': ['name']},
+            name="permission",
+            options={"ordering": ["name"]},
         ),
         migrations.AddField(
-            model_name='permission',
-            name='type',
+            model_name="permission",
+            name="type",
             field=models.CharField(
-                choices=[('exporter', 'Exporter'), ('internal', 'Internal')], default='internal', max_length=30
+                choices=[("exporter", "Exporter"), ("internal", "Internal")], default="internal", max_length=30
             ),
         ),
         migrations.AddField(
-            model_name='role',
-            name='organisation',
+            model_name="role",
+            name="organisation",
             field=models.ForeignKey(
-                null=True, on_delete=django.db.models.deletion.CASCADE, to='organisations.Organisation'
+                null=True, on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation"
             ),
         ),
         migrations.AddField(
-            model_name='role',
-            name='type',
+            model_name="role",
+            name="type",
             field=models.CharField(
-                choices=[('exporter', 'Exporter'), ('internal', 'Internal')], default='internal', max_length=30
+                choices=[("exporter", "Exporter"), ("internal", "Internal")], default="internal", max_length=30
             ),
         ),
         migrations.AddField(
-            model_name='userorganisationrelationship',
-            name='role',
+            model_name="userorganisationrelationship",
+            name="role",
             field=models.ForeignKey(
-                default=uuid.UUID('00000000-0000-0000-0000-000000000004'),
+                default=uuid.UUID("00000000-0000-0000-0000-000000000004"),
                 on_delete=django.db.models.deletion.PROTECT,
-                related_name='exporter_role',
-                to='users.Role'),
+                related_name="exporter_role",
+                to="users.Role"),
         ),
         migrations.AlterField(
-            model_name='permission', name='name', field=models.CharField(default='permission - FIX', max_length=80),
+            model_name="permission", name="name", field=models.CharField(default="permission - FIX", max_length=80),
         ),
     ]

@@ -161,7 +161,7 @@ class OrganisationUsersUpdateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             UserOrganisationRelationship.objects.get(user=self.exporter_user, organisation=self.organisation).status,
-            UserStatuses.ACTIVE
+            UserStatuses.ACTIVE,
         )
 
     def test_cannot_edit_user_without_permission(self):

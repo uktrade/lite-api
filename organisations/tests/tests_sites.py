@@ -44,8 +44,7 @@ class OrganisationSitesTests(DataTestClient):
     def test_edit_site(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse(
-            "organisations:site",
-            kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id},
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id}
         )
 
         data = {
