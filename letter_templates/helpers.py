@@ -45,10 +45,7 @@ def template_engine_factory(allow_missing_variables):
     return Engine(
         string_if_invalid=string_if_invalid,
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
-        libraries={
-            "static": "django.templatetags.static",
-            "sass_tags": "sass_processor.templatetags.sass_tags"
-        },
+        libraries={"static": "django.templatetags.static", "sass_tags": "sass_processor.templatetags.sass_tags"},
     )
 
 
