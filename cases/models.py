@@ -8,7 +8,7 @@ from django.utils import timezone
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
-from common.models import TimestampedModel
+from model_utils.models import TimeStampedModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import UserOrganisationRelationship, Organisation
@@ -22,7 +22,7 @@ from users.models import BaseUser, ExporterUser, GovUser
 
 
 @reversion.register()
-class Case(TimestampedModel):
+class Case(TimeStampedModel):
     """
     Base model for applications and queries
     """

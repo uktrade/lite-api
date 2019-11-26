@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from model_utils.models import TimeStampedModel
 
 from addresses.models import Address
 from conf.exceptions import NotFoundError
@@ -43,11 +44,10 @@ class Organisation(models.Model):
         return [x.user for x in user_organisation_relationships]
 
 
-class UserOrganisationRelationship(models.Model):
+class UserOrganisationRelationship(TimeStampedModel):
     user = models.ForeignKey("users.ExporterUser", on_delete=models.CASCADE)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
 
 class Site(models.Model):

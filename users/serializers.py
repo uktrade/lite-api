@@ -51,7 +51,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
                     {
                         "id": relationship.organisation.id,
                         "name": relationship.organisation.name,
-                        "joined_at": relationship.created_at,
+                        "joined_at": relationship.created,
                     }
                 )
 

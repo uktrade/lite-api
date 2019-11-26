@@ -20,7 +20,6 @@ from static.units.enums import Units
 
 class BaseApplication(Case):
     name = models.TextField(default=None, blank=True, null=True)
-    last_modified_at = models.DateTimeField(auto_now=True, blank=True)
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
