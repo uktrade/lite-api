@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "queues",
     "rest_framework",
     "reversion",
+    "sass_processor",
     "static",
     "static.control_list_entries",
     "static.countries",
@@ -118,7 +119,22 @@ TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-results/unittest/"
 
 STATIC_URL = "/assets/"
-STATIC_ROOT = "assets/"
+
+# SCSS
+STATIC_ROOT = os.path.join(BASE_DIR, "assets")
+SASS_ROOT = STATIC_ROOT
+SASS_PROCESSOR_ROOT = STATIC_ROOT
+COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
+STATICFILES_DIRS = (STATIC_ROOT,)
+SASS_PROCESSOR_INCLUDE_DIRS = (STATIC_ROOT,)
+SASS_OUTPUT_STYLE = "compressed"
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "sass_processor.finders.CssFinder",
+)
+SASS_PROCESSOR_ENABLED = True
+
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 
 # Database

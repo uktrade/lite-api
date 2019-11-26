@@ -45,7 +45,10 @@ def template_engine_factory(allow_missing_variables):
     return Engine(
         string_if_invalid=string_if_invalid,
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
-        libraries={"static": "django.templatetags.static"},
+        libraries={
+            "static": "django.templatetags.static",
+            "sass_tags": "sass_processor.templatetags.sass_tags"
+        },
     )
 
 
@@ -66,7 +69,6 @@ def load_css(filename):
 def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
-        css = load_css(layout)
         template = django_engine.get_template(f"{layout}.html")
 
         context = {"content": get_paragraphs_as_html(paragraphs)}
@@ -76,7 +78,7 @@ def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_var
             template = django_engine.from_string(template)
             template = template.render(Context(context))
 
-        return css + template
+        return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": LetterTemplatesPage.PREVIEW_ERROR}
 

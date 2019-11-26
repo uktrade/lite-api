@@ -33,6 +33,7 @@ tblib = "*"
 weasyprint = "*"
 Markdown = "*"
 unittest-xml-reporting = "*"
+libsass = "*"
 
 [requires]
 python_version = "3.7"
