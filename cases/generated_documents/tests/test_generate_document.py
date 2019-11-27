@@ -27,20 +27,13 @@ class GenerateDocumentTests(DataTestClient):
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id)}
 
-    def test_generate_document_success(self):
-        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
-
-        response = self.client.post(url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
-
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_success(self, upload_bytes_file_func, html_to_pdf_func):
-        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
 
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         upload_bytes_file_func.assert_called_once()
@@ -50,9 +43,9 @@ class GenerateDocumentTests(DataTestClient):
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_when_html_to_pdf_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
-        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
 
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -61,11 +54,13 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(CaseActivity.objects.count() == 0)
         upload_bytes_file_func.assert_not_called()
 
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func):
-        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+    def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
+        html_to_pdf_func.return_value = None
         upload_bytes_file_func.side_effect = Exception("Failed to upload document")
 
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -79,7 +74,6 @@ class GenerateDocumentTests(DataTestClient):
             + "?template="
             + str(self.letter_template.id)
         )
-
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -90,7 +84,6 @@ class GenerateDocumentTests(DataTestClient):
 
     def test_get_document_preview_without_query_param_failure(self):
         url = reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
-
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -104,14 +97,13 @@ class GenerateDocumentTests(DataTestClient):
     def test_get_document_preview_when_get_html_contains_errors_failure(
         self, upload_bytes_file_func, html_to_pdf_func, get_preview_func
     ):
+        get_preview_func.return_value = dict(error="Failed to get preview")
+
         url = (
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
         )
-
-        get_preview_func.return_value = dict(error="Failed to get preview")
-
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
