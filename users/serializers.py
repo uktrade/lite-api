@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from rest_framework import serializers
 
 from cases.models import Notification

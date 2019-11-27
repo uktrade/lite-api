@@ -1,6 +1,5 @@
 from uuid import UUID
 
-import reversion
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
