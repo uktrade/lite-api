@@ -17,28 +17,23 @@ from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
 
+def _get_generated_document_data(request_params, pk):
+    tpk = request_params.get("template")
+    if not tpk:
+        return LetterTemplatesPage.MISSING_TEMPLATE, None, None, None
+
+    case = get_case(pk)
+    template = get_letter_template_for_case(tpk, case)
+    document_html = get_preview(template=template, case=case)
+
+    if "error" in document_html:
+        return document_html["error"], None, None, None
+
+    return None, case, template, document_html
+
+
 class GeneratedDocuments(APIView):
     authentication_classes = (GovAuthentication,)
-    queryset = GeneratedDocument.objects.all()
-
-    def _fetch_generated_document_data(self, request_params, pk):
-        if "template" not in request_params:
-            return {"error": LetterTemplatesPage.MISSING_TEMPLATE}
-
-        tpk = request_params["template"]
-        self.case = get_case(pk)
-        self.template = get_letter_template_for_case(tpk, self.case)
-        return get_preview(template=self.template, case=self.case)
-
-    def get(self, request, pk):
-        """
-        Get a preview of the document to be generated
-        """
-        document_html = self._fetch_generated_document_data(request.GET, pk)
-        if "error" in document_html:
-            return JsonResponse(data={"errors": [document_html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
-
-        return JsonResponse(data={"preview": document_html}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def post(self, request, pk):
@@ -46,19 +41,20 @@ class GeneratedDocuments(APIView):
         Create a generated document
         """
 
-        document_html = self._fetch_generated_document_data(request.data, pk)
-        if "error" in document_html:
-            return JsonResponse(data={"errors": [document_html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
+        error, case, template, document_html = _get_generated_document_data(request.data, pk)
+
+        if error:
+            return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            pdf = html_to_pdf(request, document_html, self.template.layout.filename)
+            pdf = html_to_pdf(request, document_html, template.layout.filename)
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        s3_key = s3_operations.generate_s3_key(self.template.name, "pdf")
-        document_name = f"{s3_key[:len(self.template.name) + 6]}.pdf"
+        s3_key = s3_operations.generate_s3_key(template.name, "pdf")
+        document_name = f"{s3_key[:len(template.name) + 6]}.pdf"
 
         generated_doc = GeneratedDocument.objects.create(
             name=document_name,
@@ -67,17 +63,17 @@ class GeneratedDocuments(APIView):
             virus_scanned_at=timezone.now(),
             safe=True,
             type=CaseDocumentType.GENERATED,
-            case=self.case,
-            template=self.template,
+            case=case,
+            template=template,
         )
 
         # Generate timeline entry
         case_activity = {
             "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
             "file_name": document_name,
-            "template": self.template.name,
+            "template": template.name,
         }
-        case_activity = CaseActivity.create(case=self.case, user=request.user, **case_activity)
+        case_activity = CaseActivity.create(case=case, user=request.user, **case_activity)
 
         try:
             s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
@@ -89,3 +85,19 @@ class GeneratedDocuments(APIView):
             )
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
+
+
+class GeneratedDocumentPreview(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get a preview of the document to be generated
+        """
+
+        error, case, template, document_html = _get_generated_document_data(request.GET, pk)
+
+        if error:
+            return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
+
+        return JsonResponse(data={"preview": document_html}, status=status.HTTP_200_OK)
