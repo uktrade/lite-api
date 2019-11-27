@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "queues",
     "rest_framework",
     "reversion",
-    "sass_processor",
     "static",
     "static.control_list_entries",
     "static.countries",
