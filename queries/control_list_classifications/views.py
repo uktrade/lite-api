@@ -19,6 +19,7 @@ from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
+from lite_content.lite_api import strings
 
 
 class ControlListClassificationsList(APIView):
@@ -58,9 +59,9 @@ class ControlListClassificationDetail(APIView):
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
-        if query.status.status in CaseStatusEnum.terminal_statuses:
+        if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": ["You can only perform this operation on a case in a non-terminal state."]},
+                data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

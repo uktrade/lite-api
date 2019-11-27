@@ -33,6 +33,7 @@ from goods.serializers import (
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
+from lite_content.lite_api import strings
 
 
 class GoodsListControlCode(APIView):
@@ -46,9 +47,9 @@ class GoodsListControlCode(APIView):
         application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
         application = BaseApplication.objects.get(id=application_id)
 
-        if application.status.status in CaseStatusEnum.terminal_statuses:
+        if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
-                data={"errors": ["You can only perform this operation on an application in a non-terminal state"]},
+                data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

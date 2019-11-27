@@ -11,6 +11,7 @@ from conf.authentication import SharedAuthentication
 from queries.models import Query
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
+from lite_content.lite_api import strings
 
 
 class CaseNoteList(APIView):
@@ -35,9 +36,9 @@ class CaseNoteList(APIView):
         else:
             obj = Query.objects.get(id=case.query_id)
 
-        if obj.status.status in CaseStatusEnum.terminal_statuses and isinstance(request.user, ExporterUser):
+        if CaseStatusEnum.is_terminal(obj.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
-                data={"errors": {"text": ["You can only perform this operation on a case in a non-terminal state."]}},
+                data={"errors": {"text": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

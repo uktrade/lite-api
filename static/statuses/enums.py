@@ -22,7 +22,7 @@ class CaseStatusEnum:
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
 
-    read_only_statuses = [
+    _read_only_statuses = [
         APPEAL_REVIEW,
         APPEAL_FINAL_REVIEW,
         CHANGE_UNDER_REVIEW,
@@ -40,7 +40,7 @@ class CaseStatusEnum:
         WITHDRAWN,
     ]
 
-    terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
+    _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
@@ -94,11 +94,19 @@ class CaseStatusEnum:
 
     @classmethod
     def is_read_only(cls, status):
-        return status in cls.read_only_statuses
+        return status in cls._read_only_statuses
 
     @classmethod
     def is_terminal(cls, status):
-        return status in cls.read_only_statuses
+        return status in cls._terminal_statuses
+
+    @classmethod
+    def read_only_statuses(cls):
+        return cls._read_only_statuses
+
+    @classmethod
+    def terminal_statuses(cls):
+        return cls._terminal_statuses
 
     @classmethod
     def as_list(cls):

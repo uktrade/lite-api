@@ -47,7 +47,7 @@ def check_refusal_errors(advice):
 def post_advice(request, case, serializer_object, team=False):
     application = BaseApplication.objects.get(id=case.application_id)
 
-    if application.status.status in CaseStatusEnum.terminal_statuses:
+    if CaseStatusEnum.is_terminal(application.status.status):
         return JsonResponse(
             data={"errors": ["You can only perform this operation on a case in a non-terminal state."]},
             status=status.HTTP_400_BAD_REQUEST,
