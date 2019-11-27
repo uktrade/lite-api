@@ -21,10 +21,12 @@ class CasesFilterAndSortTests(DataTestClient):
             self.queue.save()
             self.application_cases.append(case)
 
+        # CLC applicable case statuses
+        clc_statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
         self.clc_cases = []
-        for clc_status in CaseStatusEnum.choices:
+        for clc_status in clc_statuses:
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
-            clc_query.status = get_case_status_by_status(clc_status[0])
+            clc_query.status = get_case_status_by_status(clc_status)
             clc_query.save()
             self.queue.cases.add(clc_query.case.get())
             self.queue.save()
@@ -189,6 +191,7 @@ class CasesFilterAndSortTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data["cases"]))
+
         # Assert ordering
         for case, expected_case in zip(response_data["cases"], all_cases_sorted):
             self.assertEqual(case["status"], expected_case["status"])
