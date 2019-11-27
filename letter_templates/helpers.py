@@ -6,6 +6,7 @@ from markdown import Markdown
 from conf import settings
 from conf.exceptions import NotFoundError
 from conf.settings import CSS_ROOT
+from letter_templates.exceptions import InvalidVarException
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
@@ -15,22 +16,6 @@ def get_letter_template(pk):
         return LetterTemplate.objects.get(pk=pk)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": "LetterTemplate not found - " + str(pk)})
-
-
-class InvalidVarException(Exception):
-    """
-    InvalidVarException is triggered by the django template engine when it cannot
-    find a context variable. This exception should be handled in places where the
-    template may use an invalid variable (user entered variables)
-    """
-
-    def __mod__(self, missing):
-        raise InvalidVarException("Invalid template variable {{ %s }}" % missing)
-
-    def __contains__(self, search):
-        if search == "%s":
-            return True
-        return False
 
 
 def template_engine_factory(allow_missing_variables):
