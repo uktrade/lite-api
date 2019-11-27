@@ -88,9 +88,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
-    role = serializers.PrimaryKeyRelatedField(
-        queryset=Role.objects.all(), write_only=True
-    )
+    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True)
 
     class Meta:
         model = ExporterUser
