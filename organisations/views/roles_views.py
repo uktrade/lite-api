@@ -26,7 +26,6 @@ class RolesViews(ListCreateAPIView):
         system_ids = [Roles.EXPORTER_DEFAULT_ROLE_ID]
         if self.request.user.get_role(self.kwargs.get("org_pk")).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
-
         return Role.objects.filter(Q(organisation=self.kwargs.get("org_pk")) | Q(id__in=system_ids))
 
     @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})

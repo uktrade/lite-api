@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import reversion
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -79,6 +81,8 @@ class UserList(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        data["role"] = UUID(data["role"])
+
         serializer = ExporterUserCreateUpdateSerializer(data=data)
 
         if serializer.is_valid():
@@ -109,14 +113,14 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         data = JSONParser().parse(request)
+        data["organisation"] = request.user.organisation.id
 
-        with reversion.create_revision():
-            serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
+        serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=400)
+        return JsonResponse(data={"errors": serializer.errors}, status=400)
 
 
 class UserMeDetail(APIView):
@@ -127,10 +131,11 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-
         org_pk = request.headers["Organisation-Id"]
-
-        serializer = ExporterUserViewSerializer(request.user, context=org_pk)
+        if org_pk != "None":
+            serializer = ExporterUserViewSerializer(request.user, context=org_pk)
+        else:
+            serializer = ExporterUserViewSerializer(request.user)
         return JsonResponse(data={"user": serializer.data})
 
 

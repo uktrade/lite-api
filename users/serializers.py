@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from rest_framework import serializers
 
 from cases.models import Notification
@@ -88,10 +90,13 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
+    role = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(), write_only=True
+    )
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "organisation")
+        fields = ("id", "email", "first_name", "last_name", "role", "organisation")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -109,11 +114,23 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
         return email
 
+    def validate_role(self, role):
+        if hasattr(self, "initial_data") and "role" in self.initial_data:
+            try:
+                if self.initial_data["role"] not in Roles.EXPORTER_PRESET_ROLES:
+                    print(self.initial_data["role"])
+                    print(self.initial_data["organisation"])
+                    Role.objects.get(id=self.initial_data["role"], organisation=self.initial_data["organisation"])
+            except NotFoundError:
+                pass
+        return role
+
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
+        role = validated_data.pop("role")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
-            UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+            UserOrganisationRelationship(user=exporter, organisation=organisation, role=role).save()
         else:
             UserOrganisationRelationship(
                 user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
