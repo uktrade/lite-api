@@ -95,7 +95,7 @@ class SeedCommand(ABC, BaseCommand):
             if id not in ids:
                 try:
                     obj.delete()
-                    print(f"Unused object deleted {id} from {model}")
+                    print(f"Unused object deleted {id} from {model.__name__}")
                 except IntegrityError:
                     print(f"Object {id} could not be deleted due to foreign key constraint")
 

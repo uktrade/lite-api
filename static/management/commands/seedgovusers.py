@@ -2,7 +2,6 @@ import json
 
 from django.db import transaction
 
-from conf.constants import Permissions
 from conf.settings import env
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from teams.models import Team
@@ -38,15 +37,7 @@ class Command(SeedCommand):
         super_user = Role.objects.get_or_create(id=SUPER_USER_ROLE_ID, name=SUPER_USER_ROLE_NAME)[0]
 
         # Add all permissions to the super user role
-        super_user.permissions.set(
-            [
-                Permissions.MANAGE_FINAL_ADVICE,
-                Permissions.MANAGE_TEAM_ADVICE,
-                Permissions.REVIEW_GOODS,
-                Permissions.ADMINISTER_ROLES,
-                Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
-            ]
-        )
+        super_user.permissions.set(Permission.objects.all())
         super_user.save()
 
         # Create all SEED_USERS and give them the super user role

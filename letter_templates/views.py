@@ -2,7 +2,9 @@ from django.http import JsonResponse
 from rest_framework import generics, status
 
 from conf.authentication import GovAuthentication
+from conf.constants import Permissions
 from conf.pagination import MaxPageNumberPagination
+from conf.permissions import assert_user_has_permission
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 
@@ -41,6 +43,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     serializer_class = LetterTemplateSerializer
 
     def update(self, request, *args, **kwargs):
+        # assert_user_has_permission(request.user, Permissions.)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
 
         if serializer.is_valid():
