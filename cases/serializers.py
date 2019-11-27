@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentType
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.models import (
     Case,
     CaseNote,
@@ -257,7 +257,7 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
     metadata_id = serializers.SerializerMethodField()
-    type = KeyValueChoiceField(choices=CaseDocumentType.choices)
+    type = KeyValueChoiceField(choices=CaseDocumentState.choices)
 
     def get_metadata_id(self, instance):
         return instance.id if instance.safe else "File not ready"

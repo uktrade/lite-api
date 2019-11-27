@@ -7,7 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentType
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
@@ -93,7 +93,7 @@ class CaseDocument(Document):
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
     type = models.CharField(
-        choices=CaseDocumentType.choices, default=CaseDocumentType.UPLOADED, max_length=100, null=False
+        choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
     )
 
 

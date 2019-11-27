@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
-from cases.generated_documents.models import GeneratedDocument
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseActivity
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
@@ -33,7 +33,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(GeneratedDocument.objects.count() == 1)
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -45,7 +45,7 @@ class GenerateDocumentTests(DataTestClient):
 
         upload_bytes_file_func.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(GeneratedDocument.objects.count() == 1)
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -57,7 +57,7 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
-        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
         upload_bytes_file_func.assert_not_called()
 
@@ -70,7 +70,7 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
-        self.assertTrue(GeneratedDocument.objects.count() == 0)
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
 
     def test_get_document_preview_success(self):

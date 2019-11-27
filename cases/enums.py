@@ -40,7 +40,7 @@ class AdviceType:
     ]
 
 
-class CaseDocumentType:
+class CaseDocumentState:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"
 

@@ -17,6 +17,9 @@ def get_letter_templates_for_case(case):
 
 
 def get_letter_template_for_case(id, case):
+    """
+    Get the letter template via the ID but only if it can also be applied to the given case
+    """
     try:
         return LetterTemplate.objects.get(pk=id, case_types__id=case.type)
     except LetterTemplate.DoesNotExist:

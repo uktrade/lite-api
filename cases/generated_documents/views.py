@@ -4,9 +4,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 
-from cases.enums import CaseDocumentType
+from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_letter_template_for_case
-from cases.generated_documents.models import GeneratedDocument
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
@@ -40,7 +40,6 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-
         error, case, template, document_html = _get_generated_document_data(request.data, pk)
 
         if error:
@@ -54,32 +53,32 @@ class GeneratedDocuments(APIView):
             )
 
         s3_key = s3_operations.generate_s3_key(template.name, "pdf")
+        # base the document name on the template name and a portion of the UUID generated for the s3 key
         document_name = f"{s3_key[:len(template.name) + 6]}.pdf"
 
-        generated_doc = GeneratedDocument.objects.create(
-            name=document_name,
-            user=request.user,
-            s3_key=s3_key,
-            virus_scanned_at=timezone.now(),
-            safe=True,
-            type=CaseDocumentType.GENERATED,
-            case=case,
-            template=template,
-        )
-
-        # Generate timeline entry
-        case_activity = {
-            "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
-            "file_name": document_name,
-            "template": template.name,
-        }
-        case_activity = CaseActivity.create(case=case, user=request.user, **case_activity)
-
         try:
-            s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
+            with transaction.atomic():
+                generated_doc = GeneratedCaseDocument.objects.create(
+                    name=document_name,
+                    user=request.user,
+                    s3_key=s3_key,
+                    virus_scanned_at=timezone.now(),
+                    safe=True,
+                    type=CaseDocumentState.GENERATED,
+                    case=case,
+                    template=template,
+                )
+
+                # Generate timeline entry
+                case_activity = {
+                    "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
+                    "file_name": document_name,
+                    "template": template.name,
+                }
+                CaseActivity.create(case=case, user=request.user, **case_activity)
+
+                s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
-            case_activity.delete()
-            generated_doc.delete()
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -94,7 +93,6 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-
         error, case, template, document_html = _get_generated_document_data(request.GET, pk)
 
         if error:

@@ -43,7 +43,7 @@ def get_css_location(filename):
 def load_css(filename):
     with open(get_css_location(filename)) as css_file:
         css = css_file.read()
-    return "<style>\n" + css + "</style>\n"
+    return f"<style>\n{css}</style>\n"
 
 
 def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_variables=True):

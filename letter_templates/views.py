@@ -78,7 +78,8 @@ class TemplatePreview(generics.RetrieveAPIView):
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         preview = generate_preview(layout, paragraphs=paragraphs)
+
         if "error" in preview:
             return JsonResponse(data=preview, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return JsonResponse(data={"preview": preview}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"preview": preview}, status=status.HTTP_200_OK)
