@@ -188,10 +188,13 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.ecju_query:
             parent = next(item for item in [obj.ecju_query.case] if item is not None)
 
-        if parent.type == CaseType.APPLICATION or parent.type == CaseType.HMRC_QUERY:
-            parent = BaseApplication.objects.get(pk=parent.id)
-        else:
+        if obj.query:
+            return None
+
+        if parent.type in [CaseType.CLC_QUERY, CaseType.END_USER_ADVISORY_QUERY]:
             parent = get_exporter_query(parent)
+        elif parent.type in [CaseType.APPLICATION, CaseType.HMRC_QUERY]:
+            parent = BaseApplication.objects.get(pk=parent.id)
 
         return convert_pascal_case_to_snake_case(parent.__class__.__name__)
 
