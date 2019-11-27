@@ -28,22 +28,17 @@ class GeneratedDocuments(APIView):
         tpk = request_params["template"]
         self.case = get_case(pk)
         self.template = get_letter_template_for_case(tpk, self.case)
-        self.html = get_preview(template=self.template, case=self.case)
-
-        if "error" in self.html:
-            return JsonResponse(data={"errors": [self.html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
-
-        return None
+        return get_preview(template=self.template, case=self.case)
 
     def get(self, request, pk):
         """
         Get a preview of the document to be generated
         """
-        error_response = self._fetch_generated_document_data(request.GET, pk)
-        if error_response:
-            return error_response
+        document_html = self._fetch_generated_document_data(request.GET, pk)
+        if "error" in document_html:
+            return JsonResponse(data={"errors": [document_html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data={"preview": self.html}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"preview": document_html}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def post(self, request, pk):
@@ -51,12 +46,12 @@ class GeneratedDocuments(APIView):
         Create a generated document
         """
 
-        error_response = self._fetch_generated_document_data(request.data, pk)
-        if error_response:
-            return error_response
+        document_html = self._fetch_generated_document_data(request.data, pk)
+        if "error" in document_html:
+            return JsonResponse(data={"errors": [document_html["error"]]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            pdf = html_to_pdf(request, self.html, self.template.layout.filename)
+            pdf = html_to_pdf(request, document_html, self.template.layout.filename)
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
