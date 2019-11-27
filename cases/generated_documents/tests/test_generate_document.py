@@ -56,7 +56,7 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("cases.generated_documents.views.get_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_get_document_preview_when_get_html_contains_errors_failure(
         self, upload_bytes_file_func, html_to_pdf_func, get_preview_func
     ):
@@ -84,7 +84,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedDocument.objects.count() == 1)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_when_html_to_pdf_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
 

@@ -24,7 +24,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
-        case = self.request.GET.get("case")
+        case = self.request.GET.get("case",)
 
         return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
 
@@ -55,9 +55,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):
             data["preview"] = get_preview(template=template_object)
             if "error" in data["preview"]:
-                return JsonResponse(data["preview"], status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
 
-        return JsonResponse(data, status=status.HTTP_200_OK)
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
@@ -66,20 +66,20 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             serializer.save()
             return JsonResponse(serializer.data)
 
-        return JsonResponse({"errors": serializer.errors})
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TemplatePreview(APIView):
+class TemplatePreview(generics.RetrieveAPIView):
+
     authentication_classes = (GovAuthentication,)
 
-    @staticmethod
-    def get(request):
+    def get(self, request, **kwargs):
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         preview = generate_preview(layout, paragraphs=paragraphs)
         if "error" in preview:
-            return JsonResponse(preview, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data=preview, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return JsonResponse({"preview": preview}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"preview": preview}, status=status.HTTP_200_OK)

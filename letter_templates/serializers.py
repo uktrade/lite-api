@@ -5,6 +5,7 @@ from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from letter_templates.models import LetterTemplate
+from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
 from static.letter_layouts.serializers import LetterLayoutSerializer
@@ -15,26 +16,24 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         max_length=35,
         validators=[
             UniqueValidator(
-                queryset=LetterTemplate.objects.all(),
-                lookup="iexact",
-                message="The name of your letter template has to be unique",
+                queryset=LetterTemplate.objects.all(), lookup="iexact", message=LetterTemplatesPage.UNIQUE_NAME,
             )
         ],
-        error_messages={"blank": "Enter a name for the letter template"},
+        error_messages={"blank": LetterTemplatesPage.NAME_REQUIRED},
     )
     letter_paragraphs = serializers.PrimaryKeyRelatedField(queryset=PicklistItem.objects.all(), many=True)
 
     case_types = PrimaryKeyRelatedSerializerField(
         queryset=CaseType.objects.all(),
         serializer=CaseTypeSerializer,
-        error_messages={"required": "Select the case types you want to use for this letter template"},
+        error_messages={"required": LetterTemplatesPage.SELECT_THE_CASE_TYPES},
         many=True,
     )
 
     layout = PrimaryKeyRelatedSerializerField(
         queryset=LetterLayout.objects.all(),
         serializer=LetterLayoutSerializer,
-        error_messages={"required": "Select the layout you want to use for this letter template"},
+        error_messages={"required": LetterTemplatesPage.SELECT_THE_LAYOUT},
     )
 
     class Meta:
@@ -44,11 +43,11 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_case_types(attrs):
         if not attrs:
-            raise serializers.ValidationError("You need at least one case type for your letter template")
+            raise serializers.ValidationError(LetterTemplatesPage.NEED_AT_LEAST_ONE_CASE_TYPE)
         return attrs
 
     @staticmethod
     def validate_letter_paragraphs(attrs):
         if not attrs:
-            raise serializers.ValidationError("You need at one letter paragraph for your letter template")
+            raise serializers.ValidationError(LetterTemplatesPage.NEED_AT_LEAST_ONE_PARAGRAPH)
         return attrs

@@ -23,7 +23,7 @@ class GeneratedDocuments(APIView):
 
     def _fetch_generated_document_data(self, request_params, pk):
         if "template" not in request_params:
-            return JsonResponse({"errors": [LetterTemplatesPage.MISSING_TEMPLATE]}, status=status.HTTP_400_BAD_REQUEST)
+            return {"error": LetterTemplatesPage.MISSING_TEMPLATE}
 
         tpk = request_params["template"]
         self.case = get_case(pk)
