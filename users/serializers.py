@@ -88,7 +88,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
-    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True)
+    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
 
     class Meta:
         model = ExporterUser
@@ -123,7 +123,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
-        role = validated_data.pop("role")
+        role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        if "role" in validated_data:
+            role = validated_data.pop("role")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             UserOrganisationRelationship(user=exporter, organisation=organisation, role=role).save()
