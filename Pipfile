@@ -30,7 +30,7 @@ django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
 weasyprint = "*"
-Markdown = "*"
+markdown = "*"
 unittest-xml-reporting = "*"
 
 
