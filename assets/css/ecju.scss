@@ -17,6 +17,8 @@ $font_family: Helvetica, Arial, "Liberation Sans", sans-serif;
 table {
 	border-collapse: collapse;
 	width: 100%;
+	page-break-inside: avoid;
+	page-break-before:auto
 }
 td {
 	vertical-align: top;
