@@ -55,7 +55,11 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
 
     @mock.patch("cases.generated_documents.views.get_preview")
-    def test_get_document_preview_when_get_html_contains_errors_failure(self, get_preview_func):
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    def test_get_document_preview_when_get_html_contains_errors_failure(
+        self, upload_bytes_file_func, html_to_pdf_func, get_preview_func
+    ):
         get_preview_func.return_value = dict(error="Failed to get preview")
         url = self.url + "?template=" + str(self.letter_template.id)
 
@@ -65,6 +69,8 @@ class GenerateDocumentTests(DataTestClient):
         body = response.json()
         self.assertTrue("errors" in body)
         self.assertEqual(body["errors"], ["Failed to get preview"])
+        html_to_pdf_func.assert_not_called()
+        upload_bytes_file_func.assert_not_called()
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -78,7 +84,8 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedDocument.objects.count() == 1)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
-    def test_generate_document_when_html_to_pdf_throws_error_failure(self, html_to_pdf_func):
+    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    def test_generate_document_when_html_to_pdf_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
@@ -87,6 +94,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
+        upload_bytes_file_func.assert_not_called()
 
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func):
