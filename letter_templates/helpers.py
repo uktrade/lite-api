@@ -5,11 +5,9 @@ from markdown import Markdown
 
 from conf import settings
 from conf.exceptions import NotFoundError
-from conf.settings import BASE_DIR
+from conf.settings import CSS_ROOT
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
-
-CSS_LOCATION = "assets/css/"
 
 
 def get_letter_template(pk):
@@ -54,7 +52,7 @@ def get_paragraphs_as_html(paragraphs: list):
 
 
 def get_css_location(filename):
-    return BASE_DIR + "/" + CSS_LOCATION + filename + ".css"
+    return os.path.join(CSS_ROOT, filename+".css")
 
 
 def load_css(filename):
