@@ -62,8 +62,8 @@ INSTALLED_APPS = [
     "static.denial_reasons",
     "static.letter_layouts",
     "static.statuses",
-    "static.upload_document_for_tests",
     "static.units",
+    "static.upload_document_for_tests",
     "teams",
     "users",
 ]
