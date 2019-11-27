@@ -26,12 +26,12 @@ class DocumentOperation:
         return f"{document_name}-{uuid.uuid4()}.{file_extension}"
 
     def upload_bytes_file(self, raw_file, s3_key):
-        bucket = self.get_client()
-        bucket.put_object(Bucket=self._get_bucket_name(), Key=s3_key, Body=raw_file)
+        client = self.get_client()
+        client.put_object(Bucket=self._get_bucket_name(), Key=s3_key, Body=raw_file)
 
     def delete_file(self, s3_key):
-        bucket = self.get_client()
+        client = self.get_client()
         try:
-            bucket.delete_object(Bucket=self._get_bucket_name(), Key=s3_key)
+            client.delete_object(Bucket=self._get_bucket_name(), Key=s3_key)
         except Exception:  # noqa
             logging.warning(DocumentsEndpoint.DELETE_ERROR)
