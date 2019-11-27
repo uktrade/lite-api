@@ -6,7 +6,6 @@ from cases.views.search import views as search_views
 app_name = "cases"
 
 urlpatterns = [
-    # ex: /cases/
     path("", search_views.CasesSearchView.as_view(), name="search"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),

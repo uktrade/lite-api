@@ -40,15 +40,7 @@ class CaseStatusEnum:
         WITHDRAWN,
     ]
 
-    terminal_statuses = [
-        CLOSED,
-        DEREGISTERED,
-        FINALISED,
-        REGISTERED,
-        REVOKED,
-        SURRENDERED,
-        WITHDRAWN
-    ]
+    terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
