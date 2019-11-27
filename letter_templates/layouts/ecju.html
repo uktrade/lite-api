@@ -1,7 +1,7 @@
-{% load sass_tags static %}
-<link href="{% sass_src 'css/ecju.scss' %}" rel="stylesheet" type="text/css" />
+{% load static %}
 
-<body>
+
+<div class="document">
   <p id="references">
     Our Ref: TBC<br>
     Your Ref: TBC<br>
@@ -12,15 +12,15 @@
   <div id="addresses">
     <div id="recipient-address">
       <p>
-        {{ end_user.name }}<br>
-        {{ end_user.address.address_line_1 }}<br>
-        {{ end_user.address.address_line_2 }}<br>
-        {{ end_user.address.postcode }}<br>
-        {{ end_user.address.city }}<br>
-        {{ end_user.address.region }}<br>
-        {{ end_user.address.country.name }}
+        {{ case.application.organisation.name }}<br>
+        {{ case.application.organisation.primary_site.address.address_line_1 }}<br>
+        {{ case.application.organisation.primary_site.address.address_line_2 }}<br>
+        {{ case.application.organisation.primary_site.address.postcode }}<br>
+        {{ case.application.organisation.primary_site.address.city }}<br>
+        {{ case.application.organisation.primary_site.address.region }}<br>
+        {{ case.application.organisation.primary_site.address.country.name }}
       </p>
-      <p>Date: TBC</p>
+      <p>Date: {% now "jS F Y" %}</p>
     </div>
     <div id="sender-address">
       <p>Export Control Organisation</p>
@@ -44,12 +44,6 @@
       {{ content|safe }}
   </div>
 
-  <p>Yours sincerely</p>
-
-  <div id="signature" class="page-break-after">
-    TBC<br>
-    Export Control Organisation
-  </div>
   <h1>Schedule of Entities Assessed</h1>
   <table>
     <tr>
@@ -61,4 +55,4 @@
       <td>TBC</td>
     </tr>
   </table>
-</body>
+</div>

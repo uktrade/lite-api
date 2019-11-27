@@ -120,21 +120,9 @@ TEST_OUTPUT_DIR = "test-results/unittest/"
 
 STATIC_URL = "/assets/"
 
-# SCSS
+# CSS
 STATIC_ROOT = os.path.join(BASE_DIR, "assets")
 CSS_ROOT = os.path.join(STATIC_ROOT, "css")
-SASS_ROOT = STATIC_ROOT
-SASS_PROCESSOR_ROOT = STATIC_ROOT
-COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
-STATICFILES_DIRS = (STATIC_ROOT,)
-SASS_PROCESSOR_INCLUDE_DIRS = (STATIC_ROOT,)
-SASS_OUTPUT_STYLE = "compressed"
-STATICFILES_FINDERS = (
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "sass_processor.finders.CssFinder",
-)
-SASS_PROCESSOR_ENABLED = True
 
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 

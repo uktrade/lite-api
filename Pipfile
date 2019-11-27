@@ -13,7 +13,6 @@ django-environ = "==0.4.5"
 django-model-utils = "*"
 django-reversion = "==3.0.3"
 djangorestframework = "==3.9.2"
-django-sass-processor = "==0.7.2"
 psycopg2 = "==2.8.2"
 python-json-logger = "==0.1.11"
 parameterized = "*"
@@ -33,7 +32,7 @@ tblib = "*"
 weasyprint = "*"
 Markdown = "*"
 unittest-xml-reporting = "*"
-libsass = "*"
+
 
 [requires]
 python_version = "3.7"
