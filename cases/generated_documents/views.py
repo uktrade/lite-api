@@ -93,7 +93,7 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        error, case, template, document_html = _get_generated_document_data(request.GET, pk)
+        error, _, _, document_html = _get_generated_document_data(request.GET, pk)
 
         if error:
             return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
