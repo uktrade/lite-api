@@ -67,7 +67,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(body["errors"], ["Failed to get preview"])
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_success(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
 
@@ -88,7 +88,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
 
-    @mock.patch("cases.generated_documents.views.DocumentOperation.upload_bytes_file")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_generate_document_when_s3_throws_error_failure(self, upload_bytes_file_func):
         upload_bytes_file_func.side_effect = Exception("Failed to upload document")
 

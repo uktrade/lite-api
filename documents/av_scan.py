@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from documents.helpers import DocumentOperation
+from documents.libraries import s3_operations
 from documents.models import Document
 
 
@@ -58,17 +58,16 @@ def _process_document(document_pk: str):
         logging.warning(warn_msg)
         return
 
-    is_file_clean = _scan_s3_object(doc.name, settings.AWS_STORAGE_BUCKET_NAME, doc.s3_key)
+    is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
     if is_file_clean is not None:
         doc.virus_scanned_at = now()
         doc.safe = is_file_clean
         doc.save()
 
 
-def _scan_s3_object(original_filename, bucket, key):
+def _scan_s3_object(original_filename, key):
     """Virus scans a file stored in S3."""
-    _client = DocumentOperation().get_client()
-    response = _client.get_object(Bucket=bucket, Key=key)
+    response = s3_operations.get_object(key)
     with closing(response["Body"]):
         return _scan_raw_file(original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
 

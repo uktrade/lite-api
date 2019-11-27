@@ -11,7 +11,7 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
-from documents.helpers import DocumentOperation
+from documents.libraries import s3_operations
 from letter_templates.helpers import get_preview
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
@@ -57,7 +57,7 @@ class GeneratedDocuments(APIView):
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        s3_key = DocumentOperation().generate_s3_key(self.template.name, "pdf")
+        s3_key = s3_operations.generate_s3_key(self.template.name, "pdf")
         document_name = f"{s3_key[:len(self.template.name) + 6]}.pdf"
 
         generated_doc = GeneratedDocument.objects.create(
@@ -80,7 +80,7 @@ class GeneratedDocuments(APIView):
         case_activity = CaseActivity.create(case=self.case, user=request.user, **case_activity)
 
         try:
-            DocumentOperation().upload_bytes_file(raw_file=pdf, s3_key=s3_key)
+            s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
             case_activity.delete()
             generated_doc.delete()
