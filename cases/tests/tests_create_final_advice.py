@@ -293,7 +293,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.assertEqual(Advice.objects.count(), 3)
 
-    @parameterized.expand(CaseStatusEnum.terminal_statuses)
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_cannot_create_final_advice_on_case_in_terminal_state(self, terminal_status):
         self.standard_application.status = get_case_status_by_status(terminal_status)
         self.standard_application.save()

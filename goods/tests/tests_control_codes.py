@@ -180,7 +180,7 @@ class GoodsVerifiedTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand(CaseStatusEnum.terminal_statuses)
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_cannot_set_control_codes_when_application_in_terminal_state(self, terminal_status):
         self.application.status = get_case_status_by_status(terminal_status)
         self.application.save()

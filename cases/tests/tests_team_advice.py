@@ -371,7 +371,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @parameterized.expand(CaseStatusEnum.terminal_statuses)
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
         data = {
             "text": "I Am Easy to Find",

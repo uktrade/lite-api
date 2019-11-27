@@ -41,7 +41,7 @@ class CaseNotesGovCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
-    @parameterized.expand(CaseStatusEnum.terminal_statuses)
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_create_case_note_case_terminal_state_success_gov_user(self, terminal_status):
         self.standard_application.status = get_case_status_by_status(terminal_status)
         self.standard_application.save()
@@ -82,7 +82,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CaseNote.objects.count(), 0)
 
-    @parameterized.expand(CaseStatusEnum.terminal_statuses)
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
     def test_create_case_note_case_terminal_state_failure_exporter_user(self, terminal_status):
         self.standard_application.status = get_case_status_by_status(terminal_status)
         self.standard_application.save()
