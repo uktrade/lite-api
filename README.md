@@ -26,6 +26,14 @@ Service for handling backend calls in LITE.
     * `docker-compose up`
 * Go to the index page (e.g. `http://localhost:8100`)
 
+## Installing WeasyPrint for document generation
+To produce PDF documents you will also need to install WeasyPrint. 
+Do this after installing the python packages in the Pipfile;
+
+> MacOS: https://weasyprint.readthedocs.io/en/stable/install.html#macos
+
+> Linux: https://weasyprint.readthedocs.io/en/stable/install.html#debian-ubuntu
+
 ## Documentation
 
 **[API Docs available on GitHub Pages](https://uktrade.github.io/lite-api/)**

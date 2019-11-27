@@ -122,6 +122,7 @@ STATIC_URL = "/assets/"
 
 # SCSS
 STATIC_ROOT = os.path.join(BASE_DIR, "assets")
+CSS_ROOT = os.path.join(STATIC_ROOT, "css")
 SASS_ROOT = STATIC_ROOT
 SASS_PROCESSOR_ROOT = STATIC_ROOT
 COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
