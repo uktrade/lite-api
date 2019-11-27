@@ -52,7 +52,7 @@ def get_paragraphs_as_html(paragraphs: list):
 
 
 def get_css_location(filename):
-    return os.path.join(CSS_ROOT, filename+".css")
+    return os.path.join(CSS_ROOT, filename + ".css")
 
 
 def load_css(filename):
