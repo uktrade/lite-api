@@ -2,12 +2,12 @@ import uuid
 from abc import abstractmethod
 
 import reversion
+from compat import get_model
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from conf.constants import Roles
-from teams.models import Team
 from users.enums import UserStatuses
 
 
@@ -83,10 +83,9 @@ class BaseUser(AbstractUser):
 
 class ExporterUser(BaseUser):
     def send_notification(self, case_note=None, query=None, ecju_query=None):
-        from cases.models import Notification
-        from queries.models import Query
-
-        # circular import prevention
+        # getting a reference to models by name to avoid circular imports
+        Query = get_model("queries.Query")
+        Notification = get_model("cases.Notification")
 
         if case_note:
             Notification.objects.create(user=self, case_note=case_note)
@@ -101,7 +100,7 @@ class ExporterUser(BaseUser):
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
+    team = models.ForeignKey("teams.Team", related_name="team", on_delete=models.PROTECT)
     role = models.ForeignKey(Role, related_name="role", default=Roles.DEFAULT_ROLE_ID, on_delete=models.PROTECT,)
 
     def unassign_from_cases(self):
@@ -112,9 +111,9 @@ class GovUser(BaseUser):
 
     # pylint: disable=W0221
     def send_notification(self, case_activity=None):
-        from cases.models import Notification
+        Notification = get_model("cases.Notification")
 
-        # circular import prevention
+        # getting models due to circular imports
 
         if case_activity:
             # There can only be one notification per gov user's case
