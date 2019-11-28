@@ -42,18 +42,6 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
 
     standard_blank_error_message = "This field may not be blank"
 
-    def to_representation(self, value):
-        """
-        Return both reference code and case ID for the copy of field
-        """
-        repr_dict = super(EndUserAdvisorySerializer, self).to_representation(value)
-        if repr_dict["copy_of"]:
-            repr_dict["copy_of"] = {
-                "reference_code": repr_dict["copy_of"],
-                "case_id": get_exporter_query(repr_dict["copy_of"]).id,
-            }
-        return repr_dict
-
     def validate_nature_of_business(self, value):
         if self.initial_data.get("end_user").get("sub_type") == SubType.COMMERCIAL and not value:
             raise serializers.ValidationError(self.standard_blank_error_message)
