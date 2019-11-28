@@ -33,7 +33,7 @@ def template_engine_factory(allow_missing_variables):
 
 
 def get_paragraphs_as_html(paragraphs: list):
-    return "\n\n".join([markdown(paragraph.text, extensions=['nl2br']) for paragraph in paragraphs])
+    return "\n\n".join([markdown(paragraph.text, extensions=["nl2br"]) for paragraph in paragraphs])
 
 
 def get_css_location(filename):
