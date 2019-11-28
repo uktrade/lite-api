@@ -3,6 +3,9 @@
   font-family: Helvetica;
   word-wrap: break-word;
 }
+@font-face {
+  font-family: Helvetica;
+}
 .document h1 {
   font-size: 24px;
   display: inline-block;

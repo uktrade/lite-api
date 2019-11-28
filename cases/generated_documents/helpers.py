@@ -1,15 +1,18 @@
 from weasyprint import CSS, HTML
+from weasyprint.fonts import FontConfiguration
 
 from conf.exceptions import NotFoundError
 from letter_templates.helpers import get_css_location
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
+FONT_CONFIG = FontConfiguration()
+
 
 def html_to_pdf(request, html: str, template_name: str):
     html = HTML(string=html, base_url=request.build_absolute_uri())
-    css = CSS(filename=get_css_location(template_name))
-    return html.write_pdf(stylesheets=[css])
+    css = CSS(filename=get_css_location(template_name), font_config=FONT_CONFIG)
+    return html.write_pdf(stylesheets=[css], font_config=FONT_CONFIG)
 
 
 def get_letter_templates_for_case(case):
