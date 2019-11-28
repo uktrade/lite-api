@@ -28,8 +28,8 @@ from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseType
 from cases.models import Case
+from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import Permissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -231,7 +231,7 @@ class ApplicationManageStatus(APIView):
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         # This can return 403 forbidden
         if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)

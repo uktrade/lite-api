@@ -3,7 +3,7 @@ from rest_framework import status
 
 from cases.libraries.get_case import get_case_activity
 from cases.models import Case
-from conf.constants import Permissions
+from conf import constants
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
@@ -31,11 +31,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         )
         good.save()
 
-        data = {
-            "good_id": good.id,
-            "not_sure_details_control_code": "ML1a",
-            "not_sure_details_details": "I don't know",
-        }
+        data = {"good_id": good.id, "not_sure_details_control_code": "ML1a", "not_sure_details_details": "I don't know"}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
@@ -49,19 +45,19 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.report_summary = self.create_picklist_item(
-            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE,
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
         self.query = self.create_clc_query("This is a widget", self.organisation)
 
         role = Role(name="review_goods")
-        role.permissions.set([Permissions.REVIEW_GOODS])
+        role.permissions.set([constants.Permission.REVIEW_GOODS.name])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()
 
         self.url = reverse(
-            "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk},
+            "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk}
         )
 
     def test_respond_to_control_list_classification_query(self):
@@ -92,11 +88,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         Ensure that a gov user can respond to a control list
         classification query with no licence required
         """
-        data = {
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "is_good_controlled": "no",
-        }
+        data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
@@ -129,7 +121,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         """
         # Make sure at least one user maintains the super user role
         valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role,
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
         )
         valid_user.save()
 

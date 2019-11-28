@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from conf.constants import Permissions
+from conf import constants
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -11,12 +11,7 @@ class GovUserEditTests(DataTestClient):
     def test_edit_a_gov_user(self):
         team = Team(name="Second")
         team.save()
-        data = {
-            "first_name": "hamster",
-            "last_name": "gerbal",
-            "email": "some@thing.com",
-            "team": team.id,
-        }
+        data = {"first_name": "hamster", "last_name": "gerbal", "email": "some@thing.com", "team": team.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
 
         response = self.client.put(url, data, **self.gov_headers)
@@ -37,7 +32,7 @@ class GovUserEditTests(DataTestClient):
         valid_user.save()
 
         role = Role(name="some role")
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
+        role.permissions.set([constants.Permission.MANAGE_FINAL_ADVICE.name])
         role.save()
         data = {"role": role.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})

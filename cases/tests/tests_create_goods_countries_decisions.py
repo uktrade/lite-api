@@ -2,8 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import Case, GoodCountryDecision
-from conf.constants import Permissions
 from applications.models import CountryOnApplication
+from conf import constants
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -16,7 +16,9 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.open_draft = self.create_open_application(self.organisation)
 
         role = Role(name="team_level")
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
+        role.permissions.set(
+            [constants.Permission.MANAGE_FINAL_ADVICE.name, constants.Permission.MANAGE_TEAM_ADVICE.name]
+        )
         role.save()
 
         self.gov_user.role = role
@@ -43,17 +45,17 @@ class CreateGoodsCountriesDecisions(DataTestClient):
     def test_make_goods_countries_decisions_success(self):
         data = {
             "good_countries": [
-                {"good": str(self.goods_type_1.id), "country": "ZM", "decision": "approve", "case": str(self.case.id),},
-                {"good": str(self.goods_type_1.id), "country": "LR", "decision": "refuse", "case": str(self.case.id),},
+                {"good": str(self.goods_type_1.id), "country": "ZM", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_1.id), "country": "LR", "decision": "refuse", "case": str(self.case.id)},
                 {
                     "good": str(self.goods_type_1.id),
                     "country": "AL",
                     "decision": "no_licence_required",
                     "case": str(self.case.id),
                 },
-                {"good": str(self.goods_type_2.id), "country": "BW", "decision": "approve", "case": str(self.case.id),},
-                {"good": str(self.goods_type_2.id), "country": "DE", "decision": "approve", "case": str(self.case.id),},
-                {"good": str(self.goods_type_2.id), "country": "SC", "decision": "approve", "case": str(self.case.id),},
+                {"good": str(self.goods_type_2.id), "country": "BW", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_2.id), "country": "DE", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_2.id), "country": "SC", "decision": "approve", "case": str(self.case.id)},
             ]
         }
 

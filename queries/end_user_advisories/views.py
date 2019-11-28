@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
+from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
@@ -47,7 +47,7 @@ class EndUserAdvisoriesList(APIView):
             if serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
                     serializer.save()
-                    return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED,)
+                    return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -79,7 +79,7 @@ class EndUserAdvisoryDetail(APIView):
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
             if data.get("status") == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+                assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 

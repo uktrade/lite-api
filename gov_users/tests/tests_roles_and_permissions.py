@@ -2,7 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from conf.constants import Permissions, Roles
+from conf import constants
+from conf.constants import Roles
 from test_helpers.clients import DataTestClient
 from users.models import Role, Permission
 
@@ -14,10 +15,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_create_new_role_with_permission_to_make_final_decisions(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        data = {
-            "name": "some role",
-            "permissions": [Permissions.MANAGE_FINAL_ADVICE],
-        }
+        data = {"name": "some role", "permissions": [constants.Permission.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
@@ -27,10 +25,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_create_new_role_with_no_permissions(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        data = {
-            "name": "some role",
-            "permissions": [],
-        }
+        data = {"name": "some role", "permissions": []}
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
@@ -39,7 +34,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
     def test_get_list_of_all_roles_as_non_super_user(self):
         role = Role(name="some")
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
+        role.permissions.set([constants.Permission.MANAGE_FINAL_ADVICE.name])
         role.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -53,7 +48,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.gov_user.save()
         role = Role(name="some")
         initial_roles_count = Role.objects.count()
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
+        role.permissions.set([constants.Permission.MANAGE_FINAL_ADVICE.name])
         role.save()
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -77,13 +72,14 @@ class RolesAndPermissionsTests(DataTestClient):
         role_id = Roles.DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [constants.Permission.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Permissions.MANAGE_FINAL_ADVICE in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
+            constants.Permission.MANAGE_FINAL_ADVICE.name
+            in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
         )
 
     @parameterized.expand(
@@ -105,10 +101,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_create_role_without_permission(self):
-        data = {
-            "name": "some role",
-            "permissions": [],
-        }
+        data = {"name": "some role", "permissions": []}
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
@@ -118,7 +111,7 @@ class RolesAndPermissionsTests(DataTestClient):
         role_id = Roles.DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [constants.Permission.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.gov_headers)
 

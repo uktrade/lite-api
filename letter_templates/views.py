@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
 
+from conf import constants
 from conf.authentication import GovAuthentication
-from conf.constants import Permissions
 from conf.pagination import MaxPageNumberPagination
 from conf.permissions import assert_user_has_permission
 from letter_templates.models import LetterTemplate
@@ -22,6 +22,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         return LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, constants.Permission.CONFIGURE_TEMPLATES)
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
@@ -43,7 +44,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     serializer_class = LetterTemplateSerializer
 
     def update(self, request, *args, **kwargs):
-        # assert_user_has_permission(request.user, Permissions.)
+        assert_user_has_permission(request.user, constants.Permission.CONFIGURE_TEMPLATES)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
 
         if serializer.is_valid():
