@@ -35,7 +35,6 @@ class OrganisationCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site

@@ -16,6 +16,7 @@ from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateSerializer,
 )
+from users.models import Role
 
 
 class OrganisationsList(generics.ListCreateAPIView):
@@ -52,8 +53,6 @@ class OrganisationsList(generics.ListCreateAPIView):
                 data["name"] = data["user"]["first_name"] + " " + data["user"]["last_name"]
             except (AttributeError, KeyError):
                 pass
-
-        data["user"]["role"] = str(Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
         serializer = OrganisationCreateSerializer(data=data)
 
