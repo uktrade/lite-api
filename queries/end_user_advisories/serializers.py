@@ -9,7 +9,6 @@ from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
