@@ -50,8 +50,7 @@ def post_advice(request, case, serializer_object, team=False):
 
     if CaseStatusEnum.is_terminal(application.status.status):
         return JsonResponse(
-            data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
-            status=status.HTTP_400_BAD_REQUEST,
+            data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}, status=status.HTTP_400_BAD_REQUEST,
         )
 
     data = request.data
