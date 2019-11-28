@@ -9,14 +9,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from conf.authentication import SharedAuthentication
-from conf.constants import Roles
 from conf.pagination import MaxPageNumberPagination
 from organisations.models import Organisation
 from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateSerializer,
 )
-from users.models import Role
 
 
 class OrganisationsList(generics.ListCreateAPIView):
