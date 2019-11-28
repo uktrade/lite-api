@@ -11,3 +11,10 @@ class StatusesAsList(APIView):
         statuses = CaseStatus.objects.all().order_by("priority").exclude(status="draft")
         serializer = CaseStatusSerializer(statuses, many=True)
         return JsonResponse(data={"statuses": serializer.data})
+
+
+class StatusProperties(APIView):
+    def get(self, request, status):
+        """ Return is_read_only and is_terminal properties for a case status. """
+        status_properties = CaseStatus.objects.filter(status=status).values_list("is_read_only", "is_terminal")[0]
+        return JsonResponse(data={"is_read_only": status_properties[0], "is_terminal": status_properties[1]})

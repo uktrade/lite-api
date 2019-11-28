@@ -18,7 +18,7 @@ class CaseStatusEnum:
     SURRENDERED = "surrendered"
     SUSPENDED = "suspended"
     UNDER_APPEAL = "under_appeal"
-    UNDER_ECJU_REVIEW = "under_ecju_review"
+    UNDER_ECJU_REVIEW = "under_ECJU_review"
     UNDER_FINAL_REVIEW = "under_final_review"
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
@@ -62,7 +62,7 @@ class CaseStatusEnum:
         (SURRENDERED, "Surrendered"),
         (SUSPENDED, "Suspended"),
         (UNDER_APPEAL, "Under appeal"),
-        (UNDER_ECJU_REVIEW, "Under ecju appeal"),
+        (UNDER_ECJU_REVIEW, "Under ECJU appeal"),
         (UNDER_FINAL_REVIEW, "Under final review"),
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
