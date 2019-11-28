@@ -1,6 +1,6 @@
 from conf.exceptions import NotFoundError
-from organisations.models import Organisation, UserOrganisationRelationship
-from users.models import ExporterUser, GovUser
+from organisations.models import Organisation
+from users.models import ExporterUser, GovUser, UserOrganisationRelationship
 
 
 def get_user_by_pk(pk):

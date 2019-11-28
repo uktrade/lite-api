@@ -9,6 +9,7 @@ from flags.models import Flag
 from organisations.enums import OrganisationType
 from static.countries.models import Country
 from users.enums import UserStatuses
+from users.models import UserOrganisationRelationship
 
 
 class Organisation(models.Model):
@@ -42,12 +43,6 @@ class Organisation(models.Model):
             relationship.user.status = relationship.status
 
         return [x.user for x in user_organisation_relationships]
-
-
-class UserOrganisationRelationship(TimeStampedModel):
-    user = models.ForeignKey("users.ExporterUser", on_delete=models.CASCADE)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
 
 class Site(models.Model):

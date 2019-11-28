@@ -6,21 +6,34 @@ from compat import get_model
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from model_utils.models import TimeStampedModel
 
 from conf.constants import Roles
-from users.enums import UserStatuses
+from teams.models import Team
+from users.enums import UserStatuses, UserType
+from users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(default=None, blank=True, null=True, max_length=50)
+    name = models.CharField(default="permission - FIX", max_length=80)
+    # For convenience using UserType as a proxy for Permission Type
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+
+    objects = models.Manager()
+    exporter = ExporterManager()
+    internal = InternalManager()
+
+    class Meta:
+        ordering = ["name"]
 
 
-@reversion.register()
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
     permissions = models.ManyToManyField(Permission, related_name="roles")
+    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
 
 
 class CustomUserManager(BaseUserManager):
@@ -97,11 +110,38 @@ class ExporterUser(BaseUser):
         else:
             raise Exception("ExporterUser.send_notification: objects expected have not been added.")
 
+    def get_role(self, organisation):
+        return self.userorganisationrelationship_set.get(organisation=organisation).role
+
+    def set_role(self, organisation, role):
+        uor = self.userorganisationrelationship_set.get(organisation=organisation)
+        uor.role = role
+        uor.save()
+
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
     team = models.ForeignKey("teams.Team", related_name="team", on_delete=models.PROTECT)
-    role = models.ForeignKey(Role, related_name="role", default=Roles.DEFAULT_ROLE_ID, on_delete=models.PROTECT,)
+    role = models.ForeignKey(
+        Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT,
+    )
+
+
+class UserOrganisationRelationship(TimeStampedModel):
+    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
+    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE)
+    role = models.ForeignKey(
+        Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
+    )
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+
+
+class GovUser(BaseUser):
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+    team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
+    role = models.ForeignKey(
+        Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
+    )
 
     def unassign_from_cases(self):
         """
@@ -126,11 +166,3 @@ class GovUser(BaseUser):
                 Notification.objects.create(user=self, case_activity=case_activity)
         else:
             raise Exception("GovUser.send_notification: objects expected have not been added.")
-
-    # Adds the first user as a super user
-    # pylint: disable=W0221
-    # pylint: disable=E1003
-    def save(self, *args, **kwargs):
-        if GovUser.objects.filter(role_id=Roles.SUPER_USER_ROLE_ID).count() == 0:
-            self.role_id = Roles.SUPER_USER_ROLE_ID
-        super(BaseUser, self).save(*args, **kwargs)

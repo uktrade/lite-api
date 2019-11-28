@@ -16,7 +16,7 @@ from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
-from organisations.models import UserOrganisationRelationship
+from users.models import UserOrganisationRelationship
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum

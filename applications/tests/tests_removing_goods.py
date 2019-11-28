@@ -6,7 +6,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
 from goods.models import Good
-from organisations.models import UserOrganisationRelationship
+from users.models import UserOrganisationRelationship
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient

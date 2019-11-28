@@ -2,13 +2,14 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from conf.constants import Roles
 from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
+from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
-
     url = reverse("organisations:organisations")
 
     def test_create_organisation_with_first_user(self):
@@ -30,11 +31,10 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
@@ -50,6 +50,10 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(exporter_user.first_name, data["user"]["first_name"])
         self.assertEqual(exporter_user.last_name, data["user"]["last_name"])
+        self.assertEqual(
+            UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation).role_id,
+            Roles.EXPORTER_SUPER_USER_ROLE_ID,
+        )
 
         self.assertEqual(site.name, data["site"]["name"])
         self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
@@ -78,7 +82,7 @@ class OrganisationCreateTests(DataTestClient):
                     "city": None,
                 },
             },
-            "user": {"first_name": None, "last_name": None, "email": None, "password": None,},
+            "user": {"first_name": None, "last_name": None, "email": None, "password": None},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -112,16 +116,14 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand(
-        [["1231234"], [""],]
-    )
+    @parameterized.expand([["1231234"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "type": "individual",
@@ -138,7 +140,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -182,7 +184,7 @@ class OrganisationCreateTests(DataTestClient):
                     "country": "GB",
                 },
             },
-            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com",},
+            "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

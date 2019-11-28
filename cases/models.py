@@ -11,14 +11,14 @@ from cases.managers import CaseManager
 from model_utils.models import TimeStampedModel
 from documents.models import Document
 from flags.models import Flag
-from organisations.models import UserOrganisationRelationship, Organisation
+from organisations.models import Organisation
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.models import CaseStatus
 from teams.models import Team
-from users.models import BaseUser, ExporterUser, GovUser
+from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
 
 
 @reversion.register()

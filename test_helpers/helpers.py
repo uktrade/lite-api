@@ -1,7 +1,6 @@
 import random
 
-from organisations.models import UserOrganisationRelationship
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 
 
 def random_name():
