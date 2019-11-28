@@ -273,7 +273,7 @@ single-line-if-stmt=no
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
-# `trailing-comma` allows a space between comma and closing bracket: (a, ).
+# `trailing-comma` allows a space between comma and closing bracket: (a).
 # `empty-line` allows space-only lines.
 no-space-check=trailing-comma,dict-separator
 

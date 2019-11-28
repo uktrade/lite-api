@@ -6,8 +6,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
+from conf.constants import Permissions
+from conf.permissions import assert_user_has_permission
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
+from users.models import ExporterUser
 
 
 class SitesList(APIView):
@@ -22,6 +25,8 @@ class SitesList(APIView):
         Endpoint for listing the Sites of an organisation
         An organisation must have at least one site
         """
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
         sites = list(Site.objects.filter(organisation=org_pk).order_by("name"))
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
         serializer = SiteViewSerializer(sites, many=True)
@@ -29,6 +34,8 @@ class SitesList(APIView):
 
     @transaction.atomic
     def post(self, request, org_pk):
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
         with reversion.create_revision():
             organisation = Organisation.objects.get(pk=org_pk)
             data = JSONParser().parse(request)
@@ -53,6 +60,8 @@ class SiteDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk, site_pk):
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
@@ -61,6 +70,8 @@ class SiteDetail(APIView):
 
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
+        if isinstance(request.user, ExporterUser):
+            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
