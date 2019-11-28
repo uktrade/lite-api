@@ -6,6 +6,8 @@ RUN apt-get install -y libpq-dev gcc \
   python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \
   libffi-dev shared-mime-info fonts-liberation2
 RUN pip3 install pipenv
+RUN mkdir ~/.fonts
+RUN cp ~/app/assets/fonts/Helvetica.tff ~/.fonts
 ADD Pipfile* /app/
 RUN pipenv sync
 ADD . /app
