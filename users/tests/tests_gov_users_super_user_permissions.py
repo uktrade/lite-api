@@ -20,7 +20,7 @@ class SuperUserTests(DataTestClient):
         role_id = "00000000-0000-0000-0000-000000000002"
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {"permissions": [constants.Permission.MANAGE_FINAL_ADVICE.name]}
+        data = {"permissions": [constants.GovPermissions.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.gov_headers)
 

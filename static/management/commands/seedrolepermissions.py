@@ -1,10 +1,10 @@
 from django.db import transaction
 
+from conf.constants import GovPermissions, ExporterPermissions
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 from users.enums import UserType
 from users.models import Permission, Role
 
-FILE = "lite_content/lite-api/permissions.csv"
 DEFAULT_ID = "00000000-0000-0000-0000-000000000001"
 SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000002"
 EX_SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000003"
@@ -34,9 +34,17 @@ class Command(SeedCommand):
     @transaction.atomic
     def operation(self, *args, **options):
 
-        csv = self.read_csv(FILE)
-        self.update_or_create(Permission, csv)
-        self.delete_unused_objects(Permission, csv)
+        for permission in GovPermissions:
+            Permission.objects.update_or_create(id=permission.name, defaults={"name": permission.value})
+            print(f"CREATED: {permission.name}")
+
+        self.delete_unused_objects(Permission, [{"id": x.name} for x in GovPermissions])
+
+        for permission in ExporterPermissions:
+            Permission.objects.update_or_create(id=permission.name, defaults={"name": permission.value})
+            print(f"CREATED: {permission.name}")
+
+        self.delete_unused_objects(Permission, [{"id": x.name} for x in ExporterPermissions])
 
         _create_role_and_output(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
         _create_role_and_output(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)

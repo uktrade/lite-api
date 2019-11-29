@@ -24,7 +24,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.standard_case = Case.objects.get(application=self.standard_application)
 
         role = Role(name="team_level")
-        role.permissions.set([constants.Permission.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
+        role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         role.save()
 
         self.gov_user.role = role

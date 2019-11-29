@@ -30,6 +30,7 @@ from cases.enums import CaseType
 from cases.models import Case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
+from conf.constants import ExporterPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -172,7 +173,9 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
         if application.application_type != CaseType.HMRC_QUERY:
-            assert_user_has_permission(request.user, Permissions.SUBMIT_LICENCE_APPLICATION, application.organisation)
+            assert_user_has_permission(
+                request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
+            )
         previous_application_status = application.status
 
         errors = validate_application_ready_for_submission(application)
@@ -233,7 +236,7 @@ class ApplicationManageStatus(APIView):
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         # This can return 403 forbidden
         if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)

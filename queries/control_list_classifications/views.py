@@ -57,7 +57,7 @@ class ControlListClassificationDetail(APIView):
         """
         Respond to a control list classification.
         """
-        assert_user_has_permission(request.user, constants.Permission.REVIEW_GOODS)
+        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
         data = json.loads(request.body)

@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from conf.constants import Permissions
+from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
@@ -26,7 +26,7 @@ class SitesList(APIView):
         An organisation must have at least one site
         """
         if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
+            assert_user_has_permission(request.user, GovPermissions.ADMINISTER_SITES, org_pk)
         sites = list(Site.objects.filter(organisation=org_pk).order_by("name"))
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
         serializer = SiteViewSerializer(sites, many=True)
@@ -35,7 +35,7 @@ class SitesList(APIView):
     @transaction.atomic
     def post(self, request, org_pk):
         if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
+            assert_user_has_permission(request.user, GovPermissions.ADMINISTER_SITES, org_pk)
         with reversion.create_revision():
             organisation = Organisation.objects.get(pk=org_pk)
             data = JSONParser().parse(request)
@@ -49,7 +49,7 @@ class SitesList(APIView):
                 serializer.save()
                 return JsonResponse(data={"site": serializer.data}, status=status.HTTP_201_CREATED)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,)
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SiteDetail(APIView):
@@ -61,7 +61,7 @@ class SiteDetail(APIView):
 
     def get(self, request, org_pk, site_pk):
         if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
+            assert_user_has_permission(request.user, GovPermissions.ADMINISTER_SITES, org_pk)
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
@@ -71,7 +71,7 @@ class SiteDetail(APIView):
     @transaction.atomic
     def put(self, request, org_pk, site_pk):
         if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, Permissions.ADMINISTER_SITES, org_pk)
+            assert_user_has_permission(request.user, GovPermissions.ADMINISTER_SITES, org_pk)
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 

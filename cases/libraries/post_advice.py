@@ -13,10 +13,10 @@ from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVI
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
-    if constants.Permission.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name not in user.role.permissions.values_list(
+    if constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name not in user.role.permissions.values_list(
         "id", flat=True
     ):
-        assert_user_has_permission(user, constants.Permission.MANAGE_TEAM_ADVICE)
+        assert_user_has_permission(user, constants.GovPermissions.MANAGE_TEAM_ADVICE)
 
         if Advice.objects.filter(case=case, user=user).exists():
             return JsonResponse(

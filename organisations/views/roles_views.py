@@ -8,7 +8,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication
-from conf.constants import Roles, Permissions
+from conf.constants import Roles, GovPermissions, ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
@@ -33,7 +33,7 @@ class RolesViews(ListCreateAPIView):
         """
         Create a role
         """
-        assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, org_pk)
+        assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_ROLES, org_pk)
         data = JSONParser().parse(request)
         data["organisation"] = str(org_pk)
         data["type"] = UserType.EXPORTER
@@ -77,7 +77,7 @@ class RoleDetail(APIView):
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        assert_user_has_permission(request.user, Permissions.EXPORTER_ADMINISTER_ROLES, org_pk)
+        assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_ROLES, org_pk)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk, org_pk)

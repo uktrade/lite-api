@@ -32,7 +32,7 @@ class GovUserEditTests(DataTestClient):
         valid_user.save()
 
         role = Role(name="some role")
-        role.permissions.set([constants.Permission.MANAGE_FINAL_ADVICE.name])
+        role.permissions.set([constants.GovPermissions.MANAGE_FINAL_ADVICE.name])
         role.save()
         data = {"role": role.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})

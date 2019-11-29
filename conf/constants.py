@@ -2,7 +2,7 @@ from enum import Enum
 from uuid import UUID
 
 
-class Permission(Enum):
+class GovPermissions(Enum):
     MANAGE_FINAL_ADVICE = "Manage final advice"
     MANAGE_TEAM_ADVICE = "Manage team advice"
     MANAGE_TEAM_CONFIRM_OWN_ADVICE = "Confirm own advice"
@@ -11,13 +11,13 @@ class Permission(Enum):
     CONFIRM_OWN_ADVICE = "Confirm own advice"
     CONFIGURE_TEMPLATES = "Create and edit templates"
 
-    ADMINISTER_USERS = "ADMINISTER_USERS"
-    ADMINISTER_SITES = "ADMINISTER_SITES"
-    EXPORTER_ADMINISTER_ROLES = "EXPORTER_ADMINISTER_ROLES"
-    SUBMIT_LICENCE_APPLICATION = "SUBMIT_LICENCE_APPLICATION"
-    SUBMIT_CLEARANCE_APPLICATION = "SUBMIT_CLEARANCE_APPLICATION"
 
-    ADMINISTER_ROLES_PERMISSIONS = [ADMINISTER_ROLES, EXPORTER_ADMINISTER_ROLES]
+class ExporterPermissions(Enum):
+    ADMINISTER_USERS = "Administer users"
+    ADMINISTER_SITES = "Administer sites"
+    ADMINISTER_ROLES = "Administer roles"
+    SUBMIT_LICENCE_APPLICATION = "Submit licence applications"
+    SUBMIT_CLEARANCE_APPLICATION = "Submit clearance applications"
 
 
 class Roles:

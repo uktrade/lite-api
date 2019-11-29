@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 class LetterTemplateEditTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.gov_user.role.permissions.set([constants.Permission.CONFIGURE_TEMPLATES.name])
+        self.gov_user.role.permissions.set([constants.GovPermissions.CONFIGURE_TEMPLATES.name])
 
         self.picklist_item = self.create_picklist_item(
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
