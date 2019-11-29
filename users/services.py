@@ -32,8 +32,6 @@ def get_exporter_roles_by_organisation(request, org_pk, filter_by_request_user_r
         system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
     elif filter_by_request_user_role:
         return filter_roles_by_request_user_role(
-            request.user,
-            Role.objects.filter(Q(organisation=org_pk) | Q(id__in=system_ids)),
-            org_pk,
+            request.user, Role.objects.filter(Q(organisation=org_pk) | Q(id__in=system_ids)), org_pk,
         )
     return Role.objects.filter(Q(organisation=org_pk) | Q(id__in=system_ids))

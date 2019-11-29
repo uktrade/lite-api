@@ -10,11 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import (
-    ExporterAuthentication,
-    ExporterOnlyAuthentication,
-    GovAuthentication,
-)
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk

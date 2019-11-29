@@ -135,7 +135,9 @@ class RolesAndPermissionsTests(DataTestClient):
             role.save()
             i += 1
         second_role = Role(name="multi permission role", organisation=self.organisation)
-        second_role.permissions.set([Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES, Permissions.EXPORTER_ADMINISTER_ROLES])
+        second_role.permissions.set(
+            [Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES, Permissions.EXPORTER_ADMINISTER_ROLES]
+        )
         second_role.save()
         # Adjust expected result to cover the multi permission role
         r = 1 if len(permissions) == 3 else 0
@@ -176,16 +178,15 @@ class RolesAndPermissionsTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, user_role)
 
         response = self.client.put(
-            reverse(
-                "organisations:user",
-                kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},
-            ),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},),
             data={"role": str(Roles.EXPORTER_DEFAULT_ROLE_ID)},
-            **self.exporter_headers
-            )
+            **self.exporter_headers,
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertNotEqual(self.exporter_user.get_role(self.organisation), Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
+        self.assertNotEqual(
+            self.exporter_user.get_role(self.organisation), Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        )
 
     def test_cannot_change_another_users_role_to_one_the_request_user_does_not_have_access_to(self):
         user_role = Role(name="new role", organisation=self.organisation)
@@ -198,13 +199,10 @@ class RolesAndPermissionsTests(DataTestClient):
         second_user = self.create_exporter_user(self.organisation)
 
         response = self.client.put(
-            reverse(
-                "organisations:user",
-                kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},
-            ),
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
             data={"role": str(second_user_role.id)},
-            **self.exporter_headers
-            )
+            **self.exporter_headers,
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotEqual(second_user.get_role(self.organisation), second_user_role)
