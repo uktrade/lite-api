@@ -88,8 +88,8 @@ class UserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-                user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-                or data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
