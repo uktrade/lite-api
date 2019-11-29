@@ -11,7 +11,7 @@ from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
-from users.models import Role, Permission
+from users.models import Role
 from users.services import filter_roles_by_request_user_role
 
 

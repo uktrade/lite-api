@@ -16,7 +16,7 @@ from users.serializers import (
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
 )
-from users.services import filter_roles_by_request_user_role, get_exporter_roles_by_organisation
+from users.services import filter_roles_by_request_user_role
 
 
 class UsersList(APIView):
