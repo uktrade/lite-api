@@ -109,13 +109,15 @@ class GoodList(APIView):
         """
         description = request.GET.get("description", "")
         part_number = request.GET.get("part_number", "")
-        control_rating = request.GET.get("control_rating", "")
+        control_rating = request.GET.get("control_rating", None)
         goods = Good.objects.filter(
             organisation_id=request.user.organisation.id,
             description__icontains=description,
             part_number__icontains=part_number,
-            control_code__icontains=control_rating,
         ).order_by("description")
+
+        if control_rating:
+            goods = goods.filter(control_code__icontains=control_rating)
         serializer = GoodListSerializer(goods, many=True)
         return JsonResponse(data={"goods": serializer.data})
 
