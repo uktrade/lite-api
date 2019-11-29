@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cp /app/assets/fonts/Helvetica.ttf /usr/share/fonts/Helvetica.ttf

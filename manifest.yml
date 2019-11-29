@@ -1,4 +1,6 @@
 ---
 applications:
   -
-    buildpack: python_buildpack
+    buildpack:
+    - https://github.com/cloudfoundry/apt-buildpack.git
+    - python_buildpack
