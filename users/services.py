@@ -19,6 +19,7 @@ def filter_roles_by_request_user_role(user: BaseUser, roles: QuerySet, organisat
         for perm in role_perms:
             if add_role and perm not in permissions:
                 add_role = False
+                break
         if add_role:
             filtered_roles.append(role)
 

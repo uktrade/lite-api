@@ -185,7 +185,7 @@ class RolesAndPermissionsTests(DataTestClient):
             )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertNotEqual(self.exporter_user.get_role(self.organisation), user_role)
+        self.assertNotEqual(self.exporter_user.get_role(self.organisation), Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
 
     def test_cannot_change_another_users_role_to_one_the_request_user_does_not_have_access_to(self):
         user_role = Role(name="new role", organisation=self.organisation)
