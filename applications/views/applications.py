@@ -171,7 +171,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        if application.application_type != CaseType.HMRC_QUERY:
+        if application.application_type != CaseTypeEnum.HMRC_QUERY:
             assert_user_has_permission(request.user, Permissions.SUBMIT_LICENCE_APPLICATION, application.organisation)
         previous_application_status = application.status
 
