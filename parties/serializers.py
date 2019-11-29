@@ -1,6 +1,7 @@
 from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from lite_content.lite_api.parties import Parties
 from organisations.models import Organisation
 from parties.document.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
@@ -11,7 +12,7 @@ class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = CountrySerializerField()
-    website = serializers.URLField(required=False, allow_blank=True)
+    website = serializers.URLField(required=False, allow_blank=True, error_messages={"invalid": Parties.URL_ERROR})
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
