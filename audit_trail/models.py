@@ -2,12 +2,14 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.utils import timezone, timesince
+from django.utils import timesince
+from django.utils.translation import ugettext as _
 
 from audit_trail.managers import AuditManager
+from common.models import TimestampableModel
 
 
-class Audit(models.Model):
+class Audit(TimestampableModel):
     """
     """
     actor_content_type = models.ForeignKey(
@@ -51,7 +53,7 @@ class Audit(models.Model):
     objects = AuditManager()
 
     class Meta:
-        ordering = ('-timestamp',)
+        ordering = ('-created_at',)
 
     def __str__(self):
         ctx = {
@@ -59,19 +61,15 @@ class Audit(models.Model):
             'verb': self.verb,
             'action_object': self.action_object,
             'target': self.target,
-            'timesince': self.timesince()
+            'age': self.age()
         }
         if self.target:
             if self.action_object:
-                return _('%(actor)s %(verb)s %(action_object)s on %(target)s %(timesince)s ago') % ctx
-            return _('%(actor)s %(verb)s %(target)s %(timesince)s ago') % ctx
+                return _('%(actor)s %(verb)s %(action_object)s on %(target)s %(age)s ago') % ctx
+            return _('%(actor)s %(verb)s %(target)s %(age)s ago') % ctx
         if self.action_object:
-            return _('%(actor)s %(verb)s %(action_object)s %(timesince)s ago') % ctx
-        return _('%(actor)s %(verb)s %(timesince)s ago') % ctx
+            return _('%(actor)s %(verb)s %(action_object)s %(age)s ago') % ctx
+        return _('%(actor)s %(verb)s %(age)s ago') % ctx
 
-    def timesince(self, now=None):
-        """
-        Shortcut for the ``django.utils.timesince.timesince`` function of the
-        current timestamp.
-        """
-        return timesince.timesince(self.timestamp, now).encode('utf8').replace(b'\xc2\xa0', b' ').decode('utf8')
+    def age(self):
+        return timesince.timesince(self.created_at).encode('utf8').replace(b'\xc2\xa0', b' ').decode('utf8')

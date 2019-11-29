@@ -11,7 +11,6 @@ class AuditSerializer(serializers.ModelSerializer):
     Serializer to serialize Action to current format for CaseActivity
     """
     user = serializers.SerializerMethodField()
-    created_at = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
     additional_text = serializers.SerializerMethodField()
 
@@ -24,9 +23,6 @@ class AuditSerializer(serializers.ModelSerializer):
             "first_name": instance.actor.first_name,
             "last_name": instance.actor.last_name,
         }
-
-    def get_created_at(self, instance):
-        return instance.timestamp
 
     def get_text(self, instance):
         verb = Verb(instance.verb)
