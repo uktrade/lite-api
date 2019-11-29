@@ -104,7 +104,7 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ControlListClassificationQuery.objects.get(good=instance)
             case = Case.objects.get(query=clc_query)
             return case.id
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     def get_case_status(self, instance):
@@ -114,14 +114,14 @@ class GoodSerializer(serializers.ModelSerializer):
                 "key": clc_query.status.status,
                 "value": get_status_value_from_case_status_enum(clc_query.status.status),
             }
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     def get_query_id(self, instance):
         try:
             clc_query = ControlListClassificationQuery.objects.get(good=instance)
             return clc_query.id
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     def get_documents(self, instance):

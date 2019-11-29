@@ -109,7 +109,7 @@ class GoodList(APIView):
         """
         description = request.GET.get("description", "")
         part_number = request.GET.get("part_number", "")
-        control_rating = request.GET.get("control_rating", None)
+        control_rating = request.GET.get("control_rating")
         goods = Good.objects.filter(
             organisation_id=request.user.organisation.id,
             description__icontains=description,

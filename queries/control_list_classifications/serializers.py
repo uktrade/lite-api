@@ -18,7 +18,14 @@ class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ControlListClassificationQuery
-        fields = ("id", "details", "good", "submitted_at", "organisation", "status")
+        fields = (
+            "id",
+            "details",
+            "good",
+            "submitted_at",
+            "organisation",
+            "status",
+        )
 
     def get_status(self, instance):
         if instance.status:
