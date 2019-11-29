@@ -1,9 +1,12 @@
-from actstream.models import Action
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from audit_trail.serializers import ActivitySerializer
+from audit_trail import service
+from audit_trail.serializers import AuditSerializer
+from cases.libraries.activity_helpers import convert_case_notes_to_activity
 from cases.libraries.get_case import get_case, get_case_activity
+from cases.libraries.get_case_note import get_case_notes_from_case
+from cases.serializers import CaseActivitySerializer
 from conf.authentication import GovAuthentication
 
 
@@ -15,19 +18,20 @@ class Activity(APIView):
     * Case Notes
     * ECJU Queries
     """
-
     def get(self, request, pk):
         case = get_case(pk)
-        activity = get_case_activity(case)
+        # activity = get_case_activity(case)
         # activity.extend(convert_case_notes_to_activity(get_case_notes_from_case(case, False)))
         #
         # # Sort the activity based on date (newest first)
         # activity.sort(key=lambda x: x.created_at, reverse=True)
+        # serializer = CaseActivitySerializer(activity, many=True)
 
+        actions = service.get_trail(target=case)
+        serializer = AuditSerializer(actions, many=True)
 
-        actions = Action.objects.all()
+        from pprint import pprint
 
-        serializer = ActivitySerializer(actions, many=True)
-
+        pprint(list(serializer.data))
 
         return JsonResponse(data={"activity": serializer.data})

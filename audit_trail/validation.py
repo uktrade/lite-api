@@ -1,7 +1,7 @@
 from functools import wraps
 
 from audit_trail.constants import Verb, AuditType
-from cases.models import Case
+from cases.models import Case, CaseNote
 from users.models import GovUser
 
 
@@ -22,8 +22,8 @@ if action.validate():
 SCHEMAS = {
     AuditType.CASE: {
         'actor': [GovUser],
-        'verb': [Verb.ADDED_QUEUES, Verb.REMOVED_QUEUES],
-        'action_object': [None],
+        'verb': [Verb.ADDED_NOTE, Verb.REMOVED_NOTE, Verb.ADDED_QUEUES, Verb.REMOVED_QUEUES],
+        'action_object': [None, CaseNote],
         'target': [Case],
         'payload': [None, dict]
     },

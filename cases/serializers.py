@@ -1,7 +1,5 @@
 import itertools
-import json
 
-from actstream.models import Action
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 

@@ -30,7 +30,6 @@ django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
 unittest-xml-reporting = "*"
-django-jsonfield = "*"
 django-activity-stream = "*"
 django-jsonfield-compat = "*"
 

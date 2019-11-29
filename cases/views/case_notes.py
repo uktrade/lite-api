@@ -2,6 +2,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from audit_trail import service
+from audit_trail.constants import AuditType, Verb
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
@@ -38,6 +40,14 @@ class CaseNoteList(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            service.create(
+                audit_type=AuditType.CASE,
+                verb=Verb.ADDED_NOTE,
+                actor=request.user,
+                action_object=serializer.instance,
+                target=case,
+                payload={'note': serializer.instance.text}
+            )
             return JsonResponse(data={"case_note": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

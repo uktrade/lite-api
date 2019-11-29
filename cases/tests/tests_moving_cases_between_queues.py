@@ -1,14 +1,10 @@
-import json
 from unittest import mock
 
-from actstream.models import Action
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
 from audit_trail.constants import Verb, AuditType
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
 from test_helpers.clients import DataTestClient
 
 

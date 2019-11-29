@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     "queries.end_user_advisories",
     "queries.control_list_classifications",
     "audit_trail",
-    "actstream",
+    # "actstream",
 ]
 
 MIDDLEWARE = [
@@ -181,9 +181,10 @@ SECURE_BROWSER_XSS_FILTER = True
 
 # Django Activity Stream settings
 
-ACTSTREAM_SETTINGS = {
-    'FETCH_RELATIONS': True,
-    'USE_PREFETCH': True,
-    'USE_JSONFIELD': True,
-    'GFK_FETCH_DEPTH': 1,
-}
+# ACTSTREAM_SETTINGS = {
+#     'FETCH_RELATIONS': True,
+#     'USE_PREFETCH': True,
+#     'USE_JSONFIELD': True,
+#     'GFK_FETCH_DEPTH': 1,
+#     'MANAGER': 'audit_trail.managers.AuditManager'
+# }
