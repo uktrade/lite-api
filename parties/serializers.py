@@ -32,10 +32,13 @@ class PartySerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_website(value):
-        val = URLValidator()
-        url = f"https://{value}"
-        val(url)
-        return url
+        if value:
+            val = URLValidator()
+            url = f"https://{value}"
+            val(url)
+            return url
+        else:
+            return value
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance).values()
