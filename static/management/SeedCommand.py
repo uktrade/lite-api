@@ -36,7 +36,7 @@ class SeedCommand(ABC, BaseCommand):
             self.operation(*args, **options)
         except Exception as error:  # noqa
             self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
-            return
+            exit(1)
         self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
 
     @staticmethod

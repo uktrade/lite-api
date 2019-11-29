@@ -27,6 +27,7 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
+        super_user_role = Role.objects.get(id=SUPER_USER_ROLE_ID)
         # Default team
         team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
 
@@ -42,7 +43,7 @@ class Command(SeedCommand):
 
         # Create all SEED_USERS and give them the super user role
         for email in json.loads(env("SEED_USERS")):
-            gov_user, created = GovUser.objects.get_or_create(email=email, team=team, role=super_user)
+            gov_user, created = GovUser.objects.get_or_create(email=email, team=team, role=super_user_role)
             if created:
                 gov_user = dict(
                     email=gov_user.email,

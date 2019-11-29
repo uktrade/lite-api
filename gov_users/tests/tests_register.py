@@ -14,7 +14,7 @@ class GovUserAuthenticateTests(DataTestClient):
             "last_name": "Smith",
             "email": "jsmith@name.com",
             "team": self.team.id,
-            "role": Roles.DEFAULT_ROLE_ID,
+            "role": Roles.INTERNAL_DEFAULT_ROLE_ID,
         }
 
         url = reverse("gov_users:gov_users")
@@ -42,7 +42,7 @@ class GovUserAuthenticateTests(DataTestClient):
             "last_name": "Smith",
             "email": "jsmith@name.com",
             "team": self.team.id,
-            "role": Roles.SUPER_USER_ROLE_ID,
+            "role": Roles.INTERNAL_SUPER_USER_ROLE_ID,
         }
 
         url = reverse("gov_users:gov_users")
@@ -56,7 +56,7 @@ class GovUserAuthenticateTests(DataTestClient):
             "last_name": "Smith",
             "email": "jsmith@name.com",
             "team": self.team.id,
-            "role": Roles.SUPER_USER_ROLE_ID,
+            "role": Roles.INTERNAL_SUPER_USER_ROLE_ID,
         }
 
         url = reverse("gov_users:gov_users")

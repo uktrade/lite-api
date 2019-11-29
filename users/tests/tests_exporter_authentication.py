@@ -23,9 +23,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
             "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
 
-        users_url = reverse("organisations:users", kwargs={"org_pk": str(self.organisation.id)})
-
-        response = self.client.get(users_url, **headers)
+        response = self.client.get(reverse("goods:goods"), **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
