@@ -35,16 +35,22 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
 
         for permission in GovPermissions:
-            Permission.objects.update_or_create(
+            _, created = Permission.objects.update_or_create(
                 id=permission.name, defaults={"name": permission.value, "type": UserType.INTERNAL}
             )
-            print(f"CREATED INTERNAL PERMISSION: {permission.name}")
+            if created:
+                print(f"CREATED GOV PERMISSION: {permission.name}")
+            else:
+                print(f"UPDATED GOV PERMISSION: {permission.name}")
 
         for permission in ExporterPermissions:
-            Permission.objects.update_or_create(
+            _, created = Permission.objects.update_or_create(
                 id=permission.name, defaults={"name": permission.value, "type": UserType.EXPORTER}
             )
-            print(f"CREATED EXPORTER PERMISSION: {permission.name}")
+            if created:
+                print(f"CREATED EXPORTER PERMISSION: {permission.name}")
+            else:
+                print(f"UPDATED EXPORTER PERMISSION: {permission.name}")
 
         self.delete_unused_objects(
             Permission, [{"id": x.name} for x in GovPermissions] + [{"id": x.name} for x in ExporterPermissions]
