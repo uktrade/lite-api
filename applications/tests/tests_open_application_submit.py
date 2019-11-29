@@ -14,6 +14,7 @@ class OpenApplicationTests(DataTestClient):
         super().setUp()
         self.draft = self.create_open_application(self.organisation)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_submit_open_application_success(self):
         response = self.client.put(self.url, **self.exporter_headers)

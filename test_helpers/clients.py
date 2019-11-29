@@ -58,13 +58,7 @@ from test_helpers import colours
 from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
-from users.models import (
-    GovUser,
-    BaseUser,
-    ExporterUser,
-    UserOrganisationRelationship,
-    Role,
-)
+from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 
 
 class Static:
@@ -109,8 +103,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "HTTP_ORGANISATION_ID": self.organisation.id,
         }
 
-        self.default_role = Role.objects.get(id=Roles.DEFAULT_ROLE_ID)
-        self.super_user_role = Role.objects.get(id=Roles.SUPER_USER_ROLE_ID)
+        self.default_role = Role.objects.get(id=Roles.INTERNAL_DEFAULT_ROLE_ID)
+        self.super_user_role = Role.objects.get(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        self.exporter_default_role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        self.exporter_super_user_role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
         self.hmrc_exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user),
@@ -146,8 +142,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
             print(self._testMethodName + emoji + " " + colour(str(time) + "ms") + emoji)
 
-    @staticmethod
-    def create_exporter_user(organisation=None, first_name=None, last_name=None):
+    def get(self, path, data=None, follow=False, **extra):
+        response = self.client.get(path, data, follow, **extra)
+        return response.json(), response.status_code
+
+    def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
@@ -160,14 +159,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         exporter_user.save()
 
         if organisation:
-            UserOrganisationRelationship(user=exporter_user, organisation=organisation).save()
+            if not role:
+                role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+            UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
             exporter_user.status = UserStatuses.ACTIVE
 
         return exporter_user
 
     @staticmethod
-    def add_exporter_user_to_org(organisation, exporter_user):
-        UserOrganisationRelationship(user=exporter_user, organisation=organisation).save()
+    def add_exporter_user_to_org(organisation, exporter_user, role=None):
+        if not role:
+            role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
 
     @staticmethod
     def create_site(name, org, country="GB"):

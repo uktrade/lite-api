@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from cases.models import Notification
+from conf.constants import Roles
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
@@ -10,9 +11,9 @@ from organisations.models import Organisation
 from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer
-from users.enums import UserStatuses
+from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship
+from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -32,6 +33,7 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
@@ -57,6 +59,12 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
         except UserOrganisationRelationship.DoesNotExist:
             raise NotFoundError({"user": "User not found - " + str(instance.id)})
 
+    def get_role(self, instance):
+        if self.context:
+            role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
+            return RoleSerializer(role).data
+        return None
+
     class Meta:
         model = ExporterUser
         fields = "__all__"
@@ -80,10 +88,11 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
+    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "organisation")
+        fields = ("id", "email", "first_name", "last_name", "role", "organisation")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -101,10 +110,27 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
         return email
 
+    def validate_role(self, role):
+        if hasattr(self, "initial_data") and "role" in self.initial_data:
+            try:
+                if self.initial_data["role"] not in Roles.EXPORTER_PRESET_ROLES:
+                    Role.objects.get(id=self.initial_data["role"], organisation=self.initial_data["organisation"])
+            except NotFoundError:
+                pass
+        return role
+
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
+        role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        if "role" in validated_data:
+            role = validated_data.pop("role")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+        if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
+            UserOrganisationRelationship(user=exporter, organisation=organisation, role=role).save()
+        else:
+            UserOrganisationRelationship(
+                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+            ).save()
         return exporter
 
     def update(self, instance, validated_data):
@@ -232,7 +258,8 @@ class ExporterUserSimpleSerializer(serializers.ModelSerializer):
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=UserStatuses.choices)
+    role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.filter(type=UserType.EXPORTER))
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ("status",)
+        fields = ("status", "role")
