@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -15,17 +15,18 @@ from conf.authentication import (
     ExporterOnlyAuthentication,
     GovAuthentication,
 )
-from conf.constants import Permissions
+from conf.constants import Permissions, Roles
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser
+from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     NotificationSerializer,
     CaseNotificationGetSerializer,
 )
+from users.services import filter_roles_by_request_user_role
 
 
 class AuthenticateExporterUser(APIView):

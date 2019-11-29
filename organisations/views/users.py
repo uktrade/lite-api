@@ -10,12 +10,13 @@ from conf.constants import Roles, Permissions
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
-from users.models import ExporterUser
+from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
 )
+from users.services import filter_roles_by_request_user_role, get_exporter_roles_by_organisation
 
 
 class UsersList(APIView):
@@ -87,8 +88,8 @@ class UserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-            user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
-            or data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                or data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 
@@ -103,11 +104,22 @@ class UserDetail(APIView):
 
         # Cannot remove super user from yourself
         if "role" in data.keys():
-            if user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            if user.id == request.user.id:
+                return JsonResponse(
+                    data={"errors": "A user cannot change their own role"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            elif user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
                 return JsonResponse(
                     data={"errors": "A user cannot remove super user from themselves"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            # Cannot assign a role, you do not have access to
+            if (data["role"] not in str(Roles.EXPORTER_PRESET_ROLES)
+                    and data["role"] not in filter_roles_by_request_user_role(
+                        request.user,
+                        Role.objects.filter(organisation=org_pk),
+                        org_pk)):
+                raise PermissionDenied()
 
         serializer = UserOrganisationRelationshipSerializer(instance=self.user_relationship, data=data, partial=True)
 

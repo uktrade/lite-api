@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -49,7 +48,7 @@ class SuperUserTests(DataTestClient):
         valid_user.save()
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
-        data = {"role": self.default_role.id}
+        data = {"role": self.exporter_default_role.id}
         url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
