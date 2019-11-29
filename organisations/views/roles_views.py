@@ -23,8 +23,7 @@ class RolesViews(ListCreateAPIView):
     serializer_class = RoleSerializer
 
     def get_queryset(self):
-        roles = get_exporter_roles_by_organisation(self.request, self.kwargs.get("org_pk"))
-        return roles
+        return get_exporter_roles_by_organisation(self.request, self.kwargs.get("org_pk"))
 
     @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request, org_pk):
