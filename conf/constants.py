@@ -15,7 +15,7 @@ class GovPermissions(Enum):
 class ExporterPermissions(Enum):
     ADMINISTER_USERS = "Administer users"
     ADMINISTER_SITES = "Administer sites"
-    ADMINISTER_ROLES = "Administer roles"
+    EXPORTER_ADMINISTER_ROLES = "Administer roles"
     SUBMIT_LICENCE_APPLICATION = "Submit licence applications"
     SUBMIT_CLEARANCE_APPLICATION = "Submit clearance applications"
 

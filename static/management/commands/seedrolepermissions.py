@@ -35,16 +35,20 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
 
         for permission in GovPermissions:
-            Permission.objects.update_or_create(id=permission.name, defaults={"name": permission.value})
+            Permission.objects.update_or_create(
+                id=permission.name, defaults={"name": permission.value, "type": UserType.INTERNAL}
+            )
             print(f"CREATED: {permission.name}")
-
-        self.delete_unused_objects(Permission, [{"id": x.name} for x in GovPermissions])
 
         for permission in ExporterPermissions:
-            Permission.objects.update_or_create(id=permission.name, defaults={"name": permission.value})
+            Permission.objects.update_or_create(
+                id=permission.name, defaults={"name": permission.value, "type": UserType.EXPORTER}
+            )
             print(f"CREATED: {permission.name}")
 
-        self.delete_unused_objects(Permission, [{"id": x.name} for x in ExporterPermissions])
+        self.delete_unused_objects(
+            Permission, [{"id": x.name} for x in GovPermissions] + [{"id": x.name} for x in ExporterPermissions]
+        )
 
         _create_role_and_output(id=DEFAULT_ID, type=UserType.INTERNAL, name=ROLE_NAME)
         _create_role_and_output(id=EX_DEFAULT_ID, type=UserType.EXPORTER, name=ROLE_NAME)
