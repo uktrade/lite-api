@@ -69,4 +69,4 @@ class Command(SeedCommand):
 class SeedPermissionsTests(SeedCommandTest):
     def test_seed_org_users(self):
         self.seed_command(Command)
-        self.assertTrue(Permission.objects.count() >= len(Command.read_csv(FILE)))
+        self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))

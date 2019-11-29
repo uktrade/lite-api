@@ -22,7 +22,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
     def test_get_list_of_all_roles_as_non_exporter_super_user(self):
         role = Role(name="some", organisation=self.organisation, type=UserType.EXPORTER)
-        role.permissions.set([ExporterPermissions.ADMINISTER_USERS])
+        role.permissions.set([ExporterPermissions.ADMINISTER_USERS.name])
         role.save()
 
         url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
@@ -63,13 +63,13 @@ class RolesAndPermissionsTests(DataTestClient):
         role.save()
         url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role.id})
 
-        data = {"permissions": [ExporterPermissions.ADMINISTER_USERS]}
+        data = {"permissions": [ExporterPermissions.ADMINISTER_USERS.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            ExporterPermissions.ADMINISTER_USERS
+            ExporterPermissions.ADMINISTER_USERS.name
             in Role.objects.get(id=role.id).permissions.values_list("id", flat=True)
         )
 
@@ -88,7 +88,7 @@ class RolesAndPermissionsTests(DataTestClient):
         role.save()
         url = reverse("organisations:role", kwargs={"org_pk": self.organisation.id, "pk": role.id})
 
-        data = {"permissions": [ExporterPermissions.ADMINISTER_USERS]}
+        data = {"permissions": [ExporterPermissions.ADMINISTER_USERS.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 

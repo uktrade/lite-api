@@ -12,7 +12,7 @@ class SuperUserTests(DataTestClient):
         role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
         url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
 
-        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -23,7 +23,7 @@ class SuperUserTests(DataTestClient):
         role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
         url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
 
-        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
