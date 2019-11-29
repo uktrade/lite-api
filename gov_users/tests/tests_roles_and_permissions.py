@@ -127,7 +127,9 @@ class RolesAndPermissionsTests(DataTestClient):
             role.save()
             i += 1
         second_role = Role(name="multi permission role")
-        second_role.permissions.set([Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS])
+        second_role.permissions.set(
+            [Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS]
+        )
         second_role.save()
         # Adjust expected result to cover the multi permission role
         r = 1 if len(permissions) == 3 else 0
