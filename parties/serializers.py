@@ -1,3 +1,4 @@
+from django.core.validators import URLValidator
 from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
@@ -11,7 +12,7 @@ class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = CountrySerializerField()
-    website = serializers.URLField(required=False, allow_blank=True)
+    website = serializers.CharField()
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
@@ -28,6 +29,13 @@ class PartySerializer(serializers.ModelSerializer):
             "organisation",
             "document",
         )
+
+    @staticmethod
+    def validate_website(value):
+        val = URLValidator()
+        url = f"https://{value}"
+        val(url)
+        return url
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance).values()
