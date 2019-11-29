@@ -1,14 +1,16 @@
 from django.db.models import QuerySet, Q
 
 from conf.constants import Roles
-from users.models import BaseUser, GovUser, Role
+from users.models import BaseUser, GovUser, Role, ExporterUser
 
 
 def filter_roles_by_request_user_role(user: BaseUser, roles: QuerySet, organisation=None):
     if isinstance(user, GovUser):
         permissions = [x["id"] for x in user.role.permissions.values("id")]
-    else:
+    elif isinstance(user, ExporterUser):
         permissions = [x["id"] for x in user.get_role(organisation).permissions.values("id")]
+    else:
+        permissions = []
 
     filtered_roles = []
     for role in roles:
