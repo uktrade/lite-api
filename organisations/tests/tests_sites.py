@@ -8,6 +8,7 @@ from test_helpers.clients import DataTestClient
 
 class OrganisationSitesTests(DataTestClient):
     def test_site_list(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
         # Create an additional organisation and site to ensure
@@ -19,6 +20,7 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["sites"]), 1)
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_add_site(self):
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
@@ -40,14 +42,14 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
 
     def test_edit_site(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse(
-            "organisations:site",
-            kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id,},
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id}
         )
 
         data = {
             "name": "regional site",
-            "address": {"address_line_1": "43 Commercial Road", "address_line_2": "The place", "country": "GB",},
+            "address": {"address_line_1": "43 Commercial Road", "address_line_2": "The place", "country": "GB"},
         }
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -60,3 +62,33 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(site.address.address_line_1, data["address"]["address_line_1"])
         self.assertEqual(site.address.address_line_2, data["address"]["address_line_2"])
         self.assertEqual(site.address.country, get_country(data["address"]["country"]))
+
+    def test_cannot_add_site_without_permission(self):
+        number_of_initial_sites = Site.objects.count()
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {}
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Site.objects.count(), number_of_initial_sites)
+
+    def test_cannot_edit_site_without_permission(self):
+        url = reverse(
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site_id}
+        )
+        payload_name = "Not headquarters"
+        data = {"name": payload_name}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertNotEqual(self.organisation.primary_site.name, payload_name)
+
+    def test_cannot_see_sites_without_permission(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertNotIn("sites", response.json())

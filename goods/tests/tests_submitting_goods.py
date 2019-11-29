@@ -12,6 +12,7 @@ class GoodTests(DataTestClient):
         """
         Test that the good's status is set to submitted
         """
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, "draft")
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
