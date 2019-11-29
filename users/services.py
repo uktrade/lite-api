@@ -6,16 +6,16 @@ from users.models import BaseUser, GovUser, Role, ExporterUser
 
 def filter_roles_by_request_user_role(user: BaseUser, roles: QuerySet, organisation=None):
     if isinstance(user, GovUser):
-        permissions = [x["id"] for x in user.role.permissions.values("id")]
+        permissions = user.role.permissions.values_list("id", flat=True)
     elif isinstance(user, ExporterUser):
-        permissions = [x["id"] for x in user.get_role(organisation).permissions.values("id")]
+        permissions = user.get_role(organisation).permissions.values_list("id", flat=True)
     else:
         permissions = []
 
     filtered_roles = []
     for role in roles:
         add_role = True
-        role_perms = [p["id"] for p in role.permissions.values("id")]
+        role_perms = role.permissions.values_list("id", flat=True)
         for perm in role_perms:
             if add_role and perm not in permissions:
                 add_role = False
