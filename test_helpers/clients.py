@@ -37,7 +37,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.document.models import PartyDocument
+from parties.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
@@ -46,6 +46,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
 from static.management.commands.seedall import SEED_COMMANDS
 from static.statuses.enums import CaseStatusEnum

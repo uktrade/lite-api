@@ -9,8 +9,12 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+<<<<<<< HEAD:parties/document/migrations/0001_initial.py
         ('parties', '0001_initial'),
         ('documents', '0001_initial'),
+=======
+        ("parties", "0001_initial"),
+>>>>>>> 3ee0f3aed18c2051e207ab050c85559fed824262:parties/migrations/0002_partydocument.py
     ]
 
     operations = [

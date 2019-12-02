@@ -8,7 +8,7 @@ from applications.models import (
 from content_strings.strings import get_string
 from documents.models import Document
 from goodstype.models import GoodsType
-from parties.document.models import PartyDocument
+from parties.models import PartyDocument
 
 
 def check_party_document(party, is_mandatory):

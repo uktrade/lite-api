@@ -5,7 +5,8 @@ import reversion
 from django.db import models
 from django.utils import timezone
 
-from cases.enums import CaseType, AdviceType
+from applications.models import BaseApplication
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from model_utils.models import TimeStampedModel
@@ -28,7 +29,7 @@ class Case(TimeStampedModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseType.choices, max_length=35)
+    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35, allow_null=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -83,6 +84,9 @@ class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    type = models.CharField(
+        choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
+    )
 
 
 class Advice(models.Model):
@@ -329,3 +333,8 @@ class Notification(models.Model):
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+
+class CaseType(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

@@ -1,10 +1,11 @@
 import uuid
 
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db import models
+
 from sortedm2m.fields import SortedManyToManyField
 
-from cases.enums import CaseType
+from cases.models import CaseType
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
 
@@ -14,9 +15,9 @@ class LetterTemplate(models.Model):
     name = models.CharField(max_length=35, unique=True)
     layout = models.ForeignKey(LetterLayout, on_delete=models.CASCADE, null=False)
     letter_paragraphs = SortedManyToManyField(PicklistItem)
-    restricted_to = ArrayField(base_field=models.TextField(choices=CaseType.choices), default=list,)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
+    case_types = models.ManyToManyField(CaseType, related_name="letter_templates")
 
     class Meta:
         ordering = ["name"]

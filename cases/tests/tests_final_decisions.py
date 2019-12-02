@@ -1,9 +1,10 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import Permissions
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
-from users.models import Role, Permission
+from users.models import Role
 
 
 class CaseActivityTests(DataTestClient):
@@ -27,7 +28,7 @@ class CaseActivityTests(DataTestClient):
 
     def test_can_record_final_decision_with_correct_permissions(self):
         role = Role(name="some")
-        role.permissions.set([Permission.objects.get(id="MANAGE_FINAL_ADVICE").id])
+        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

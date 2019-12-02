@@ -10,8 +10,8 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
-from parties.document.models import PartyDocument
-from parties.document.serializers import PartyDocumentSerializer
+from parties.models import PartyDocument
+from parties.serializers import PartyDocumentSerializer
 
 
 def _get_document(documents):

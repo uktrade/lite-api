@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
-from cases.enums import CaseType, AdviceType
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.models import (
     Case,
     CaseNote,
@@ -18,6 +18,7 @@ from cases.models import (
     TeamAdvice,
     FinalAdvice,
     GoodCountryDecision,
+    CaseType,
 )
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -46,7 +47,7 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
 
-    type = KeyValueChoiceField(choices=CaseType.choices)
+    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
     application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
@@ -83,7 +84,7 @@ class CaseSerializer(serializers.ModelSerializer):
 class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = KeyValueChoiceField(choices=CaseType.choices)
+    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -257,6 +258,7 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
     metadata_id = serializers.SerializerMethodField()
+    type = KeyValueChoiceField(choices=CaseDocumentState.choices)
 
     def get_metadata_id(self, instance):
         return instance.id if instance.safe else "File not ready"
@@ -265,6 +267,7 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
         model = CaseDocument
         fields = (
             "name",
+            "type",
             "metadata_id",
             "user",
             "size",
@@ -474,3 +477,15 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodCountryDecision
         fields = "__all__"
+
+
+class CaseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseType
+        fields = (
+            "id",
+            "name",
+        )
+
+    def to_representation(self, instance):
+        return dict(key=instance.id, value=instance.name)

@@ -1,8 +1,9 @@
 from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from documents.libraries.process_document import process_document
 from organisations.models import Organisation
-from parties.document.models import PartyDocument
+from parties.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartySubType
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 
@@ -68,3 +69,24 @@ class ThirdPartySerializer(PartySerializer):
         model = ThirdParty
 
         fields = "__all__"
+
+
+class PartyDocumentSerializer(serializers.ModelSerializer):
+    party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
+
+    class Meta:
+        model = PartyDocument
+        fields = (
+            "id",
+            "name",
+            "s3_key",
+            "size",
+            "party",
+            "safe",
+        )
+
+    def create(self, validated_data):
+        document = super(PartyDocumentSerializer, self).create(validated_data)
+        document.save()
+        process_document(document)
+        return document
