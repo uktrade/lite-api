@@ -151,9 +151,8 @@ class GovUser(BaseUser):
 
     # pylint: disable=W0221
     def send_notification(self, case_activity=None):
-        Notification = get_model("cases.Notification")
-
         # getting models due to circular imports
+        Notification = get_model("cases.Notification")
 
         if case_activity:
             # There can only be one notification per gov user's case

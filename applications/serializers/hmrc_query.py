@@ -86,7 +86,13 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HmrcQuery
-        fields = ("reasoning", "application_type", "organisation", "hmrc_organisation", "type")
+        fields = (
+            "reasoning",
+            "application_type",
+            "organisation",
+            "hmrc_organisation",
+            "type",
+        )
 
 
 class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
