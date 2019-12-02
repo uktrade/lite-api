@@ -65,10 +65,6 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         )
 
     def test_respond_to_control_list_classification_query_without_updating_control_code_success(self):
-        """
-        Ensure that a gov user can respond to a control list
-        classification query with a control code
-        """
         self.query.good.control_code = "ML1a"
         self.query.good.save()
         previous_query_control_code = self.query.good.control_code
@@ -94,10 +90,6 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(case_activities[0].type, "clc_response")
 
     def test_respond_to_control_list_classification_query_update_control_code_success(self):
-        """
-        Ensure that a gov user can respond to a control list
-        classification query with a control code
-        """
         previous_query_control_code = self.query.good.control_code
         data = {
             "comment": "I Am Easy to Find",
