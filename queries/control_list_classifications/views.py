@@ -9,10 +9,12 @@ from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from goods.serializers import ClcControlGoodSerializer
 from goods.libraries.get_goods import get_good
+from lite_content.lite_api.strings import GOOD_NO_CONTROL_CODE
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
@@ -64,10 +66,10 @@ class ControlListClassificationDetail(APIView):
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
 
         if clc_good_serializer.is_valid():
-            if "validate_only" not in data or data["validate_only"] == "False":
+            if not str_to_bool(data.get("validate_only")):
                 old_control_code = query.good.control_code
                 if not old_control_code:
-                    old_control_code = "No control code"
+                    old_control_code = GOOD_NO_CONTROL_CODE
 
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
@@ -75,7 +77,7 @@ class ControlListClassificationDetail(APIView):
 
                 new_control_code = clc_good_serializer.validated_data.get("control_code")
                 if not new_control_code:
-                    new_control_code = "No control code"
+                    new_control_code = GOOD_NO_CONTROL_CODE
 
                 if new_control_code != old_control_code:
                     CaseActivity.create(
