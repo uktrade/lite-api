@@ -10,7 +10,7 @@ from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
@@ -22,6 +22,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     contact_email = serializers.EmailField()
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -37,9 +38,30 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             "contact_email",
             "contact_job_title",
             "contact_telephone",
+            "status",
         )
 
     standard_blank_error_message = "This field may not be blank"
+
+    def to_representation(self, value):
+        """
+        Return both reference code and case ID for the copy of field
+        """
+        repr_dict = super(EndUserAdvisorySerializer, self).to_representation(value)
+        if repr_dict["copy_of"]:
+            repr_dict["copy_of"] = {
+                "reference_code": repr_dict["copy_of"],
+                "case_id": repr_dict["copy_of"],
+            }
+        return repr_dict
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
+        return None
 
     def validate_nature_of_business(self, value):
         if self.initial_data.get("end_user").get("sub_type") == SubType.COMMERCIAL and not value:
