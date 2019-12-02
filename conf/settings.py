@@ -29,43 +29,42 @@ ALLOWED_HOSTS = json.loads(env("ALLOWED_HOSTS")) if env("ALLOWED_HOSTS") else []
 # Application definition
 
 INSTALLED_APPS = [
+    "addresses",
+    "applications",
+    "background_task",
+    "cases",
+    "content_strings.apps.ContentStringsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "rest_framework",
-    "addresses",
-    "applications.apps.ApplicationsConfig",
-    "organisations.apps.OrganisationsConfig",
-    "users.apps.UsersConfig",
-    "cases.apps.CasesConfig",
-    "goods.apps.GoodsConfig",
-    "parties.apps.PartiesConfig",
-    "teams.apps.TeamsConfig",
-    "queues.apps.QueuesConfig",
+    "drf_yasg",
+    "documents",
+    "flags",
+    "goods",
+    "goodstype",
     "gov_users",
+    "letter_templates",
+    "organisations",
+    "parties",
+    "picklists",
+    "queries",
+    "queries.control_list_classifications",
+    "queries.end_user_advisories",
+    "queues",
+    "rest_framework",
+    "reversion",
     "static",
     "static.control_list_entries",
     "static.countries",
-    "static.units",
     "static.denial_reasons",
-    "static.statuses",
     "static.letter_layouts",
-    "letter_templates",
+    "static.statuses",
+    "static.units",
     "static.upload_document_for_tests",
-    "reversion",
-    "drf_yasg",
-    "content_strings.apps.ContentStringsConfig",
-    "goodstype",
-    "flags.apps.FlagsConfig",
-    "documents.apps.DocumentsConfig",
-    "background_task",
-    "picklists",
-    "parties.document",
-    "queries",
-    "queries.end_user_advisories",
-    "queries.control_list_classifications",
+    "teams",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -117,6 +116,14 @@ SWAGGER_SETTINGS = {"DEFAULT_INFO": "conf.urls.api_info"}
 
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-results/unittest/"
+
+STATIC_URL = "/assets/"
+
+# CSS
+STATIC_ROOT = os.path.join(BASE_DIR, "assets")
+CSS_ROOT = os.path.join(STATIC_ROOT, "css")
+
+LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
