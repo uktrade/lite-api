@@ -32,9 +32,7 @@ class FlagsList(APIView):
         """
         level = request.GET.get("level")  # Case, Good
         team = request.GET.get("team")  # True, False
-        include_deactivated = request.GET.get(
-            "include_deactivated", True
-        )  # True, False  - by default we include deactivated flags
+        include_deactivated = request.GET.get("include_deactivated")  # will be True/False
 
         flags = Flag.objects.all()
 
