@@ -31,12 +31,7 @@ class CaseNoteList(APIView):
         """ Create a case note on a case. """
         case = get_case(pk)
 
-        if case.application_id:
-            obj = BaseApplication.objects.get(id=case.application_id)
-        else:
-            obj = Query.objects.get(id=case.query_id)
-
-        if CaseStatusEnum.is_terminal(obj.status.status) and isinstance(request.user, ExporterUser):
+        if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
                 data={"errors": {"text": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,

@@ -31,12 +31,6 @@ class GoodsVerifiedTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-<<<<<<< HEAD
-        self.draft = self.create_standard_application(organisation=self.organisation)
-        GoodOnApplication(good=self.good_1, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
-        GoodOnApplication(good=self.good_2, application=self.draft, quantity=10, unit=Units.NAR, value=500,).save()
-        self.case = self.submit_application(self.draft)
-=======
         self.application = self.create_standard_application(organisation=self.organisation)
         GoodOnApplication(
             good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500,
@@ -44,9 +38,7 @@ class GoodsVerifiedTests(DataTestClient):
         GoodOnApplication(
             good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500,
         ).save()
-        self.submit_application(self.application)
-        self.case = Case.objects.get(application=self.application)
->>>>>>> 6b5c5a20b4a6c8b661ede1037a50bd74b8ed9dcb
+        self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):

@@ -3,6 +3,7 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication
 from cases.libraries.get_case import get_case_activity
+from cases.models import Case
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -154,13 +155,10 @@ class GoodFlagsManagementTests(DataTestClient):
         to whatever case that good is on (if any)
         """
         query = self.create_clc_query("Query", self.organisation)
-        application = self.create_standard_application(self.organisation)
-        self.submit_application(application)
 
         # Set the query and application's good
         query.good = self.good
         query.save()
-        GoodOnApplication(good=self.good, application=application, quantity=1, unit=Units.GRM, value=10,).save()
 
         data = {
             "level": "goods",
@@ -171,5 +169,4 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(query)), 1)
-        self.assertEqual(len(get_case_activity(application)), 1)
+        self.assertEqual(len(get_case_activity(Case.objects.get(id=query.id))), 1)

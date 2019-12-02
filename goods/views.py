@@ -44,8 +44,7 @@ class GoodsListControlCode(APIView):
         """ Set control list codes on multiple goods. """
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
-        application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
-        application = BaseApplication.objects.get(id=application_id)
+        application = BaseApplication.objects.get(id=case_pk)
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(

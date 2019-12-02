@@ -13,13 +13,10 @@ from test_helpers.clients import DataTestClient
 class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
-        self.standard_case = self.submit_application(self.standard_application)
+        self.application = self.create_standard_application(self.organisation)
+        self.case = self.submit_application(self.application)
 
-        self.open_application = self.create_open_application(self.organisation)
-        self.open_case = self.submit_application(self.open_application)
-
-        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
+        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.case.id})
 
     @parameterized.expand(
         [

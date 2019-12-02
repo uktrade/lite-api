@@ -147,5 +147,5 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 0)
+        self.assertEqual(len(get_case_activity(self.query)), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
