@@ -33,9 +33,9 @@ class PartySerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_website(value):
         if value:
-            val = URLValidator()
+            validator = URLValidator()
             url = f"https://{value}"
-            val(url)
+            validator(url)
             return url
         else:
             return value
