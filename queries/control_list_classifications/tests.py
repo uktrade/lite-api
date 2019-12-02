@@ -69,6 +69,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         Ensure that a gov user can respond to a control list
         classification query with a control code
         """
+        old_query_control_code = self.query.good.control_code
         data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
@@ -81,17 +82,19 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, data["control_code"])
+        self.assertNotEqual(self.query.good.control_code, old_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        # Check that two activity items have been added
+        self.assertEqual(len(get_case_activity(self.query.case.get())), 2)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
         Ensure that a gov user can respond to a control list
         classification query with no licence required
         """
+        old_query_control_code = self.query.good.control_code
         data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
@@ -103,11 +106,12 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, "")
+        self.assertNotEqual(self.query.good.control_code, old_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        # Check that two activity items have been added
+        self.assertEqual(len(get_case_activity(self.query.case.get())), 2)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """

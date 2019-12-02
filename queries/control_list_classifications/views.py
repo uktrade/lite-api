@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
+from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
@@ -67,9 +67,27 @@ class ControlListClassificationDetail(APIView):
         with reversion.create_revision():
             if clc_good_serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
+                    old_control_code = query.good.control_code
+                    if not old_control_code:
+                        old_control_code = "No control code"
+
                     clc_good_serializer.save()
                     query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                     query.save()
+
+                    new_control_code = clc_good_serializer.validated_data.get("control_code")
+                    if not new_control_code:
+                        new_control_code = "No control code"
+
+                    if new_control_code != old_control_code:
+                        CaseActivity.create(
+                            activity_type=CaseActivityType.GOOD_REVIEWED,
+                            good_name=query.good.description,
+                            old_control_code=old_control_code,
+                            new_control_code=new_control_code,
+                            case=Case.objects.get(query=query),
+                            user=request.user,
+                        )
 
                     # Add an activity item for the query's case
                     CaseActivity.create(
