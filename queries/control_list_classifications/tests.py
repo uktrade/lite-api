@@ -64,7 +64,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk},
         )
 
-    def test_respond_to_control_list_classification_query_success(self):
+    def test_respond_to_control_list_classification_query_without_updating_control_code_success(self):
         """
         Ensure that a gov user can respond to a control list
         classification query with a control code
