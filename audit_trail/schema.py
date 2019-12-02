@@ -23,9 +23,16 @@ class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
     @classmethod
     def from_kwargs(cls, **kwargs):
         try:
-            return Schema(**kwargs)
+            missing_kwargs = {}
+            for field in Schema._fields:
+                if field not in kwargs:
+                    kwargs[field] = None
+
+            kwarg_schema = {key: type(value) for key, value in {**kwargs, **missing_kwargs}.items()}
+            return Schema(**kwarg_schema)
+
         except TypeError:
-            raise
+            raise TypeError(f'INVALID KWARGS: {kwargs}')
 
 
 class Registry:
