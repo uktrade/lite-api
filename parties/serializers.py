@@ -32,6 +32,14 @@ class PartySerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_website(value):
+        """
+        Custom validation for URL that makes use of django URLValidator
+        but makes the passing of http:// or https:// optional by prepending
+        it if not given. Raises a validation error passed back to the user if
+        invalid. Does not validate if value is empty
+        :param value: given value for URL
+        :return: string to save for the website field
+        """
         if value:
             validator = URLValidator()
             if "https://" not in value and "http://" not in value:
