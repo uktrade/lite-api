@@ -34,11 +34,13 @@ class PartySerializer(serializers.ModelSerializer):
     def validate_website(value):
         if value:
             validator = URLValidator()
+            # Prepend string with https:// so user doesn't have to
             url = f"https://{value}"
             validator(url)
             return url
         else:
-            return value
+            # Field is optional so doesn't validate if blank and just saves an empty string
+            return ""
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance).values()
