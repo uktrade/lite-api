@@ -84,7 +84,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that only one activity item has been added
+        # Check that only the response activity item has been added
         case_activities = get_case_activity(self.query.case.get())
         self.assertEqual(len(case_activities), 1)
         self.assertEqual(case_activities[0].type, "clc_response")
@@ -107,7 +107,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that two activity items have been added
+        # Check that the response and good review activity items have been added
         case_activities = get_case_activity(self.query.case.get())
         self.assertEqual(len(case_activities), 2)
         for case_activity in case_activities:
@@ -134,7 +134,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that two activity items have been added
+        # Check that  that the response and good review activity items have been added
         case_activities = get_case_activity(self.query.case.get())
         self.assertEqual(len(case_activities), 2)
         for case_activity in case_activities:
