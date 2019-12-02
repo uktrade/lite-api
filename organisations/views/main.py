@@ -9,18 +9,13 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from conf.authentication import SharedAuthentication
-from conf.pagination import MaxPageNumberPagination
 from organisations.models import Organisation
-from organisations.serializers import (
-    OrganisationDetailSerializer,
-    OrganisationCreateSerializer,
-)
+from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
 
 
 class OrganisationsList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
     serializer_class = OrganisationDetailSerializer
-    pagination_class = MaxPageNumberPagination
 
     def get_queryset(self):
         """

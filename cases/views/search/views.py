@@ -5,7 +5,6 @@ from cases.serializers import TinyCaseSerializer
 from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
-from conf.pagination import MaxPageNumberPagination
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_SYSTEM_QUEUE_ID
 
 
@@ -15,7 +14,6 @@ class CasesSearchView(generics.ListAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    pagination_class = MaxPageNumberPagination
 
     def get(self, request, *args, **kwargs):
         queue_id = request.GET.get("queue_id", ALL_CASES_SYSTEM_QUEUE_ID)
@@ -41,7 +39,7 @@ class CasesSearchView(generics.ListAPIView):
             {
                 "queues": queues,
                 "cases": cases,
-                "filters": {"statuses": statuses, "case_types": case_types,},
+                "filters": {"statuses": statuses, "case_types": case_types},
                 "is_system_queue": context["is_system_queue"],
                 "queue": queue,
             }
