@@ -8,8 +8,9 @@ from users.models import Permission
 
 class SuperUserTests(DataTestClient):
     def test_super_user_role_cannot_be_edited(self):
-        role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
-        url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
+        url = reverse(
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+        )
 
         data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
 
@@ -19,8 +20,9 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.exporter.all().count())
 
     def test_exporter_default_user_role_cannot_be_edited(self):
-        role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
-        url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
+        url = reverse(
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+        )
 
         data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
 
