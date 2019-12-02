@@ -67,17 +67,13 @@ class ControlListClassificationDetail(APIView):
 
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                previous_control_code = query.good.control_code
-                if not previous_control_code:
-                    previous_control_code = GOOD_NO_CONTROL_CODE
+                previous_control_code = query.good.control_code if query.good.control_code else GOOD_NO_CONTROL_CODE
 
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                 query.save()
 
-                new_control_code = clc_good_serializer.validated_data.get("control_code")
-                if not new_control_code:
-                    new_control_code = GOOD_NO_CONTROL_CODE
+                new_control_code = clc_good_serializer.validated_data.get("control_code", GOOD_NO_CONTROL_CODE)
 
                 if new_control_code != previous_control_code:
                     CaseActivity.create(
