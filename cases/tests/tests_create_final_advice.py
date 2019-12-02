@@ -6,6 +6,8 @@ from cases.enums import AdviceType
 from cases.models import Case, TeamAdvice, FinalAdvice, Advice
 from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
@@ -290,3 +292,19 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.client.get(self.standard_case_url, **self.gov_headers)
 
         self.assertEqual(Advice.objects.count(), 3)
+
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
+    def test_cannot_create_final_advice_on_case_in_terminal_state(self, terminal_status):
+        self.standard_application.status = get_case_status_by_status(terminal_status)
+        self.standard_application.save()
+
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.standard_application.end_user.id),
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
