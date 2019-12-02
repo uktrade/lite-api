@@ -8,6 +8,7 @@ from applications.models import GoodOnApplication
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
 from content_strings.strings import get_string
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
@@ -42,7 +43,7 @@ class FlagsList(APIView):
         if team:
             flags = flags.filter(team=request.user.team.id)
 
-        if include_deactivated == "False":
+        if not str_to_bool(include_deactivated, invert_none=True):
             flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
 
         flags = flags.order_by("name")
