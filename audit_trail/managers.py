@@ -3,7 +3,7 @@ from actstream.gfk import GFKQuerySet, GFKManager
 
 class AuditQuerySet(GFKQuerySet):
     def delete(self):
-        print('\n\n[QUERYSET] ATTEMPTING DELETE')
+        raise NotImplementedError('Delete not allowed for Audit trail.')
 
 
 class AuditManager(GFKManager):
@@ -11,8 +11,5 @@ class AuditManager(GFKManager):
         return AuditQuerySet(self.model)
     get_queryset = get_query_set
 
-    def none(self):
-        return self.get_queryset().none()
-
     def delete(self):
-        print('\n\n[MODEL] ATTEMPTING DELETE')
+        raise NotImplementedError('Delete not allowed for Audit trail.')

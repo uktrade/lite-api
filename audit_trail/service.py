@@ -1,11 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
 
 from audit_trail.models import Audit
-from audit_trail.validation import schema_validation
+from audit_trail.schema import validate_kwargs
 
 
-@schema_validation
-def create(audit_type, actor, verb, action_object=None, target=None, payload=None):
+@validate_kwargs
+def create(actor, verb, action_object=None, target=None, payload=None):
     if not payload:
         payload = {}
 

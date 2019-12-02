@@ -4,7 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from audit_trail.constants import Verb, AuditType
+from audit_trail.constants import Verb
 from test_helpers.clients import DataTestClient
 
 
@@ -58,7 +58,6 @@ class MoveCasesTests(DataTestClient):
         self.assertEqual(mock_create.call_count, 1)
 
         mock_create.assert_called_once_with(
-            audit_type=AuditType.CASE,
             actor=self.gov_user,
             verb=Verb.ADDED_QUEUES,
             target=self.case,
@@ -70,7 +69,6 @@ class MoveCasesTests(DataTestClient):
         self.client.put(self.url, data=queues_data_rm, **self.gov_headers)
 
         mock_create.assert_called_with(
-            audit_type=AuditType.CASE,
             actor=self.gov_user,
             verb=Verb.REMOVED_QUEUES,
             target=self.case,

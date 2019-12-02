@@ -1,5 +1,5 @@
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb, AuditType
+from audit_trail.constants import Verb
 from cases.models import CaseAssignment
 
 
@@ -13,7 +13,6 @@ def update_case_queues(user, case, queues):
         CaseAssignment.objects.filter(queue__name__in=remove_queues).delete()
 
         audit_trail_service.create(
-            audit_type=AuditType.CASE,
             actor=user,
             verb=Verb.REMOVED_QUEUES,
             target=case,
@@ -24,7 +23,6 @@ def update_case_queues(user, case, queues):
 
     if new_queues:
         audit_trail_service.create(
-            audit_type=AuditType.CASE,
             actor=user,
             verb=Verb.ADDED_QUEUES,
             target=case,

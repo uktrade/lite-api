@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class Verb(Enum):
@@ -6,7 +6,3 @@ class Verb(Enum):
     REMOVED_NOTE = 'removed note'
     ADDED_QUEUES = 'added queues'
     REMOVED_QUEUES = 'removed queues'
-
-
-class AuditType(Enum):
-    CASE = 'CASE'
