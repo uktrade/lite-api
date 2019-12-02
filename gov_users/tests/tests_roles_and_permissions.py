@@ -112,7 +112,9 @@ class RolesAndPermissionsTests(DataTestClient):
             [[Permissions.MANAGE_TEAM_ADVICE]],
         ]
     )
-    def test_only_see_roles_user_has_all_permissions_for(self, permissions):
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role(
+        self, permissions
+    ):
         user_role = Role(name="new role")
         user_role.permissions.set(permissions)
         user_role.save()
