@@ -19,6 +19,7 @@ from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
+from lite_content.lite_api import strings
 
 
 class ControlListClassificationsList(APIView):
@@ -54,12 +55,16 @@ class ControlListClassificationDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
-        """
-        Respond to a control list classification.
-        """
+        """ Respond to a control list classification."""
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
+        if CaseStatusEnum.is_terminal(query.status.status):
+            return JsonResponse(
+                data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         data = json.loads(request.body)
 
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
