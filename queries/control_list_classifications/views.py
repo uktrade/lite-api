@@ -1,6 +1,5 @@
 import json
 
-import reversion
 from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -64,44 +63,43 @@ class ControlListClassificationDetail(APIView):
 
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
 
-        with reversion.create_revision():
-            if clc_good_serializer.is_valid():
-                if "validate_only" not in data or data["validate_only"] == "False":
-                    old_control_code = query.good.control_code
-                    if not old_control_code:
-                        old_control_code = "No control code"
+        if clc_good_serializer.is_valid():
+            if "validate_only" not in data or data["validate_only"] == "False":
+                old_control_code = query.good.control_code
+                if not old_control_code:
+                    old_control_code = "No control code"
 
-                    clc_good_serializer.save()
-                    query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-                    query.save()
+                clc_good_serializer.save()
+                query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+                query.save()
 
-                    new_control_code = clc_good_serializer.validated_data.get("control_code")
-                    if not new_control_code:
-                        new_control_code = "No control code"
+                new_control_code = clc_good_serializer.validated_data.get("control_code")
+                if not new_control_code:
+                    new_control_code = "No control code"
 
-                    if new_control_code != old_control_code:
-                        CaseActivity.create(
-                            activity_type=CaseActivityType.GOOD_REVIEWED,
-                            good_name=query.good.description,
-                            old_control_code=old_control_code,
-                            new_control_code=new_control_code,
-                            case=Case.objects.get(query=query),
-                            user=request.user,
-                        )
-
-                    # Add an activity item for the query's case
+                if new_control_code != old_control_code:
                     CaseActivity.create(
-                        activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                        activity_type=CaseActivityType.GOOD_REVIEWED,
+                        good_name=query.good.description,
+                        old_control_code=old_control_code,
+                        new_control_code=new_control_code,
+                        case=Case.objects.get(query=query),
+                        user=request.user,
                     )
 
-                    # Send a notification to the user
-                    for user_relationship in UserOrganisationRelationship.objects.filter(
-                        organisation=query.organisation
-                    ):
-                        user_relationship.user.send_notification(query=query)
+                # Add an activity item for the query's case
+                CaseActivity.create(
+                    activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                )
 
-                    return JsonResponse(data={"control_list_classification_query": clc_good_serializer.data})
-                else:
-                    return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK,)
+                # Send a notification to the user
+                for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
+                    user_relationship.user.send_notification(query=query)
 
-            return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(
+                    data={"control_list_classification_query": clc_good_serializer.data}, status=status.HTTP_200_OK,
+                )
+
+            return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK,)
+
+        return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
