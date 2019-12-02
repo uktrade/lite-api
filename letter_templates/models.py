@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from django.db import models
 
 from sortedm2m.fields import SortedManyToManyField
 
