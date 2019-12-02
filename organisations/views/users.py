@@ -16,7 +16,7 @@ from users.serializers import (
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
 )
-from users.services import filter_roles_by_request_user_role
+from users.services import filter_roles_by_user_role
 
 
 class UsersList(APIView):
@@ -114,9 +114,9 @@ class UserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             # Cannot assign a role, you do not have access to
-            if data["role"] not in str(Roles.EXPORTER_PRESET_ROLES) and data[
-                "role"
-            ] not in filter_roles_by_request_user_role(request.user, Role.objects.filter(organisation=org_pk), org_pk):
+            if data["role"] not in str(Roles.EXPORTER_PRESET_ROLES) and data["role"] not in filter_roles_by_user_role(
+                request.user, Role.objects.filter(organisation=org_pk), org_pk
+            ):
                 raise PermissionDenied()
 
         serializer = UserOrganisationRelationshipSerializer(instance=self.user_relationship, data=data, partial=True)

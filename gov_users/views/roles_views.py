@@ -12,7 +12,7 @@ from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role
-from users.services import filter_roles_by_request_user_role
+from users.services import filter_roles_by_user_role
 
 
 class RolesViews(APIView):
@@ -29,7 +29,7 @@ class RolesViews(APIView):
         roles = Role.objects.filter(type=UserType.INTERNAL).order_by("name")
         if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
-        roles = filter_roles_by_request_user_role(request.user, roles)
+        roles = filter_roles_by_user_role(request.user, roles)
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
