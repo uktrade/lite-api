@@ -22,9 +22,13 @@ def _get_generated_document_data(request_params, pk):
     if not tpk:
         return LetterTemplatesPage.MISSING_TEMPLATE, None, None, None
 
+    text = request_params.get("text")
+    if not text:
+        return "Missing text", None, None, None
+
     case = get_case(pk)
     template = get_letter_template_for_case(tpk, case)
-    document_html = get_preview(template=template, case=case)
+    document_html = get_preview(template=template, text=text, case=case)
 
     if "error" in document_html:
         return document_html["error"], None, None, None
