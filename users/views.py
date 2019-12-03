@@ -10,11 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.models import Notification
-from conf.authentication import (
-    ExporterAuthentication,
-    ExporterOnlyAuthentication,
-    GovAuthentication,
-)
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
@@ -46,9 +42,16 @@ class AuthenticateExporterUser(APIView):
         except ParseError:
             return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
         email = data.get("email")
+        first_name = data.get("user_profile").get("first_name")
+        last_name = data.get("user_profile").get("last_name")
 
         try:
             user = ExporterUser.objects.get(email=email)
+
+            # Update the user's first and last names
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
