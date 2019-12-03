@@ -41,16 +41,13 @@ class AuthenticateExporterUser(APIView):
             data = JSONParser().parse(request)
         except ParseError:
             return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
-        email = data.get("email")
-        first_name = data.get("user_profile").get("first_name")
-        last_name = data.get("user_profile").get("last_name")
 
         try:
-            user = ExporterUser.objects.get(email=email)
+            user = ExporterUser.objects.get(email=data.get("email"))
 
             # Update the user's first and last names
-            user.first_name = first_name
-            user.last_name = last_name
+            user.first_name = data.get("user_profile").get("first_name")
+            user.last_name = data.get("user_profile").get("last_name")
             user.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
