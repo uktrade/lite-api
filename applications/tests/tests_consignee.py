@@ -4,8 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.document.models import PartyDocument
-from parties.models import Consignee
+from parties.models import PartyDocument, Consignee
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 

@@ -14,7 +14,7 @@ from conf.decorators import (
     application_in_major_editable_state,
     allowed_application_types,
 )
-from parties.document.serializers import PartyDocumentSerializer
+from parties.serializers import PartyDocumentSerializer
 from parties.libraries.get_parties import (
     get_end_user,
     get_ultimate_end_user,

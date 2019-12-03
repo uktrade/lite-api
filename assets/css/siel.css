@@ -1,0 +1,93 @@
+@font-face {
+  font-family: Helvetica;
+  src: url("../fonts/Helvetica.ttf") format("truetype");
+}
+.document * {
+  font-size: 12px;
+  font-family: Helvetica;
+  word-wrap: break-word;
+}
+.document h1 {
+  font-size: 24px;
+  display: inline-block;
+}
+.document img {
+  display: inline-block;
+  float: right;
+  width: 25%;
+  margin-bottom: 20px;
+}
+.document table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.document td {
+  vertical-align: top;
+  margin: 0;
+  padding: 5px;
+}
+.document table.fixed-layout {
+  table-layout: fixed;
+}
+.document .border-black {
+  border: 1px solid black;
+}
+.document .border-top-black {
+  border-top: 1px solid black;
+}
+.document .border-bottom-black {
+  border-bottom: 1px solid black;
+}
+.document .border-left-black {
+  border-left: 1px solid black;
+}
+.document .border-right-black {
+  border-right: 1px solid black;
+}
+.document .cell__heading {
+  display: block;
+  font-style: italic;
+  margin-bottom: 5px;
+}
+.document .cell__uppercase {
+  display: block;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+.document .cell__subheading {
+  display: block;
+  text-decoration: underline;
+  margin-bottom: 5px;
+}
+.document .cell__body {
+  display: block;
+  margin-bottom: 5px;
+}
+.document .padding-none {
+  padding: 0;
+}
+.document .text-large {
+  font-size: 18px;
+}
+.document .align-centre {
+  text-align: center;
+}
+.document .rotate {
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
+.document .uppercase {
+  text-transform: uppercase;
+}
+.document .sidebar-cell {
+  padding: 100px 0;
+}
+.document .bold {
+  font-weight: bold;
+}
+.document .italic {
+  font-style: italic;
+}
+.document .page-break-after {
+  page-break-after: always;
+}

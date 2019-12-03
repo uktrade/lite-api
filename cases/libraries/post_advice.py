@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from applications.models import BaseApplication
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice
 from conf.constants import Permissions
@@ -10,6 +11,8 @@ from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
+from static.statuses.enums import CaseStatusEnum
+from lite_content.lite_api import strings
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
@@ -43,6 +46,13 @@ def check_refusal_errors(advice):
 
 
 def post_advice(request, case, serializer_object, team=False):
+    application = BaseApplication.objects.get(id=case.application_id)
+
+    if CaseStatusEnum.is_terminal(application.status.status):
+        return JsonResponse(
+            data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}, status=status.HTTP_400_BAD_REQUEST,
+        )
+
     data = request.data
 
     # Update the case and user in each piece of advice
