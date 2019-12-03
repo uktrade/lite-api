@@ -8,6 +8,7 @@ from queues.constants import (
     OPEN_CASES_SYSTEM_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class CaseQuerySet(models.QuerySet):
@@ -100,4 +101,5 @@ class CaseManager(models.Manager):
         return case_qs
 
     def submitted(self):
-        return self.get_queryset().filter(status__isnull=False)
+        draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        return self.get_queryset().exclude(status=draft)

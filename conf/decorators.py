@@ -66,7 +66,7 @@ def application_in_major_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status != CaseStatusEnum.APPLICANT_EDITING:
+            if application.status.status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.DRAFT]:
                 return JsonResponse(
                     data={
                         "errors": [
@@ -92,7 +92,7 @@ def application_in_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status and application.status.status in get_case_statuses(read_only=True):
+            if application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
                     data={"errors": [strings.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                     status=status.HTTP_400_BAD_REQUEST,

@@ -46,7 +46,6 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
-from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
 from static.management.commands.seedall import SEED_COMMANDS
 from static.statuses.enums import CaseStatusEnum
@@ -495,6 +494,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
             type=CaseTypeEnum.APPLICATION,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
@@ -554,6 +554,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             activity="Trade",
             usage="Trade",
             organisation=organisation,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
@@ -584,6 +585,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
             type=CaseTypeEnum.HMRC_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()

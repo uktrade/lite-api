@@ -9,6 +9,7 @@ from applications.models import (
     SiteOnApplication,
 )
 from goodstype.models import GoodsType
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -35,7 +36,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(response_data[0]["created"])
         self.assertIsNotNone(response_data[0]["modified"])
         self.assertIsNone(response_data[0]["submitted_at"])
-        self.assertIsNone(response_data[0]["status"])
+        self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_cant_view_draft_hmrc_query_list_as_exporter_success(self):
         self.create_hmrc_query(organisation=self.organisation)
@@ -65,7 +66,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(response_data[0]["created"])
         self.assertIsNotNone(response_data[0]["modified"])
         self.assertIsNone(response_data[0]["submitted_at"])
-        self.assertIsNone(response_data[0]["status"])
+        self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_standard_application_as_exporter_success(self):
         standard_application = self.create_standard_application(self.organisation)
@@ -87,7 +88,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["created"])
         self.assertIsNotNone(retrieved_application["modified"])
         self.assertIsNone(retrieved_application["submitted_at"])
-        self.assertIsNone(retrieved_application["status"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEquals(
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
@@ -119,7 +120,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["created"])
         self.assertIsNotNone(retrieved_application["modified"])
         self.assertIsNone(retrieved_application["submitted_at"])
-        self.assertIsNone(retrieved_application["status"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
         self.assertIsNotNone(
             CountryOnApplication.objects.filter(application__id=open_application.id).count(), 1,
@@ -145,7 +146,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["created"])
         self.assertIsNotNone(retrieved_application["modified"])
         self.assertIsNone(retrieved_application["submitted_at"])
-        self.assertIsNone(retrieved_application["status"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(retrieved_application["organisation"]["id"], str(hmrc_query.organisation.id))
         self.assertEqual(
             retrieved_application["hmrc_organisation"]["id"], str(hmrc_query.hmrc_organisation.id),
