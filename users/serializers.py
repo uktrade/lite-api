@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from applications.models import BaseApplication
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from cases.models import Notification
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
@@ -217,9 +217,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.query:
             return None
 
-        if parent.type in [CaseType.CLC_QUERY, CaseType.END_USER_ADVISORY_QUERY]:
+        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
             parent = get_exporter_query(parent)
-        elif parent.type in [CaseType.APPLICATION, CaseType.HMRC_QUERY]:
+        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
             parent = BaseApplication.objects.get(pk=parent.id)
 
         return convert_pascal_case_to_snake_case(parent.__class__.__name__)

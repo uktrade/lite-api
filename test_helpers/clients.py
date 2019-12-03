@@ -19,7 +19,7 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
 )
-from cases.enums import AdviceType, CaseType
+from cases.enums import AdviceType, CaseTypeEnum
 from cases.models import (
     CaseNote,
     Case,
@@ -422,7 +422,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             details="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseType.CLC_QUERY,
+            type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         return clc_query
@@ -494,7 +494,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
-            type=CaseType.APPLICATION,
+            type=CaseTypeEnum.APPLICATION,
         )
 
         application.save()
@@ -583,7 +583,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
-            type=CaseType.HMRC_QUERY,
+            type=CaseTypeEnum.HMRC_QUERY,
         )
 
         application.save()
@@ -625,7 +625,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             contact_job_title="director",
             nature_of_business="guns",
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            type=CaseType.END_USER_ADVISORY_QUERY,
+            type=CaseTypeEnum.END_USER_ADVISORY_QUERY,
         )
         end_user_advisory_query.save()
         return end_user_advisory_query

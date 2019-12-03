@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import ExporterAuthentication, GovAuthentication
@@ -46,7 +46,7 @@ class ControlListClassificationsList(APIView):
             details=data["not_sure_details_details"],
             good=good,
             organisation=data["organisation"],
-            type=CaseType.CLC_QUERY,
+            type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=datetime.now(timezone.utc),
         )

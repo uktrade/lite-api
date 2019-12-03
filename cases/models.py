@@ -5,7 +5,6 @@ import reversion
 from django.db import models
 from django.utils import timezone
 
-from applications.models import BaseApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
@@ -29,7 +28,7 @@ class Case(TimeStampedModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35, allow_null=False)
+    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)

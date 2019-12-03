@@ -63,7 +63,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseType.APPLICATION, CaseType.HMRC_QUERY]:
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -104,7 +104,7 @@ class TinyCaseSerializer(serializers.Serializer):
         case_flag_data = FlagSerializer(instance.flags.order_by("name"), many=True).data
         org_flag_data = FlagSerializer(instance.organisation.flags.order_by("name"), many=True).data
 
-        if instance.type in [CaseType.APPLICATION, CaseType.HMRC_QUERY]:
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
             goods = GoodOnApplication.objects.filter(application=instance).select_related("good")
             goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by("name") for g in goods]))
             good_ids = {}
@@ -179,7 +179,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseType.APPLICATION, CaseType.HMRC_QUERY]:
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data

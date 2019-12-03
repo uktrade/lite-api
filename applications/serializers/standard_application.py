@@ -9,7 +9,7 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
 )
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
-from cases.enums import CaseType
+from cases.enums import CaseTypeEnum
 from content_strings.strings import get_string
 from organisations.models import ExternalLocation, Site
 from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
@@ -80,7 +80,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["organisation"] = self.context.id
-        self.initial_data["type"] = CaseType.APPLICATION
+        self.initial_data["type"] = CaseTypeEnum.APPLICATION
 
     class Meta:
         model = StandardApplication
