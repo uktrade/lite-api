@@ -54,6 +54,12 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             if "error" in data["preview"]:
                 return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
 
+        if "text" in request.GET and bool(request.GET["text"]):
+            paragraphs = PicklistItem.objects.filter(
+                type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
+            )
+            data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
+
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
