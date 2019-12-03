@@ -1,9 +1,9 @@
+from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
 
 from applications.models import SiteOnApplication, CountryOnApplication
 from cases.models import Case
-from content_strings.strings import get_string
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -31,7 +31,7 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=get_string("applications.generic.no_location_set"), status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=strings.Applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_goods_type_failure(self):
@@ -40,7 +40,7 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=get_string("applications.open.no_goods_set"), status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=strings.Applications.Open.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_destination_failure(self):
@@ -49,5 +49,5 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=get_string("applications.open.no_countries_set"), status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=strings.Applications.Open.NO_COUNTRIES_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )

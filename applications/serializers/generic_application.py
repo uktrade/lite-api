@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -13,7 +14,6 @@ from applications.serializers.denial_reasons import ApplicationDenialReasonCreat
 from cases.models import Case
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
-from content_strings.strings import get_string
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from static.denial_reasons.models import DenialReason
@@ -31,7 +31,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     export_type = serializers.SerializerMethodField()
@@ -85,19 +85,17 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
     application_type = KeyValueChoiceField(
-        choices=ApplicationType.choices,
-        error_messages={"required": get_string("applications.generic.no_licence_type")},
+        choices=ApplicationType.choices, error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
     export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices,
-        error_messages={"required": get_string("applications.generic.no_export_type")},
+        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,
-        error_messages={"required": get_string("goods.error_messages.informed")},
+        error_messages={"required": strings.Goods.ErrorMessages.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -121,7 +119,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)

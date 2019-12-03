@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -6,7 +7,6 @@ from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
-from content_strings.strings import get_string
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
@@ -38,7 +38,7 @@ def check_if_team_advice_exists(case, user):
 
 def check_refusal_errors(advice):
     if advice["type"].lower() == "refuse" and not advice["text"]:
-        return {"text": [ErrorDetail(string=get_string("cases.advice_refusal_error"), code="blank")]}
+        return {"text": [ErrorDetail(string=strings.Cases.ADVICE_REFUSAL_ERROR, code="blank")]}
     return None
 
 

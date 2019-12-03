@@ -1,8 +1,8 @@
+from lite_content.lite_api import strings
 from django.http import Http404
 
 from applications.models import BaseApplication, GoodOnApplication
 from conf.exceptions import NotFoundError
-from content_strings.strings import get_string
 from goods.models import Good, GoodDocument
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
@@ -22,7 +22,7 @@ def get_good_document(good: Good, pk):
     try:
         return GoodDocument.objects.get(good=good, pk=pk)
     except GoodDocument.DoesNotExist:
-        raise NotFoundError({"document": get_string("documents.document_not_found")})
+        raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
 
 
 def get_goods_from_case(case):
