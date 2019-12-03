@@ -5,6 +5,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.models import GoodOnApplication
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
@@ -107,7 +109,6 @@ class AssignFlags(APIView):
         data = JSONParser().parse(request)
         level = data.get("level")[:-1].lower()
         response_data = []
-
         # If the data provided isn't in a list format, append it to a list
         objects = data.get("objects")
         if not isinstance(objects, list):
@@ -177,66 +178,80 @@ class AssignFlags(APIView):
 
     def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
         # Add an activity item for the case
-        if added_flags and removed_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.ADD_REMOVE_FLAGS,
-                case=case,
-                user=user,
-                added_flags=added_flags,
-                removed_flags=removed_flags,
-                additional_text=note,
-                **kwargs,
-            )
-
         if added_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.ADD_FLAGS,
-                case=case,
-                user=user,
-                added_flags=added_flags,
-                additional_text=note,
-                **kwargs,
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.ADD_FLAGS,
+            #     case=case,
+            #     user=user,
+            #     added_flags=added_flags,
+            #     additional_text=note,
+            #     **kwargs,
+            # )
+            audit_trail_service.create(
+                actor=user,
+                verb=Verb.ADDED_FLAGS,
+                action_object=case,
+                payload={
+                    'flags': [{'name': flag} for flag in added_flags],
+                    'note': note,
+                }
             )
 
         if removed_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.REMOVE_FLAGS,
-                case=case,
-                user=user,
-                removed_flags=removed_flags,
-                additional_text=note,
-                **kwargs,
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.REMOVE_FLAGS,
+            #     case=case,
+            #     user=user,
+            #     removed_flags=removed_flags,
+            #     additional_text=note,
+            #     **kwargs,
+            # )
+            audit_trail_service.create(
+                actor=user,
+                verb=Verb.REMOVED_FLAGS,
+                action_object=case,
+                payload={
+                    'flags': [{'name': flag} for flag in removed_flags],
+                    'note': note
+                }
             )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case
-        if added_flags and removed_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.GOOD_ADD_REMOVE_FLAGS,
-                case=case,
-                user=user,
-                added_flags=added_flags,
-                removed_flags=removed_flags,
-                additional_text=note,
-                good_name=good.description,
-            )
-
         if added_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.GOOD_ADD_FLAGS,
-                case=case,
-                user=user,
-                added_flags=added_flags,
-                additional_text=note,
-                good_name=good.description,
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.GOOD_ADD_FLAGS,
+            #     case=case,
+            #     user=user,
+            #     added_flags=added_flags,
+            #     additional_text=note,
+            #     good_name=good.description,
+            # )
+            audit_trail_service.create(
+                actor=user,
+                verb=Verb.ADDED_FLAGS,
+                action_object=good,
+                target=case,
+                payload={
+                    'flags': [{'name': flag} for flag in added_flags]
+                }
             )
 
         if removed_flags:
-            CaseActivity.create(
-                activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
-                case=case,
-                user=user,
-                removed_flags=removed_flags,
-                additional_text=note,
-                good_name=good.description,
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
+            #     case=case,
+            #     user=user,
+            #     removed_flags=removed_flags,
+            #     additional_text=note,
+            #     good_name=good.description,
+            # )
+            audit_trail_service.create(
+                actor=user,
+                verb=Verb.REMOVED_FLAGS,
+                action_object=good,
+                target=case,
+                payload={
+                    'flags': [{'name': flag} for flag in removed_flags]
+                }
             )

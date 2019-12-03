@@ -31,7 +31,21 @@ class AuditSerializer(serializers.ModelSerializer):
             # Special case for case queue management audit
             # Queues are many objects so `data` json field
             # is used to reference the Queue names.
-            return f"{instance.verb}: {', '.join([q for q in instance.payload['queues']])}"
+            queues = sorted([q for q in instance.payload['queues']])
+            return f"{instance.verb}: {', '.join(queues)}"
+
+        if verb in [Verb.ADDED_FLAGS, Verb.REMOVED_FLAGS]:
+            from cases.models import Case
+            if isinstance(instance.action_object, Case):
+                return f"{instance.verb} on case: {instance.action_object.id}"
+            else:
+                return f"{instance.verb} on good: {instance.action_object.description}"
+
+        if verb == Verb.ADDED_ECJU:
+            return f"added an ECJU Query: {instance.action_object.question}"
+
+        if verb == Verb.UPLOADED_DOCUMENT:
+            return f"uploaded case document: {instance.payload['file_name']}"
 
         return f"{instance.verb}:"
 
@@ -40,5 +54,9 @@ class AuditSerializer(serializers.ModelSerializer):
 
         if verb == Verb.ADDED_NOTE:
             return f"{instance.payload['note']}"
+
+        if verb in [Verb.ADDED_FLAGS, Verb.REMOVED_FLAGS]:
+            flag_names = sorted([f['name'] for f in instance.payload['flags']])
+            return f"{', '.join(flag_names)}"
 
         return ""

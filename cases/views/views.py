@@ -5,6 +5,9 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
+from audit_trail.models import Audit
 from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
@@ -110,11 +113,14 @@ class CaseDocuments(APIView):
             serializer.save()
 
             for document in serializer.data:
-                case_activity = {
-                    "activity_type": "upload_case_document",
-                    "file_name": document["name"],
-                }
-                CaseActivity.create(case=case, user=request.user, **case_activity)
+                Audit.objects.create(
+                    actor=request.user,
+                    verb=Verb.UploadDocument,
+                    target=case,
+                    payload={
+                        'file_name': document['name']
+                    }
+                )
 
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
@@ -212,9 +218,16 @@ class CaseTeamAdvice(APIView):
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
             case_advice_contains_refusal(pk)
-            CaseActivity.create(
-                activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user,
+
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user,
+            # )
+            audit_trail_service.create(
+                actor=request.user,
+                verb=Verb.ADDED_ADVICE,
+                target=self.case,
             )
+
             team_advice = TeamAdvice.objects.filter(case=self.case, team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
@@ -248,8 +261,14 @@ class CaseTeamAdvice(APIView):
 
         self.team_advice.filter(team=self.request.user.team).delete()
         case_advice_contains_refusal(pk)
-        CaseActivity.create(
-            activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user,
+
+        # CaseActivity.create(
+        #     activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user,
+        # )
+        audit_trail_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_ADVICE,
+            target=self.case
         )
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
 
@@ -287,12 +306,18 @@ class CaseFinalAdvice(APIView):
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
-            CaseActivity.create(
-                activity_type=CaseActivityType.CREATED_FINAL_ADVICE, case=self.case, user=request.user,
+            # CaseActivity.create(
+            #     activity_type=CaseActivityType.CREATED_FINAL_ADVICE, case=self.case, user=request.user,
+            # )
+            audit_trail_service.create(
+                actor=request.user,
+                verb=Verb.CREATED_FINAL_ADIVCE,
+                target=self.case,
             )
             final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
         else:
             final_advice = self.final_advice
+
         serializer = self.serializer_object(final_advice, many=True)
         return JsonResponse({"advice": serializer.data})
 
@@ -310,8 +335,13 @@ class CaseFinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
-        CaseActivity.create(
-            activity_type=CaseActivityType.CLEARED_FINAL_ADVICE, case=self.case, user=request.user,
+        # CaseActivity.create(
+        #     activity_type=CaseActivityType.CLEARED_FINAL_ADVICE, case=self.case, user=request.user,
+        # )
+        audit_trail_service.create(
+            actor=request.user,
+            verb=Verb.CLEARED_FINAL_ADVICE,
+            target=self.case,
         )
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
 
@@ -348,11 +378,11 @@ class CaseEcjuQueries(APIView):
             if "validate_only" not in data or not data["validate_only"]:
                 serializer.save()
 
-                CaseActivity.create(
-                    activity_type=CaseActivityType.ECJU_QUERY,
-                    case=get_case(pk),
-                    user=request.user,
-                    ecju_query=data["question"],
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=Verb.ADDED_ECJU,
+                    action_object=serializer.instance,
+                    target=serializer.instance.case,
                 )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED,)

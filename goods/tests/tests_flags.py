@@ -1,8 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.libraries.get_case import get_case_activity
+from audit_trail.models import Audit
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -171,5 +172,17 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(query.case.get())), 1)
-        self.assertEqual(len(get_case_activity(application.case.get())), 1)
+        application_case = application.case.get()
+        query_case = query.case.get()
+
+        application_audit = Audit.objects.filter(
+            target_object_id=application_case.id,
+            target_content_type=ContentType.objects.get_for_model(application_case)
+        )
+        query_audit = Audit.objects.filter(
+            target_object_id=query_case.id,
+            target_content_type=ContentType.objects.get_for_model(query_case)
+        )
+
+        self.assertEqual(application_audit.count(), 1)
+        self.assertEqual(query_audit.count(), 1)

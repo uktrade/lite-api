@@ -1,12 +1,11 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from audit_trail import service
+from audit_trail.models import Audit
 from audit_trail.serializers import AuditSerializer
-from cases.libraries.activity_helpers import convert_case_notes_to_activity
-from cases.libraries.get_case import get_case, get_case_activity
-from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.serializers import CaseActivitySerializer
+from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
 
 
@@ -20,18 +19,14 @@ class Activity(APIView):
     """
     def get(self, request, pk):
         case = get_case(pk)
-        # activity = get_case_activity(case)
-        # activity.extend(convert_case_notes_to_activity(get_case_notes_from_case(case, False)))
-        #
-        # # Sort the activity based on date (newest first)
-        # activity.sort(key=lambda x: x.created_at, reverse=True)
-        # serializer = CaseActivitySerializer(activity, many=True)
 
-        actions = service.get_trail(target=case)
+        qs = Audit.objects.all()
+
+        q2 = Q(action_object_object_id=case.id, action_object_content_type=ContentType.objects.get_for_model(case))
+        q1 = Q(target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case))
+
+        actions = qs.filter(q1 | q2)
+
         serializer = AuditSerializer(actions, many=True)
-
-        from pprint import pprint
-
-        pprint(list(serializer.data))
 
         return JsonResponse(data={"activity": serializer.data})
