@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("documents", "0001_initial"),
+        ("parties", "0001_initial"),
     ]
 
     operations = [

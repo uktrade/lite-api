@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from cases.views import views, activity, case_notes
 from cases.views.search import views as search_views
@@ -24,4 +24,5 @@ urlpatterns = [
     ),
     path("<uuid:pk>/ecju-queries/", views.CaseEcjuQueries.as_view(), name="case_ecju_queries",),
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
+    path("<uuid:pk>/generated-documents/", include("cases.generated_documents.urls")),
 ]
