@@ -20,20 +20,20 @@ from lite_content.lite_api.letter_templates import LetterTemplatesPage
 def _get_generated_document_data(request_params, pk):
     tpk = request_params.get("template")
     if not tpk:
-        return LetterTemplatesPage.MISSING_TEMPLATE, None, None, None
+        return LetterTemplatesPage.MISSING_TEMPLATE, None, None, None, None
 
     text = request_params.get("text")
     if not text:
-        return "Missing text", None, None, None
+        return "Missing text", None, None, None, None
 
     case = get_case(pk)
     template = get_letter_template_for_case(tpk, case)
     document_html = get_preview(template=template, text=text, case=case)
 
     if "error" in document_html:
-        return document_html["error"], None, None, None
+        return document_html["error"], None, None, None, None
 
-    return None, case, template, document_html
+    return None, case, template, document_html, text
 
 
 class GeneratedDocuments(APIView):
@@ -44,7 +44,7 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        error, case, template, document_html = _get_generated_document_data(request.data, pk)
+        error, case, template, document_html, text = _get_generated_document_data(request.data, pk)
 
         if error:
             return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
@@ -71,6 +71,7 @@ class GeneratedDocuments(APIView):
                     type=CaseDocumentState.GENERATED,
                     case=case,
                     template=template,
+                    text=text
                 )
 
                 # Generate timeline entry
@@ -97,7 +98,7 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        error, _, _, document_html = _get_generated_document_data(request.GET, pk)
+        error, _, _, document_html, _ = _get_generated_document_data(request.GET, pk)
 
         if error:
             return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
