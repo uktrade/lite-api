@@ -72,27 +72,49 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             "is_good_controlled": "yes",
         }
 
-    def test_respond_to_control_list_classification_query(self):
-        """
-        Ensure that a gov user can respond to a control list
-        classification query with a control code
-        """
+    def test_respond_to_control_list_classification_query_without_updating_control_code_success(self):
+        self.query.good.control_code = "ML1a"
+        self.query.good.save()
+        previous_query_control_code = self.query.good.control_code
+
         response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, self.data["control_code"])
+        self.assertEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query)), 1)
+        # Check that only the response activity item has been added
+        case_activities = get_case_activity(self.query)
+        self.assertEqual(len(case_activities), 1)
+        self.assertEqual(case_activities[0].type, "clc_response")
+
+    def test_respond_to_control_list_classification_query_update_control_code_success(self):
+        previous_query_control_code = self.query.good.control_code
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.query.good.control_code, self.data["control_code"])
+        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
+        self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
+
+
+        # Check that the response and good review activity items have been added
+        case_activities = get_case_activity(self.query)
+        self.assertEqual(len(case_activities), 2)
+        for case_activity in case_activities:
+            self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
         Ensure that a gov user can respond to a control list
         classification query with no licence required
         """
+        previous_query_control_code = self.query.good.control_code
         data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
@@ -104,11 +126,15 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, "")
+        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query)), 1)
+        # Check that  that the response and good review activity items have been added
+        case_activities = get_case_activity(self.query)
+        self.assertEqual(len(case_activities), 2)
+        for case_activity in case_activities:
+            self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
 
     def test_respond_to_control_list_classification_query_failure(self):
         """
