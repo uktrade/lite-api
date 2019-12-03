@@ -10,11 +10,7 @@ class UserTests(DataTestClient):
         original_last_name = self.exporter_user.last_name
         original_email = self.exporter_user.email
 
-        data = {
-            "first_name": "hamster",
-            "last_name": "gerbal",
-            "email": "some@thing.com",
-        }
+        data = {"first_name": "hamster", "last_name": "gerbal", "email": "some@thing.com"}
 
         url = reverse("users:user", kwargs={"pk": self.exporter_user.id})
         response = self.client.put(url, data, **self.exporter_headers)
@@ -25,11 +21,7 @@ class UserTests(DataTestClient):
         self.assertNotEqual(response_data["user"]["email"], original_email)
 
         url = reverse("users:authenticate")
-        data = {
-            "email": "some@thing.com",
-            "first_name": response_data["user"]["first_name"],
-            "last_name": response_data["user"]["last_name"],
-        }
+        data = {"email": "some@thing.com", "user_profile": {"first_name": "Matt", "last_name": "Berninger"}}
         response = self.client.post(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
