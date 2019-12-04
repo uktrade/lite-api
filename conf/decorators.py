@@ -68,8 +68,8 @@ def application_in_major_editable_state():
             application = _get_application(request, kwargs)
 
             if (
-                is_case_status_draft(application.status.status)
-                or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+                not is_case_status_draft(application.status.status)
+                and application.status.status != CaseStatusEnum.APPLICANT_EDITING
             ):
                 return JsonResponse(
                     data={

@@ -1,5 +1,5 @@
 import json
-from datetime import timezone
+from django.utils import timezone
 
 from django.http import JsonResponse, Http404
 from rest_framework import status
