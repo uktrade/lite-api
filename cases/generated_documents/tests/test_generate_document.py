@@ -25,7 +25,7 @@ class GenerateDocumentTests(DataTestClient):
         self.letter_template.case_types.add(CaseTypeEnum.APPLICATION)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
-        self.data = {"template": str(self.letter_template.id)}
+        self.data = {"template": str(self.letter_template.id), "text": "sample"}
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
