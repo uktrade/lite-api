@@ -73,6 +73,7 @@ class GenerateDocumentTests(DataTestClient):
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
+            + "&text=Sample"
         )
         response = self.client.get(url, **self.gov_headers)
 
@@ -91,18 +92,19 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue("errors" in body)
         self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
 
-    @mock.patch("cases.generated_documents.views.get_preview")
+    @mock.patch("cases.generated_documents.views.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_get_document_preview_when_get_html_contains_errors_failure(
-        self, upload_bytes_file_func, html_to_pdf_func, get_preview_func
+        self, upload_bytes_file_func, html_to_pdf_func, generate_preview_func
     ):
-        get_preview_func.return_value = dict(error="Failed to get preview")
+        generate_preview_func.return_value = dict(error="Failed to get preview")
 
         url = (
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
+            + "&text=Sample"
         )
         response = self.client.get(url, **self.gov_headers)
 
