@@ -265,6 +265,7 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseDocument
         fields = (
+            "id",
             "name",
             "type",
             "metadata_id",

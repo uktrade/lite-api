@@ -1,12 +1,13 @@
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_letter_template_for_case
 from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedCaseDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
@@ -25,16 +26,21 @@ def _get_generated_document_data(request_params, pk):
     text = request_params.get("text")
     if not text:
         return "Missing text", None, None, None, None
-    text = markdown_to_html(text)
 
     case = get_case(pk)
     template = get_letter_template_for_case(tpk, case)
-    document_html = generate_preview(layout=template.layout.filename, text=text, case=case)
+    document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
 
     if "error" in document_html:
         return document_html["error"], None, None, None, None
 
     return None, case, template, document_html, text
+
+
+class GeneratedDocument(generics.RetrieveAPIView):
+    authentication_classes = (GovAuthentication,)
+    queryset = GeneratedCaseDocument.objects.all()
+    serializer_class = GeneratedCaseDocumentSerializer
 
 
 class GeneratedDocuments(APIView):
