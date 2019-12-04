@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from model_utils.models import TimeStampedModel
 
 from addresses.models import Address
 from conf.exceptions import NotFoundError

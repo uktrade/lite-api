@@ -119,14 +119,6 @@ class ExporterUser(BaseUser):
         uor.save()
 
 
-class GovUser(BaseUser):
-    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    team = models.ForeignKey("teams.Team", related_name="team", on_delete=models.PROTECT)
-    role = models.ForeignKey(
-        Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT,
-    )
-
-
 class UserOrganisationRelationship(TimeStampedModel):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE)
