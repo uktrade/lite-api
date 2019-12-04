@@ -8,7 +8,6 @@ from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
-from lite_content.lite_api import strings
 from organisations.models import Organisation
 from picklists.models import PicklistItem
 from organisations.serializers import OrganisationDetailSerializer

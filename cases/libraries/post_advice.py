@@ -12,7 +12,6 @@ from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
 from static.statuses.enums import CaseStatusEnum
-from lite_content.lite_api import strings
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
