@@ -161,9 +161,7 @@ class AssignFlags(APIView):
             )
 
             cases.extend(
-                Case.objects.filter(
-                    id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True)
-                )
+                Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
             )
 
             for case in cases:

@@ -102,7 +102,6 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-
         # Check that the response and good review activity items have been added
         case_activities = get_case_activity(self.query)
         self.assertEqual(len(case_activities), 2)

@@ -7,15 +7,14 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DenialReason',
+            name="DenialReason",
             fields=[
-                ('id', models.CharField(editable=False, max_length=3, primary_key=True, serialize=False)),
-                ('deprecated', models.BooleanField(default=False)),
+                ("id", models.CharField(editable=False, max_length=3, primary_key=True, serialize=False)),
+                ("deprecated", models.BooleanField(default=False)),
             ],
         ),
     ]

@@ -9,26 +9,24 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('flags', '0001_initial'),
-        ('goods', '0001_initial'),
-        ('organisations', '0001_initial'),
-        ('users', '0001_initial'),
+        ("flags", "0001_initial"),
+        ("goods", "0001_initial"),
+        ("organisations", "0001_initial"),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='gooddocument',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='users.ExporterUser'),
+            model_name="gooddocument",
+            name="user",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="users.ExporterUser"),
         ),
         migrations.AddField(
-            model_name='good',
-            name='flags',
-            field=models.ManyToManyField(related_name='goods', to='flags.Flag'),
+            model_name="good", name="flags", field=models.ManyToManyField(related_name="goods", to="flags.Flag"),
         ),
         migrations.AddField(
-            model_name='good',
-            name='organisation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='organisations.Organisation'),
+            model_name="good",
+            name="organisation",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Organisation"),
         ),
     ]

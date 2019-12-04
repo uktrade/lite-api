@@ -10,49 +10,90 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('flags', '0001_initial'),
-        ('countries', '0001_initial'),
-        ('addresses', '0001_initial'),
+        ("flags", "0001_initial"),
+        ("countries", "0001_initial"),
+        ("addresses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Organisation',
+            name="Organisation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(blank=True, default=None)),
-                ('type', models.CharField(choices=[('hmrc', 'HMRC'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual')], default='commercial', max_length=20)),
-                ('eori_number', models.TextField(blank=True, default=None, null=True)),
-                ('sic_number', models.TextField(blank=True, default=None, null=True)),
-                ('vat_number', models.TextField(blank=True, default=None, null=True)),
-                ('registration_number', models.TextField(blank=True, default=None, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('last_modified_at', models.DateTimeField(auto_now_add=True)),
-                ('flags', models.ManyToManyField(related_name='organisations', to='flags.Flag')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(blank=True, default=None)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("hmrc", "HMRC"),
+                            ("commercial", "Commercial Organisation"),
+                            ("individual", "Individual"),
+                        ],
+                        default="commercial",
+                        max_length=20,
+                    ),
+                ),
+                ("eori_number", models.TextField(blank=True, default=None, null=True)),
+                ("sic_number", models.TextField(blank=True, default=None, null=True)),
+                ("vat_number", models.TextField(blank=True, default=None, null=True)),
+                ("registration_number", models.TextField(blank=True, default=None, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("last_modified_at", models.DateTimeField(auto_now_add=True)),
+                ("flags", models.ManyToManyField(related_name="organisations", to="flags.Flag")),
             ],
         ),
         migrations.CreateModel(
-            name='Site',
+            name="Site",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site', to='addresses.Address')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site', to='organisations.Organisation')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(default=None)),
+                (
+                    "address",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="site", to="addresses.Address"
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="site",
+                        to="organisations.Organisation",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='organisation',
-            name='primary_site',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organisation_primary_site', to='organisations.Site'),
+            model_name="organisation",
+            name="primary_site",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organisation_primary_site",
+                to="organisations.Site",
+            ),
         ),
         migrations.CreateModel(
-            name='ExternalLocation',
+            name="ExternalLocation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.TextField(default=None)),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='countries.Country')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='external_location', to='organisations.Organisation')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(default=None)),
+                ("address", models.TextField(default=None)),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country")),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="external_location",
+                        to="organisations.Organisation",
+                    ),
+                ),
             ],
         ),
     ]
