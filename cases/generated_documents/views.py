@@ -12,7 +12,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.libraries import s3_operations
-from letter_templates.helpers import get_preview
+from letter_templates.helpers import get_preview, markdown_to_html
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
@@ -25,6 +25,7 @@ def _get_generated_document_data(request_params, pk):
     text = request_params.get("text")
     if not text:
         return "Missing text", None, None, None, None
+    text = markdown_to_html(text)
 
     case = get_case(pk)
     template = get_letter_template_for_case(tpk, case)
