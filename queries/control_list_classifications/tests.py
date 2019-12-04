@@ -2,6 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
+from audit_trail.constants import Verb
 from audit_trail.models import Audit
 from cases.models import Case
 from conf.constants import Permissions
@@ -9,6 +10,7 @@ from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
 
@@ -65,24 +67,25 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk},
         )
 
-    def test_respond_to_control_list_classification_query(self):
-        """
-        Ensure that a gov user can respond to a control list
-        classification query with a control code
-        """
-        data = {
+        self.data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_code": "ML1a",
             "is_good_controlled": "yes",
         }
 
-        response = self.client.put(self.url, data, **self.gov_headers)
+    def test_respond_to_control_list_classification_query_without_updating_control_code_success(self):
+        self.query.good.control_code = "ML1a"
+        self.query.good.save()
+        previous_query_control_code = self.query.good.control_code
+
+        response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_code, data["control_code"])
-        self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
+        self.assertEqual(self.query.good.control_code, self.data["control_code"])
+        self.assertEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an audit item has been added
@@ -92,11 +95,32 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         )
         self.assertEqual(qs.count(), 1)
 
+    def test_respond_to_control_list_classification_query_update_control_code_success(self):
+        previous_query_control_code = self.query.good.control_code
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.query.good.control_code, self.data["control_code"])
+        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
+        self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
+
+        audit_qs = Audit.objects.all()
+        self.assertEqual(audit_qs.count(), 2)
+        for audit in audit_qs:
+            verb = Verb.GOOD_REVIEWED if audit.payload else Verb.CLC_RESPONSE
+            self.assertEqual(Verb(audit.verb), verb)
+            if verb == Verb.GOOD_REVIEWED:
+                payload = {'control_code': {'old': previous_query_control_code, 'new': self.data["control_code"]}}
+                self.assertEqual(audit.payload, payload)
+
     def test_respond_to_control_list_classification_query_nlr(self):
         """
         Ensure that a gov user can respond to a control list
         classification query with no licence required
         """
+        previous_query_control_code = self.query.good.control_code
         data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
@@ -108,6 +132,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.good.control_code, "")
+        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
@@ -116,7 +141,9 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             target_object_id=self.query.case.get().id,
             target_content_type=ContentType.objects.get_for_model(self.query.case.get())
         )
-        self.assertEqual(qs.count(), 1)
+        for audit in qs:
+            verb = Verb.GOOD_REVIEWED if audit.payload else Verb.CLC_RESPONSE
+            self.assertEqual(Verb(audit.verb), verb)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """
@@ -131,10 +158,10 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.query.good.status, GoodStatus.DRAFT)
 
-    # User must have permission to create team advice
     def test_user_cannot_respond_to_clc_without_permissions(self):
         """
-        Tests that the right level of permissions are required
+        Tests that the right level of permissions are required. A user must have permission to create
+        team advice.
         """
         # Make sure at least one user maintains the super user role
         valid_user = GovUser(
@@ -148,3 +175,12 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_user_cannot_respond_to_clc_with_case_in_terminal_state(self):
+        self.query.status = CaseStatus.objects.get(status="finalised")
+        self.query.save()
+
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+
+        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

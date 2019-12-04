@@ -11,7 +11,7 @@ from applications.serializers.good import (
     GoodOnApplicationViewSerializer,
     GoodOnApplicationCreateSerializer,
 )
-from audit_trail import service as audit_service
+from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -82,7 +82,7 @@ class ApplicationGoodsOnApplication(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                audit_service.create(
+                audit_trail_service.create(
                     actor=request.user,
                     verb=Verb.ADDED_GOOD_TO_APPLICATION,
                     action_object=good,
@@ -128,7 +128,7 @@ class ApplicationGoodOnApplication(APIView):
 
         good_on_application.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_GOOD_TO_APPLICATION,
             action_object=good_on_application.good,
@@ -170,7 +170,7 @@ class ApplicationGoodsTypes(APIView):
 
         serializer.save()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=serializer.instance,
@@ -208,7 +208,7 @@ class ApplicationGoodsType(APIView):
             delete_goods_type_document_if_exists(goods_type)
         goods_type.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=goods_type,

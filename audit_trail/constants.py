@@ -31,3 +31,5 @@ class Verb(Enum):
     ADDED_SITES_TO_APPLICATION = 'added sites to application'
     ADDED_COUNTRIES = 'added countries'
     REMOVED_COUNTRIES = 'removed countries'
+    GOOD_REVIEWED = 'good reviewed'
+    GENERATE_CASE_DOCUMENT = 'generate case document'

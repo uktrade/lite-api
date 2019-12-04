@@ -13,6 +13,7 @@ from organisations.models import Organisation
 from picklists.models import PicklistItem
 from organisations.serializers import OrganisationDetailSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -66,6 +67,7 @@ class GoodSerializer(serializers.ModelSerializer):
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
     query_id = serializers.SerializerMethodField()
+    case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
     class Meta:
@@ -83,6 +85,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "not_sure_details_details",
             "query_id",
             "documents",
+            "case_status",
         )
 
     def __init__(self, *args, **kwargs):
@@ -101,14 +104,24 @@ class GoodSerializer(serializers.ModelSerializer):
             clc_query = ControlListClassificationQuery.objects.get(good=instance)
             case = Case.objects.get(query=clc_query)
             return case.id
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
+            return None
+
+    def get_case_status(self, instance):
+        try:
+            clc_query = ControlListClassificationQuery.objects.get(good=instance)
+            return {
+                "key": clc_query.status.status,
+                "value": get_status_value_from_case_status_enum(clc_query.status.status),
+            }
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     def get_query_id(self, instance):
         try:
             clc_query = ControlListClassificationQuery.objects.get(good=instance)
             return clc_query.id
-        except Exception:
+        except ControlListClassificationQuery.DoesNotExist:
             return None
 
     def get_documents(self, instance):

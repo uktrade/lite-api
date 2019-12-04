@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from audit_trail import service as audit_service
+from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -50,7 +50,7 @@ class ApplicationEndUser(APIView):
             delete_party_document_if_exists(previous_end_user)
             previous_end_user.delete()
 
-            audit_service.create(
+            audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.REMOVED_PARTY,
                 target=application.get_case() or application,
@@ -60,7 +60,7 @@ class ApplicationEndUser(APIView):
                 }
             )
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
             target=application.get_case() or application,
@@ -89,7 +89,7 @@ class ApplicationEndUser(APIView):
         delete_party_document_if_exists(end_user)
         end_user.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
             target=application.get_case() or application,
@@ -132,7 +132,7 @@ class ApplicationUltimateEndUsers(APIView):
         ultimate_end_user = serializer.save()
         application.ultimate_end_users.add(ultimate_end_user.id)
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
             target=application.get_case() or application,
@@ -164,7 +164,7 @@ class RemoveApplicationUltimateEndUser(APIView):
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
             target=application.get_case() or application,
@@ -204,7 +204,7 @@ class ApplicationConsignee(APIView):
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
 
-            audit_service.create(
+            audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.REMOVED_PARTY,
                 target=application.get_case() or application,
@@ -214,7 +214,7 @@ class ApplicationConsignee(APIView):
                 }
             )
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
             target=application.get_case() or application,
@@ -243,7 +243,7 @@ class ApplicationConsignee(APIView):
         delete_party_document_if_exists(consignee)
         consignee.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
             target=application.get_case() or application,
@@ -286,7 +286,7 @@ class ApplicationThirdParties(APIView):
         third_party = serializer.save()
         application.third_parties.add(third_party.id)
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
             target=application.get_case() or application,
@@ -316,7 +316,7 @@ class RemoveThirdParty(APIView):
         delete_party_document_if_exists(third_party)
         third_party.delete()
 
-        audit_service.create(
+        audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
             target=application.get_case() or application,
