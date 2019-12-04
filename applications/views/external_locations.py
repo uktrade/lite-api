@@ -14,7 +14,7 @@ from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.case_status_validate import case_status_draft
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
 
@@ -54,7 +54,7 @@ class ApplicationExternalLocations(APIView):
             for previous_location_id in previous_locations.values_list("external_location__id", flat=True)
         ]
 
-        if case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+        if is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
             read_only=True
         ):
             return JsonResponse(
@@ -152,7 +152,7 @@ class ApplicationRemoveExternalLocation(APIView):
 
     @authorised_users(ExporterUser)
     def delete(self, request, application, ext_loc_pk):
-        if not case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+        if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
             read_only=True
         ):
             return JsonResponse(
@@ -160,7 +160,7 @@ class ApplicationRemoveExternalLocation(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not case_status_draft(application.status.status) and application.status.status not in [
+        if not is_case_status_draft(application.status.status) and application.status.status not in [
             CaseStatusEnum.APPLICANT_EDITING,
             CaseStatusEnum.DRAFT,
         ]:

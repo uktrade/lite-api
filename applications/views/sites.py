@@ -14,7 +14,7 @@ from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.case_status_validate import case_status_draft
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
 
@@ -49,7 +49,7 @@ class ApplicationSites(APIView):
             str(previous_site_id) for previous_site_id in previous_sites.values_list("site__id", flat=True)
         ]
 
-        if not case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+        if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
             read_only=True
         ):
             return JsonResponse(
@@ -60,7 +60,7 @@ class ApplicationSites(APIView):
             )
 
         if (
-            case_status_draft(application.status.status)
+            is_case_status_draft(application.status.status)
             or application.status.status == CaseStatusEnum.APPLICANT_EDITING
         ):
             new_sites = [
