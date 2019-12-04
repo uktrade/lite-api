@@ -7,6 +7,8 @@ from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_countries_case_activity
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
 from static.countries.helpers import get_country
@@ -90,7 +92,27 @@ class ApplicationCountries(APIView):
 
             countries_data = CountrySerializer(new_countries, many=True).data
 
-            set_countries_case_activity(removed_countries, new_countries, request.user, application)
+            # set_countries_case_activity(removed_countries, new_countries, request.user, application)
+            #
+            if new_countries:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=Verb.ADDED_COUNTRIES,
+                    target=application.get_case() or application,
+                    payload={
+                        'countries':  [country.name for country in new_countries]
+                    }
+                )
+
+            if removed_countries:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=Verb.REMOVED_COUNTRIES,
+                    target=application.get_case() or application,
+                    payload={
+                        'countries':  [country.country.name for country in removed_countries]
+                    }
+                )
 
             removed_countries.delete()
 

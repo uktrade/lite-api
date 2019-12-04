@@ -4,6 +4,7 @@ from abc import abstractmethod
 import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from conf.constants import Roles
@@ -143,19 +144,21 @@ class GovUser(BaseUser):
         self.case_assignments.clear()
 
     # pylint: disable=W0221
-    def send_notification(self, case_activity=None):
-        from cases.models import Notification
-
+    def send_notification(self, audit=None):
         # circular import prevention
-
-        if case_activity:
+        from cases.models import Notification
+        if audit:
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                notification = Notification.objects.get(user=self, case_activity__case=case_activity.case)
-                notification.case_activity = case_activity
+                notification = Notification.objects.get(
+                    user=self,
+                    audit__target_content_type=audit.target_content_type,
+                    audit__target_object_id=audit.target_object_id,
+                )
+                notification.audit = audit
                 notification.save()
             except Notification.DoesNotExist:
-                Notification.objects.create(user=self, case_activity=case_activity)
+                Notification.objects.create(user=self, audit=audit)
         else:
             raise Exception("GovUser.send_notification: objects expected have not been added.")

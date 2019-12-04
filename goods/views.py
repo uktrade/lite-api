@@ -6,9 +6,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.libraries.activity_types import CaseActivityType
+from applications.models import GoodOnApplication
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from cases.libraries.get_case import get_case
-from cases.models import CaseActivity
 from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
@@ -18,7 +19,6 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -42,6 +42,7 @@ class GoodsListControlCode(APIView):
         """
         Set control list codes on multiple goods.
         """
+        print('#####\n\n#####\n')
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
         data = JSONParser().parse(request)
@@ -71,15 +72,31 @@ class GoodsListControlCode(APIView):
                     if serializer.is_valid():
                         serializer.save()
 
-                    # if new_control_code != old_control_code:
-                    #     CaseActivity.create(
-                    #         activity_type=CaseActivityType.GOOD_REVIEWED,
-                    #         good_name=good.description,
-                    #         old_control_code=old_control_code,
-                    #         new_control_code=new_control_code,
-                    #         case=case,
-                    #         user=request.user,
-                    #     )
+                    if new_control_code != old_control_code:
+                        # CaseActivity.create(
+                        #     activity_type=CaseActivityType.GOOD_REVIEWED,
+                        #     good_name=good.description,
+                        #     old_control_code=old_control_code,
+                        #     new_control_code=new_control_code,
+                        #     case=case,
+                        #     user=request.user,
+                        # )
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=Verb.UPDATED_CONTROL_CODE,
+                            action_object=good,
+                            target=case,
+                            payload={
+                                'good': {
+                                    'id': str(good.id),
+                                    'description': good.description
+                                },
+                                'control_code': {
+                                    'new': new_control_code,
+                                    'old': old_control_code
+                                }
+                            }
+                        )
                 except Http404:
                     error_occurred = True
 

@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
 from applications.libraries.case_activity import set_party_case_activity
+from audit_trail import service as audit_service
+from audit_trail.constants import Verb
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -50,16 +52,35 @@ class ApplicationEndUser(APIView):
             delete_party_document_if_exists(previous_end_user)
             previous_end_user.delete()
 
-            set_party_case_activity(
-                CaseActivityType.REMOVE_PARTY,
-                previous_end_user.type,
-                previous_end_user.name,
-                request.user,
-                application,
+            audit_service.create(
+                actor=request.user,
+                verb=Verb.REMOVED_PARTY,
+                target=application.get_case() or application,
+                payload={
+                    "party_type": previous_end_user.type.replace("_", " "),
+                    "party_name": previous_end_user.name,
+                }
             )
+            # set_party_case_activity(
+            #     CaseActivityType.REMOVE_PARTY,
+            #     previous_end_user.type,
+            #     previous_end_user.name,
+            #     request.user,
+            #     application,
+            # )
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user, application,
+        # set_party_case_activity(
+        #     CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user, application,
+        # )
+
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADDED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": new_end_user.type.replace("_", " "),
+                "party_name": new_end_user.name,
+            }
         )
 
         return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -81,8 +102,18 @@ class ApplicationEndUser(APIView):
         delete_party_document_if_exists(end_user)
         end_user.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application,
+        # set_party_case_activity(
+        #     CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application,
+        # )
+        #
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": end_user.type.replace("_", " "),
+                "party_name": end_user.name,
+            }
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -118,8 +149,14 @@ class ApplicationUltimateEndUsers(APIView):
         ultimate_end_user = serializer.save()
         application.ultimate_end_users.add(ultimate_end_user.id)
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADDED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": ultimate_end_user.type.replace("_", " "),
+                "party_name": ultimate_end_user.name,
+            }
         )
 
         return JsonResponse(data={"ultimate_end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -144,9 +181,19 @@ class RemoveApplicationUltimateEndUser(APIView):
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": ultimate_end_user.type.replace("_", " "),
+                "party_name": ultimate_end_user.name,
+            }
         )
+        #
+        # set_party_case_activity(
+        #     CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
+        # )
 
         return JsonResponse(data={"ultimate_end_user": "deleted"}, status=status.HTTP_200_OK)
 
@@ -178,16 +225,34 @@ class ApplicationConsignee(APIView):
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
 
-            set_party_case_activity(
-                CaseActivityType.REMOVE_PARTY,
-                previous_consignee.type,
-                previous_consignee.name,
-                request.user,
-                application,
+            # set_party_case_activity(
+            #     CaseActivityType.REMOVE_PARTY,
+            #     previous_consignee.type,
+            #     previous_consignee.name,
+            #     request.user,
+            #     application,
+            # )
+            audit_service.create(
+                actor=request.user,
+                verb=Verb.REMOVED_PARTY,
+                target=application.get_case() or application,
+                payload={
+                    "party_type": previous_consignee.type.replace("_", " "),
+                    "party_name": previous_consignee.name,
+                }
             )
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name, request.user, application,
+        # set_party_case_activity(
+        #     CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name, request.user, application,
+        # )
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADDED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": new_consignee.type.replace("_", " "),
+                "party_name": new_consignee.name,
+            }
         )
 
         return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
@@ -209,8 +274,17 @@ class ApplicationConsignee(APIView):
         delete_party_document_if_exists(consignee)
         consignee.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user, application,
+        # set_party_case_activity(
+        #     CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user, application,
+        # )
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": consignee.type.replace("_", " "),
+                "party_name": consignee.name,
+            }
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -246,8 +320,14 @@ class ApplicationThirdParties(APIView):
         third_party = serializer.save()
         application.third_parties.add(third_party.id)
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, third_party.type, third_party.name, request.user, application,
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADDED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": third_party.type.replace("_", " "),
+                "party_name": third_party.name,
+            }
         )
 
         return JsonResponse(data={"third_party": serializer.data}, status=status.HTTP_201_CREATED)
@@ -270,8 +350,14 @@ class RemoveThirdParty(APIView):
         delete_party_document_if_exists(third_party)
         third_party.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, third_party.type, third_party.name, request.user, application,
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_PARTY,
+            target=application.get_case() or application,
+            payload={
+                "party_type": third_party.type.replace("_", " "),
+                "party_name": third_party.name,
+            }
         )
 
         return JsonResponse(data={"third_party": "deleted"}, status=status.HTTP_200_OK)

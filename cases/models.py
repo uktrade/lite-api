@@ -7,6 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
+from audit_trail.models import Audit
 from cases.enums import CaseType, AdviceType
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
@@ -302,19 +303,19 @@ class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
 
-    @classmethod
-    def create(
-        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
-    ):
-        activity = super(CaseActivity, cls).create(
-            activity_type, case, user, additional_text, created_at, save_object, **kwargs,
-        )
-
-        if isinstance(user, ExporterUser) and save_object:
-            for gov_user in GovUser.objects.all():
-                gov_user.send_notification(case_activity=activity)
-
-        return activity
+    # @classmethod
+    # def create(
+    #     cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
+    # ):
+    #     activity = super(CaseActivity, cls).create(
+    #         activity_type, case, user, additional_text, created_at, save_object, **kwargs,
+    #     )
+    #
+    #     if isinstance(user, ExporterUser) and save_object:
+    #         for gov_user in GovUser.objects.all():
+    #             gov_user.send_notification(case_activity=activity)
+    #
+    #     return activity
 
 
 class GoodCountryDecision(models.Model):
@@ -335,5 +336,5 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
-    case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
+    audit = models.ForeignKey(Audit, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)

@@ -15,6 +15,8 @@ from applications.serializers.good import (
     GoodOnApplicationViewSerializer,
     GoodOnApplicationCreateSerializer,
 )
+from audit_trail import service as audit_service
+from audit_trail.constants import Verb
 from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -85,8 +87,17 @@ class ApplicationGoodsOnApplication(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                set_application_goods_case_activity(
-                    CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user, application,
+                # set_application_goods_case_activity(
+                #     CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user, application,
+                # )
+                audit_service.create(
+                    actor=request.user,
+                    verb=Verb.ADDED_GOOD_TO_APPLICATION,
+                    action_object=good,
+                    target=application.get_case() or application,
+                    payload={
+                        'good': good.description
+                    }
                 )
 
                 return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
@@ -125,11 +136,21 @@ class ApplicationGoodOnApplication(APIView):
 
         good_on_application.delete()
 
-        set_application_goods_case_activity(
-            CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
-            good_on_application.good.description,
-            request.user,
-            good_on_application.application,
+        # set_application_goods_case_activity(
+        #     CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
+        #     good_on_application.good.description,
+        #     request.user,
+        #     good_on_application.application,
+        # )
+
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.REMOVED_GOOD_TO_APPLICATION,
+            action_object=good_on_application.good,
+            target=application.get_case() or application,
+            payload={
+                'good': good_on_application.good.description
+            }
         )
 
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
@@ -164,8 +185,18 @@ class ApplicationGoodsTypes(APIView):
 
         serializer.save()
 
-        set_application_goods_type_case_activity(
-            CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION, serializer.data["description"], request.user, application,
+        # set_application_goods_type_case_activity(
+        #     CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION, serializer.data["description"], request.user, application,
+        # )
+
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
+            action_object=serializer.instance,
+            target=application.get_case() or application,
+            payload={
+                'good_type': {"name": serializer.instance.description}
+            }
         )
 
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
@@ -196,9 +227,19 @@ class ApplicationGoodsType(APIView):
             delete_goods_type_document_if_exists(goods_type)
         goods_type.delete()
 
-        set_application_goods_type_case_activity(
-            CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description, request.user, application,
+        audit_service.create(
+            actor=request.user,
+            verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
+            action_object=goods_type,
+            target=application.get_case() or application,
+            payload={
+                'good_type': {"name": goods_type.description},
+            }
         )
+        # set_application_goods_type_case_activity(
+        #     CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description, request.user, application,
+        # )
+        #
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

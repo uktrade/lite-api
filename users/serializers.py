@@ -166,7 +166,7 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ("case_activity",)
+        fields = ("audit",)
 
 
 class NotificationSerializer(serializers.ModelSerializer):

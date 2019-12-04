@@ -20,12 +20,13 @@ from applications.libraries.application_helpers import (
 )
 from applications.libraries.case_activity import (
     set_application_ref_number_case_activity,
-    set_application_name_case_activity,
     set_application_status_case_activity,
 )
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from audit_trail import service as audit_service
+from audit_trail.constants import Verb
 from cases.enums import CaseType
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -113,40 +114,38 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = get_application_update_serializer(application)
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
         if application.application_type == ApplicationType.HMRC_QUERY:
-            if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
-
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-        else:
-            application_old_name = application.name
 
-            if application.application_type == ApplicationType.STANDARD_LICENCE:
-                application_old_ref_number = application.reference_number_on_information_form
+        if request.data.get("name"):
+            audit_service.create(
+                actor=request.user,
+                verb=Verb.UPDATED_APPLICATION,
+                target=application.get_case() or application,
+                payload={"name": {"old": application.name, "new": serializer.data.get("name")}}
+            )
 
-            if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if (
+            request.data.get("reference_number_on_information_form")
+            and application.application_type == ApplicationType.STANDARD_LICENCE
+        ):
+            audit_service.create(
+                actor=request.user,
+                verb=Verb.UPDATED_APPLICATION,
+                target=application.get_case() or application,
+                payload={"reference": {
+                    "old": application.reference_number_on_information_form,
+                    "new": serializer.data.get("reference_number_on_information_form")
+                }}
 
-            serializer.save()
+            )
 
-            if request.data.get("name"):
-                set_application_name_case_activity(
-                    application_old_name, serializer.data.get("name"), request.user, application
-                )
-            elif (
-                request.data.get("reference_number_on_information_form")
-                and application.application_type == ApplicationType.STANDARD_LICENCE
-            ):
-                set_application_ref_number_case_activity(
-                    application_old_ref_number,
-                    serializer.data.get("reference_number_on_information_form"),
-                    request.user,
-                    application,
-                )
-
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):

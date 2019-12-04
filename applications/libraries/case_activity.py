@@ -1,3 +1,5 @@
+from audit_trail import service as audit_service
+from audit_trail.constants import Verb
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 
@@ -9,40 +11,33 @@ def _get_case_from_application(application):
         return None
 
 
-def set_case_activity(case_activity, user, application):
+def set_case_activity(user, verb, application, payload):
     case = _get_case_from_application(application)
 
     if case:
-        CaseActivity.create(case=case, user=user, **case_activity)
-
-
-def set_application_name_case_activity(old_name, new_name, user, application):
-    case_activity = {
-        "activity_type": CaseActivityType.UPDATED_APPLICATION_NAME,
-        "old_name": old_name,
-        "new_name": new_name,
-    }
-
-    set_case_activity(case_activity, user, application)
+        audit_service.create(
+            actor=user,
+            verb=verb,
+            target=case,
+            payload=payload
+        )
 
 
 def set_application_ref_number_case_activity(old_ref_number, new_ref_number, user, application):
-    case_activity = {
-        "activity_type": CaseActivityType.UPDATED_APPLICATION_REFERENCE_NUMBER,
+    payload = {
         "old_ref_number": old_ref_number,
         "new_ref_number": new_ref_number,
     }
 
-    set_case_activity(case_activity, user, application)
+    set_case_activity(user, Verb.UPDATED_APPLICATION, application, payload)
 
 
 def set_application_status_case_activity(status, user, application):
-    case_activity = {
-        "activity_type": CaseActivityType.UPDATED_STATUS,
+    payload = {
         "status": status,
     }
 
-    set_case_activity(case_activity, user, application)
+    set_case_activity(user, Verb.UPDATED_STATUS, application, payload)
 
 
 def set_site_case_activity(removed_locations, removed_sites, new_sites, user, application):

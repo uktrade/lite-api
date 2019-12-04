@@ -6,14 +6,14 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
+from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
-from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -86,12 +86,20 @@ class EndUserAdvisoryDetail(APIView):
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
             if serializer.is_valid():
-                CaseActivity.create(
-                    activity_type=CaseActivityType.UPDATED_STATUS,
-                    case=end_user_advisory.case.get(),
-                    user=request.user,
-                    status=data.get("status"),
+                # CaseActivity.create(
+                #     activity_type=CaseActivityType.UPDATED_STATUS,
+                #     case=end_user_advisory.case.get(),
+                #     user=request.user,
+                #     status=data.get("status"),
+                # )
+
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=Verb.UPDATED_STATUS,
+                    target=end_user_advisory.case.get(),
+                    payload={'status': data.get('status')}
                 )
+
 
                 serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={"end_user_advisory": serializer.data})

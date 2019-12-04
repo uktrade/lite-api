@@ -3,10 +3,11 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.case_activity import set_site_case_activity
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import has_previous_locations
@@ -119,9 +120,51 @@ class ApplicationSites(APIView):
         # Get external locations to be removed if a site is being added
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
 
-        set_site_case_activity(removed_locations, removed_sites, new_sites, request.user, application)
+        # set_site_case_activity(removed_locations, removed_sites, new_sites, request.user, application)
+        set_activity(
+            user=request.user,
+            application=application,
+            removed_locations=removed_locations,
+            removed_sites=removed_sites,
+            added_sites=new_sites
+        )
 
         removed_sites.delete()
         removed_locations.delete()
 
         return JsonResponse(data={"sites": response_data}, status=status.HTTP_201_CREATED)
+
+
+def set_activity(user, application, removed_locations, removed_sites, added_sites):
+    if removed_sites:
+        audit_trail_service.create(
+            actor=user,
+            verb=Verb.REMOVED_SITES_FROM_APPLICATION,
+            target=application.get_case() or application,
+            payload={
+                'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
+            }
+        )
+
+    if removed_locations:
+        audit_trail_service.create(
+            actor=user,
+            verb=Verb.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
+            target=application.get_case() or application,
+            payload={
+                'locations':  [
+                    location.external_location.name + " " + location.external_location.country.name
+                    for location in removed_locations
+                ]
+            }
+        )
+
+    if added_sites:
+        audit_trail_service.create(
+            actor=user,
+            verb=Verb.ADDED_SITES_TO_APPLICATION,
+            target=application.get_case() or application,
+            payload={
+                'sites': [site.name + " " + site.address.country.name for site in added_sites],
+            }
+        )

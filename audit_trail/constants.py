@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class Verb(Enum):
+    ADDED_PARTY = 'added party'
+    REMOVED_PARTY = 'removed party'
     ADDED_NOTE = 'added note'
     REMOVED_NOTE = 'removed note'
     ADDED_QUEUES = 'added queues'
@@ -14,4 +16,17 @@ class Verb(Enum):
     ADDED_FLAGS = 'added flags'
     REMOVED_FLAGS = 'removed flags'
     UPLOADED_DOCUMENT = 'uploaded document'
-
+    DELETED_DOCUMENT = 'deleted document'
+    UPDATED_CONTROL_CODE = 'updated'
+    UPDATED_STATUS = 'updated status'
+    UPDATED_APPLICATION = 'updated application'
+    CLC_RESPONSE = 'clc response'
+    ADDED_GOOD_TO_APPLICATION = 'added good to app'
+    REMOVED_GOOD_TO_APPLICATION = 'removed good to app'
+    ADD_GOOD_TYPE_TO_APPLICATION = 'add good type to app'
+    REMOVED_SITES_FROM_APPLICATION = 'removed sites from app'
+    REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'removed external locations from application'
+    ADDED_EXTERNAL_LOCATIONS_FROM_APPLICATION = 'removed external locations from application'
+    ADDED_SITES_TO_APPLICATION = 'added sites to application'
+    ADDED_COUNTRIES = 'added countries'
+    REMOVED_COUNTRIES = 'removed countries'

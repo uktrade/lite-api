@@ -47,6 +47,17 @@ class AuditSerializer(serializers.ModelSerializer):
         if verb == Verb.UPLOADED_DOCUMENT:
             return f"uploaded case document: {instance.payload['file_name']}"
 
+        if verb == Verb.UPDATED_CONTROL_CODE:
+            good = instance.payload['good']
+            clc = instance.payload['control_code']
+            return f'good was reviewed: {good["name"]} control code changed from {clc["old"]} to {clc["new"]}',
+
+        if verb == Verb.UPDATED_STATUS:
+            return f"updated status to {instance.payload['status']}"
+
+        if verb == Verb.CLC_RESPONSE:
+            return f"responded to the case"
+
         return f"{instance.verb}:"
 
     def get_additional_text(self, instance):

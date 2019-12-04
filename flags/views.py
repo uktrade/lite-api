@@ -7,8 +7,7 @@ from rest_framework.views import APIView
 from applications.models import GoodOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity, Case
+from cases.models import Case
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
 from flags.enums import FlagStatuses

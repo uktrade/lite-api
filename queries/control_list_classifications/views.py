@@ -6,14 +6,14 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
-from goods.serializers import ClcControlGoodSerializer
 from goods.libraries.get_goods import get_good
+from goods.serializers import ClcControlGoodSerializer
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
@@ -72,8 +72,14 @@ class ControlListClassificationDetail(APIView):
                     query.save()
 
                     # Add an activity item for the query's case
-                    CaseActivity.create(
-                        activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                    # CaseActivity.create(
+                    #     activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                    # )
+
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=Verb.CLC_RESPONSE,
+                        target=query.case.get(),
                     )
 
                     # Send a notification to the user

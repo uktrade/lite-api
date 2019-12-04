@@ -1,6 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
+from audit_trail.constants import Verb
+from audit_trail.models import Audit
 from cases.libraries.get_case import get_case_activity
 from cases.models import Case
 from conf.constants import Permissions
@@ -84,8 +87,12 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        # Check that an audit item has been added
+        qs = Audit.objects.filter(
+            target_object_id=self.query.case.get().id,
+            target_content_type=ContentType.objects.get_for_model(self.query.case.get())
+        )
+        self.assertEqual(qs.count(), 1)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
@@ -107,7 +114,11 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that an activity item has been added
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 1)
+        qs = Audit.objects.filter(
+            target_object_id=self.query.case.get().id,
+            target_content_type=ContentType.objects.get_for_model(self.query.case.get())
+        )
+        self.assertEqual(qs.count(), 1)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """

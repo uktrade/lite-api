@@ -5,8 +5,11 @@ from applications.libraries.case_activity import (
     set_party_document_case_activity,
     set_application_document_case_activity,
 )
+from audit_trail import service as audit_trail_service
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from audit_trail import service as audit_trail_service
+from audit_trail.constants import Verb
 from cases.libraries.activity_types import CaseActivityType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
@@ -52,8 +55,15 @@ def upload_application_document(application, data, user):
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
 
-    set_application_document_case_activity(
-        CaseActivityType.UPLOAD_APPLICATION_DOCUMENT, data.get("name"), user, application,
+    # set_application_document_case_activity(
+    #     CaseActivityType.UPLOAD_APPLICATION_DOCUMENT, data.get("name"), user, application,
+    # )
+
+    audit_trail_service.create(
+        actor=user,
+        verb=Verb.UPLOADED_DOCUMENT,
+        target=application.get_case() or application,
+        payload={"filename": data.get("name")}
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -62,13 +72,19 @@ def upload_application_document(application, data, user):
 def delete_application_document(document_id, application, user):
     try:
         document = ApplicationDocument.objects.get(pk=document_id)
-        file_name = document.name
         document.delete_s3()
         document.delete()
     except ApplicationDocument.DoesNotExist:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-    set_application_document_case_activity(CaseActivityType.DELETE_APPLICATION_DOCUMENT, file_name, user, application)
+    # set_application_document_case_activity(CaseActivityType.DELETE_APPLICATION_DOCUMENT, file_name, user, application)
+
+    audit_trail_service.create(
+        actor=user,
+        verb=Verb.DELETED_DOCUMENT,
+        target=application.get_case() or application,
+        payload={"filename": document.name}
+    )
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -89,8 +105,11 @@ def upload_party_document(party, data, application, user):
 
     serializer.save()
 
-    set_party_document_case_activity(
-        CaseActivityType.UPLOAD_PARTY_DOCUMENT, serializer.data.get("name"), party.type, party.name, user, application,
+    audit_trail_service.create(
+        actor=user,
+        verb=Verb.UPLOADED_DOCUMENT,
+        target=application.get_case() or application,
+        payload={'filename': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -104,9 +123,19 @@ def delete_party_document(party, application, user):
     for document in documents:
         document.delete_s3()
         document.delete()
-
-        set_party_document_case_activity(
-            CaseActivityType.DELETE_PARTY_DOCUMENT, document.name, party.type, party.name, user, application,
+        #
+        # set_party_document_case_activity(
+        #     CaseActivityType.DELETE_PARTY_DOCUMENT, document.name, party.type, party.name, user, application,
+        # )
+        audit_trail_service.create(
+            actor=user,
+            verb=Verb.DELETED_DOCUMENT,
+            target=application.get_case() or application,
+            payload={
+                "party_type": party.type.replace("_", " "),
+                "party_name": party.name,
+                "file_name": document.name
+            }
         )
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)

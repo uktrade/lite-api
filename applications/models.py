@@ -37,6 +37,16 @@ class BaseApplication(models.Model):
 
     objects = BaseApplicationManager()
 
+    def get_case(self):
+        """
+        Reverse foreign key lookup to Case
+        """
+        from cases.models import Case
+        try:
+            return self.case.get()
+        except Case.DoesNotExist:
+            return None
+
 
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
