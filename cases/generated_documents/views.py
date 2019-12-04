@@ -12,7 +12,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.libraries import s3_operations
-from letter_templates.helpers import get_preview, markdown_to_html
+from letter_templates.helpers import markdown_to_html, generate_preview
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
 
@@ -29,7 +29,7 @@ def _get_generated_document_data(request_params, pk):
 
     case = get_case(pk)
     template = get_letter_template_for_case(tpk, case)
-    document_html = get_preview(template=template, text=text, case=case)
+    document_html = generate_preview(layout=template.layout.filename, text=text, case=case)
 
     if "error" in document_html:
         return document_html["error"], None, None, None, None

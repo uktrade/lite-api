@@ -65,7 +65,3 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
         return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": LetterTemplatesPage.PREVIEW_ERROR}
-
-
-def get_preview(template: LetterTemplate, text: str, case=None):
-    return generate_preview(template.layout.filename, text=text, case=case)
