@@ -8,7 +8,6 @@ from audit_trail.constants import Verb
 
 class AuditSerializer(serializers.ModelSerializer):
     """
-    Serializer to serialize Action to current format for CaseActivity
     """
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()

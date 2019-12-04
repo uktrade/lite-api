@@ -132,7 +132,6 @@ class ApplicationExternalLocations(APIView):
         # Get sites to be removed if a site is being added
         removed_sites = SiteOnApplication.objects.filter(application=application)
 
-        # set_external_location_case_activity(removed_sites, removed_locations, new_locations, request.user, application)
         if removed_sites:
             audit_trail_service.create(
                 actor=request.user,

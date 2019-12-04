@@ -120,7 +120,6 @@ class ApplicationSites(APIView):
         # Get external locations to be removed if a site is being added
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
 
-        # set_site_case_activity(removed_locations, removed_sites, new_sites, request.user, application)
         set_activity(
             user=request.user,
             application=application,

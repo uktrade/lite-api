@@ -2,9 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from audit_trail.constants import Verb
 from audit_trail.models import Audit
-from cases.libraries.get_case import get_case_activity
 from cases.models import Case
 from conf.constants import Permissions
 from goods.enums import GoodControlled, GoodStatus

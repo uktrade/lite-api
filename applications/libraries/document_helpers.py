@@ -1,16 +1,10 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
-from applications.libraries.case_activity import (
-    set_party_document_case_activity,
-    set_application_document_case_activity,
-)
-from audit_trail import service as audit_trail_service
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
-from cases.libraries.activity_types import CaseActivityType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.document.models import PartyDocument
@@ -55,10 +49,6 @@ def upload_application_document(application, data, user):
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
 
-    # set_application_document_case_activity(
-    #     CaseActivityType.UPLOAD_APPLICATION_DOCUMENT, data.get("name"), user, application,
-    # )
-
     audit_trail_service.create(
         actor=user,
         verb=Verb.UPLOADED_DOCUMENT,
@@ -76,8 +66,6 @@ def delete_application_document(document_id, application, user):
         document.delete()
     except ApplicationDocument.DoesNotExist:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-
-    # set_application_document_case_activity(CaseActivityType.DELETE_APPLICATION_DOCUMENT, file_name, user, application)
 
     audit_trail_service.create(
         actor=user,
@@ -123,10 +111,7 @@ def delete_party_document(party, application, user):
     for document in documents:
         document.delete_s3()
         document.delete()
-        #
-        # set_party_document_case_activity(
-        #     CaseActivityType.DELETE_PARTY_DOCUMENT, document.name, party.type, party.name, user, application,
-        # )
+
         audit_trail_service.create(
             actor=user,
             verb=Verb.DELETED_DOCUMENT,

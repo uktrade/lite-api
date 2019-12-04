@@ -10,7 +10,6 @@ from audit_trail.constants import Verb
 from audit_trail.models import Audit
 from cases import service
 from cases.helpers import create_grouped_advice
-from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
@@ -27,7 +26,6 @@ from cases.models import (
     Advice,
     TeamAdvice,
     FinalAdvice,
-    CaseActivity,
     GoodCountryDecision,
 )
 from cases.serializers import (
@@ -219,9 +217,6 @@ class CaseTeamAdvice(APIView):
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
             case_advice_contains_refusal(pk)
 
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user,
-            # )
             audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.ADDED_ADVICE,
@@ -262,9 +257,6 @@ class CaseTeamAdvice(APIView):
         self.team_advice.filter(team=self.request.user.team).delete()
         case_advice_contains_refusal(pk)
 
-        # CaseActivity.create(
-        #     activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user,
-        # )
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_ADVICE,
@@ -306,9 +298,7 @@ class CaseFinalAdvice(APIView):
             assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.CREATED_FINAL_ADVICE, case=self.case, user=request.user,
-            # )
+
             audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.CREATED_FINAL_ADIVCE,
@@ -335,9 +325,7 @@ class CaseFinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
-        # CaseActivity.create(
-        #     activity_type=CaseActivityType.CLEARED_FINAL_ADVICE, case=self.case, user=request.user,
-        # )
+
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.CLEARED_FINAL_ADVICE,

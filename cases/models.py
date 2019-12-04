@@ -1,4 +1,3 @@
-import re
 import uuid
 
 import reversion
@@ -9,7 +8,6 @@ from django.utils import timezone
 from applications.models import BaseApplication
 from audit_trail.models import Audit
 from cases.enums import CaseType, AdviceType
-from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
 from flags.models import Flag
@@ -233,89 +231,6 @@ class EcjuQuery(models.Model):
         else:
             self.responded_at = timezone.now()
             super(EcjuQuery, self).save(*args, **kwargs)
-
-
-class BaseActivity(models.Model):
-    text = models.TextField(default=None)
-    additional_text = models.TextField(default=None, null=True)
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    type = models.CharField(max_length=50)
-    activity_types = BaseActivityType
-
-    @classmethod
-    def _replace_placeholders(cls, activity_type, **kwargs):
-        """
-        Replaces placeholders in activity_type with parameters given
-        """
-        # Get the placeholder for the supplied activity_type
-        text = cls.activity_types.get_text(activity_type)
-        placeholders = re.findall("{(.+?)}", text)
-
-        # Raise an exception if the wrong amount of kwargs are given
-        if len(placeholders) != len(kwargs):
-            raise Exception(
-                "Incorrect number of values for activity_type, expected "
-                + str(len(placeholders))
-                + ", got "
-                + str(len(kwargs))
-            )
-
-        # Raise an exception if all the placeholder parameters are not provided
-        for placeholder in placeholders:
-            if placeholder not in kwargs:
-                raise Exception(f"{placeholder} not provided in parameters for activity type: {activity_type}")
-
-        # Loop over kwargs, if type is list, convert to comma delimited string
-        for key, value in kwargs.items():
-            if isinstance(value, list):
-                kwargs[key] = ", ".join(value)
-
-        # Format text by replacing the placeholders with values using kwargs given
-        text = text.format(**kwargs)
-
-        # Add a full stop unless the text ends with a colon
-        if not text.endswith(":") and not text.endswith("?"):
-            text = text + "."
-
-        return text
-
-    @classmethod
-    def create(
-        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
-    ):
-        # If activity_type isn't valid, raise an exception
-        if activity_type not in [x[0] for x in cls.activity_types.choices]:
-            raise Exception(f"{activity_type} isn't in " + cls.activity_types.__name__)
-
-        text = cls._replace_placeholders(activity_type, **kwargs)
-
-        activity = cls(
-            type=activity_type, text=text, user=user, case=case, additional_text=additional_text, created_at=created_at,
-        )
-        if save_object:
-            activity.save()
-
-        return activity
-
-
-class CaseActivity(BaseActivity):
-    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
-    activity_types = CaseActivityType
-
-    # @classmethod
-    # def create(
-    #     cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
-    # ):
-    #     activity = super(CaseActivity, cls).create(
-    #         activity_type, case, user, additional_text, created_at, save_object, **kwargs,
-    #     )
-    #
-    #     if isinstance(user, ExporterUser) and save_object:
-    #         for gov_user in GovUser.objects.all():
-    #             gov_user.send_notification(case_activity=activity)
-    #
-    #     return activity
 
 
 class GoodCountryDecision(models.Model):

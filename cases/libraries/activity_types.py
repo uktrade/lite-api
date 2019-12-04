@@ -7,6 +7,9 @@ class BaseActivityType:
 
 
 class CaseActivityType(BaseActivityType):
+    """
+    TODO: Remove once audit 100% done
+    """
     ADD_FLAGS = "add_flags"
     REMOVE_FLAGS = "remove_flags"
     ADD_REMOVE_FLAGS = "add_remove_flags"

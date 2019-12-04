@@ -1,4 +1,4 @@
-from cases.models import Case, CaseDocument, CaseActivity
+from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
 from content_strings.strings import get_string
 
@@ -31,7 +31,3 @@ def get_case_document_by_pk(pk):
         return CaseDocument.objects.get(pk=pk)
     except CaseDocument.DoesNotExist:
         raise NotFoundError({"document": get_string("documents.document_not_found")})
-
-
-def get_case_activity(case: Case):
-    return list(CaseActivity.objects.filter(case=case))

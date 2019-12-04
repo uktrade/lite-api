@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.case_activity import set_countries_case_activity
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
@@ -92,8 +91,6 @@ class ApplicationCountries(APIView):
 
             countries_data = CountrySerializer(new_countries, many=True).data
 
-            # set_countries_case_activity(removed_countries, new_countries, request.user, application)
-            #
             if new_countries:
                 audit_trail_service.create(
                     actor=request.user,

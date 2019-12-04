@@ -4,10 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.case_activity import (
-    set_application_goods_case_activity,
-    set_application_goods_type_case_activity,
-)
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
@@ -17,7 +13,6 @@ from applications.serializers.good import (
 )
 from audit_trail import service as audit_service
 from audit_trail.constants import Verb
-from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -87,9 +82,6 @@ class ApplicationGoodsOnApplication(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                # set_application_goods_case_activity(
-                #     CaseActivityType.ADD_GOOD_TO_APPLICATION, good.description, request.user, application,
-                # )
                 audit_service.create(
                     actor=request.user,
                     verb=Verb.ADDED_GOOD_TO_APPLICATION,
@@ -136,13 +128,6 @@ class ApplicationGoodOnApplication(APIView):
 
         good_on_application.delete()
 
-        # set_application_goods_case_activity(
-        #     CaseActivityType.REMOVE_GOOD_FROM_APPLICATION,
-        #     good_on_application.good.description,
-        #     request.user,
-        #     good_on_application.application,
-        # )
-
         audit_service.create(
             actor=request.user,
             verb=Verb.REMOVED_GOOD_TO_APPLICATION,
@@ -184,10 +169,6 @@ class ApplicationGoodsTypes(APIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
-
-        # set_application_goods_type_case_activity(
-        #     CaseActivityType.ADD_GOOD_TYPE_TO_APPLICATION, serializer.data["description"], request.user, application,
-        # )
 
         audit_service.create(
             actor=request.user,
@@ -236,10 +217,6 @@ class ApplicationGoodsType(APIView):
                 'good_type': {"name": goods_type.description},
             }
         )
-        # set_application_goods_type_case_activity(
-        #     CaseActivityType.REMOVE_GOOD_TYPE_FROM_APPLICATION, goods_type.description, request.user, application,
-        # )
-        #
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

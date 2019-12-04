@@ -73,14 +73,6 @@ class GoodsListControlCode(APIView):
                         serializer.save()
 
                     if new_control_code != old_control_code:
-                        # CaseActivity.create(
-                        #     activity_type=CaseActivityType.GOOD_REVIEWED,
-                        #     good_name=good.description,
-                        #     old_control_code=old_control_code,
-                        #     new_control_code=new_control_code,
-                        #     case=case,
-                        #     user=request.user,
-                        # )
                         audit_trail_service.create(
                             actor=request.user,
                             verb=Verb.UPDATED_CONTROL_CODE,

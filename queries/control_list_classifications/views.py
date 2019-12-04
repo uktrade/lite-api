@@ -71,11 +71,6 @@ class ControlListClassificationDetail(APIView):
                     query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                     query.save()
 
-                    # Add an activity item for the query's case
-                    # CaseActivity.create(
-                    #     activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
-                    # )
-
                     audit_trail_service.create(
                         actor=request.user,
                         verb=Verb.CLC_RESPONSE,

@@ -178,14 +178,6 @@ class AssignFlags(APIView):
     def _set_case_activity(self, added_flags, removed_flags, case, user, note, **kwargs):
         # Add an activity item for the case
         if added_flags:
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.ADD_FLAGS,
-            #     case=case,
-            #     user=user,
-            #     added_flags=added_flags,
-            #     additional_text=note,
-            #     **kwargs,
-            # )
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.ADDED_FLAGS,
@@ -197,14 +189,6 @@ class AssignFlags(APIView):
             )
 
         if removed_flags:
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.REMOVE_FLAGS,
-            #     case=case,
-            #     user=user,
-            #     removed_flags=removed_flags,
-            #     additional_text=note,
-            #     **kwargs,
-            # )
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.REMOVED_FLAGS,
@@ -218,14 +202,6 @@ class AssignFlags(APIView):
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case
         if added_flags:
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.GOOD_ADD_FLAGS,
-            #     case=case,
-            #     user=user,
-            #     added_flags=added_flags,
-            #     additional_text=note,
-            #     good_name=good.description,
-            # )
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.ADDED_FLAGS,
@@ -237,14 +213,6 @@ class AssignFlags(APIView):
             )
 
         if removed_flags:
-            # CaseActivity.create(
-            #     activity_type=CaseActivityType.GOOD_REMOVE_FLAGS,
-            #     case=case,
-            #     user=user,
-            #     removed_flags=removed_flags,
-            #     additional_text=note,
-            #     good_name=good.description,
-            # )
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.REMOVED_FLAGS,

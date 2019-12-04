@@ -3,10 +3,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.case_activity import set_party_case_activity
 from audit_trail import service as audit_service
 from audit_trail.constants import Verb
-from cases.libraries.activity_types import CaseActivityType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -61,17 +59,6 @@ class ApplicationEndUser(APIView):
                     "party_name": previous_end_user.name,
                 }
             )
-            # set_party_case_activity(
-            #     CaseActivityType.REMOVE_PARTY,
-            #     previous_end_user.type,
-            #     previous_end_user.name,
-            #     request.user,
-            #     application,
-            # )
-
-        # set_party_case_activity(
-        #     CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user, application,
-        # )
 
         audit_service.create(
             actor=request.user,
@@ -102,10 +89,6 @@ class ApplicationEndUser(APIView):
         delete_party_document_if_exists(end_user)
         end_user.delete()
 
-        # set_party_case_activity(
-        #     CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application,
-        # )
-        #
         audit_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
@@ -190,10 +173,6 @@ class RemoveApplicationUltimateEndUser(APIView):
                 "party_name": ultimate_end_user.name,
             }
         )
-        #
-        # set_party_case_activity(
-        #     CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
-        # )
 
         return JsonResponse(data={"ultimate_end_user": "deleted"}, status=status.HTTP_200_OK)
 
@@ -225,13 +204,6 @@ class ApplicationConsignee(APIView):
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
 
-            # set_party_case_activity(
-            #     CaseActivityType.REMOVE_PARTY,
-            #     previous_consignee.type,
-            #     previous_consignee.name,
-            #     request.user,
-            #     application,
-            # )
             audit_service.create(
                 actor=request.user,
                 verb=Verb.REMOVED_PARTY,
@@ -242,9 +214,6 @@ class ApplicationConsignee(APIView):
                 }
             )
 
-        # set_party_case_activity(
-        #     CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name, request.user, application,
-        # )
         audit_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
@@ -274,9 +243,6 @@ class ApplicationConsignee(APIView):
         delete_party_document_if_exists(consignee)
         consignee.delete()
 
-        # set_party_case_activity(
-        #     CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user, application,
-        # )
         audit_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,

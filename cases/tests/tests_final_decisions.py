@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 from users.models import Role, Permission
 
 
-class CaseActivityTests(DataTestClient):
+class CaseFinalDecisionTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
