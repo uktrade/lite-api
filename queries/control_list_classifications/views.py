@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import timezone
 
 from django.http import JsonResponse, Http404
 from rest_framework import status
@@ -41,15 +41,15 @@ class ControlListClassificationsList(APIView):
             raise Http404
 
         good.status = GoodStatus.CLC_QUERY
-        good.control_code = data["not_sure_details_control_code"]
+        good.control_code = data.get("not_sure_details_control_code")
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details=data["not_sure_details_details"],
+            details=data.get("not_sure_details_details"),
             good=good,
             organisation=data["organisation"],
             type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=datetime.now(timezone.utc),
+            submitted_at=timezone.now(),
         )
 
         good.save()
