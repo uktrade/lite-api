@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import CaseTypeEnum
+from static.case_types.enums import CaseType
 from cases.models import Case
 from content_strings.strings import get_string
 from goodstype.models import GoodsType
@@ -24,7 +24,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(case.application.id, self.draft.id)
         self.assertIsNotNone(case.application.submitted_at)
         self.assertEqual(case.application.status.status, CaseStatusEnum.SUBMITTED)
-        self.assertEqual(case.type, CaseTypeEnum.HMRC_QUERY)
+        self.assertEqual(case.type, CaseType.HMRC_QUERY)
 
     def test_submit_hmrc_query_with_invalid_id_failure(self):
         draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"

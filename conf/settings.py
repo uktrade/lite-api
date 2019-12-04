@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "reversion",
     "static",
+    "static.case_types",
     "static.control_list_entries",
     "static.countries",
     "static.denial_reasons",
