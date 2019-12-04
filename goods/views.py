@@ -42,7 +42,6 @@ class GoodsListControlCode(APIView):
         """
         Set control list codes on multiple goods.
         """
-        print('#####\n\n#####\n')
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
         data = JSONParser().parse(request)
