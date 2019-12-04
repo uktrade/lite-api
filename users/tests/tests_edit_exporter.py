@@ -6,7 +6,6 @@ from test_helpers.clients import DataTestClient
 
 class UserTests(DataTestClient):
     def test_edit_a_user(self):
-        original_email = self.exporter_user.email
         data = {"email": "hamster@gmail.com"}
         url = reverse("users:user", kwargs={"pk": self.exporter_user.id})
 
