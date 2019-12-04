@@ -64,10 +64,10 @@ class ApplicationExternalLocations(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if application.status.status in [
-            CaseStatusEnum.APPLICANT_EDITING,
-            CaseStatusEnum.DRAFT,
-        ]:
+        if (
+            is_case_status_draft(application.status.status)
+            or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+        ):
             new_locations = [
                 get_location(location_id, request.user.organisation)
                 for location_id in location_ids
@@ -160,10 +160,10 @@ class ApplicationRemoveExternalLocation(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not is_case_status_draft(application.status.status) and application.status.status not in [
-            CaseStatusEnum.APPLICANT_EDITING,
-            CaseStatusEnum.DRAFT,
-        ]:
+        if (
+            not is_case_status_draft(application.status.status)
+            and application.status.status != CaseStatusEnum.APPLICANT_EDITING
+        ):
             if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
                 return JsonResponse(
                     data={

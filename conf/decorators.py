@@ -8,6 +8,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 from lite_content.lite_api import strings
 
@@ -66,7 +67,10 @@ def application_in_major_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status.status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.DRAFT]:
+            if (
+                is_case_status_draft(application.status.status)
+                or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+            ):
                 return JsonResponse(
                     data={
                         "errors": [
