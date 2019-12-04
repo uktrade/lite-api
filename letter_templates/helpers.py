@@ -37,7 +37,7 @@ def markdown_to_html(text: str):
 
 
 def get_paragraphs_as_html(paragraphs: list):
-    return "\n\n".join([markdown_to_html(paragraph.text)for paragraph in paragraphs])
+    return "\n\n".join([markdown_to_html(paragraph.text) for paragraph in paragraphs])
 
 
 def get_css_location(filename):

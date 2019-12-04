@@ -72,7 +72,7 @@ class GeneratedDocuments(APIView):
                     type=CaseDocumentState.GENERATED,
                     case=case,
                     template=template,
-                    text=text
+                    text=text,
                 )
 
                 # Generate timeline entry
