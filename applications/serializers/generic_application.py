@@ -110,10 +110,6 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
             "status",
         )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT)
-
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
     name = CharField(

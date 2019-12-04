@@ -19,6 +19,8 @@ from parties.serializers import (
     ThirdPartySerializer,
     ConsigneeSerializer,
 )
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(GenericApplicationListSerializer):
@@ -81,6 +83,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         super().__init__(**kwargs)
         self.initial_data["organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = StandardApplication
@@ -93,6 +96,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "reference_number_on_information_form",
             "organisation",
             "type",
+            "status",
         )
 
 

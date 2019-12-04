@@ -21,6 +21,8 @@ from parties.serializers import (
     ThirdPartySerializer,
     ConsigneeSerializer,
 )
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class HmrcQueryViewSerializer(GenericApplicationListSerializer):
@@ -83,6 +85,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
 
         self.initial_data["hmrc_organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.HMRC_QUERY
+        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = HmrcQuery
@@ -92,6 +95,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             "organisation",
             "hmrc_organisation",
             "type",
+            "status",
         )
 
 
