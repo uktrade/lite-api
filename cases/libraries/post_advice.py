@@ -10,7 +10,6 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
-from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 
 
