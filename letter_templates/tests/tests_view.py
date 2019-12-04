@@ -67,3 +67,26 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(template["case_types"]))
         self.assertIsNotNone(template.get("created_at"))
         self.assertIsNotNone(template.get("last_modified_at"))
+
+    def test_get_letter_template_with_preview_success(self):
+        url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
+        url += "?generate_preview=True"
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("preview" in response_data)
+        preview = response_data["preview"]
+        for tag in ["<style>", "</style>"]:
+            self.assertTrue(tag in preview)
+        self.assertTrue(self.picklist_item.text in preview)
+
+    def test_get_letter_template_with_text_success(self):
+        url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
+        url += "?text=True"
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("text" in response_data)
+        self.assertTrue(self.picklist_item.text in response_data["text"])
