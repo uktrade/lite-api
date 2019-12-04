@@ -6,9 +6,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import GoodOnApplication, BaseApplication
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
-from cases.models import CaseActivity, Case
+from cases.models import CaseActivity
 from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
@@ -18,7 +19,6 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from applications.models import GoodOnApplication, BaseApplication
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -30,10 +30,10 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
+from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
-from lite_content.lite_api import strings
 
 
 class GoodsListControlCode(APIView):

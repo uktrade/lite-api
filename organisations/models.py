@@ -8,7 +8,6 @@ from conf.exceptions import NotFoundError
 from flags.models import Flag
 from organisations.enums import OrganisationType
 from static.countries.models import Country
-from users.enums import UserStatuses
 from users.models import UserOrganisationRelationship
 
 

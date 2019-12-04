@@ -27,7 +27,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseTypeEnum
-from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state

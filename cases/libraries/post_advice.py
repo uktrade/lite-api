@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from applications.models import BaseApplication
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice
 from conf.constants import Permissions
