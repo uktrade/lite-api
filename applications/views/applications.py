@@ -27,7 +27,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseTypeEnum
-from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -123,8 +122,11 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         else:
             application_old_name = application.name
 
-            if application.application_type == ApplicationType.STANDARD_LICENCE:
-                application_old_ref_number = application.reference_number_on_information_form
+            application_old_ref_number = (
+                application.reference_number_on_information_form
+                if application.application_type == ApplicationType.STANDARD_LICENCE
+                else None
+            )
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

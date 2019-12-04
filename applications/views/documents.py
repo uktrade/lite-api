@@ -13,8 +13,11 @@ from applications.libraries.document_helpers import (
     upload_goods_type_document,
     delete_goods_type_document,
     get_goods_type_document,
+    get_generated_case_document,
 )
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedCaseDocumentViewSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -109,3 +112,29 @@ class GoodsTypeDocumentView(APIView):
             return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
 
         return delete_goods_type_document(goods_type)
+
+
+class GeneratedDocuments(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        """
+        Gets a list of generated documents for the application's case
+        """
+        generated_documents = GeneratedCaseDocumentViewSerializer(
+            GeneratedCaseDocument.objects.filter(case__application=application), many=True
+        ).data
+
+        return JsonResponse(data={"generated_documents": generated_documents}, status=status.HTTP_200_OK,)
+
+
+class GeneratedDocument(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    def get(self, request, application, gcd_pk):
+        """
+        Gets a generated documents for the application's case
+        """
+        return get_generated_case_document(gcd_pk)
