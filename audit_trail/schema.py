@@ -5,18 +5,6 @@ from cases.models import Case, CaseNote
 from users.models import GovUser
 
 from collections import namedtuple
-"""
-Use class to handle validation and pass to service?
-
-class Action:
-    pass
-
-
-action = Action(actor=request.user, verb=Verb.ADDED_QUEUES, target=case)
-
-if action.validate():
-    audit_service.create(action)
-"""
 
 
 class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
@@ -72,7 +60,8 @@ check_kwargs = registry.check_kwargs
 def validate_kwargs(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        check_kwargs(**kwargs)
+        # TODO: compress Verb and activate schema validations.
+        # check_kwargs(**kwargs)
         return func(*args, **kwargs)
 
     return wrapper

@@ -1,6 +1,7 @@
 from enum import Enum
 
 
+# TODO: Compress verbs.
 class Verb(Enum):
     ADDED_PARTY = 'added party'
     REMOVED_PARTY = 'removed party'

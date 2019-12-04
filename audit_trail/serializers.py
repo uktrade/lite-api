@@ -1,13 +1,12 @@
-import json
-
-from audit_trail.models import Audit
 from rest_framework import serializers
 
 from audit_trail.constants import Verb
+from audit_trail.models import Audit
 
 
 class AuditSerializer(serializers.ModelSerializer):
     """
+    TODO: Parametrize Serializer
     """
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
