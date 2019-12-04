@@ -48,16 +48,20 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         template_object = self.get_object()
         template = self.get_serializer(template_object).data
         data = {"template": template}
+        paragraphs = PicklistItem.objects.filter(
+            type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
+        )
+        paragraph_text = get_paragraphs_as_html(paragraphs)
 
         if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):
-            data["preview"] = generate_preview(layout=template_object.layout.filename)
+            data["preview"] = generate_preview(
+                layout=template_object.layout.filename,
+                text=paragraph_text
+            )
             if "error" in data["preview"]:
                 return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
 
         if "text" in request.GET and bool(request.GET["text"]):
-            paragraphs = PicklistItem.objects.filter(
-                type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
-            )
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
