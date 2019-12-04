@@ -179,7 +179,12 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_object(self, obj):
         object = next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [
+                getattr(obj, "case_note"),
+                getattr(obj, "query"),
+                getattr(obj, "ecju_query"),
+                getattr(obj, "generated_case_document"),
+            ]
             if item is not None
         )
         return object.id
@@ -187,7 +192,12 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_object_type(self, obj):
         object = next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [
+                getattr(obj, "case_note"),
+                getattr(obj, "query"),
+                getattr(obj, "ecju_query"),
+                getattr(obj, "generated_case_document"),
+            ]
             if item is not None
         )
 
@@ -205,6 +215,12 @@ class NotificationSerializer(serializers.ModelSerializer):
             object = next(
                 item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
             )
+        if obj.generated_case_document:
+            object = next(
+                item
+                for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
+                if item is not None
+            )
 
         if obj.query:
             return None
@@ -212,6 +228,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         return object.id
 
     def get_parent_type(self, obj):
+        object = None
         if obj.case_note:
             object = next(
                 item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
@@ -219,6 +236,12 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.ecju_query:
             object = next(
                 item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
+            )
+        if obj.generated_case_document:
+            object = next(
+                item
+                for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
+                if item is not None
             )
 
         if obj.query:
@@ -241,6 +264,8 @@ def _get_notification_case(notification):
         return notification.ecju_query.case
     elif notification.query:
         return notification.query.case
+    elif notification.generated_case_document:
+        return notification.generated_case_document.case
     else:
         raise Exception("Unexpected error, Notification object with no link to originating object")
 

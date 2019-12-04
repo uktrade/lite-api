@@ -95,7 +95,7 @@ class BaseUser(AbstractUser):
 
 
 class ExporterUser(BaseUser):
-    def send_notification(self, case_note=None, query=None, ecju_query=None):
+    def send_notification(self, case_note=None, query=None, ecju_query=None, generated_case_document=None):
         from cases.models import Notification
 
         # circular import prevention
@@ -107,6 +107,8 @@ class ExporterUser(BaseUser):
             Notification.objects.create(user=self, query=actual_query)
         elif ecju_query:
             Notification.objects.create(user=self, ecju_query=ecju_query)
+        elif generated_case_document:
+            Notification.objects.create(user=self, generated_case_document=generated_case_document)
         else:
             raise Exception("ExporterUser.send_notification: objects expected have not been added.")
 

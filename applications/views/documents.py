@@ -18,6 +18,7 @@ from applications.libraries.document_helpers import (
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentViewSerializer
+from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -122,11 +123,11 @@ class GeneratedDocuments(APIView):
         """
         Gets a list of generated documents for the application's case
         """
-        generated_documents = GeneratedCaseDocumentViewSerializer(
-            GeneratedCaseDocument.objects.filter(case__application=application), many=True
-        ).data
+        generated_documents = GeneratedCaseDocument.objects.filter(case__application=application)
+        generated_documents_data = GeneratedCaseDocumentViewSerializer(generated_documents, many=True).data
+        mark_notifications_as_viewed(request.user, generated_documents)
 
-        return JsonResponse(data={"generated_documents": generated_documents}, status=status.HTTP_200_OK,)
+        return JsonResponse(data={"generated_documents": generated_documents_data}, status=status.HTTP_200_OK,)
 
 
 class GeneratedDocument(APIView):

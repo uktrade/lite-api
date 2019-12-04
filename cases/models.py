@@ -338,6 +338,9 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    generated_case_document = models.ForeignKey(
+        "generated_documents.GeneratedCaseDocument", on_delete=models.CASCADE, null=True
+    )
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
 
