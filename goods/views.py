@@ -6,9 +6,10 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import GoodOnApplication, BaseApplication
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case
-from cases.models import CaseActivity, Case
+from cases.models import CaseActivity
 from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
@@ -18,7 +19,6 @@ from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from applications.models import GoodOnApplication, BaseApplication
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -30,10 +30,10 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
+from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
-from lite_content.lite_api import strings
 
 
 class GoodsListControlCode(APIView):
@@ -44,8 +44,7 @@ class GoodsListControlCode(APIView):
         """ Set control list codes on multiple goods. """
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
-        application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
-        application = BaseApplication.objects.get(id=application_id)
+        application = BaseApplication.objects.get(id=case_pk)
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
@@ -118,6 +117,7 @@ class GoodList(APIView):
 
         if control_rating:
             goods = goods.filter(control_code__icontains=control_rating)
+
         serializer = GoodListSerializer(goods, many=True)
         return JsonResponse(data={"goods": serializer.data})
 
@@ -154,12 +154,12 @@ class GoodDetail(APIView):
             serializer = GoodSerializer(good)
 
             # If there's a query with this good, update the notifications on it
-            try:
-                query = ControlListClassificationQuery.objects.get(good=good)
-                request.user.notification_set.filter(case_note__case__query=query).update(viewed_at=timezone.now())
+
+            query = ControlListClassificationQuery.objects.filter(good=good)
+            if query:
+                query = query.first()
+                request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
                 request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
-            except ControlListClassificationQuery.DoesNotExist:
-                pass
         else:
             serializer = GoodWithFlagsSerializer(good)
 

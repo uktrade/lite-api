@@ -33,6 +33,5 @@ weasyprint = "*"
 markdown = "*"
 unittest-xml-reporting = "*"
 
-
 [requires]
 python_version = "3.7"

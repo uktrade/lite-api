@@ -8,6 +8,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationListSerializer,
 )
+from cases.enums import CaseTypeEnum
 from content_strings.strings import get_string
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -15,6 +16,8 @@ from organisations.models import Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class OpenApplicationViewSerializer(GenericApplicationListSerializer):
@@ -69,6 +72,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["organisation"] = self.context.id
+        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = OpenApplication
@@ -78,6 +83,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "application_type",
             "export_type",
             "organisation",
+            "type",
+            "status",
         )
 
 

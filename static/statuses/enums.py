@@ -23,6 +23,8 @@ class CaseStatusEnum:
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
 
+    _system_status = [DRAFT]
+
     _read_only_statuses = [
         APPEAL_REVIEW,
         APPEAL_FINAL_REVIEW,
@@ -100,6 +102,10 @@ class CaseStatusEnum:
     @classmethod
     def is_terminal(cls, status):
         return status in cls._terminal_statuses
+
+    @classmethod
+    def is_system_status(cls, status):
+        return status in cls._system_status
 
     @classmethod
     def read_only_statuses(cls):
