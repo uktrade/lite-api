@@ -12,7 +12,7 @@ from static.statuses.models import CaseStatus
 class QueryManager(models.Manager):
     def create(self, **obj_data):
         from queries.end_user_advisories.models import EndUserAdvisoryQuery
-        from static.case_types.enums import CaseTypeEnum
+        from cases.enums import CaseTypeEnum
         from cases.models import Case
 
         query = super().create(**obj_data, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED))

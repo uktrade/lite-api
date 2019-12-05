@@ -3,7 +3,7 @@ from itertools import permutations
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from static.case_types.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout

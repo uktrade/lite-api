@@ -3,7 +3,7 @@ from unittest import mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from static.case_types.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseActivity, Notification
 from letter_templates.models import LetterTemplate

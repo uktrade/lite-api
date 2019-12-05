@@ -7,8 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from applications.models import BaseApplication
-from cases.enums import AdviceType, CaseDocumentState
-from static.case_types.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
 from documents.models import Document
@@ -344,3 +343,8 @@ class Notification(models.Model):
     )
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+
+class CaseType(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

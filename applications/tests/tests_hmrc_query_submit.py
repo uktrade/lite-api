@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from static.case_types.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from content_strings.strings import get_string
 from goodstype.models import GoodsType

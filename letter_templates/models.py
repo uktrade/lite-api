@@ -4,7 +4,7 @@ from django.db import models
 
 from sortedm2m.fields import SortedManyToManyField
 
-from static.case_types.models import CaseType
+from cases.models import CaseType
 from picklists.models import PicklistItem
 from static.letter_layouts.models import LetterLayout
 

@@ -6,8 +6,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
-from static.case_types.enums import CaseTypeEnum
-from cases.enums import AdviceType, CaseDocumentState
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.models import (
     Case,
     CaseNote,
@@ -478,3 +477,15 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodCountryDecision
         fields = "__all__"
+
+
+class CaseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseTypeEnum
+        fields = (
+            "id",
+            "name",
+        )
+
+    def to_representation(self, instance):
+        return dict(key=instance.id, value=instance.name)

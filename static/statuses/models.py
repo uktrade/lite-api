@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from static.case_types.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum
 
 
 class CaseStatus(models.Model):
