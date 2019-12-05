@@ -5,36 +5,14 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_letter_template_for_case
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
-from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.libraries import s3_operations
-from letter_templates.helpers import markdown_to_html, generate_preview
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
-from lite_content.lite_api.letter_templates import LetterTemplatesPage
-
-
-def _get_generated_document_data(request_params, pk):
-    tpk = request_params.get("template")
-    if not tpk:
-        return LetterTemplatesPage.MISSING_TEMPLATE, None, None, None, None
-
-    text = request_params.get("text")
-    if not text:
-        return "Missing text", None, None, None, None
-
-    case = get_case(pk)
-    template = get_letter_template_for_case(tpk, case)
-    document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
-
-    if "error" in document_html:
-        return document_html["error"], None, None, None, None
-
-    return None, case, template, document_html, text
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
@@ -51,7 +29,7 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        error, case, template, document_html, text = _get_generated_document_data(request.data, pk)
+        error, case, template, document_html, text = get_generated_document_data(request.data, pk)
 
         if error:
             return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
@@ -105,7 +83,7 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        error, _, _, document_html, _ = _get_generated_document_data(request.GET, pk)
+        error, _, _, document_html, _ = get_generated_document_data(request.GET, pk)
 
         if error:
             return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)

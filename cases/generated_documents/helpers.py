@@ -1,10 +1,11 @@
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 
+from cases.libraries.get_case import get_case
 from conf.exceptions import NotFoundError
-from letter_templates.helpers import get_css_location
+from letter_templates.helpers import get_css_location, generate_preview, markdown_to_html
 from letter_templates.models import LetterTemplate
-from lite_content.lite_api.letter_templates import LetterTemplatesPage
+from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 
 
 font_config = FontConfiguration()
@@ -27,7 +28,7 @@ def get_letter_template_for_case(id, case):
     try:
         return LetterTemplate.objects.get(pk=id, case_types__id=case.type)
     except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": LetterTemplatesPage.NOT_FOUND_ERROR})
+        raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
 
 
 def get_letter_template(id):
@@ -37,4 +38,23 @@ def get_letter_template(id):
     try:
         return LetterTemplate.objects.get(pk=id)
     except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": LetterTemplatesPage.NOT_FOUND_ERROR})
+        raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
+
+
+def get_generated_document_data(request_params, pk):
+    tpk = request_params.get("template")
+    if not tpk:
+        return GeneratedDocumentsEndpoint.MISSING_TEMPLATE, None, None, None, None
+
+    text = request_params.get("text")
+    if not text:
+        return GeneratedDocumentsEndpoint.MISSING_TEXT, None, None, None, None
+
+    case = get_case(pk)
+    template = get_letter_template_for_case(tpk, case)
+    document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
+
+    if "error" in document_html:
+        return document_html["error"], None, None, None, None
+
+    return None, case, template, document_html, text
