@@ -4,7 +4,6 @@ from abc import abstractmethod
 import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from conf.constants import Roles
