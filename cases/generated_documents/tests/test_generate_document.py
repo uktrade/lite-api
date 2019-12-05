@@ -92,7 +92,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue("errors" in body)
         self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
 
-    @mock.patch("cases.generated_documents.views.generate_preview")
+    @mock.patch("cases.generated_documents.helpers.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_get_document_preview_when_get_html_contains_errors_failure(
