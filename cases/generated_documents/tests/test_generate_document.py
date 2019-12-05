@@ -83,14 +83,27 @@ class GenerateDocumentTests(DataTestClient):
         for html_tag in ["<style>", "</style>"]:
             self.assertTrue(html_tag in preview)
 
-    def test_get_document_preview_without_query_param_failure(self):
+    def test_get_document_preview_without_template_query_param_failure(self):
         url = reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
+        self.assertEqual(body["errors"], [GeneratedDocumentsEndpoint.MISSING_TEMPLATE])
+
+    def test_get_document_preview_without_text_query_param_failure(self):
+        url = (
+                reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+                + "?template="
+                + str(self.letter_template.id)
+        )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        body = response.json()
+        self.assertTrue("errors" in body)
+        self.assertEqual(body["errors"], [GeneratedDocumentsEndpoint.MISSING_TEXT])
 
     @mock.patch("cases.generated_documents.helpers.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
