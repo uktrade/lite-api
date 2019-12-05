@@ -110,14 +110,18 @@ class ApplicationManageStatusTests(DataTestClient):
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 
-    @parameterized.expand([status for status, value in CaseStatusEnum.choices])
-    def test_gov_set_status_success(self, case_status):
-        if case_status == CaseStatusEnum.UNDER_FINAL_REVIEW:
-            data = {"status": case_status}
+    @parameterized.expand(
+        [
+            status
+            for status, value in CaseStatusEnum.choices
+            if status != CaseStatusEnum.APPLICANT_EDITING and status != CaseStatusEnum.FINALISED
+        ]
+    )
+    def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):
+        data = {"status": case_status}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
 
-            response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.standard_application.refresh_from_db()
 
-            self.standard_application.refresh_from_db()
-
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
