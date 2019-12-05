@@ -26,6 +26,7 @@ from cases.models import (
     TeamAdvice,
     FinalAdvice,
     GoodCountryDecision,
+    Case
 )
 from cases.serializers import (
     CaseDocumentViewSerializer,
@@ -68,9 +69,8 @@ class CaseDetail(APIView):
         """
         case = get_case(pk)
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
-
         if serializer.is_valid():
-            service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
+            service.update_case_queues(user=request.user, case=Case.objects.get_obj(case), queues=serializer.validated_data["queues"])
             serializer.save()
 
             return JsonResponse(data={"case": serializer.data})

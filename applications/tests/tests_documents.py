@@ -57,7 +57,6 @@ class DraftDocumentTests(DataTestClient):
         response = self.client.get(self.url_draft, **self.exporter_headers)
         response_data = response.json()["documents"]
         self.assertEqual(len(response_data), 3)
-
         document1 = response_data[1]
         self.assertEqual(self.data["name"], document1["name"])
         self.assertEqual(self.data["s3_key"], document1["s3_key"])

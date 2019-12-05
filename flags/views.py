@@ -177,7 +177,7 @@ class AssignFlags(APIView):
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.ADDED_FLAGS,
-                action_object=case,
+                target=case,
                 payload={
                     'flags': [{'name': flag} for flag in added_flags],
                     'note': note,
@@ -188,7 +188,7 @@ class AssignFlags(APIView):
             audit_trail_service.create(
                 actor=user,
                 verb=Verb.REMOVED_FLAGS,
-                action_object=case,
+                target=case,
                 payload={
                     'flags': [{'name': flag} for flag in removed_flags],
                     'note': note

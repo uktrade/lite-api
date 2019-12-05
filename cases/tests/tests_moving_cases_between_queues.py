@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from audit_trail.constants import Verb
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -57,10 +58,12 @@ class MoveCasesTests(DataTestClient):
 
         self.assertEqual(mock_create.call_count, 1)
 
+        query = Case.objects.get_query(case=self.case)
+
         mock_create.assert_called_once_with(
             actor=self.gov_user,
             verb=Verb.ADDED_QUEUES,
-            target=self.case,
+            target=query,
             payload=expected_action_payload
         )
 
