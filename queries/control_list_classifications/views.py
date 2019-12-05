@@ -1,10 +1,12 @@
 import json
+from django.utils import timezone
 
 from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from cases.enums import CaseTypeEnum
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
@@ -12,14 +14,14 @@ from conf.constants import Permissions
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
-from goods.serializers import ClcControlGoodSerializer
 from goods.libraries.get_goods import get_good
+from goods.serializers import ClcControlGoodSerializer
+from users.models import UserOrganisationRelationship
 from lite_content.lite_api.strings import GOOD_NO_CONTROL_CODE
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import UserOrganisationRelationship
 from lite_content.lite_api import strings
 
 
@@ -39,17 +41,21 @@ class ControlListClassificationsList(APIView):
             raise Http404
 
         good.status = GoodStatus.CLC_QUERY
-        good.control_code = data["not_sure_details_control_code"]
-        good.save()
+        good.control_code = data.get("not_sure_details_control_code")
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details=data["not_sure_details_details"], good=good, organisation=data["organisation"],
+            details=data.get("not_sure_details_details"),
+            good=good,
+            organisation=data["organisation"],
+            type=CaseTypeEnum.CLC_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=timezone.now(),
         )
+
+        good.save()
         clc_query.save()
 
-        return JsonResponse(
-            data={"id": clc_query.id, "case_id": clc_query.case.get().id}, status=status.HTTP_201_CREATED,
-        )
+        return JsonResponse(data={"id": clc_query.id}, status=status.HTTP_201_CREATED)
 
 
 class ControlListClassificationDetail(APIView):
@@ -94,7 +100,7 @@ class ControlListClassificationDetail(APIView):
 
                 # Add an activity item for the query's case
                 CaseActivity.create(
-                    activity_type=CaseActivityType.CLC_RESPONSE, case=query.case.get(), user=request.user,
+                    activity_type=CaseActivityType.CLC_RESPONSE, case=query, user=request.user,
                 )
 
                 # Send a notification to the user

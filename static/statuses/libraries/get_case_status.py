@@ -4,6 +4,8 @@ from static.statuses.models import CaseStatus
 
 
 def get_status_value_from_case_status_enum(case_status):
+    if CaseStatusEnum.is_system_status(case_status):
+        return case_status
     return [x for x in CaseStatusEnum.choices if x[0] == case_status][0][1]
 
 

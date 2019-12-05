@@ -5,11 +5,11 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import ApplicationDenialReason
+from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
-from users.models import UserOrganisationRelationship
 
 
 class ApplicationDenialTests(DataTestClient):
