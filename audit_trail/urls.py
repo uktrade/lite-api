@@ -1,4 +1,4 @@
-app_name = "applications"
+app_name = "audit_trail"
 
 urlpatterns = [
 ]

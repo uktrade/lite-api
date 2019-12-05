@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
-from audit_trail.models import Audit
 from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.get_case import get_case, get_case_document
@@ -111,7 +110,7 @@ class CaseDocuments(APIView):
             serializer.save()
 
             for document in serializer.data:
-                Audit.objects.create(
+                audit_trail_service.create(
                     actor=request.user,
                     verb=Verb.UploadDocument,
                     target=case,
