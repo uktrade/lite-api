@@ -1,8 +1,7 @@
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
-
-from cases.models import Case, CaseNote
+from cases.models import CaseNote
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -12,8 +11,7 @@ class CaseNotesGovCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.case = Case.objects.get(application=self.standard_application)
+        self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
         self.data = {
             "text": "I Am Easy to Find",
@@ -55,8 +53,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.case = Case.objects.get(application=self.standard_application)
+        self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
         self.data = {"text": "Days of brutalism"}
 
@@ -95,7 +92,7 @@ class CaseNotesExporterCreateTests(DataTestClient):
 class CaseNotesViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation).case.get()
+        self.case = self.create_clc_query("Query", self.organisation)
 
         self.url = reverse("cases:case_notes", kwargs={"pk": self.case.id})
 

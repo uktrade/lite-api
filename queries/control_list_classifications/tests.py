@@ -42,7 +42,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["id"], ControlListClassificationQuery.objects.get().id)
+        self.assertEqual(response_data["id"], str(ControlListClassificationQuery.objects.get().id))
         self.assertEqual(Case.objects.count(), 1)
 
 
@@ -87,7 +87,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that only the response activity item has been added
-        case_activities = get_case_activity(self.query.case.get())
+        case_activities = get_case_activity(self.query)
         self.assertEqual(len(case_activities), 1)
         self.assertEqual(case_activities[0].type, "clc_response")
 
@@ -103,7 +103,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that the response and good review activity items have been added
-        case_activities = get_case_activity(self.query.case.get())
+        case_activities = get_case_activity(self.query)
         self.assertEqual(len(case_activities), 2)
         for case_activity in case_activities:
             self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
@@ -130,7 +130,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
         # Check that  that the response and good review activity items have been added
-        case_activities = get_case_activity(self.query.case.get())
+        case_activities = get_case_activity(self.query)
         self.assertEqual(len(case_activities), 2)
         for case_activity in case_activities:
             self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
@@ -172,5 +172,5 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(self.query.case.get())), 0)
+        self.assertEqual(len(get_case_activity(self.query)), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
