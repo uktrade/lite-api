@@ -211,15 +211,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.case_note:
             parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            parent = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
         if obj.generated_case_document:
-            parent = next(
-                item
-                for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
-                if item is not None
-            )
+            parent = next(item for item in [obj.generated_case_document.case] if item is not None)
 
         if obj.query:
             return None
@@ -231,15 +225,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.case_note:
             parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            parent = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
         if obj.generated_case_document:
-            parent = next(
-                item
-                for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
-                if item is not None
-            )
+            parent = next(item for item in [obj.generated_case_document.case] if item is not None)
 
         if obj.query:
             return None
