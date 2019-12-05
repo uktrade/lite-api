@@ -13,6 +13,5 @@ class GeneratedCaseDocument(CaseDocument):
         super(GeneratedCaseDocument, self).save(*args, **kwargs)
 
         if creating:
-            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
                 user_relationship.user.send_notification(generated_case_document=self)

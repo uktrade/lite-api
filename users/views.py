@@ -151,13 +151,10 @@ class NotificationViewSet(generics.ListAPIView):
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(user=self.request.user).filter(
-            Q(case_note__case__application__organisation_id=organisation_id)
-            | Q(case_note__case__query__organisation_id=organisation_id)
+            Q(case_note__case__organisation_id=organisation_id)
+            | Q(ecju_query__case__organisation_id=organisation_id)
             | Q(query__organisation__id=organisation_id)
-            | Q(ecju_query__case__application__organisation_id=organisation_id)
-            | Q(ecju_query__case__query__organisation_id=organisation_id)
-            | Q(generated_case_document__case__application__organisation__id=organisation_id)
-            | Q(generated_case_document__case__query__organisation_id=organisation_id)
+            | Q(generated_case_document__case__organisation__id=organisation_id)
         )
 
         if self.request.GET.get("unviewed"):

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from applications.models import BaseApplication
+from cases.enums import CaseTypeEnum
 from cases.models import Notification
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
@@ -51,7 +53,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
                     {
                         "id": relationship.organisation.id,
                         "name": relationship.organisation.name,
-                        "joined_at": relationship.created_at,
+                        "joined_at": relationship.created,
                     }
                 )
 
@@ -177,7 +179,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     parent_type = serializers.SerializerMethodField()
 
     def get_object(self, obj):
-        object = next(
+        return next(
             item
             for item in [
                 getattr(obj, "case_note"),
@@ -186,11 +188,10 @@ class NotificationSerializer(serializers.ModelSerializer):
                 getattr(obj, "generated_case_document"),
             ]
             if item is not None
-        )
-        return object.id
+        ).id
 
     def get_object_type(self, obj):
-        object = next(
+        object_item = next(
             item
             for item in [
                 getattr(obj, "case_note"),
@@ -201,22 +202,20 @@ class NotificationSerializer(serializers.ModelSerializer):
             if item is not None
         )
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if isinstance(object_item, Query):
+            object_item = get_exporter_query(object_item)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
 
     def get_parent(self, obj):
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(
+            parent = next(
                 item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
             )
         if obj.generated_case_document:
-            object = next(
+            parent = next(
                 item
                 for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
                 if item is not None
@@ -225,20 +224,18 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.query:
             return None
 
-        return object.id
+        return parent.id
 
     def get_parent_type(self, obj):
-        object = None
+        parent = None
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(
+            parent = next(
                 item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
             )
         if obj.generated_case_document:
-            object = next(
+            parent = next(
                 item
                 for item in [obj.generated_case_document.case.application, obj.generated_case_document.case.query]
                 if item is not None
@@ -247,10 +244,12 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.query:
             return None
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
+            parent = get_exporter_query(parent)
+        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            parent = BaseApplication.objects.get(pk=parent.id)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
 
     class Meta:
         model = Notification

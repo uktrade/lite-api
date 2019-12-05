@@ -25,7 +25,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
         self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
 
     def test_get_generated_documents_success(self):
-        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.application.pk)})
+        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -34,7 +34,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
 
     def test_get_generated_documents_returns_empty_list_when_no_documents_have_been_generated_success(self):
         self.generated_case_document.delete()
-        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.application.pk)})
+        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -47,14 +47,14 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(exporter_user),
             "HTTP_ORGANISATION_ID": organisation.id,
         }
-        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.application.pk)})
+        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
 
         response = self.client.get(url, **exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_generated_documents_as_gov_user_failure(self):
-        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.application.pk)})
+        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
 
         response = self.client.get(url, **self.gov_headers)
 
@@ -63,7 +63,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
     def test_get_generated_document_success(self):
         url = reverse(
             "applications:application_generated_document",
-            kwargs={"pk": str(self.case.application.pk), "gcd_pk": str(self.generated_case_document.pk)},
+            kwargs={"pk": str(self.case.pk), "gcd_pk": str(self.generated_case_document.pk)},
         )
 
         response = self.client.get(url, **self.exporter_headers)
@@ -75,7 +75,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
     def test_get_generated_document_when_document_doesnt_exist_failure(self):
         url = reverse(
             "applications:application_generated_document",
-            kwargs={"pk": str(self.case.application.pk), "gcd_pk": str(uuid.uuid4())},
+            kwargs={"pk": str(self.case.pk), "gcd_pk": str(uuid.uuid4())},
         )
 
         response = self.client.get(url, **self.exporter_headers)
@@ -91,7 +91,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
         }
         url = reverse(
             "applications:application_generated_document",
-            kwargs={"pk": str(self.case.application.pk), "gcd_pk": str(self.generated_case_document.pk)},
+            kwargs={"pk": str(self.case.pk), "gcd_pk": str(self.generated_case_document.pk)},
         )
 
         response = self.client.get(url, **exporter_headers)
@@ -101,7 +101,7 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
     def test_get_generated_document_as_gov_user_failure(self):
         url = reverse(
             "applications:application_generated_document",
-            kwargs={"pk": str(self.case.application.pk), "gcd_pk": str(self.generated_case_document.pk)},
+            kwargs={"pk": str(self.case.pk), "gcd_pk": str(self.generated_case_document.pk)},
         )
 
         response = self.client.get(url, **self.gov_headers)

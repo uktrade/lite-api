@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Case, TeamAdvice, FinalAdvice, Advice
+from cases.models import TeamAdvice, FinalAdvice, Advice
 from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
 from static.statuses.enums import CaseStatusEnum
@@ -17,8 +17,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.submit_application(self.standard_application)
 
         team_2 = Team(name="2")
         team_3 = Team(name="3")

@@ -123,7 +123,7 @@ class GeneratedDocuments(APIView):
         """
         Gets a list of generated documents for the application's case
         """
-        generated_documents = GeneratedCaseDocument.objects.filter(case__application=application)
+        generated_documents = GeneratedCaseDocument.objects.filter(case=application)
         generated_documents_data = GeneratedCaseDocumentViewSerializer(generated_documents, many=True).data
         mark_notifications_as_viewed(request.user, generated_documents)
 

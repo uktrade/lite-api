@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
-from flags.models import Flag
 
+from flags.models import Flag
 from test_helpers.clients import DataTestClient
 
 

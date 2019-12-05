@@ -2,13 +2,11 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.models import BaseApplication
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
-from queries.models import Query
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 from lite_content.lite_api import strings
@@ -31,12 +29,7 @@ class CaseNoteList(APIView):
         """ Create a case note on a case. """
         case = get_case(pk)
 
-        if case.application_id:
-            obj = BaseApplication.objects.get(id=case.application_id)
-        else:
-            obj = Query.objects.get(id=case.query_id)
-
-        if CaseStatusEnum.is_terminal(obj.status.status) and isinstance(request.user, ExporterUser):
+        if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
                 data={"errors": {"text": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,
