@@ -29,6 +29,8 @@ pre-commit = "*"
 django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
+weasyprint = "*"
+markdown = "*"
 unittest-xml-reporting = "*"
 
 [requires]

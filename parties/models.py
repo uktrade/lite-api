@@ -1,8 +1,10 @@
 import uuid
 
 from django.db import models
-from parties.enums import PartyType, SubType, ThirdPartySubType
+
+from documents.models import Document
 from organisations.models import Organisation
+from parties.enums import PartyType, SubType, ThirdPartySubType
 from static.countries.models import Country
 
 
@@ -48,3 +50,7 @@ class ThirdParty(Party):
     def save(self, *args, **kwargs):
         self.type = PartyType.THIRD
         super(ThirdParty, self).save(*args, **kwargs)
+
+
+class PartyDocument(Document):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE)

@@ -1,14 +1,14 @@
 from unittest import mock
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
-from parties.document.models import PartyDocument
+from applications.libraries.case_status_helpers import get_case_statuses
+from parties.models import PartyDocument
 from parties.models import UltimateEndUser
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from applications.libraries.case_status_helpers import get_case_statuses
 from test_helpers.clients import DataTestClient
-from parameterized import parameterized
 
 
 class UltimateEndUsersOnDraft(DataTestClient):

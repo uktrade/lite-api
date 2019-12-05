@@ -18,9 +18,9 @@ class RetrieveAllCases(DataTestClient):
         self.queue1 = self.create_queue("queue1", self.team)
         self.queue2 = self.create_queue("queue2", self.team)
 
-        self.case = self.create_clc_query("Query", self.organisation).case.get()
-        self.case_2 = self.create_clc_query("Query", self.organisation).case.get()
-        self.case_3 = self.create_clc_query("Query", self.organisation).case.get()
+        self.case = self.create_clc_query("Query", self.organisation)
+        self.case_2 = self.create_clc_query("Query", self.organisation)
+        self.case_3 = self.create_clc_query("Query", self.organisation)
 
         self.case_3.query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.case_3.query.save()
@@ -96,7 +96,7 @@ class RetrieveAllCases(DataTestClient):
 
         # Cases 1, 2 and 3 belong to the user's team's queues,
         # whereas case 4 does not
-        self.case_4 = self.create_clc_query("Query", self.organisation).case.get()
+        self.case_4 = self.create_clc_query("Query", self.organisation)
 
         self.case.queues.set([self.queue1.id])
         self.case_2.queues.set([self.queue1.id, self.queue2.id])

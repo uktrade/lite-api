@@ -2,10 +2,10 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from applications.libraries.case_status_helpers import get_case_statuses
 
 
 class ExternalLocationsOnApplicationTests(DataTestClient):

@@ -19,7 +19,7 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
 )
-from cases.enums import AdviceType
+from cases.enums import AdviceType, CaseTypeEnum
 from cases.models import (
     CaseNote,
     Case,
@@ -37,7 +37,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.document.models import PartyDocument
+from parties.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.models import PicklistItem
@@ -282,9 +282,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        case = Case(application=application)
-        case.save()
-
         if application.application_type == ApplicationType.STANDARD_LICENCE:
             for good_on_application in GoodOnApplication.objects.filter(application=application):
                 good_on_application.good.status = GoodStatus.SUBMITTED
@@ -421,7 +418,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good.save()
 
         clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text", good=good, organisation=organisation
+            details="this is a test text",
+            good=good,
+            organisation=organisation,
+            type=CaseTypeEnum.CLC_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         return clc_query
 
@@ -435,10 +436,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.save()
 
         if advice_field == "end_user":
-            advice.end_user = StandardApplication.objects.get(pk=case.application.id).end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user
 
         if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case.application).good
+            advice.good = GoodOnApplication.objects.get(application=case).good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -492,6 +493,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
+            type=CaseTypeEnum.APPLICATION,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
@@ -551,6 +554,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             activity="Trade",
             usage="Trade",
             organisation=organisation,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
@@ -580,6 +584,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
+            type=CaseTypeEnum.HMRC_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
@@ -606,8 +612,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         draft = self.create_standard_application(organisation, reference_name)
 
-        application = self.submit_application(draft)
-        return Case.objects.get(application=application)
+        return self.submit_application(draft)
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_end_user("name", self.organisation)
@@ -621,7 +626,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             contact_email="joe@something.com",
             contact_job_title="director",
             nature_of_business="guns",
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            type=CaseTypeEnum.END_USER_ADVISORY_QUERY,
         )
+        end_user_advisory_query.save()
         return end_user_advisory_query
 
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):

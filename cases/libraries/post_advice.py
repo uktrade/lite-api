@@ -10,6 +10,8 @@ from content_strings.strings import get_string
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import ADVICE_POST_TEAM_ADVICE_WHEN_USER_ADVICE_EXISTS_ERROR
+from static.statuses.enums import CaseStatusEnum
+from lite_content.lite_api import strings
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
@@ -43,6 +45,12 @@ def check_refusal_errors(advice):
 
 
 def post_advice(request, case, serializer_object, team=False):
+
+    if CaseStatusEnum.is_terminal(case.status.status):
+        return JsonResponse(
+            data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}, status=status.HTTP_400_BAD_REQUEST,
+        )
+
     data = request.data
 
     # Update the case and user in each piece of advice
