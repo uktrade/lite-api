@@ -4,20 +4,23 @@ from cases.models import CaseAssignment
 
 
 def update_case_queues(user, case, queues):
+    """
+    Update the queues a Case is on and create an audit trail.
+    """
     update_queues = set([q.name for q in queues])
     initial_queues = set(case.queues.values_list("name", flat=True))
-    remove_queues = initial_queues - update_queues
+    removed_queues = initial_queues - update_queues
     new_queues = update_queues - initial_queues
 
-    if remove_queues:
-        CaseAssignment.objects.filter(queue__name__in=remove_queues).delete()
+    if removed_queues:
+        CaseAssignment.objects.filter(queue__name__in=removed_queues).delete()
 
         audit_trail_service.create(
             actor=user,
             verb=Verb.REMOVED_QUEUES,
             target=case,
             payload={
-                'queues': sorted(remove_queues)
+                'queues': sorted(removed_queues)
             }
         )
 

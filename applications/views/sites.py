@@ -120,7 +120,7 @@ class ApplicationSites(APIView):
         # Get external locations to be removed if a site is being added
         removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
 
-        set_activity(
+        _set_activity(
             user=request.user,
             application=application,
             removed_locations=removed_locations,
@@ -134,7 +134,7 @@ class ApplicationSites(APIView):
         return JsonResponse(data={"sites": response_data}, status=status.HTTP_201_CREATED)
 
 
-def set_activity(user, application, removed_locations, removed_sites, added_sites):
+def _set_activity(user, application, removed_locations, removed_sites, added_sites):
     if removed_sites:
         audit_trail_service.create(
             actor=user,

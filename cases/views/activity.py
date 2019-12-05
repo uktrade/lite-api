@@ -20,12 +20,18 @@ class Activity(APIView):
     def get(self, request, pk):
         case = get_case(pk)
 
-        qs = Audit.objects.all()
+        qudit_qs = Audit.objects.all()
 
-        q2 = Q(action_object_object_id=case.id, action_object_content_type=ContentType.objects.get_for_model(case))
-        q1 = Q(target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case))
+        case_as_action_filter = Q(
+            action_object_object_id=case.id,
+            action_object_content_type=ContentType.objects.get_for_model(case)
+        )
+        case_as_target_filter = Q(
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(case)
+        )
 
-        actions = qs.filter(q1 | q2)
+        actions = qudit_qs.filter(case_as_action_filter | case_as_target_filter)
 
         serializer = AuditSerializer(actions, many=True)
 

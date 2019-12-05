@@ -183,14 +183,3 @@ ADMIN_TEAM_ID = "00000000-0000-0000-0000-000000000001"
 # Security settings
 
 SECURE_BROWSER_XSS_FILTER = True
-
-
-# Django Activity Stream settings
-
-# ACTSTREAM_SETTINGS = {
-#     'FETCH_RELATIONS': True,
-#     'USE_PREFETCH': True,
-#     'USE_JSONFIELD': True,
-#     'GFK_FETCH_DEPTH': 1,
-#     'MANAGER': 'audit_trail.managers.AuditManager'
-# }
