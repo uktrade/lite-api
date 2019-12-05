@@ -15,6 +15,7 @@ from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
 
@@ -49,7 +50,9 @@ class ApplicationSites(APIView):
             str(previous_site_id) for previous_site_id in previous_sites.values_list("site__id", flat=True)
         ]
 
-        if application.status and application.status.status in get_case_statuses(read_only=True):
+        if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+            read_only=True
+        ):
             return JsonResponse(
                 data={
                     "errors": {"external_locations": [f"Application status {application.status.status} is read-only."]}
@@ -57,7 +60,10 @@ class ApplicationSites(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
+        if (
+            is_case_status_draft(application.status.status)
+            or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+        ):
             new_sites = [
                 get_site(site_id, request.user.organisation)
                 for site_id in site_ids
@@ -139,7 +145,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
         audit_trail_service.create(
             actor=user,
             verb=Verb.REMOVED_SITES_FROM_APPLICATION,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
             }
@@ -149,7 +155,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
         audit_trail_service.create(
             actor=user,
             verb=Verb.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 'locations':  [
                     location.external_location.name + " " + location.external_location.country.name
@@ -162,7 +168,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
         audit_trail_service.create(
             actor=user,
             verb=Verb.ADDED_SITES_TO_APPLICATION,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 'sites': [site.name + " " + site.address.country.name for site in added_sites],
             }

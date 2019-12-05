@@ -10,7 +10,6 @@ from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.constants import Verb
 from cases.libraries.get_case import get_case
-from cases.models import Case
 from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
@@ -45,8 +44,7 @@ class GoodsListControlCode(APIView):
         """ Set control list codes on multiple goods. """
         assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
 
-        application_id = Case.objects.values_list("application_id", flat=True).get(pk=case_pk)
-        application = BaseApplication.objects.get(id=application_id)
+        application = BaseApplication.objects.get(id=case_pk)
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
@@ -127,6 +125,7 @@ class GoodList(APIView):
 
         if control_rating:
             goods = goods.filter(control_code__icontains=control_rating)
+
         serializer = GoodListSerializer(goods, many=True)
         return JsonResponse(data={"goods": serializer.data})
 
@@ -163,12 +162,12 @@ class GoodDetail(APIView):
             serializer = GoodSerializer(good)
 
             # If there's a query with this good, update the notifications on it
-            try:
-                query = ControlListClassificationQuery.objects.get(good=good)
-                request.user.notification_set.filter(case_note__case__query=query).update(viewed_at=timezone.now())
+
+            query = ControlListClassificationQuery.objects.filter(good=good)
+            if query:
+                query = query.first()
+                request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
                 request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
-            except ControlListClassificationQuery.DoesNotExist:
-                pass
         else:
             serializer = GoodWithFlagsSerializer(good)
 

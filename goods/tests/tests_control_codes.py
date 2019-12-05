@@ -3,7 +3,6 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.models import Case
 from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
@@ -39,8 +38,7 @@ class GoodsVerifiedTests(DataTestClient):
         GoodOnApplication(
             good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500,
         ).save()
-        self.submit_application(self.application)
-        self.case = Case.objects.get(application=self.application)
+        self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):

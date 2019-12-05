@@ -14,6 +14,7 @@ from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
 
@@ -46,7 +47,9 @@ class ApplicationCountries(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if application.status and application.status.status in get_case_statuses(read_only=True):
+        if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+            read_only=True
+        ):
             return JsonResponse(
                 data={
                     "errors": {"external_locations": [f"Application status {application.status.status} is read-only."]}
@@ -62,7 +65,10 @@ class ApplicationCountries(APIView):
             ]
             new_countries = []
 
-            if not application.status or application.status.status == CaseStatusEnum.APPLICANT_EDITING:
+            if (
+                is_case_status_draft(application.status.status)
+                or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+            ):
                 new_countries = [
                     get_country(country_id) for country_id in country_ids if country_id not in previous_country_ids
                 ]
@@ -95,7 +101,7 @@ class ApplicationCountries(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=Verb.ADDED_COUNTRIES,
-                    target=application.get_case() or application,
+                    target=application,
                     payload={
                         'countries':  [country.name for country in new_countries]
                     }
@@ -105,7 +111,7 @@ class ApplicationCountries(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=Verb.REMOVED_COUNTRIES,
-                    target=application.get_case() or application,
+                    target=application,
                     payload={
                         'countries':  [country.country.name for country in removed_countries]
                     }

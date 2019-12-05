@@ -49,11 +49,10 @@ class ApplicationEndUser(APIView):
         if previous_end_user:
             delete_party_document_if_exists(previous_end_user)
             previous_end_user.delete()
-
             audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.REMOVED_PARTY,
-                target=application.get_case() or application,
+                target=application,
                 payload={
                     "party_type": previous_end_user.type.replace("_", " "),
                     "party_name": previous_end_user.name,
@@ -63,7 +62,7 @@ class ApplicationEndUser(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": new_end_user.type.replace("_", " "),
                 "party_name": new_end_user.name,
@@ -92,7 +91,7 @@ class ApplicationEndUser(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": end_user.type.replace("_", " "),
                 "party_name": end_user.name,
@@ -135,7 +134,7 @@ class ApplicationUltimateEndUsers(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": ultimate_end_user.type.replace("_", " "),
                 "party_name": ultimate_end_user.name,
@@ -167,7 +166,7 @@ class RemoveApplicationUltimateEndUser(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": ultimate_end_user.type.replace("_", " "),
                 "party_name": ultimate_end_user.name,
@@ -207,7 +206,7 @@ class ApplicationConsignee(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=Verb.REMOVED_PARTY,
-                target=application.get_case() or application,
+                target=application,
                 payload={
                     "party_type": previous_consignee.type.replace("_", " "),
                     "party_name": previous_consignee.name,
@@ -217,7 +216,7 @@ class ApplicationConsignee(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": new_consignee.type.replace("_", " "),
                 "party_name": new_consignee.name,
@@ -246,7 +245,7 @@ class ApplicationConsignee(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": consignee.type.replace("_", " "),
                 "party_name": consignee.name,
@@ -289,7 +288,7 @@ class ApplicationThirdParties(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.ADDED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": third_party.type.replace("_", " "),
                 "party_name": third_party.name,
@@ -319,7 +318,7 @@ class RemoveThirdParty(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=Verb.REMOVED_PARTY,
-            target=application.get_case() or application,
+            target=application,
             payload={
                 "party_type": third_party.type.replace("_", " "),
                 "party_name": third_party.name,

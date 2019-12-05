@@ -2,9 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
 from audit_trail.models import Audit
-from static.units.enums import Units
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -155,13 +154,10 @@ class GoodFlagsManagementTests(DataTestClient):
         to whatever case that good is on (if any)
         """
         query = self.create_clc_query("Query", self.organisation)
-        application = self.create_standard_application(self.organisation)
-        self.submit_application(application)
 
         # Set the query and application's good
         query.good = self.good
         query.save()
-        GoodOnApplication(good=self.good, application=application, quantity=1, unit=Units.GRM, value=10,).save()
 
         data = {
             "level": "goods",
@@ -172,17 +168,11 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        application_case = application.case.get()
-        query_case = query.case.get()
+        case = Case.objects.get(id=query.id)
 
-        application_audit = Audit.objects.filter(
-            target_object_id=application_case.id,
-            target_content_type=ContentType.objects.get_for_model(application_case)
-        )
-        query_audit = Audit.objects.filter(
-            target_object_id=query_case.id,
-            target_content_type=ContentType.objects.get_for_model(query_case)
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(case)
         )
 
-        self.assertEqual(application_audit.count(), 1)
-        self.assertEqual(query_audit.count(), 1)
+        self.assertEqual(audit_qs.count(), 1)

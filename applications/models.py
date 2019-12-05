@@ -8,44 +8,23 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
+from cases.models import Case
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from static.statuses.models import CaseStatus
 from static.units.enums import Units
 
 
-class BaseApplication(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class BaseApplication(Case):
     name = models.TextField(default=None, blank=True, null=True)
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, default=None, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    last_modified_at = models.DateTimeField(auto_now=True, blank=True)
-    submitted_at = models.DateTimeField(blank=True, null=True)
-    status = models.ForeignKey(
-        CaseStatus, related_name="application_status", on_delete=models.CASCADE, blank=True, null=True,
-    )
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
 
-    class Meta:
-        ordering = ["-created_at"]
-
     objects = BaseApplicationManager()
-
-    def get_case(self):
-        """
-        Reverse foreign key lookup to Case
-        """
-        from cases.models import Case
-        try:
-            return self.case.get()
-        except Case.DoesNotExist:
-            return None
 
 
 class StandardApplication(BaseApplication):

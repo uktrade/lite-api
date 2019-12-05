@@ -62,12 +62,10 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.application:
-            application = get_application(instance.application.id)
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
-
-        return None
 
     def to_representation(self, value):
         """
@@ -92,7 +90,7 @@ class TinyCaseSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
-    created_at = serializers.CharField()
+    submitted_at = serializers.CharField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -105,8 +103,8 @@ class TinyCaseSerializer(serializers.Serializer):
         case_flag_data = FlagSerializer(instance.flags.order_by("name"), many=True).data
         org_flag_data = FlagSerializer(instance.organisation.flags.order_by("name"), many=True).data
 
-        if instance.application:
-            goods = GoodOnApplication.objects.filter(application=instance.application).select_related("good")
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            goods = GoodOnApplication.objects.filter(application=instance).select_related("good")
             goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by("name") for g in goods]))
             good_ids = {}
             goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
@@ -131,10 +129,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_organisation(self, instance):
-        if instance.query:
-            return instance.query.organisation.name
-        else:
-            return instance.application.organisation.name
+        return instance.organisation.name
 
     def get_users(self, instance):
         case_assignments = CaseAssignment.objects.filter(case=instance).order_by("queue__name").select_related("queue")
@@ -156,10 +151,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return users
 
     def get_status(self, instance):
-        if instance.query:
-            return instance.query.status.status
-        else:
-            return instance.application.status.status
+        return instance.status.status
 
 
 class CaseDetailSerializer(CaseSerializer):
@@ -168,6 +160,7 @@ class CaseDetailSerializer(CaseSerializer):
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
+    application = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -181,6 +174,14 @@ class CaseDetailSerializer(CaseSerializer):
             "query",
             "has_advice",
         )
+
+    def get_application(self, instance):
+        # The case has a reference to a BaseApplication but
+        # we need the full details of the application it points to
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            application = get_application(instance.id)
+            serializer = get_application_view_serializer(application)
+            return serializer(application).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name"))
@@ -414,8 +415,6 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
     def get_responded_by_user_name(self, instance):
         if instance.responded_by_user:
             return instance.responded_by_user.get_full_name()
-        else:
-            return None
 
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):

@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class MoveCasesTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_clc_query("Query", self.organisation).case.get()
+        self.case = self.create_clc_query("Query", self.organisation)
         self.url = reverse("cases:case", kwargs={"pk": self.case.id})
         self.queues = [
             self.create_queue("Queue 1", self.team),

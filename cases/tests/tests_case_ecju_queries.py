@@ -152,7 +152,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         When a gov user adds an ECJU query to the case with valid data
         Then the request is successful and the ECJU query is saved
         """
-        case = self.create_clc_query("Query", self.organisation).case.get()
+        case = self.create_clc_query("Query", self.organisation)
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?"}
 

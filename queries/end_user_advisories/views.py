@@ -25,7 +25,7 @@ class EndUserAdvisoriesList(APIView):
         """
         View all end user advisories belonging to an organisation.
         """
-        end_user_advisories = EndUserAdvisoryQuery.objects.filter(end_user__organisation=request.user.organisation)
+        end_user_advisories = EndUserAdvisoryQuery.objects.filter(organisation=request.user.organisation)
         serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
         return JsonResponse(data={"end_user_advisories": serializer.data})
 
@@ -63,8 +63,8 @@ class EndUserAdvisoryDetail(APIView):
         """
         View a single end user advisory's details
         """
-        end_user_advisory = EndUserAdvisoryQuery.objects.get(pk=pk)
-        case_id = end_user_advisory.case.get().id
+        end_user_advisory = get_end_user_advisory_by_pk(pk)
+        case_id = end_user_advisory.id
         serializer = EndUserAdvisorySerializer(end_user_advisory)
         return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id})
 
@@ -89,7 +89,7 @@ class EndUserAdvisoryDetail(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=Verb.UPDATED_STATUS,
-                    target=end_user_advisory.case.get(),
+                    target=end_user_advisory,
                     payload={'status': data.get('status')}
                 )
                 serializer.update(end_user_advisory, request.data)

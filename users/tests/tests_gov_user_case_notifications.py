@@ -16,7 +16,8 @@ class NotificationTests(DataTestClient):
             audit__target_object_id=case.id,
             audit__target_content_type=ContentType.objects.get_for_model(case)
         ).count()
-        url = reverse("applications:application", kwargs={"pk": case.application.id})
+        url = reverse("applications:application", kwargs={"pk": case.id})
+
         data = {"name": "new app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
@@ -48,7 +49,8 @@ class NotificationTests(DataTestClient):
             audit__target_object_id=case.id,
             audit__target_content_type=ContentType.objects.get_for_model(case)
         ).count()
-        url = reverse("applications:application", kwargs={"pk": case.application.id})
+
+        url = reverse("applications:application", kwargs={"pk": case.id})
         data = {"name": "even newer app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
@@ -97,7 +99,8 @@ class NotificationTests(DataTestClient):
             audit__target_object_id=case.id,
             audit__target_content_type=ContentType.objects.get_for_model(case)
         ).count()
-        url = reverse("applications:manage_status", kwargs={"pk": case.application.id})
+        url = reverse("applications:manage_status", kwargs={"pk": case.id})
+
         data = {"status": "under_review"}
 
         response = self.client.put(url, data, **self.gov_headers)
