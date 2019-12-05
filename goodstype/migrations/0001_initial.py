@@ -10,33 +10,56 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('documents', '0001_initial'),
-        ('applications', '0002_baseapplication_countryonapplication_externallocationonapplication_goodonapplication_hmrcquery_opena'),
-        ('countries', '0001_initial'),
-        ('flags', '0001_initial'),
+        ("documents", "0001_initial"),
+        (
+            "applications",
+            "0002_baseapplication_countryonapplication_externallocationonapplication_goodonapplication_hmrcquery_opena",
+        ),
+        ("countries", "0001_initial"),
+        ("flags", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GoodsType',
+            name="GoodsType",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('description', models.TextField(blank=True, default=None, max_length=2000, null=True)),
-                ('is_good_controlled', models.BooleanField(blank=True, default=None, null=True)),
-                ('control_code', models.TextField(blank=True, default=None, null=True)),
-                ('is_good_end_product', models.BooleanField(blank=True, default=None, null=True)),
-                ('application', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='base_application', to='applications.BaseApplication')),
-                ('countries', models.ManyToManyField(default=[], related_name='goods_type', to='countries.Country')),
-                ('flags', models.ManyToManyField(related_name='goods_type', to='flags.Flag')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("description", models.TextField(blank=True, default=None, max_length=2000, null=True)),
+                ("is_good_controlled", models.BooleanField(blank=True, default=None, null=True)),
+                ("control_code", models.TextField(blank=True, default=None, null=True)),
+                ("is_good_end_product", models.BooleanField(blank=True, default=None, null=True)),
+                (
+                    "application",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="base_application",
+                        to="applications.BaseApplication",
+                    ),
+                ),
+                ("countries", models.ManyToManyField(default=[], related_name="goods_type", to="countries.Country")),
+                ("flags", models.ManyToManyField(related_name="goods_type", to="flags.Flag")),
             ],
         ),
         migrations.CreateModel(
-            name='GoodsTypeDocument',
+            name="GoodsTypeDocument",
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='documents.Document')),
-                ('description', models.TextField(blank=True, default=None, max_length=280, null=True)),
-                ('goods_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='goodstype.GoodsType')),
+                (
+                    "document_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="documents.Document",
+                    ),
+                ),
+                ("description", models.TextField(blank=True, default=None, max_length=280, null=True)),
+                (
+                    "goods_type",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goodstype.GoodsType"),
+                ),
             ],
-            bases=('documents.document',),
+            bases=("documents.document",),
         ),
     ]

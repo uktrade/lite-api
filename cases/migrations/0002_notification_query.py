@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('queries', '0001_initial'),
-        ('cases', '0001_initial'),
+        ("queries", "0001_initial"),
+        ("cases", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='notification',
-            name='query',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='queries.Query'),
+            model_name="notification",
+            name="query",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="queries.Query"),
         ),
     ]

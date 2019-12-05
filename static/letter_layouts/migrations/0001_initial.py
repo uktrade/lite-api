@@ -8,19 +8,16 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='LetterLayout',
+            name="LetterLayout",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField()),
-                ('filename', models.TextField()),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField()),
+                ("filename", models.TextField()),
             ],
-            options={
-                'ordering': ['name'],
-            },
+            options={"ordering": ["name"],},
         ),
     ]
