@@ -94,9 +94,9 @@ class GenerateDocumentTests(DataTestClient):
 
     def test_get_document_preview_without_text_query_param_failure(self):
         url = (
-                reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
-                + "?template="
-                + str(self.letter_template.id)
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+            + "?template="
+            + str(self.letter_template.id)
         )
         response = self.client.get(url, **self.gov_headers)
 
