@@ -31,16 +31,6 @@ def get_letter_template_for_case(id, case):
         raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
 
 
-def get_letter_template(id):
-    """
-    Returns a letter template or returns a 404 on failure
-    """
-    try:
-        return LetterTemplate.objects.get(pk=id)
-    except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
-
-
 def get_generated_document_data(request_params, pk):
     tpk = request_params.get("template")
     if not tpk:
