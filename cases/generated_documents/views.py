@@ -5,7 +5,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, GeneratedDocumentPayload
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
@@ -29,21 +29,21 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        error, case, template, document_html, text = get_generated_document_data(request.data, pk)
-
-        if error:
-            return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
+        document = get_generated_document_data(request.data, pk)
+        if not isinstance(document, GeneratedDocumentPayload):
+            # function returned an error message instead
+            return JsonResponse(data={"errors": [document]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            pdf = html_to_pdf(request, document_html, template.layout.filename)
+            pdf = html_to_pdf(request, document.document_html, document.template.layout.filename)
         except Exception:  # noqa
             return JsonResponse(
                 {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        s3_key = s3_operations.generate_s3_key(template.name, "pdf")
+        s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
-        document_name = f"{s3_key[:len(template.name) + 6]}.pdf"
+        document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
 
         try:
             with transaction.atomic():
@@ -54,18 +54,18 @@ class GeneratedDocuments(APIView):
                     virus_scanned_at=timezone.now(),
                     safe=True,
                     type=CaseDocumentState.GENERATED,
-                    case=case,
-                    template=template,
-                    text=text,
+                    case=document.case,
+                    template=document.template,
+                    text=document.text,
                 )
 
                 # Generate timeline entry
                 case_activity = {
                     "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
                     "file_name": document_name,
-                    "template": template.name,
+                    "template": document.template.name,
                 }
-                CaseActivity.create(case=case, user=request.user, **case_activity)
+                CaseActivity.create(case=document.case, user=request.user, **case_activity)
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
@@ -83,9 +83,9 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        error, _, _, document_html, _ = get_generated_document_data(request.GET, pk)
+        document = get_generated_document_data(request.GET, pk)
+        if not isinstance(document, GeneratedDocumentPayload):
+            # function returned an error message instead
+            return JsonResponse(data={"errors": [document]}, status=status.HTTP_400_BAD_REQUEST)
 
-        if error:
-            return JsonResponse(data={"errors": [error]}, status=status.HTTP_400_BAD_REQUEST)
-
-        return JsonResponse(data={"preview": document_html}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"preview": document.document_html}, status=status.HTTP_200_OK)

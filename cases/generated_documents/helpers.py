@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 
@@ -9,6 +11,7 @@ from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 
 
 font_config = FontConfiguration()
+GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
 
 
 def html_to_pdf(request, html: str, template_name: str):
@@ -21,30 +24,30 @@ def get_letter_templates_for_case(case):
     return LetterTemplate.objects.filter(case_types__id=case.type)
 
 
-def get_letter_template_for_case(id, case):
+def get_letter_template_for_case(template_id, case):
     """
     Get the letter template via the ID but only if it can also be applied to the given case
     """
     try:
-        return LetterTemplate.objects.get(pk=id, case_types__id=case.type)
+        return LetterTemplate.objects.get(pk=template_id, case_types__id=case.type)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
 
 
 def get_generated_document_data(request_params, pk):
-    tpk = request_params.get("template")
-    if not tpk:
-        return GeneratedDocumentsEndpoint.MISSING_TEMPLATE, None, None, None, None
+    template_id = request_params.get("template")
+    if not template_id:
+        return GeneratedDocumentsEndpoint.MISSING_TEMPLATE
 
     text = request_params.get("text")
     if not text:
-        return GeneratedDocumentsEndpoint.MISSING_TEXT, None, None, None, None
+        return GeneratedDocumentsEndpoint.MISSING_TEXT
 
     case = get_case(pk)
-    template = get_letter_template_for_case(tpk, case)
+    template = get_letter_template_for_case(template_id, case)
     document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
 
     if "error" in document_html:
-        return document_html["error"], None, None, None, None
+        return document_html["error"]
 
-    return None, case, template, document_html, text
+    return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
