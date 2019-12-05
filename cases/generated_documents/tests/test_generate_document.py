@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 
 from static.case_types.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseActivity
+from cases.models import CaseActivity, Notification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
@@ -39,6 +39,9 @@ class GenerateDocumentTests(DataTestClient):
         upload_bytes_file_func.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 1
+        )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -52,6 +55,9 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+        )
         upload_bytes_file_func.assert_not_called()
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -67,6 +73,9 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+        )
 
     def test_get_document_preview_success(self):
         url = (
