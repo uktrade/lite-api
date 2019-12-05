@@ -1,3 +1,4 @@
+from django.core.validators import URLValidator
 from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
@@ -12,7 +13,7 @@ class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = CountrySerializerField()
-    website = serializers.URLField(required=False, allow_blank=True)
+    website = serializers.CharField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
@@ -29,6 +30,27 @@ class PartySerializer(serializers.ModelSerializer):
             "organisation",
             "document",
         )
+
+    @staticmethod
+    def validate_website(value):
+        """
+        Custom validation for URL that makes use of django URLValidator
+        but makes the passing of http:// or https:// optional by prepending
+        it if not given. Raises a validation error passed back to the user if
+        invalid. Does not validate if value is empty
+        :param value: given value for URL
+        :return: string to save for the website field
+        """
+        if value:
+            validator = URLValidator()
+            if "https://" not in value and "http://" not in value:
+                # Prepend string with https:// so user doesn't have to
+                value = f"https://{value}"
+            validator(value)
+            return value
+        else:
+            # Field is optional so doesn't validate if blank and just saves an empty string
+            return ""
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance).values()

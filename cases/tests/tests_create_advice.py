@@ -14,10 +14,9 @@ class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.application = self.create_standard_application(self.organisation)
-        self.submit_application(self.application)
-        self.standard_case = self.application.case.get()
+        self.case = self.submit_application(self.application)
 
-        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
+        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.case.id})
 
     @parameterized.expand(
         [
