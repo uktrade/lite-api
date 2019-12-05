@@ -1,4 +1,4 @@
-class CaseType:
+class CaseTypeEnum:
     APPLICATION = "application"
     CLC_QUERY = "clc_query"
     END_USER_ADVISORY_QUERY = "end_user_advisory_query"

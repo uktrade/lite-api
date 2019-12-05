@@ -12,13 +12,15 @@ from static.statuses.models import CaseStatus
 class QueryManager(models.Manager):
     def create(self, **obj_data):
         from queries.end_user_advisories.models import EndUserAdvisoryQuery
-        from static.case_types.enums import CaseType
+        from static.case_types.enums import CaseTypeEnum
         from cases.models import Case
 
         query = super().create(**obj_data, status=get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
         # Create a case with this query
-        case_type = CaseType.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) else CaseType.CLC_QUERY
+        case_type = (
+            CaseTypeEnum.END_USER_ADVISORY_QUERY if isinstance(query, EndUserAdvisoryQuery) else CaseTypeEnum.CLC_QUERY
+        )
         case = Case(query=query, type=case_type)
         case.save()
 

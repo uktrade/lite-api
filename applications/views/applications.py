@@ -26,7 +26,7 @@ from applications.libraries.case_activity import (
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
-from static.case_types.enums import CaseType
+from static.case_types.enums import CaseTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -174,7 +174,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        if application.application_type != CaseType.HMRC_QUERY:
+        if application.application_type != CaseTypeEnum.HMRC_QUERY:
             assert_user_has_permission(request.user, Permissions.SUBMIT_LICENCE_APPLICATION, application.organisation)
         previous_application_status = application.status
 
@@ -201,8 +201,8 @@ class ApplicationSubmission(APIView):
         if not previous_application_status:
             # If the application is being submitted for the first time
             case = Case(application=application)
-            if application.application_type == CaseType.HMRC_QUERY:
-                case.type = CaseType.HMRC_QUERY
+            if application.application_type == CaseTypeEnum.HMRC_QUERY:
+                case.type = CaseTypeEnum.HMRC_QUERY
             case.save()
             data["application"]["case_id"] = case.id
         else:

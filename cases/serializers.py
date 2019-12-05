@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
-from static.case_types.enums import CaseType
+from static.case_types.enums import CaseTypeEnum
 from cases.enums import AdviceType, CaseDocumentState
 from cases.models import (
     Case,
@@ -47,7 +47,7 @@ class CaseSerializer(serializers.ModelSerializer):
     Serializes cases
     """
 
-    type = KeyValueChoiceField(choices=CaseType.choices)
+    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
     application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
@@ -86,7 +86,7 @@ class CaseSerializer(serializers.ModelSerializer):
 class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = KeyValueChoiceField(choices=CaseType.choices)
+    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()

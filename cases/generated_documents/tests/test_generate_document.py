@@ -3,7 +3,7 @@ from unittest import mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from static.case_types.enums import CaseType
+from static.case_types.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseActivity
 from letter_templates.models import LetterTemplate
@@ -22,7 +22,7 @@ class GenerateDocumentTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
-        self.letter_template.case_types.add(CaseType.APPLICATION)
+        self.letter_template.case_types.add(CaseTypeEnum.APPLICATION)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id)}
