@@ -157,7 +157,7 @@ class NotificationViewSet(generics.ListAPIView):
             | Q(ecju_query__case__application__organisation_id=organisation_id)
             | Q(ecju_query__case__query__organisation_id=organisation_id)
             | Q(generated_case_document__case__application__organisation__id=organisation_id)
-            | Q(generated_case_document__case__application__organisation__id=organisation_id)
+            | Q(generated_case_document__case__query__organisation_id=organisation_id)
         )
 
         if self.request.GET.get("unviewed"):
