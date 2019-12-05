@@ -1,6 +1,7 @@
 import json
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from static.statuses.enums import CaseStatusEnum
@@ -45,20 +46,6 @@ class ApplicationManageStatusTests(DataTestClient):
         )
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS),
-        )
-
-    def test_gov_set_status_to_applicant_editing_failure(self):
-        data = {"status": CaseStatusEnum.APPLICANT_EDITING}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-
-        self.standard_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json.loads(response.content).get("errors")[0],
-            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
-        )
-        self.assertEqual(
-            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 
     def test_exporter_set_status_to_submitted_failure(self):
@@ -108,3 +95,29 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+
+    def test_gov_set_status_to_applicant_editing_failure(self):
+        data = {"status": CaseStatusEnum.APPLICANT_EDITING}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            json.loads(response.content).get("errors")[0],
+            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
+        )
+        self.assertEqual(
+            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )
+
+    @parameterized.expand([status for status, value in CaseStatusEnum.choices])
+    def test_gov_set_status_success(self, case_status):
+        if case_status == CaseStatusEnum.UNDER_FINAL_REVIEW:
+            data = {"status": case_status}
+
+            response = self.client.put(self.url, data=data, **self.gov_headers)
+
+            self.standard_application.refresh_from_db()
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
