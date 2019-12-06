@@ -12,7 +12,7 @@ class ExporterUserAuthenticateTests(DataTestClient):
         """
         Authorises user then checks the token which is sent is valid upon another request
         """
-        data = {"email": self.exporter_user.email}
+        data = {"email": self.exporter_user.email, "user_profile": {"first_name": "Matt", "last_name": "Berninger"}}
 
         response = self.client.post(self.url, data)
         response_data = response.json()
@@ -28,17 +28,13 @@ class ExporterUserAuthenticateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_authenticate_user_with_empty_data(self):
-        data = {
-            "email": None,
-        }
+        data = {"email": None, "user_profile": {"first_name": None, "last_name": None}}
 
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cannot_authenticate_user_with_incorrect_details(self):
-        data = {
-            "email": "something@random.com",
-        }
+        data = {"email": "something@random.com", "user_profile": {"first_name": "Bob", "last_name": "Dell"}}
 
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

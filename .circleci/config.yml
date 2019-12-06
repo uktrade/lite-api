@@ -27,22 +27,22 @@ jobs:
             git submodule sync
             git submodule update --init
 
-      - run:
-          name: Repository Vulnerability Check
-          command: |
-            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
-              -X POST -H "Content-Type: application/json" \
-              -H "Accept: application/vnd.github.vixen-preview+json" \
-              -d '{"query": "query { repository(owner:\"uktrade\" name:\"lite-api\") { vulnerabilityAlerts(first: 100) { totalCount } } }"}' \
-              https://api.github.com/graphql | jq ".data.repository.vulnerabilityAlerts.totalCount"`
-            if [ "$VULNERABILITY_COUNT" = "0" ]; then
-              echo "No vulnerabilities found"
-            elif [ "$VULNERABILITY_COUNT" = "null" ]; then
-              echo "Vulnerability check query returned unexpected JSON - bad credentials? Check JSON response for details"
-            else
-              echo "Vulnerabilities found: $VULNERABILITY_COUNT. Check GitHub security tab for details (only visible to admin users)"
-            fi
-            exit $VULNERABILITY_COUNT
+#      - run:
+#          name: Repository Vulnerability Check
+#          command: |
+#            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
+#              -X POST -H "Content-Type: application/json" \
+#              -H "Accept: application/vnd.github.vixen-preview+json" \
+#              -d '{"query": "query { repository(owner:\"uktrade\" name:\"lite-api\") { vulnerabilityAlerts(first: 100) { totalCount } } }"}' \
+#              https://api.github.com/graphql | jq ".data.repository.vulnerabilityAlerts.totalCount"`
+#            if [ "$VULNERABILITY_COUNT" = "0" ]; then
+#              echo "No vulnerabilities found"
+#            elif [ "$VULNERABILITY_COUNT" = "null" ]; then
+#              echo "Vulnerability check query returned unexpected JSON - bad credentials? Check JSON response for details"
+#            else
+#              echo "Vulnerabilities found: $VULNERABILITY_COUNT. Check GitHub security tab for details (only visible to admin users)"
+#            fi
+#            exit $VULNERABILITY_COUNT
 
 
       - run:

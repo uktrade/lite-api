@@ -1,11 +1,13 @@
 from django.urls import reverse_lazy
+from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.models import Case
-from conf import constants
+from conf.constants import Permissions
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -29,11 +31,14 @@ class GoodsVerifiedTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.draft = self.create_standard_application(organisation=self.organisation)
-        GoodOnApplication(good=self.good_1, application=self.draft, quantity=10, unit=Units.NAR, value=500).save()
-        GoodOnApplication(good=self.good_2, application=self.draft, quantity=10, unit=Units.NAR, value=500).save()
-        self.submit_application(self.draft)
-        self.case = Case.objects.get(application=self.draft)
+        self.application = self.create_standard_application(organisation=self.organisation)
+        GoodOnApplication(
+            good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500,
+        ).save()
+        GoodOnApplication(
+            good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500,
+        ).save()
+        self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
@@ -172,3 +177,19 @@ class GoodsVerifiedTests(DataTestClient):
         response = self.client.post(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
+    def test_cannot_set_control_codes_when_application_in_terminal_state(self, terminal_status):
+        self.application.status = get_case_status_by_status(terminal_status)
+        self.application.save()
+
+        data = {
+            "objects": self.good_1.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.pk,
+            "control_code": "ML1a",
+            "is_good_controlled": "yes",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)

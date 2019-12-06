@@ -1,8 +1,5 @@
 from django.db import transaction
 from django.http.response import JsonResponse
-
-from conf import constants
-from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -44,6 +41,7 @@ from cases.serializers import (
 )
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
+from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
 from static.countries.helpers import get_country
 from users.models import ExporterUser

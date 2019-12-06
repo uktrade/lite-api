@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from applications.models import BaseApplication
+from cases.enums import CaseTypeEnum
 from cases.models import Notification
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
@@ -51,7 +53,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
                     {
                         "id": relationship.organisation.id,
                         "name": relationship.organisation.name,
-                        "joined_at": relationship.created_at,
+                        "joined_at": relationship.created,
                     }
                 )
 
@@ -83,8 +85,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
@@ -92,7 +92,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "role", "organisation")
+        fields = ("id", "email", "role", "organisation")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -100,7 +100,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                 organisation = get_organisation_by_pk(self.initial_data["organisation"])
 
                 if UserOrganisationRelationship.objects.get(
-                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation,
+                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation
                 ):
                     raise serializers.ValidationError(
                         self.initial_data["email"] + " is already a member of this organisation."
@@ -138,29 +138,8 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         Update and return an existing `User` instance, given the validated data.
         """
         instance.email = validated_data.get("email", instance.email)
-        instance.first_name = validated_data.get("first_name", instance.first_name)
-        instance.last_name = validated_data.get("last_name", instance.last_name)
         instance.save()
         return instance
-
-
-class ExporterUserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
-    email = serializers.EmailField(
-        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
-    )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
-    def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
-        return exporter
-
-    class Meta:
-        model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "organisation")
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
@@ -177,57 +156,50 @@ class NotificationSerializer(serializers.ModelSerializer):
     parent_type = serializers.SerializerMethodField()
 
     def get_object(self, obj):
-        object = next(
+        return next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
             if item is not None
-        )
-        return object.id
+        ).id
 
     def get_object_type(self, obj):
-        object = next(
+        object_item = next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
             if item is not None
         )
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if isinstance(object_item, Query):
+            object_item = get_exporter_query(object_item)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
 
     def get_parent(self, obj):
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
 
         if obj.query:
             return None
 
-        return object.id
+        return parent.id
 
     def get_parent_type(self, obj):
         if obj.case_note:
-            object = next(
-                item for item in [obj.case_note.case.application, obj.case_note.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.case_note.case] if item is not None)
         if obj.ecju_query:
-            object = next(
-                item for item in [obj.ecju_query.case.application, obj.ecju_query.case.query] if item is not None
-            )
+            parent = next(item for item in [obj.ecju_query.case] if item is not None)
 
         if obj.query:
             return None
 
-        if isinstance(object, Query):
-            object = get_exporter_query(object)
+        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
+            parent = get_exporter_query(parent)
+        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            parent = BaseApplication.objects.get(pk=parent.id)
 
-        return convert_pascal_case_to_snake_case(object.__class__.__name__)
+        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
 
     class Meta:
         model = Notification
@@ -248,12 +220,7 @@ def _get_notification_case(notification):
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-        )
+        fields = ("id", "first_name", "last_name", "email")
 
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):

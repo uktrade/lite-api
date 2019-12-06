@@ -1,6 +1,7 @@
 from django.db import transaction
 
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
+
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
 STATUSES_FILE = "lite_content/lite-api/case_statuses.csv"

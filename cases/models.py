@@ -3,50 +3,41 @@ import uuid
 
 import reversion
 from django.db import models
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from applications.models import BaseApplication
-from cases.enums import CaseType, AdviceType
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.activity_types import CaseActivityType, BaseActivityType
 from cases.managers import CaseManager
+from model_utils.models import TimeStampedModel
 from documents.models import Document
 from flags.models import Flag
-from goods.models import Good
-from goodstype.models import GoodsType
+from organisations.models import Organisation
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
-from queries.models import Query
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
 
 
 @reversion.register()
-class Case(models.Model):
+class Case(TimeStampedModel):
     """
-    Wrapper for application and query model intended for internal users.
+    Base model for applications and queries
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseType.choices, default=CaseType.APPLICATION, max_length=35)
-    application = models.ForeignKey(BaseApplication, related_name="case", on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, related_name="case", on_delete=models.CASCADE, null=True)
+    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(blank=True, null=True)
+    status = models.ForeignKey(
+        CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
+    )
 
     objects = CaseManager()
-
-    class Meta:
-        ordering = [Coalesce("application__submitted_at", "query__submitted_at")]
-
-    @property
-    def organisation(self):
-        """
-        The organisation for a case comes from the query or application associated with that case.
-        """
-        return self.query.organisation if self.query else self.application.organisation
 
 
 @reversion.register()
@@ -72,7 +63,7 @@ class CaseNote(models.Model):
         super(CaseNote, self).save(*args, **kwargs)
 
         if creating and self.is_visible_to_exporter:
-            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(case_note=self)
 
@@ -92,6 +83,9 @@ class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    type = models.CharField(
+        choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
+    )
 
 
 class Advice(models.Model):
@@ -108,9 +102,9 @@ class Advice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     # Optional goods/destinations
-    good = models.ForeignKey(Good, on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey(GoodsType, on_delete=models.CASCADE, null=True)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)
+    good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
+    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
+    country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
         UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
@@ -226,7 +220,7 @@ class EcjuQuery(models.Model):
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = self.case.query.organisation if self.case.query else self.case.application.organisation
+            organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
                 user_relationship.user.send_notification(ecju_query=self)
         else:
@@ -318,9 +312,10 @@ class CaseActivity(BaseActivity):
 
 
 class GoodCountryDecision(models.Model):
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
+    good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     decision = models.CharField(choices=AdviceType.choices, max_length=30)
 
@@ -333,7 +328,12 @@ class GoodCountryDecision(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True)
+    query = models.ForeignKey("queries.Query", on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+
+class CaseType(models.Model):
+    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

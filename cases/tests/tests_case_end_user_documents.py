@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -22,8 +21,7 @@ class CaseEndUserDocumentTests(DataTestClient):
         """
         # assemble
         draft = self.create_standard_application(organisation=self.organisation)
-        application = self.submit_application(draft)
-        case = Case.objects.get(application=application)
+        case = self.submit_application(draft)
 
         # act
         response = self.client.get(reverse("cases:case", kwargs={"pk": case.id}), **self.gov_headers)

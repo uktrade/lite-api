@@ -1,9 +1,11 @@
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
+from conf import settings
 from conf.settings import ADMIN_ENABLED
 
 api_info = openapi.Info(
@@ -33,7 +35,7 @@ urlpatterns = [
     path("documents/", include("documents.urls")),
     path("queries/", include("queries.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if ADMIN_ENABLED:
     urlpatterns += (path("admin/", admin.site.urls),)

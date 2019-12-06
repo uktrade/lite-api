@@ -19,13 +19,12 @@ class SeedCommand(ABC, BaseCommand):
     success = None
     seed_command = None
 
-    """
-    operation should be overridden in child class
-    with the code required to execute the seed operation
-    """
-
     @transaction.atomic
     def operation(self, *args, **options):
+        """
+        operation should be overridden in child class
+        with the code required to execute the seed operation
+        """
         pass
 
     def handle(self, *args, **options):

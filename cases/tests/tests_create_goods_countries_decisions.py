@@ -1,9 +1,9 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case, GoodCountryDecision
 from applications.models import CountryOnApplication
-from conf import constants
+from cases.models import GoodCountryDecision
+from conf.constants import Permissions
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -37,8 +37,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         for country in self.all_countries:
             CountryOnApplication(application=self.open_draft, country=country).save()
 
-        application = self.submit_application(self.open_draft)
-        self.case = Case.objects.get(application=application)
+        self.case = self.submit_application(self.open_draft)
 
         self.goods_countries_url = reverse("cases:goods_countries_decisions", kwargs={"pk": self.case.id})
 

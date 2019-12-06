@@ -3,9 +3,11 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Case, Advice, TeamAdvice
-from conf import constants
+from cases.models import Advice, TeamAdvice
+from conf.constants import Permissions
 from conf.helpers import convert_queryset_to_str
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
@@ -16,8 +18,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         super().setUp()
 
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.submit_application(self.standard_application)
 
         self.role = Role(name="team_level")
         self.role.permissions.set(
@@ -37,8 +38,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user_3.save()
 
         self.open_application = self.create_open_application(self.organisation)
-        self.submit_application(self.open_application)
-        self.open_case = Case.objects.get(application=self.open_application)
+        self.open_case = self.submit_application(self.open_application)
 
         self.standard_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id})
         self.open_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.open_case.id})
@@ -361,3 +361,19 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(CaseStatusEnum.terminal_statuses())
+    def test_cannot_create_team_advice_when_case_in_terminal_state(self, terminal_status):
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.standard_application.end_user.id),
+        }
+
+        self.standard_application.status = get_case_status_by_status(terminal_status)
+        self.standard_application.save()
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

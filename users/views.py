@@ -41,10 +41,14 @@ class AuthenticateExporterUser(APIView):
             data = JSONParser().parse(request)
         except ParseError:
             return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
-        email = data.get("email")
 
         try:
-            user = ExporterUser.objects.get(email=email)
+            user = ExporterUser.objects.get(email=data.get("email"))
+
+            # Update the user's first and last names
+            user.first_name = data.get("user_profile").get("first_name")
+            user.last_name = data.get("user_profile").get("last_name")
+            user.save()
         except ExporterUser.DoesNotExist:
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -147,11 +151,9 @@ class NotificationViewSet(generics.ListAPIView):
         # Get all notifications for the current user and organisation on License Application cases,
         # both those arising from case notes and those arising from ECJU queries
         queryset = Notification.objects.filter(user=self.request.user).filter(
-            Q(case_note__case__application__organisation_id=organisation_id)
-            | Q(case_note__case__query__organisation_id=organisation_id)
+            Q(case_note__case__organisation_id=organisation_id)
+            | Q(ecju_query__case__organisation_id=organisation_id)
             | Q(query__organisation__id=organisation_id)
-            | Q(ecju_query__case__application__organisation_id=organisation_id)
-            | Q(ecju_query__case__query__organisation_id=organisation_id)
         )
 
         if self.request.GET.get("unviewed"):

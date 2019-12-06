@@ -1,12 +1,16 @@
+from datetime import datetime, timezone
+
 from rest_framework import serializers
 
+from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
 from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.helpers import get_exporter_query
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 
 
 class EndUserAdvisorySerializer(serializers.ModelSerializer):
@@ -18,6 +22,7 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     contact_email = serializers.EmailField()
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -33,21 +38,18 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             "contact_email",
             "contact_job_title",
             "contact_telephone",
+            "status",
         )
 
     standard_blank_error_message = "This field may not be blank"
 
-    def to_representation(self, value):
-        """
-        Return both reference code and case ID for the copy of field
-        """
-        repr_dict = super(EndUserAdvisorySerializer, self).to_representation(value)
-        if repr_dict["copy_of"]:
-            repr_dict["copy_of"] = {
-                "reference_code": repr_dict["copy_of"],
-                "case_id": get_exporter_query(repr_dict["copy_of"]).case.get().id,
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return repr_dict
+        return None
 
     def validate_nature_of_business(self, value):
         if self.initial_data.get("end_user").get("sub_type") == SubType.COMMERCIAL and not value:
@@ -77,6 +79,10 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
+        validated_data["type"] = CaseTypeEnum.END_USER_ADVISORY_QUERY
+        validated_data["organisation_id"] = end_user_data["organisation"]
+        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        validated_data["submitted_at"] = datetime.now(timezone.utc)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 
