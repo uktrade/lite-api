@@ -200,10 +200,10 @@ class NotificationSerializer(serializers.ModelSerializer):
         )
 
     def get_object(self, obj):
-        return obj.get_notification_object_item().id
+        return obj.get_item().id
 
     def get_object_type(self, obj):
-        object_item = obj.get_notification_object_item()
+        object_item = obj.get_item()
 
         if isinstance(object_item, Query):
             object_item = get_exporter_query(object_item)
@@ -214,14 +214,14 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.query:
             return None
 
-        parent = obj.get_notification_parent_item()
+        parent = obj.get_case()
         return parent.id if parent else None
 
     def get_parent_type(self, obj):
         if obj.query:
             return None
 
-        parent = obj.get_notification_parent_item()
+        parent = obj.get_case()
         if not parent:
             return None
 
