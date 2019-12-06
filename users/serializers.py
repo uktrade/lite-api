@@ -94,7 +94,14 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "role", "organisation")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "organisation",
+        )
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -162,7 +169,13 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "organisation")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "organisation",
+        )
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
@@ -179,28 +192,10 @@ class NotificationSerializer(serializers.ModelSerializer):
     parent_type = serializers.SerializerMethodField()
 
     def get_object(self, obj):
-        return next(
-            item
-            for item in [
-                getattr(obj, "case_note"),
-                getattr(obj, "query"),
-                getattr(obj, "ecju_query"),
-                getattr(obj, "generated_case_document"),
-            ]
-            if item is not None
-        ).id
+        return _get_notification_object_item(obj).id
 
     def get_object_type(self, obj):
-        object_item = next(
-            item
-            for item in [
-                getattr(obj, "case_note"),
-                getattr(obj, "query"),
-                getattr(obj, "ecju_query"),
-                getattr(obj, "generated_case_document"),
-            ]
-            if item is not None
-        )
+        object_item = _get_notification_object_item(obj)
 
         if isinstance(object_item, Query):
             object_item = get_exporter_query(object_item)
@@ -241,7 +236,25 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ("object", "object_type", "parent", "parent_type")
+        fields = (
+            "object",
+            "object_type",
+            "parent",
+            "parent_type",
+        )
+
+
+def _get_notification_object_item(obj):
+    return next(
+        item
+        for item in [
+            getattr(obj, "case_note"),
+            getattr(obj, "query"),
+            getattr(obj, "ecju_query"),
+            getattr(obj, "generated_case_document"),
+        ]
+        if item is not None
+    )
 
 
 def _get_notification_case(notification):
@@ -274,4 +287,7 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ("status", "role")
+        fields = (
+            "status",
+            "role",
+        )
