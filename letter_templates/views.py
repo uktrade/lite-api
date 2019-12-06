@@ -4,6 +4,7 @@ from rest_framework import generics, status
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
@@ -53,12 +54,12 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         )
         paragraph_text = get_paragraphs_as_html(paragraphs)
 
-        if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):
+        if "generate_preview" in request.GET and str_to_bool(request.GET["generate_preview"]):
             data["preview"] = generate_preview(layout=template_object.layout.filename, text=paragraph_text)
             if "error" in data["preview"]:
                 return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
 
-        if "text" in request.GET and bool(request.GET["text"]):
+        if "text" in request.GET and str_to_bool(request.GET["text"]):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
