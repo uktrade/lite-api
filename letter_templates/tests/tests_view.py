@@ -85,7 +85,7 @@ class LetterTemplatesListTests(DataTestClient):
     def test_get_letter_template_with_text_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
         url += "?text=True"
-        
+
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 

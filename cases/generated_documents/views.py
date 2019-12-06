@@ -5,7 +5,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, GeneratedDocumentPayload
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentSerializer
 from cases.libraries.activity_types import CaseActivityType
