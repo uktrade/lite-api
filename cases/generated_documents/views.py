@@ -29,10 +29,10 @@ class GeneratedDocuments(APIView):
         """
         Create a generated document
         """
-        document = get_generated_document_data(request.data, pk)
-        if not isinstance(document, GeneratedDocumentPayload):
-            # function returned an error message instead
-            return JsonResponse(data={"errors": [document]}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            document = get_generated_document_data(request.data, pk)
+        except Exception as e:
+            return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             pdf = html_to_pdf(request, document.document_html, document.template.layout.filename)
@@ -83,9 +83,9 @@ class GeneratedDocumentPreview(APIView):
         """
         Get a preview of the document to be generated
         """
-        document = get_generated_document_data(request.GET, pk)
-        if not isinstance(document, GeneratedDocumentPayload):
-            # function returned an error message instead
-            return JsonResponse(data={"errors": [document]}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            document = get_generated_document_data(request.GET, pk)
+        except Exception as e:
+            return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"preview": document.document_html}, status=status.HTTP_200_OK)
