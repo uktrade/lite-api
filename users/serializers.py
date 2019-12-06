@@ -85,8 +85,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
@@ -94,7 +92,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "role", "organisation")
+        fields = ("id", "email", "role", "organisation")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -102,7 +100,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                 organisation = get_organisation_by_pk(self.initial_data["organisation"])
 
                 if UserOrganisationRelationship.objects.get(
-                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation,
+                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation
                 ):
                     raise serializers.ValidationError(
                         self.initial_data["email"] + " is already a member of this organisation."
@@ -140,29 +138,8 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         Update and return an existing `User` instance, given the validated data.
         """
         instance.email = validated_data.get("email", instance.email)
-        instance.first_name = validated_data.get("first_name", instance.first_name)
-        instance.last_name = validated_data.get("last_name", instance.last_name)
         instance.save()
         return instance
-
-
-class ExporterUserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
-    email = serializers.EmailField(
-        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
-    )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
-    def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
-        return exporter
-
-    class Meta:
-        model = ExporterUser
-        fields = ("id", "email", "first_name", "last_name", "organisation")
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
@@ -181,14 +158,14 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_object(self, obj):
         return next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
             if item is not None
         ).id
 
     def get_object_type(self, obj):
         object_item = next(
             item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query"),]
+            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
             if item is not None
         )
 
@@ -243,12 +220,7 @@ def _get_notification_case(notification):
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-        )
+        fields = ("id", "first_name", "last_name", "email")
 
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
