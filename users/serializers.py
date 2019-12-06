@@ -187,7 +187,6 @@ class CaseNotificationGetSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     object = serializers.SerializerMethodField()
     object_type = serializers.SerializerMethodField()
-
     parent = serializers.SerializerMethodField()
     parent_type = serializers.SerializerMethodField()
 
@@ -202,10 +201,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_object(self, obj):
         object_item = self._get_notification_object_item(obj)
-        if not object_item:
-            return None
-
-        return object_item.id
+        return object_item.id if object_item else None
 
     def get_object_type(self, obj):
         object_item = self._get_notification_object_item(obj)
@@ -222,9 +218,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             return None
 
         parent = self._get_notification_parent_item(obj)
-        if not parent:
-            return None
-        return parent.id
+        return parent.id if parent else None
 
     def get_parent_type(self, obj):
         if obj.query:
