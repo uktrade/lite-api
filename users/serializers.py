@@ -85,8 +85,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
     )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
@@ -97,8 +95,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "email",
-            "first_name",
-            "last_name",
             "role",
             "organisation",
         )
@@ -109,7 +105,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                 organisation = get_organisation_by_pk(self.initial_data["organisation"])
 
                 if UserOrganisationRelationship.objects.get(
-                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation,
+                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation
                 ):
                     raise serializers.ValidationError(
                         self.initial_data["email"] + " is already a member of this organisation."
@@ -147,8 +143,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         Update and return an existing `User` instance, given the validated data.
         """
         instance.email = validated_data.get("email", instance.email)
-        instance.first_name = validated_data.get("first_name", instance.first_name)
-        instance.last_name = validated_data.get("last_name", instance.last_name)
         instance.save()
         return instance
 
