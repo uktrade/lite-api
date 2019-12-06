@@ -110,11 +110,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         classification query with no licence required
         """
         previous_query_control_code = self.query.good.control_code
-        data = {
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "is_good_controlled": "no",
-        }
+        data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()

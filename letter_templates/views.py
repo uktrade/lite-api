@@ -21,7 +21,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     serializer_class = LetterTemplateSerializer
 
     def get_queryset(self):
-        case = self.request.GET.get("case",)
+        case = self.request.GET.get("case")
 
         return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
 

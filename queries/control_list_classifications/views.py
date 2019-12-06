@@ -100,18 +100,16 @@ class ControlListClassificationDetail(APIView):
                     )
 
                 # Add an activity item for the query's case
-                CaseActivity.create(
-                    activity_type=CaseActivityType.CLC_RESPONSE, case=query, user=request.user,
-                )
+                CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE, case=query, user=request.user)
 
                 # Send a notification to the user
                 for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
                     user_relationship.user.send_notification(query=query)
 
                 return JsonResponse(
-                    data={"control_list_classification_query": clc_good_serializer.data}, status=status.HTTP_200_OK,
+                    data={"control_list_classification_query": clc_good_serializer.data}, status=status.HTTP_200_OK
                 )
 
-            return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK,)
+            return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
+        return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

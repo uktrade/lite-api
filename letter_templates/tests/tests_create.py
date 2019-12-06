@@ -49,7 +49,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         Fail as the name is not unique
         """
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
         self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 
