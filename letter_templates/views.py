@@ -54,12 +54,12 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         )
         paragraph_text = get_paragraphs_as_html(paragraphs)
 
-        if str_to_bool(request.GET["generate_preview"]):
+        if "generate_preview" in request.GET and str_to_bool(request.GET["generate_preview"]):
             data["preview"] = generate_preview(layout=template_object.layout.filename, text=paragraph_text)
             if "error" in data["preview"]:
                 return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
 
-        if str_to_bool(request.GET["text"]):
+        if "text" in request.GET and str_to_bool(request.GET["text"]):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
