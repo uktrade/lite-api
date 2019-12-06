@@ -31,7 +31,7 @@ class GeneratedDocuments(APIView):
         """
         try:
             document = get_generated_document_data(request.data, pk)
-        except Exception as e:
+        except AttributeError as e:
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
