@@ -136,6 +136,6 @@ class GeneratedDocument(APIView):
     @authorised_users(ExporterUser)
     def get(self, request, application, gcd_pk):
         """
-        Gets a generated documents for the application's case
+        Gets a generated document for the application's case
         """
         return get_generated_case_document(gcd_pk)

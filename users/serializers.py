@@ -200,13 +200,10 @@ class NotificationSerializer(serializers.ModelSerializer):
         )
 
     def get_object(self, obj):
-        object_item = self._get_notification_object_item(obj)
-        return object_item.id if object_item else None
+        return obj.get_notification_object_item().id
 
     def get_object_type(self, obj):
-        object_item = self._get_notification_object_item(obj)
-        if not object_item:
-            return None
+        object_item = obj.get_notification_object_item()
 
         if isinstance(object_item, Query):
             object_item = get_exporter_query(object_item)
@@ -217,14 +214,14 @@ class NotificationSerializer(serializers.ModelSerializer):
         if obj.query:
             return None
 
-        parent = self._get_notification_parent_item(obj)
+        parent = obj.get_notification_parent_item()
         return parent.id if parent else None
 
     def get_parent_type(self, obj):
         if obj.query:
             return None
 
-        parent = self._get_notification_parent_item(obj)
+        parent = obj.get_notification_parent_item()
         if not parent:
             return None
 
@@ -234,29 +231,6 @@ class NotificationSerializer(serializers.ModelSerializer):
             parent = BaseApplication.objects.get(pk=parent.id)
 
         return convert_pascal_case_to_snake_case(parent.__class__.__name__)
-
-    @staticmethod
-    def _get_notification_parent_item(obj):
-        if obj.case_note:
-            return next(item for item in [obj.case_note.case] if item is not None)
-        if obj.ecju_query:
-            return next(item for item in [obj.ecju_query.case] if item is not None)
-        if obj.generated_case_document:
-            return next(item for item in [obj.generated_case_document.case] if item is not None)
-        return None
-
-    @staticmethod
-    def _get_notification_object_item(obj):
-        return next(
-            item
-            for item in [
-                getattr(obj, "case_note"),
-                getattr(obj, "query"),
-                getattr(obj, "ecju_query"),
-                getattr(obj, "generated_case_document"),
-            ]
-            if item is not None
-        )
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):

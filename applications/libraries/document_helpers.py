@@ -150,5 +150,5 @@ def delete_goods_type_document(goods_type):
 
 
 def get_generated_case_document(generated_case_document):
-    documents = GeneratedCaseDocument.objects.filter(pk=generated_case_document)
-    return _get_document(documents)
+    document = GeneratedCaseDocument.objects.filter(pk=generated_case_document)
+    return _get_document(document)

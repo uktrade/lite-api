@@ -336,6 +336,22 @@ class Notification(models.Model):
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
 
+    def get_notification_object_item(self):
+        return next(
+            item
+            for item in [self.case_note, self.query, self.ecju_query, self.generated_case_document]
+            if item is not None
+        )
+
+    def get_notification_parent_item(self):
+        if self.case_note:
+            return next(item for item in [self.case_note.case] if item is not None)
+        if self.ecju_query:
+            return next(item for item in [self.ecju_query.case] if item is not None)
+        if self.generated_case_document:
+            return next(item for item in [self.generated_case_document.case] if item is not None)
+        return None
+
 
 class CaseType(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=30)

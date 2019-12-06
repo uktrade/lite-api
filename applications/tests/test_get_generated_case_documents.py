@@ -32,6 +32,15 @@ class GetGeneratedCaseDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["generated_documents"]), 1)
 
+    def test_get_multiple_generated_documents_success(self):
+        self.create_generated_case_document(self.case, template=self.letter_template)
+        url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["generated_documents"]), 2)
+
     def test_get_generated_documents_returns_empty_list_when_no_documents_have_been_generated_success(self):
         self.generated_case_document.delete()
         url = reverse("applications:application_generated_documents", kwargs={"pk": str(self.case.pk)})
