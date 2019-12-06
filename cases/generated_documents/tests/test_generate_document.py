@@ -98,6 +98,7 @@ class GenerateDocumentTests(DataTestClient):
             + "?template="
             + str(self.letter_template.id)
         )
+
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
