@@ -18,6 +18,7 @@ from cases.models import (
     TeamAdvice,
     FinalAdvice,
     GoodCountryDecision,
+    CaseType,
 )
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -480,7 +481,7 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
 
 class CaseTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CaseTypeEnum
+        model = CaseType
         fields = (
             "id",
             "name",

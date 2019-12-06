@@ -19,8 +19,8 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
 )
-from cases.generated_documents.models import GeneratedCaseDocument
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import (
     CaseNote,
     Case,
