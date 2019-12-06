@@ -19,6 +19,10 @@ from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelati
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = "__all__"
+
     def to_representation(self, instance):
         instance = get_user_by_pk(instance.id)
 
@@ -27,15 +31,15 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
         else:
             return GovUserViewSerializer(instance=instance).data
 
-    class Meta:
-        model = BaseUser
-        fields = "__all__"
-
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExporterUser
+        fields = "__all__"
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
@@ -66,10 +70,6 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
             return RoleSerializer(role).data
         return None
-
-    class Meta:
-        model = ExporterUser
-        fields = "__all__"
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -161,12 +161,6 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
-    def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
-        return exporter
-
     class Meta:
         model = ExporterUser
         fields = (
@@ -176,6 +170,12 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
             "last_name",
             "organisation",
         )
+
+    def create(self, validated_data):
+        organisation = validated_data.pop("organisation")
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
+        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+        return exporter
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
@@ -191,49 +191,6 @@ class NotificationSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     parent_type = serializers.SerializerMethodField()
 
-    def get_object(self, obj):
-        return _get_notification_object_item(obj).id
-
-    def get_object_type(self, obj):
-        object_item = _get_notification_object_item(obj)
-
-        if isinstance(object_item, Query):
-            object_item = get_exporter_query(object_item)
-
-        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
-
-    def get_parent(self, obj):
-        if obj.case_note:
-            parent = next(item for item in [obj.case_note.case] if item is not None)
-        if obj.ecju_query:
-            parent = next(item for item in [obj.ecju_query.case] if item is not None)
-        if obj.generated_case_document:
-            parent = next(item for item in [obj.generated_case_document.case] if item is not None)
-
-        if obj.query:
-            return None
-
-        return parent.id
-
-    def get_parent_type(self, obj):
-        parent = None
-        if obj.case_note:
-            parent = next(item for item in [obj.case_note.case] if item is not None)
-        if obj.ecju_query:
-            parent = next(item for item in [obj.ecju_query.case] if item is not None)
-        if obj.generated_case_document:
-            parent = next(item for item in [obj.generated_case_document.case] if item is not None)
-
-        if obj.query:
-            return None
-
-        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
-            parent = get_exporter_query(parent)
-        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
-            parent = BaseApplication.objects.get(pk=parent.id)
-
-        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
-
     class Meta:
         model = Notification
         fields = (
@@ -243,31 +200,69 @@ class NotificationSerializer(serializers.ModelSerializer):
             "parent_type",
         )
 
+    def get_object(self, obj):
+        object_item = self._get_notification_object_item(obj)
+        if not object_item:
+            return None
 
-def _get_notification_object_item(obj):
-    return next(
-        item
-        for item in [
-            getattr(obj, "case_note"),
-            getattr(obj, "query"),
-            getattr(obj, "ecju_query"),
-            getattr(obj, "generated_case_document"),
-        ]
-        if item is not None
-    )
+        return object_item.id
 
+    def get_object_type(self, obj):
+        object_item = self._get_notification_object_item(obj)
+        if not object_item:
+            return None
 
-def _get_notification_case(notification):
-    if notification.case_note:
-        return notification.case_note.case
-    elif notification.ecju_query:
-        return notification.ecju_query.case
-    elif notification.query:
-        return notification.query.case
-    elif notification.generated_case_document:
-        return notification.generated_case_document.case
-    else:
-        raise Exception("Unexpected error, Notification object with no link to originating object")
+        if isinstance(object_item, Query):
+            object_item = get_exporter_query(object_item)
+
+        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
+
+    def get_parent(self, obj):
+        if obj.query:
+            return None
+
+        parent = self._get_notification_parent_item(obj)
+        if not parent:
+            return None
+        return parent.id
+
+    def get_parent_type(self, obj):
+        if obj.query:
+            return None
+
+        parent = self._get_notification_parent_item(obj)
+        if not parent:
+            return None
+
+        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
+            parent = get_exporter_query(parent)
+        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+            parent = BaseApplication.objects.get(pk=parent.id)
+
+        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
+
+    @staticmethod
+    def _get_notification_parent_item(obj):
+        if obj.case_note:
+            return next(item for item in [obj.case_note.case] if item is not None)
+        if obj.ecju_query:
+            return next(item for item in [obj.ecju_query.case] if item is not None)
+        if obj.generated_case_document:
+            return next(item for item in [obj.generated_case_document.case] if item is not None)
+        return None
+
+    @staticmethod
+    def _get_notification_object_item(obj):
+        return next(
+            item
+            for item in [
+                getattr(obj, "case_note"),
+                getattr(obj, "query"),
+                getattr(obj, "ecju_query"),
+                getattr(obj, "generated_case_document"),
+            ]
+            if item is not None
+        )
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
