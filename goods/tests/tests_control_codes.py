@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from conf.constants import Permissions
+from conf import constants
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from static.statuses.enums import CaseStatusEnum

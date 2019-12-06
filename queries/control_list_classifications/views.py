@@ -11,7 +11,6 @@ from cases.libraries.activity_types import CaseActivityType
 from conf import constants
 from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
-from conf.constants import Permissions
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -64,7 +63,7 @@ class ControlListClassificationDetail(APIView):
 
     def put(self, request, pk):
         """ Respond to a control list classification."""
-        assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
+        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
 
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):

@@ -4,7 +4,7 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.models import TeamAdvice, FinalAdvice, Advice
-from conf.constants import Permissions
+from conf import constants
 from conf.helpers import convert_queryset_to_str
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status

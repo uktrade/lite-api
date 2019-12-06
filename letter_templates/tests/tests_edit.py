@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
+from conf import constants
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout

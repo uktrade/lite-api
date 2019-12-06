@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.models import GoodCountryDecision
-from conf.constants import Permissions
+from conf import constants
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient

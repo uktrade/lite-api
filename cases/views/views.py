@@ -39,6 +39,7 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
 )
+from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
