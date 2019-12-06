@@ -37,17 +37,17 @@ def get_letter_template_for_case(template_id, case):
 def get_generated_document_data(request_params, pk):
     template_id = request_params.get("template")
     if not template_id:
-        raise Exception(GeneratedDocumentsEndpoint.MISSING_TEMPLATE)
+        raise AttributeError(GeneratedDocumentsEndpoint.MISSING_TEMPLATE)
 
     text = request_params.get("text")
     if not text:
-        raise Exception(GeneratedDocumentsEndpoint.MISSING_TEXT)
+        raise AttributeError(GeneratedDocumentsEndpoint.MISSING_TEXT)
 
     case = get_case(pk)
     template = get_letter_template_for_case(template_id, case)
     document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
 
     if "error" in document_html:
-        raise Exception(document_html["error"])
+        raise AttributeError(document_html["error"])
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)

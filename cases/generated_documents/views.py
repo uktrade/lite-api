@@ -85,7 +85,7 @@ class GeneratedDocumentPreview(APIView):
         """
         try:
             document = get_generated_document_data(request.GET, pk)
-        except Exception as e:
+        except AttributeError as e:
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"preview": document.document_html}, status=status.HTTP_200_OK)
