@@ -19,6 +19,10 @@ from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelati
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = "__all__"
+
     def to_representation(self, instance):
         instance = get_user_by_pk(instance.id)
 
@@ -27,15 +31,15 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
         else:
             return GovUserViewSerializer(instance=instance).data
 
-    class Meta:
-        model = BaseUser
-        fields = "__all__"
-
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExporterUser
+        fields = "__all__"
 
     def get_status(self, instance):
         if hasattr(instance, "status"):
@@ -67,10 +71,6 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             return RoleSerializer(role).data
         return None
 
-    class Meta:
-        model = ExporterUser
-        fields = "__all__"
-
 
 class GovUserViewSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
@@ -92,7 +92,12 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "role", "organisation")
+        fields = (
+            "id",
+            "email",
+            "role",
+            "organisation",
+        )
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -142,6 +147,31 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
+class ExporterUserCreateSerializer(serializers.ModelSerializer):
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
+    email = serializers.EmailField(
+        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
+    )
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+
+    class Meta:
+        model = ExporterUser
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "organisation",
+        )
+
+    def create(self, validated_data):
+        organisation = validated_data.pop("organisation")
+        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
+        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
+        return exporter
+
+
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
@@ -151,23 +181,23 @@ class CaseNotificationGetSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     object = serializers.SerializerMethodField()
     object_type = serializers.SerializerMethodField()
-
     parent = serializers.SerializerMethodField()
     parent_type = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Notification
+        fields = (
+            "object",
+            "object_type",
+            "parent",
+            "parent_type",
+        )
+
     def get_object(self, obj):
-        return next(
-            item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
-            if item is not None
-        ).id
+        return obj.get_item().id
 
     def get_object_type(self, obj):
-        object_item = next(
-            item
-            for item in [getattr(obj, "case_note"), getattr(obj, "query"), getattr(obj, "ecju_query")]
-            if item is not None
-        )
+        object_item = obj.get_item()
 
         if isinstance(object_item, Query):
             object_item = get_exporter_query(object_item)
@@ -175,23 +205,18 @@ class NotificationSerializer(serializers.ModelSerializer):
         return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
 
     def get_parent(self, obj):
-        if obj.case_note:
-            parent = next(item for item in [obj.case_note.case] if item is not None)
-        if obj.ecju_query:
-            parent = next(item for item in [obj.ecju_query.case] if item is not None)
-
         if obj.query:
             return None
 
-        return parent.id
+        parent = obj.get_case()
+        return parent.id if parent else None
 
     def get_parent_type(self, obj):
-        if obj.case_note:
-            parent = next(item for item in [obj.case_note.case] if item is not None)
-        if obj.ecju_query:
-            parent = next(item for item in [obj.ecju_query.case] if item is not None)
-
         if obj.query:
+            return None
+
+        parent = obj.get_case()
+        if not parent:
             return None
 
         if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
@@ -201,26 +226,16 @@ class NotificationSerializer(serializers.ModelSerializer):
 
         return convert_pascal_case_to_snake_case(parent.__class__.__name__)
 
-    class Meta:
-        model = Notification
-        fields = ("object", "object_type", "parent", "parent_type")
-
-
-def _get_notification_case(notification):
-    if notification.case_note:
-        return notification.case_note.case
-    elif notification.ecju_query:
-        return notification.ecju_query.case
-    elif notification.query:
-        return notification.query.case
-    else:
-        raise Exception("Unexpected error, Notification object with no link to originating object")
-
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExporterUser
-        fields = ("id", "first_name", "last_name", "email")
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )
 
 
 class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
@@ -229,4 +244,7 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrganisationRelationship
-        fields = ("status", "role")
+        fields = (
+            "status",
+            "role",
+        )

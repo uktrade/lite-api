@@ -19,7 +19,8 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
 )
-from cases.enums import AdviceType, CaseTypeEnum
+from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import (
     CaseNote,
     Case,
@@ -634,3 +635,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
         return self.create_end_user_advisory(note, reasoning, organisation)
+
+    def create_generated_case_document(self, case, template, document_name="Generated Doc"):
+        generated_case_doc = GeneratedCaseDocument(
+            name=document_name,
+            user=self.gov_user,
+            s3_key=uuid.uuid4(),
+            virus_scanned_at=datetime.now(timezone.utc),
+            safe=True,
+            type=CaseDocumentState.GENERATED,
+            case=case,
+            template=template,
+        )
+        generated_case_doc.save()
+        return generated_case_doc

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "applications",
     "background_task",
     "cases",
+    "cases.generated_documents",
     "content_strings.apps.ContentStringsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
