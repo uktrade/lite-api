@@ -124,9 +124,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         else:
             application_old_name = application.name
 
-            if application.application_type == ApplicationType.STANDARD_LICENCE:
-                application_old_ref_number = application.reference_number_on_information_form
-
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -141,7 +138,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 and application.application_type == ApplicationType.STANDARD_LICENCE
             ):
                 set_application_ref_number_case_activity(
-                    application_old_ref_number,
+                    application.reference_number_on_information_form,
                     serializer.data.get("reference_number_on_information_form"),
                     request.user,
                     application,

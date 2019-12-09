@@ -27,7 +27,7 @@ class Command(SeedCommand):
     """
 
     help = "Creates and updates default roles and permissions"
-    info = "Seeding"
+    info = "Seeding roles and permissions"
     success = "Successfully seeded roles and permissions"
     seed_command = "seedrolepermissions"
 
