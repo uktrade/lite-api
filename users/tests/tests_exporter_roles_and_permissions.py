@@ -106,25 +106,12 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.filter(name=role_name).count(), 2)
 
-    @parameterized.expand(
-        [
-            [
-                [
-                    constants.ExporterPermissions.ADMINISTER_USERS.name,
-                    constants.ExporterPermissions.ADMINISTER_SITES.name,
-                    constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
-                ]
-            ],
-            [
-                [
-                    constants.ExporterPermissions.ADMINISTER_USERS.name,
-                    constants.ExporterPermissions.ADMINISTER_SITES.name,
-                ]
-            ],
-            [[constants.ExporterPermissions.ADMINISTER_USERS.name]],
+    def test_only_see_roles_user_has_all_permissions_for_0(self):
+        permissions = [
+            constants.ExporterPermissions.ADMINISTER_USERS.name,
+            constants.ExporterPermissions.ADMINISTER_SITES.name,
+            constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
         ]
-    )
-    def test_only_see_roles_user_has_all_permissions_for(self, permissions):
         user_role = Role(name="new role", organisation=self.organisation)
         user_role.permissions.set(permissions)
         user_role.save()
@@ -146,20 +133,95 @@ class RolesAndPermissionsTests(DataTestClient):
             ]
         )
         second_role.save()
-        # Adjust expected result to cover the multi permission role
-        r = 1 if len(permissions) == 3 else 0
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(permissions) + 2 + r)
+        self.assertEqual(len(response_data), 6)
+        self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_SITES.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name).id),
+            str(response_data),
+        )
 
-        if r:
-            self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
+    def test_only_see_roles_user_has_all_permissions_for_1(self):
+        permissions = [
+            constants.ExporterPermissions.ADMINISTER_USERS.name,
+            constants.ExporterPermissions.ADMINISTER_SITES.name,
+        ]
+        user_role = Role(name="new role", organisation=self.organisation)
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.exporter_user.set_role(self.organisation, user_role)
+        url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
 
-        for permission in permissions:
-            self.assertIn(str(Role.objects.get(name=permission).id), str(response_data))
+        # Create a new role, each with a singular different permission
+        for permission in Permission.exporter.all():
+            role = Role(name=str(permission.id), organisation=self.organisation)
+            role.permissions.set([permission.id])
+            role.save()
+
+        second_role = Role(name="multi permission role", organisation=self.organisation)
+        second_role.permissions.set(
+            [
+                constants.ExporterPermissions.ADMINISTER_USERS.name,
+                constants.ExporterPermissions.ADMINISTER_SITES.name,
+                constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
+            ]
+        )
+        second_role.save()
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 4)
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_SITES.name).id), str(response_data)
+        )
+
+    def test_only_see_roles_user_has_all_permissions_for_2(self):
+        permissions = [[constants.ExporterPermissions.ADMINISTER_USERS.name]]
+        user_role = Role(name="new role", organisation=self.organisation)
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.exporter_user.set_role(self.organisation, user_role)
+        url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
+
+        # Create a new role, each with a singular different permission
+        for permission in Permission.exporter.all():
+            role = Role(name=str(permission.id), organisation=self.organisation)
+            role.permissions.set([permission.id])
+            role.save()
+
+        second_role = Role(name="multi permission role", organisation=self.organisation)
+        second_role.permissions.set(
+            [
+                constants.ExporterPermissions.ADMINISTER_USERS.name,
+                constants.ExporterPermissions.ADMINISTER_SITES.name,
+                constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
+            ]
+        )
+        second_role.save()
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 3)
+        self.assertIn(
+            str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_USERS.name).id), str(response_data)
+        )
 
     @parameterized.expand(
         [
