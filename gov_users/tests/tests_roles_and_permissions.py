@@ -100,9 +100,15 @@ class RolesAndPermissionsTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS]],
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE]],
-            [[Permissions.MANAGE_TEAM_ADVICE]],
+            [
+                [
+                    constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                    constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                    constants.GovPermissions.REVIEW_GOODS.name,
+                ]
+            ],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name, constants.GovPermissions.MANAGE_FINAL_ADVICE.name]],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name]],
         ]
     )
     def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role(
@@ -123,7 +129,11 @@ class RolesAndPermissionsTests(DataTestClient):
             i += 1
         second_role = Role(name="multi permission role")
         second_role.permissions.set(
-            [Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS]
+            [
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.REVIEW_GOODS.name,
+            ]
         )
         second_role.save()
         # Adjust expected result to cover the multi permission role
@@ -137,9 +147,15 @@ class RolesAndPermissionsTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS]],
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE]],
-            [[Permissions.MANAGE_TEAM_ADVICE]],
+            [
+                [
+                    constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                    constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                    constants.GovPermissions.REVIEW_GOODS.name,
+                ]
+            ],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name, constants.GovPermissions.MANAGE_FINAL_ADVICE.name]],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name]],
         ]
     )
     def test_only_see_permissions_user_already_has(self, permissions):

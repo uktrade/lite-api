@@ -2,7 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from conf.constants import GovPermissions, ExporterPermissions
+from conf import constants
+from conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
 from users.models import Role, Permission
@@ -107,9 +108,20 @@ class RolesAndPermissionsTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [[Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES, Permissions.EXPORTER_ADMINISTER_ROLES]],
-            [[Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES]],
-            [[Permissions.ADMINISTER_USERS]],
+            [
+                [
+                    constants.ExporterPermissions.ADMINISTER_USERS.name,
+                    constants.ExporterPermissions.ADMINISTER_SITES.name,
+                    constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
+                ]
+            ],
+            [
+                [
+                    constants.ExporterPermissions.ADMINISTER_USERS.name,
+                    constants.ExporterPermissions.ADMINISTER_SITES.name,
+                ]
+            ],
+            [[constants.ExporterPermissions.ADMINISTER_USERS.name]],
         ]
     )
     def test_only_see_roles_user_has_all_permissions_for(self, permissions):
@@ -128,7 +140,11 @@ class RolesAndPermissionsTests(DataTestClient):
             i += 1
         second_role = Role(name="multi permission role", organisation=self.organisation)
         second_role.permissions.set(
-            [Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES, Permissions.EXPORTER_ADMINISTER_ROLES]
+            [
+                constants.ExporterPermissions.ADMINISTER_USERS.name,
+                constants.ExporterPermissions.ADMINISTER_SITES.name,
+                constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
+            ]
         )
         second_role.save()
         # Adjust expected result to cover the multi permission role
@@ -142,9 +158,20 @@ class RolesAndPermissionsTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE, Permissions.REVIEW_GOODS]],
-            [[Permissions.MANAGE_TEAM_ADVICE, Permissions.MANAGE_FINAL_ADVICE]],
-            [[Permissions.MANAGE_TEAM_ADVICE]],
+            [
+                [
+                    constants.ExporterPermissions.ADMINISTER_USERS.name,
+                    constants.ExporterPermissions.ADMINISTER_SITES.name,
+                    constants.ExporterPermissions.EXPORTER_ADMINISTER_ROLES.name,
+                ]
+            ],
+            [
+                [
+                    constants.ExporterPermissions.ADMINISTER_USERS.name,
+                    constants.ExporterPermissions.ADMINISTER_SITES.name,
+                ]
+            ],
+            [[constants.ExporterPermissions.ADMINISTER_USERS.name]],
         ]
     )
     def test_only_see_permissions_user_already_has(self, permissions):
@@ -165,27 +192,30 @@ class RolesAndPermissionsTests(DataTestClient):
 
     def test_cannot_change_own_role(self):
         user_role = Role(name="new role", organisation=self.organisation)
-        user_role.permissions.set([Permissions.ADMINISTER_USERS])
+        user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
         user_role.save()
         self.exporter_user.set_role(self.organisation, user_role)
 
         response = self.client.put(
             reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id},),
-            data={"role": str(Roles.EXPORTER_DEFAULT_ROLE_ID)},
+            data={"role": str(constants.Roles.EXPORTER_DEFAULT_ROLE_ID)},
             **self.exporter_headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotEqual(
-            self.exporter_user.get_role(self.organisation), Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+            self.exporter_user.get_role(self.organisation),
+            Role.objects.get(id=constants.Roles.EXPORTER_DEFAULT_ROLE_ID),
         )
 
     def test_cannot_change_another_users_role_to_one_the_request_user_does_not_have_access_to(self):
         user_role = Role(name="new role", organisation=self.organisation)
-        user_role.permissions.set([Permissions.ADMINISTER_USERS])
+        user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
         user_role.save()
         second_user_role = Role(name="new role", organisation=self.organisation)
-        second_user_role.permissions.set([Permissions.ADMINISTER_USERS, Permissions.ADMINISTER_SITES])
+        second_user_role.permissions.set(
+            [constants.ExporterPermissions.ADMINISTER_USERS.name, constants.ExporterPermissions.ADMINISTER_SITES.name]
+        )
         second_user_role.save()
         self.exporter_user.set_role(self.organisation, user_role)
         second_user = self.create_exporter_user(self.organisation)
