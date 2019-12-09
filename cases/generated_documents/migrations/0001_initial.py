@@ -9,27 +9,33 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("queries", "0001_initial"),
+        ("letter_templates", "0001_initial"),
+        ("cases", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="ControlListClassificationQuery",
+            name="GeneratedCaseDocument",
             fields=[
                 (
-                    "query_ptr",
+                    "casedocument_ptr",
                     models.OneToOneField(
                         auto_created=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         parent_link=True,
                         primary_key=True,
                         serialize=False,
-                        to="queries.Query",
+                        to="cases.CaseDocument",
                     ),
                 ),
-                ("details", models.TextField(blank=True, default=None, null=True)),
+                ("text", models.TextField(blank=True, default=True)),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to="letter_templates.LetterTemplate"
+                    ),
+                ),
             ],
-            options={"abstract": False,},
-            bases=("queries.query",),
+            bases=("cases.casedocument",),
         ),
     ]
