@@ -15,20 +15,16 @@ def optional_str_to_bool(optional_string: str):
 
 
 def validate_status_can_be_set_by_exporter_user(original_status: str, new_status: str) -> Optional[str]:
-    if CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
-        return (
-            f'Setting application status to "{new_status}" when application status '
-            f'is "{original_status}" is not allowed.'
-        )
+    error_message_template = 'Setting application status to "{}" when application status "{}" is not allowed.'
+
+    if new_status == CaseStatusEnum.WITHDRAWN:
+        if CaseStatusEnum.is_terminal(original_status):
+            return error_message_template.format(new_status, original_status)
+        return
+    elif CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
+        return error_message_template.format(new_status, original_status)
 
 
-def validate_status_can_be_set_by_gov_user(original_status: str, new_status: str) -> Optional[str]:
-    if new_status == CaseStatusEnum.APPLICANT_EDITING:
-        return f'Setting application status to "{new_status}" is not allowed for GovUsers.'
-
-    if original_status == CaseStatusEnum.APPLICANT_EDITING:
-        return (
-            f"Setting application status when its existing status is "
-            f'"{original_status}" is not allowed for GovUsers.'
-        )
-
+def validate_status_can_be_set_by_gov_user(status: str) -> Optional[str]:
+    if status == CaseStatusEnum.APPLICANT_EDITING:
+        return f'Setting application status to "{status}" is not allowed for GovUsers.'
