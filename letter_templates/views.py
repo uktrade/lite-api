@@ -8,7 +8,6 @@ from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from conf.permissions import assert_user_has_permission
-from letter_templates.helpers import get_preview, generate_preview
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
