@@ -7,7 +7,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import has_previous_locations
@@ -144,7 +144,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
     if removed_sites:
         audit_trail_service.create(
             actor=user,
-            verb=Verb.REMOVED_SITES_FROM_APPLICATION,
+            verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
             target=application,
             payload={
                 'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
@@ -154,7 +154,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
     if removed_locations:
         audit_trail_service.create(
             actor=user,
-            verb=Verb.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
+            verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
             target=application,
             payload={
                 'locations':  [
@@ -167,7 +167,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
     if added_sites:
         audit_trail_service.create(
             actor=user,
-            verb=Verb.ADDED_SITES_TO_APPLICATION,
+            verb=AuditType.ADD_SITES_TO_APPLICATION,
             target=application,
             payload={
                 'sites': [site.name + " " + site.address.country.name for site in added_sites],

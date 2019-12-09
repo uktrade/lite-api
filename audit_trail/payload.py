@@ -36,7 +36,7 @@ class AuditType(Enum):
     MOVE_CASE = "moved the case to: {queues}"
     REMOVE_CASE = "removed case from queues: {queues}"
     CLC_RESPONSE = "responded to the case"
-    CASE_NOTE = "added a case note:"
+    CREATED_CASE_NOTE = "added a case note: {case_note}"
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
     UPDATED_STATUS = "updated the status to {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
@@ -56,3 +56,6 @@ class AuditType(Enum):
     DELETE_APPLICATION_DOCUMENT = "deleted the application document {file_name}"
     UPLOAD_CASE_DOCUMENT = "uploaded the case document {file_name}"
     GENERATE_CASE_DOCUMENT = "generated the case document {file_name} from template {template}"
+
+    def format(self, payload):
+        return self.value.format(**payload)

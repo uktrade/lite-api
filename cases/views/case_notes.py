@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from audit_trail import service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
@@ -46,11 +46,11 @@ class CaseNoteList(APIView):
         if serializer.is_valid():
             serializer.save()
             service.create(
-                verb=Verb.ADDED_NOTE,
+                verb=AuditType.CREATED_CASE_NOTE,
                 actor=request.user,
                 action_object=serializer.instance,
                 target=case,
-                payload={'note': serializer.instance.text}
+                payload={'case_note': serializer.instance.text}
             )
             return JsonResponse(data={"case_note": serializer.data}, status=status.HTTP_201_CREATED)
 

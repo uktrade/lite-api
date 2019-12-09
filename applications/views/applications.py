@@ -22,7 +22,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
@@ -121,9 +121,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if request.data.get("name"):
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.UPDATED_APPLICATION,
+                verb=AuditType.UPDATED_APPLICATION_NAME,
                 target=application,
-                payload={"name": {"old": application.name, "new": serializer.data.get("name")}}
+                payload={"old_name": application.name, "new_name": serializer.data.get("name")}
             )
 
         if (
@@ -132,12 +132,12 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         ):
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.UPDATED_APPLICATION,
+                verb=AuditType.UPDATED_APPLICATION_REFERENCE_NUMBER,
                 target=application,
-                payload={"reference": {
-                    "old": application.reference_number_on_information_form,
-                    "new": serializer.data.get("reference_number_on_information_form")
-                }}
+                payload={
+                    "old_ref_number": application.reference_number_on_information_form,
+                    "new_ref_number": serializer.data.get("reference_number_on_information_form")
+                }
             )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
@@ -193,7 +193,7 @@ class ApplicationSubmission(APIView):
             # If the application is being submitted after being edited
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.UPDATED_STATUS,
+                verb=AuditType.UPDATED_STATUS,
                 target=application,
                 payload={'status': application.status.status}
             )
@@ -240,7 +240,7 @@ class ApplicationManageStatus(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.UPDATED_STATUS,
+            verb=AuditType.UPDATED_STATUS,
             target=application,
             payload={'status': new_status.status}
         )

@@ -132,5 +132,11 @@ class CaseManager(models.Manager):
 
     def get_obj(self, case):
         application = self.get_application(case)
-        if not application:
-            return self.get_query(case)
+        if application:
+            return application
+
+        query = self.get_query(case)
+        if query:
+            return query
+
+        return case

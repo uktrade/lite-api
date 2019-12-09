@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_letter_template_for_case
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -71,7 +71,7 @@ class GeneratedDocuments(APIView):
 
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.GENERATE_CASE_DOCUMENT,
+                    verb=AuditType.GENERATE_CASE_DOCUMENT,
                     action_object=generated_doc,
                     target=case,
                     payload={'file_name': document_name, 'template': template.name}

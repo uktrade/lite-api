@@ -1,10 +1,9 @@
+from collections import namedtuple
 from functools import wraps
 
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.models import Case, CaseNote
 from users.models import GovUser
-
-from collections import namedtuple
 
 
 class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
@@ -46,10 +45,9 @@ registry = Registry()
 
 # Case activity
 for schema in [
-    Schema(actor=GovUser, verb=Verb.ADDED_NOTE, action_object=CaseNote, target=Case, payload=dict),
-    Schema(actor=GovUser, verb=Verb.REMOVED_NOTE, action_object=CaseNote, target=Case, payload=dict),
-    Schema(actor=GovUser, verb=Verb.ADDED_QUEUES, action_object=None, target=Case, payload=dict),
-    Schema(actor=GovUser, verb=Verb.REMOVED_QUEUES, action_object=None, target=Case, payload=dict),
+    Schema(actor=GovUser, verb=AuditType.CREATED_CASE_NOTE, action_object=CaseNote, target=Case, payload=dict),
+    Schema(actor=GovUser, verb=AuditType.MOVE_CASE, action_object=None, target=Case, payload=dict),
+    Schema(actor=GovUser, verb=AuditType.REMOVE_CASE, action_object=None, target=Case, payload=dict),
 ]:
     registry.add(schema)
 

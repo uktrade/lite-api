@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from applications.models import GoodOnApplication
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from content_strings.strings import get_string
@@ -176,22 +176,22 @@ class AssignFlags(APIView):
         if added_flags:
             audit_trail_service.create(
                 actor=user,
-                verb=Verb.ADDED_FLAGS,
+                verb=AuditType.ADD_FLAGS,
                 target=case,
                 payload={
-                    'flags': [{'name': flag} for flag in added_flags],
-                    'note': note,
+                    'added_flags': added_flags,
+                    'additional_text': note,
                 }
             )
 
         if removed_flags:
             audit_trail_service.create(
                 actor=user,
-                verb=Verb.REMOVED_FLAGS,
+                verb=AuditType.REMOVE_FLAGS,
                 target=case,
                 payload={
-                    'flags': [{'name': flag} for flag in removed_flags],
-                    'note': note
+                    'removed_flags': removed_flags,
+                    'additional_text': note
                 }
             )
 
@@ -200,21 +200,25 @@ class AssignFlags(APIView):
         if added_flags:
             audit_trail_service.create(
                 actor=user,
-                verb=Verb.ADDED_FLAGS,
+                verb=AuditType.GOOD_ADD_FLAGS,
                 action_object=good,
                 target=case,
                 payload={
-                    'flags': [{'name': flag} for flag in added_flags]
+                    'added_flags': added_flags,
+                    'good_name': good.description,
+                    'additional_text': note,
                 }
             )
 
         if removed_flags:
             audit_trail_service.create(
                 actor=user,
-                verb=Verb.REMOVED_FLAGS,
+                verb=AuditType.GOOD_REMOVE_FLAGS,
                 action_object=good,
                 target=case,
                 payload={
-                    'flags': [{'name': flag} for flag in removed_flags]
+                    'removed_flags': removed_flags,
+                    'good_name': good.description,
+                    'additional_text': note,
                 }
             )

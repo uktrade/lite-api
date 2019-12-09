@@ -7,7 +7,7 @@ from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
 from static.countries.helpers import get_country
@@ -100,7 +100,7 @@ class ApplicationCountries(APIView):
             if new_countries:
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.ADDED_COUNTRIES,
+                    verb=AuditType.ADD_COUNTRIES_TO_APPLICATION,
                     target=application,
                     payload={
                         'countries':  [country.name for country in new_countries]
@@ -110,7 +110,7 @@ class ApplicationCountries(APIView):
             if removed_countries:
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.REMOVED_COUNTRIES,
+                    verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
                     target=application,
                     payload={
                         'countries':  [country.country.name for country in removed_countries]

@@ -12,7 +12,7 @@ from applications.serializers.good import (
     GoodOnApplicationCreateSerializer,
 )
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -84,11 +84,11 @@ class ApplicationGoodsOnApplication(APIView):
 
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.ADDED_GOOD_TO_APPLICATION,
+                    verb=AuditType.ADD_GOOD_TO_APPLICATION,
                     action_object=good,
                     target=application,
                     payload={
-                        'good': good.description
+                        'good_name': good.description
                     }
                 )
 
@@ -130,11 +130,11 @@ class ApplicationGoodOnApplication(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_GOOD_TO_APPLICATION,
+            verb=AuditType.REMOVE_GOOD_FROM_APPLICATION,
             action_object=good_on_application.good,
             target=application,
             payload={
-                'good': good_on_application.good.description
+                'good_name': good_on_application.good.description
             }
         )
 
@@ -172,11 +172,11 @@ class ApplicationGoodsTypes(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
+            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=serializer.instance,
             target=application,
             payload={
-                'good_type': {"name": serializer.instance.description}
+                'good_type_name': {"name": serializer.instance.description}
             }
         )
 
@@ -210,11 +210,11 @@ class ApplicationGoodsType(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADD_GOOD_TYPE_TO_APPLICATION,
+            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=goods_type,
             target=application,
             payload={
-                'good_type': {"name": goods_type.description},
+                'good_type_name': {"name": goods_type.description},
             }
         )
 

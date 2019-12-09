@@ -1,5 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
+
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
+from audit_trail.serializers import AuditSerializer
 
 
 @validate_kwargs
@@ -14,3 +18,22 @@ def create(actor, verb, action_object=None, target=None, payload=None):
         target=target,
         payload=payload,
     )
+
+
+def get_obj_trail(obj):
+    qudit_qs = Audit.objects.all()
+
+    case_as_action_filter = Q(
+        action_object_object_id=obj.id,
+        action_object_content_type=ContentType.objects.get_for_model(obj)
+    )
+    case_as_target_filter = Q(
+        target_object_id=obj.id,
+        target_content_type=ContentType.objects.get_for_model(obj)
+    )
+
+    actions = qudit_qs.filter(case_as_action_filter | case_as_target_filter)
+
+    serializer = AuditSerializer(actions, many=True)
+
+    return serializer.data

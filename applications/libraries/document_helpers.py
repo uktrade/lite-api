@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.models import PartyDocument
@@ -51,9 +51,9 @@ def upload_application_document(application, data, user):
 
     audit_trail_service.create(
         actor=user,
-        verb=Verb.UPLOADED_DOCUMENT,
+        verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
         target=application,
-        payload={"filename": data.get("name")}
+        payload={"file_name": data.get("name")}
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -69,9 +69,9 @@ def delete_application_document(document_id, application, user):
 
     audit_trail_service.create(
         actor=user,
-        verb=Verb.DELETED_DOCUMENT,
+        verb=AuditType.DELETE_APPLICATION_DOCUMENT,
         target=application,
-        payload={"filename": document.name}
+        payload={"file_name": document.name}
     )
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -95,9 +95,9 @@ def upload_party_document(party, data, application, user):
 
     audit_trail_service.create(
         actor=user,
-        verb=Verb.UPLOADED_DOCUMENT,
+        verb=AuditType.UPLOAD_PARTY_DOCUMENT,
         target=application,
-        payload={'filename': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
+        payload={'file_name': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -114,7 +114,7 @@ def delete_party_document(party, application, user):
 
         audit_trail_service.create(
             actor=user,
-            verb=Verb.DELETED_DOCUMENT,
+            verb=AuditType.DELETE_PARTY_DOCUMENT,
             target=application,
             payload={
                 "party_type": party.type.replace("_", " "),

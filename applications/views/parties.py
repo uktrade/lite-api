@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -51,7 +51,7 @@ class ApplicationEndUser(APIView):
             previous_end_user.delete()
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.REMOVED_PARTY,
+                verb=AuditType.REMOVE_PARTY,
                 target=application,
                 payload={
                     "party_type": previous_end_user.type.replace("_", " "),
@@ -61,7 +61,7 @@ class ApplicationEndUser(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADDED_PARTY,
+            verb=AuditType.ADD_PARTY,
             target=application,
             payload={
                 "party_type": new_end_user.type.replace("_", " "),
@@ -90,7 +90,7 @@ class ApplicationEndUser(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_PARTY,
+            verb=AuditType.REMOVE_PARTY,
             target=application,
             payload={
                 "party_type": end_user.type.replace("_", " "),
@@ -133,7 +133,7 @@ class ApplicationUltimateEndUsers(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADDED_PARTY,
+            verb=AuditType.ADD_PARTY,
             target=application,
             payload={
                 "party_type": ultimate_end_user.type.replace("_", " "),
@@ -165,7 +165,7 @@ class RemoveApplicationUltimateEndUser(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_PARTY,
+            verb=AuditType.REMOVE_PARTY,
             target=application,
             payload={
                 "party_type": ultimate_end_user.type.replace("_", " "),
@@ -205,7 +205,7 @@ class ApplicationConsignee(APIView):
 
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.REMOVED_PARTY,
+                verb=AuditType.REMOVE_PARTY,
                 target=application,
                 payload={
                     "party_type": previous_consignee.type.replace("_", " "),
@@ -215,7 +215,7 @@ class ApplicationConsignee(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADDED_PARTY,
+            verb=AuditType.ADD_PARTY,
             target=application,
             payload={
                 "party_type": new_consignee.type.replace("_", " "),
@@ -244,7 +244,7 @@ class ApplicationConsignee(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_PARTY,
+            verb=AuditType.REMOVE_PARTY,
             target=application,
             payload={
                 "party_type": consignee.type.replace("_", " "),
@@ -287,7 +287,7 @@ class ApplicationThirdParties(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.ADDED_PARTY,
+            verb=AuditType.ADD_PARTY,
             target=application,
             payload={
                 "party_type": third_party.type.replace("_", " "),
@@ -317,7 +317,7 @@ class RemoveThirdParty(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_PARTY,
+            verb=AuditType.REMOVE_PARTY,
             target=application,
             payload={
                 "party_type": third_party.type.replace("_", " "),

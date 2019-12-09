@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
@@ -88,7 +88,7 @@ class EndUserAdvisoryDetail(APIView):
             if serializer.is_valid():
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.UPDATED_STATUS,
+                    verb=AuditType.UPDATED_STATUS,
                     target=end_user_advisory,
                     payload={'status': data.get('status')}
                 )

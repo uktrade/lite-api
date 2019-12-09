@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.get_case import get_case, get_case_document
@@ -70,7 +70,7 @@ class CaseDetail(APIView):
         case = get_case(pk)
         serializer = CaseDetailSerializer(case, data=request.data, partial=True)
         if serializer.is_valid():
-            service.update_case_queues(user=request.user, case=Case.objects.get_obj(case), queues=serializer.validated_data["queues"])
+            service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
 
             return JsonResponse(data={"case": serializer.data})
@@ -112,7 +112,7 @@ class CaseDocuments(APIView):
             for document in serializer.data:
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.UploadDocument,
+                    verb=AuditType.UPLOAD_CASE_DOCUMENT,
                     target=case,
                     payload={
                         'file_name': document['name']
@@ -218,7 +218,7 @@ class CaseTeamAdvice(APIView):
 
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.ADDED_ADVICE,
+                verb=AuditType.CREATED_TEAM_ADVICE,
                 target=self.case,
             )
 
@@ -258,7 +258,7 @@ class CaseTeamAdvice(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.REMOVED_ADVICE,
+            verb=AuditType.CLEARED_TEAM_ADVICE,
             target=self.case
         )
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
@@ -300,7 +300,7 @@ class CaseFinalAdvice(APIView):
 
             audit_trail_service.create(
                 actor=request.user,
-                verb=Verb.CREATED_FINAL_ADIVCE,
+                verb=AuditType.CREATED_FINAL_ADVICE,
                 target=self.case,
             )
             final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
@@ -327,7 +327,7 @@ class CaseFinalAdvice(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=Verb.CLEARED_FINAL_ADVICE,
+            verb=AuditType.CLEARED_FINAL_ADVICE,
             target=self.case,
         )
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
@@ -367,9 +367,10 @@ class CaseEcjuQueries(APIView):
 
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.ADDED_ECJU,
+                    verb=AuditType.ECJU_QUERY,
                     action_object=serializer.instance,
                     target=serializer.instance.case,
+                    payload={'ecju_query': data['question']}
                 )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED,)

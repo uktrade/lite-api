@@ -2,8 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from audit_trail.constants import Verb
 from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.constants import Permissions
 from goods.enums import GoodControlled, GoodStatus
@@ -109,10 +109,14 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         audit_qs = Audit.objects.all()
         self.assertEqual(audit_qs.count(), 2)
         for audit in audit_qs:
-            verb = Verb.GOOD_REVIEWED if audit.payload else Verb.CLC_RESPONSE
-            self.assertEqual(Verb(audit.verb), verb)
-            if verb == Verb.GOOD_REVIEWED:
-                payload = {'control_code': {'old': previous_query_control_code, 'new': self.data["control_code"]}}
+            verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE
+            self.assertEqual(AuditType(audit.verb), verb)
+            if verb == AuditType.GOOD_REVIEWED:
+                payload = {
+                    'good_name': self.query.good.description,
+                    'old_control_code': previous_query_control_code,
+                    'new_control_code': self.data["control_code"]
+                }
                 self.assertEqual(audit.payload, payload)
 
     def test_respond_to_control_list_classification_query_nlr(self):
@@ -142,8 +146,8 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             target_content_type=ContentType.objects.get_for_model(self.query)
         )
         for audit in qs:
-            verb = Verb.GOOD_REVIEWED if audit.payload else Verb.CLC_RESPONSE
-            self.assertEqual(Verb(audit.verb), verb)
+            verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE
+            self.assertEqual(AuditType(audit.verb), verb)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """

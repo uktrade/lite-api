@@ -2,8 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy, reverse
 from rest_framework import status
 
-from audit_trail.constants import Verb
 from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.models import Notification
 from test_helpers.clients import DataTestClient
 
@@ -38,9 +38,9 @@ class NotificationTests(DataTestClient):
 
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=Verb.UPDATED_APPLICATION,
+            verb=AuditType.UPDATED_APPLICATION_NAME,
             target=case,
-            payload={'name': {'old': 'old_app_name', 'new': 'new_app_name'}}
+            payload={"old_name": 'old_app_name', 'new_name': 'new_app_name'}
         )
 
         self.gov_user.send_notification(audit=audit)
@@ -63,7 +63,7 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(new_notification.count(), prev_notification_count)
-        self.assertEqual(data["name"], new_notification.last().audit.payload["name"]["new"])
+        self.assertEqual(data["name"], new_notification.last().audit.payload["new_name"])
         self.assertNotEqual(new_notification.last().audit, audit)
 
     def tests_get_case_notification_deletes_case_notification_and_returns_data(self):
@@ -71,9 +71,9 @@ class NotificationTests(DataTestClient):
 
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=Verb.UPDATED_APPLICATION,
+            verb=AuditType.UPDATED_APPLICATION_NAME,
             target=case,
-            payload={'name': {'old': 'old_app_name', 'new': 'new_app_name'}}
+            payload={'old_name': 'old_app_name', 'new_name': 'new_app_name'}
         )
 
         self.gov_user.send_notification(audit=audit)

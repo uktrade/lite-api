@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.constants import Permissions
@@ -91,15 +91,19 @@ class ControlListClassificationDetail(APIView):
                 if new_control_code != previous_control_code:
                     audit_trail_service.create(
                         actor=request.user,
-                        verb=Verb.GOOD_REVIEWED,
+                        verb=AuditType.GOOD_REVIEWED,
                         action_object=query.good,
                         target=query,
-                        payload={'control_code': {'old': previous_control_code, 'new': new_control_code}}
+                        payload={
+                            "good_name": query.good.description,
+                            'old_control_code': previous_control_code,
+                            'new_control_code': new_control_code
+                        }
                     )
 
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=Verb.CLC_RESPONSE,
+                    verb=AuditType.CLC_RESPONSE,
                     action_object=query.good,
                     target=query,
                 )

@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
-from audit_trail.constants import Verb
+from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
 from conf.authentication import (
     ExporterAuthentication,
@@ -82,18 +82,13 @@ class GoodsListControlCode(APIView):
                     if new_control_code != old_control_code:
                         audit_trail_service.create(
                             actor=request.user,
-                            verb=Verb.UPDATED_CONTROL_CODE,
+                            verb=AuditType.GOOD_REVIEWED,
                             action_object=good,
                             target=case,
                             payload={
-                                'good': {
-                                    'id': str(good.id),
-                                    'description': good.description
-                                },
-                                'control_code': {
-                                    'new': new_control_code,
-                                    'old': old_control_code
-                                }
+                                'good_name': good.description,
+                                'new_control_code': new_control_code,
+                                'old_control_code': old_control_code
                             }
                         )
                 except Http404:

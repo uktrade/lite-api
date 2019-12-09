@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.models import Audit
 from cases.enums import AdviceType
 from cases.models import TeamAdvice, FinalAdvice, Advice
 from conf.constants import Permissions
