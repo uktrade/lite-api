@@ -26,6 +26,14 @@ Service for handling backend calls in LITE.
     * `docker-compose up`
 * Go to the index page (e.g. `http://localhost:8100`)
 
+## Installing WeasyPrint for document generation
+To produce PDF documents you will also need to install WeasyPrint. 
+Do this after installing the python packages in the Pipfile;
+
+> MacOS: https://weasyprint.readthedocs.io/en/stable/install.html#macos
+
+> Linux: https://weasyprint.readthedocs.io/en/stable/install.html#debian-ubuntu
+
 ## Documentation
 
 **[API Docs available on GitHub Pages](https://uktrade.github.io/lite-api/)**
@@ -47,7 +55,7 @@ Service for handling backend calls in LITE.
     - `pipenv run ./manage.py coverage cases` will collect coverage on the `cases` module and run only the `cases` tests
 3. The second positional argument implies what tests to run in order to collect coverage for the given module:
     - `pipenv run ./manage.py coverage cases all` will collect coverage on the `cases` module and run all tests
-    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only the `queues` tests
+    - `pipenv run ./manage.py coverage cases queues` will collect coverage on the `cases` module and only run the `queues` tests
 
 ## LITE Repositories
 

@@ -1,4 +1,4 @@
-class CaseType:
+class CaseTypeEnum:
     APPLICATION = "application"
     CLC_QUERY = "clc_query"
     END_USER_ADVISORY_QUERY = "end_user_advisory_query"
@@ -38,3 +38,10 @@ class AdviceType:
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
     ]
+
+
+class CaseDocumentState:
+    UPLOADED = "UPLOADED"
+    GENERATED = "GENERATED"
+
+    choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated")]

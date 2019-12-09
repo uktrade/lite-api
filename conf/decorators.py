@@ -8,6 +8,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
+from lite_content.lite_api import strings
 
 
 def _get_application(request, kwargs):
@@ -92,11 +93,7 @@ def application_in_editable_state():
 
             if application.status and application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
-                    data={
-                        "errors": [
-                            "You can only perform this operation when the application " "is in an editable state"
-                        ]
-                    },
+                    data={"errors": [strings.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

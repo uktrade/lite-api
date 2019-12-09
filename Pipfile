@@ -29,7 +29,10 @@ pre-commit = "*"
 django-sortedm2m = "*"
 bandit = "*"
 tblib = "*"
+weasyprint = "*"
+markdown = "*"
 unittest-xml-reporting = "*"
+
 
 [requires]
 python_version = "3.7"

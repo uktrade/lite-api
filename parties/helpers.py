@@ -1,4 +1,4 @@
-from parties.document.models import PartyDocument
+from parties.models import PartyDocument
 from parties.models import Party
 
 
