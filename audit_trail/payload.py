@@ -1,14 +1,5 @@
 from enum import Enum
 
-from common.exceptions import ApiException
-
-
-def get_text(audit_type, payload):
-    try:
-        return audit_type.value.format(**payload)
-    except KeyError:
-        raise ApiException("invalid payload", {'audit_type': audit_type, 'payload': payload})
-
 
 class AuditType(Enum):
     """
@@ -16,7 +7,6 @@ class AuditType(Enum):
     """
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
-    ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags}"
     GOOD_REVIEWED = (
         'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"'
     )
@@ -40,7 +30,6 @@ class AuditType(Enum):
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
     UPDATED_STATUS = "updated the status to {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
-
     UPDATED_APPLICATION_REFERENCE_NUMBER = (
     "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
     )

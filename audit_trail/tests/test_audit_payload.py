@@ -1,6 +1,6 @@
 from parameterized import parameterized
 
-from audit_trail.payload import AuditType, get_text
+from audit_trail.payload import AuditType
 from test_helpers.clients import DataTestClient
 
 
@@ -29,7 +29,37 @@ class TestPayload(DataTestClient):
             ]
         ]
     )
-    def test_get_text(self, verb, payload, expected_text):
-        text = get_text(verb, payload)
+    def test_audit_type_formatter_success(self, verb, payload, expected_text):
+        text = verb.format(payload)
 
         self.assertEqual(text, expected_text)
+
+    @parameterized.expand(
+        [
+            [
+                AuditType.ADD_FLAGS,
+                {'addsadfed_flags': 'Flag 1, Flag 2'},
+                'added_flags'
+            ],
+            [
+                AuditType.MOVE_CASE,
+                {'queuesadfs': 'Queue 1, Queue 2'},
+                'queues'
+            ],
+            [
+                AuditType.REMOVE_CASE,
+                {'queuasdfes': 'Queue 1, Queue 2'},
+                'queues'
+            ],
+            [
+                AuditType.UPLOAD_PARTY_DOCUMENT,
+                {'filasdfe_name': 'file.png', 'party_type': 'Party', 'party_name': 'Name'},
+                "file_name"
+            ]
+        ]
+    )
+    def test_audit_type_formatter_fails(self, verb, payload, key_error):
+        with self.assertRaises(Exception) as context:
+            verb.format(payload)
+
+        self.assertTrue(key_error in str(context.exception))
