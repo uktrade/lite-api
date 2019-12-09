@@ -123,10 +123,9 @@ class RolesAndPermissionsTests(DataTestClient):
         i = 0
         # Create a new role, each with a singular different permission
         for permission in Permission.internal.all():
-            role = Role(name="name: " + str(i))
+            role = Role(name=str(permission.id))
             role.permissions.set([permission.id])
             role.save()
-            i += 1
         second_role = Role(name="multi permission role")
         second_role.permissions.set(
             [
@@ -144,6 +143,12 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(permissions) + 2 + r)
+
+        if r:
+            self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
+
+        for permission in permissions:
+            self.assertIn(str(Role.objects.get(name=permission).id), str(response_data))
 
     @parameterized.expand(
         [

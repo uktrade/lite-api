@@ -131,13 +131,12 @@ class RolesAndPermissionsTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, user_role)
         url = reverse("organisations:roles_views", kwargs={"org_pk": self.organisation.id})
 
-        i = 0
         # Create a new role, each with a singular different permission
         for permission in Permission.exporter.all():
-            role = Role(name="name: " + str(i), organisation=self.organisation)
+            role = Role(name=str(permission.id), organisation=self.organisation)
             role.permissions.set([permission.id])
             role.save()
-            i += 1
+
         second_role = Role(name="multi permission role", organisation=self.organisation)
         second_role.permissions.set(
             [
@@ -155,6 +154,12 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(permissions) + 2 + r)
+
+        if r:
+            self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
+
+        for permission in permissions:
+            self.assertIn(str(Role.objects.get(name=permission).id), str(response_data))
 
     @parameterized.expand(
         [
