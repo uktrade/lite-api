@@ -4,6 +4,14 @@ from conf.constants import Roles
 from users.models import BaseUser, GovUser, Role, ExporterUser
 
 
+def role_should_be_added(role, permissions):
+    role_perms = role.permissions.values_list("id", flat=True)
+    for perm in role_perms:
+        if perm not in permissions:
+            return False
+    return True
+
+
 def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None):
     if isinstance(user, GovUser):
         permissions = user.role.permissions.values_list("id", flat=True)
@@ -14,13 +22,7 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
 
     filtered_roles = []
     for role in roles:
-        add_role = True
-        role_perms = role.permissions.values_list("id", flat=True)
-        for perm in role_perms:
-            if add_role and perm not in permissions:
-                add_role = False
-                break
-        if add_role:
+        if role_should_be_added(role, permissions):
             filtered_roles.append(role)
 
     return filtered_roles
