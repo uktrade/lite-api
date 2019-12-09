@@ -218,13 +218,12 @@ class ApplicationManageStatus(APIView):
 
             validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(application.status.status, new_status_enum)
+            validation_error = validate_status_can_be_set_by_gov_user(new_status_enum)
 
         if validation_error:
             return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        # This can return 403 forbidden
+        # Only allow status change to FINALISED if user has MANAGE_FINAL_ADVICE permission
         if new_status_enum == CaseStatusEnum.FINALISED:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
