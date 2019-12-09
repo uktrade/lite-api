@@ -39,8 +39,8 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
 )
+from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
-from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
@@ -132,10 +132,7 @@ class CaseDocuments(APIView):
             serializer.save()
 
             for document in serializer.data:
-                case_activity = {
-                    "activity_type": "upload_case_document",
-                    "file_name": document["name"],
-                }
+                case_activity = {"activity_type": "upload_case_document", "file_name": document["name"]}
                 CaseActivity.create(case=case, user=request.user, **case_activity)
 
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
@@ -234,9 +231,7 @@ class CaseTeamAdvice(APIView):
             advice = self.advice.filter(user__team=team)
             create_grouped_advice(self.case, self.request, advice, TeamAdvice)
             case_advice_contains_refusal(pk)
-            CaseActivity.create(
-                activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user,
-            )
+            CaseActivity.create(activity_type=CaseActivityType.CREATED_TEAM_ADVICE, case=self.case, user=request.user)
             team_advice = TeamAdvice.objects.filter(case=self.case, team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
@@ -270,9 +265,7 @@ class CaseTeamAdvice(APIView):
 
         self.team_advice.filter(team=self.request.user.team).delete()
         case_advice_contains_refusal(pk)
-        CaseActivity.create(
-            activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user,
-        )
+        CaseActivity.create(activity_type=CaseActivityType.CLEARED_TEAM_ADVICE, case=self.case, user=request.user)
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
 
 
@@ -306,12 +299,10 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
-            CaseActivity.create(
-                activity_type=CaseActivityType.CREATED_FINAL_ADVICE, case=self.case, user=request.user,
-            )
+            CaseActivity.create(activity_type=CaseActivityType.CREATED_FINAL_ADVICE, case=self.case, user=request.user)
             final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
         else:
             final_advice = self.final_advice
@@ -323,18 +314,16 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
-        CaseActivity.create(
-            activity_type=CaseActivityType.CLEARED_FINAL_ADVICE, case=self.case, user=request.user,
-        )
+        CaseActivity.create(activity_type=CaseActivityType.CLEARED_FINAL_ADVICE, case=self.case, user=request.user)
         return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
 
 
@@ -377,7 +366,7 @@ class CaseEcjuQueries(APIView):
                     ecju_query=data["question"],
                 )
 
-                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED,)
+                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -406,10 +395,7 @@ class EcjuQueryDetail(APIView):
         """
         ecju_query = get_ecju_query(ecju_pk)
 
-        data = {
-            "response": request.data["response"],
-            "responded_by_user": str(request.user.id),
-        }
+        data = {"response": request.data["response"], "responded_by_user": str(request.user.id)}
 
         serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
 
@@ -428,14 +414,14 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         goods_countries = GoodCountryDecision.objects.filter(case=pk)
         serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={"data": serializer.data})
 
     def post(self, request, pk):
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         data = JSONParser().parse(request).get("good_countries")
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)
