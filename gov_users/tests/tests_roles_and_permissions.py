@@ -163,7 +163,7 @@ class RolesAndPermissionsTests(DataTestClient):
             [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name]],
         ]
     )
-    def test_only_see_permissions_user_already_has(self, permissions):
+    def test_user_can_only_see_permissions_user_already_has_in_current_role(self, permissions):
         user_role = Role(name="new role")
         user_role.permissions.set(permissions)
         user_role.save()
