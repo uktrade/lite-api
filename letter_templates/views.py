@@ -5,8 +5,9 @@ from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
+from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from conf.permissions import assert_user_has_permission
-from letter_templates.helpers import get_preview, generate_preview
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
@@ -51,11 +52,18 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         template_object = self.get_object()
         template = self.get_serializer(template_object).data
         data = {"template": template}
+        paragraphs = PicklistItem.objects.filter(
+            type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
+        )
+        paragraph_text = get_paragraphs_as_html(paragraphs)
 
-        if "generate_preview" in request.GET and bool(request.GET["generate_preview"]):
-            data["preview"] = get_preview(template=template_object)
+        if str_to_bool(request.GET.get("generate_preview")):
+            data["preview"] = generate_preview(layout=template_object.layout.filename, text=paragraph_text)
             if "error" in data["preview"]:
                 return JsonResponse(data=data["preview"], status=status.HTTP_400_BAD_REQUEST)
+
+        if str_to_bool(request.GET.get("text")):
+            data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -79,7 +87,8 @@ class TemplatePreview(generics.RetrieveAPIView):
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
-        preview = generate_preview(layout, paragraphs=paragraphs)
+        text = get_paragraphs_as_html(paragraphs)
+        preview = generate_preview(layout, text=text)
 
         if "error" in preview:
             return JsonResponse(data=preview, status=status.HTTP_400_BAD_REQUEST)
