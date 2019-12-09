@@ -191,7 +191,7 @@ class RolesAndPermissionsTests(DataTestClient):
         )
 
     def test_only_see_roles_user_has_all_permissions_for_2(self):
-        permissions = [[constants.ExporterPermissions.ADMINISTER_USERS.name]]
+        permissions = [constants.ExporterPermissions.ADMINISTER_USERS.name]
         user_role = Role(name="new role", organisation=self.organisation)
         user_role.permissions.set(permissions)
         user_role.save()
