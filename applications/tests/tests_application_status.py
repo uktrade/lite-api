@@ -83,7 +83,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
 
     def test_exporter_set_application_status_applicant_editing_when_in_read_only_status_failure(self):
-        self.standard_application.status = get_case_statuses(CaseStatusEnum.UNDER_FINAL_REVIEW)
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW)
         self.standard_application.save()
 
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
