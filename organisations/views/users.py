@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
+from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
 from users.models import ExporterUser, Role
@@ -106,7 +107,8 @@ class UserDetail(APIView):
         if "role" in data.keys():
             if user.id == request.user.id:
                 return JsonResponse(
-                    data={"errors": "A user cannot change their own role"}, status=status.HTTP_400_BAD_REQUEST
+                    data={"errors": strings.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             elif user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
                 return JsonResponse(
