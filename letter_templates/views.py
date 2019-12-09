@@ -3,9 +3,12 @@ from rest_framework import generics, status
 
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
+from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
+from conf.permissions import assert_user_has_permission
+from letter_templates.helpers import get_preview, generate_preview
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
@@ -22,11 +25,12 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     serializer_class = LetterTemplateSerializer
 
     def get_queryset(self):
-        case = self.request.GET.get("case",)
+        case = self.request.GET.get("case")
 
         return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
 
     def post(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
@@ -65,6 +69,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
 
         if serializer.is_valid():
