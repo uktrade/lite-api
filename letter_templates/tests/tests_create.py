@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
+from conf import constants
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
@@ -13,6 +14,8 @@ from test_helpers.clients import DataTestClient
 class LetterTemplateCreateTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.gov_user.role.permissions.set([constants.GovPermissions.CONFIGURE_TEMPLATES.name])
+
         self.picklist_item_1 = self.create_picklist_item(
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
@@ -47,7 +50,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         Fail as the name is not unique
         """
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
         self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 

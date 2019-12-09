@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
-from conf.constants import Permissions
+from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
@@ -100,7 +100,7 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         if request.user.id != pk:
-            assert_user_has_permission(user, Permissions.ADMINISTER_USERS, request.user.organisation)
+            assert_user_has_permission(user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
 
         serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
         return JsonResponse(data={"user": serializer.data})
