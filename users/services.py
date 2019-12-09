@@ -10,7 +10,7 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
     elif isinstance(user, ExporterUser):
         permissions = user.get_role(organisation).permissions.values_list("id", flat=True)
     else:
-        permissions = []
+        return []
 
     filtered_roles = []
     for role in roles:
