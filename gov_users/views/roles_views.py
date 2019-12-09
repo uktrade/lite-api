@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -81,6 +81,9 @@ class RoleDetail(APIView):
             return JsonResponse(
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        if request.user.role_id == pk:
+            raise PermissionDenied
 
         assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
 
