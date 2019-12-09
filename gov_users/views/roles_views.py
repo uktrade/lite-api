@@ -5,8 +5,9 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
-from conf.constants import Roles, Permissions
+from conf.constants import Roles
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
@@ -36,7 +37,7 @@ class RolesViews(APIView):
         """
         Create a role
         """
-        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
 
@@ -76,10 +77,10 @@ class RoleDetail(APIView):
         """
         if pk == Roles.INTERNAL_SUPER_USER_ROLE_ID:
             return JsonResponse(
-                data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        assert_user_has_permission(request.user, Permissions.ADMINISTER_ROLES)
+        assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
 
         data = JSONParser().parse(request)
         role = get_role_by_pk(pk)

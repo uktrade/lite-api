@@ -7,6 +7,7 @@ from applications.libraries.case_activity import (
 )
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.activity_types import CaseActivityType
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
@@ -146,3 +147,8 @@ def delete_goods_type_document(goods_type):
         document.delete()
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+
+def get_generated_case_document(generated_case_document):
+    document = GeneratedCaseDocument.objects.filter(pk=generated_case_document)
+    return _get_document(document)

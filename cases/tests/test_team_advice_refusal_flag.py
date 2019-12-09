@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 from cases.enums import AdviceType
 from cases.libraries.post_advice import case_advice_contains_refusal
 from cases.models import Case, Advice, TeamAdvice
-from conf.constants import Permissions
+from conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
 from test_helpers.clients import DataTestClient
@@ -12,7 +12,7 @@ from users.models import Role
 
 class CasesFilterAndSortTests(DataTestClient):
     def _check_if_flag_exists(self):
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = Case.objects.get(id=self.standard_case.id)
         flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
         return flag in self.standard_case.flags.all()
 
@@ -20,11 +20,10 @@ class CasesFilterAndSortTests(DataTestClient):
         super().setUp()
 
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.standard_case = Case.objects.get(application=self.standard_application)
+        self.standard_case = self.submit_application(self.standard_application)
 
         role = Role(name="team_level")
-        role.permissions.set([Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE])
+        role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
         role.save()
 
         self.gov_user.role = role
@@ -56,9 +55,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertTrue(self._check_if_flag_exists())
 
     def test_team_advice_contains_refusal_false(self):
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice,
-        )
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
         case_advice_contains_refusal(self.standard_case.id)
 
         self.assertFalse(self._check_if_flag_exists())
