@@ -330,8 +330,21 @@ class Notification(models.Model):
     case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
     query = models.ForeignKey("queries.Query", on_delete=models.CASCADE, null=True)
     ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
+    generated_case_document = models.ForeignKey(
+        "generated_documents.GeneratedCaseDocument", on_delete=models.CASCADE, null=True
+    )
     case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
     viewed_at = models.DateTimeField(null=True)
+
+    def get_item(self):
+        return next(
+            item
+            for item in [self.case_note, self.query, self.ecju_query, self.generated_case_document]
+            if item is not None
+        )
+
+    def get_case(self):
+        return getattr(self.get_item(), "case", None)
 
 
 class CaseType(models.Model):

@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentSerializer
+from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
@@ -18,7 +18,7 @@ from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 class GeneratedDocument(generics.RetrieveAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = GeneratedCaseDocument.objects.all()
-    serializer_class = GeneratedCaseDocumentSerializer
+    serializer_class = GeneratedCaseDocumentGovSerializer
 
 
 class GeneratedDocuments(APIView):
