@@ -5,6 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
@@ -20,6 +21,8 @@ from parties.serializers import (
     ThirdPartySerializer,
     ConsigneeSerializer,
 )
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class HmrcQueryViewSerializer(GenericApplicationListSerializer):
@@ -81,6 +84,8 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
+        self.initial_data["type"] = CaseTypeEnum.HMRC_QUERY
+        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = HmrcQuery
@@ -89,6 +94,8 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             "application_type",
             "organisation",
             "hmrc_organisation",
+            "type",
+            "status",
         )
 
 

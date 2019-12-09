@@ -1,19 +1,17 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case
-from conf.constants import Permissions
+from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
-from users.models import Role, Permission
+from users.models import Role
 
 
 class CaseActivityTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
-        self.case = Case.objects.get(application=self.standard_application)
+        self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:activity", kwargs={"pk": self.case.id})
 
     def test_cannot_make_final_decision_without_permission(self):
@@ -30,7 +28,7 @@ class CaseActivityTests(DataTestClient):
 
     def test_can_record_final_decision_with_correct_permissions(self):
         role = Role(name="some")
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE])
+        role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

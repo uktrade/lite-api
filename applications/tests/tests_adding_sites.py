@@ -1,6 +1,6 @@
 from django.urls import reverse
-from rest_framework import status
 from parameterized import parameterized
+from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import (

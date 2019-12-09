@@ -10,7 +10,7 @@ class NotificationTests(DataTestClient):
     def tests_edit_application_creates_new_case_notification_success(self):
         case = self.create_standard_application_case(self.organisation, "Case")
         prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
-        url = reverse("applications:application", kwargs={"pk": case.application.id})
+        url = reverse("applications:application", kwargs={"pk": case.id})
         data = {"name": "new app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
@@ -32,7 +32,7 @@ class NotificationTests(DataTestClient):
         case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
         self.gov_user.send_notification(case_activity=case_activity)
         prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
-        url = reverse("applications:application", kwargs={"pk": case.application.id})
+        url = reverse("applications:application", kwargs={"pk": case.id})
         data = {"name": "even newer app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
@@ -67,7 +67,7 @@ class NotificationTests(DataTestClient):
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
         case = self.create_standard_application_case(self.organisation, "Case")
         prev_notification_count = Notification.objects.filter(user=self.gov_user, case_activity__case=case).count()
-        url = reverse("applications:manage_status", kwargs={"pk": case.application.id})
+        url = reverse("applications:manage_status", kwargs={"pk": case.id})
         data = {"status": "under_review"}
 
         response = self.client.put(url, data, **self.gov_headers)

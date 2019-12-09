@@ -3,8 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import GoodOnApplication
-from cases.models import Case
-from conf.constants import Permissions
+from conf import constants
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from static.statuses.enums import CaseStatusEnum
@@ -19,7 +18,7 @@ class GoodsVerifiedTests(DataTestClient):
         super().setUp()
 
         self.report_summary = self.create_picklist_item(
-            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE,
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
         self.good_1 = self.create_controlled_good("this is a good", self.organisation)
@@ -27,20 +26,15 @@ class GoodsVerifiedTests(DataTestClient):
         self.good_2 = self.create_controlled_good("this is a good as well", self.organisation)
 
         role = Role(name="review_goods")
-        role.permissions.set([Permissions.REVIEW_GOODS])
+        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()
 
         self.application = self.create_standard_application(organisation=self.organisation)
-        GoodOnApplication(
-            good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500,
-        ).save()
-        GoodOnApplication(
-            good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500,
-        ).save()
-        self.submit_application(self.application)
-        self.case = Case.objects.get(application=self.application)
+        GoodOnApplication(good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
+        GoodOnApplication(good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
+        self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
@@ -169,7 +163,7 @@ class GoodsVerifiedTests(DataTestClient):
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
         valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role,
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
         )
         valid_user.save()
 
