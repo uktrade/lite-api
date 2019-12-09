@@ -26,11 +26,11 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
     return filtered_roles
 
 
-def get_exporter_roles_by_organisation(request, org_pk, filter_by_request_user_role=True):
+def get_exporter_roles_by_organisation(request, org_pk, filter_by_user_role=True):
     system_ids = [Roles.EXPORTER_DEFAULT_ROLE_ID]
     if request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
         system_ids.append(Roles.EXPORTER_SUPER_USER_ROLE_ID)
-    elif filter_by_request_user_role:
+    elif filter_by_user_role:
         return filter_roles_by_user_role(
             request.user, Role.objects.filter(Q(organisation=org_pk) | Q(id__in=system_ids)), org_pk,
         )
