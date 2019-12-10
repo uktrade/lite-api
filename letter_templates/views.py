@@ -21,12 +21,18 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
+    queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
 
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
         case = self.request.GET.get("case")
+        queryset = get_letter_templates_for_case(get_case(pk=case)) if case else self.queryset
 
-        return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
+        results = self.paginator.paginate_queryset(queryset, request)
+        serializer = LetterTemplateSerializer(results, many=True)
+        return self.get_paginated_response(
+            {"templates": serializer.data, "total_pages": len(self.paginator.page.paginator.page_range)}
+        )
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
