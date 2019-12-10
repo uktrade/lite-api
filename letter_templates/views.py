@@ -1,13 +1,15 @@
 from django.http import JsonResponse
 from rest_framework import generics, status
 
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from conf.permissions import assert_user_has_permission
+from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
@@ -69,10 +71,32 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
-        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
+        template_object = self.get_object()
+        serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
+            if request.data.get("name"):
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_NAME,
+                    target=serializer.instance,
+                    payload={
+                        'old_name': template_object.name,
+                        'new_name': serializer.instance.name,
+                    }
+                )
+                
+            if request.data.get("case_types"):
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                    target=serializer.instance,
+                    payload={
+                        'case_types': request.data.get("case_types"),
+                    }
+                )
+
             return JsonResponse(serializer.data)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

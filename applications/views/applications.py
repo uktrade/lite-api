@@ -24,6 +24,7 @@ from applications.serializers.generic_application import GenericApplicationListS
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from cases.models import Case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import ExporterPermissions
@@ -197,7 +198,7 @@ class ApplicationSubmission(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
-                target=application,
+                target=Case.objects.get(id=application.id),
                 payload={'status': application.status.status}
             )
 
@@ -243,8 +244,8 @@ class ApplicationManageStatus(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
-            target=application,
-            payload={'status': new_status.status}
+            target=Case.objects.get(id=application.id),
+            payload={'status': CaseStatusEnum.human_readable(new_status.status)}
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

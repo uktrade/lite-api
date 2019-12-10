@@ -46,5 +46,8 @@ class AuditType(Enum):
     UPLOAD_CASE_DOCUMENT = "uploaded the case document {file_name}"
     GENERATE_CASE_DOCUMENT = "generated the case document {file_name} from template {template}"
 
+    UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
+    UPDATED_LETTER_TEMPLATE_CASE_TYPES = "updated letter template types to {case_types}"
+
     def format(self, payload):
         return self.value.format(**payload)
