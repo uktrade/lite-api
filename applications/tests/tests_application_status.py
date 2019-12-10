@@ -4,7 +4,6 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_case_statuses
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -98,15 +97,12 @@ class ApplicationManageStatusTests(DataTestClient):
         [
             status
             for status, value in CaseStatusEnum.choices
-            if status != CaseStatusEnum.APPLICANT_EDITING
-               and status != CaseStatusEnum.FINALISED
-               and status != CaseStatusEnum.WITHDRAWN
+            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.WITHDRAWN]
         ]
     )
     def test_exporter_set_application_status_failure(self, new_status):
         """ Test failure in setting application status to any status other than 'Applicant Editing' and 'Withdrawn'
         as an exporter user.
-
         """
         self.submit_application(self.standard_application)
 
@@ -136,7 +132,7 @@ class ApplicationManageStatusTests(DataTestClient):
         [
             status
             for status, value in CaseStatusEnum.choices
-            if status != CaseStatusEnum.APPLICANT_EDITING and status != CaseStatusEnum.FINALISED
+            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED]
         ]
     )
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):
