@@ -11,12 +11,20 @@ from common.models import TimestampableModel
 
 class Audit(TimestampableModel):
     """
+    Generic model for tracking activities on LITE.
+
+    Nomenclature based on http://activitystrea.ms/specs/atom/1.0/
+
+    General format:
+        <actor> <verb> <time>
+        <actor> <verb> <target> <time>
+        <actor> <verb> <action_object> <target> <time>
     """
     actor_content_type = models.ForeignKey(
-        ContentType, related_name='actor', null=True,
-        on_delete=models.SET_NULL, db_index=True,
+        ContentType, related_name='actor',
+        on_delete=models.SET_NULL, db_index=True, null=True
     )
-    actor_object_id = models.CharField(max_length=255, db_index=True, null=True)
+    actor_object_id = models.CharField(max_length=255, db_index=True)
     actor = GenericForeignKey('actor_content_type', 'actor_object_id')
 
     verb = models.CharField(max_length=255, db_index=True)
@@ -56,7 +64,7 @@ class Audit(TimestampableModel):
         ordering = ('-created_at',)
 
     def __str__(self):
-        ctx = {
+        context = {
             'actor': self.actor,
             'verb': self.verb,
             'action_object': self.action_object,
@@ -65,11 +73,11 @@ class Audit(TimestampableModel):
         }
         if self.target:
             if self.action_object:
-                return _('%(actor)s %(verb)s %(action_object)s on %(target)s %(age)s ago') % ctx
-            return _('%(actor)s %(verb)s %(target)s %(age)s ago') % ctx
+                return _('%(actor)s %(verb)s %(action_object)s on %(target)s %(age)s ago') % context
+            return _('%(actor)s %(verb)s %(target)s %(age)s ago') % context
         if self.action_object:
-            return _('%(actor)s %(verb)s %(action_object)s %(age)s ago') % ctx
-        return _('%(actor)s %(verb)s %(age)s ago') % ctx
+            return _('%(actor)s %(verb)s %(action_object)s %(age)s ago') % context
+        return _('%(actor)s %(verb)s %(age)s ago') % context
 
     def age(self):
         return timesince.timesince(self.created_at).encode('utf8').replace(b'\xc2\xa0', b' ').decode('utf8')

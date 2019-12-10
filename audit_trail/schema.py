@@ -7,6 +7,9 @@ from users.models import GovUser
 
 
 class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
+    """
+    Schema defines a parameter schema for validation.
+    """
     @classmethod
     def from_kwargs(cls, **kwargs):
         try:

@@ -98,6 +98,7 @@ def upload_party_document(party, data, application, user):
         actor=user,
         verb=AuditType.UPLOAD_PARTY_DOCUMENT,
         target=application,
+        action_object=serializer.instance,
         payload={'file_name': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
     )
 
