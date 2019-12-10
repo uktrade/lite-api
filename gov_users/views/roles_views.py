@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -12,7 +12,8 @@ from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
-from users.models import Role, Permission
+from users.models import Role
+from users.services import filter_roles_by_user_role
 
 
 class RolesViews(APIView):
@@ -29,6 +30,7 @@ class RolesViews(APIView):
         roles = Role.objects.filter(type=UserType.INTERNAL).order_by("name")
         if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
+        roles = filter_roles_by_user_role(request.user, roles)
         serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
@@ -80,6 +82,9 @@ class RoleDetail(APIView):
                 data={"errors": "You cannot edit the super user role"}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        if request.user.role_id == pk:
+            raise PermissionDenied
+
         assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
 
         data = JSONParser().parse(request)
@@ -105,6 +110,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        roles = Permission.internal.all()
-        serializer = PermissionSerializer(roles, many=True)
+        permissions = request.user.role.permissions.values()
+        serializer = PermissionSerializer(permissions, many=True)
         return JsonResponse(data={"permissions": serializer.data})
