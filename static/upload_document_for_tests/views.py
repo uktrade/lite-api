@@ -17,7 +17,7 @@ class UploadDocumentForTests(APIView):
             return JsonResponse(
                 data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
-        if 'static.upload_document_for_tests' in str(request.__dict__):
+        if "static.upload_document_for_tests" in str(request.__dict__):
             constants.skip_av_for_end_to_end_testing = 1
 
         bucket_name = env("AWS_STORAGE_BUCKET_NAME")
