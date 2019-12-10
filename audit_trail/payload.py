@@ -28,7 +28,7 @@ class AuditType(Enum):
     CLC_RESPONSE = "responded to the case"
     CREATED_CASE_NOTE = "added a case note: {case_note}"
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
-    UPDATED_STATUS = "updated the status to {status}"
+    UPDATED_STATUS = "updated the status to: {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
     UPDATED_APPLICATION_REFERENCE_NUMBER = (
     "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
