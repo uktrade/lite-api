@@ -33,17 +33,6 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.get(name="some role").name, "some role")
 
-    def test_get_list_of_all_roles_as_non_super_user(self):
-        role = Role(name="some")
-        role.permissions.set([constants.GovPermissions.MANAGE_FINAL_ADVICE.name])
-        role.save()
-
-        response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["roles"]), 2)
-
     def test_get_list_of_all_roles_as_super_user(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
@@ -57,15 +46,6 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["roles"]), initial_roles_count)
-
-    def test_get_list_of_all_permissions(self):
-        url = reverse("gov_users:permissions")
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["permissions"]), Permission.internal.all().count())
 
     def test_edit_a_role(self):
         self.gov_user.role = self.super_user_role
@@ -117,3 +97,145 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_max(self):
+        permissions = [
+            constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+            constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+            constants.GovPermissions.REVIEW_GOODS.name,
+        ]
+        user_role = Role(name="new role")
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.gov_user.role = user_role
+        self.gov_user.save()
+
+        # Create a new role, each with a singular different permission
+        for permission in Permission.internal.all():
+            role = Role(name=str(permission.id))
+            role.permissions.set([permission.id])
+            role.save()
+        second_role = Role(name="multi permission role")
+        second_role.permissions.set(
+            [
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.REVIEW_GOODS.name,
+            ]
+        )
+        second_role.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["roles"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 6)
+        self.assertIn(str(Role.objects.get(name="multi permission role").id), str(response_data))
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_FINAL_ADVICE.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.REVIEW_GOODS.name).id), str(response_data),
+        )
+
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_mid(self):
+        permissions = [
+            constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+            constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+        ]
+        user_role = Role(name="new role")
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.gov_user.role = user_role
+        self.gov_user.save()
+
+        # Create a new role, each with a singular different permission
+        for permission in Permission.internal.all():
+            role = Role(name=str(permission.id))
+            role.permissions.set([permission.id])
+            role.save()
+        second_role = Role(name="multi permission role")
+        second_role.permissions.set(
+            [
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.REVIEW_GOODS.name,
+            ]
+        )
+        second_role.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["roles"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 4)
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
+        )
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_FINAL_ADVICE.name).id), str(response_data)
+        )
+
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_min(self):
+        permissions = [constants.GovPermissions.MANAGE_TEAM_ADVICE.name]
+        user_role = Role(name="new role")
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.gov_user.role = user_role
+        self.gov_user.save()
+
+        # Create a new role, each with a singular different permission
+        for permission in Permission.internal.all():
+            role = Role(name=str(permission.id))
+            role.permissions.set([permission.id])
+            role.save()
+        second_role = Role(name="multi permission role")
+        second_role.permissions.set(
+            [
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.REVIEW_GOODS.name,
+            ]
+        )
+        second_role.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["roles"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 3)
+        self.assertIn(
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
+        )
+
+    @parameterized.expand(
+        [
+            [
+                [
+                    constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                    constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                    constants.GovPermissions.REVIEW_GOODS.name,
+                ]
+            ],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name, constants.GovPermissions.MANAGE_FINAL_ADVICE.name]],
+            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name]],
+        ]
+    )
+    def test_user_can_only_see_permissions_user_already_has_in_current_role(self, permissions):
+        user_role = Role(name="new role")
+        user_role.permissions.set(permissions)
+        user_role.save()
+        self.gov_user.role = user_role
+        self.gov_user.save()
+        url = reverse("gov_users:permissions")
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["permissions"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(permissions))
+        for permission in permissions:
+            self.assertIn(permission, [p["id"] for p in response_data])
