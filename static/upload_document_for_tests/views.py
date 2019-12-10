@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from conf import constants
 from conf.settings import env
 
 
@@ -16,6 +17,9 @@ class UploadDocumentForTests(APIView):
             return JsonResponse(
                 data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
+
+        if request.data.get("skip_av"):
+            constants.skip_av_for_end_to_end_testing = True
 
         bucket_name = env("AWS_STORAGE_BUCKET_NAME")
         s3 = boto3.client(
@@ -30,6 +34,8 @@ class UploadDocumentForTests(APIView):
         try:
             s3.upload_file(file_to_upload_abs_path, bucket_name, s3_key)
         except Exception as e:  # noqa
+            constants.skip_av_for_end_to_end_testing = False
             return JsonResponse(data={"errors": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        constants.skip_av_for_end_to_end_testing = False
         return JsonResponse(data={"s3_key": s3_key}, status=status.HTTP_200_OK)
