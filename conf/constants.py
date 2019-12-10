@@ -31,4 +31,4 @@ class Roles:
     EXPORTER_PRESET_ROLES = [EXPORTER_SUPER_USER_ROLE_ID, EXPORTER_DEFAULT_ROLE_ID]
 
 
-skip_av_for_end_to_end_testing = False
+skip_av_for_end_to_end_testing = 0
