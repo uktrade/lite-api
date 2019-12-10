@@ -6,6 +6,7 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.generated_documents.models import GeneratedCaseDocument
+from cases.libraries.get_case import get_case
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.models import PartyDocument
@@ -53,7 +54,7 @@ def upload_application_document(application, data, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
-        target=application,
+        target=get_case(application.id),
         payload={"file_name": data.get("name")}
     )
 
@@ -71,7 +72,7 @@ def delete_application_document(document_id, application, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.DELETE_APPLICATION_DOCUMENT,
-        target=application,
+        target=get_case(application.id),
         payload={"file_name": document.name}
     )
 
@@ -97,7 +98,7 @@ def upload_party_document(party, data, application, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.UPLOAD_PARTY_DOCUMENT,
-        target=application,
+        target=get_case(application.id),
         action_object=serializer.instance,
         payload={'file_name': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
     )
@@ -117,7 +118,7 @@ def delete_party_document(party, application, user):
         audit_trail_service.create(
             actor=user,
             verb=AuditType.DELETE_PARTY_DOCUMENT,
-            target=application,
+            target=get_case(application.id),
             payload={
                 "party_type": party.type.replace("_", " "),
                 "party_name": party.name,

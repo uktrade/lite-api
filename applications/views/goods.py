@@ -13,6 +13,7 @@ from applications.serializers.good import (
 )
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -212,7 +213,7 @@ class ApplicationGoodsType(APIView):
             actor=request.user,
             verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=goods_type,
-            target=application,
+            target=Case.objects.get(id=application.id),
             payload={
                 'good_type_name': {"name": goods_type.description},
             }
