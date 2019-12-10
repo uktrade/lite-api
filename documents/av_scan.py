@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from conf.settings import env
 from documents.libraries import s3_operations
 from documents.models import Document
 
@@ -58,7 +59,12 @@ def _process_document(document_pk: str):
         logging.warning(warn_msg)
         return
 
-    is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
+    if env("SKIP_AV") == "True":
+        is_file_clean = True
+        print("\n\n\n\nSkipping AV Scan\n\n\n\n")
+    else:
+        is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
+
     if is_file_clean is not None:
         doc.virus_scanned_at = now()
         doc.safe = is_file_clean
