@@ -63,8 +63,8 @@ class GeneratedDocuments(APIView):
                     actor=request.user,
                     verb=AuditType.GENERATE_CASE_DOCUMENT,
                     action_object=generated_doc,
-                    target=case,
-                    payload={'file_name': document_name, 'template': template.name}
+                    target=document.case,
+                    payload={'file_name': document_name, 'template': document.template.name}
                 )
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
