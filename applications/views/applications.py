@@ -24,6 +24,7 @@ from applications.serializers.generic_application import GenericApplicationListS
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from cases.libraries.get_case import get_case
 from cases.models import Case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -110,6 +111,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         serializer = get_application_update_serializer(application)
+        case = get_case(application.id)
+        old_name = application.name
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if not serializer.is_valid():
@@ -124,8 +127,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
-                target=application,
-                payload={"old_name": application.name, "new_name": serializer.data.get("name")}
+                target=case,
+                payload={"old_name": old_name, "new_name": serializer.data.get("name")}
             )
 
         if (
@@ -135,7 +138,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_APPLICATION_REFERENCE_NUMBER,
-                target=application,
+                target=case,
                 payload={
                     "old_ref_number": application.reference_number_on_information_form,
                     "new_ref_number": serializer.data.get("reference_number_on_information_form")

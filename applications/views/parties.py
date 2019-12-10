@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationType
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.libraries.get_case import get_case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -35,6 +36,7 @@ class ApplicationEndUser(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = get_case(application.id)
 
         serializer = EndUserSerializer(data=data)
         if not serializer.is_valid():
@@ -52,7 +54,7 @@ class ApplicationEndUser(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
-                target=application,
+                target=case,
                 payload={
                     "party_type": previous_end_user.type.replace("_", " "),
                     "party_name": previous_end_user.name,
@@ -62,7 +64,7 @@ class ApplicationEndUser(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": new_end_user.type.replace("_", " "),
                 "party_name": new_end_user.name,
@@ -162,11 +164,11 @@ class RemoveApplicationUltimateEndUser(APIView):
         application.ultimate_end_users.remove(ultimate_end_user.id)
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
-
+        case = get_case(application.id)
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": ultimate_end_user.type.replace("_", " "),
                 "party_name": ultimate_end_user.name,
@@ -188,6 +190,7 @@ class ApplicationConsignee(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = get_case(application.id)
 
         serializer = ConsigneeSerializer(data=data)
         if not serializer.is_valid():
@@ -206,7 +209,7 @@ class ApplicationConsignee(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
-                target=application,
+                target=case,
                 payload={
                     "party_type": previous_consignee.type.replace("_", " "),
                     "party_name": previous_consignee.name,
@@ -216,7 +219,7 @@ class ApplicationConsignee(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": new_consignee.type.replace("_", " "),
                 "party_name": new_consignee.name,
@@ -233,6 +236,7 @@ class ApplicationConsignee(APIView):
         Delete a consignee and their document from an application
         """
         consignee = application.consignee
+        case = get_case(application.id)
 
         if not consignee:
             return JsonResponse(data={"errors": "consignee not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -245,7 +249,7 @@ class ApplicationConsignee(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": consignee.type.replace("_", " "),
                 "party_name": consignee.name,
@@ -277,6 +281,7 @@ class ApplicationThirdParties(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = get_case(application.id)
 
         serializer = ThirdPartySerializer(data=data)
         if not serializer.is_valid():
@@ -288,7 +293,7 @@ class ApplicationThirdParties(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": third_party.type.replace("_", " "),
                 "party_name": third_party.name,
@@ -311,6 +316,7 @@ class RemoveThirdParty(APIView):
         except ThirdParty.DoesNotExist:
             return JsonResponse(data={"errors": "third party not found"}, status=status.HTTP_404_NOT_FOUND,)
 
+        case = get_case(application.id)
         application.third_parties.remove(third_party.id)
         delete_party_document_if_exists(third_party)
         third_party.delete()
@@ -318,7 +324,7 @@ class RemoveThirdParty(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
-            target=application,
+            target=case,
             payload={
                 "party_type": third_party.type.replace("_", " "),
                 "party_name": third_party.name,

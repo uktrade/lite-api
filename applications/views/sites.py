@@ -8,6 +8,7 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.libraries.get_case import get_case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import has_previous_locations
@@ -141,11 +142,12 @@ class ApplicationSites(APIView):
 
 
 def _set_activity(user, application, removed_locations, removed_sites, added_sites):
+    case = get_case(application.id)
     if removed_sites:
         audit_trail_service.create(
             actor=user,
             verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
-            target=application,
+            target=case,
             payload={
                 'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
             }
@@ -155,7 +157,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
         audit_trail_service.create(
             actor=user,
             verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
-            target=application,
+            target=case,
             payload={
                 'locations':  [
                     location.external_location.name + " " + location.external_location.country.name
@@ -168,7 +170,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
         audit_trail_service.create(
             actor=user,
             verb=AuditType.ADD_SITES_TO_APPLICATION,
-            target=application,
+            target=case,
             payload={
                 'sites': [site.name + " " + site.address.country.name for site in added_sites],
             }
