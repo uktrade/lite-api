@@ -106,7 +106,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Role.objects.filter(name=role_name).count(), 2)
 
-    def test_only_see_roles_user_has_all_permissions_for_0(self):
+    def test_only_see_roles_user_has_all_permissions_for_3_permissions(self):
         permissions = [
             constants.ExporterPermissions.ADMINISTER_USERS.name,
             constants.ExporterPermissions.ADMINISTER_SITES.name,
@@ -151,7 +151,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(response_data),
         )
 
-    def test_only_see_roles_user_has_all_permissions_for_1(self):
+    def test_only_see_roles_user_has_all_permissions_for_2_permissions(self):
         permissions = [
             constants.ExporterPermissions.ADMINISTER_USERS.name,
             constants.ExporterPermissions.ADMINISTER_SITES.name,
@@ -190,7 +190,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.ExporterPermissions.ADMINISTER_SITES.name).id), str(response_data)
         )
 
-    def test_only_see_roles_user_has_all_permissions_for_2(self):
+    def test_only_see_roles_user_has_all_permissions_for_1_permission(self):
         permissions = [constants.ExporterPermissions.ADMINISTER_USERS.name]
         user_role = Role(name="new role", organisation=self.organisation)
         user_role.permissions.set(permissions)

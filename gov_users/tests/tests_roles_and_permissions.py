@@ -98,7 +98,7 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_0(self):
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_max(self):
         permissions = [
             constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
             constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
@@ -141,7 +141,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.GovPermissions.REVIEW_GOODS.name).id), str(response_data),
         )
 
-    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_1(self):
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_mid(self):
         permissions = [
             constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
             constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
@@ -179,7 +179,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_FINAL_ADVICE.name).id), str(response_data)
         )
 
-    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_2(self):
+    def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_min(self):
         permissions = [constants.GovPermissions.MANAGE_TEAM_ADVICE.name]
         user_role = Role(name="new role")
         user_role.permissions.set(permissions)

@@ -20,12 +20,7 @@ def filter_roles_by_user_role(user: BaseUser, roles: QuerySet, organisation=None
     else:
         return []
 
-    filtered_roles = []
-    for role in roles:
-        if role_should_be_added(role, permissions):
-            filtered_roles.append(role)
-
-    return filtered_roles
+    return [role for role in roles if role_should_be_added(role, permissions)]
 
 
 def get_exporter_roles_by_organisation(request, org_pk, filter_by_user_role=True):
