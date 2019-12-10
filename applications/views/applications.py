@@ -24,8 +24,9 @@ from applications.serializers.generic_application import GenericApplicationListS
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import Permissions
+from conf.constants import ExporterPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -166,7 +167,9 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
         if application.application_type != CaseTypeEnum.HMRC_QUERY:
-            assert_user_has_permission(request.user, Permissions.SUBMIT_LICENCE_APPLICATION, application.organisation)
+            assert_user_has_permission(
+                request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
+            )
         previous_application_status = application.status
 
         errors = validate_application_ready_for_submission(application)
@@ -217,15 +220,14 @@ class ApplicationManageStatus(APIView):
 
             validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(application.status.status, new_status_enum)
+            validation_error = validate_status_can_be_set_by_gov_user(new_status_enum)
 
         if validation_error:
             return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        # This can return 403 forbidden
+        # Only allow status change to FINALISED if user has MANAGE_FINAL_ADVICE permission
         if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)

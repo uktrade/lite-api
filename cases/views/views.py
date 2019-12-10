@@ -25,8 +25,7 @@ from cases.models import (
     Advice,
     TeamAdvice,
     FinalAdvice,
-    GoodCountryDecision,
-    Case
+    GoodCountryDecision
 )
 from cases.serializers import (
     CaseDocumentViewSerializer,
@@ -40,8 +39,8 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
 )
+from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
-from conf.constants import Permissions
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
@@ -221,7 +220,6 @@ class CaseTeamAdvice(APIView):
                 verb=AuditType.CREATED_TEAM_ADVICE,
                 target=self.case,
             )
-
             team_advice = TeamAdvice.objects.filter(case=self.case, team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
@@ -294,7 +292,7 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
 
@@ -315,14 +313,14 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
 
         audit_trail_service.create(
@@ -373,7 +371,7 @@ class CaseEcjuQueries(APIView):
                     payload={'ecju_query': data['question']}
                 )
 
-                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED,)
+                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -402,10 +400,7 @@ class EcjuQueryDetail(APIView):
         """
         ecju_query = get_ecju_query(ecju_pk)
 
-        data = {
-            "response": request.data["response"],
-            "responded_by_user": str(request.user.id),
-        }
+        data = {"response": request.data["response"], "responded_by_user": str(request.user.id)}
 
         serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
 
@@ -424,14 +419,14 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         goods_countries = GoodCountryDecision.objects.filter(case=pk)
         serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={"data": serializer.data})
 
     def post(self, request, pk):
-        assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         data = JSONParser().parse(request).get("good_countries")
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)

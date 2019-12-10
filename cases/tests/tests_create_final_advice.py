@@ -5,7 +5,7 @@ from rest_framework import status
 from audit_trail.models import Audit
 from cases.enums import AdviceType
 from cases.models import TeamAdvice, FinalAdvice, Advice
-from conf.constants import Permissions
+from conf import constants
 from conf.helpers import convert_queryset_to_str
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -29,12 +29,13 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         role = Role(name="team_level")
         role.permissions.set(
             [
-                Permissions.MANAGE_FINAL_ADVICE,
-                Permissions.MANAGE_TEAM_ADVICE,
-                Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name,
+                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
             ]
         )
-        role.permissions.set([Permissions.MANAGE_FINAL_ADVICE, Permissions.MANAGE_TEAM_ADVICE])
         role.save()
 
         self.gov_user.role = role
@@ -52,18 +53,10 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Final advice is created on first call
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice,
-        )
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice,
-        )
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
-        )
-        self.create_advice(
-            self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
-        )
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -77,9 +70,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         The type should show conflicting if there are conflicting types in the advice on a single object
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
-        )
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, TeamAdvice)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
 
@@ -262,9 +253,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Audit trail is created when clearing or combining advice
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
-        )
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, TeamAdvice)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
 
@@ -279,15 +268,9 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice,
-        )
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice,
-        )
-        self.create_advice(
-            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, FinalAdvice,
-        )
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, FinalAdvice)
 
         self.client.get(self.standard_case_url, **self.gov_headers)
 

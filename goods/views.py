@@ -10,12 +10,8 @@ from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
-from conf.authentication import (
-    ExporterAuthentication,
-    SharedAuthentication,
-    GovAuthentication,
-)
-from conf.constants import Permissions
+from conf import constants
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -41,8 +37,10 @@ class GoodsListControlCode(APIView):
 
     @transaction.atomic
     def post(self, request, case_pk):
-        """ Set control list codes on multiple goods. """
-        assert_user_has_permission(request.user, Permissions.REVIEW_GOODS)
+        """
+        Set control list codes on multiple goods.
+        """
+        assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
 
         application = BaseApplication.objects.get(id=case_pk)
 
@@ -176,7 +174,7 @@ class GoodDetail(APIView):
 
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         data = request.data.copy()
@@ -200,7 +198,7 @@ class GoodDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "Good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "Good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         for document in GoodDocument.objects.filter(good=good):
@@ -240,7 +238,7 @@ class GoodDocuments(APIView):
         if good.status != GoodStatus.DRAFT:
             delete_documents_on_bad_request(data)
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         for document in data:
@@ -271,7 +269,7 @@ class GoodDocumentDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         good_document = get_good_document(good, doc_pk)
@@ -290,7 +288,7 @@ class GoodDocumentDetail(APIView):
 
         if good.status != GoodStatus.DRAFT:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         good_document = Document.objects.get(id=doc_pk)

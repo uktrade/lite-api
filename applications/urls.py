@@ -85,4 +85,15 @@ urlpatterns = [
         documents.ApplicationDocumentDetailView.as_view(),
         name="application_document",
     ),
+    # Case-related information
+    path(
+        "<uuid:pk>/generated-documents/",
+        documents.GeneratedDocuments.as_view(),
+        name="application_generated_documents",
+    ),
+    path(
+        "<uuid:pk>/generated-documents/<uuid:gcd_pk>/",
+        documents.GeneratedDocument.as_view(),
+        name="application_generated_document",
+    ),
 ]

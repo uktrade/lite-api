@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "audit_trail",
     "background_task",
     "cases",
+    "cases.generated_documents",
     "content_strings.apps.ContentStringsConfig",
     "django.contrib.admin",
     "django.contrib.auth",

@@ -25,12 +25,6 @@ def validate_status_can_be_set_by_exporter_user(original_status: str, new_status
         return f'Setting application status to "{new_status}" is not allowed.'
 
 
-def validate_status_can_be_set_by_gov_user(original_status: str, new_status: str) -> Optional[str]:
-    if new_status == CaseStatusEnum.APPLICANT_EDITING:
-        return f'Setting application status to "{new_status}" is not allowed for GovUsers.'
-
-    if original_status == CaseStatusEnum.APPLICANT_EDITING:
-        return (
-            f"Setting application status when its existing status is "
-            f'"{original_status}" is not allowed for GovUsers.'
-        )
+def validate_status_can_be_set_by_gov_user(status: str) -> Optional[str]:
+    if status == CaseStatusEnum.APPLICANT_EDITING:
+        return f'Setting application status to "{status}" is not allowed for GovUsers.'

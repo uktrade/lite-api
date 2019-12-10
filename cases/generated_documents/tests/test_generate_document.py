@@ -6,9 +6,9 @@ from rest_framework.reverse import reverse
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
+from cases.models import Notification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
-from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -25,7 +25,7 @@ class GenerateDocumentTests(DataTestClient):
         self.letter_template.case_types.add(CaseTypeEnum.APPLICATION)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
-        self.data = {"template": str(self.letter_template.id)}
+        self.data = {"template": str(self.letter_template.id), "text": "sample"}
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -39,6 +39,9 @@ class GenerateDocumentTests(DataTestClient):
         upload_bytes_file_func.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 1
+        )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -52,6 +55,9 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 0)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+        )
         upload_bytes_file_func.assert_not_called()
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -67,12 +73,16 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 0)
+        self.assertTrue(
+            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+        )
 
     def test_get_document_preview_success(self):
         url = (
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
+            + "&text=Sample"
         )
         response = self.client.get(url, **self.gov_headers)
 
@@ -82,27 +92,42 @@ class GenerateDocumentTests(DataTestClient):
         for html_tag in ["<style>", "</style>"]:
             self.assertTrue(html_tag in preview)
 
-    def test_get_document_preview_without_query_param_failure(self):
+    def test_get_document_preview_without_template_query_param_failure(self):
         url = reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [LetterTemplatesPage.MISSING_TEMPLATE])
+        self.assertEqual(body["errors"], [GeneratedDocumentsEndpoint.MISSING_TEMPLATE])
 
-    @mock.patch("cases.generated_documents.views.get_preview")
+    def test_get_document_preview_without_text_query_param_failure(self):
+        url = (
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+            + "?template="
+            + str(self.letter_template.id)
+        )
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        body = response.json()
+        self.assertTrue("errors" in body)
+        self.assertEqual(body["errors"], [GeneratedDocumentsEndpoint.MISSING_TEXT])
+
+    @mock.patch("cases.generated_documents.helpers.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
     def test_get_document_preview_when_get_html_contains_errors_failure(
-        self, upload_bytes_file_func, html_to_pdf_func, get_preview_func
+        self, upload_bytes_file_func, html_to_pdf_func, generate_preview_func
     ):
-        get_preview_func.return_value = dict(error="Failed to get preview")
+        generate_preview_func.return_value = dict(error="Failed to get preview")
 
         url = (
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
+            + "&text=Sample"
         )
         response = self.client.get(url, **self.gov_headers)
 
