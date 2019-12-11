@@ -67,6 +67,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         if str_to_bool(request.GET.get("text")):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
+        if str_to_bool(request.GET.get('activity')):
+            data["activity"] = audit_trail_service.get_obj_trail(template_object)
+
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):

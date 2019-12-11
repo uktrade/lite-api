@@ -32,7 +32,7 @@ weasyprint = "*"
 markdown = "*"
 unittest-xml-reporting = "*"
 django-activity-stream = "*"
-django-jsonfield-compat = "*"
+django-jsonfield = "*"
 
 [requires]
 python_version = "3.7"

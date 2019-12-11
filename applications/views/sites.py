@@ -142,7 +142,7 @@ class ApplicationSites(APIView):
 
 
 def _set_activity(user, application, removed_locations, removed_sites, added_sites):
-    case = get_case(application.id)
+    case = application.get_case()
     if removed_sites:
         audit_trail_service.create(
             actor=user,

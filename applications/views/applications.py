@@ -111,7 +111,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         serializer = get_application_update_serializer(application)
-        case = get_case(application.id)
+        case = application.get_case()
         old_name = application.name
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
@@ -247,7 +247,7 @@ class ApplicationManageStatus(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
-            target=Case.objects.get(id=application.id),
+            target=application.get_case(),
             payload={'status': CaseStatusEnum.human_readable(new_status.status)}
         )
 

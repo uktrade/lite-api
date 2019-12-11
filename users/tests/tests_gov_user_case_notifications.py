@@ -39,7 +39,7 @@ class NotificationTests(DataTestClient):
         audit = Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
-            target=case,
+            target=case.get_case(),
             payload={"old_name": 'old_app_name', 'new_name': 'new_app_name'}
         )
 
@@ -72,7 +72,7 @@ class NotificationTests(DataTestClient):
         audit = Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
-            target=case,
+            target=case.get_case(),
             payload={'old_name': 'old_app_name', 'new_name': 'new_app_name'}
         )
 

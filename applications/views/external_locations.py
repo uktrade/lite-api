@@ -142,7 +142,7 @@ class ApplicationExternalLocations(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
-                target=application,
+                target=application.get_case(),
                 payload={
                     'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
                 }
@@ -152,7 +152,7 @@ class ApplicationExternalLocations(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
-                target=application,
+                target=application.get_case(),
                 payload={
                     'locations': [
                         location.external_location.name + " " + location.external_location.country.name
@@ -165,7 +165,7 @@ class ApplicationExternalLocations(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
-                target=application,
+                target=application.get_case(),
                 payload={
                     'locations': [location.name + " " + location.country.name for location in new_locations],
                 }
@@ -213,7 +213,7 @@ class ApplicationRemoveExternalLocation(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
-                target=application,
+                target=application.get_case(),
                 payload={
                     'locations': [
                         location.external_location.name + " " + location.external_location.country.name

@@ -1,9 +1,9 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timesince
 from django.utils.translation import ugettext as _
+from jsonfield import JSONField
 
 from audit_trail.managers import AuditManager
 from common.models import TimestampableModel

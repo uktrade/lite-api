@@ -87,7 +87,7 @@ class ApplicationGoodsOnApplication(APIView):
                     actor=request.user,
                     verb=AuditType.ADD_GOOD_TO_APPLICATION,
                     action_object=good,
-                    target=application,
+                    target=application.get_case(),
                     payload={
                         'good_name': good.description
                     }
@@ -133,7 +133,7 @@ class ApplicationGoodOnApplication(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_GOOD_FROM_APPLICATION,
             action_object=good_on_application.good,
-            target=application,
+            target=application.get_case(),
             payload={
                 'good_name': good_on_application.good.description
             }
@@ -175,7 +175,7 @@ class ApplicationGoodsTypes(APIView):
             actor=request.user,
             verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=serializer.instance,
-            target=application,
+            target=application.get_case(),
             payload={
                 'good_type_name': {"name": serializer.instance.description}
             }

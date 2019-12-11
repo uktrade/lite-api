@@ -21,19 +21,19 @@ def create(actor, verb, action_object=None, target=None, payload=None):
 
 
 def get_obj_trail(obj):
-    qudit_qs = Audit.objects.all()
+    audit_qs = Audit.objects.all()
 
-    case_as_action_filter = Q(
+    obj_as_action_filter = Q(
         action_object_object_id=obj.id,
         action_object_content_type=ContentType.objects.get_for_model(obj)
     )
-    case_as_target_filter = Q(
+    obj_as_target_filter = Q(
         target_object_id=obj.id,
         target_content_type=ContentType.objects.get_for_model(obj)
     )
 
-    actions = qudit_qs.filter(case_as_action_filter | case_as_target_filter)
+    audit_trail = audit_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
-    serializer = AuditSerializer(actions, many=True)
+    serializer = AuditSerializer(audit_trail, many=True)
 
     return serializer.data

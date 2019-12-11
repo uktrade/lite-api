@@ -38,6 +38,15 @@ class Case(TimeStampedModel):
 
     objects = CaseManager()
 
+    def get_case(self):
+        """
+        For any child models, this method allows easy access to the parent Case.
+        """
+        if isinstance(self, Case):
+            return self
+
+        return Case.objects.get(id=self.id)
+
 
 @reversion.register()
 class CaseNote(models.Model):

@@ -54,7 +54,7 @@ def upload_application_document(application, data, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
-        target=get_case(application.id),
+        target=application.get_case(),
         payload={"file_name": data.get("name")}
     )
 
@@ -72,7 +72,7 @@ def delete_application_document(document_id, application, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.DELETE_APPLICATION_DOCUMENT,
-        target=get_case(application.id),
+        target=application.get_case(),
         payload={"file_name": document.name}
     )
 
@@ -98,7 +98,7 @@ def upload_party_document(party, data, application, user):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.UPLOAD_PARTY_DOCUMENT,
-        target=get_case(application.id),
+        target=application.get_case(),
         action_object=serializer.instance,
         payload={'file_name': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
     )
@@ -118,7 +118,7 @@ def delete_party_document(party, application, user):
         audit_trail_service.create(
             actor=user,
             verb=AuditType.DELETE_PARTY_DOCUMENT,
-            target=get_case(application.id),
+            target=application.get_case(),
             payload={
                 "party_type": party.type.replace("_", " "),
                 "party_name": party.name,
