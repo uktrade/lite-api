@@ -50,6 +50,7 @@ class Site(models.Model):
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
     )
+    users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
 
 
 class ExternalLocation(models.Model):
