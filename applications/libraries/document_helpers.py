@@ -6,7 +6,6 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.libraries.get_case import get_case
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.models import PartyDocument

@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 from applications.enums import ApplicationType
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.libraries.get_case import get_case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,

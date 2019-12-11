@@ -8,7 +8,6 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.libraries.get_case import get_case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import has_previous_locations
