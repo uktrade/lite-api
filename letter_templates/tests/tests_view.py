@@ -23,7 +23,7 @@ class LetterTemplatesListTests(DataTestClient):
         url = reverse("letter_templates:letter_templates")
 
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = response.json()["results"]["templates"][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
@@ -41,7 +41,7 @@ class LetterTemplatesListTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
 
         response = self.client.get(url + "?case=" + str(case.id), **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = response.json()["results"]["templates"][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
