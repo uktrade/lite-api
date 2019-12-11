@@ -59,12 +59,7 @@ def _process_document(document_pk: str):
         logging.warning(warn_msg)
         return
 
-    if constants.skip_av_for_end_to_end_testing == 1:
-        is_file_clean = True
-        print("\n\n\n\nSkipping AV Scan\n\n\n\n")
-        constants.skip_av_for_end_to_end_testing = 0
-    else:
-        is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
+    is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
 
     if is_file_clean is not None:
         doc.virus_scanned_at = now()
