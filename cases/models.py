@@ -41,8 +41,10 @@ class Case(TimeStampedModel):
     def get_case(self):
         """
         For any child models, this method allows easy access to the parent Case.
+
+        Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
         """
-        if isinstance(self, Case):
+        if type(self) == Case:
             return self
 
         return Case.objects.get(id=self.id)

@@ -201,7 +201,7 @@ class ApplicationSubmission(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
-                target=Case.objects.get(id=application.id),
+                target=application.get_case(),
                 payload={'status': application.status.status}
             )
 
