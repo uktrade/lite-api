@@ -112,3 +112,14 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
+
+
+class PartyWithFlagsSerializer(PartySerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = Party
+        fields = "__all__"

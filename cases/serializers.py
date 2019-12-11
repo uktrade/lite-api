@@ -27,7 +27,7 @@ from flags.serializers import FlagSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -110,6 +110,8 @@ class TinyCaseSerializer(serializers.Serializer):
             good_ids = {}
             goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
             good_flag_data = FlagSerializer(goods_flags, many=True).data
+            parties = 
+            destination_flags = list(itertools.chain.from_iterable([]))
         else:
             good_flag_data = []
 
