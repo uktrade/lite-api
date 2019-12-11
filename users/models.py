@@ -145,9 +145,10 @@ class GovUser(BaseUser):
 
     # pylint: disable=W0221
     def send_notification(self, audit=None):
-        # circular import prevention
-        Notification = get_model("cases.Notification")
         if audit:
+            # circular import prevention
+            from cases.models import Notification
+
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:

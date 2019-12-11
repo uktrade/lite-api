@@ -10,13 +10,14 @@ from test_helpers.clients import DataTestClient
 
 class NotificationTests(DataTestClient):
     def tests_edit_application_creates_new_case_notification_success(self):
-        case = self.create_standard_application_case(self.organisation, "Case")
+        application = self.create_standard_application_case(self.organisation, "Case")
+        case = application.get_case()
         prev_notification_count = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
             audit__target_content_type=ContentType.objects.get_for_model(case)
         ).count()
-        url = reverse("applications:application", kwargs={"pk": case.id})
+        url = reverse("applications:application", kwargs={"pk": application.id})
 
         data = {"name": "new app name!"}
 
@@ -34,12 +35,13 @@ class NotificationTests(DataTestClient):
         )
 
     def tests_edit_application_updates_previous_case_notification_success(self):
-        case = self.create_standard_application_case(self.organisation, "Case")
+        application = self.create_standard_application_case(self.organisation, "Case")
+        case = application.get_case()
 
         audit = Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
-            target=case.get_case(),
+            target=case,
             payload={"old_name": 'old_app_name', 'new_name': 'new_app_name'}
         )
 
@@ -50,11 +52,13 @@ class NotificationTests(DataTestClient):
             audit__target_content_type=ContentType.objects.get_for_model(case)
         ).count()
 
-        url = reverse("applications:application", kwargs={"pk": case.id})
+        url = reverse("applications:application", kwargs={"pk": application.id})
         data = {"name": "even newer app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
+        application.refresh_from_db()
         case.refresh_from_db()
+
         new_notification = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
@@ -67,12 +71,13 @@ class NotificationTests(DataTestClient):
         self.assertNotEqual(new_notification.last().audit, audit)
 
     def tests_get_case_notification_deletes_case_notification_and_returns_data(self):
-        case = self.create_standard_application_case(self.organisation, "Case")
+        application = self.create_standard_application_case(self.organisation, "Case")
+        case = application.get_case()
 
         audit = Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
-            target=case.get_case(),
+            target=case,
             payload={'old_name': 'old_app_name', 'new_name': 'new_app_name'}
         )
 
