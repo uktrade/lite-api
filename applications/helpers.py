@@ -43,13 +43,7 @@ def get_application_create_serializer(application_type):
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
     else:
-        raise BadRequestError(
-            {
-                "application_type": [
-                    ApplicationsCreate.SELECT_A_LICENCE_TYPE
-                ]
-            }
-        )
+        raise BadRequestError({"application_type": [ApplicationsCreate.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):
