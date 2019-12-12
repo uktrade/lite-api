@@ -16,6 +16,7 @@ from applications.serializers.standard_application import (
     StandardApplicationViewSerializer,
 )
 from conf.exceptions import BadRequestError
+from lite_content.lite_api.applications import ApplicationsCreate
 
 
 def get_application_view_serializer(application: BaseApplication):
@@ -28,7 +29,7 @@ def get_application_view_serializer(application: BaseApplication):
     else:
         raise BadRequestError(
             {
-                "errors": f"get_application_view_serializer does "
+                f"get_application_view_serializer does "
                 f"not support this application type: {application.application_type}"
             }
         )
@@ -42,12 +43,7 @@ def get_application_create_serializer(application_type):
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
     else:
-        raise BadRequestError(
-            {
-                "errors": f"get_application_create_serializer does "
-                f"not support this application type: {application_type}"
-            }
-        )
+        raise BadRequestError({"application_type": [ApplicationsCreate.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):
@@ -60,7 +56,7 @@ def get_application_update_serializer(application: BaseApplication):
     else:
         raise BadRequestError(
             {
-                "errors": f"get_application_update_serializer does "
+                f"get_application_update_serializer does "
                 f"not support this application type: {application.application_type}"
             }
         )

@@ -7,7 +7,8 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from applications.models import StandardApplication, OpenApplication, HmrcQuery
+from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication
+from lite_content.lite_api.applications import ApplicationsCreate
 from test_helpers.clients import DataTestClient
 
 
@@ -78,9 +79,9 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": "standard_licence", "export_type": "temporary",}],
-            [{"name": "Test", "export_type": "temporary",}],
-            [{"name": "Test", "application_type": "standard_licence",}],
+            [{"application_type": ApplicationType.STANDARD_LICENCE, "export_type": ApplicationExportType.TEMPORARY,}],
+            [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY,}],
+            [{"name": "Test", "application_type": ApplicationType.STANDARD_LICENCE,}],
         ]
     )
     def test_create_draft_failure(self, data):
@@ -90,4 +91,16 @@ class DraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(OpenApplication.objects.count(), 0)
+        self.assertEqual(BaseApplication.objects.count(), 0)
+
+    def test_create_no_application_type_failure(self):
+        """
+        Ensure that we cannot create a new application without
+        providing a licence type.
+        """
+        data = {}
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["application_type"][0], ApplicationsCreate.SELECT_A_LICENCE_TYPE)
