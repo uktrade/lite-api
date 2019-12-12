@@ -1,5 +1,6 @@
 from django.utils import timezone
 
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Notification, EcjuQuery
 from queries.control_list_classifications.models import ControlListClassificationQuery
 
@@ -10,6 +11,8 @@ def mark_notifications_as_viewed(user, objects):
             Notification.objects.filter(user=user, case_note=obj).update(viewed_at=timezone.now())
         elif isinstance(obj, EcjuQuery):
             Notification.objects.filter(user=user, ecju_query=obj).update(viewed_at=timezone.now())
+        elif isinstance(obj, GeneratedCaseDocument):
+            Notification.objects.filter(user=user, generated_case_document=obj).update(viewed_at=timezone.now())
         elif isinstance(obj, ControlListClassificationQuery):
             Notification.objects.filter(user=user, query=obj).update(viewed_at=timezone.now())
         else:

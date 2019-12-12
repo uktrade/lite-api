@@ -10,6 +10,7 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
 )
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
+from cases.enums import CaseTypeEnum
 from organisations.models import ExternalLocation, Site
 from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
 from parties.serializers import (
@@ -18,6 +19,8 @@ from parties.serializers import (
     ThirdPartySerializer,
     ConsigneeSerializer,
 )
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(GenericApplicationListSerializer):
@@ -79,6 +82,8 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["organisation"] = self.context.id
+        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = StandardApplication
@@ -90,6 +95,8 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "have_you_been_informed",
             "reference_number_on_information_form",
             "organisation",
+            "type",
+            "status",
         )
 
 

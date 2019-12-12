@@ -27,14 +27,15 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseTypeEnum
-from cases.models import Case
+from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import Permissions
+from conf.constants import ExporterPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from organisations.enums import OrganisationType
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
 
@@ -123,9 +124,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         else:
             application_old_name = application.name
 
-            if application.application_type == ApplicationType.STANDARD_LICENCE:
-                application_old_ref_number = application.reference_number_on_information_form
-
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,7 +138,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 and application.application_type == ApplicationType.STANDARD_LICENCE
             ):
                 set_application_ref_number_case_activity(
-                    application_old_ref_number,
+                    application.reference_number_on_information_form,
                     serializer.data.get("reference_number_on_information_form"),
                     request.user,
                     application,
@@ -153,7 +151,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         Deleting an application should only be allowed for draft applications
         """
-        if application.submitted_at:
+        if not is_case_status_draft(application.status.status):
             return JsonResponse(
                 data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -172,7 +170,9 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
         if application.application_type != CaseTypeEnum.HMRC_QUERY:
-            assert_user_has_permission(request.user, Permissions.SUBMIT_LICENCE_APPLICATION, application.organisation)
+            assert_user_has_permission(
+                request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
+            )
         previous_application_status = application.status
 
         errors = validate_application_ready_for_submission(application)
@@ -195,14 +195,7 @@ class ApplicationSubmission(APIView):
 
         data = {"application": {**serializer.data}}
 
-        if not previous_application_status:
-            # If the application is being submitted for the first time
-            case = Case(application=application)
-            if application.application_type == CaseTypeEnum.HMRC_QUERY:
-                case.type = CaseTypeEnum.HMRC_QUERY
-            case.save()
-            data["application"]["case_id"] = case.id
-        else:
+        if previous_application_status:
             # If the application is being submitted after being edited
             set_application_status_case_activity(application.status.status, request.user, application)
 
@@ -225,15 +218,14 @@ class ApplicationManageStatus(APIView):
 
             validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(application.status.status, new_status_enum)
+            validation_error = validate_status_can_be_set_by_gov_user(new_status_enum)
 
         if validation_error:
             return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        # This can return 403 forbidden
+        # Only allow status change to FINALISED if user has MANAGE_FINAL_ADVICE permission
         if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, Permissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)

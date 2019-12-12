@@ -32,8 +32,12 @@ def template_engine_factory(allow_missing_variables):
     )
 
 
+def markdown_to_html(text: str):
+    return markdown(text, extensions=["nl2br"])
+
+
 def get_paragraphs_as_html(paragraphs: list):
-    return "\n\n".join([markdown(paragraph.text, extensions=["nl2br"]) for paragraph in paragraphs])
+    return "\n\n".join([markdown_to_html(paragraph.text) for paragraph in paragraphs])
 
 
 def get_css_location(filename):
@@ -46,12 +50,12 @@ def load_css(filename):
     return f"<style>\n{css}</style>\n"
 
 
-def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_variables=True):
+def generate_preview(layout: str, text: str, case=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        context = {"content": get_paragraphs_as_html(paragraphs)}
+        context = {"content": text}
         template = template.render(Context(context))
         if case:
             context = {"case": case}
@@ -61,8 +65,3 @@ def generate_preview(layout: str, paragraphs: list, case=None, allow_missing_var
         return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": LetterTemplatesPage.PREVIEW_ERROR}
-
-
-def get_preview(template: LetterTemplate, case=None):
-    paragraphs = template.letter_paragraphs.all()
-    return generate_preview(template.layout.filename, paragraphs=paragraphs, case=case)

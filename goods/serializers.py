@@ -2,15 +2,14 @@ from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from cases.models import Case
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
-from picklists.models import PicklistItem
 from organisations.serializers import OrganisationDetailSerializer
+from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
@@ -29,14 +28,11 @@ class GoodListSerializer(serializers.ModelSerializer):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
-        return None
 
     def get_query_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
-            return clc_query.id
-        except ControlListClassificationQuery.DoesNotExist:
-            return None
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        if clc_query:
+            return clc_query.first().id
 
     class Meta:
         model = Good
@@ -102,12 +98,14 @@ class GoodSerializer(serializers.ModelSerializer):
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
-            case = Case.objects.get(query=clc_query)
-            return case.id
-        except ControlListClassificationQuery.DoesNotExist:
-            return None
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        if clc_query:
+            return clc_query.first().id
+
+    def get_query_id(self, instance):
+        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+        if clc_query:
+            return clc_query.first().id
 
     def get_case_status(self, instance):
         try:
@@ -119,18 +117,10 @@ class GoodSerializer(serializers.ModelSerializer):
         except ControlListClassificationQuery.DoesNotExist:
             return None
 
-    def get_query_id(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
-            return clc_query.id
-        except ControlListClassificationQuery.DoesNotExist:
-            return None
-
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
-        return None
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
@@ -142,7 +132,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_code = validated_data.get("control_code", instance.control_code)
+        instance.control_code = validated_data.get("control_code", "")
         instance.is_good_end_product = validated_data.get("is_good_end_product", instance.is_good_end_product)
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)

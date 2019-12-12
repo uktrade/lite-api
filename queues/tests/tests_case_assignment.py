@@ -11,9 +11,9 @@ class CaseAssignmentTests(DataTestClient):
         super().setUp()
 
         # Cases
-        self.case = self.create_clc_query("Query", self.organisation).case.get()
-        self.case_2 = self.create_clc_query("Query", self.organisation).case.get()
-        self.case_3 = self.create_clc_query("Query", self.organisation).case.get()
+        self.case = self.create_clc_query("Query", self.organisation)
+        self.case_2 = self.create_clc_query("Query", self.organisation)
+        self.case_3 = self.create_clc_query("Query", self.organisation)
 
         # Users
         self.gov_user = self.create_gov_user("gov1@email.com", team=self.team)

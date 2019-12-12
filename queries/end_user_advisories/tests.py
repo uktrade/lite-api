@@ -135,7 +135,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["note"], data["note"])
         self.assertEqual(response_data["reasoning"], data["reasoning"])
-        self.assertEqual(response_data["copy_of"]["reference_code"], data["copy_of"])
+        self.assertEqual(response_data["copy_of"], str(data["copy_of"]))
 
         end_user_data = response_data["end_user"]
         self.assertEqual(end_user_data["sub_type"]["key"], data["end_user"]["sub_type"])

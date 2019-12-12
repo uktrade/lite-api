@@ -156,16 +156,12 @@ class AssignFlags(APIView):
 
             cases.extend(
                 Case.objects.filter(
-                    query__id__in=ControlListClassificationQuery.objects.filter(good=obj).values_list("id", flat=True)
+                    id__in=ControlListClassificationQuery.objects.filter(good=obj).values_list("id", flat=True)
                 )
             )
 
             cases.extend(
-                Case.objects.filter(
-                    application__id__in=GoodOnApplication.objects.filter(good=obj).values_list(
-                        "application_id", flat=True
-                    )
-                )
+                Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))
             )
 
             for case in cases:

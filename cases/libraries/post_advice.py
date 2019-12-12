@@ -3,10 +3,9 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from applications.models import BaseApplication
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice
-from conf.constants import Permissions
+from conf import constants
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -14,8 +13,10 @@ from static.statuses.enums import CaseStatusEnum
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
-    if Permissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE not in user.role.permissions.values_list("id", flat=True):
-        assert_user_has_permission(user, Permissions.MANAGE_TEAM_ADVICE)
+    if constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name not in user.role.permissions.values_list(
+        "id", flat=True
+    ):
+        assert_user_has_permission(user, constants.GovPermissions.MANAGE_TEAM_ADVICE)
 
         if Advice.objects.filter(case=case, user=user).exists():
             return JsonResponse(
@@ -26,15 +27,13 @@ def check_if_user_cannot_manage_team_advice(case, user):
 
 def check_if_final_advice_exists(case):
     if FinalAdvice.objects.filter(case=case):
-        return JsonResponse(
-            {"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST,
-        )
+        return JsonResponse({"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def check_if_team_advice_exists(case, user):
     if TeamAdvice.objects.filter(case=case, team=user.team):
         return JsonResponse(
-            {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST,
+            {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -45,9 +44,8 @@ def check_refusal_errors(advice):
 
 
 def post_advice(request, case, serializer_object, team=False):
-    application = BaseApplication.objects.get(id=case.application_id)
 
-    if CaseStatusEnum.is_terminal(application.status.status):
+    if CaseStatusEnum.is_terminal(case.status.status):
         return JsonResponse(
             data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
             status=status.HTTP_400_BAD_REQUEST,

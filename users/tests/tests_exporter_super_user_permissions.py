@@ -1,18 +1,18 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
-from conf.constants import Permissions, Roles
+from conf.constants import GovPermissions, Roles
 from test_helpers.clients import DataTestClient
 from users.models import Permission
 
 
 class SuperUserTests(DataTestClient):
     def test_super_user_role_cannot_be_edited(self):
-        role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
-        url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
+        url = reverse(
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+        )
 
-        data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -20,10 +20,11 @@ class SuperUserTests(DataTestClient):
         self.assertEqual(self.exporter_super_user_role.permissions.count(), Permission.exporter.all().count())
 
     def test_exporter_default_user_role_cannot_be_edited(self):
-        role_id = Roles.EXPORTER_DEFAULT_ROLE_ID
-        url = reverse("organisations:role", kwargs={"pk": role_id, "org_pk": self.organisation.id})
+        url = reverse(
+            "organisations:role", kwargs={"pk": Roles.EXPORTER_SUPER_USER_ROLE_ID, "org_pk": self.organisation.id}
+        )
 
-        data = {"permissions": [Permissions.MANAGE_FINAL_ADVICE]}
+        data = {"permissions": [GovPermissions.MANAGE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -49,7 +50,7 @@ class SuperUserTests(DataTestClient):
         valid_user.save()
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.exporter_user.save()
-        data = {"role": self.default_role.id}
+        data = {"role": self.exporter_default_role.id}
         url = reverse("organisations:user", kwargs={"user_pk": valid_user.id, "org_pk": self.organisation.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
