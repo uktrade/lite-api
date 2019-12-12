@@ -3,7 +3,7 @@ from uuid import UUID
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
@@ -15,7 +15,6 @@ from conf.authentication import ExporterAuthentication, ExporterOnlyAuthenticati
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
-from organisations.libraries import get_organisation
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
