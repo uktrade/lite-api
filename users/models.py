@@ -101,14 +101,14 @@ class ExporterUser(BaseUser):
         Notification = get_model("cases.Notification")
 
         if case_note:
-            Notification.objects.create(user=self, case_note=case_note)
+            Notification.objects.create(user=self, content_object=case_note)
         elif query:
             actual_query = Query.objects.get(id=query.id)
-            Notification.objects.create(user=self, query=actual_query)
+            Notification.objects.create(user=self, content_object=actual_query)
         elif ecju_query:
-            Notification.objects.create(user=self, ecju_query=ecju_query)
+            Notification.objects.create(user=self, content_object=ecju_query)
         elif generated_case_document:
-            Notification.objects.create(user=self, generated_case_document=generated_case_document)
+            Notification.objects.create(user=self, content_object=generated_case_document)
         else:
             raise Exception("ExporterUser.send_notification: objects expected have not been added.")
 
@@ -152,10 +152,10 @@ class GovUser(BaseUser):
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                notification = Notification.objects.get(user=self, case_activity__case=case_activity.case)
+                notification = Notification.objects.filter(user=self, case_activity__case=case_activity.case)
                 notification.case_activity = case_activity
                 notification.save()
             except Notification.DoesNotExist:
-                Notification.objects.create(user=self, case_activity=case_activity)
+                Notification.objects.create(user=self, content_object=case_activity)
         else:
             raise Exception("GovUser.send_notification: objects expected have not been added.")

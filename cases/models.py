@@ -2,6 +2,8 @@ import re
 import uuid
 
 import reversion
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
@@ -40,6 +42,20 @@ class Case(TimeStampedModel):
     objects = CaseManager()
 
 
+class Notification(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
+    viewed_at = models.DateTimeField(null=True)
+    content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
+    object_id = models.UUIDField(default=uuid.uuid4)
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    def get_item(self):
+        return self.content_object
+
+    def get_case(self):
+        return getattr(self.get_item(), "case", None)
+
+
 @reversion.register()
 class CaseNote(models.Model):
     """
@@ -52,6 +68,8 @@ class CaseNote(models.Model):
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
+
+    notification = GenericRelation(Notification, related_query_name="case_note")
 
     def save(self, *args, **kwargs):
         try:
@@ -214,6 +232,8 @@ class EcjuQuery(models.Model):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
 
+    notification = GenericRelation(Notification, related_query_name="ecju_query")
+
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
 
@@ -296,6 +316,8 @@ class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
 
+    notification = GenericRelation(Notification, related_query_name="case_activity")
+
     @classmethod
     def create(
         cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
@@ -312,7 +334,6 @@ class CaseActivity(BaseActivity):
 
 
 class GoodCountryDecision(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
@@ -323,28 +344,6 @@ class GoodCountryDecision(models.Model):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class Notification(models.Model):
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey("queries.Query", on_delete=models.CASCADE, null=True)
-    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
-    generated_case_document = models.ForeignKey(
-        "generated_documents.GeneratedCaseDocument", on_delete=models.CASCADE, null=True
-    )
-    case_activity = models.ForeignKey(CaseActivity, on_delete=models.CASCADE, null=True)
-    viewed_at = models.DateTimeField(null=True)
-
-    def get_item(self):
-        return next(
-            item
-            for item in [self.case_note, self.query, self.ecju_query, self.generated_case_document]
-            if item is not None
-        )
-
-    def get_case(self):
-        return getattr(self.get_item(), "case", None)
 
 
 class CaseType(models.Model):
