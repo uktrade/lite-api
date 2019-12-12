@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -193,6 +193,10 @@ class AssignSites(UpdateAPIView):
         organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
         request_user_relationship = get_user_organisation_relationship(request.user, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
+
+        # Ensure that the request user isn't the same as the user being acted upon
+        if str(request.user.id) == str(kwargs["pk"]):
+            raise PermissionDenied()
 
         # Get a list of all the sites that the request user has access to!
         request_user_sites = list(request_user_relationship.sites.all())
