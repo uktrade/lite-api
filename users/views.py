@@ -5,6 +5,7 @@ from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import ParseError
+from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -12,8 +13,12 @@ from rest_framework.views import APIView
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
+from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
-from users.libraries.get_user import get_user_by_pk
+from organisations.libraries import get_organisation
+from organisations.libraries.get_organisation import get_organisation_by_pk
+from organisations.libraries.get_site import get_site
+from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
 from users.serializers import (
@@ -138,7 +143,7 @@ class UserMeDetail(APIView):
         return JsonResponse(data={"user": serializer.data})
 
 
-class NotificationViewSet(generics.ListAPIView):
+class NotificationViewSet(ListAPIView):
     model = Notification
     serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
@@ -179,3 +184,28 @@ class CaseNotification(APIView):
         notification.delete()
 
         return JsonResponse(data={"notification": serializer.data})
+
+
+class AssignSites(UpdateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def put(self, request, *args, **kwargs):
+        sites = JSONParser().parse(request)["sites"]
+        organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
+        request_user_relationship = get_user_organisation_relationship(request.user, organisation)
+        user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
+
+        # Get a list of all the sites that the request user has access to!
+        request_user_sites = list(request_user_relationship.sites.all())
+        user_sites = list(user_organisation_relationship.sites.all())
+        diff_sites = [x for x in user_sites if x not in request_user_sites]
+
+        # Ensure user has access to the sites they're trying to assign the user to
+        for site in sites:
+            site = get_site(site, organisation)
+            if site not in request_user_sites:
+                raise NotFoundError("You don't have access to the sites you're trying to assign the user to.")
+
+        user_organisation_relationship.sites.set(diff_sites + sites)
+
+        return JsonResponse(data={"sites": "Hello!"})
