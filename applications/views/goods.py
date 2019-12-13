@@ -76,7 +76,7 @@ class ApplicationGoodsOnApplication(APIView):
 
             good = get_good_with_organisation(data.get("good"), request.user.organisation)
 
-            if GoodDocument.objects.filter(good=good).count() == 0:
+            if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(
                     data={"error": "Cannot attach a good with no documents"}, status=status.HTTP_400_BAD_REQUEST,
                 )

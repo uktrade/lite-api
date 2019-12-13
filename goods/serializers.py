@@ -47,6 +47,7 @@ class GoodListSerializer(serializers.ModelSerializer):
             "status",
             "documents",
             "query_id",
+            "missing_document_reason"
         )
 
 
