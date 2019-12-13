@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -36,7 +35,6 @@ class PartyFlagsManagementTests(DataTestClient):
 
         self.assign_flag_url = reverse("flags:assign_flags")
 
-    @tag("flags")
     def test_user_can_add_destination_level_flags_from_their_own_team(self):
         """
         Given a Good with no Flags assigned
@@ -70,7 +68,6 @@ class PartyFlagsManagementTests(DataTestClient):
         self.assertEquals(len(data["flags"]), len(country.flags.all()))
         self.assertTrue(self.team_destination_flag_1 in country.flags.all())
 
-    @tag("flags")
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
         """
         Given a Good with no Flags assigned
@@ -89,7 +86,6 @@ class PartyFlagsManagementTests(DataTestClient):
         self.assertEquals(0, len(self.end_user.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
-    @tag("flags")
     def test_user_cannot_assign_flags_that_are_not_destination_level(self):
         """
         Given a Good with no Flags assigned
@@ -108,7 +104,6 @@ class PartyFlagsManagementTests(DataTestClient):
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertEquals(0, len(self.end_user.flags.all()))
 
-    @tag("flags")
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """
         Given a Good with Flags already assigned
@@ -131,7 +126,6 @@ class PartyFlagsManagementTests(DataTestClient):
         for flag in self.all_flags:
             self.assertTrue(flag in self.end_user.flags.all())
 
-    @tag("flags")
     def test_setting_flags_on_two_parties(self):
         """
         Tests setting multiple flags on multiple goods types simultaneously
@@ -148,7 +142,7 @@ class PartyFlagsManagementTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 2)
 
-    # @tag("flags")
+    # TODO: Complete when new activity stream is in place
     # def test_flagging_a_good_creates_timeline_entries(self):
     #     """
     #     When a user adds a flag to a good, it should add a timeline entry
