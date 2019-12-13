@@ -143,3 +143,32 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
+
+    def test_gov_set_status_when_they_have_do_not_permission_to_reopen_closed_cases_failure(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        self.standard_application.save()
+
+        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
+
+    def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        self.standard_application.save()
+
+        # Give gov user super used role, to include reopen closed cases permission
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+
+        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES))

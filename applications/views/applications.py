@@ -29,7 +29,7 @@ from applications.serializers.generic_application import GenericApplicationListS
 from cases.enums import CaseTypeEnum
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import ExporterPermissions
+from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
@@ -218,14 +218,12 @@ class ApplicationManageStatus(APIView):
 
             validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(new_status_enum)
+            validation_error = validate_status_can_be_set_by_gov_user(
+                request.user, application.status.status, new_status_enum
+            )
 
         if validation_error:
             return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Only allow status change to FINALISED if user has MANAGE_FINAL_ADVICE permission
-        if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)
