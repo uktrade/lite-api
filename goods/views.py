@@ -12,6 +12,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseActivity
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -137,6 +138,17 @@ class GoodList(APIView):
             serializer.save()
 
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class GoodDocumentSensitivity(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def post(self, request, pk):
+        good = get_good(pk)
+        sensitive = str_to_bool(request.data["sensitive"])
+
+        serializer = GoodSerializer(good)
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GoodDetail(APIView):
