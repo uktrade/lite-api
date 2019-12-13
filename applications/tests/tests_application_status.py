@@ -171,4 +171,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES))
+        self.assertEqual(
+            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)
+        )
