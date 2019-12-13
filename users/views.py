@@ -3,10 +3,9 @@ from uuid import UUID
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.generics import ListAPIView, UpdateAPIView
-from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
@@ -42,7 +41,7 @@ class AuthenticateExporterUser(APIView):
         Returns a token which is just our ID for the user
         """
         try:
-            data = JSONParser().parse(request)
+            data = request.data
         except ParseError:
             return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -115,7 +114,7 @@ class UserDetail(APIView):
         Update Exporter user
         """
         user = get_user_by_pk(pk)
-        data = JSONParser().parse(request)
+        data = request.data
         data["organisation"] = request.user.organisation.id
 
         serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
@@ -189,7 +188,7 @@ class AssignSites(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     def put(self, request, *args, **kwargs):
-        sites = JSONParser().parse(request)["sites"]
+        sites = request.data.get("sites", [])
         organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
         request_user_relationship = get_user_organisation_relationship(request.user, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
@@ -202,6 +201,7 @@ class AssignSites(UpdateAPIView):
         request_user_sites = list(request_user_relationship.get_sites().all())
         user_sites = list(user_organisation_relationship.get_sites().all())
         diff_sites = [x for x in user_sites if x not in request_user_sites]
+        combined_sites = diff_sites + sites
 
         # Ensure user has access to the sites they're trying to assign the user to
         for site in sites:
@@ -209,6 +209,9 @@ class AssignSites(UpdateAPIView):
             if site not in request_user_sites:
                 raise NotFoundError("You don't have access to the sites you're trying to assign the user to.")
 
-        user_organisation_relationship.sites.set(diff_sites + sites)
+        if not combined_sites:
+            raise serializers.ValidationError({"errors": {"sites": ["Select at least one site to assign the user to"]}})
+
+        user_organisation_relationship.sites.set(combined_sites)
 
         return JsonResponse(data={"status": "success"})
