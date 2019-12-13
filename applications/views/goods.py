@@ -177,7 +177,7 @@ class ApplicationGoodsTypes(APIView):
             action_object=serializer.instance,
             target=application.get_case(),
             payload={
-                'good_type_name': {"name": serializer.instance.description}
+                'good_type_name': serializer.instance.description
             }
         )
 
@@ -215,7 +215,7 @@ class ApplicationGoodsType(APIView):
             action_object=goods_type,
             target=Case.objects.get(id=application.id),
             payload={
-                'good_type_name': {"name": goods_type.description},
+                'good_type_name': goods_type.description,
             }
         )
 
