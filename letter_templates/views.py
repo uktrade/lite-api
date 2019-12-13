@@ -78,7 +78,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         template_object = self.get_object()
         old_case_types = set(template_object.case_types.all().values_list('name', flat=True))
         old_paragraphs = set(template_object.letter_paragraphs.all().values_list('id', flat=True))
-        old_layout = template_object.layout
+        old_layout_id = str(template_object.layout.id)
         old_name = template_object.name
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
@@ -124,7 +124,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
             if request.data.get("layout"):
                 new_layout = request.data.get("layout")
-                if new_layout != old_layout.id:
+                if new_layout != old_layout_id:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_LAYOUT,
