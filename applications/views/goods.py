@@ -30,6 +30,7 @@ from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
+from lite_content.lite_api.goods import GoodsOnApplication
 
 
 class ApplicationGoodsOnApplication(APIView):
