@@ -15,9 +15,6 @@ from organisations.models import ExternalLocation, Site
 from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
 from parties.serializers import (
     EndUserSerializer,
-    UltimateEndUserSerializer,
-    ThirdPartySerializer,
-    ConsigneeSerializer,
     EndUserWithFlagsSerializer,
     UltimateEndUserWithFlagsSerializer,
     ThirdPartyWithFlagsSerializer,
