@@ -153,8 +153,13 @@ class SiteViewSerializer(serializers.ModelSerializer):
     def get_users(self, instance):
         users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__in=[instance.id])])
         super_users = set(
-            [x.user for x in UserOrganisationRelationship.objects.filter(organisation=instance.organisation,
-                                                                         role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)])
+            [
+                x.user
+                for x in UserOrganisationRelationship.objects.filter(
+                    organisation=instance.organisation, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
+                )
+            ]
+        )
         return ExporterUserSimpleSerializer(users.union(super_users), many=True).data
 
     class Meta:

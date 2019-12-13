@@ -9,7 +9,7 @@ from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer
@@ -74,6 +74,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     def get_sites(self, instance):
         from organisations.serializers import SiteViewSerializer
+
         if self.context:
             sites = get_user_organisation_relationship(instance, self.context).get_sites().all()
             return SiteViewSerializer(sites, many=True).data
@@ -97,15 +98,11 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
     role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
+    sites = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), write_only=True, many=True)
 
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "email",
-            "role",
-            "organisation",
-        )
+        fields = ("id", "email", "role", "organisation", "sites")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -134,16 +131,23 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
+        sites = validated_data.pop("sites")
         role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         if "role" in validated_data:
             role = validated_data.pop("role")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
+
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
-            UserOrganisationRelationship(user=exporter, organisation=organisation, role=role).save()
+            relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
+            relationship.save()
+            relationship.sites.set(sites)
         else:
-            UserOrganisationRelationship(
+            relationship = UserOrganisationRelationship(
                 user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
-            ).save()
+            )
+            relationship.save()
+            relationship.sites.set(sites)
+
         return exporter
 
     def update(self, instance, validated_data):

@@ -32,4 +32,7 @@ class UserTests(DataTestClient):
 
         response, _ = self.get(self.url, **self.exporter_headers)
 
-        self.assertEqual(response["user"]["sites"], convert_queryset_to_str(user_organisation_relationship.sites.all().values_list("id", flat=True)))
+        self.assertEqual(
+            response["user"]["sites"],
+            convert_queryset_to_str(user_organisation_relationship.sites.all().values_list("id", flat=True)),
+        )

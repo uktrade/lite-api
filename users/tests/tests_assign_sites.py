@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -22,7 +21,6 @@ class AssignSitesTest(DataTestClient):
         self.exporter_user_2 = self.create_exporter_user(self.organisation)
         self.url = reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user_2.id})
 
-    @tag("only")
     def test_assign_sites(self):
         data = {"sites": [self.site_1.id, self.site_2.id]}
 
@@ -32,7 +30,6 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(user_organisation_relationship.sites.count(), len(data["sites"]))
 
-    @tag("only")
     def test_assign_sites_doesnt_override_existing_sites(self):
         # Set up the second user with different sites to what exporter_user has
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user_2, self.organisation)
@@ -45,7 +42,6 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(user_organisation_relationship.sites.count(), len(data["sites"]) + 2)
 
-    @tag("only")
     def test_cannot_assign_user_to_sites_it_doesnt_have_access_to(self):
         data = {"sites": [self.site_4.id]}
 
@@ -55,7 +51,6 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(user_organisation_relationship.sites.count(), 0)
 
-    @tag("only")
     def test_user_cannot_be_assigned_to_site_in_another_organisation(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
         data = {"sites": [organisation_2.primary_site.id]}
@@ -66,11 +61,12 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(user_organisation_relationship.sites.count(), 0)
 
-    @tag("only")
     def test_user_cannot_assign_themselves_to_sites(self):
         data = {"sites": [self.site_1.id]}
 
-        response = self.client.put(reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers)
+        response = self.client.put(
+            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers
+        )
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
