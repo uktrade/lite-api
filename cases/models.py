@@ -69,7 +69,7 @@ class CaseNote(models.Model):
         if creating and self.is_visible_to_exporter:
             organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.user.send_notification(content_object=self)
+                user_relationship.send_notification(content_object=self)
 
 
 class CaseAssignment(models.Model):
@@ -228,7 +228,7 @@ class EcjuQuery(models.Model):
             super(EcjuQuery, self).save(*args, **kwargs)
             organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.user.send_notification(content_object=self)
+                user_relationship.send_notification(content_object=self)
         else:
             self.responded_at = timezone.now()
             super(EcjuQuery, self).save(*args, **kwargs)

@@ -47,21 +47,21 @@ class MoveCasesTests(DataTestClient):
 
     def test_case_activity_created(self):
         self.assertEqual(CaseActivity.objects.all().count(), 0)
-
         queues_data = {"queues": [queue.id for queue in self.queues]}
 
         self.client.put(self.url, data=queues_data, **self.gov_headers)
 
-        add_case_activity = CaseActivity.objects.first()
-        self.assertEqual(add_case_activity.type, CaseActivityType.MOVE_CASE)
+        self.assertEqual(CaseActivity.objects.all().count(), 1)
+        case_activities = CaseActivity.objects.all().values_list("type", flat=True)
+        self.assertTrue(CaseActivityType.MOVE_CASE in case_activities)
 
         no_queues_data = {"queues": []}
 
         self.client.put(self.url, data=no_queues_data, **self.gov_headers)
 
-        remove_case_activity = CaseActivity.objects.last()
-        self.assertEqual(remove_case_activity.type, CaseActivityType.REMOVE_CASE)
         self.assertEqual(CaseActivity.objects.all().count(), 2)
+        case_activities = CaseActivity.objects.all().values_list("type", flat=True)
+        self.assertTrue(CaseActivityType.REMOVE_CASE in case_activities)
 
     @parameterized.expand(
         [

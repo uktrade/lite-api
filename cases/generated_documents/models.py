@@ -19,4 +19,4 @@ class GeneratedCaseDocument(CaseDocument):
 
         if creating:
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
-                user_relationship.user.send_notification(content_object=self)
+                user_relationship.send_notification(content_object=self)

@@ -104,9 +104,7 @@ class BaseNotification(models.Model):
 
 
 class ExporterNotification(BaseNotification):
-    from organisations.models import Organisation
-
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, null=False)
+    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=False)
 
 
 class GovNotification(BaseNotification):
@@ -114,8 +112,8 @@ class GovNotification(BaseNotification):
 
 
 class ExporterUser(BaseUser):
-    def send_notification(self, content_object):
-        ExporterNotification.objects.create(user=self, content_object=content_object)
+    def send_notification(self, organisation, content_object):
+        ExporterNotification.objects.create(user=self, organisation=organisation, content_object=content_object)
 
     def get_role(self, organisation):
         return self.userorganisationrelationship_set.get(organisation=organisation).role
@@ -160,3 +158,8 @@ class UserOrganisationRelationship(TimeStampedModel):
         Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+
+    def send_notification(self, content_object):
+        ExporterNotification.objects.create(
+            user=self.user, organisation=self.organisation, content_object=content_object
+        )

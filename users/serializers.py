@@ -168,7 +168,7 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
 
 class CaseActivityNotificationGetSerializer(serializers.ModelSerializer):
     """
-    This serializer expects only notifications containing 'case_activity' content_types
+    This serializer expects notification querysets containing only 'CaseActivity' Content Types
     """
 
     case_activity = serializers.SerializerMethodField()
