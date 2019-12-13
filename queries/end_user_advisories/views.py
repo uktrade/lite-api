@@ -89,7 +89,7 @@ class EndUserAdvisoryDetail(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_STATUS,
-                    target=end_user_advisory,
+                    target=end_user_advisory.get_case(),
                     payload={'status': data.get('status')}
                 )
                 serializer.update(end_user_advisory, request.data)
