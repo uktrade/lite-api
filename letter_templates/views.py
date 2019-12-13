@@ -77,8 +77,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
         old_case_types = set(template_object.case_types.all().values_list('name', flat=True))
-        old_paragraphs = set(template_object.letter_paragraphs.all().values_list('id', flat=True))
+        old_paragraphs = set(template_object.letter_paragraphs.all().values_list('name', flat=True))
         old_layout_id = str(template_object.layout.id)
+        old_layout_name = str(template_object.layout.name)
         old_name = template_object.name
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
@@ -104,21 +105,21 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
                         target=serializer.instance,
                         payload={
-                            'case_types': sorted(new_case_types),
+                            'old_case_types': sorted(old_case_types),
+                            'new_case_types': sorted(new_case_types),
                         }
                     )
 
             if request.data.get("letter_paragraphs"):
-                new_paragraphs = request.data.get("letter_paragraphs")
+                new_paragraphs = set(serializer.instance.letter_paragraphs.all().values_list('name', flat=True))
                 if new_paragraphs != old_paragraphs:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
                         target=serializer.instance,
                         payload={
-                            'letter_paragraphs': list(
-                                serializer.instance.letter_paragraphs.all().values_list('name', flat=True)
-                            ),
+                            'old_paragraphs': list(old_paragraphs),
+                            'new_paragraphs': list(new_paragraphs),
                         }
                     )
 
@@ -129,7 +130,10 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_LAYOUT,
                         target=serializer.instance,
-                        payload={'layout': serializer.instance.layout.name}
+                        payload={
+                            'old_layout': old_layout_name,
+                            'new_layout': serializer.instance.layout.name
+                        }
                     )
 
             return JsonResponse(serializer.data)
