@@ -3,7 +3,7 @@ from django.db import models
 
 from goods.models import Good
 from queries.models import Query
-from cases.models import Notification
+from users.models import BaseNotification
 
 
 class ControlListClassificationQuery(Query):
@@ -14,4 +14,4 @@ class ControlListClassificationQuery(Query):
     details = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name="good")
 
-    notification = GenericRelation(Notification, related_query_name="clc_query")
+    notification = GenericRelation(BaseNotification, related_query_name="clc_query")

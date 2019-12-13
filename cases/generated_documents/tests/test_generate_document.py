@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseActivity, Notification
+from cases.models import CaseActivity, BaseNotification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
 from lite_content.lite_api.letter_templates import LetterTemplatesPage
@@ -40,7 +40,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
-            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 1
+            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 1
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -56,7 +56,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
         self.assertTrue(
-            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
         )
         upload_bytes_file_func.assert_not_called()
 
@@ -74,7 +74,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
         self.assertTrue(
-            Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
         )
 
     def test_get_document_preview_success(self):

@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
@@ -9,18 +8,18 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from cases.models import Notification
+from cases.models import BaseNotification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     NotificationSerializer,
-    CaseNotificationGetSerializer,
+    CaseActivityNotificationGetSerializer,
 )
 
 
@@ -139,22 +138,20 @@ class UserMeDetail(APIView):
 
 
 class NotificationViewSet(generics.ListAPIView):
-    model = Notification
-    serializer_class = NotificationSerializer
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
-    queryset = Notification.objects.all()
+
+    model = BaseNotification
+    serializer_class = NotificationSerializer
+    queryset = BaseNotification.objects.all()
 
     def get_queryset(self):
-        organisation_id = self.request.META["HTTP_ORGANISATION_ID"]
+        organisation_id = self.request.user.organisation.id
 
         # Get all notifications for the current user and organisation on License Application cases,
-        # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects.filter(user=self.request.user).filter(
-            Q(case_note__case__organisation_id=organisation_id)
-            | Q(ecju_query__case__organisation_id=organisation_id)
-            | Q(query__organisation__id=organisation_id)
-            | Q(generated_case_document__case__organisation__id=organisation_id)
+        # those arising from case notes, generated documents and clc/ecju/eua queries
+        queryset = ExporterNotification.objects.filter(
+            user=self.request.user, organisation=self.request.user.organisation
         )
 
         if self.request.GET.get("unviewed"):
@@ -171,11 +168,11 @@ class CaseNotification(APIView):
         case = self.request.GET.get("case")
 
         try:
-            notification = Notification.objects.get(user=user, case_activity__case__id=case)
-        except Notification.DoesNotExist:
+            notification = BaseNotification.objects.get(user=user, case_activity__case__id=case)
+        except BaseNotification.DoesNotExist:
             return JsonResponse(data={"notification": None})
 
-        serializer = CaseNotificationGetSerializer(notification)
+        serializer = CaseActivityNotificationGetSerializer(notification)
         notification.delete()
 
         return JsonResponse(data={"notification": serializer.data})

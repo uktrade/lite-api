@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from rest_framework import status
 
-from cases.models import Notification
+from cases.models import BaseNotification
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 
@@ -18,7 +18,7 @@ class NotificationTests(DataTestClient):
         self.create_case_note(clc_case, "This is a test note 3", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 4", self.gov_user, False)
 
-        self.assertEqual(Notification.objects.all().count(), 3)
+        self.assertEqual(BaseNotification.objects.all().count(), 3)
 
     def test_create_new_application_notification(self):
         application = self.create_standard_application(self.organisation)
@@ -28,7 +28,7 @@ class NotificationTests(DataTestClient):
         self.create_case_note(case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case, "This is a test note 2", self.gov_user, False)
 
-        self.assertEqual(Notification.objects.all().count(), 1)
+        self.assertEqual(BaseNotification.objects.all().count(), 1)
 
     def test_create_both_clc_and_application_notifications(self):
         application = self.create_standard_application(self.organisation)
@@ -45,12 +45,12 @@ class NotificationTests(DataTestClient):
         self.create_case_note(clc_case, "This is a test note 2", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 3", self.gov_user, True)
 
-        self.assertEqual(Notification.objects.all().count(), 7)
+        self.assertEqual(BaseNotification.objects.all().count(), 7)
         self.assertEqual(
-            Notification.objects.filter(case_note__case__id=case.id).count(), 4,
+            BaseNotification.objects.filter(case_note__case__id=case.id).count(), 4,
         )
         self.assertEqual(
-            Notification.objects.filter(case_note__case__id=clc_case.id).count(), 3,
+            BaseNotification.objects.filter(case_note__case__id=clc_case.id).count(), 3,
         )
 
     def tests_get_notifications_for_user_in_multiple_orgs(self):
@@ -78,8 +78,9 @@ class NotificationTests(DataTestClient):
         self.submit_application(application2)
         case2 = application2
 
-        self.create_case_note(case2, "This is a test note 3", self.gov_user, True)
-        self.create_case_note(case2, "This is a test note 4", self.gov_user, True)
+        case_note1 = self.create_case_note(case2, "This is a test note 3", self.gov_user, True)
+        case_note2 = self.create_case_note(case2, "This is a test note 4", self.gov_user, True)
+        case_notes = [str(case_note1.id), str(case_note2.id)]
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -90,5 +91,5 @@ class NotificationTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
         # Check that the 2 notifications we got are the ones arising from notes on application 2, i.e. the application
         # created while org_2 is the currently selected org
-        self.assertEqual(response_data[0]["parent"], str(application2.id))
-        self.assertEqual(response_data[1]["parent"], str(application2.id))
+        for data in response_data:
+            self.assertTrue(data["object_id"] in case_notes)
