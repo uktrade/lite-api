@@ -56,7 +56,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(
-                data={"error": "Invalid value supplied for validate_only"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"error": GoodsOnApplication.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if "validate_only" in data and data["validate_only"] is True:
@@ -68,7 +68,7 @@ class ApplicationGoodsOnApplication(APIView):
         else:
             if "good_id" not in data:
                 return JsonResponse(
-                    data={"error": "Good ID required when adding good to application"},
+                    data={"error": GoodsOnApplication.GOOD_ID_ERROR},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -78,7 +78,7 @@ class ApplicationGoodsOnApplication(APIView):
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(
-                    data={"error": "Cannot attach a good with no documents"}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": GoodsOnApplication.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
