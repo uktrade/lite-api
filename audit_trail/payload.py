@@ -53,4 +53,8 @@ class AuditType(Enum):
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = "updated letter paragraphs ordering"
 
     def format(self, payload):
-        return self.value.format(**payload)
+        text = self.value.format(**payload)
+        if text[-1] not in [':', '.', '?']:
+            return f'{text}.'
+
+        return text

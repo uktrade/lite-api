@@ -36,7 +36,7 @@ class AuditSerializer(serializers.ModelSerializer):
             except:
                 pass
 
-        return verb.value.format(**payload)
+        return verb.format(payload)
 
     def get_additional_text(self, instance):
         return instance.payload.get("additional_text", "")
