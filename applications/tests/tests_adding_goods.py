@@ -191,5 +191,5 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         url = reverse("applications:application_goods", kwargs={"pk": draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

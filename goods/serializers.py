@@ -7,7 +7,7 @@ from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
-from lite_content.lite_api import strings
+from lite_content.lite_api import strings, goods
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
@@ -71,7 +71,7 @@ class GoodSerializer(serializers.ModelSerializer):
         choices=GoodMissingDocumentReasons.choices,
         allow_blank=True,
         required=False,
-        error_messages={"invalid_choice": "You must select a valid reason for why you are not uploading a document"},
+        error_messages={"invalid_choice": goods.Good.INVALID_MISSING_DOCUMENT_REASON},
     )
 
     class Meta:

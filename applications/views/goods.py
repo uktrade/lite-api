@@ -69,8 +69,7 @@ class ApplicationGoodsOnApplication(APIView):
         else:
             if "good_id" not in data:
                 return JsonResponse(
-                    data={"error": GoodsOnApplication.GOOD_ID_ERROR},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": GoodsOnApplication.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             data["good"] = data["good_id"]
