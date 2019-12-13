@@ -41,8 +41,8 @@ def get_destination_flags(instance):
     flags = countries_flags
     if isinstance(application, StandardApplication):
         standard_application_destination_flags = get_standard_application_destination_flags(application, flags)
+        flags += standard_application_destination_flags
 
-        return flags + standard_application_destination_flags
     return flags
 
 
