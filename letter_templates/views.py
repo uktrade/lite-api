@@ -77,7 +77,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
         old_case_types = set(template_object.case_types.all().values_list('name', flat=True))
-        old_paragraphs = list(template_object.letter_paragraphs.all().values_list('name', flat=True))
+        old_paragraphs = list(template_object.letter_paragraphs.all().values_list('id', 'name'))
         old_layout_id = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         old_name = template_object.name
@@ -111,15 +111,15 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("letter_paragraphs"):
-                new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list('name', flat=True))
+                new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list('id', 'name'))
                 if set(new_paragraphs) != set(old_paragraphs):
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
                         target=serializer.instance,
                         payload={
-                            'old_paragraphs': old_paragraphs,
-                            'new_paragraphs': new_paragraphs,
+                            'old_paragraphs': [p[1] for p in old_paragraphs],
+                            'new_paragraphs': [p[1] for p in new_paragraphs],
                         }
                     )
                 else:
