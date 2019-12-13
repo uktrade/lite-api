@@ -29,7 +29,10 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
         self.assertEquals(errors["missing_document_reason"][0], Good.INVALID_MISSING_DOCUMENT_REASON)
 
     def test_missing_document_reason_valid_success(self):
-        data = {"has_document_to_upload": "no", "missing_document_reason": GoodMissingDocumentReasons.OFFICIAL_SENSITIVE}
+        data = {
+            "has_document_to_upload": "no",
+            "missing_document_reason": GoodMissingDocumentReasons.OFFICIAL_SENSITIVE,
+        }
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEquals(status.HTTP_200_OK, response.status_code)
