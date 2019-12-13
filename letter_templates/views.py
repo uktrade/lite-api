@@ -3,6 +3,7 @@ from rest_framework import generics, status
 
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
@@ -75,6 +76,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
+        old_case_types = template_object.case_types.all().values_list('name', flat=True)
+        old_paragraphs = template_object.letter_paragraphs.all().values_list('id', flat=True)
+        old_name = template_object.name
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
         if serializer.is_valid():
@@ -85,20 +89,36 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_NAME,
                     target=serializer.instance,
                     payload={
-                        'old_name': template_object.name,
+                        'old_name': old_name,
                         'new_name': serializer.instance.name,
                     }
                 )
                 
             if request.data.get("case_types"):
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
-                    target=serializer.instance,
-                    payload={
-                        'case_types': request.data.get("case_types"),
-                    }
-                )
+                new_case_types = set([CaseTypeEnum.get_text(choice) for choice in request.data.get("case_types")])
+                if new_case_types != old_case_types:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={
+                            'case_types': sorted(new_case_types),
+                        }
+                    )
+
+            if request.data.get("letter_paragraphs"):
+                new_paragraphs = request.data.get("letter_paragraphs")
+                if old_paragraphs != new_paragraphs:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                        payload={
+                            'letter_paragraphs': list(
+                                serializer.instance.letter_paragraphs.all().values_list('name', flat=True)
+                            ),
+                        }
+                    )
 
             return JsonResponse(serializer.data)
 
