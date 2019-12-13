@@ -84,10 +84,11 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
+        case = self.query.get_case()
         # Check that an audit item has been added
         audit_qs = Audit.objects.filter(
-            target_object_id=self.query.id,
-            target_content_type=ContentType.objects.get_for_model(self.query)
+            target_object_id=case.id,
+            target_content_type=ContentType.objects.get_for_model(case)
         )
         self.assertEqual(audit_qs.count(), 1)
 

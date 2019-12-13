@@ -15,8 +15,11 @@ class AuditManager(GFKManager):
 
     def create(self, *args, **kwargs):
         # TODO: decouple notifications and audit (signals?)
+        from cases.models import Case
         audit = super(AuditManager, self).create(*args, **kwargs)
-        if isinstance(kwargs.get('actor'), ExporterUser):
+
+        if isinstance(kwargs.get('target'), Case) and isinstance(kwargs.get('actor'), ExporterUser):
+            # Notify gov users when exporter updates a case
             for gov_user in GovUser.objects.all():
                 gov_user.send_notification(audit=audit)
 

@@ -98,7 +98,8 @@ class NotificationTests(DataTestClient):
         )
 
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
-        case = self.create_standard_application_case(self.organisation, "Case")
+        application = self.create_standard_application_case(self.organisation, "Case")
+        case = application.get_case()
         prev_notification_count = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
@@ -109,6 +110,7 @@ class NotificationTests(DataTestClient):
         data = {"status": "under_review"}
 
         response = self.client.put(url, data, **self.gov_headers)
+        application.refresh_from_db()
         case.refresh_from_db()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
