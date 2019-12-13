@@ -93,7 +93,7 @@ class ControlListClassificationDetail(APIView):
                         actor=request.user,
                         verb=AuditType.GOOD_REVIEWED,
                         action_object=query.good,
-                        target=query,
+                        target=query.get_case(),
                         payload={
                             "good_name": query.good.description,
                             'old_control_code': previous_control_code,
@@ -105,7 +105,7 @@ class ControlListClassificationDetail(APIView):
                     actor=request.user,
                     verb=AuditType.CLC_RESPONSE,
                     action_object=query.good,
-                    target=query,
+                    target=query.get_case(),
                 )
 
                 # Send a notification to the user
