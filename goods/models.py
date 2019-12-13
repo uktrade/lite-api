@@ -3,10 +3,12 @@ import uuid
 import reversion
 from django.db import models
 
+from conf.serializers import KeyValueChoiceField
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled
 from organisations.models import Organisation
+from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser
 
 
@@ -21,6 +23,9 @@ class Good(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
+    missing_document_reason = models.CharField(
+        choices=GoodMissingDocumentReasons.choices, blank=True, null=True, max_length=20
+    )
 
     # Gov
     comment = models.TextField(default=None, blank=True, null=True)
