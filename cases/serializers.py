@@ -1,12 +1,10 @@
-import itertools
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
     CaseNote,
@@ -23,11 +21,10 @@ from cases.models import (
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
-from flags.serializers import FlagSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
+from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -101,32 +98,7 @@ class TinyCaseSerializer(serializers.Serializer):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        case_flag_data = FlagSerializer(instance.flags.order_by("name"), many=True).data
-        org_flag_data = FlagSerializer(instance.organisation.flags.order_by("name"), many=True).data
-
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
-            goods = GoodOnApplication.objects.filter(application=instance).select_related("good")
-            goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by("name") for g in goods]))
-            good_ids = {}
-            goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
-            good_flag_data = FlagSerializer(goods_flags, many=True).data
-            parties = 
-            destination_flags = list(itertools.chain.from_iterable([]))
-        else:
-            good_flag_data = []
-
-        flag_data = case_flag_data + org_flag_data + good_flag_data
-        flag_data = sorted(flag_data, key=lambda x: x["name"])
-
-        if not self.team:
-            return flag_data
-
-        # Sort flags by user's team.
-        team_flags, non_team_flags = [], []
-        for flag in flag_data:
-            team_flags.append(flag) if flag["team"]["id"] == str(self.team.id) else non_team_flags.append(flag)
-
-        return team_flags + non_team_flags
+        return get_ordered_flags(instance, self.team)
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))

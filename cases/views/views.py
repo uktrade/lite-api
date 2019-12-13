@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
+from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.libraries.post_advice import (
@@ -44,6 +45,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
+from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from users.models import ExporterUser
 
@@ -437,3 +439,11 @@ class GoodsCountriesDecisions(APIView):
             return JsonResponse(data={"data": data})
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Destination(APIView):
+    def get(self, request, pk):
+        destination = get_destination(pk)
+        serializer = PartyWithFlagsSerializer(destination)
+
+        return JsonResponse(data={"destination": serializer.data})
