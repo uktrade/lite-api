@@ -47,7 +47,7 @@ class GoodListSerializer(serializers.ModelSerializer):
             "status",
             "documents",
             "query_id",
-            "missing_document_reason"
+            "missing_document_reason",
         )
 
 
@@ -68,8 +68,10 @@ class GoodSerializer(serializers.ModelSerializer):
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     missing_document_reason = serializers.ChoiceField(
-        choices=GoodMissingDocumentReasons.choices, allow_blank=True, required=False,
-        error_messages={"invalid_choice": "You must select a valid reason for why you are not uploading a document"}
+        choices=GoodMissingDocumentReasons.choices,
+        allow_blank=True,
+        required=False,
+        error_messages={"invalid_choice": "You must select a valid reason for why you are not uploading a document"},
     )
 
     class Meta:
