@@ -27,9 +27,8 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from cases.enums import CaseTypeEnum
-from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
-from conf.constants import ExporterPermissions, GovPermissions
+from conf.constants import ExporterPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
