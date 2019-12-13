@@ -77,7 +77,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
         old_case_types = set(template_object.case_types.all().values_list('name', flat=True))
-        old_paragraphs = set(template_object.letter_paragraphs.all().values_list('name', flat=True))
+        old_paragraphs = list(template_object.letter_paragraphs.all().values_list('name', flat=True))
         old_layout_id = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         old_name = template_object.name
@@ -111,17 +111,26 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("letter_paragraphs"):
-                new_paragraphs = set(serializer.instance.letter_paragraphs.all().values_list('name', flat=True))
-                if new_paragraphs != old_paragraphs:
+                new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list('name', flat=True))
+                if set(new_paragraphs) != set(old_paragraphs):
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
                         target=serializer.instance,
                         payload={
-                            'old_paragraphs': list(old_paragraphs),
-                            'new_paragraphs': list(new_paragraphs),
+                            'old_paragraphs': old_paragraphs,
+                            'new_paragraphs': new_paragraphs,
                         }
                     )
+                else:
+                    for n, o in zip(new_paragraphs, old_paragraphs):
+                        if n != o:
+                            audit_trail_service.create(
+                                actor=request.user,
+                                verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
+                                target=serializer.instance,
+                            )
+                            break
 
             if request.data.get("layout"):
                 new_layout = request.data.get("layout")

@@ -1,4 +1,3 @@
-from ast import literal_eval
 from copy import deepcopy
 
 from rest_framework import serializers
