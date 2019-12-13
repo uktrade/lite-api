@@ -148,13 +148,17 @@ class GoodDocumentCriteriaCheck(APIView):
         data = request.data
         document_to_upload = str_to_bool(data["has_document_to_upload"])
         if not document_to_upload:
+            good.missing_document_reason = data["missing_document_reason"]
             serializer = GoodSerializer(instance=good, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                good_data = serializer.data
             else:
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            good_data = GoodSerializer(good).data
 
-        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
 
 class GoodDetail(APIView):
