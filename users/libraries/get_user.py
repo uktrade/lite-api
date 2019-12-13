@@ -58,7 +58,7 @@ def get_users_from_organisation(pk):
         raise NotFoundError({"organisation": "Organisation not found - " + str(pk)})
 
 
-def get_user_organisation_relationship(user: ExporterUser, organisation: Organisation):
+def get_user_organisation_relationship(user: ExporterUser, organisation: Organisation) -> UserOrganisationRelationship:
     try:
         user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
         return user_organisation_relationship

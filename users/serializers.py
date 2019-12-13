@@ -14,7 +14,7 @@ from queries.helpers import get_exporter_query
 from queries.models import Query
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
-from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
+from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email, get_user_organisation_relationship
 from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
 
 
@@ -36,6 +36,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
+    sites = serializers.SerializerMethodField()
 
     class Meta:
         model = ExporterUser
@@ -67,8 +68,15 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     def get_role(self, instance):
         if self.context:
-            role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
+            role = get_user_organisation_relationship(instance, self.context).role
             return RoleSerializer(role).data
+        return None
+
+    def get_sites(self, instance):
+        from organisations.serializers import SiteViewSerializer
+        if self.context:
+            sites = get_user_organisation_relationship(instance, self.context).get_sites().all()
+            return SiteViewSerializer(sites, many=True).data
         return None
 
 
@@ -145,31 +153,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get("email", instance.email)
         instance.save()
         return instance
-
-
-class ExporterUserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
-    email = serializers.EmailField(
-        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
-    )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
-    class Meta:
-        model = ExporterUser
-        fields = (
-            "id",
-            "email",
-            "first_name",
-            "last_name",
-            "organisation",
-        )
-
-    def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
-        return exporter
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):

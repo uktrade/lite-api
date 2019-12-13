@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
+from conf.constants import Roles
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -11,8 +12,8 @@ from conf.serializers import (
 )
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import GovUser
-from users.serializers import ExporterUserCreateUpdateSerializer
+from users.models import GovUser, UserOrganisationRelationship
+from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
 class SiteSerializer(serializers.ModelSerializer):
@@ -147,10 +148,18 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
 class SiteViewSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    users = serializers.SerializerMethodField()
+
+    def get_users(self, instance):
+        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__in=[instance.id])])
+        super_users = set(
+            [x.user for x in UserOrganisationRelationship.objects.filter(organisation=instance.organisation,
+                                                                         role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)])
+        return ExporterUserSimpleSerializer(users.union(super_users), many=True).data
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address")
+        fields = ("id", "name", "address", "users")
 
 
 class TinyOrganisationViewSerializer(serializers.ModelSerializer):

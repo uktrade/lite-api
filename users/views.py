@@ -104,7 +104,7 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         if request.user.id != pk:
-            assert_user_has_permission(user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
+            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
 
         serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
         return JsonResponse(data={"user": serializer.data})
@@ -199,8 +199,8 @@ class AssignSites(UpdateAPIView):
             raise PermissionDenied()
 
         # Get a list of all the sites that the request user has access to!
-        request_user_sites = list(request_user_relationship.sites.all())
-        user_sites = list(user_organisation_relationship.sites.all())
+        request_user_sites = list(request_user_relationship.get_sites().all())
+        user_sites = list(user_organisation_relationship.get_sites().all())
         diff_sites = [x for x in user_sites if x not in request_user_sites]
 
         # Ensure user has access to the sites they're trying to assign the user to
@@ -211,4 +211,4 @@ class AssignSites(UpdateAPIView):
 
         user_organisation_relationship.sites.set(diff_sites + sites)
 
-        return JsonResponse(data={"sites": "Hello!"})
+        return JsonResponse(data={"status": "success"})
