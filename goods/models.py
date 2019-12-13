@@ -3,7 +3,6 @@ import uuid
 import reversion
 from django.db import models
 
-from conf.serializers import KeyValueChoiceField
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled
