@@ -23,12 +23,12 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
+    queryset = LetterTemplate.objects.all()
     serializer_class = LetterTemplateSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
-
-        return get_letter_templates_for_case(get_case(pk=case)) if case else LetterTemplate.objects.all()
+        return get_letter_templates_for_case(get_case(pk=case)) if case else self.queryset
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
