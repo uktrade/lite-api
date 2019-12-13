@@ -48,7 +48,8 @@ class AuditType(Enum):
 
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = "updated letter template types to {case_types}"
-    UPDATED_LETTER_TEMPLATE_PARAGRAPHS = "updated letter letter paragraphs to {letter_paragraphs}"
+    UPDATED_LETTER_TEMPLATE_PARAGRAPHS = "updated letter paragraphs to {letter_paragraphs}"
+    UPDATED_LETTER_TEMPLATE_LAYOUT = "updated letter layout to {layout}"
 
     def format(self, payload):
         return self.value.format(**payload)
