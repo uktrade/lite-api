@@ -209,6 +209,7 @@ class AssignSites(UpdateAPIView):
             if site not in request_user_sites:
                 raise NotFoundError("You don't have access to the sites you're trying to assign the user to.")
 
+        # If (after the PUT) the user isn't assigned to any sites, raise an error
         if not combined_sites:
             raise serializers.ValidationError({"errors": {"sites": ["Select at least one site to assign the user to"]}})
 
