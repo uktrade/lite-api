@@ -12,6 +12,7 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
@@ -65,6 +66,10 @@ class GoodSerializer(serializers.ModelSerializer):
     query_id = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
+    missing_document_reason = serializers.ChoiceField(
+        choices=GoodMissingDocumentReasons.choices, allow_blank=True, required=False,
+        error_messages={"invalid_choice": "You must select a valid reason for why you are not uploading a document"}
+    )
 
     class Meta:
         model = Good
@@ -82,6 +87,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "query_id",
             "documents",
             "case_status",
+            "missing_document_reason",
         )
 
     def __init__(self, *args, **kwargs):

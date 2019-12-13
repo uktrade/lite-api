@@ -140,14 +140,20 @@ class GoodList(APIView):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
-class GoodDocumentSensitivity(APIView):
+class GoodDocumentCriteriaCheck(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request, pk):
         good = get_good(pk)
-        sensitive = str_to_bool(request.data["sensitive"])
+        data = request.data
+        document_to_upload = str_to_bool(data["has_document_to_upload"])
+        if not document_to_upload:
+            serializer = GoodSerializer(instance=good, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = GoodSerializer(good)
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
 
