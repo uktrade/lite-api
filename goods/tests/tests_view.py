@@ -56,19 +56,19 @@ class GoodViewTests(DataTestClient):
         url = reverse("goods:goods") + "?description=thing"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
         url = reverse("goods:goods") + "?description=item"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 1)
 
         url = reverse("goods:goods")
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
@@ -114,20 +114,20 @@ class GoodViewTests(DataTestClient):
         url = reverse("goods:goods") + "?part_number=cl"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 3)
 
         url = reverse("goods:goods") + "?part_number=100"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["description"], "Truck")
 
         url = reverse("goods:goods") + "?part_number=cl&description=car"
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
     @parameterized.expand([("ML3", 2), ("ML3a", 1)])
@@ -141,7 +141,7 @@ class GoodViewTests(DataTestClient):
         url = reverse("goods:goods") + "?control_rating=" + control_rating
 
         response = self.client.get(url, **self.exporter_headers)
-        response_data = response.json()["goods"]
+        response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), size)
