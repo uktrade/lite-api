@@ -1,4 +1,3 @@
-from django.core.paginator import Paginator
 from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
