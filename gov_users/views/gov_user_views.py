@@ -1,5 +1,4 @@
 import reversion
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -8,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
@@ -16,8 +14,7 @@ from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser, GovNotification
-from users.serializers import CaseActivityNotificationGetSerializer
+from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.libraries.mark_notifications_as_viewed import delete_notifications
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
 from static.statuses.enums import CaseStatusEnum
@@ -20,7 +20,7 @@ class CaseNoteList(APIView):
         case = get_case(pk)
         if isinstance(request.user, ExporterUser):
             case_notes = get_case_notes_from_case(case, True)
-            delete_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
+            delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
         else:
             case_notes = get_case_notes_from_case(case, False)
 

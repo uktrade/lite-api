@@ -9,7 +9,7 @@ from cases.helpers import create_grouped_advice
 from cases.libraries.activity_types import CaseActivityType
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_ecju_queries import get_ecju_query
-from cases.libraries.mark_notifications_as_viewed import delete_notifications
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -339,7 +339,9 @@ class CaseEcjuQueries(APIView):
 
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
-            delete_notifications(user=request.user, organisation=request.user.organisation, objects=case_ecju_queries)
+            delete_exporter_notifications(
+                user=request.user, organisation=request.user.organisation, objects=case_ecju_queries
+            )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
