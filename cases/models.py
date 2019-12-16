@@ -6,7 +6,6 @@ from django.db import models
 from django.utils import timezone
 from model_utils.models import TimeStampedModel
 
-from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.managers import CaseManager
 from documents.models import Document
@@ -24,7 +23,6 @@ from users.models import (
     GovUser,
     UserOrganisationRelationship,
     ExporterNotification,
-    GovNotification,
 )
 
 
