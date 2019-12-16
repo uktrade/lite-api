@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -9,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
 )
 from cases.enums import CaseTypeEnum
-from content_strings.strings import get_string
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import Site, ExternalLocation
@@ -94,7 +94,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
 
     class Meta:

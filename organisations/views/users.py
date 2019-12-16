@@ -107,7 +107,7 @@ class UserDetail(APIView):
         if "role" in data.keys():
             if user.id == request.user.id:
                 return JsonResponse(
-                    data={"errors": strings.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
+                    data={"errors": strings.System.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             elif user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
