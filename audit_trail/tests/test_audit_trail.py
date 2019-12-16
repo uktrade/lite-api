@@ -27,6 +27,6 @@ class CasesAuditTrail(DataTestClient):
     def test_retrieve_audit_trail(self):
         service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.draft)
 
-        audit_trail = service.get_obj_trail(self.draft)
+        audit_trail = service.get_obj_trail(user=self.exporter_user, obj=self.draft)
 
         self.assertEqual(len(audit_trail), 1)

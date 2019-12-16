@@ -4,6 +4,7 @@ from django.db.models import Q
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
 from audit_trail.serializers import AuditSerializer
+from users.models import ExporterUser, GovUser
 
 
 @validate_kwargs
@@ -20,7 +21,12 @@ def create(actor, verb, action_object=None, target=None, payload=None):
     )
 
 
-def get_obj_trail(obj):
+def get_obj_trail_qs(obj):
+    """
+    Retrieve audit trail for an object as an action object or target.
+    :param obj:
+    :return:
+    """
     audit_qs = Audit.objects.all()
 
     obj_as_action_filter = Q(
@@ -32,8 +38,18 @@ def get_obj_trail(obj):
         target_content_type=ContentType.objects.get_for_model(obj)
     )
 
-    audit_trail = audit_qs.filter(obj_as_action_filter | obj_as_target_filter)
+    return audit_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
-    serializer = AuditSerializer(audit_trail, many=True)
+
+def get_user_obj_trail(user, obj):
+    audit_trail_qs = get_obj_trail_qs(obj)
+
+    if isinstance(user, ExporterUser):
+        # Show exporter audit only
+        audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
+    elif not isinstance(user, GovUser):
+        audit_trail_qs = []
+
+    serializer = AuditSerializer(audit_trail_qs, many=True)
 
     return serializer.data
