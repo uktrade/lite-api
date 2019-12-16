@@ -74,6 +74,8 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/.swagger-codegen-ignore
+docs/.swagger-codegen/VERSION
 
 # PyBuilder
 target/
