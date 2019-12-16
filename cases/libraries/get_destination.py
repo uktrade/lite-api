@@ -16,34 +16,32 @@ def get_destination(pk):
     return destination
 
 
-def get_standard_application_destination_flags(application, flags):
-    [flags.append(flag) for flag in application.end_user.flags.order_by("name") if flag not in flags]
-    [flags.append(flag) for flag in application.consignee.flags.order_by("name") if flag not in flags]
+def get_standard_application_destination_flags(application):
+    flags = []
+    [flags.append(flag) for flag in application.end_user.flags.order_by("name")]
+    [flags.append(flag) for flag in application.consignee.flags.order_by("name")]
+
     ultimate_end_users = [
         ultimate_end_user_id for ultimate_end_user_id in application.ultimate_end_users.values_list("id", flat=True)
     ]
     for ultimate_end_user in ultimate_end_users:
-        [
-            flags.append(flag)
-            for flag in get_destination(str(ultimate_end_user)).flags.order_by("name")
-            if flag not in flags
-        ]
+        [flags.append(flag) for flag in get_destination(str(ultimate_end_user)).flags.order_by("name")]
     third_parties = [third_party_id for third_party_id in application.third_parties.values_list("id", flat=True)]
     for third_party in third_parties:
-        [flags.append(flag) for flag in get_destination(third_party).flags.order_by("name") if flag not in flags]
+        [flags.append(flag) for flag in get_destination(third_party).flags.order_by("name")]
+
     return flags
 
 
 def get_destination_flags(instance):
     application = get_application(instance.id)
     countries = CountryOnApplication.objects.filter(application=instance).select_related("country")
-    countries_flags = list(itertools.chain.from_iterable([c.country.flags.order_by("name") for c in countries]))
-    flags = countries_flags
+    flags = list(itertools.chain.from_iterable([c.country.flags.order_by("name") for c in countries]))
     if isinstance(application, StandardApplication):
-        standard_application_destination_flags = get_standard_application_destination_flags(application, flags)
-        flags += standard_application_destination_flags
+        flags += get_standard_application_destination_flags(application)
+    deduplicated_flags = list(set(flags))
 
-    return flags
+    return deduplicated_flags
 
 
 def get_ordered_flags(instance, team):
