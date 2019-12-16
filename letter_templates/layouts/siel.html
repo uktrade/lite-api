@@ -20,13 +20,13 @@
         <td class="border-black" rowspan="4" colspan="5">
           <span class="cell__heading">1. Exporter</span>
           <span class="cell__uppercase">
-              {{ case.application.organisation.name }}<br>
-              {{ case.application.organisation.primary_site.address.address_line_1 }}<br>
-              {{ case.application.organisation.primary_site.address.address_line_2 }}<br>
-              {{ case.application.organisation.primary_site.address.postcode }}<br>
-              {{ case.application.organisation.primary_site.address.city }}<br>
-              {{ case.application.organisation.primary_site.address.region }}<br>
-              {{ case.application.organisation.primary_site.address.country.name }}
+              {{ case.organisation.name }}<br>
+              {{ case.organisation.primary_site.address.address_line_1 }}<br>
+              {{ case.organisation.primary_site.address.address_line_2 }}<br>
+              {{ case.organisation.primary_site.address.postcode }}<br>
+              {{ case.organisation.primary_site.address.city }}<br>
+              {{ case.organisation.primary_site.address.region }}<br>
+              {{ case.organisation.primary_site.address.country.name }}
           </span>
         </td>
         <td class="border-black" colspan="3">
@@ -68,9 +68,9 @@
           <span class="cell__heading">5. Consignee(s)/Destination(s)</span>
           <span class="cell__uppercase">
               <span class="cell__uppercase">
-                  {{ case.application.standardapplication.consignee.name }}<br>
-                  {{ case.application.standardapplication.consignee.address }}<br>
-                  {{ case.application.standardapplication.consignee.country.name }}
+                  {{ case.baseapplication.standardapplication.consignee.name }}<br>
+                  {{ case.baseapplication.standardapplication.consignee.address }}<br>
+                  {{ case.baseapplication.standardapplication.consignee.country.name }}
               </span>
           </span>
         </td>

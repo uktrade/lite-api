@@ -12,13 +12,13 @@
   <div id="addresses">
     <div id="recipient-address">
       <p>
-        {{ case.application.organisation.name }}<br>
-        {{ case.application.organisation.primary_site.address.address_line_1 }}<br>
-        {{ case.application.organisation.primary_site.address.address_line_2 }}<br>
-        {{ case.application.organisation.primary_site.address.postcode }}<br>
-        {{ case.application.organisation.primary_site.address.city }}<br>
-        {{ case.application.organisation.primary_site.address.region }}<br>
-        {{ case.application.organisation.primary_site.address.country.name }}
+        {{ case.organisation.name }}<br>
+        {{ case.organisation.primary_site.address.address_line_1 }}<br>
+        {{ case.organisation.primary_site.address.address_line_2 }}<br>
+        {{ case.organisation.primary_site.address.postcode }}<br>
+        {{ case.organisation.primary_site.address.city }}<br>
+        {{ case.organisation.primary_site.address.region }}<br>
+        {{ case.organisation.primary_site.address.country.name }}
       </p>
       <p>Date: {% now "jS F Y" %}</p>
     </div>
