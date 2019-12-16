@@ -14,7 +14,6 @@ from cases.models import (
     CaseDocument,
     Advice,
     EcjuQuery,
-    CaseActivity,
     TeamAdvice,
     FinalAdvice,
     GoodCountryDecision,
@@ -459,14 +458,6 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "case",
             "raised_by_user",
         )
-
-
-class CaseActivitySerializer(serializers.ModelSerializer):
-    user = BaseUserViewSerializer()
-
-    class Meta:
-        model = CaseActivity
-        fields = "__all__"
 
 
 class GoodCountryDecisionSerializer(serializers.ModelSerializer):
