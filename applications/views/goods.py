@@ -31,6 +31,7 @@ from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
 from lite_content.lite_api.goods import GoodsOnApplication
+from lite_content.lite_api.applications import EditApplicationPage
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -106,14 +107,14 @@ class ApplicationGoodOnApplication(APIView):
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
                 data={
-                    "errors": ["You can only perform this operation when the application " "is in an editable state"]
+                    "errors": [EditApplicationPage.NOT_EDITABLE]
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(
-                data={"errors": "Your organisation is not the owner of this good"}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": EditApplicationPage.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
             )
 
         if (
@@ -132,7 +133,7 @@ class ApplicationGoodOnApplication(APIView):
             good_on_application.application,
         )
 
-        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": EditApplicationPage.SUCCESS}, status=status.HTTP_200_OK)
 
 
 class ApplicationGoodsTypes(APIView):

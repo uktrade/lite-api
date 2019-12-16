@@ -8,6 +8,6 @@ class GoodMissingDocumentReasons:
 
     choices = [
         (NO_DOCUMENT, GoodMissingDocumentReasonsOptions.NO_DOCUMENT),
-        (OFFICIAL_SENSITIVE,  GoodMissingDocumentReasonsOptions.OFFICIAL_SENSITIVE),
-        (COMMERCIALLY_SENSITIVE,  GoodMissingDocumentReasonsOptions.COMMERCIALLY_SENSITIVE),
+        (OFFICIAL_SENSITIVE, GoodMissingDocumentReasonsOptions.OFFICIAL_SENSITIVE),
+        (COMMERCIALLY_SENSITIVE, GoodMissingDocumentReasonsOptions.COMMERCIALLY_SENSITIVE),
     ]
