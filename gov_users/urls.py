@@ -13,5 +13,4 @@ urlpatterns = [
     path("permissions/", roles_views.PermissionsView.as_view(), name="permissions"),
     # ex: /users/me/
     path("me/", gov_user_views.UserMeDetail.as_view(), name="me"),
-    path("case-notification/", gov_user_views.CaseNotification.as_view(), name="case_notification"),
 ]

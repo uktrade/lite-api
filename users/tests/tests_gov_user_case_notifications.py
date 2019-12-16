@@ -62,7 +62,7 @@ class NotificationTests(DataTestClient):
         }
         case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
         self.gov_user.send_notification(content_object=case_activity, case=case)
-        url = reverse_lazy("gov_users:case_notification") + "?case=" + str(case.id)
+        url = reverse_lazy("users:case_notification") + "?case=" + str(case.id)
 
         response = self.client.get(url, **self.gov_headers)
         notification = response.json()["notification"]

@@ -153,3 +153,21 @@ class NotificationViewSet(APIView):
             data = {"totals": total_counts, **data}
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class CaseNotification(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        user = request.user
+        case = self.request.GET.get("case")
+
+        try:
+            notification = GovNotification.objects.get(user=user, case=case)
+        except GovNotification.DoesNotExist:
+            return JsonResponse(data={"notification": None})
+
+        serializer = CaseActivityNotificationGetSerializer(notification)
+        notification.delete()
+
+        return JsonResponse(data={"notification": serializer.data})

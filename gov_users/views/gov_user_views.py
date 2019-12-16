@@ -173,22 +173,3 @@ class UserMeDetail(APIView):
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
         return JsonResponse(data={"user": serializer.data})
-
-
-class CaseNotification(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request):
-        user = request.user
-        case = self.request.GET.get("case")
-
-        try:
-            content_type = ContentType.objects.get_for_model(CaseActivity)
-            notification = GovNotification.objects.get(user=user, content_type=content_type, case=case)
-        except GovNotification.DoesNotExist:
-            return JsonResponse(data={"notification": None})
-
-        serializer = CaseActivityNotificationGetSerializer(notification)
-        notification.delete()
-
-        return JsonResponse(data={"notification": serializer.data})
