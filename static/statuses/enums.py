@@ -96,6 +96,12 @@ class CaseStatusEnum:
     }
 
     @classmethod
+    def human_readable(cls, status):
+        for k, v in cls.choices:
+            if status == k:
+                return v
+
+    @classmethod
     def is_read_only(cls, status):
         return status in cls._read_only_statuses
 

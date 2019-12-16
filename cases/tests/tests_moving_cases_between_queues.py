@@ -1,9 +1,11 @@
+from unittest import mock
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
+from audit_trail.payload import AuditType
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
@@ -45,23 +47,30 @@ class MoveCasesTests(DataTestClient):
             set(self.case.queues.values_list("id", flat=True)), set(no_queues_data["queues"]),
         )
 
-    def test_case_activity_created(self):
-        self.assertEqual(CaseActivity.objects.all().count(), 0)
+    @mock.patch("audit_trail.service.create")
+    def test_case_activity_created(self, mock_create):
+        self.assertEqual(mock_create.call_count, 0)
 
-        queues_data = {"queues": [queue.id for queue in self.queues]}
+        queues_data = {"queues": [str(queue.id) for queue in self.queues]}
+        expected_action_payload = {"queues": sorted([queue.name for queue in self.queues])}
 
         self.client.put(self.url, data=queues_data, **self.gov_headers)
 
-        add_case_activity = CaseActivity.objects.first()
-        self.assertEqual(add_case_activity.type, CaseActivityType.MOVE_CASE)
+        self.assertEqual(mock_create.call_count, 1)
 
-        no_queues_data = {"queues": []}
+        case = Case.objects.get(id=self.case.id)  # clc parent
 
-        self.client.put(self.url, data=no_queues_data, **self.gov_headers)
+        mock_create.assert_called_once_with(
+            actor=self.gov_user, verb=AuditType.MOVE_CASE, target=case, payload=expected_action_payload
+        )
 
-        remove_case_activity = CaseActivity.objects.last()
-        self.assertEqual(remove_case_activity.type, CaseActivityType.REMOVE_CASE)
-        self.assertEqual(CaseActivity.objects.all().count(), 2)
+        queues_data_rm = {"queues": []}
+
+        self.client.put(self.url, data=queues_data_rm, **self.gov_headers)
+
+        mock_create.assert_called_with(
+            actor=self.gov_user, verb=AuditType.REMOVE_CASE, target=case, payload=expected_action_payload
+        )
 
     @parameterized.expand(
         [
