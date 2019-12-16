@@ -2,6 +2,7 @@ import uuid
 
 import reversion
 from django.db import models
+from model_utils.models import TimeStampedModel
 
 from documents.models import Document
 from flags.models import Flag
@@ -11,7 +12,7 @@ from users.models import ExporterUser
 
 
 @reversion.register()
-class Good(models.Model):
+class Good(TimeStampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(max_length=280)
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)

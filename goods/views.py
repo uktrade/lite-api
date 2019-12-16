@@ -128,7 +128,7 @@ class GoodList(ListCreateAPIView):
             organisation_id=self.organisation,
             description__icontains=self.description,
             part_number__icontains=self.part_number,
-        ).order_by("description")
+        ).order_by("-created")
 
         if self.control_rating:
             queryset = queryset.filter(control_code__icontains=self.control_rating)
