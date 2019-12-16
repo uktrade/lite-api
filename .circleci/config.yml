@@ -3,6 +3,16 @@ version: 2.1
 orbs:
   jq: circleci/jq@1.8.0
 
+aliases:
+  - &db_setup
+    name: Setup DB
+    command: |
+      bundle exec rake simulated_db_create
+      bundle exec rake simulated_db_load
+  - &deps_and_db
+    - "Dependencies"
+    - "Database"
+
 jobs:
   one:
     docker:
@@ -19,11 +29,6 @@ jobs:
       - jq/install
 
       - checkout
-      - run:
-          name: Git Submodule Checkout
-          command: |
-            git submodule sync
-            git submodule update --init
 
       - run:
           name: Repository Vulnerability Check
@@ -62,7 +67,7 @@ jobs:
   two:
     docker:
       - image: circleci/python:3.7
-        
+
     steps:
       - run:
           name: Git Submodule Checkout
@@ -72,5 +77,6 @@ workflows:
     version: 2
     build:
         jobs:
-            - one
-            - two
+            - "Database and dependencies"
+            - "Testing and linting"
+                requires: *deps_and_db
