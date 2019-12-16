@@ -1,9 +1,11 @@
+version: 2.1
+
 aliases:
     - &submodules
-        - checkout
-        run: |
-          git submodule sync
-          git submodule update --init
+      - checkout
+      run: |
+        git submodule sync
+        git submodule update --init
     - &dependencies
       - checkout
       restore_cache:
@@ -14,7 +16,7 @@ aliases:
 #      - run: *db_setup
     - &deps
         - "Dependencies"
-version: 2
+
 workflows:
     version: 2
     master:
@@ -22,6 +24,7 @@ workflows:
             - "Dependencies"
             - "Database":
                 requires: *deps
+
 jobs:
     "Dependencies":
         steps: *dependencies
