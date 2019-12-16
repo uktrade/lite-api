@@ -33,9 +33,8 @@ class AuditSerializer(serializers.ModelSerializer):
             try:
                 if isinstance(payload[key], list):
                     payload[key] = ', '.join(payload[key])
-            except Exception as e:
+            except KeyError as e:
                 print(f'Audit serialization exception skipped: {e}')
-                pass
 
         return verb.format(payload)
 
