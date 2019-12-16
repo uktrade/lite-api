@@ -1,8 +1,8 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 
 from cases.models import Case
 from cases.serializers import CaseSerializer
-from content_strings.strings import get_string
 from queues.models import Queue
 from teams.models import Team
 from teams.serializers import TeamSerializer
@@ -32,7 +32,7 @@ class QueueViewSerializer(serializers.ModelSerializer):
 
 
 class QueueCreateSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages={"blank": get_string("queues.blank_name"),})
+    name = serializers.CharField(error_messages={"blank": strings.Queues.BLANK_NAME,})
     cases = CaseSerializer(many=True, read_only=True, required=False)
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 

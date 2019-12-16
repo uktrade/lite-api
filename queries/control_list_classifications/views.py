@@ -16,12 +16,11 @@ from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
-from users.models import UserOrganisationRelationship
-from lite_content.lite_api.strings import GOOD_NO_CONTROL_CODE
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.models import UserOrganisationRelationship
 from lite_content.lite_api import strings
 
 
@@ -68,7 +67,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -78,15 +77,19 @@ class ControlListClassificationDetail(APIView):
 
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                previous_control_code = query.good.control_code if query.good.control_code else GOOD_NO_CONTROL_CODE
+                previous_control_code = (
+                    query.good.control_code if query.good.control_code else strings.Goods.GOOD_NO_CONTROL_CODE
+                )
 
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                 query.save()
 
-                new_control_code = GOOD_NO_CONTROL_CODE
+                new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
-                    new_control_code = clc_good_serializer.validated_data.get("control_code", GOOD_NO_CONTROL_CODE)
+                    new_control_code = clc_good_serializer.validated_data.get(
+                        "control_code", strings.Goods.GOOD_NO_CONTROL_CODE
+                    )
 
                 if new_control_code != previous_control_code:
                     CaseActivity.create(
