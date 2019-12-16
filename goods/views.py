@@ -108,6 +108,7 @@ class GoodList(ListCreateAPIView):
     part_number = None
     control_rating = None
     organisation = None
+    for_application = False
     pagination_class = GoodListPaginator
 
     def get(self, request, *args, **kwargs):
@@ -118,20 +119,27 @@ class GoodList(ListCreateAPIView):
         self.part_number = request.GET.get("part_number", "")
         self.control_rating = request.GET.get("control_rating")
         self.organisation = request.user.organisation.id
+        self.for_application = request.GET.get("for_application")
 
         return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
-        self.queryset = Good.objects.filter(
+        queryset = Good.objects.filter(
             organisation_id=self.organisation,
             description__icontains=self.description,
             part_number__icontains=self.part_number,
         ).order_by("description")
 
         if self.control_rating:
-            self.queryset = self.queryset.filter(control_code__icontains=self.control_rating)
+            queryset = queryset.filter(control_code__icontains=self.control_rating)
 
-        return self.queryset
+        if self.for_application:
+            good_document_ids = GoodDocument.objects.filter(organisation__id=self.organisation).values_list(
+                "good", flat=True
+            )
+            queryset = queryset.filter(id__in=good_document_ids)
+
+        return queryset
 
     def post(self, request):
         """
