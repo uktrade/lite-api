@@ -1,8 +1,10 @@
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -16,6 +18,7 @@ from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from goods.enums import GoodStatus
+from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import (
@@ -97,27 +100,38 @@ class GoodsListControlCode(APIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GoodList(APIView):
+class GoodList(ListCreateAPIView):
+    model = Good
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodListSerializer
+    description = None
+    part_number = None
+    control_rating = None
+    organisation = None
+    pagination_class = GoodListPaginator
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """
         Returns a list of all goods belonging to an organisation
         """
-        description = request.GET.get("description", "")
-        part_number = request.GET.get("part_number", "")
-        control_rating = request.GET.get("control_rating")
-        goods = Good.objects.filter(
-            organisation_id=request.user.organisation.id,
-            description__icontains=description,
-            part_number__icontains=part_number,
+        self.description = request.GET.get("description", "")
+        self.part_number = request.GET.get("part_number", "")
+        self.control_rating = request.GET.get("control_rating")
+        self.organisation = request.user.organisation.id
+
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        self.queryset = Good.objects.filter(
+            organisation_id=self.organisation,
+            description__icontains=self.description,
+            part_number__icontains=self.part_number,
         ).order_by("description")
 
-        if control_rating:
-            goods = goods.filter(control_code__icontains=control_rating)
+        if self.control_rating:
+            self.queryset = self.queryset.filter(control_code__icontains=self.control_rating)
 
-        serializer = GoodListSerializer(goods, many=True)
-        return JsonResponse(data={"goods": serializer.data})
+        return self.queryset
 
     def post(self, request):
         """
