@@ -7,9 +7,9 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.models import GoodOnApplication, BaseApplication
-from cases.libraries.activity_types import CaseActivityType
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
-from cases.models import CaseActivity
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
@@ -79,13 +79,16 @@ class GoodsListControlCode(APIView):
                         serializer.save()
 
                     if new_control_code != old_control_code:
-                        CaseActivity.create(
-                            activity_type=CaseActivityType.GOOD_REVIEWED,
-                            good_name=good.description,
-                            old_control_code=old_control_code,
-                            new_control_code=new_control_code,
-                            case=case,
-                            user=request.user,
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.GOOD_REVIEWED,
+                            action_object=good,
+                            target=case,
+                            payload={
+                                "good_name": good.description,
+                                "new_control_code": new_control_code,
+                                "old_control_code": old_control_code,
+                            },
                         )
                 except Http404:
                     error_occurred = True

@@ -1,27 +1,27 @@
 import json
-from django.utils import timezone
 
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
-from cases.libraries.activity_types import CaseActivityType
 from conf import constants
-from cases.models import CaseActivity, Case
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
+from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
-from lite_content.lite_api import strings
 
 
 class ControlListClassificationsList(APIView):
@@ -84,7 +84,6 @@ class ControlListClassificationDetail(APIView):
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                 query.save()
-
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
                     new_control_code = clc_good_serializer.validated_data.get(
@@ -92,17 +91,21 @@ class ControlListClassificationDetail(APIView):
                     )
 
                 if new_control_code != previous_control_code:
-                    CaseActivity.create(
-                        activity_type=CaseActivityType.GOOD_REVIEWED,
-                        good_name=query.good.description,
-                        old_control_code=previous_control_code,
-                        new_control_code=new_control_code,
-                        case=Case.objects.get(query=query),
-                        user=request.user,
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.GOOD_REVIEWED,
+                        action_object=query.good,
+                        target=query.get_case(),
+                        payload={
+                            "good_name": query.good.description,
+                            "old_control_code": previous_control_code,
+                            "new_control_code": new_control_code,
+                        },
                     )
 
-                # Add an activity item for the query's case
-                CaseActivity.create(activity_type=CaseActivityType.CLC_RESPONSE, case=query, user=request.user)
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
+                )
 
                 # Send a notification to the user
                 for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):

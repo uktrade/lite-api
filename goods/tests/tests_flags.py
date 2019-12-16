@@ -1,7 +1,8 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from cases.libraries.get_case import get_case_activity
+from audit_trail.models import Audit
 from cases.models import Case
 from test_helpers.clients import DataTestClient
 
@@ -167,4 +168,10 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(Case.objects.get(id=query.id))), 1)
+        case = Case.objects.get(id=query.id)
+
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+
+        self.assertEqual(audit_qs.count(), 1)
