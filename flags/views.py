@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
@@ -8,7 +9,7 @@ from applications.models import GoodOnApplication
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity, Case
 from conf.authentication import GovAuthentication
-from content_strings.strings import get_string
+from conf.helpers import str_to_bool
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag
@@ -30,8 +31,9 @@ class FlagsList(APIView):
         """
         Returns list of all flags
         """
-        level = request.GET.get("level", None)  # Case, Good
-        team = request.GET.get("team", None)  # True, False
+        level = request.GET.get("level")  # Case, Good
+        team = request.GET.get("team")  # True, False
+        include_deactivated = request.GET.get("include_deactivated")  # will be True/False
 
         flags = Flag.objects.all()
 
@@ -40,6 +42,9 @@ class FlagsList(APIView):
 
         if team:
             flags = flags.filter(team=request.user.team.id)
+
+        if not str_to_bool(include_deactivated, invert_none=True):
+            flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
 
         flags = flags.order_by("name")
         serializer = FlagSerializer(flags, many=True)
@@ -85,7 +90,7 @@ class FlagDetail(APIView):
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(
-                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN
+                data={"errors": strings.Flags.ErrorMessages.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN
             )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)

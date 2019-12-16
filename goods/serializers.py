@@ -1,13 +1,12 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
-from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
-from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
@@ -50,13 +49,16 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=280, error_messages={"blank": strings.FORM_DEFAULT_ERROR_TEXT_BLANK})
+    description = serializers.CharField(
+        max_length=280, error_messages={"blank": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK}
+    )
     is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices, error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
+        choices=GoodControlled.choices,
+        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField(
-        error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
@@ -238,8 +240,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": get_string("picklist_items.error_messages." "required_report_summary"),
-                    "null": get_string("picklist_items.error_messages.required_report_summary"),
+                    "required": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
+                    "null": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
                 },
             )
 
