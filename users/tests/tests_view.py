@@ -33,10 +33,8 @@ class UserTests(DataTestClient):
         site = response["user"]["sites"][0]
 
         self.assertEquals(
-            site["id"],
-            str(self.organisation.primary_site.id),
+            site["id"], str(self.organisation.primary_site.id),
         )
         self.assertEquals(
-            site["name"],
-            str(self.organisation.primary_site.name),
+            site["name"], str(self.organisation.primary_site.name),
         )
