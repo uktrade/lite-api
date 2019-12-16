@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -10,7 +11,6 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
 from cases.enums import CaseTypeEnum
-from content_strings.strings import get_string
 from organisations.models import ExternalLocation, Site
 from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
 from parties.serializers import (
@@ -106,7 +106,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": get_string("goods.error_messages.ref_name")},
+        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 

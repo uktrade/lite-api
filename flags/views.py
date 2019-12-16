@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
@@ -10,7 +11,6 @@ from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from content_strings.strings import get_string
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag
@@ -91,7 +91,7 @@ class FlagDetail(APIView):
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(
-                data={"errors": get_string("flags.error_messages.forbidden")}, status=status.HTTP_403_FORBIDDEN
+                data={"errors": strings.Flags.ErrorMessages.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN
             )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
