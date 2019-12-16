@@ -1,98 +1,37 @@
-version: 2.1
+version: 2
+    jobs:
+        one:
+          docker:
+                - image: circleci/ruby:2.4
+          steps:
+            - echo 1
+        two:
+          docker:
+                - image: circleci/ruby:2.4
+          steps:
+            - echo 2
+        three:
+          docker:
+                - image: circleci/ruby:2.4
+          steps:
+            - echo 3
+        four:
+          docker:
+                - image: circleci/ruby:2.4
+          steps:
+            - echo 4
+        five:
+          docker:
+                - image: circleci/ruby:2.4
+          steps:
+            - echo 5
 
-orbs:
-  jq: circleci/jq@1.8.0
-
-jobs:
-  build:
-    docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.7
-      - image: circleci/postgres:11
-
-    environment:
-      DEBUG: 'True'
-      PIPENV_VENV_IN_PROJECT: 'enabled'
-
-    working_directory: ~/lite-api
-
-    steps:
-      - jq/install
-
-      - checkout
-      - run:
-          name: Git Submodule Checkout
-          command: |
-            git submodule sync
-            git submodule update --init
-
-      - run:
-          name: Repository Vulnerability Check
-          command: |
-            VULNERABILITY_COUNT=`curl -s -u "lite-cicircle:${CICIRCLE_PERSONAL_ACCESS_TOKEN}" \
-              -X POST -H "Content-Type: application/json" \
-              -H "Accept: application/vnd.github.vixen-preview+json" \
-              -d '{"query": "query { repository(owner:\"uktrade\" name:\"lite-api\") { vulnerabilityAlerts(first: 100) { totalCount } } }"}' \
-              https://api.github.com/graphql | jq ".data.repository.vulnerabilityAlerts.totalCount"`
-            if [ "$VULNERABILITY_COUNT" = "0" ]; then
-              echo "No vulnerabilities found"
-            elif [ "$VULNERABILITY_COUNT" = "null" ]; then
-              echo "Vulnerability check query returned unexpected JSON - bad credentials? Check JSON response for details"
-            else
-              echo "Vulnerabilities found: $VULNERABILITY_COUNT. Check GitHub security tab for details (only visible to admin users)"
-            fi
-            exit $VULNERABILITY_COUNT
-
-
-      - run:
-          name: Set Environment File
-          command: cp local.env .env
-
-      # Download and cache dependencies
-      - restore_cache:  # ensure this step occurs *before* installing dependencies
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
-      - run:
-          name: Install Dependencies
-          command: pipenv sync --dev
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-
-      - run:
-          name: Check migrations are made
-          command: pipenv run ./manage.py makemigrations --check
-
-      # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
-      - run:
-          name: Run Linting
-          command: pipenv run prospector
-
-      - run:
-          name: check code formatting
-          command: pipenv run black . --check --diff
-
-      # Tests
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
-      - run:
-          name: Run Unit Tests
-          command: pipenv run ./manage.py test --parallel
-      - store_test_results:
-          path: test-results
-
-      # Code Coverage
-      - run:
-          name: Run Code Coverage
-          command: pipenv run ./manage.py coverage --threshold=80 --html=False
-
-      - run:
-          name: Run Bandit tests
-          command: |
-            pipenv install bandit
-            pipenv run bandit -r .
+    workflows:
+        version: 2
+        build:
+            jobs:
+                - one
+                - two
+                - three
+                - four
+                - five
