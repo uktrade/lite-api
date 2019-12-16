@@ -2,10 +2,6 @@ from enum import Enum
 
 
 class AuditType(Enum):
-    """
-    TODO: Remove once audit 100% done
-    """
-
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
     GOOD_REVIEWED = (

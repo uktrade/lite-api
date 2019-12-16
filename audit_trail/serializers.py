@@ -7,10 +7,6 @@ from audit_trail.payload import AuditType
 
 
 class AuditSerializer(serializers.ModelSerializer):
-    """
-    TODO: Parametrize Serializer
-    """
-
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
     additional_text = serializers.SerializerMethodField()
