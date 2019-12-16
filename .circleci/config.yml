@@ -1,32 +1,48 @@
 version: 2.1
 
-aliases:
-  - &submodules
-    - checkout
-    run: |
-      git submodule sync
-      git submodule update --init
-  - &dependencies
-    - checkout
-    restore_cache:
-      key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
-#    - &database
-#      - checkout
-#      - run: *bundle_install
-#      - run: *db_setup
-  - &deps
-      - "Dependencies"
+jobs:
+    one:
+      docker:
+            - image: circleci/ruby:2.4
+      steps:
+        - run:
+            name: Git Submodule Checkout
+            command: echo 5
+    two:
+      docker:
+            - image: circleci/ruby:2.4
+      steps:
+        - run:
+            name: Git Submodule Checkout
+            command: echo 5
+    three:
+      docker:
+            - image: circleci/ruby:2.4
+      steps:
+        - run:
+            name: Git Submodule Checkout
+            command: echo 5
+    four:
+      docker:
+            - image: circleci/ruby:2.4
+      steps:
+        - run:
+            name: Git Submodule Checkout
+            command: echo 5
+    five:
+      docker:
+            - image: circleci/ruby:2.4
+      steps:
+        - run:
+            name: Git Submodule Checkout
+            command: echo 5
 
 workflows:
-    version: 2
-    master:
+    version: 2.1
+    build:
         jobs:
-            - "Dependencies"
-            - "Database":
-                requires: *deps
-
-jobs:
-    "Dependencies":
-        steps: *dependencies
-#    "Database":
-#        steps: *database
+            - one
+            - two
+            - three
+            - four
+            - five
