@@ -1,13 +1,11 @@
 from django.db.models import Q
-
-from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, BaseApplication, HmrcQuery
+from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.models import Case
@@ -19,7 +17,8 @@ from flags.libraries.get_flag import get_flag
 from flags.models import Flag
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer
 from goods.models import Good
-from parties.models import Party, EndUser, Consignee
+from lite_content.lite_api import strings
+from parties.models import Party
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.countries.models import Country
 
