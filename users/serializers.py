@@ -9,7 +9,15 @@ from organisations.models import Organisation
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role, BaseNotification
+from users.models import (
+    ExporterUser,
+    BaseUser,
+    GovUser,
+    UserOrganisationRelationship,
+    Role,
+    ExporterNotification,
+    GovNotification,
+)
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -174,18 +182,18 @@ class CaseActivityNotificationGetSerializer(serializers.ModelSerializer):
     case_activity = serializers.SerializerMethodField()
 
     class Meta:
-        model = BaseNotification
+        model = GovNotification
         fields = ("case_activity",)
 
     def get_case_activity(self, obj):
         return obj.object_id
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class ExporterNotificationSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
 
     class Meta:
-        model = BaseNotification
+        model = ExporterNotification
         fields = (
             "object_id",
             "content_type",

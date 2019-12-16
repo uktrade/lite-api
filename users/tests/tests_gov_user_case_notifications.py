@@ -1,15 +1,20 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy, reverse
 from rest_framework import status
 
 from cases.libraries.activity_types import CaseActivityType
-from cases.models import BaseNotification, CaseActivity
+from cases.models import CaseActivity
 from test_helpers.clients import DataTestClient
+from users.models import GovNotification
 
 
 class NotificationTests(DataTestClient):
     def tests_edit_application_creates_new_case_notification_success(self):
+        content_type = ContentType.objects.get_for_model(CaseActivity)
         case = self.create_standard_application_case(self.organisation, "Case")
-        prev_notification_count = BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count()
+        prev_notification_count = GovNotification.objects.filter(
+            user=self.gov_user, content_type=content_type, case=case
+        ).count()
         url = reverse("applications:application", kwargs={"pk": case.id})
         data = {"name": "new app name!"}
 
@@ -18,11 +23,12 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
-            BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
+            GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case).count(),
             prev_notification_count + 1,
         )
 
     def tests_edit_application_updates_previous_case_notification_success(self):
+        content_type = ContentType.objects.get_for_model(CaseActivity)
         case = self.create_standard_application_case(self.organisation, "Case")
         case_activity = {
             "activity_type": CaseActivityType.UPDATED_APPLICATION_NAME,
@@ -30,14 +36,16 @@ class NotificationTests(DataTestClient):
             "new_name": "new app name",
         }
         case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
-        self.gov_user.send_notification(content_object=case_activity)
-        prev_notification_count = BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count()
+        self.gov_user.send_notification(content_object=case_activity, case=case)
+        prev_notification_count = GovNotification.objects.filter(
+            user=self.gov_user, content_type=content_type, case=case
+        ).count()
         url = reverse("applications:application", kwargs={"pk": case.id})
         data = {"name": "even newer app name!"}
 
         response = self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
-        new_notification = BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case)
+        new_notification = GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case)
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(new_notification.count(), prev_notification_count)
@@ -45,6 +53,7 @@ class NotificationTests(DataTestClient):
         self.assertNotEqual(new_notification.first().case_activity, case_activity)
 
     def tests_get_case_notification_deletes_case_notification_and_returns_data(self):
+        content_type = ContentType.objects.get_for_model(CaseActivity)
         case = self.create_standard_application_case(self.organisation, "Case")
         case_activity = {
             "activity_type": CaseActivityType.UPDATED_APPLICATION_NAME,
@@ -52,8 +61,8 @@ class NotificationTests(DataTestClient):
             "new_name": "new app name",
         }
         case_activity = CaseActivity.create(case=case, user=self.exporter_user, **case_activity)
-        self.gov_user.send_notification(content_object=case_activity)
-        url = reverse_lazy("users:case_notification") + "?case=" + str(case.id)
+        self.gov_user.send_notification(content_object=case_activity, case=case)
+        url = reverse_lazy("gov_users:case_notification") + "?case=" + str(case.id)
 
         response = self.client.get(url, **self.gov_headers)
         notification = response.json()["notification"]
@@ -61,12 +70,15 @@ class NotificationTests(DataTestClient):
         self.assertEqual(len(notification), 1)
         self.assertEqual(notification["case_activity"], str(case_activity.id))
         self.assertEqual(
-            BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count(), 0,
+            GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case).count(), 0,
         )
 
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
+        content_type = ContentType.objects.get_for_model(CaseActivity)
         case = self.create_standard_application_case(self.organisation, "Case")
-        prev_notification_count = BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count()
+        prev_notification_count = GovNotification.objects.filter(
+            user=self.gov_user, content_type=content_type, case=case
+        ).count()
         url = reverse("applications:manage_status", kwargs={"pk": case.id})
         data = {"status": "under_review"}
 
@@ -75,6 +87,6 @@ class NotificationTests(DataTestClient):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(
-            BaseNotification.objects.filter(user=self.gov_user, case_activity__case=case).count(),
+            GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case).count(),
             prev_notification_count,
         )

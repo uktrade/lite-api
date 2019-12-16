@@ -1,14 +1,15 @@
 from unittest import mock
 
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseActivity, BaseNotification
+from cases.models import CaseActivity
+from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
-from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -26,6 +27,7 @@ class GenerateDocumentTests(DataTestClient):
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample"}
+        self.content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -40,7 +42,10 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
-            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 1
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count()
+            == 1
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -56,7 +61,10 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
         self.assertTrue(
-            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count()
+            == 0
         )
         upload_bytes_file_func.assert_not_called()
 
@@ -74,7 +82,10 @@ class GenerateDocumentTests(DataTestClient):
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(CaseActivity.objects.count() == 0)
         self.assertTrue(
-            BaseNotification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count()
+            == 0
         )
 
     def test_get_document_preview_success(self):

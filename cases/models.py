@@ -3,7 +3,6 @@ import uuid
 
 import reversion
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
@@ -18,9 +17,17 @@ from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from teams.models import Team
-from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship, BaseNotification
+from users.models import (
+    BaseUser,
+    ExporterUser,
+    GovUser,
+    UserOrganisationRelationship,
+    ExporterNotification,
+    GovNotification,
+)
 
 
 @reversion.register()
@@ -55,7 +62,7 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
-    notification = GenericRelation(BaseNotification, related_query_name="case_note")
+    notification = GenericRelation(ExporterNotification, related_query_name="case_note")
 
     def save(self, *args, **kwargs):
         try:
@@ -69,7 +76,7 @@ class CaseNote(models.Model):
         if creating and self.is_visible_to_exporter:
             organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.send_notification(content_object=self)
+                user_relationship.send_notification(content_object=self, case=self.case)
 
 
 class CaseAssignment(models.Model):
@@ -218,7 +225,7 @@ class EcjuQuery(models.Model):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
 
-    notification = GenericRelation(BaseNotification, related_query_name="ecju_query")
+    notification = GenericRelation(ExporterNotification, related_query_name="ecju_query")
 
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
@@ -228,7 +235,7 @@ class EcjuQuery(models.Model):
             super(EcjuQuery, self).save(*args, **kwargs)
             organisation = self.case.organisation
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.send_notification(content_object=self)
+                user_relationship.send_notification(content_object=self, case=self.case)
         else:
             self.responded_at = timezone.now()
             super(EcjuQuery, self).save(*args, **kwargs)
@@ -303,21 +310,25 @@ class CaseActivity(BaseActivity):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
     activity_types = CaseActivityType
 
-    notification = GenericRelation(BaseNotification, related_query_name="case_activity")
+    notification = GenericRelation(GovNotification, related_query_name="case_activity")
 
     @classmethod
     def create(
-        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
+        cls, activity_type, case, user, additional_text=None, created_at=None, **kwargs,
     ):
-        activity = super(CaseActivity, cls).create(
-            activity_type, case, user, additional_text, created_at, save_object, **kwargs,
-        )
+        # Case activity should only be recorded post-submit
+        if case.status != CaseStatusEnum.DRAFT:
+            activity = super(CaseActivity, cls).create(
+                activity_type, case, user, additional_text, created_at, **kwargs,
+            )
 
-        if isinstance(user, ExporterUser) and save_object:
-            for gov_user in GovUser.objects.all():
-                gov_user.send_notification(content_object=activity)
+            if isinstance(user, ExporterUser):
+                for gov_user in GovUser.objects.all():
+                    gov_user.send_notification(content_object=activity, case=case)
 
-        return activity
+            return activity
+
+        return None
 
 
 class GoodCountryDecision(models.Model):

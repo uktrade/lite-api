@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
+from cases.libraries.mark_notifications_as_viewed import delete_notifications
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
 from static.statuses.enums import CaseStatusEnum
@@ -18,11 +18,13 @@ class CaseNoteList(APIView):
     def get(self, request, pk):
         """ Gets all case notes. """
         case = get_case(pk)
-        case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
+        if isinstance(request.user, ExporterUser):
+            case_notes = get_case_notes_from_case(case, True)
+            delete_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
+        else:
+            case_notes = get_case_notes_from_case(case, False)
+
         serializer = CaseNoteSerializer(case_notes, many=True)
-
-        mark_notifications_as_viewed(request.user, case_notes)
-
         return JsonResponse(data={"case_notes": serializer.data})
 
     def post(self, request, pk):

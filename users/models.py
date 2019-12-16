@@ -97,7 +97,11 @@ class BaseUser(AbstractUser):
 
 class BaseNotification(models.Model):
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    viewed_at = models.DateTimeField(null=True)
+
+    # All notifications are currently linked to a case
+    case = models.ForeignKey("cases.Case", on_delete=models.CASCADE, null=False)
+
+    # Generic Foriegn Key Fields
     content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
     object_id = models.UUIDField(default=uuid.uuid4)
     content_object = GenericForeignKey("content_type", "object_id")
@@ -112,8 +116,10 @@ class GovNotification(BaseNotification):
 
 
 class ExporterUser(BaseUser):
-    def send_notification(self, organisation, content_object):
-        ExporterNotification.objects.create(user=self, organisation=organisation, content_object=content_object)
+    def send_notification(self, organisation, content_object, case):
+        ExporterNotification.objects.create(
+            user=self, organisation=organisation, content_object=content_object, case=case
+        )
 
     def get_role(self, organisation):
         return self.userorganisationrelationship_set.get(organisation=organisation).role
@@ -137,18 +143,19 @@ class GovUser(BaseUser):
         """
         self.case_assignments.clear()
 
-    def send_notification(self, content_object):
+    def send_notification(self, content_object, case):
         from cases.models import CaseActivity
 
         if isinstance(content_object, CaseActivity):
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                notification = GovNotification.objects.get(user=self, case_activity__case=content_object.case)
+                content_type = ContentType.objects.get_for_model(CaseActivity)
+                notification = GovNotification.objects.get(user=self, content_type=content_type, case=case)
                 notification.content_object = content_object
                 notification.save()
-            except BaseNotification.DoesNotExist:
-                GovNotification.objects.create(user=self, content_object=content_object)
+            except GovNotification.DoesNotExist:
+                GovNotification.objects.create(user=self, content_object=content_object, case=case)
 
 
 class UserOrganisationRelationship(TimeStampedModel):
@@ -159,7 +166,5 @@ class UserOrganisationRelationship(TimeStampedModel):
     )
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
-    def send_notification(self, content_object):
-        ExporterNotification.objects.create(
-            user=self.user, organisation=self.organisation, content_object=content_object
-        )
+    def send_notification(self, content_object, case):
+        self.user.send_notification(organisation=self.organisation, content_object=content_object, case=case)

@@ -1,13 +1,14 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from rest_framework import status
 
-from cases.models import BaseNotification
+from cases.models import CaseNote
+from users.models import ExporterNotification
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 
 
 class NotificationTests(DataTestClient):
-
     url = reverse_lazy("users:notifications")
 
     def tests_create_new_clc_query_notification(self):
@@ -18,7 +19,7 @@ class NotificationTests(DataTestClient):
         self.create_case_note(clc_case, "This is a test note 3", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 4", self.gov_user, False)
 
-        self.assertEqual(BaseNotification.objects.all().count(), 3)
+        self.assertEqual(ExporterNotification.objects.all().count(), 3)
 
     def test_create_new_application_notification(self):
         application = self.create_standard_application(self.organisation)
@@ -28,29 +29,45 @@ class NotificationTests(DataTestClient):
         self.create_case_note(case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case, "This is a test note 2", self.gov_user, False)
 
-        self.assertEqual(BaseNotification.objects.all().count(), 1)
+        self.assertEqual(ExporterNotification.objects.all().count(), 1)
 
     def test_create_both_clc_and_application_notifications(self):
-        application = self.create_standard_application(self.organisation)
-        case = self.submit_application(application)
-
-        clc_case = self.create_clc_query("Example CLC Query", self.organisation)
-
+        case = self.create_standard_application_case(self.organisation)
         self.create_case_note(case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(case, "This is a test note 2", self.gov_user, True)
         self.create_case_note(case, "This is a test note 3", self.gov_user, True)
         self.create_case_note(case, "This is a test note 4", self.gov_user, True)
-
+        clc_case = self.create_clc_query("Example CLC Query", self.organisation)
         self.create_case_note(clc_case, "This is a test note 1", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 2", self.gov_user, True)
         self.create_case_note(clc_case, "This is a test note 3", self.gov_user, True)
+        case_note_content_type = ContentType.objects.get_for_model(CaseNote)
 
-        self.assertEqual(BaseNotification.objects.all().count(), 7)
         self.assertEqual(
-            BaseNotification.objects.filter(case_note__case__id=case.id).count(), 4,
+            ExporterNotification.objects.filter(
+                user=self.exporter_user,
+                organisation=self.exporter_user.organisation,
+                content_type=case_note_content_type,
+            ).count(),
+            7,
         )
         self.assertEqual(
-            BaseNotification.objects.filter(case_note__case__id=clc_case.id).count(), 3,
+            ExporterNotification.objects.filter(
+                user=self.exporter_user,
+                organisation=self.exporter_user.organisation,
+                content_type=case_note_content_type,
+                case=case,
+            ).count(),
+            4,
+        )
+        self.assertEqual(
+            ExporterNotification.objects.filter(
+                user=self.exporter_user,
+                organisation=self.exporter_user.organisation,
+                content_type=case_note_content_type,
+                case=clc_case,
+            ).count(),
+            3,
         )
 
     def tests_get_notifications_for_user_in_multiple_orgs(self):
@@ -83,7 +100,7 @@ class NotificationTests(DataTestClient):
         case_notes = [str(case_note1.id), str(case_note2.id)]
 
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()["results"]
+        response_data = response.json()["notifications"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Expecting to only get two of the 4 total notifications created, given that the org in the exporter headers
