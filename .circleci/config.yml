@@ -1,48 +1,51 @@
 version: 2.1
 
+orbs:
+  jq: circleci/jq@1.8.0
+
 jobs:
-    one:
-      docker:
-            - image: circleci/ruby:2.4
-      steps:
-        - run:
-            name: Git Submodule Checkout
-            command: echo 5
-    two:
-      docker:
-            - image: circleci/ruby:2.4
-      steps:
-        - run:
-            name: Git Submodule Checkout
-            command: echo 5
-    three:
-      docker:
-            - image: circleci/ruby:2.4
-      steps:
-        - run:
-            name: Git Submodule Checkout
-            command: echo 5
-    four:
-      docker:
-            - image: circleci/ruby:2.4
-      steps:
-        - run:
-            name: Git Submodule Checkout
-            command: echo 5
-    five:
-      docker:
-            - image: circleci/ruby:2.4
-      steps:
-        - run:
-            name: Git Submodule Checkout
-            command: echo 5
+  one:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - run:
+        name: Git Submodule Checkout
+        command: echo 5
+  two:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - run:
+        name: Git Submodule Checkout
+        command: echo 5
+  three:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - run:
+        name: Git Submodule Checkout
+        command: echo 5
+  four:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - run:
+        name: Git Submodule Checkout
+        command: echo 5
+  five:
+    docker:
+      - image: circleci/ruby:2.4
+    steps:
+      - run:
+        name: Git Submodule Checkout
+        command: echo 5
 
 workflows:
-    version: 2.1
-    build:
-        jobs:
-            - one
-            - two
-            - three
-            - four
-            - five
+  version: 2.1
+  build:
+    jobs:
+      - one
+      - two
+      - three
+      - four
+      - five
