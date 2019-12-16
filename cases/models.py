@@ -1,15 +1,14 @@
-import re
 import uuid
 
 import reversion
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
-
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
-from cases.libraries.activity_types import CaseActivityType, BaseActivityType
-from cases.managers import CaseManager
 from model_utils.models import TimeStampedModel
+
+from audit_trail.models import Audit
+from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.managers import CaseManager
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
@@ -17,7 +16,6 @@ from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
-from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.models import (
@@ -47,6 +45,17 @@ class Case(TimeStampedModel):
     )
 
     objects = CaseManager()
+
+    def get_case(self):
+        """
+        For any child models, this method allows easy access to the parent Case.
+
+        Child cases [StandardApplication, OpenApplication, ...] share `id` with Case.
+        """
+        if type(self) == Case:
+            return self
+
+        return Case.objects.get(id=self.id)
 
 
 @reversion.register()
@@ -239,96 +248,6 @@ class EcjuQuery(models.Model):
         else:
             self.responded_at = timezone.now()
             super(EcjuQuery, self).save(*args, **kwargs)
-
-
-class BaseActivity(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    text = models.TextField(default=None)
-    additional_text = models.TextField(default=None, null=True)
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    type = models.CharField(max_length=50)
-    activity_types = BaseActivityType
-
-    @classmethod
-    def _replace_placeholders(cls, activity_type, **kwargs):
-        """
-        Replaces placeholders in activity_type with parameters given
-        """
-        # Get the placeholder for the supplied activity_type
-        text = cls.activity_types.get_text(activity_type)
-        placeholders = re.findall("{(.+?)}", text)
-
-        # Raise an exception if the wrong amount of kwargs are given
-        if len(placeholders) != len(kwargs):
-            raise Exception(
-                "Incorrect number of values for activity_type, expected "
-                + str(len(placeholders))
-                + ", got "
-                + str(len(kwargs))
-            )
-
-        # Raise an exception if all the placeholder parameters are not provided
-        for placeholder in placeholders:
-            if placeholder not in kwargs:
-                raise Exception(f"{placeholder} not provided in parameters for activity type: {activity_type}")
-
-        # Loop over kwargs, if type is list, convert to comma delimited string
-        for key, value in kwargs.items():
-            if isinstance(value, list):
-                kwargs[key] = ", ".join(value)
-
-        # Format text by replacing the placeholders with values using kwargs given
-        text = text.format(**kwargs)
-
-        # Add a full stop unless the text ends with a colon
-        if not text.endswith(":") and not text.endswith("?"):
-            text = text + "."
-
-        return text
-
-    @classmethod
-    def create(
-        cls, activity_type, case, user, additional_text=None, created_at=None, save_object=True, **kwargs,
-    ):
-        # If activity_type isn't valid, raise an exception
-        if activity_type not in [x[0] for x in cls.activity_types.choices]:
-            raise Exception(f"{activity_type} isn't in " + cls.activity_types.__name__)
-
-        text = cls._replace_placeholders(activity_type, **kwargs)
-
-        activity = cls(
-            type=activity_type, text=text, user=user, case=case, additional_text=additional_text, created_at=created_at,
-        )
-        if save_object:
-            activity.save()
-
-        return activity
-
-
-class CaseActivity(BaseActivity):
-    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False)
-    activity_types = CaseActivityType
-
-    notification = GenericRelation(GovNotification, related_query_name="case_activity")
-
-    @classmethod
-    def create(
-        cls, activity_type, case, user, additional_text=None, created_at=None, **kwargs,
-    ):
-        # Case activity should only be recorded post-submit
-        if case.status != CaseStatusEnum.DRAFT:
-            activity = super(CaseActivity, cls).create(
-                activity_type, case, user, additional_text, created_at, **kwargs,
-            )
-
-            if isinstance(user, ExporterUser):
-                for gov_user in GovUser.objects.all():
-                    gov_user.send_notification(content_object=activity, case=case)
-
-            return activity
-
-        return None
 
 
 class GoodCountryDecision(models.Model):

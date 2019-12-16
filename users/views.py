@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -9,6 +10,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from audit_trail.models import Audit
+from cases.models import Case
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
@@ -19,7 +22,7 @@ from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     ExporterNotificationSerializer,
-    CaseActivityNotificationGetSerializer,
+    CaseNotificationGetSerializer,
 )
 
 
@@ -163,11 +166,12 @@ class CaseNotification(APIView):
         case = self.request.GET.get("case")
 
         try:
-            notification = GovNotification.objects.get(user=user, case=case)
+            content_type = ContentType.objects.get_for_model(Audit)
+            notification = GovNotification.objects.get(user=user, content_type=content_type, case__id=case)
         except GovNotification.DoesNotExist:
-            return JsonResponse(data={"notification": None})
+            return JsonResponse(data={"notification": None}, status=status.HTTP_200_OK)
 
-        serializer = CaseActivityNotificationGetSerializer(notification)
+        serializer = CaseNotificationGetSerializer(notification)
         notification.delete()
 
-        return JsonResponse(data={"notification": serializer.data})
+        return JsonResponse(data={"notification": serializer.data}, status=status.HTTP_200_OK)

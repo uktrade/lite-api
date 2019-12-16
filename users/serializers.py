@@ -174,18 +174,14 @@ class ExporterUserCreateSerializer(serializers.ModelSerializer):
         return exporter
 
 
-class CaseActivityNotificationGetSerializer(serializers.ModelSerializer):
-    """
-    This serializer expects notification querysets containing only 'CaseActivity' Content Types
-    """
-
-    case_activity = serializers.SerializerMethodField()
+class CaseNotificationGetSerializer(serializers.ModelSerializer):
+    audit_id = serializers.SerializerMethodField()
 
     class Meta:
         model = GovNotification
-        fields = ("case_activity",)
+        fields = ("audit_id",)
 
-    def get_case_activity(self, obj):
+    def get_audit_id(self, obj):
         return obj.object_id
 
 

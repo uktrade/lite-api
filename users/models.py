@@ -144,13 +144,13 @@ class GovUser(BaseUser):
         self.case_assignments.clear()
 
     def send_notification(self, content_object, case):
-        from cases.models import CaseActivity
+        from audit_trail.models import Audit
 
-        if isinstance(content_object, CaseActivity):
+        if isinstance(content_object, Audit):
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                content_type = ContentType.objects.get_for_model(CaseActivity)
+                content_type = ContentType.objects.get_for_model(Audit)
                 notification = GovNotification.objects.get(user=self, content_type=content_type, case=case)
                 notification.content_object = content_object
                 notification.save()

@@ -4,9 +4,9 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseActivity
 from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
@@ -59,7 +59,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
@@ -80,7 +80,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
