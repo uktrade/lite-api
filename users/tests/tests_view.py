@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from conf.helpers import convert_queryset_to_str
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship
 
@@ -31,8 +30,13 @@ class UserTests(DataTestClient):
         user_organisation_relationship.sites.set([self.organisation.primary_site])
 
         response, _ = self.get(self.url, **self.exporter_headers)
+        site = response["user"]["sites"][0]
 
-        self.assertEqual(
-            response["user"]["sites"],
-            convert_queryset_to_str(user_organisation_relationship.sites.all().values_list("id", flat=True)),
+        self.assertEquals(
+            site["id"],
+            str(self.organisation.primary_site.id),
+        )
+        self.assertEquals(
+            site["name"],
+            str(self.organisation.primary_site.name),
         )

@@ -16,6 +16,7 @@ from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
+from organisations.models import Site
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
@@ -198,8 +199,8 @@ class AssignSites(UpdateAPIView):
             raise PermissionDenied()
 
         # Get a list of all the sites that the request user has access to!
-        request_user_sites = list(request_user_relationship.get_sites().all())
-        user_sites = list(user_organisation_relationship.get_sites().all())
+        request_user_sites = list(Site.objects.get_by_user_and_organisation_relationship(request_user_relationship))
+        user_sites = list(Site.objects.get_by_user_and_organisation_relationship(user_organisation_relationship))
         diff_sites = [x for x in user_sites if x not in request_user_sites]
         combined_sites = diff_sites + sites
 

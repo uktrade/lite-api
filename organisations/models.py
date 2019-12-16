@@ -3,10 +3,12 @@ import uuid
 from django.db import models
 
 from addresses.models import Address
+from conf.constants import Roles
 from conf.exceptions import NotFoundError
 from flags.models import Flag
 from organisations.enums import OrganisationType
 from static.countries.models import Country
+from users.libraries.get_user import get_user_organisation_relationship
 from users.models import UserOrganisationRelationship
 
 
@@ -43,6 +45,22 @@ class Organisation(models.Model):
         return [x.user for x in user_organisation_relationships]
 
 
+class SiteManager(models.Manager):
+    def get_by_organisation(self, organisation):
+        return self.filter(organisation=organisation).all()
+
+    def get_by_user_and_organisation(self, exporter_user, organisation):
+        exporter_user_relationship = get_user_organisation_relationship(exporter_user, organisation)
+        return self.get_by_user_and_organisation_relationship(exporter_user_relationship)
+
+    def get_by_user_and_organisation_relationship(self, exporter_user_organisation_relationship):
+        # Super users have access to all sites
+        if exporter_user_organisation_relationship.role.id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+            return self.get_by_organisation(exporter_user_organisation_relationship.organisation)
+
+        return exporter_user_organisation_relationship.sites.all()
+
+
 class Site(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
@@ -51,6 +69,8 @@ class Site(models.Model):
         Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
+
+    objects = SiteManager()
 
 
 class ExternalLocation(models.Model):

@@ -1,5 +1,4 @@
 from conf.exceptions import NotFoundError
-from organisations.models import Organisation
 from users.models import ExporterUser, GovUser, UserOrganisationRelationship
 
 
@@ -58,7 +57,7 @@ def get_users_from_organisation(pk):
         raise NotFoundError({"organisation": "Organisation not found - " + str(pk)})
 
 
-def get_user_organisation_relationship(user: ExporterUser, organisation: Organisation) -> UserOrganisationRelationship:
+def get_user_organisation_relationship(user, organisation) -> UserOrganisationRelationship:
     try:
         user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
         return user_organisation_relationship

@@ -129,14 +129,6 @@ class UserOrganisationRelationship(TimeStampedModel):
     )
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
-    def get_sites(self):
-        from organisations.models import Site
-
-        if self.role.id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
-            return Site.objects.filter(organisation=self.organisation)
-
-        return self.sites
-
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)

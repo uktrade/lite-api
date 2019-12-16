@@ -76,7 +76,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
         from organisations.serializers import SiteViewSerializer
 
         if self.context:
-            sites = get_user_organisation_relationship(instance, self.context).get_sites().all()
+            sites = Site.objects.get_by_user_and_organisation(instance, self.context)
             return SiteViewSerializer(sites, many=True).data
         return None
 
