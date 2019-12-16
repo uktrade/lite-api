@@ -10,6 +10,7 @@ from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
+
     url = reverse("organisations:organisations")
 
     def test_create_organisation_with_first_user(self):

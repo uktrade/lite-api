@@ -77,6 +77,12 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteSerializer(write_only=True)
 
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("data").get("user"):
+            kwargs["data"]["user"]["sites"] = kwargs["data"]["user"].get("sites", [])
+
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = Organisation
         fields = (
@@ -130,7 +136,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError(site_serializer.errors)
 
-        user_serializer = ExporterUserCreateUpdateSerializer(data=user_data)
+        user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
         with reversion.create_revision():
             if user_serializer.is_valid():
                 user_serializer.save()

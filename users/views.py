@@ -199,8 +199,8 @@ class AssignSites(UpdateAPIView):
             raise PermissionDenied()
 
         # Get a list of all the sites that the request user has access to!
-        request_user_sites = list(Site.objects.get_by_user_and_organisation_relationship(request_user_relationship))
-        user_sites = list(Site.objects.get_by_user_and_organisation_relationship(user_organisation_relationship))
+        request_user_sites = list(Site.objects.get_by_user_organisation_relationship(request_user_relationship))
+        user_sites = list(Site.objects.get_by_user_organisation_relationship(user_organisation_relationship))
         diff_sites = [x for x in user_sites if x not in request_user_sites]
         combined_sites = diff_sites + sites
 

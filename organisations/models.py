@@ -51,9 +51,9 @@ class SiteManager(models.Manager):
 
     def get_by_user_and_organisation(self, exporter_user, organisation):
         exporter_user_relationship = get_user_organisation_relationship(exporter_user, organisation)
-        return self.get_by_user_and_organisation_relationship(exporter_user_relationship)
+        return self.get_by_user_organisation_relationship(exporter_user_relationship)
 
-    def get_by_user_and_organisation_relationship(self, exporter_user_organisation_relationship):
+    def get_by_user_organisation_relationship(self, exporter_user_organisation_relationship):
         # Super users have access to all sites
         if exporter_user_organisation_relationship.role.id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             return self.get_by_organisation(exporter_user_organisation_relationship.organisation)

@@ -28,7 +28,7 @@ class SitesList(APIView):
         """
         user_organisation_relationship = get_user_organisation_relationship(request.user, org_pk)
 
-        sites = list(user_organisation_relationship.get_sites().all().order_by("name"))
+        sites = list(Site.objects.get_by_user_organisation_relationship(user_organisation_relationship))
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
 
         serializer = SiteViewSerializer(sites, many=True)
