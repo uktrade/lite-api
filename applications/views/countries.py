@@ -105,9 +105,7 @@ class ApplicationCountries(APIView):
                     actor=request.user,
                     verb=AuditType.ADD_COUNTRIES_TO_APPLICATION,
                     target=case,
-                    payload={
-                        'countries':  [country.name for country in new_countries]
-                    }
+                    payload={"countries": [country.name for country in new_countries]},
                 )
 
             if removed_countries:
@@ -115,9 +113,7 @@ class ApplicationCountries(APIView):
                     actor=request.user,
                     verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
                     target=case,
-                    payload={
-                        'countries':  [country.country.name for country in removed_countries]
-                    }
+                    payload={"countries": [country.country.name for country in removed_countries]},
                 )
 
             removed_countries.delete()

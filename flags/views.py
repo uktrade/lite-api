@@ -183,10 +183,7 @@ class AssignFlags(APIView):
                 actor=user,
                 verb=AuditType.ADD_FLAGS,
                 target=case,
-                payload={
-                    'added_flags': added_flags,
-                    'additional_text': note,
-                }
+                payload={"added_flags": added_flags, "additional_text": note,},
             )
 
         if removed_flags:
@@ -194,10 +191,7 @@ class AssignFlags(APIView):
                 actor=user,
                 verb=AuditType.REMOVE_FLAGS,
                 target=case,
-                payload={
-                    'removed_flags': removed_flags,
-                    'additional_text': note
-                }
+                payload={"removed_flags": removed_flags, "additional_text": note},
             )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
@@ -208,11 +202,7 @@ class AssignFlags(APIView):
                 verb=AuditType.GOOD_ADD_FLAGS,
                 action_object=good,
                 target=case,
-                payload={
-                    'added_flags': added_flags,
-                    'good_name': good.description,
-                    'additional_text': note,
-                }
+                payload={"added_flags": added_flags, "good_name": good.description, "additional_text": note,},
             )
 
         if removed_flags:
@@ -221,9 +211,5 @@ class AssignFlags(APIView):
                 verb=AuditType.GOOD_REMOVE_FLAGS,
                 action_object=good,
                 target=case,
-                payload={
-                    'removed_flags': removed_flags,
-                    'good_name': good.description,
-                    'additional_text': note,
-                }
+                payload={"removed_flags": removed_flags, "good_name": good.description, "additional_text": note,},
             )

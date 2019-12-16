@@ -171,8 +171,7 @@ class GoodFlagsManagementTests(DataTestClient):
         case = Case.objects.get(id=query.id)
 
         audit_qs = Audit.objects.filter(
-            target_object_id=case.id,
-            target_content_type=ContentType.objects.get_for_model(case)
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
         )
 
         self.assertEqual(audit_qs.count(), 1)

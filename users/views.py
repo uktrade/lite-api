@@ -178,7 +178,7 @@ class CaseNotification(APIView):
             notification = Notification.objects.get(
                 user=user,
                 audit__target_object_id=case.id,
-                audit__target_content_type=ContentType.objects.get_for_model(case)
+                audit__target_content_type=ContentType.objects.get_for_model(case),
             )
         except Notification.DoesNotExist:
             return JsonResponse(data={"notification": None})

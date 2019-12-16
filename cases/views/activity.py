@@ -14,6 +14,7 @@ class Activity(APIView):
     * Case Notes
     * ECJU Queries
     """
+
     def get(self, request, pk):
         case = get_case(pk)
         audit_trail = audit_trail_service.get_obj_trail(case)

@@ -143,9 +143,7 @@ class ApplicationExternalLocations(APIView):
                 actor=request.user,
                 verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
                 target=application.get_case(),
-                payload={
-                    'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
-                }
+                payload={"sites": [site.site.name + " " + site.site.address.country.name for site in removed_sites],},
             )
 
         if removed_locations:
@@ -154,11 +152,11 @@ class ApplicationExternalLocations(APIView):
                 verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
                 target=application.get_case(),
                 payload={
-                    'locations': [
+                    "locations": [
                         location.external_location.name + " " + location.external_location.country.name
                         for location in removed_locations
                     ]
-                }
+                },
             )
 
         if new_locations:
@@ -166,9 +164,7 @@ class ApplicationExternalLocations(APIView):
                 actor=request.user,
                 verb=AuditType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
                 target=application.get_case(),
-                payload={
-                    'locations': [location.name + " " + location.country.name for location in new_locations],
-                }
+                payload={"locations": [location.name + " " + location.country.name for location in new_locations],},
             )
 
         if data.get("method") != "append_location":
@@ -215,11 +211,11 @@ class ApplicationRemoveExternalLocation(APIView):
                 verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
                 target=application.get_case(),
                 payload={
-                    'locations': [
+                    "locations": [
                         location.external_location.name + " " + location.external_location.country.name
                         for location in removed_locations
                     ]
-                }
+                },
             )
 
         removed_locations.delete()

@@ -84,10 +84,10 @@ class GoodsListControlCode(APIView):
                             action_object=good,
                             target=case,
                             payload={
-                                'good_name': good.description,
-                                'new_control_code': new_control_code,
-                                'old_control_code': old_control_code
-                            }
+                                "good_name": good.description,
+                                "new_control_code": new_control_code,
+                                "old_control_code": old_control_code,
+                            },
                         )
                 except Http404:
                     error_occurred = True

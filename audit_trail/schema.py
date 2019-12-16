@@ -6,10 +6,11 @@ from cases.models import Case, CaseNote
 from users.models import GovUser
 
 
-class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
+class Schema(namedtuple("Schema", "actor verb action_object target payload")):
     """
     Schema defines a parameter schema for validation.
     """
+
     @classmethod
     def from_kwargs(cls, **kwargs):
         try:
@@ -22,13 +23,14 @@ class Schema(namedtuple('Schema', 'actor verb action_object target payload')):
             return Schema(**kwarg_schema)
 
         except TypeError:
-            raise TypeError(f'INVALID KWARGS: {kwargs}')
+            raise TypeError(f"INVALID KWARGS: {kwargs}")
 
 
 class Registry:
     """
     Registry holds Audit schemas for validation.
     """
+
     __registry = set()
 
     def check_kwargs(self, **kwargs):
@@ -36,10 +38,10 @@ class Registry:
 
     def add(self, schema):
         if not isinstance(schema, Schema):
-            raise ValueError('[registry]: invalid schema')
+            raise ValueError("[registry]: invalid schema")
 
         if schema in self.__registry:
-            raise ValueError('[schema]: schema already exists')
+            raise ValueError("[schema]: schema already exists")
 
         self.__registry.add(schema)
 

@@ -58,8 +58,8 @@ class DraftDocumentTests(DataTestClient):
         response_data = response.json()["documents"]
         self.assertEqual(len(response_data), 3)
 
-        document1 = list(filter(lambda x: x['name'] == self.data['name'], response_data))[0]
-        document2 = list(filter(lambda x: x['name'] == self.data2['name'], response_data))[0]
+        document1 = list(filter(lambda x: x["name"] == self.data["name"], response_data))[0]
+        document2 = list(filter(lambda x: x["name"] == self.data2["name"], response_data))[0]
 
         self.assertEqual(self.data["name"], document1["name"])
         self.assertEqual(self.data["s3_key"], document1["s3_key"])

@@ -131,7 +131,7 @@ class ApplicationSites(APIView):
             application=application,
             removed_locations=removed_locations,
             removed_sites=removed_sites,
-            added_sites=new_sites
+            added_sites=new_sites,
         )
 
         removed_sites.delete()
@@ -147,9 +147,7 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
             actor=user,
             verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
             target=case,
-            payload={
-                'sites': [site.site.name + " " + site.site.address.country.name for site in removed_sites],
-            }
+            payload={"sites": [site.site.name + " " + site.site.address.country.name for site in removed_sites],},
         )
 
     if removed_locations:
@@ -158,11 +156,11 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
             verb=AuditType.REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION,
             target=case,
             payload={
-                'locations':  [
+                "locations": [
                     location.external_location.name + " " + location.external_location.country.name
                     for location in removed_locations
                 ]
-            }
+            },
         )
 
     if added_sites:
@@ -170,7 +168,5 @@ def _set_activity(user, application, removed_locations, removed_sites, added_sit
             actor=user,
             verb=AuditType.ADD_SITES_TO_APPLICATION,
             target=case,
-            payload={
-                'sites': [site.name + " " + site.address.country.name for site in added_sites],
-            }
+            payload={"sites": [site.name + " " + site.address.country.name for site in added_sites],},
         )

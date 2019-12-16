@@ -53,20 +53,14 @@ class ApplicationEndUser(APIView):
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
                 target=case,
-                payload={
-                    "party_type": previous_end_user.type.replace("_", " "),
-                    "party_name": previous_end_user.name,
-                }
+                payload={"party_type": previous_end_user.type.replace("_", " "), "party_name": previous_end_user.name,},
             )
 
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
             target=case,
-            payload={
-                "party_type": new_end_user.type.replace("_", " "),
-                "party_name": new_end_user.name,
-            }
+            payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name,},
         )
 
         return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -92,10 +86,7 @@ class ApplicationEndUser(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={
-                "party_type": end_user.type.replace("_", " "),
-                "party_name": end_user.name,
-            }
+            payload={"party_type": end_user.type.replace("_", " "), "party_name": end_user.name,},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -135,10 +126,7 @@ class ApplicationUltimateEndUsers(APIView):
             actor=request.user,
             verb=AuditType.ADD_PARTY,
             target=application.get_case(),
-            payload={
-                "party_type": ultimate_end_user.type.replace("_", " "),
-                "party_name": ultimate_end_user.name,
-            }
+            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
         )
 
         return JsonResponse(data={"ultimate_end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -166,10 +154,7 @@ class RemoveApplicationUltimateEndUser(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={
-                "party_type": ultimate_end_user.type.replace("_", " "),
-                "party_name": ultimate_end_user.name,
-            }
+            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
         )
 
         return JsonResponse(data={"ultimate_end_user": "deleted"}, status=status.HTTP_200_OK)
@@ -210,17 +195,14 @@ class ApplicationConsignee(APIView):
                 payload={
                     "party_type": previous_consignee.type.replace("_", " "),
                     "party_name": previous_consignee.name,
-                }
+                },
             )
 
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
             target=case,
-            payload={
-                "party_type": new_consignee.type.replace("_", " "),
-                "party_name": new_consignee.name,
-            }
+            payload={"party_type": new_consignee.type.replace("_", " "), "party_name": new_consignee.name,},
         )
 
         return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
@@ -247,10 +229,7 @@ class ApplicationConsignee(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=case,
-            payload={
-                "party_type": consignee.type.replace("_", " "),
-                "party_name": consignee.name,
-            }
+            payload={"party_type": consignee.type.replace("_", " "), "party_name": consignee.name,},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -291,10 +270,7 @@ class ApplicationThirdParties(APIView):
             actor=request.user,
             verb=AuditType.ADD_PARTY,
             target=case,
-            payload={
-                "party_type": third_party.type.replace("_", " "),
-                "party_name": third_party.name,
-            }
+            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
         )
 
         return JsonResponse(data={"third_party": serializer.data}, status=status.HTTP_201_CREATED)
@@ -321,10 +297,7 @@ class RemoveThirdParty(APIView):
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={
-                "party_type": third_party.type.replace("_", " "),
-                "party_name": third_party.name,
-            }
+            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
         )
 
         return JsonResponse(data={"third_party": "deleted"}, status=status.HTTP_200_OK)

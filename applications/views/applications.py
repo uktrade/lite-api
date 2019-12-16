@@ -126,7 +126,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 actor=request.user,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
                 target=case,
-                payload={"old_name": old_name, "new_name": serializer.data.get("name")}
+                payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
 
         if (
@@ -139,8 +139,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 target=case,
                 payload={
                     "old_ref_number": application.reference_number_on_information_form,
-                    "new_ref_number": serializer.data.get("reference_number_on_information_form")
-                }
+                    "new_ref_number": serializer.data.get("reference_number_on_information_form"),
+                },
             )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
@@ -200,7 +200,7 @@ class ApplicationSubmission(APIView):
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
                 target=application.get_case(),
-                payload={'status': application.status.status}
+                payload={"status": application.status.status},
             )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
@@ -246,7 +246,7 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={'status': CaseStatusEnum.human_readable(new_status.status)}
+            payload={"status": CaseStatusEnum.human_readable(new_status.status)},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

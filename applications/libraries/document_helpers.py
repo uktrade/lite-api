@@ -54,7 +54,7 @@ def upload_application_document(application, data, user):
         actor=user,
         verb=AuditType.UPLOAD_APPLICATION_DOCUMENT,
         target=application.get_case(),
-        payload={"file_name": data.get("name")}
+        payload={"file_name": data.get("name")},
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -72,7 +72,7 @@ def delete_application_document(document_id, application, user):
         actor=user,
         verb=AuditType.DELETE_APPLICATION_DOCUMENT,
         target=application.get_case(),
-        payload={"file_name": document.name}
+        payload={"file_name": document.name},
     )
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -99,7 +99,7 @@ def upload_party_document(party, data, application, user):
         verb=AuditType.UPLOAD_PARTY_DOCUMENT,
         target=application.get_case(),
         action_object=serializer.instance,
-        payload={'file_name': serializer.data.get("name"), "party_type": party.type, "party_name": party.name}
+        payload={"file_name": serializer.data.get("name"), "party_type": party.type, "party_name": party.name},
     )
 
     return JsonResponse({"document": serializer.data}, status=status.HTTP_201_CREATED)
@@ -118,11 +118,7 @@ def delete_party_document(party, application, user):
             actor=user,
             verb=AuditType.DELETE_PARTY_DOCUMENT,
             target=application.get_case(),
-            payload={
-                "party_type": party.type.replace("_", " "),
-                "party_name": party.name,
-                "file_name": document.name
-            }
+            payload={"party_type": party.type.replace("_", " "), "party_name": party.name, "file_name": document.name},
         )
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)

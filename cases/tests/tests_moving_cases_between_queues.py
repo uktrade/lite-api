@@ -47,7 +47,7 @@ class MoveCasesTests(DataTestClient):
             set(self.case.queues.values_list("id", flat=True)), set(no_queues_data["queues"]),
         )
 
-    @mock.patch('audit_trail.service.create')
+    @mock.patch("audit_trail.service.create")
     def test_case_activity_created(self, mock_create):
         self.assertEqual(mock_create.call_count, 0)
 
@@ -61,10 +61,7 @@ class MoveCasesTests(DataTestClient):
         case = Case.objects.get(id=self.case.id)  # clc parent
 
         mock_create.assert_called_once_with(
-            actor=self.gov_user,
-            verb=AuditType.MOVE_CASE,
-            target=case,
-            payload=expected_action_payload
+            actor=self.gov_user, verb=AuditType.MOVE_CASE, target=case, payload=expected_action_payload
         )
 
         queues_data_rm = {"queues": []}
@@ -72,10 +69,7 @@ class MoveCasesTests(DataTestClient):
         self.client.put(self.url, data=queues_data_rm, **self.gov_headers)
 
         mock_create.assert_called_with(
-            actor=self.gov_user,
-            verb=AuditType.REMOVE_CASE,
-            target=case,
-            payload=expected_action_payload
+            actor=self.gov_user, verb=AuditType.REMOVE_CASE, target=case, payload=expected_action_payload
         )
 
     @parameterized.expand(
