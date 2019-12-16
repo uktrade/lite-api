@@ -15,8 +15,8 @@ from applications.helpers import (
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
-    validate_status_can_be_set_by_exporter_user,
-    validate_status_can_be_set_by_gov_user,
+    check_status_can_be_set_by_exporter_user,
+    check_status_can_be_set_by_gov_user,
 )
 from applications.libraries.case_activity import (
     set_application_ref_number_case_activity,
@@ -215,14 +215,15 @@ class ApplicationManageStatus(APIView):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
+            if not check_status_can_be_set_by_exporter_user(application.status.status, new_status_enum):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Exporter user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(
-                request.user, application.status.status, new_status_enum
-            )
-
-        if validation_error:
-            return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
+            if not check_status_can_be_set_by_gov_user(request.user, application.status.status, new_status_enum):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
         new_status = get_case_status_by_status(new_status_enum)
         request.data["status"] = str(new_status.pk)

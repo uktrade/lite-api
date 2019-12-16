@@ -25,8 +25,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            json.loads(response.content).get("errors")[0],
-            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
+            json.loads(response.content).get("errors")[0], "Status cannot be set by Gov user.",
         )
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
@@ -121,8 +120,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            json.loads(response.content).get("errors")[0],
-            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
+            json.loads(response.content).get("errors")[0], "Status cannot be set by Gov user.",
         )
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
