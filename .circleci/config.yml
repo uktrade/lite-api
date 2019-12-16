@@ -1,21 +1,21 @@
 version: 2.1
 
 aliases:
-    - &submodules
-      - checkout
-      run: |
-        git submodule sync
-        git submodule update --init
-    - &dependencies
-      - checkout
-      restore_cache:
-        key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+  - &submodules
+    - checkout
+    run: |
+      git submodule sync
+      git submodule update --init
+  - &dependencies
+    - checkout
+    restore_cache:
+      key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 #    - &database
 #      - checkout
 #      - run: *bundle_install
 #      - run: *db_setup
-    - &deps
-        - "Dependencies"
+  - &deps
+      - "Dependencies"
 
 workflows:
     version: 2
