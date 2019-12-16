@@ -23,27 +23,75 @@ paths:
   /applications/:
     get:
       operationId: applications_list
-      description: List all applications
-      parameters: []
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
       responses:
         '200':
           description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/GenericApplicationList'
       tags:
         - applications
     post:
       operationId: applications_create
-      description: Create a new application from a draft
-      parameters: []
+      description: "Create a new application\nTypes include StandardApplication, OpenApplication\
+        \ and HmrcQuery"
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GenericApplicationList'
       responses:
         '201':
           description: ''
+          schema:
+            $ref: '#/definitions/GenericApplicationList'
       tags:
         - applications
     parameters: []
+  /applications/good-on-application/{obj_pk}/:
+    delete:
+      operationId: applications_good-on-application_delete
+      description: Good on a standard application.
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: obj_pk
+        in: path
+        required: true
+        type: string
   /applications/{id}/:
     get:
       operationId: applications_read
-      description: Retrieve an application instance.
+      description: Retrieve an application instance
       parameters: []
       responses:
         '200':
@@ -52,7 +100,321 @@ paths:
         - applications
     put:
       operationId: applications_update
-      description: Update an application instance.
+      description: Update an application instance
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    patch:
+      operationId: applications_partial_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    delete:
+      operationId: applications_delete
+      description: Deleting an application should only be allowed for draft applications
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/consignee/:
+    post:
+      operationId: applications_consignee_create
+      description: Create a consignee and add it to a application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    delete:
+      operationId: applications_consignee_delete
+      description: Delete a consignee and their document from an application
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/consignee/document/:
+    get:
+      operationId: applications_consignee_document_list
+      description: Retrieve, add or delete a consignee document from an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_consignee_document_create
+      description: Retrieve, add or delete a consignee document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    delete:
+      operationId: applications_consignee_document_delete
+      description: Retrieve, add or delete a consignee document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/countries/:
+    get:
+      operationId: applications_countries_list
+      description: View countries belonging to an open licence application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_countries_create
+      description: Add countries to an open licence application.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/documents/:
+    get:
+      operationId: applications_documents_list
+      description: View all additional documents on an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_documents_create
+      description: Upload additional document onto an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ApplicationDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/ApplicationDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/documents/{doc_pk}/:
+    get:
+      operationId: applications_documents_read
+      description: View an additional document on an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    delete:
+      operationId: applications_documents_delete
+      description: Delete an additional document on an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ApplicationDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: doc_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/end-user/:
+    post:
+      operationId: applications_end-user_create
+      description: Create an end user and add it to a application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    delete:
+      operationId: applications_end-user_delete
+      description: Delete an end user and their document from an application
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/end-user/document/:
+    get:
+      operationId: applications_end-user_document_list
+      description: Retrieve, add or delete an end user document from an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_end-user_document_create
+      description: Retrieve, add or delete an end user document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    delete:
+      operationId: applications_end-user_document_delete
+      description: Retrieve, add or delete an end user document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/external_locations/:
+    get:
+      operationId: applications_external_locations_list
+      description: View sites belonging to a draft or add them.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_external_locations_create
+      description: View sites belonging to a draft or add them.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/external_locations/{ext_loc_pk}/:
+    delete:
+      operationId: applications_external_locations_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: ext_loc_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/generated-documents/:
+    get:
+      operationId: applications_generated-documents_list
+      description: Gets a list of generated documents for the application's case
       parameters: []
       responses:
         '200':
@@ -64,6 +426,436 @@ paths:
         in: path
         required: true
         type: string
+  /applications/{id}/generated-documents/{gcd_pk}/:
+    get:
+      operationId: applications_generated-documents_read
+      description: Gets a generated document for the application's case
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: gcd_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/goods/:
+    get:
+      operationId: applications_goods_list
+      description: Goods belonging to a standard application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_goods_create
+      description: Goods belonging to a standard application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/goodstype/{goods_type_pk}/document/:
+    get:
+      operationId: applications_goodstype_document_list
+      description: Retrieve, add or delete a third party document from an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_goodstype_document_create
+      description: Retrieve, add or delete a third party document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GoodsTypeDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/GoodsTypeDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    delete:
+      operationId: applications_goodstype_document_delete
+      description: Retrieve, add or delete a third party document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GoodsTypeDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: goods_type_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/goodstype/{goodstype_pk}/:
+    get:
+      operationId: applications_goodstype_read
+      description: Gets a goodstype
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    delete:
+      operationId: applications_goodstype_delete
+      description: Deletes a goodstype
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: goodstype_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/goodstype/{goodstype_pk}/assign-countries/:
+    put:
+      operationId: applications_goodstype_assign-countries_update
+      description: Sets countries on goodstype
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: goodstype_pk
+        in: path
+        required: true
+        type: string
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/goodstypes/:
+    get:
+      operationId: applications_goodstypes_list
+      description: Goodstypes belonging to an open application.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_goodstypes_create
+      description: Post a goodstype
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/sites/:
+    get:
+      operationId: applications_sites_list
+      description: View sites belonging to an application or add them.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_sites_create
+      description: View sites belonging to an application or add them.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/status/:
+    put:
+      operationId: applications_status_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/submit/:
+    put:
+      operationId: applications_submit_update
+      description: Submit a draft-application which will set its submitted_at datetime
+        and status before creating a case
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/third-parties/:
+    get:
+      operationId: applications_third-parties_list
+      description: Get third parties associated with a application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_third-parties_create
+      description: Create a third party and add it to a application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/third-parties/{tp_pk}:
+    delete:
+      operationId: applications_third-parties_delete
+      description: Delete a third party and remove it from the application.
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: tp_pk
+        in: path
+        required: true
+        type: string
+  /applications/{id}/third-parties/{tp_pk}/document/:
+    get:
+      operationId: applications_third-parties_document_list
+      description: Retrieve, add or delete a third party document from an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_third-parties_document_create
+      description: Retrieve, add or delete a third party document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    delete:
+      operationId: applications_third-parties_document_delete
+      description: Retrieve, add or delete a third party document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: tp_pk
+        in: path
+        required: true
+        type: string
+  /applications/{id}/ultimate-end-user/{ueu_pk}/document/:
+    get:
+      operationId: applications_ultimate-end-user_document_list
+      description: Retrieve, add or delete an ultimate end user document from an application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_ultimate-end-user_document_create
+      description: Retrieve, add or delete an ultimate end user document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/PartyDocument'
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    delete:
+      operationId: applications_ultimate-end-user_document_delete
+      description: Retrieve, add or delete an ultimate end user document from an application
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PartyDocument'
+      responses:
+        '204':
+          description: ''
+        '400':
+          description: JSON parse error
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: ueu_pk
+        in: path
+        required: true
+        type: string
+  /applications/{id}/ultimate-end-users/:
+    get:
+      operationId: applications_ultimate-end-users_list
+      description: Get ultimate end users associated with a application
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - applications
+    post:
+      operationId: applications_ultimate-end-users_create
+      description: Create an ultimate end user and add it to a application
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /applications/{id}/ultimate-end-users/{ueu_pk}:
+    delete:
+      operationId: applications_ultimate-end-users_delete
+      description: Delete an ultimate end user and remove it from the application
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - applications
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: ueu_pk
+        in: path
+        required: true
+        type: string
+  /cases/:
+    get:
+      operationId: cases_list
+      description: Provides a search view for the Case model.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    parameters: []
   /cases/{id}/:
     get:
       operationId: cases_read
@@ -109,7 +901,7 @@ paths:
   /cases/{id}/case-notes/:
     get:
       operationId: cases_case-notes_list
-      description: Gets all case notes
+      description: Gets all case notes.
       parameters: []
       responses:
         '200':
@@ -118,7 +910,7 @@ paths:
         - cases
     post:
       operationId: cases_case-notes_create
-      description: Creates a case note on a case
+      description: Create a case note on a case.
       parameters: []
       responses:
         '201':
@@ -280,6 +1072,79 @@ paths:
         in: path
         required: true
         type: string
+  /cases/{id}/generated-documents/:
+    post:
+      operationId: cases_generated-documents_create
+      description: Create a generated document
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/generated-documents/preview/:
+    get:
+      operationId: cases_generated-documents_preview_list
+      description: Get a preview of the document to be generated
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+  /cases/{id}/generated-documents/{id}/:
+    get:
+      operationId: cases_generated-documents_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/GeneratedCaseDocumentGov'
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        description: A UUID string identifying this generated case document.
+        required: true
+        type: string
+        format: uuid
+  /cases/{id}/goods-countries-decisions/:
+    get:
+      operationId: cases_goods-countries-decisions_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - cases
+    post:
+      operationId: cases_goods-countries-decisions_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - cases
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /cases/{id}/team-advice/:
     get:
       operationId: cases_team-advice_list
@@ -406,586 +1271,6 @@ paths:
         in: path
         required: true
         type: string
-  /drafts/:
-    get:
-      operationId: drafts_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_create
-      description: ''
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters: []
-  /drafts/{id}/:
-    get:
-      operationId: drafts_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    put:
-      operationId: drafts_update
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/consignee/:
-    post:
-      operationId: drafts_consignee_create
-      description: Create a consignee and add it to a draft
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/consignee/document/:
-    get:
-      operationId: drafts_consignee_document_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_consignee_document_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/PartyDocument'
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_consignee_document_delete
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '204':
-          description: ''
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/countries/:
-    get:
-      operationId: drafts_countries_list
-      description: View countries belonging to an open licence draft
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_countries_create
-      description: Add countries to an open licence draft
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/documents/:
-    get:
-      operationId: drafts_documents_list
-      description: View all additional documents on a draft.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_documents_create
-      description: Upload additional document onto a draft.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/DraftDocument'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/DraftDocument'
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/documents/{doc_pk}/:
-    get:
-      operationId: drafts_documents_read
-      description: View an additional document on a draft.
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_documents_delete
-      description: Delete an additional document on a draft.
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/DraftDocument'
-      responses:
-        '204':
-          description: ''
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: doc_pk
-        in: path
-        required: true
-        type: string
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/end-user/:
-    post:
-      operationId: drafts_end-user_create
-      description: Create an end user and add it to a draft
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/end-user/document/:
-    get:
-      operationId: drafts_end-user_document_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_end-user_document_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/PartyDocument'
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_end-user_document_delete
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '204':
-          description: ''
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/external_locations/:
-    get:
-      operationId: drafts_external_locations_list
-      description: View sites belonging to a draft or add them
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_external_locations_create
-      description: View sites belonging to a draft or add them
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/goods/:
-    get:
-      operationId: drafts_goods_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_goods_create
-      description: ''
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/goods/{good_pk}/:
-    get:
-      operationId: drafts_goods_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_goods_create
-      description: ''
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: good_pk
-        in: path
-        required: true
-        type: string
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/goodstype/:
-    get:
-      operationId: drafts_goodstype_list
-      description: Gets draft Goods Types
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/sites/:
-    get:
-      operationId: drafts_sites_list
-      description: View sites belonging to a draft or add them
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_sites_create
-      description: View sites belonging to a draft or add them
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/third-parties/:
-    get:
-      operationId: drafts_third-parties_list
-      description: Get third parties associated with a draft
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_third-parties_create
-      description: Create a third party and add it to a draft
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/third-parties/{tp_pk}:
-    delete:
-      operationId: drafts_third-parties_delete
-      description: Delete a third party and remove it from the draft
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-      - name: tp_pk
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/third-parties/{tp_pk}/document/:
-    get:
-      operationId: drafts_third-parties_document_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_third-parties_document_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/PartyDocument'
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_third-parties_document_delete
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '204':
-          description: ''
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-      - name: tp_pk
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/ultimate-end-user/{ueu_pk}/document/:
-    get:
-      operationId: drafts_ultimate-end-user_document_list
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_ultimate-end-user_document_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/PartyDocument'
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    delete:
-      operationId: drafts_ultimate-end-user_document_delete
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PartyDocument'
-      responses:
-        '204':
-          description: ''
-        '400':
-          description: JSON parse error
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-      - name: ueu_pk
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/ultimate-end-users/:
-    get:
-      operationId: drafts_ultimate-end-users_list
-      description: Get ultimate end users associated with a draft
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - drafts
-    post:
-      operationId: drafts_ultimate-end-users_create
-      description: Create an ultimate end user and add it to a draft
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-  /drafts/{id}/ultimate-end-users/{ueu_pk}:
-    delete:
-      operationId: drafts_ultimate-end-users_delete
-      description: Delete an ultimate end user and remove it from the draft
-      parameters: []
-      responses:
-        '204':
-          description: ''
-      tags:
-        - drafts
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
-      - name: ueu_pk
-        in: path
-        required: true
-        type: string
   /flags/:
     get:
       operationId: flags_list
@@ -1053,7 +1338,7 @@ paths:
         - goods
     post:
       operationId: goods_create
-      description: Returns a list of all goods belonging to an organisation
+      description: Add a good to to an organisation
       parameters: []
       responses:
         '201':
@@ -1061,6 +1346,21 @@ paths:
       tags:
         - goods
     parameters: []
+  /goods/controlcode/{case_pk}/:
+    post:
+      operationId: goods_controlcode_create
+      description: Set control list codes on multiple goods.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - goods
+    parameters:
+      - name: case_pk
+        in: path
+        required: true
+        type: string
   /goods/{id}/:
     get:
       operationId: goods_read
@@ -1159,27 +1459,6 @@ paths:
     get:
       operationId: goodstype_list
       description: Gets list of all Goods Types
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - goodstype
-    post:
-      operationId: goodstype_create
-      description: Posts Goods Types
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - goodstype
-    parameters: []
-  /goodstype/assign_countries/:
-    put:
-      operationId: goodstype_assign_countries_update
-      description: 'Accepts {goodstype_id: [country_id, country_id], goodstype_id:
-        [etc...], etc...}'
       parameters: []
       responses:
         '200':
@@ -1365,14 +1644,153 @@ paths:
         in: path
         required: true
         type: string
-  /organisations/:
+  /letter-templates/:
     get:
-      operationId: organisations_list
-      description: List all organisations
+      operationId: letter-templates_list
+      description: Returns list of all letter templates or creates a letter template
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/LetterTemplate'
+      tags:
+        - letter-templates
+    post:
+      operationId: letter-templates_create
+      description: Returns list of all letter templates or creates a letter template
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      tags:
+        - letter-templates
+    parameters: []
+  /letter-templates/generate-preview/:
+    get:
+      operationId: letter-templates_generate-preview_read
+      description: ''
       parameters: []
       responses:
         '200':
           description: ''
+      tags:
+        - letter-templates
+    parameters: []
+  /letter-templates/{id}/:
+    get:
+      operationId: letter-templates_read
+      description: Returns detail of a specific letter template
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      tags:
+        - letter-templates
+    put:
+      operationId: letter-templates_update
+      description: Returns detail of a specific letter template
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      tags:
+        - letter-templates
+    patch:
+      operationId: letter-templates_partial_update
+      description: Returns detail of a specific letter template
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LetterTemplate'
+      tags:
+        - letter-templates
+    parameters:
+      - name: id
+        in: path
+        description: A UUID string identifying this letter template.
+        required: true
+        type: string
+        format: uuid
+  /organisations/:
+    get:
+      operationId: organisations_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/OrganisationDetail'
       tags:
         - organisations
     post:
@@ -1394,6 +1812,17 @@ paths:
       tags:
         - organisations
     parameters: []
+  /organisations/permissions/:
+    get:
+      operationId: organisations_permissions_list
+      description: Return list of all permissions
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    parameters: []
   /organisations/{id}/:
     get:
       operationId: organisations_read
@@ -1402,13 +1831,17 @@ paths:
       responses:
         '200':
           description: ''
+          schema:
+            $ref: '#/definitions/OrganisationDetail'
       tags:
         - organisations
     parameters:
       - name: id
         in: path
+        description: A UUID string identifying this organisation.
         required: true
         type: string
+        format: uuid
   /organisations/{org_pk}/external_locations/:
     get:
       operationId: organisations_external_locations_list
@@ -1429,6 +1862,101 @@ paths:
       tags:
         - organisations
     parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/roles/:
+    get:
+      operationId: organisations_roles_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/Role'
+      tags:
+        - organisations
+    post:
+      operationId: organisations_roles_create
+      description: Create a role
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Role'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Role'
+        '400':
+          description: JSON parse error
+      tags:
+        - organisations
+    parameters:
+      - name: org_pk
+        in: path
+        required: true
+        type: string
+  /organisations/{org_pk}/roles/{id}/:
+    get:
+      operationId: organisations_roles_read
+      description: Get the details of a specific role
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - organisations
+    put:
+      operationId: organisations_roles_update
+      description: update a role
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Role'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Role'
+        '400':
+          description: JSON parse error
+      tags:
+        - organisations
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
       - name: org_pk
         in: path
         required: true
@@ -1737,26 +2265,6 @@ paths:
         in: path
         required: true
         type: string
-  /queues/{id}/cases/:
-    get:
-      operationId: queues_cases_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-      tags:
-        - queues
-    parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
   /static/control-list-entries/:
     get:
       operationId: static_control-list-entries_list
@@ -1767,38 +2275,11 @@ paths:
           description: ''
       tags:
         - static
-    post:
-      operationId: static_control-list-entries_create
-      description: Add a new control list entry
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - static
     parameters: []
   /static/control-list-entries/{rating}/:
     get:
       operationId: static_control-list-entries_read
       description: Returns details of a specific control ratings
-      parameters: []
-      responses:
-        '200':
-          description: ''
-      tags:
-        - static
-    post:
-      operationId: static_control-list-entries_create
-      description: Add a new control rating
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - static
-    put:
-      operationId: static_control-list-entries_update
-      description: Update a control rating
       parameters: []
       responses:
         '200':
@@ -1832,6 +2313,61 @@ paths:
       tags:
         - static
     parameters: []
+  /static/letter-layouts/:
+    get:
+      operationId: static_letter-layouts_list
+      description: Returns list of all letter layouts
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/LetterLayout'
+      tags:
+        - static
+    parameters: []
+  /static/letter-layouts/{id}/:
+    get:
+      operationId: static_letter-layouts_read
+      description: Returns detail of a specific letter layout
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/LetterLayout'
+      tags:
+        - static
+    parameters:
+      - name: id
+        in: path
+        description: A UUID string identifying this letter layout.
+        required: true
+        type: string
+        format: uuid
   /static/statuses/:
     get:
       operationId: static_statuses_list
@@ -1843,9 +2379,35 @@ paths:
       tags:
         - static
     parameters: []
+  /static/statuses/properties/{status}/:
+    get:
+      operationId: static_statuses_properties_read
+      description: Return is_read_only and is_terminal properties for a case status.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters:
+      - name: status
+        in: path
+        required: true
+        type: string
   /static/units/:
     get:
       operationId: static_units_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - static
+    parameters: []
+  /static/upload-document-for-tests/:
+    get:
+      operationId: static_upload-document-for-tests_list
       description: ''
       parameters: []
       responses:
@@ -1974,10 +2536,21 @@ paths:
       tags:
         - users
     parameters: []
+  /users/case-notification/:
+    get:
+      operationId: users_case-notification_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - users
+    parameters: []
   /users/me/:
     get:
       operationId: users_me_list
-      description: ''
+      description: Get the user from request
       parameters: []
       responses:
         '200':
@@ -1990,14 +2563,9 @@ paths:
       operationId: users_notifications_list
       description: ''
       parameters:
-        - name: limit
+        - name: page
           in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-        - name: offset
-          in: query
-          description: The initial index from which to return the results.
+          description: A page number within the paginated result set.
           required: false
           type: integer
       responses:
@@ -2053,6 +2621,226 @@ paths:
         required: true
         type: string
 definitions:
+  OrganisationDetail:
+    title: Organisation
+    required:
+      - primary_site
+      - type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      primary_site:
+        title: Primary site
+        type: string
+        format: uuid
+      type:
+        title: Type
+        type: string
+      flags:
+        title: Flags
+        type: string
+        readOnly: true
+      name:
+        title: Name
+        type: string
+      eori_number:
+        title: Eori number
+        type: string
+        x-nullable: true
+      sic_number:
+        title: Sic number
+        type: string
+        x-nullable: true
+      vat_number:
+        title: Vat number
+        type: string
+        x-nullable: true
+      registration_number:
+        title: Registration number
+        type: string
+        x-nullable: true
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      last_modified_at:
+        title: Last modified at
+        type: string
+        format: date-time
+        readOnly: true
+  GenericApplicationList:
+    required:
+      - name
+      - organisation
+      - application_type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 100
+        minLength: 1
+      organisation:
+        $ref: '#/definitions/OrganisationDetail'
+      application_type:
+        title: Application type
+        type: string
+      export_type:
+        title: Export type
+        type: string
+        readOnly: true
+      created:
+        title: Created
+        type: string
+        format: date-time
+        readOnly: true
+      modified:
+        title: Modified
+        type: string
+        format: date-time
+        readOnly: true
+      submitted_at:
+        title: Submitted at
+        type: string
+        format: date-time
+        x-nullable: true
+      status:
+        title: Status
+        type: string
+        readOnly: true
+      case:
+        title: Case
+        type: string
+        readOnly: true
+  PartyDocument:
+    required:
+      - name
+      - party
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      party:
+        title: Party
+        type: string
+        format: uuid
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
+  ApplicationDocument:
+    required:
+      - name
+      - application
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      virus_scanned_at:
+        title: Virus scanned at
+        type: string
+        format: date-time
+        x-nullable: true
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      description:
+        title: Description
+        type: string
+        maxLength: 280
+        x-nullable: true
+      application:
+        title: Application
+        type: string
+  GoodsTypeDocument:
+    required:
+      - name
+      - goods_type
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      s3_key:
+        title: S3 key
+        type: string
+        maxLength: 1000
+        minLength: 1
+      size:
+        title: Size
+        type: integer
+        maximum: 2147483647
+        minimum: -2147483648
+        x-nullable: true
+      goods_type:
+        title: Goods type
+        type: string
+        format: uuid
+      safe:
+        title: Safe
+        type: boolean
+        x-nullable: true
   CaseDocumentCreate:
     required:
       - name
@@ -2158,6 +2946,18 @@ definitions:
         type: string
         format: date-time
         readOnly: true
+  GeneratedCaseDocumentGov:
+    required:
+      - template
+    type: object
+    properties:
+      template:
+        title: Template
+        type: string
+        format: uuid
+      text:
+        title: Text
+        type: string
   CaseTeamAdvice:
     required:
       - case
@@ -2298,91 +3098,6 @@ definitions:
       third_party:
         title: Third party
         type: string
-  PartyDocument:
-    required:
-      - name
-      - party
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      s3_key:
-        title: S3 key
-        type: string
-        maxLength: 1000
-        minLength: 1
-      size:
-        title: Size
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-        x-nullable: true
-      party:
-        title: Party
-        type: string
-        format: uuid
-      safe:
-        title: Safe
-        type: boolean
-        x-nullable: true
-  DraftDocument:
-    required:
-      - name
-      - draft
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      s3_key:
-        title: S3 key
-        type: string
-        maxLength: 1000
-        minLength: 1
-      size:
-        title: Size
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-        x-nullable: true
-      virus_scanned_at:
-        title: Virus scanned at
-        type: string
-        format: date-time
-        x-nullable: true
-      safe:
-        title: Safe
-        type: boolean
-        x-nullable: true
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      description:
-        title: Description
-        type: string
-        maxLength: 280
-        x-nullable: true
-      draft:
-        title: Draft
-        type: string
-        format: uuid
   GoodDocumentCreate:
     required:
       - name
@@ -2466,7 +3181,7 @@ definitions:
   Role:
     required:
       - name
-      - permissions
+      - type
     type: object
     properties:
       id:
@@ -2484,12 +3199,64 @@ definitions:
         items:
           type: string
         uniqueItems: true
+      type:
+        title: Type
+        type: string
+        enum:
+          - exporter
+          - internal
+      organisation:
+        title: Organisation
+        type: string
+        format: uuid
+        x-nullable: true
+  LetterTemplate:
+    required:
+      - name
+      - letter_paragraphs
+      - case_types
+      - layout
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 35
+        minLength: 1
+      letter_paragraphs:
+        type: array
+        items:
+          type: string
+          format: uuid
+        uniqueItems: true
+      case_types:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      layout:
+        title: Layout
+        type: string
+        format: uuid
+      created_at:
+        title: Created at
+        type: string
+        format: date-time
+        readOnly: true
+      last_modified_at:
+        title: Last modified at
+        type: string
+        format: date-time
+        readOnly: true
   ExporterUserCreateUpdate:
     title: User
     required:
       - email
-      - first_name
-      - last_name
     type: object
     properties:
       id:
@@ -2502,14 +3269,10 @@ definitions:
         type: string
         format: email
         minLength: 1
-      first_name:
-        title: First name
+      role:
+        title: Role
         type: string
-        minLength: 1
-      last_name:
-        title: Last name
-        type: string
-        minLength: 1
+        format: uuid
       organisation:
         title: Organisation
         type: string
@@ -2518,9 +3281,9 @@ definitions:
     title: Address
     required:
       - address_line_1
-      - postcode
       - city
       - region
+      - postcode
       - country
     type: object
     properties:
@@ -2537,11 +3300,6 @@ definitions:
         title: Address line 2
         type: string
         x-nullable: true
-      postcode:
-        title: Postcode
-        type: string
-        maxLength: 10
-        minLength: 1
       city:
         title: City
         type: string
@@ -2549,6 +3307,11 @@ definitions:
       region:
         title: Region
         type: string
+        minLength: 1
+      postcode:
+        title: Postcode
+        type: string
+        maxLength: 10
         minLength: 1
       country:
         title: Country
@@ -2578,7 +3341,7 @@ definitions:
   OrganisationCreate:
     required:
       - name
-      - sub_type
+      - type
       - user
       - site
     type: object
@@ -2592,8 +3355,8 @@ definitions:
         title: Name
         type: string
         minLength: 1
-      sub_type:
-        title: Sub type
+      type:
+        title: Type
         type: string
       eori_number:
         title: Eori number
@@ -2623,494 +3386,64 @@ definitions:
         $ref: '#/definitions/ExporterUserCreateUpdate'
       site:
         $ref: '#/definitions/Site'
-  OrganisationView:
-    title: Organisation
-    required:
-      - sub_type
-      - primary_site
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-      sub_type:
-        title: Sub type
-        type: string
-      eori_number:
-        title: Eori number
-        type: string
-        x-nullable: true
-      sic_number:
-        title: Sic number
-        type: string
-        x-nullable: true
-      vat_number:
-        title: Vat number
-        type: string
-        x-nullable: true
-      registration_number:
-        title: Registration number
-        type: string
-        x-nullable: true
-      primary_site:
-        title: Primary site
-        type: string
-        format: uuid
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      last_modified_at:
-        title: Last modified at
-        type: string
-        format: date-time
-        readOnly: true
-  FullGood:
-    title: Good
-    required:
-      - description
-      - is_good_controlled
-      - is_good_end_product
-      - organisation
-      - status
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      description:
-        title: Description
-        type: string
-        maxLength: 280
-        minLength: 1
-      is_good_controlled:
-        title: Is good controlled
-        type: string
-        enum:
-          - yes
-          - no
-          - unsure
-      control_code:
-        title: Control code
-        type: string
-        x-nullable: true
-      is_good_end_product:
-        title: Is good end product
-        type: boolean
-      organisation:
-        title: Organisation
-        type: string
-        format: uuid
-      status:
-        title: Status
-        type: string
-      not_sure_details_details:
-        title: Not sure details details
-        type: string
-      case_id:
-        title: Case id
-        type: string
-        readOnly: true
-      query_id:
-        title: Query id
-        type: string
-        readOnly: true
-      documents:
-        title: Documents
-        type: string
-        readOnly: true
-      flags:
-        title: Flags
-        type: string
-        readOnly: true
-      part_number:
-        title: Part number
-        type: string
-        x-nullable: true
-  GoodOnApplicationView:
-    required:
-      - unit
-      - value
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      good:
-        $ref: '#/definitions/FullGood'
-      quantity:
-        title: Quantity
-        type: number
-        x-nullable: true
-      unit:
-        title: Unit
-        type: string
-      value:
-        title: Value
-        type: string
-        format: decimal
-  DenialReason:
-    required:
-      - id
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        minLength: 1
-  ApplicationDenialReasonView:
-    required:
-      - reasons
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      reason_details:
-        title: Reason details
-        type: string
-        maxLength: 2200
-        x-nullable: true
-      reasons:
-        type: array
-        items:
-          $ref: '#/definitions/DenialReason'
-  UltimateEndUser:
-    required:
-      - name
-      - address
-      - country
-      - organisation
-      - sub_type
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
-      address:
-        title: Address
-        type: string
-        minLength: 1
-      country:
-        title: Country
-        type: string
-      website:
-        title: Website
-        type: string
-        format: uri
-      type:
-        title: Type
-        type: string
-        enum:
-          - consignee
-          - end_user
-          - ultimate_end_user
-          - third_party
-      organisation:
-        title: Organisation
-        type: string
-        format: uuid
-      document:
-        title: Document
-        type: string
-        readOnly: true
-      sub_type:
-        title: Sub type
-        type: string
-  Consignee:
-    title: Consignee
-    required:
-      - name
-      - address
-      - country
-      - organisation
-      - sub_type
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
-      address:
-        title: Address
-        type: string
-        minLength: 1
-      country:
-        title: Country
-        type: string
-      website:
-        title: Website
-        type: string
-        format: uri
-      type:
-        title: Type
-        type: string
-        enum:
-          - consignee
-          - end_user
-          - ultimate_end_user
-          - third_party
-      organisation:
-        title: Organisation
-        type: string
-        format: uuid
-      document:
-        title: Document
-        type: string
-        readOnly: true
-      sub_type:
-        title: Sub type
-        type: string
-  ThirdParty:
-    required:
-      - name
-      - address
-      - country
-      - organisation
-      - sub_type
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        minLength: 1
-      address:
-        title: Address
-        type: string
-        minLength: 1
-      country:
-        title: Country
-        type: string
-      website:
-        title: Website
-        type: string
-        format: uri
-      type:
-        title: Type
-        type: string
-        enum:
-          - consignee
-          - end_user
-          - ultimate_end_user
-          - third_party
-      organisation:
-        title: Organisation
-        type: string
-        format: uuid
-      document:
-        title: Document
-        type: string
-        readOnly: true
-      sub_type:
-        title: Sub type
-        type: string
-        enum:
-          - intermediate_consignee
-          - additional_end_user
-          - agent
-          - submitter
-          - consultant
-          - contact
-          - exporter
-          - other
-  AdditionalDocument:
-    required:
-      - name
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      s3_key:
-        title: S3 key
-        type: string
-        maxLength: 1000
-        minLength: 1
-      size:
-        title: Size
-        type: integer
-        maximum: 2147483647
-        minimum: -2147483648
-        x-nullable: true
-      virus_scanned_at:
-        title: Virus scanned at
-        type: string
-        format: date-time
-        x-nullable: true
-      safe:
-        title: Safe
-        type: boolean
-        x-nullable: true
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      description:
-        title: Description
-        type: string
-        maxLength: 280
-        x-nullable: true
-  ApplicationBase:
-    title: Application
-    required:
-      - organisation
-      - application_type
-      - export_type
-      - reference_number_on_information_form
-      - ultimate_end_users
-      - consignee
-      - third_parties
-      - additional_documents
-    type: object
-    properties:
-      id:
-        title: Id
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        x-nullable: true
-      case:
-        title: Case
-        type: string
-        readOnly: true
-      organisation:
-        $ref: '#/definitions/OrganisationView'
-      activity:
-        title: Activity
-        type: string
-        x-nullable: true
-      usage:
-        title: Usage
-        type: string
-        x-nullable: true
-      goods:
-        type: array
-        items:
-          $ref: '#/definitions/GoodOnApplicationView'
-        readOnly: true
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      last_modified_at:
-        title: Last modified at
-        type: string
-        format: date-time
-        readOnly: true
-      submitted_at:
-        title: Submitted at
-        type: string
-        format: date-time
-        readOnly: true
-      status:
-        title: Status
-        type: string
-        readOnly: true
-      application_type:
-        title: Application type
-        type: string
-      export_type:
-        title: Export type
-        type: string
-      reference_number_on_information_form:
-        title: Reference number on information form
-        type: string
-        minLength: 1
-      application_denial_reason:
-        type: array
-        items:
-          $ref: '#/definitions/ApplicationDenialReasonView'
-        readOnly: true
-      destinations:
-        title: Destinations
-        type: string
-        readOnly: true
-      ultimate_end_users:
-        type: array
-        items:
-          $ref: '#/definitions/UltimateEndUser'
-      goods_locations:
-        title: Goods locations
-        type: string
-        readOnly: true
-      goods_types:
-        title: Goods types
-        type: string
-        readOnly: true
-      consignee:
-        $ref: '#/definitions/Consignee'
-      third_parties:
-        type: array
-        items:
-          $ref: '#/definitions/ThirdParty'
-      additional_documents:
-        type: array
-        items:
-          $ref: '#/definitions/AdditionalDocument'
   QueryView:
     title: Query
     required:
+      - type
       - organisation
+      - queues
+      - flags
     type: object
     properties:
       id:
         title: Id
-        type: integer
+        type: string
+        format: uuid
         readOnly: true
+      created:
+        title: Created
+        type: string
+        format: date-time
+        readOnly: true
+      modified:
+        title: Modified
+        type: string
+        format: date-time
+        readOnly: true
+      type:
+        title: Type
+        type: string
+        enum:
+          - application
+          - clc_query
+          - end_user_advisory_query
+          - hmrc_query
       submitted_at:
         title: Submitted at
         type: string
         format: date-time
-        readOnly: true
-      status:
-        title: Status
-        type: string
-        format: uuid
         x-nullable: true
       organisation:
         title: Organisation
         type: string
         format: uuid
+      status:
+        title: Status
+        type: string
+        format: uuid
+        x-nullable: true
+      queues:
+        type: array
+        items:
+          type: string
+          format: uuid
+        uniqueItems: true
+      flags:
+        type: array
+        items:
+          type: string
+          format: uuid
+        uniqueItems: true
   Case:
     required:
       - type
@@ -3125,7 +3458,9 @@ definitions:
         title: Type
         type: string
       application:
-        $ref: '#/definitions/ApplicationBase'
+        title: Application
+        type: string
+        readOnly: true
       query:
         $ref: '#/definitions/QueryView'
   QueueCreate:
@@ -3187,6 +3522,25 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/GovUserSimple'
+  LetterLayout:
+    required:
+      - filename
+      - name
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+        readOnly: true
+      filename:
+        title: Filename
+        type: string
+        minLength: 1
+      name:
+        title: Name
+        type: string
+        minLength: 1
   Team:
     required:
       - name

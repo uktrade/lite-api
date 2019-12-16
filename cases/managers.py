@@ -103,3 +103,48 @@ class CaseManager(models.Manager):
     def submitted(self):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
         return self.get_queryset().exclude(status=draft)
+
+    def get_application(self, case):
+        from applications.models import StandardApplication
+
+        try:
+            return StandardApplication.objects.get(baseapplication_ptr__case_ptr=case)
+        except StandardApplication.DoesNotExist:
+            pass
+
+        from applications.models import OpenApplication
+
+        try:
+            return OpenApplication.objects.get(baseapplication_ptr__case_ptr=case)
+        except OpenApplication.DoesNotExist:
+            pass
+
+        raise Exception(f"Application object not found from case: {case}")
+
+    def get_query(self, case):
+        from queries.control_list_classifications.models import ControlListClassificationQuery
+
+        try:
+            return ControlListClassificationQuery.objects.get(query_ptr__case_ptr=case)
+        except ControlListClassificationQuery.DoesNotExist:
+            pass
+
+        from queries.end_user_advisories.models import EndUserAdvisoryQuery
+
+        try:
+            return EndUserAdvisoryQuery.objects.get(query_ptr__case_ptr=case)
+        except EndUserAdvisoryQuery.DoesNotExist:
+            pass
+
+        raise Exception(f"Query object not found from case: {case}")
+
+    def get_obj(self, case):
+        application = self.get_application(case)
+        if application:
+            return application
+
+        query = self.get_query(case)
+        if query:
+            return query
+
+        return case

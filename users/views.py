@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -9,6 +10,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from cases.models import Case
 from cases.models import Notification
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
@@ -170,8 +172,14 @@ class CaseNotification(APIView):
         user = request.user
         case = self.request.GET.get("case")
 
+        case = Case.objects.get(id=case)
+
         try:
-            notification = Notification.objects.get(user=user, case_activity__case__id=case)
+            notification = Notification.objects.get(
+                user=user,
+                audit__target_object_id=case.id,
+                audit__target_content_type=ContentType.objects.get_for_model(case),
+            )
         except Notification.DoesNotExist:
             return JsonResponse(data={"notification": None})
 

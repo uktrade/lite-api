@@ -7,6 +7,7 @@ from queues.constants import (
     OPEN_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
 )
+from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -90,9 +91,9 @@ class RetrieveAllCases(DataTestClient):
         """
         team_2 = self.create_team("team 2")
 
-        self.queue1 = self.create_queue("queue1", self.team)
-        self.queue2 = self.create_queue("queue2", self.team)
-        self.queue3 = self.create_queue("queue3", team_2)
+        self.queue1 = self.create_queue("new_queue1", self.team)
+        self.queue2 = self.create_queue("new_queue2", self.team)
+        self.queue3 = self.create_queue("new_queue3", team_2)
 
         # Cases 1, 2 and 3 belong to the user's team's queues,
         # whereas case 4 does not
