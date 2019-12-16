@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
@@ -12,7 +13,6 @@ from rest_framework.fields import (
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.validators import ControlListEntryValidator
-from content_strings.strings import get_string
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -39,7 +39,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 class CountrySerializerField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.queryset = Country.objects.all()
-        self.error_messages = {"null": get_string("address.null_country")}
+        self.error_messages = {"null": strings.Address.NULL_COUNTRY}
         super(CountrySerializerField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
@@ -48,7 +48,7 @@ class CountrySerializerField(PrimaryKeyRelatedField):
         try:
             return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist:
-            raise serializers.ValidationError(get_string("address.null_country"))
+            raise serializers.ValidationError(strings.Address.NULL_COUNTRY)
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
