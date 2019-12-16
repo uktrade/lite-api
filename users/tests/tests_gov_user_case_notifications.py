@@ -88,7 +88,7 @@ class NotificationTests(DataTestClient):
         notification = response.json()["notification"]
 
         self.assertEqual(len(notification), 1)
-        self.assertEqual(notification["audit"], audit.id)
+        self.assertEqual(int(notification["audit_id"]), audit.id)
 
         self.assertEqual(
             Notification.objects.filter(
