@@ -23,7 +23,7 @@ class Good(models.Model):
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
     missing_document_reason = models.CharField(
-        choices=GoodMissingDocumentReasons.choices, blank=True, null=True, max_length=20
+        choices=GoodMissingDocumentReasons.choices, null=True, max_length=20
     )
 
     # Gov

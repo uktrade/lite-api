@@ -173,7 +173,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["error"], GoodsOnApplication.DOCUMENT_ERROR)
 
-    def test_adding_good_with_reason_success(self):
+    def test_adding_good_with_reason_official_sensitive_success(self):
         good = self.create_controlled_good("A good", self.organisation)
         good.missing_document_reason = GoodMissingDocumentReasons.OFFICIAL_SENSITIVE
         good.save()
