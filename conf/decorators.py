@@ -98,7 +98,7 @@ def application_in_editable_state():
 
             if application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
-                    data={"errors": [cases.System.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                    data={"errors": [cases.RestrictAction.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

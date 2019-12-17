@@ -36,7 +36,7 @@ class CaseNoteList(APIView):
             return JsonResponse(
                 data={
                     "errors": {
-                        "text": [cases.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]
+                        "text": [cases.RestrictAction.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]
                     }
                 },
                 status=status.HTTP_400_BAD_REQUEST,
