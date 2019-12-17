@@ -27,7 +27,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api import strings
+from lite_content.lite_api import goods, strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -149,17 +149,23 @@ class GoodDocumentCriteriaCheck(APIView):
     def post(self, request, pk):
         good = get_good(pk)
         data = request.data
-        document_to_upload = str_to_bool(data["has_document_to_upload"])
-        if not document_to_upload:
-            good.missing_document_reason = data["missing_document_reason"]
-            serializer = GoodSerializer(instance=good, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                good_data = serializer.data
+        if data.get("has_document_to_upload"):
+            document_to_upload = str_to_bool(data["has_document_to_upload"])
+            if not document_to_upload:
+                good.missing_document_reason = data["missing_document_reason"]
+                serializer = GoodSerializer(instance=good, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    good_data = serializer.data
+                else:
+                    return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                good_data = GoodSerializer(good).data
         else:
-            good_data = GoodSerializer(good).data
+            return JsonResponse(
+                data={"errors": {"has_document_to_upload": [goods.Good.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
