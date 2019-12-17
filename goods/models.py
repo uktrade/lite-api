@@ -22,9 +22,7 @@ class Good(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
-    missing_document_reason = models.CharField(
-        choices=GoodMissingDocumentReasons.choices, null=True, max_length=20
-    )
+    missing_document_reason = models.CharField(choices=GoodMissingDocumentReasons.choices, null=True, max_length=20)
 
     # Gov
     comment = models.TextField(default=None, blank=True, null=True)
