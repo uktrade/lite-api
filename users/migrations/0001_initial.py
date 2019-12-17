@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         ("contenttypes", "0002_remove_content_type_name"),
         ("auth", "0011_update_proxy_permissions"),
         ("teams", "0001_initial"),
-        ("cases", "0002_auto_20191216_1710"),
+        ("cases", "0002_auto_20191209_1209"),
     ]
 
     operations = [
