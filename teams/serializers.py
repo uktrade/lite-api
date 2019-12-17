@@ -1,3 +1,4 @@
+import lite_content.lite_api.teams
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -9,9 +10,9 @@ class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=50,
         validators=[
-            UniqueValidator(queryset=Team.objects.all(), lookup="iexact", message=strings.Teams.NOT_UNIQUE_NAME,)
+            UniqueValidator(queryset=Team.objects.all(), lookup="iexact", message=lite_content.lite_api.teams.Teams.NOT_UNIQUE_NAME, )
         ],
-        error_messages={"blank": strings.Teams.BLANK_NAME},
+        error_messages={"blank": lite_content.lite_api.teams.Teams.BLANK_NAME},
     )
 
     class Meta:
