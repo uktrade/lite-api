@@ -271,6 +271,9 @@ class GoodDocuments(APIView):
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
+            # Delete missing document reason as a document has now been uploaded
+            good.missing_document_reason = None
+            good.save()
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)

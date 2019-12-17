@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -38,3 +40,31 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
         self.assertEquals(status.HTTP_200_OK, response.status_code)
         good = response.json()["good"]
         self.assertEquals(good["missing_document_reason"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
+
+    @mock.patch("documents.tasks.prepare_document.now")
+    def test_uploading_document_clears_missing_document_reason(self, prepare_document_function):
+        # Give a missing document reason
+        data = {
+            "has_document_to_upload": "no",
+            "missing_document_reason": GoodMissingDocumentReasons.NO_DOCUMENT,
+        }
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEquals(status.HTTP_200_OK, response.status_code)
+        self.assertTrue(response.json()["good"]["missing_document_reason"])
+
+        # Upload a document for the good
+        data = [
+            {"name": "file123.pdf", "s3_key": "file123_12345678.pdf", "size": 476, "description": "Description 58398"}
+        ]
+        url = reverse("goods:documents", kwargs={"pk": self.good.id})
+        response = self.client.post(url, data=data, **self.exporter_headers)
+
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+
+        # Get good and check the missing document reason is removed
+        url = reverse("goods:good", kwargs={"pk": self.good.id})
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertFalse(response.json()["good"]["missing_document_reason"])
