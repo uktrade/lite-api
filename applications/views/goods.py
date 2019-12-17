@@ -108,7 +108,7 @@ class ApplicationGoodOnApplication(APIView):
 
         if application.status.status in get_case_statuses(read_only=True):
             return JsonResponse(
-                data={"errors": [EditApplicationPage.NOT_EDITABLE]}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": [EditApplicationPage.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
