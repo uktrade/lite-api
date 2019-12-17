@@ -1,4 +1,4 @@
-import lite_content.lite_api.flags
+from lite_content.lite_api import flags
 
 from django.http import JsonResponse
 from rest_framework import permissions, status
@@ -92,7 +92,7 @@ class FlagDetail(APIView):
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
             return JsonResponse(
-                data={"errors": lite_content.lite_api.flags.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN
+                data={"errors": flags.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN
             )
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
