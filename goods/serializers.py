@@ -52,8 +52,7 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(
-        max_length=280,
-        error_messages={"blank": goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK},
+        max_length=280, error_messages={"blank": goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK},
     )
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,

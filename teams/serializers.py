@@ -10,9 +10,7 @@ class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=50,
         validators=[
-            UniqueValidator(
-                queryset=Team.objects.all(), lookup="iexact", message=teams.Teams.NOT_UNIQUE_NAME,
-            )
+            UniqueValidator(queryset=Team.objects.all(), lookup="iexact", message=teams.Teams.NOT_UNIQUE_NAME,)
         ],
         error_messages={"blank": teams.Teams.BLANK_NAME},
     )

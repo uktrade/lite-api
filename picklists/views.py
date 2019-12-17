@@ -80,9 +80,7 @@ class PicklistItemDetail(APIView):
         picklist_item = get_picklist_item(pk)
 
         if request.user.team != picklist_item.team:
-            return JsonResponse(
-                data={"errors": picklists.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,
-            )
+            return JsonResponse(data={"errors": picklists.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,)
 
         serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
 

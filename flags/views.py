@@ -91,9 +91,7 @@ class FlagDetail(APIView):
 
         # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flag.team:
-            return JsonResponse(
-                data={"errors": flags.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN
-            )
+            return JsonResponse(data={"errors": flags.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
 

@@ -55,9 +55,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Generic.NO_LOCATION_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_failure(self):
@@ -68,9 +66,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_END_USER_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_END_USER_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_document_failure(self):
@@ -80,9 +76,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_END_USER_DOCUMENT_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_END_USER_DOCUMENT_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_consignee_failure(self):
@@ -93,9 +87,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_CONSIGNEE_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_consignee_document_failure(self):
@@ -105,9 +97,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_CONSIGNEE_DOCUMENT_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_good_failure(self):
@@ -117,9 +107,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_GOODS_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self):
@@ -134,9 +122,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.NO_ULTIMATE_END_USERS_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.NO_ULTIMATE_END_USERS_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
@@ -160,9 +146,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.END_USER_DOCUMENT_PROCESSING,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.END_USER_DOCUMENT_PROCESSING, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_status_code_post_with_infected_document_failure(self):
@@ -172,9 +156,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response,
-            text=applications.Standard.END_USER_DOCUMENT_INFECTED,
-            status_code=status.HTTP_400_BAD_REQUEST,
+            response, text=applications.Standard.END_USER_DOCUMENT_INFECTED, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):

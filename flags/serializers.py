@@ -19,11 +19,7 @@ class FlagSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=20,
         trim_whitespace=True,
-        validators=[
-            UniqueValidator(
-                queryset=Flag.objects.all(), lookup="iexact", message=flags.Flags.NON_UNIQUE,
-            )
-        ],
+        validators=[UniqueValidator(queryset=Flag.objects.all(), lookup="iexact", message=flags.Flags.NON_UNIQUE,)],
         error_messages={"blank": flags.Flags.BLANK_NAME},
     )
 

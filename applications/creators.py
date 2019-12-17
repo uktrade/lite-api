@@ -52,9 +52,7 @@ def check_party_error(party, object_not_found_error, is_document_mandatory=True)
 
 def _validate_end_user(draft, errors):
     end_user_errors = check_party_error(
-        draft.end_user,
-        object_not_found_error=applications.Standard.NO_END_USER_SET,
-        is_document_mandatory=True,
+        draft.end_user, object_not_found_error=applications.Standard.NO_END_USER_SET, is_document_mandatory=True,
     )
     if end_user_errors:
         errors["end_user"] = end_user_errors
@@ -64,9 +62,7 @@ def _validate_end_user(draft, errors):
 
 def _validate_consignee(draft, errors):
     consignee_errors = check_party_error(
-        draft.consignee,
-        object_not_found_error=applications.Standard.NO_CONSIGNEE_SET,
-        is_document_mandatory=True,
+        draft.consignee, object_not_found_error=applications.Standard.NO_CONSIGNEE_SET, is_document_mandatory=True,
     )
     if consignee_errors:
         errors["consignee"] = consignee_errors
@@ -111,9 +107,7 @@ def _validate_standard_licence(draft, errors):
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                 if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                    errors[
-                        "ultimate_end_users"
-                    ] = applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                    errors["ultimate_end_users"] = applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
 
     return errors
 

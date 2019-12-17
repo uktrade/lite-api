@@ -11,25 +11,15 @@ from teams.models import Team
 
 
 class PicklistSerializer(ModelSerializer):
-    name = CharField(
-        allow_blank=False,
-        required=True,
-        error_messages={"blank": picklists.Picklists.BLANK_NAME},
-    )
+    name = CharField(allow_blank=False, required=True, error_messages={"blank": picklists.Picklists.BLANK_NAME},)
     text = CharField(
-        allow_blank=False,
-        max_length=5000,
-        required=True,
-        error_messages={"blank": picklists.Picklists.BLANK_TEXT},
+        allow_blank=False, max_length=5000, required=True, error_messages={"blank": picklists.Picklists.BLANK_TEXT},
     )
     type = KeyValueChoiceField(
-        choices=PicklistType.choices,
-        required=True,
-        error_messages={"invalid_choice": picklists.Picklists.BLANK_TYPE},
+        choices=PicklistType.choices, required=True, error_messages={"invalid_choice": picklists.Picklists.BLANK_TYPE},
     )
     status = KeyValueChoiceField(
-        choices=PickListStatus.choices,
-        error_messages={"invalid_choice": picklists.Picklists.BLANK_STATUS},
+        choices=PickListStatus.choices, error_messages={"invalid_choice": picklists.Picklists.BLANK_STATUS},
     )
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     team_name = SerializerMethodField()
