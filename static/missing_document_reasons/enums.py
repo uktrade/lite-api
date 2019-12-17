@@ -10,6 +10,7 @@ class GoodMissingDocumentReasons:
     - COMMERCIALLY_SENSITIVE: The document is commercially sensitive
     In these cases ECJU be contacted to arrange an alternative
     """
+
     NO_DOCUMENT = "NO_DOCUMENT"
     OFFICIAL_SENSITIVE = "OFFICIAL_SENSITIVE"
     COMMERCIALLY_SENSITIVE = "COMMERCIALLY_SENSITIVE"
