@@ -5,6 +5,7 @@ class AuditType(Enum):
     """
     TODO: Remove once audit 100% done
     """
+
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
     GOOD_REVIEWED = (
@@ -31,7 +32,7 @@ class AuditType(Enum):
     UPDATED_STATUS = "updated the status to: {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
     UPDATED_APPLICATION_REFERENCE_NUMBER = (
-    "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
+        "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
     )
     CREATED_FINAL_ADVICE = "created final advice"
     CLEARED_FINAL_ADVICE = "cleared final advice"
@@ -54,7 +55,7 @@ class AuditType(Enum):
 
     def format(self, payload):
         text = self.value.format(**payload)
-        if text[-1] not in [':', '.', '?']:
-            return f'{text}.'
+        if text[-1] not in [":", ".", "?"]:
+            return f"{text}."
 
         return text

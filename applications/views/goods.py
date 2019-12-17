@@ -88,9 +88,7 @@ class ApplicationGoodsOnApplication(APIView):
                     verb=AuditType.ADD_GOOD_TO_APPLICATION,
                     action_object=good,
                     target=application.get_case(),
-                    payload={
-                        'good_name': good.description
-                    }
+                    payload={"good_name": good.description},
                 )
 
                 return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
@@ -134,9 +132,7 @@ class ApplicationGoodOnApplication(APIView):
             verb=AuditType.REMOVE_GOOD_FROM_APPLICATION,
             action_object=good_on_application.good,
             target=application.get_case(),
-            payload={
-                'good_name': good_on_application.good.description
-            }
+            payload={"good_name": good_on_application.good.description},
         )
 
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
@@ -176,9 +172,7 @@ class ApplicationGoodsTypes(APIView):
             verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=serializer.instance,
             target=application.get_case(),
-            payload={
-                'good_type_name': serializer.instance.description
-            }
+            payload={"good_type_name": serializer.instance.description},
         )
 
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
@@ -214,9 +208,7 @@ class ApplicationGoodsType(APIView):
             verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
             action_object=goods_type,
             target=Case.objects.get(id=application.id),
-            payload={
-                'good_type_name': goods_type.description,
-            }
+            payload={"good_type_name": goods_type.description,},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

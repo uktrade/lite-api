@@ -96,16 +96,13 @@ class ControlListClassificationDetail(APIView):
                         target=query.get_case(),
                         payload={
                             "good_name": query.good.description,
-                            'old_control_code': previous_control_code,
-                            'new_control_code': new_control_code
-                        }
+                            "old_control_code": previous_control_code,
+                            "new_control_code": new_control_code,
+                        },
                     )
 
                 audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.CLC_RESPONSE,
-                    action_object=query.good,
-                    target=query.get_case(),
+                    actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
                 )
 
                 # Send a notification to the user

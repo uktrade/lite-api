@@ -32,7 +32,7 @@ class EditApplicationTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
-        old_name = 'Old Name'
+        old_name = "Old Name"
         application = self.create_standard_application(self.organisation, reference_name=old_name)
         self.submit_application(application)
         application.status = get_case_status_by_status(editable_status)
@@ -51,7 +51,7 @@ class EditApplicationTests(DataTestClient):
         audit_object = audit_qs.first()
 
         self.assertEqual(audit_qs.count(), 1)
-        self.assertEqual(audit_object.payload, {'new_name': self.data['name'], 'old_name': old_name})
+        self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):

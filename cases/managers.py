@@ -106,12 +106,14 @@ class CaseManager(models.Manager):
 
     def get_application(self, case):
         from applications.models import StandardApplication
+
         try:
             return StandardApplication.objects.get(baseapplication_ptr__case_ptr=case)
         except StandardApplication.DoesNotExist:
             pass
 
         from applications.models import OpenApplication
+
         try:
             return OpenApplication.objects.get(baseapplication_ptr__case_ptr=case)
         except OpenApplication.DoesNotExist:
@@ -119,12 +121,14 @@ class CaseManager(models.Manager):
 
     def get_query(self, case):
         from queries.control_list_classifications.models import ControlListClassificationQuery
+
         try:
             return ControlListClassificationQuery.objects.get(query_ptr__case_ptr=case)
         except ControlListClassificationQuery.DoesNotExist:
             pass
 
         from queries.end_user_advisories.models import EndUserAdvisoryQuery
+
         try:
             return EndUserAdvisoryQuery.objects.get(query_ptr__case_ptr=case)
         except EndUserAdvisoryQuery.DoesNotExist:

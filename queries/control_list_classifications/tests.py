@@ -87,8 +87,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         case = self.query.get_case()
         # Check that an audit item has been added
         audit_qs = Audit.objects.filter(
-            target_object_id=case.id,
-            target_content_type=ContentType.objects.get_for_model(case)
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
         )
         self.assertEqual(audit_qs.count(), 1)
 
@@ -110,9 +109,9 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
             self.assertEqual(AuditType(audit.verb), verb)
             if verb == AuditType.GOOD_REVIEWED:
                 payload = {
-                    'good_name': self.query.good.description,
-                    'old_control_code': previous_query_control_code,
-                    'new_control_code': self.data["control_code"]
+                    "good_name": self.query.good.description,
+                    "old_control_code": previous_query_control_code,
+                    "new_control_code": self.data["control_code"],
                 }
                 self.assertEqual(audit.payload, payload)
 
@@ -135,8 +134,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         # Check that an activity item has been added
         qs = Audit.objects.filter(
-            target_object_id=self.query.id,
-            target_content_type=ContentType.objects.get_for_model(self.query)
+            target_object_id=self.query.id, target_content_type=ContentType.objects.get_for_model(self.query)
         )
         for audit in qs:
             verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE

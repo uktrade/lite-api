@@ -90,7 +90,7 @@ class EndUserAdvisoryDetail(APIView):
                     actor=request.user,
                     verb=AuditType.UPDATED_STATUS,
                     target=end_user_advisory.get_case(),
-                    payload={'status': data.get('status')}
+                    payload={"status": data.get("status")},
                 )
                 serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={"end_user_advisory": serializer.data})

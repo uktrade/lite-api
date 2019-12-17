@@ -15,7 +15,7 @@ class NotificationTests(DataTestClient):
         prev_notification_count = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
-            audit__target_content_type=ContentType.objects.get_for_model(case)
+            audit__target_content_type=ContentType.objects.get_for_model(case),
         ).count()
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -29,7 +29,7 @@ class NotificationTests(DataTestClient):
             Notification.objects.filter(
                 user=self.gov_user,
                 audit__target_object_id=case.id,
-                audit__target_content_type=ContentType.objects.get_for_model(case)
+                audit__target_content_type=ContentType.objects.get_for_model(case),
             ).count(),
             prev_notification_count + 1,
         )
@@ -42,14 +42,14 @@ class NotificationTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
             target=case,
-            payload={"old_name": 'old_app_name', 'new_name': 'new_app_name'}
+            payload={"old_name": "old_app_name", "new_name": "new_app_name"},
         )
 
         self.gov_user.send_notification(audit=audit)
         prev_notification_count = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
-            audit__target_content_type=ContentType.objects.get_for_model(case)
+            audit__target_content_type=ContentType.objects.get_for_model(case),
         ).count()
 
         url = reverse("applications:application", kwargs={"pk": application.id})
@@ -62,7 +62,7 @@ class NotificationTests(DataTestClient):
         new_notification = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
-            audit__target_content_type=ContentType.objects.get_for_model(case)
+            audit__target_content_type=ContentType.objects.get_for_model(case),
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -78,7 +78,7 @@ class NotificationTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_APPLICATION_NAME,
             target=case,
-            payload={'old_name': 'old_app_name', 'new_name': 'new_app_name'}
+            payload={"old_name": "old_app_name", "new_name": "new_app_name"},
         )
 
         self.gov_user.send_notification(audit=audit)
@@ -90,12 +90,7 @@ class NotificationTests(DataTestClient):
         self.assertEqual(len(notification), 1)
         self.assertEqual(notification["audit"], audit.id)
 
-        self.assertEqual(
-            Notification.objects.filter(
-                user=self.gov_user,
-                audit=audit
-            ).count(), 0
-        )
+        self.assertEqual(Notification.objects.filter(user=self.gov_user, audit=audit).count(), 0)
 
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
         application = self.create_standard_application_case(self.organisation, "Case")
@@ -103,7 +98,7 @@ class NotificationTests(DataTestClient):
         prev_notification_count = Notification.objects.filter(
             user=self.gov_user,
             audit__target_object_id=case.id,
-            audit__target_content_type=ContentType.objects.get_for_model(case)
+            audit__target_content_type=ContentType.objects.get_for_model(case),
         ).count()
         url = reverse("applications:manage_status", kwargs={"pk": case.id})
 
@@ -118,7 +113,7 @@ class NotificationTests(DataTestClient):
             Notification.objects.filter(
                 user=self.gov_user,
                 audit__target_object_id=case.id,
-                audit__target_content_type=ContentType.objects.get_for_model(case)
+                audit__target_content_type=ContentType.objects.get_for_model(case),
             ).count(),
             prev_notification_count,
         )

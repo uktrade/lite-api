@@ -10,6 +10,7 @@ class AuditSerializer(serializers.ModelSerializer):
     """
     TODO: Parametrize Serializer
     """
+
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
     additional_text = serializers.SerializerMethodField()
@@ -32,7 +33,7 @@ class AuditSerializer(serializers.ModelSerializer):
             # If value is a list, join by comma.
             try:
                 if isinstance(payload[key], list):
-                    payload[key] = ', '.join(payload[key])
+                    payload[key] = ", ".join(payload[key])
             except:
                 pass
 

@@ -14,20 +14,10 @@ def update_case_queues(user, case, queues):
     if removed_queues:
         CaseAssignment.objects.filter(queue__name__in=removed_queues).delete()
         audit_trail_service.create(
-            actor=user,
-            verb=AuditType.REMOVE_CASE,
-            target=case,
-            payload={
-                'queues': sorted(removed_queues)
-            }
+            actor=user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted(removed_queues)}
         )
 
     if new_queues:
         audit_trail_service.create(
-            actor=user,
-            verb=AuditType.MOVE_CASE,
-            target=case,
-            payload={
-                'queues': sorted(new_queues)
-            }
+            actor=user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted(new_queues)}
         )

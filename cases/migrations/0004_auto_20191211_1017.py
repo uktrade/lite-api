@@ -7,32 +7,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('audit_trail', '0001_initial'),
-        ('cases', '0003_auto_20191209_1209'),
+        ("audit_trail", "0001_initial"),
+        ("cases", "0003_auto_20191209_1209"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='caseactivity',
-            name='baseactivity_ptr',
-        ),
-        migrations.RemoveField(
-            model_name='caseactivity',
-            name='case',
-        ),
-        migrations.RemoveField(
-            model_name='notification',
-            name='case_activity',
-        ),
+        migrations.RemoveField(model_name="caseactivity", name="baseactivity_ptr",),
+        migrations.RemoveField(model_name="caseactivity", name="case",),
+        migrations.RemoveField(model_name="notification", name="case_activity",),
         migrations.AddField(
-            model_name='notification',
-            name='audit',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='audit_trail.Audit'),
+            model_name="notification",
+            name="audit",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="audit_trail.Audit"),
         ),
-        migrations.DeleteModel(
-            name='BaseActivity',
-        ),
-        migrations.DeleteModel(
-            name='CaseActivity',
-        ),
+        migrations.DeleteModel(name="BaseActivity",),
+        migrations.DeleteModel(name="CaseActivity",),
     ]
