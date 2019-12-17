@@ -1,4 +1,4 @@
-import lite_content.lite_api.goods
+from lite_content.lite_api import goods
 import lite_content.lite_api.picklists
 
 from rest_framework import serializers
@@ -53,15 +53,15 @@ class GoodListSerializer(serializers.ModelSerializer):
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(
         max_length=280,
-        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK},
+        error_messages={"blank": goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK},
     )
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
-        error_messages={"required": lite_content.lite_api.goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
+        error_messages={"required": goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField(
-        error_messages={"required": lite_content.lite_api.goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+        error_messages={"required": goods.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)

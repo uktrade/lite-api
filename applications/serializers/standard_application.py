@@ -1,4 +1,4 @@
-import lite_content.lite_api.goods
+from lite_content.lite_api import goods
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -107,7 +107,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": goods.Goods.ErrorMessages.REF_NAME},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 

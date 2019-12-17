@@ -1,4 +1,4 @@
-import lite_content.lite_api.goods
+from lite_content.lite_api import goods
 
 from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField
@@ -48,20 +48,20 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     quantity = DecimalField(
         max_digits=256,
         decimal_places=6,
-        error_messages={"invalid": lite_content.lite_api.goods.Goods.ErrorMessages.INVALID_QTY},
+        error_messages={"invalid": goods.Goods.ErrorMessages.INVALID_QTY},
     )
     value = (
         DecimalField(
             max_digits=256,
             decimal_places=2,
-            error_messages={"invalid": lite_content.lite_api.goods.Goods.ErrorMessages.INVALID_VALUE},
+            error_messages={"invalid": goods.Goods.ErrorMessages.INVALID_VALUE},
         ),
     )
     unit = ChoiceField(
         choices=Units.choices,
         error_messages={
-            "required": lite_content.lite_api.goods.Goods.ErrorMessages.REQUIRED_UNIT,
-            "invalid_choice": lite_content.lite_api.goods.Goods.ErrorMessages.REQUIRED_UNIT,
+            "required": goods.Goods.ErrorMessages.REQUIRED_UNIT,
+            "invalid_choice": goods.Goods.ErrorMessages.REQUIRED_UNIT,
         },
     )
 

@@ -1,5 +1,5 @@
 import lite_content.lite_api.applications
-import lite_content.lite_api.goods
+from lite_content.lite_api import goods
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -31,7 +31,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": goods.Goods.ErrorMessages.REF_NAME},
     )
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     export_type = serializers.SerializerMethodField()
@@ -81,7 +81,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": goods.Goods.ErrorMessages.REF_NAME},
     )
     application_type = KeyValueChoiceField(
         choices=ApplicationType.choices,
@@ -93,7 +93,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
     )
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,
-        error_messages={"required": lite_content.lite_api.goods.Goods.ErrorMessages.INFORMED},
+        error_messages={"required": goods.Goods.ErrorMessages.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -118,7 +118,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": goods.Goods.ErrorMessages.REF_NAME},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
