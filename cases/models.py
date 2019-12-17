@@ -240,8 +240,7 @@ class EcjuQuery(models.Model):
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = self.case.organisation
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
                 user_relationship.send_notification(content_object=self, case=self.case)
         else:
             self.responded_at = timezone.now()

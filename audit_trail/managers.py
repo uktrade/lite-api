@@ -23,7 +23,7 @@ class AuditManager(GFKManager):
 
         if isinstance(target, Case):
             # Only audit cases if they do not have status set to 'draft'
-            if target.status != CaseStatusEnum.DRAFT:
+            if target.status.status != CaseStatusEnum.DRAFT:
                 audit = super(AuditManager, self).create(*args, **kwargs)
                 actor = kwargs.get("actor")
 
