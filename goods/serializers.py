@@ -1,5 +1,5 @@
 from lite_content.lite_api import goods
-import lite_content.lite_api.picklists
+from lite_content.lite_api import picklists
 
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -243,8 +243,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": lite_content.lite_api.picklists.Picklists.REQUIRED_REPORT_SUMMARY,
-                    "null": lite_content.lite_api.picklists.Picklists.REQUIRED_REPORT_SUMMARY,
+                    "required": picklists.Picklists.REQUIRED_REPORT_SUMMARY,
+                    "null": picklists.Picklists.REQUIRED_REPORT_SUMMARY,
                 },
             )
 

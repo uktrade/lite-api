@@ -1,4 +1,4 @@
-import lite_content.lite_api.picklists
+from lite_content.lite_api import picklists
 
 from rest_framework.fields import CharField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -14,22 +14,22 @@ class PicklistSerializer(ModelSerializer):
     name = CharField(
         allow_blank=False,
         required=True,
-        error_messages={"blank": lite_content.lite_api.picklists.Picklists.BLANK_NAME},
+        error_messages={"blank": picklists.Picklists.BLANK_NAME},
     )
     text = CharField(
         allow_blank=False,
         max_length=5000,
         required=True,
-        error_messages={"blank": lite_content.lite_api.picklists.Picklists.BLANK_TEXT},
+        error_messages={"blank": picklists.Picklists.BLANK_TEXT},
     )
     type = KeyValueChoiceField(
         choices=PicklistType.choices,
         required=True,
-        error_messages={"invalid_choice": lite_content.lite_api.picklists.Picklists.BLANK_TYPE},
+        error_messages={"invalid_choice": picklists.Picklists.BLANK_TYPE},
     )
     status = KeyValueChoiceField(
         choices=PickListStatus.choices,
-        error_messages={"invalid_choice": lite_content.lite_api.picklists.Picklists.BLANK_STATUS},
+        error_messages={"invalid_choice": picklists.Picklists.BLANK_STATUS},
     )
     team = PrimaryKeyRelatedField(queryset=Team.objects.all())
     team_name = SerializerMethodField()
