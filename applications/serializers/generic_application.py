@@ -39,7 +39,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
-    user_notifications_count = serializers.SerializerMethodField()
+    exporter_user_notifications_count = serializers.SerializerMethodField()
 
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
@@ -61,11 +61,13 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return instance.pk
 
-    def get_user_notifications_count(self, instance):
-        user = self.context.get("user")
-        if user:
+    def get_exporter_user_notifications_count(self, instance):
+        exporter_user = self.context.get("exporter_user")
+        if exporter_user:
             count_queryset = (
-                ExporterNotification.objects.filter(user=user, organisation=user.organisation, case=instance)
+                ExporterNotification.objects.filter(
+                    user=exporter_user, organisation=exporter_user.organisation, case=instance
+                )
                 .values("content_type__model")
                 .annotate(total=Count("content_type__model"))
             )
@@ -89,7 +91,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "submitted_at",
             "status",
             "case",
-            "user_notifications_count",
+            "exporter_user_notifications_count",
         )
 
 

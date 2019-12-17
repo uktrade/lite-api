@@ -21,10 +21,10 @@ class CaseNoteList(APIView):
         """ Gets all case notes. """
         case = get_case(pk)
         if isinstance(request.user, ExporterUser):
-            case_notes = get_case_notes_from_case(case, True)
+            case_notes = get_case_notes_from_case(case, only_visible_to_exporter=True)
             delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
         else:
-            case_notes = get_case_notes_from_case(case, False)
+            case_notes = get_case_notes_from_case(case, only_visible_to_exporter=False)
 
         serializer = CaseNoteSerializer(case_notes, many=True)
         return JsonResponse(data={"case_notes": serializer.data})

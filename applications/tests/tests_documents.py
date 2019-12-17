@@ -38,7 +38,6 @@ class DraftDocumentTests(DataTestClient):
     @mock.patch("documents.tasks.prepare_document.now")
     def test_upload_document_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding a document to an unsubmitted application. """
-        data = [self.data]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
@@ -53,8 +52,7 @@ class DraftDocumentTests(DataTestClient):
         ]
 
         self.assertEqual(len(response_data), 2)
-        for document in data:
-            self.assertTrue(document in response_data)
+        self.assertTrue(self.data in response_data)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):

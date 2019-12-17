@@ -145,6 +145,8 @@ class UserMeDetail(APIView):
 class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
+    queryset = ExporterNotification.objects.all()
+    serializer_class = ExporterNotificationSerializer
 
     def get(self, request):
         data = {}
