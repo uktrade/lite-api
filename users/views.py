@@ -152,16 +152,16 @@ class NotificationViewSet(APIView):
         data = {}
         queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
 
-        content_types = request.GET.get("content_types")
-        if content_types:
-            content_types = content_types.split(",")
-            queries = [Q(content_type__model=content_type) for content_type in content_types]
+        case_types = request.GET.get("case_types")
+        if case_types:
+            case_types = case_types.split(",")
+            queries = [Q(case__type=case_type) for case_type in case_types]
             queryset = queryset.filter(reduce(or_, queries))
 
         # Count the number of notifications for each type
-        count_queryset = queryset.values("content_type__model").annotate(total=Count("content_type__model"))
+        count_queryset = queryset.values("case__type").annotate(total=Count("case__type"))
         data["notifications_count"] = {
-            content_type["content_type__model"]: content_type["total"] for content_type in count_queryset
+            content_type["case__type"]: content_type["total"] for content_type in count_queryset
         }
 
         # Serialize notifications

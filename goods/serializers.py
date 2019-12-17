@@ -38,25 +38,13 @@ class GoodListSerializer(serializers.ModelSerializer):
             clc_query = clc_query.first()
             query["id"] = clc_query.id
 
-            # TODO: LT-1443 Refactor into helper method
             exporter_user = self.context.get("exporter_user")
             if exporter_user:
-                count_queryset = (
-                    ExporterNotification.objects.filter(
-                        user=exporter_user, organisation=exporter_user.organisation, case=clc_query
-                    )
-                    .values("content_type__model")
-                    .annotate(count=Count("content_type__model"))
-                )
+                user_notifications_total_count = ExporterNotification.objects.filter(
+                    user=exporter_user, organisation=exporter_user.organisation, case=clc_query
+                ).count()
 
-                user_notifications_total_count = 0
-                user_notifications_count = {}
-                for content_type in count_queryset:
-                    user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                    user_notifications_total_count += content_type["count"]
-                user_notifications_count["total"] = user_notifications_total_count
-
-                query["exporter_user_notifications_count"] = user_notifications_count
+                query["exporter_user_notifications_count"] = {"total": user_notifications_total_count}
 
         return query
 

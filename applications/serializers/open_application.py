@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -18,6 +20,7 @@ from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.models import ExporterNotification
 
 
 class OpenApplicationViewSerializer(GenericApplicationListSerializer):
@@ -66,6 +69,33 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
             return {"type": "external_locations", "data": serializer.data}
 
         return {}
+
+    def get_exporter_user_notifications_count(self, instance):
+        """
+        Overriding parent class
+        """
+
+        # TODO: LT-1443 Refactor into helper method
+        exporter_user = self.context.get("exporter_user")
+        if exporter_user:
+            count_queryset = (
+                ExporterNotification.objects.filter(
+                    user=exporter_user, organisation=exporter_user.organisation, case=instance
+                )
+                .values("content_type__model")
+                .annotate(count=Count("content_type__model"))
+            )
+
+            user_notifications_total_count = 0
+            user_notifications_count = {}
+            for content_type in count_queryset:
+                user_notifications_count[content_type["content_type__model"]] = content_type["count"]
+                user_notifications_total_count += content_type["count"]
+            user_notifications_count["total"] = user_notifications_total_count
+
+            return user_notifications_count
+        else:
+            return None
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):

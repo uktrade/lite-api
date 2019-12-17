@@ -187,16 +187,21 @@ class CaseNotificationGetSerializer(serializers.ModelSerializer):
 
 class ExporterNotificationSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
 
     class Meta:
         model = ExporterNotification
         fields = (
             "object_id",
             "content_type",
+            "case",
         )
 
     def get_content_type(self, obj):
         return obj.content_type.model
+
+    def get_case(self, obj):
+        return {"id": obj.case.id, "type": obj.case.type}
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):

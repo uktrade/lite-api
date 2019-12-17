@@ -1,4 +1,4 @@
-from django.db.models import Count
+import abc
 
 from lite_content.lite_api import strings
 from rest_framework import serializers
@@ -61,26 +61,18 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return instance.pk
 
+    @abc.abstractmethod
     def get_exporter_user_notifications_count(self, instance):
-        # TODO: LT-1443 Refactor into helper method
+        """
+        Override in child classes
+        """
         exporter_user = self.context.get("exporter_user")
         if exporter_user:
-            count_queryset = (
-                ExporterNotification.objects.filter(
-                    user=exporter_user, organisation=exporter_user.organisation, case=instance
-                )
-                .values("content_type__model")
-                .annotate(count=Count("content_type__model"))
-            )
+            user_notifications_total_count = ExporterNotification.objects.filter(
+                user=exporter_user, organisation=exporter_user.organisation, case=instance
+            ).count()
 
-            user_notifications_total_count = 0
-            user_notifications_count = {}
-            for content_type in count_queryset:
-                user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                user_notifications_total_count += content_type["count"]
-            user_notifications_count["total"] = user_notifications_total_count
-
-            return user_notifications_count
+            return {"total": user_notifications_total_count}
         else:
             return None
 
