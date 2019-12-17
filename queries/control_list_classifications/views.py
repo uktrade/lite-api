@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+import lite_content.lite_api.cases
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
@@ -67,7 +68,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [lite_content.lite_api.cases.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

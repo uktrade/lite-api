@@ -32,7 +32,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_goods_type_failure(self):
@@ -41,7 +43,9 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Open.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Open.NO_GOODS_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_without_destination_failure(self):
@@ -50,5 +54,7 @@ class OpenApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Open.NO_COUNTRIES_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Open.NO_COUNTRIES_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )

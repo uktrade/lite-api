@@ -55,7 +55,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_failure(self):
@@ -66,7 +68,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Standard.NO_END_USER_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Standard.NO_END_USER_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_end_user_document_failure(self):
@@ -89,7 +93,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Standard.NO_CONSIGNEE_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_standard_application_without_consignee_document_failure(self):
@@ -111,7 +117,9 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertContains(
-            response, text=lite_content.lite_api.applications.Standard.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
+            response,
+            text=lite_content.lite_api.applications.Standard.NO_GOODS_SET,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self):

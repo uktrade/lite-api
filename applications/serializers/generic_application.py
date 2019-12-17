@@ -83,10 +83,12 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
     )
     application_type = KeyValueChoiceField(
-        choices=ApplicationType.choices, error_messages={"required": lite_content.lite_api.applications.Generic.NO_LICENCE_TYPE},
+        choices=ApplicationType.choices,
+        error_messages={"required": lite_content.lite_api.applications.Generic.NO_LICENCE_TYPE},
     )
     export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices, error_messages={"required": lite_content.lite_api.applications.Generic.NO_EXPORT_TYPE},
+        choices=ApplicationExportType.choices,
+        error_messages={"required": lite_content.lite_api.applications.Generic.NO_EXPORT_TYPE},
     )
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,

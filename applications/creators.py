@@ -111,7 +111,9 @@ def _validate_standard_licence(draft, errors):
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                 if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                    errors["ultimate_end_users"] = lite_content.lite_api.applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                    errors[
+                        "ultimate_end_users"
+                    ] = lite_content.lite_api.applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
 
     return errors
 

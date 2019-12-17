@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+import lite_content.lite_api.cases
 from conf.authentication import SharedAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
@@ -107,7 +108,7 @@ class UserDetail(APIView):
         if "role" in data.keys():
             if user.id == request.user.id:
                 return JsonResponse(
-                    data={"errors": strings.System.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
+                    data={"errors": lite_content.lite_api.users.Roles.ORGANISATIONS_VIEWS_USER_CANNOT_CHANGE_OWN_ROLE},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             elif user.id == request.user.id and request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:

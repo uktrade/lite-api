@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+import lite_content.lite_api.cases
 from audit_trail import service
 from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
@@ -33,7 +34,11 @@ class CaseNoteList(APIView):
 
         if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
-                data={"errors": {"text": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
+                data={
+                    "errors": {
+                        "text": [lite_content.lite_api.cases.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]
+                    }
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
