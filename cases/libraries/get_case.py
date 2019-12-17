@@ -11,7 +11,7 @@ def get_case(pk):
     try:
         return Case.objects.submitted().get(pk=pk)
     except Case.DoesNotExist:
-        raise NotFoundError({"case": cases.Cases.CASE_NOT_FOUND})
+        raise NotFoundError({"case": cases.GetCase.CASE_NOT_FOUND})
 
 
 def get_case_document(case: Case, s3_key: str):
