@@ -1,4 +1,4 @@
-import lite_content.lite_api.gov_users
+from lite_content.lite_api import gov_users
 import lite_content.lite_api.users
 
 from rest_framework import serializers
@@ -28,7 +28,7 @@ class RoleSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
     type = serializers.ChoiceField(choices=UserType.choices)
     name = serializers.CharField(
-        max_length=30, error_messages={"blank": lite_content.lite_api.gov_users.Roles.BLANK_NAME},
+        max_length=30, error_messages={"blank": gov_users.Roles.BLANK_NAME},
     )
 
     class Meta:
