@@ -6,9 +6,8 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import check_status_can_be_set_by_gov_user
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
@@ -17,6 +16,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.application_helpers import check_status_can_be_set_by_gov_user
 
 
 class EndUserAdvisoriesList(APIView):
@@ -80,23 +80,27 @@ class EndUserAdvisoryDetail(APIView):
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
             if data.get("status") == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
+                assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
-            new_status = get_case_status_by_status(data.get("status"))
-            if check_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+            new_status = data.get("status")
+            # Only attempt to change status if it differs from the original
+            if end_user_advisory.status.status != new_status:
+                if not check_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+                    return JsonResponse(
+                        data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                    )
+
                 request.data["status"] = get_case_status_by_status(data.get("status"))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
             if serializer.is_valid():
-                CaseActivity.create(
-                    activity_type=CaseActivityType.UPDATED_STATUS,
-                    case=end_user_advisory,
-                    user=request.user,
-                    status=data.get("status"),
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_STATUS,
+                    target=end_user_advisory.get_case(),
+                    payload={"status": data.get("status")},
                 )
-
                 serializer.update(end_user_advisory, request.data)
                 return JsonResponse(data={"end_user_advisory": serializer.data})
-
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

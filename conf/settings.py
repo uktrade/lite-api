@@ -31,10 +31,10 @@ ALLOWED_HOSTS = json.loads(env("ALLOWED_HOSTS")) if env("ALLOWED_HOSTS") else []
 INSTALLED_APPS = [
     "addresses",
     "applications",
+    "audit_trail",
     "background_task",
     "cases",
     "cases.generated_documents",
-    "content_strings.apps.ContentStringsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

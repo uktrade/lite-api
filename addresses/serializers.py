@@ -1,8 +1,8 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 
 from addresses.models import Address
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from content_strings.strings import get_string
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -19,7 +19,7 @@ class AddressSerializer(serializers.ModelSerializer):
     country = PrimaryKeyRelatedSerializerField(
         queryset=Country.objects.all(),
         serializer=CountrySerializer,
-        error_messages={"does_not_exist": get_string("address.null_country")},
+        error_messages={"does_not_exist": strings.Address.NULL_COUNTRY},
     )
 
     class Meta:
