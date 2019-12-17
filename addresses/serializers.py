@@ -1,4 +1,4 @@
-import lite_content.lite_api.addresses
+from lite_content.lite_api import addresses
 
 from rest_framework import serializers
 
@@ -20,7 +20,7 @@ class AddressSerializer(serializers.ModelSerializer):
     country = PrimaryKeyRelatedSerializerField(
         queryset=Country.objects.all(),
         serializer=CountrySerializer,
-        error_messages={"does_not_exist": lite_content.lite_api.addresses.Address.NULL_COUNTRY},
+        error_messages={"does_not_exist": addresses.Address.NULL_COUNTRY},
     )
 
     class Meta:
