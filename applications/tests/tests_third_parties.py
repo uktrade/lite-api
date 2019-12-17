@@ -5,6 +5,8 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from parties.models import PartyDocument
 from parties.models import ThirdParty
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -35,7 +37,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then all third parties are successfully added to the draft
         """
         self.draft.third_parties.set([])
-        data = [
+        parties = [
             {
                 "name": "UK Government",
                 "address": "Westminster, London SW1A 0AA",
@@ -52,10 +54,17 @@ class ThirdPartiesOnDraft(DataTestClient):
             },
         ]
 
-        for third_party in data:
+        for third_party in parties:
             self.client.post(self.url, third_party, **self.exporter_headers)
 
         self.assertEqual(self.draft.third_parties.count(), 2)
+
+        audit_qs = Audit.objects.all()
+
+        self.assertEqual(audit_qs.count(), len(parties))
+        for audit, party in zip(reversed(audit_qs), parties):
+            self.assertEqual(audit.payload, {"party_name": party["name"], "party_type": "third party"})
+            self.assertEqual(AuditType(audit.verb), AuditType.ADD_PARTY)
 
     def test_unsuccessful_add_third_party(self):
         """
@@ -113,6 +122,10 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
+
+        audit_qs = Audit.objects.all()
+
+        self.assertEqual(audit_qs.count(), 0)
 
     def test_delete_third_party_on_standard_application_when_application_has_no_third_parties_failure(self,):
         """

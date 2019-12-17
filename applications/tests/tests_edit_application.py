@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
+from audit_trail.models import Audit
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -31,7 +32,8 @@ class EditApplicationTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
-        application = self.create_standard_application(self.organisation)
+        old_name = 'Old Name'
+        application = self.create_standard_application(self.organisation, reference_name=old_name)
         self.submit_application(application)
         application.status = get_case_status_by_status(editable_status)
         application.save()
@@ -44,6 +46,12 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
         self.assertNotEqual(application.modified, modified)
+
+        audit_qs = Audit.objects.all()
+        audit_object = audit_qs.first()
+
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_object.payload, {'new_name': self.data['name'], 'old_name': old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):

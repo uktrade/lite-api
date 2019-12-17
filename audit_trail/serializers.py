@@ -39,4 +39,4 @@ class AuditSerializer(serializers.ModelSerializer):
         return verb.format(payload)
 
     def get_additional_text(self, instance):
-        return instance.payload.get("additional_text", "all")
+        return instance.payload.get("additional_text", "")

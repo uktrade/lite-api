@@ -5,14 +5,17 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import GoodOnApplication
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
 class AddingGoodsOnApplicationTests(DataTestClient):
     def test_add_a_good_to_a_draft(self):
+        good_name = "A good"
         draft = self.create_standard_application(self.organisation)
-        good = self.create_controlled_good("A good", self.organisation)
+        good = self.create_controlled_good(good_name, self.organisation)
         self.create_good_document(
             good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -34,11 +37,19 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response_data = response.json()
         # The standard draft comes with one good pre-added, plus the good added in this test makes 2
         self.assertEqual(len(response_data["goods"]), 2)
+        audit_qs = Audit.objects.all()
+        audit = audit_qs.first()
+
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit.payload, {"good_name": good_name})
+        self.assertEqual(AuditType(audit.verb), AuditType.ADD_GOOD_TO_APPLICATION)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
+        good_name = "A good"
+
         organisation_2, _ = self.create_organisation_with_exporter_user()
         draft = self.create_standard_application(self.organisation)
-        good = self.create_controlled_good("test", organisation_2)
+        good = self.create_controlled_good(good_name, organisation_2)
         self.create_good_document(
             good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -53,6 +64,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response_data = response.json()
         # The good that came with the pre-created standard draft remains the only good on the draft
         self.assertEqual(len(response_data["goods"]), 1)
+
+        audit_qs = Audit.objects.all()
+        audit = audit_qs.first()
+
+        self.assertEqual(audit_qs.count(), 0)
 
     @parameterized.expand(
         [
@@ -87,9 +103,10 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no goods have been added
         """
+        good_name = "A good"
         draft = self.create_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
-        good = self.create_controlled_good("A good", self.organisation)
+        good = self.create_controlled_good(good_name, self.organisation)
         self.create_good_document(
             good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -106,6 +123,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
+
+        audit_qs = Audit.objects.all()
+        audit = audit_qs.first()
+
+        self.assertEqual(audit_qs.count(), 0)
 
     def test_add_a_good_to_a_submitted_application__failure(self):
         application = self.create_standard_application(self.organisation)
