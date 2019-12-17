@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -21,6 +23,7 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
+from users.models import ExporterUser, ExporterNotification
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
@@ -36,6 +39,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
+    user_notifications_count = serializers.SerializerMethodField()
 
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
@@ -57,6 +61,21 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return instance.pk
 
+    def get_user_notifications_count(self, instance):
+        user = self.context.get("user")
+        if user:
+            count_queryset = (
+                ExporterNotification.objects.filter(user=user, organisation=user.organisation, case=instance)
+                .values("content_type__model")
+                .annotate(total=Count("content_type__model"))
+            )
+            user_notifications_count = {
+                content_type["content_type__model"]: content_type["total"] for content_type in count_queryset
+            }
+            return user_notifications_count
+        else:
+            return None
+
     class Meta:
         model = BaseApplication
         fields = (
@@ -70,6 +89,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "submitted_at",
             "status",
             "case",
+            "user_notifications_count",
         )
 
 

@@ -41,6 +41,9 @@ class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
 
+    def get_serializer_context(self):
+        return {"exporter_user": self.request.user}
+
     def get_queryset(self):
         """
         Filter applications on submitted
