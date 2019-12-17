@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponse
-from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -120,7 +119,7 @@ class GoodList(APIView):
         if control_rating:
             goods = goods.filter(control_code__icontains=control_rating)
 
-        serializer = GoodListSerializer(goods, many=True, context={"exporter_user": self.request.user})
+        serializer = GoodListSerializer(goods, many=True, context={"exporter_user": request.user})
         return JsonResponse(data={"goods": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -153,7 +152,7 @@ class GoodDetail(APIView):
             if good.organisation != request.user.organisation:
                 raise Http404
 
-            serializer = GoodSerializer(good, context={"exporter_user": self.request.user})
+            serializer = GoodSerializer(good, context={"exporter_user": request.user})
 
             # If there's a query with this good, update the notifications on it
             query = ControlListClassificationQuery.objects.filter(good=good)

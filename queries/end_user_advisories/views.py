@@ -16,6 +16,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.models import ExporterUser
 
 
 class EndUserAdvisoriesList(APIView):
@@ -26,7 +27,7 @@ class EndUserAdvisoriesList(APIView):
         View all end user advisories belonging to an organisation.
         """
         end_user_advisories = EndUserAdvisoryQuery.objects.filter(organisation=request.user.organisation)
-        serializer = EndUserAdvisorySerializer(end_user_advisories, many=True)
+        serializer = EndUserAdvisorySerializer(end_user_advisories, many=True, context={"exporter_user": request.user})
         return JsonResponse(data={"end_user_advisories": serializer.data})
 
     def post(self, request):
@@ -65,8 +66,12 @@ class EndUserAdvisoryDetail(APIView):
         """
         end_user_advisory = get_end_user_advisory_by_pk(pk)
         case_id = end_user_advisory.id
-        serializer = EndUserAdvisorySerializer(end_user_advisory)
-        return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id})
+        context = {}
+        if isinstance(request.user, ExporterUser):
+            context["exporter_user"] = request.user
+
+        serializer = EndUserAdvisorySerializer(end_user_advisory, context=context)
+        return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         """
@@ -79,7 +84,7 @@ class EndUserAdvisoryDetail(APIView):
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
             if data.get("status") == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
+                assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 
