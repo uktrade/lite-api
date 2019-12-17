@@ -69,7 +69,7 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
-    notification = GenericRelation(ExporterNotification, related_query_name="case_note")
+    notifications = GenericRelation(ExporterNotification, related_query_name="case_notes")
 
     def save(self, *args, **kwargs):
         try:
@@ -232,7 +232,7 @@ class EcjuQuery(models.Model):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
 
-    notification = GenericRelation(ExporterNotification, related_query_name="ecju_query")
+    notifications = GenericRelation(ExporterNotification, related_query_name="ecju_queries")
 
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()

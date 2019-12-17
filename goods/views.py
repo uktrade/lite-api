@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -119,8 +120,8 @@ class GoodList(APIView):
         if control_rating:
             goods = goods.filter(control_code__icontains=control_rating)
 
-        serializer = GoodListSerializer(goods, many=True)
-        return JsonResponse(data={"goods": serializer.data})
+        serializer = GoodListSerializer(goods, many=True, context={"exporter_user": self.request.user})
+        return JsonResponse(data={"goods": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
         """
@@ -152,19 +153,16 @@ class GoodDetail(APIView):
             if good.organisation != request.user.organisation:
                 raise Http404
 
-            serializer = GoodSerializer(good)
+            serializer = GoodSerializer(good, context={"exporter_user": self.request.user})
 
             # If there's a query with this good, update the notifications on it
-
             query = ControlListClassificationQuery.objects.filter(good=good)
             if query:
-                query = query.first()
-                request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
-                request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
+                delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
         else:
             serializer = GoodWithFlagsSerializer(good)
 
-        return JsonResponse(data={"good": serializer.data})
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         good = get_good(pk)

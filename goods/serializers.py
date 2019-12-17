@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -12,7 +14,7 @@ from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification
 from users.serializers import ExporterUserSimpleSerializer
 
 
@@ -22,17 +24,41 @@ class GoodListSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     documents = serializers.SerializerMethodField()
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    query_id = serializers.SerializerMethodField()
+    query = serializers.SerializerMethodField()
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
         if documents:
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
-    def get_query_id(self, instance):
+    def get_query(self, instance):
+        query = {}
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
         if clc_query:
-            return clc_query.first().id
+            clc_query = clc_query.first()
+            query["id"] = clc_query.id
+
+            # TODO: LT-1443 Refactor into helper method
+            exporter_user = self.context.get("exporter_user")
+            if exporter_user:
+                count_queryset = (
+                    ExporterNotification.objects.filter(
+                        user=exporter_user, organisation=exporter_user.organisation, case=clc_query
+                    )
+                    .values("content_type__model")
+                    .annotate(count=Count("content_type__model"))
+                )
+
+                user_notifications_total_count = 0
+                user_notifications_count = {}
+                for content_type in count_queryset:
+                    user_notifications_count[content_type["content_type__model"]] = content_type["count"]
+                    user_notifications_total_count += content_type["count"]
+                user_notifications_count["total"] = user_notifications_total_count
+
+                query["exporter_user_notifications_count"] = user_notifications_count
+
+        return query
 
     class Meta:
         model = Good
@@ -44,7 +70,7 @@ class GoodListSerializer(serializers.ModelSerializer):
             "part_number",
             "status",
             "documents",
-            "query_id",
+            "query",
         )
 
 
@@ -64,7 +90,7 @@ class GoodSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
-    query_id = serializers.SerializerMethodField()
+    query = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
 
@@ -81,7 +107,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "organisation",
             "status",
             "not_sure_details_details",
-            "query_id",
+            "query",
             "documents",
             "case_status",
         )
@@ -102,10 +128,34 @@ class GoodSerializer(serializers.ModelSerializer):
         if clc_query:
             return clc_query.first().id
 
-    def get_query_id(self, instance):
+    def get_query(self, instance):
+        query = {}
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
         if clc_query:
-            return clc_query.first().id
+            clc_query = clc_query.first()
+            query["id"] = clc_query.id
+
+            # TODO: LT-1443 Refactor into helper method
+            exporter_user = self.context.get("exporter_user")
+            if exporter_user:
+                count_queryset = (
+                    ExporterNotification.objects.filter(
+                        user=exporter_user, organisation=exporter_user.organisation, case=clc_query
+                    )
+                    .values("content_type__model")
+                    .annotate(count=Count("content_type__model"))
+                )
+
+                user_notifications_total_count = 0
+                user_notifications_count = {}
+                for content_type in count_queryset:
+                    user_notifications_count[content_type["content_type__model"]] = content_type["count"]
+                    user_notifications_total_count += content_type["count"]
+                user_notifications_count["total"] = user_notifications_total_count
+
+                query["exporter_user_notifications_count"] = user_notifications_count
+
+        return query
 
     def get_case_status(self, instance):
         try:

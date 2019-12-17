@@ -21,4 +21,4 @@ class EndUserAdvisoryQuery(Query):
     contact_job_title = models.TextField(default=None, blank=True, null=True)
     contact_telephone = models.CharField(max_length=15, default=None, null=False)
 
-    notification = GenericRelation(ExporterNotification, related_query_name="eua_query")
+    notifications = GenericRelation(ExporterNotification, related_query_name="eua_queries")
