@@ -16,7 +16,7 @@ from applications.serializers.standard_application import (
     StandardApplicationViewSerializer,
 )
 from conf.exceptions import BadRequestError
-from applications import ApplicationsCreate
+from lite_content.lite_api.applications import ApplicationsCreate
 
 
 def get_application_view_serializer(application: BaseApplication):
