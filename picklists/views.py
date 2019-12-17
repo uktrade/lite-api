@@ -1,3 +1,4 @@
+import lite_content.lite_api.picklists
 from lite_content.lite_api import strings
 import operator
 from functools import reduce
@@ -80,7 +81,7 @@ class PicklistItemDetail(APIView):
 
         if request.user.team != picklist_item.team:
             return JsonResponse(
-                data={"errors": strings.PicklistItems.ErrorMessages.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": lite_content.lite_api.picklists.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
