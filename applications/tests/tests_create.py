@@ -8,7 +8,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication
-from applications import ApplicationsCreate
+from lite_content.lite_api.applications import ApplicationsCreate
 from test_helpers.clients import DataTestClient
 
 
