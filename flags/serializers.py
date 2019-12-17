@@ -1,3 +1,4 @@
+import lite_content.lite_api.flags
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -12,7 +13,7 @@ from teams.serializers import TeamSerializer
 class FlagSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.ErrorMessages.BLANK_LEVEL},
+        choices=FlagLevels.choices, error_messages={"invalid_choice": lite_content.lite_api.flags.Flags.BLANK_LEVEL},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
@@ -20,10 +21,10 @@ class FlagSerializer(serializers.ModelSerializer):
         trim_whitespace=True,
         validators=[
             UniqueValidator(
-                queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.ErrorMessages.NON_UNIQUE,
+                queryset=Flag.objects.all(), lookup="iexact", message=lite_content.lite_api.flags.Flags.NON_UNIQUE,
             )
         ],
-        error_messages={"blank": strings.Flags.ErrorMessages.BLANK_NAME},
+        error_messages={"blank": lite_content.lite_api.flags.Flags.BLANK_NAME},
     )
 
     class Meta:
