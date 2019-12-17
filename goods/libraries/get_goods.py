@@ -1,3 +1,4 @@
+import lite_content.lite_api.documents
 from lite_content.lite_api import strings
 from django.http import Http404
 
@@ -19,7 +20,7 @@ def get_good_document(good: Good, pk):
     try:
         return GoodDocument.objects.get(good=good, pk=pk)
     except GoodDocument.DoesNotExist:
-        raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
+        raise NotFoundError({"document": lite_content.lite_api.documents.Documents.DOCUMENT_NOT_FOUND})
 
 
 def get_good_with_organisation(pk, organisation):

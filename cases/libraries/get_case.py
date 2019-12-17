@@ -1,4 +1,5 @@
 import lite_content.lite_api.cases
+import lite_content.lite_api.documents
 from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
@@ -21,7 +22,7 @@ def get_case_document(case: Case, s3_key: str):
     try:
         return CaseDocument.objects.get(case=case, s3_key=s3_key)
     except CaseDocument.DoesNotExist:
-        raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
+        raise NotFoundError({"document": lite_content.lite_api.documents.Documents.DOCUMENT_NOT_FOUND})
 
 
 def get_case_document_by_pk(pk):
@@ -31,4 +32,4 @@ def get_case_document_by_pk(pk):
     try:
         return CaseDocument.objects.get(pk=pk)
     except CaseDocument.DoesNotExist:
-        raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
+        raise NotFoundError({"document": lite_content.lite_api.documents.Documents.DOCUMENT_NOT_FOUND})
