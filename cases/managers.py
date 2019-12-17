@@ -119,6 +119,8 @@ class CaseManager(models.Manager):
         except OpenApplication.DoesNotExist:
             pass
 
+        raise Exception(f"Application object not found from case: {case}")
+
     def get_query(self, case):
         from queries.control_list_classifications.models import ControlListClassificationQuery
 
@@ -133,6 +135,8 @@ class CaseManager(models.Manager):
             return EndUserAdvisoryQuery.objects.get(query_ptr__case_ptr=case)
         except EndUserAdvisoryQuery.DoesNotExist:
             pass
+
+        raise Exception(f"Query object not found from case: {case}")
 
     def get_obj(self, case):
         application = self.get_application(case)

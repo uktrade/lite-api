@@ -2,18 +2,14 @@ from enum import Enum
 
 
 class AuditType(Enum):
-    """
-    TODO: Remove once audit 100% done
-    """
-
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
     GOOD_REVIEWED = (
         'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"'
     )
     GOOD_ADD_FLAGS = "added flags: {added_flags} to good: {good_name}"
-    GOOD_REMOVE_FLAGS = "removed flags: {removed_flags} to good: {good_name}"
-    GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} to good: {good_name}"
+    GOOD_REMOVE_FLAGS = "removed flags: {removed_flags} from good: {good_name}"
+    GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} from good: {good_name}"
     ADD_GOOD_TO_APPLICATION = "added good: {good_name}"
     REMOVE_GOOD_FROM_APPLICATION = "removed good: {good_name}"
     ADD_GOOD_TYPE_TO_APPLICATION = "added good type: {good_type_name}"

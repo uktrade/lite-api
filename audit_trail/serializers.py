@@ -7,10 +7,6 @@ from audit_trail.payload import AuditType
 
 
 class AuditSerializer(serializers.ModelSerializer):
-    """
-    TODO: Parametrize Serializer
-    """
-
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
     additional_text = serializers.SerializerMethodField()
@@ -34,8 +30,8 @@ class AuditSerializer(serializers.ModelSerializer):
             try:
                 if isinstance(payload[key], list):
                     payload[key] = ", ".join(payload[key])
-            except:
-                pass
+            except KeyError as e:
+                print(f"Audit serialization exception skipped: {e}")
 
         return verb.format(payload)
 

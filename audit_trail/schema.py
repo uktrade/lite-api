@@ -27,6 +27,9 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
 
 
 class Registry:
+    """
+    Registry holds Audit schemas for validation.
+    """
     __registry = set()
 
     def check_kwargs(self, **kwargs):

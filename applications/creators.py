@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 from applications.enums import ApplicationType
 from applications.models import (
     CountryOnApplication,
@@ -5,7 +6,6 @@ from applications.models import (
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
-from content_strings.strings import get_string
 from documents.models import Document
 from goodstype.models import GoodsType
 from parties.models import PartyDocument
@@ -21,13 +21,13 @@ def check_party_document(party, is_mandatory):
     except Document.DoesNotExist:
         document = None
         if is_mandatory:
-            return get_string(f"applications.standard.no_{party.type}_document_set")
+            return getattr(strings.Applications.Standard, f"NO_{party.type.upper()}_DOCUMENT_SET")
 
     if document:
         if document.safe is None:
-            return get_string(f"applications.standard.{party.type}_document_processing")
+            return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_PROCESSING")
         elif not document.safe:
-            return get_string(f"applications.standard.{party.type}_document_infected")
+            return getattr(strings.Applications.Standard, f"{party.type.upper()}_DOCUMENT_INFECTED")
         else:
             return None
 
@@ -52,7 +52,7 @@ def check_party_error(party, object_not_found_error, is_document_mandatory=True)
 def _validate_end_user(draft, errors):
     end_user_errors = check_party_error(
         draft.end_user,
-        object_not_found_error=get_string("applications.standard.no_end_user_set"),
+        object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
         is_document_mandatory=True,
     )
     if end_user_errors:
@@ -64,7 +64,7 @@ def _validate_end_user(draft, errors):
 def _validate_consignee(draft, errors):
     consignee_errors = check_party_error(
         draft.consignee,
-        object_not_found_error=get_string("applications.standard.no_consignee_set"),
+        object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
         is_document_mandatory=True,
     )
     if consignee_errors:
@@ -76,7 +76,7 @@ def _validate_consignee(draft, errors):
 def _validate_goods_types(draft, errors):
     results = GoodsType.objects.filter(application=draft)
     if not results:
-        errors["goods"] = get_string("applications.open.no_goods_set")
+        errors["goods"] = strings.Applications.Open.NO_GOODS_SET
 
     return errors
 
@@ -94,7 +94,7 @@ def _validate_standard_licence(draft, errors):
         errors["third_parties_documents"] = third_parties_documents_error
 
     if not GoodOnApplication.objects.filter(application=draft):
-        errors["goods"] = get_string("applications.standard.no_goods_set")
+        errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
 
     ultimate_end_user_required = False
     if next(
@@ -105,21 +105,19 @@ def _validate_standard_licence(draft, errors):
 
     if ultimate_end_user_required:
         if len(draft.ultimate_end_users.values_list()) == 0:
-            errors["ultimate_end_users"] = get_string("applications.standard.no_ultimate_end_users_set")
+            errors["ultimate_end_users"] = strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET
         else:
             # We make sure that an ultimate end user is not also the end user
             for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                 if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.id):
-                    errors["ultimate_end_users"] = get_string(
-                        "applications.standard.matching_end_user_and_ultimate_end_user"
-                    )
+                    errors["ultimate_end_users"] = strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
 
     return errors
 
 
 def _validate_open_licence(draft, errors):
     if len(CountryOnApplication.objects.filter(application=draft)) == 0:
-        errors["countries"] = get_string("applications.open.no_countries_set")
+        errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
 
     errors = _validate_goods_types(draft, errors)
 
@@ -141,7 +139,7 @@ def validate_application_ready_for_submission(application):
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
     ):
-        errors["location"] = get_string("applications.generic.no_location_set")
+        errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
     # Perform additional validation and append errors if found
     if application.application_type == ApplicationType.STANDARD_LICENCE:
