@@ -1,3 +1,4 @@
+import lite_content.lite_api.goods
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -94,7 +95,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": lite_content.lite_api.goods.Goods.ErrorMessages.REF_NAME},
     )
 
     class Meta:

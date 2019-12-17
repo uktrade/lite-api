@@ -7,6 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 import lite_content.lite_api.cases
+import lite_content.lite_api.goods
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
@@ -79,16 +80,16 @@ class ControlListClassificationDetail(APIView):
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
                 previous_control_code = (
-                    query.good.control_code if query.good.control_code else strings.Goods.GOOD_NO_CONTROL_CODE
+                    query.good.control_code if query.good.control_code else lite_content.lite_api.goods.Goods.GOOD_NO_CONTROL_CODE
                 )
 
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                 query.save()
-                new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
+                new_control_code = lite_content.lite_api.goods.Goods.GOOD_NO_CONTROL_CODE
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
                     new_control_code = clc_good_serializer.validated_data.get(
-                        "control_code", strings.Goods.GOOD_NO_CONTROL_CODE
+                        "control_code", lite_content.lite_api.goods.Goods.GOOD_NO_CONTROL_CODE
                     )
 
                 if new_control_code != previous_control_code:
