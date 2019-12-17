@@ -1,5 +1,5 @@
 from lite_content.lite_api import gov_users
-import lite_content.lite_api.users
+from lite_content.lite_api import users
 
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -58,22 +58,22 @@ class GovUserCreateSerializer(GovUserViewSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
         error_messages={
-            "blank": lite_content.lite_api.users.Users.INVALID_EMAIL,
-            "invalid": lite_content.lite_api.users.Users.INVALID_EMAIL,
+            "blank": users.Users.INVALID_EMAIL,
+            "invalid": users.Users.INVALID_EMAIL,
         },
     )
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
         error_messages={
-            "null": lite_content.lite_api.users.Users.NULL_TEAM,
-            "invalid": lite_content.lite_api.users.Users.NULL_TEAM,
+            "null": users.Users.NULL_TEAM,
+            "invalid": users.Users.NULL_TEAM,
         },
     )
     role = PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
         error_messages={
-            "null": lite_content.lite_api.users.Users.NULL_ROLE,
-            "invalid": lite_content.lite_api.users.Users.NULL_ROLE,
+            "null": users.Users.NULL_ROLE,
+            "invalid": users.Users.NULL_ROLE,
         },
     )
 

@@ -1,4 +1,4 @@
-import lite_content.lite_api.teams
+from lite_content.lite_api import teams
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -11,10 +11,10 @@ class TeamSerializer(serializers.ModelSerializer):
         max_length=50,
         validators=[
             UniqueValidator(
-                queryset=Team.objects.all(), lookup="iexact", message=lite_content.lite_api.teams.Teams.NOT_UNIQUE_NAME,
+                queryset=Team.objects.all(), lookup="iexact", message=teams.Teams.NOT_UNIQUE_NAME,
             )
         ],
-        error_messages={"blank": lite_content.lite_api.teams.Teams.BLANK_NAME},
+        error_messages={"blank": teams.Teams.BLANK_NAME},
     )
 
     class Meta:
