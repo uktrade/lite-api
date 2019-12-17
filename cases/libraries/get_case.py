@@ -1,4 +1,4 @@
-import lite_content.lite_api.cases
+from lite_content.lite_api import cases
 import lite_content.lite_api.documents
 from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
@@ -11,7 +11,7 @@ def get_case(pk):
     try:
         return Case.objects.submitted().get(pk=pk)
     except Case.DoesNotExist:
-        raise NotFoundError({"case": lite_content.lite_api.cases.Cases.CASE_NOT_FOUND})
+        raise NotFoundError({"case": cases.Cases.CASE_NOT_FOUND})
 
 
 def get_case_document(case: Case, s3_key: str):

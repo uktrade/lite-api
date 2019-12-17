@@ -3,7 +3,7 @@ from functools import wraps
 from django.http import JsonResponse
 from rest_framework import status
 
-import lite_content.lite_api.cases
+from lite_content.lite_api import cases
 from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
@@ -98,7 +98,7 @@ def application_in_editable_state():
 
             if application.status.status in get_case_statuses(read_only=True):
                 return JsonResponse(
-                    data={"errors": [lite_content.lite_api.cases.System.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                    data={"errors": [cases.System.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
