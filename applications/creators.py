@@ -1,5 +1,5 @@
 import lite_content.lite_api.applications
-from lite_content.lite_api import strings
+
 from applications.enums import ApplicationType
 from applications.models import (
     CountryOnApplication,

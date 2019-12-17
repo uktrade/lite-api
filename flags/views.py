@@ -1,5 +1,5 @@
 import lite_content.lite_api.flags
-from lite_content.lite_api import strings
+
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes

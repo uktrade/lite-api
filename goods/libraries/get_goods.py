@@ -1,5 +1,5 @@
 import lite_content.lite_api.documents
-from lite_content.lite_api import strings
+
 from django.http import Http404
 
 from conf.exceptions import NotFoundError

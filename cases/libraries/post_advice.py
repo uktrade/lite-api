@@ -1,5 +1,5 @@
 import lite_content.lite_api.cases
-from lite_content.lite_api import strings
+
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail

@@ -1,5 +1,5 @@
 import lite_content.lite_api.addresses
-from lite_content.lite_api import strings
+
 from rest_framework import serializers
 
 from addresses.models import Address

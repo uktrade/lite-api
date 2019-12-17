@@ -27,7 +27,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api import strings
+
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser

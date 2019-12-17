@@ -1,5 +1,5 @@
 import lite_content.lite_api.teams
-from lite_content.lite_api import strings
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 

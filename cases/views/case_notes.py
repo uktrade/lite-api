@@ -10,7 +10,7 @@ from cases.libraries.get_case_note import get_case_notes_from_case
 from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
-from lite_content.lite_api import strings
+
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 

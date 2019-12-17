@@ -11,7 +11,7 @@ from applications.models import BaseApplication
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
-from lite_content.lite_api import strings
+
 
 
 def _get_application(request, kwargs):

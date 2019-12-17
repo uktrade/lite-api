@@ -1,5 +1,5 @@
 import lite_content.lite_api.picklists
-from lite_content.lite_api import strings
+
 import operator
 from functools import reduce
 

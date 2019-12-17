@@ -9,7 +9,7 @@ import lite_content.lite_api.cases
 from conf.authentication import SharedAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
-from lite_content.lite_api import strings
+
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
 from users.models import ExporterUser, Role

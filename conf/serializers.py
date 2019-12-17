@@ -1,5 +1,5 @@
 import lite_content.lite_api.addresses
-from lite_content.lite_api import strings
+
 import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _

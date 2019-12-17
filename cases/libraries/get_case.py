@@ -2,7 +2,7 @@ import lite_content.lite_api.cases
 import lite_content.lite_api.documents
 from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
-from lite_content.lite_api import strings
+
 
 
 def get_case(pk):

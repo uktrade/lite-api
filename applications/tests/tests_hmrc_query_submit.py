@@ -1,5 +1,5 @@
 import lite_content.lite_api.applications
-from lite_content.lite_api import strings
+
 from django.urls import reverse
 from rest_framework import status
 

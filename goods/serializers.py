@@ -1,6 +1,6 @@
 import lite_content.lite_api.goods
 import lite_content.lite_api.picklists
-from lite_content.lite_api import strings
+
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
