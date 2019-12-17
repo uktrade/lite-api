@@ -1,3 +1,4 @@
+import lite_content.lite_api.users
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -53,15 +54,15 @@ class GovUserCreateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=GovUser.objects.all())],
-        error_messages={"blank": strings.Users.INVALID_EMAIL, "invalid": strings.Users.INVALID_EMAIL,},
+        error_messages={"blank": lite_content.lite_api.users.Users.INVALID_EMAIL, "invalid": lite_content.lite_api.users.Users.INVALID_EMAIL, },
     )
     team = PrimaryKeyRelatedField(
         queryset=Team.objects.all(),
-        error_messages={"null": strings.Users.NULL_TEAM, "invalid": strings.Users.NULL_TEAM,},
+        error_messages={"null": lite_content.lite_api.users.Users.NULL_TEAM, "invalid": lite_content.lite_api.users.Users.NULL_TEAM, },
     )
     role = PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
-        error_messages={"null": strings.Users.NULL_ROLE, "invalid": strings.Users.NULL_ROLE,},
+        error_messages={"null": lite_content.lite_api.users.Users.NULL_ROLE, "invalid": lite_content.lite_api.users.Users.NULL_ROLE, },
     )
 
     class Meta:
