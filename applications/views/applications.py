@@ -209,23 +209,23 @@ class ApplicationManageStatus(APIView):
         application = get_application(pk)
 
         data = request.data
-        new_status_enum = data.get("status")
+        new_status = data.get("status")
 
         if isinstance(request.user, ExporterUser):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            if not check_status_can_be_set_by_exporter_user(application.status.status, new_status_enum):
+            if not check_status_can_be_set_by_exporter_user(application.status.status, new_status):
                 return JsonResponse(
                     data={"errors": ["Status cannot be set by Exporter user."]}, status=status.HTTP_400_BAD_REQUEST
                 )
         else:
-            if not check_status_can_be_set_by_gov_user(request.user, application.status.status, new_status_enum):
+            if not check_status_can_be_set_by_gov_user(request.user, application.status.status, new_status):
                 return JsonResponse(
                     data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-        new_status = get_case_status_by_status(new_status_enum)
+        new_status = get_case_status_by_status(new_status)
         request.data["status"] = str(new_status.pk)
 
         serializer = get_application_update_serializer(application)

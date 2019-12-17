@@ -6,6 +6,7 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.application_helpers import check_status_can_be_set_by_gov_user
 from cases.libraries.activity_types import CaseActivityType
 from cases.models import CaseActivity
 from conf import constants
@@ -81,7 +82,9 @@ class EndUserAdvisoryDetail(APIView):
             if data.get("status") == CaseStatusEnum.FINALISED:
                 assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
 
-            request.data["status"] = get_case_status_by_status(data.get("status"))
+            new_status = get_case_status_by_status(data.get("status"))
+            if check_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+                request.data["status"] = get_case_status_by_status(data.get("status"))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
