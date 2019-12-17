@@ -9,8 +9,6 @@ from users.libraries.user_to_token import user_to_token
 
 
 class NotificationTests(DataTestClient):
-    url = reverse_lazy("users:notifications")
-
     def tests_create_new_clc_query_notification(self):
         clc_case = self.create_clc_query("Example CLC Query", self.organisation)
 
@@ -76,6 +74,7 @@ class NotificationTests(DataTestClient):
         When an API user gets notifications for the exporter user and one of their orgs
         Then the notifications specific to that user and org combination are returned
         """
+        url = reverse_lazy("users:notifications") + "?content_types=casenote"
         org_2, _ = self.create_organisation_with_exporter_user("Org 2")
         self.add_exporter_user_to_org(org_2, self.exporter_user)
 
@@ -99,7 +98,7 @@ class NotificationTests(DataTestClient):
         case_note2 = self.create_case_note(case2, "This is a test note 4", self.gov_user, True)
         case_notes = [str(case_note1.id), str(case_note2.id)]
 
-        response = self.client.get(self.url, **self.exporter_headers)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["notifications"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

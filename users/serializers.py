@@ -196,7 +196,7 @@ class ExporterNotificationSerializer(serializers.ModelSerializer):
         )
 
     def get_content_type(self, obj):
-        return obj.content_type.name
+        return obj.content_type.model
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):
