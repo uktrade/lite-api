@@ -38,15 +38,23 @@ class DraftDocumentTests(DataTestClient):
     @mock.patch("documents.tasks.prepare_document.now")
     def test_upload_document_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding a document to an unsubmitted application. """
+        data = [self.data]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
-        response_data = response.json()["documents"][1]
+        response_data = [
+            {
+                "name": document["name"],
+                "s3_key": document["s3_key"],
+                "size": document["size"],
+                "description": document["description"],
+            }
+            for document in response.json()["documents"]
+        ]
 
-        self.assertEqual(response_data["name"], self.data["name"])
-        self.assertEqual(response_data["s3_key"], self.data["s3_key"])
-        self.assertEqual(response_data["size"], self.data["size"])
-        self.assertEqual(response_data["description"], self.data["description"])
+        self.assertEqual(len(response_data), 2)
+        for document in data:
+            self.assertTrue(document in response_data)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
