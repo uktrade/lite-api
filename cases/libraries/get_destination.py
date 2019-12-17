@@ -1,5 +1,7 @@
 import itertools
 
+from django.http import Http404
+
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
 from cases.enums import CaseTypeEnum
@@ -10,11 +12,19 @@ from static.countries.models import Country
 from teams.models import Team
 
 
+class DestinationNotFoundError(Exception):
+    def __init__(self):
+        raise Http404
+
+
 def get_destination(pk):
     try:
         destination = Country.objects.get(pk=pk)
     except Country.DoesNotExist:
-        destination = Party.objects.get(pk=pk)
+        try:
+            destination = Party.objects.get(pk=pk)
+        except Party.DoesNotExist:
+            raise DestinationNotFoundError
     return destination
 
 
