@@ -24,8 +24,6 @@ from applications.serializers.generic_application import GenericApplicationListS
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
-from cases.libraries.get_case import get_case
-from cases.models import Case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import ExporterPermissions
