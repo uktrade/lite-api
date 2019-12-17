@@ -13,7 +13,6 @@ from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
 
-
 def _get_application(request, kwargs):
     if "pk" in kwargs:
         application = get_application(kwargs.pop("pk"))

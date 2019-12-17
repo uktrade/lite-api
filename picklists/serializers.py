@@ -12,7 +12,9 @@ from teams.models import Team
 
 class PicklistSerializer(ModelSerializer):
     name = CharField(
-        allow_blank=False, required=True, error_messages={"blank": lite_content.lite_api.picklists.Picklists.BLANK_NAME},
+        allow_blank=False,
+        required=True,
+        error_messages={"blank": lite_content.lite_api.picklists.Picklists.BLANK_NAME},
     )
     text = CharField(
         allow_blank=False,

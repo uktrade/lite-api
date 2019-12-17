@@ -4,7 +4,6 @@ from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
 
 
-
 def get_case(pk):
     """
     Returns a case or returns a 404 on failure
