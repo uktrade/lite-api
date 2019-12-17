@@ -1,4 +1,4 @@
-import lite_content.lite_api.applications
+from lite_content.lite_api import applications
 
 from django.urls import reverse
 from rest_framework import status
@@ -56,7 +56,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET,
+            text=applications.Generic.NO_LOCATION_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -69,7 +69,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_END_USER_SET,
+            text=applications.Standard.NO_END_USER_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -81,7 +81,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_END_USER_DOCUMENT_SET,
+            text=applications.Standard.NO_END_USER_DOCUMENT_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -94,7 +94,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_CONSIGNEE_SET,
+            text=applications.Standard.NO_CONSIGNEE_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -106,7 +106,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
+            text=applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -118,7 +118,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_GOODS_SET,
+            text=applications.Standard.NO_GOODS_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -135,7 +135,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_ULTIMATE_END_USERS_SET,
+            text=applications.Standard.NO_ULTIMATE_END_USERS_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -149,7 +149,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
+            text=applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -161,7 +161,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.END_USER_DOCUMENT_PROCESSING,
+            text=applications.Standard.END_USER_DOCUMENT_PROCESSING,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -173,7 +173,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Standard.END_USER_DOCUMENT_INFECTED,
+            text=applications.Standard.END_USER_DOCUMENT_INFECTED,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 

@@ -1,4 +1,4 @@
-import lite_content.lite_api.applications
+from lite_content.lite_api import applications
 from lite_content.lite_api import goods
 
 from rest_framework import serializers
@@ -85,11 +85,11 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
     )
     application_type = KeyValueChoiceField(
         choices=ApplicationType.choices,
-        error_messages={"required": lite_content.lite_api.applications.Generic.NO_LICENCE_TYPE},
+        error_messages={"required": applications.Generic.NO_LICENCE_TYPE},
     )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices,
-        error_messages={"required": lite_content.lite_api.applications.Generic.NO_EXPORT_TYPE},
+        error_messages={"required": applications.Generic.NO_EXPORT_TYPE},
     )
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices,

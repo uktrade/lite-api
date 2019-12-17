@@ -1,4 +1,4 @@
-import lite_content.lite_api.applications
+from lite_content.lite_api import applications
 
 from django.urls import reverse
 from rest_framework import status
@@ -33,7 +33,7 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Generic.NO_LOCATION_SET,
+            text=applications.Generic.NO_LOCATION_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -44,7 +44,7 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Open.NO_GOODS_SET,
+            text=applications.Open.NO_GOODS_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -55,6 +55,6 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertContains(
             response,
-            text=lite_content.lite_api.applications.Open.NO_COUNTRIES_SET,
+            text=applications.Open.NO_COUNTRIES_SET,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
