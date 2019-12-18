@@ -3,7 +3,7 @@ from django.db import transaction
 from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
-CASE_TYPES_FILE = "lite_content/lite-api/case_types.csv"
+CASE_TYPES_FILE = "lite_content/lite_api/case_types.csv"
 
 
 class Command(SeedCommand):
