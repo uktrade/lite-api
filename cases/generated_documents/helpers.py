@@ -7,7 +7,7 @@ from cases.libraries.get_case import get_case
 from conf.exceptions import NotFoundError
 from letter_templates.helpers import get_css_location, generate_preview, markdown_to_html
 from letter_templates.models import LetterTemplate
-from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
+from lite_content.lite_api import strings
 
 
 font_config = FontConfiguration()
@@ -31,17 +31,17 @@ def get_letter_template_for_case(template_id, case):
     try:
         return LetterTemplate.objects.get(pk=template_id, case_types__id=case.type)
     except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": GeneratedDocumentsEndpoint.LETTER_TEMPLATE_NOT_FOUND})
+        raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
 
 
 def get_generated_document_data(request_params, pk):
     template_id = request_params.get("template")
     if not template_id:
-        raise AttributeError(GeneratedDocumentsEndpoint.MISSING_TEMPLATE)
+        raise AttributeError(strings.Cases.MISSING_TEMPLATE)
 
     text = request_params.get("text")
     if not text:
-        raise AttributeError(GeneratedDocumentsEndpoint.MISSING_TEXT)
+        raise AttributeError(strings.Cases.MISSING_TEXT)
 
     case = get_case(pk)
     template = get_letter_template_for_case(template_id, case)

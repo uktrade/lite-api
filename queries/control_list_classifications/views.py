@@ -67,7 +67,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
