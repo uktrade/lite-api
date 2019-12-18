@@ -18,14 +18,11 @@ from applications.libraries.application_helpers import (
     validate_status_can_be_set_by_exporter_user,
     validate_status_can_be_set_by_gov_user,
 )
-from applications.libraries.case_activity import (
-    set_application_ref_number_case_activity,
-    set_application_name_case_activity,
-    set_application_status_case_activity,
-)
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
 from applications.serializers.generic_application import GenericApplicationListSerializer
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
@@ -112,39 +109,41 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Update an application instance
         """
         serializer = get_application_update_serializer(application)
+        case = application.get_case()
+        old_name = application.name
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
         if application.application_type == ApplicationType.HMRC_QUERY:
-            if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
-
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-        else:
-            application_old_name = application.name
 
-            if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if request.data.get("name"):
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_APPLICATION_NAME,
+                target=case,
+                payload={"old_name": old_name, "new_name": serializer.data.get("name")},
+            )
 
-            serializer.save()
+        if (
+            request.data.get("reference_number_on_information_form")
+            and application.application_type == ApplicationType.STANDARD_LICENCE
+        ):
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_APPLICATION_REFERENCE_NUMBER,
+                target=case,
+                payload={
+                    "old_ref_number": application.reference_number_on_information_form,
+                    "new_ref_number": serializer.data.get("reference_number_on_information_form"),
+                },
+            )
 
-            if request.data.get("name"):
-                set_application_name_case_activity(
-                    application_old_name, serializer.data.get("name"), request.user, application
-                )
-            elif (
-                request.data.get("reference_number_on_information_form")
-                and application.application_type == ApplicationType.STANDARD_LICENCE
-            ):
-                set_application_ref_number_case_activity(
-                    application.reference_number_on_information_form,
-                    serializer.data.get("reference_number_on_information_form"),
-                    request.user,
-                    application,
-                )
-
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -197,7 +196,12 @@ class ApplicationSubmission(APIView):
 
         if previous_application_status:
             # If the application is being submitted after being edited
-            set_application_status_case_activity(application.status.status, request.user, application)
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_STATUS,
+                target=application.get_case(),
+                payload={"status": application.status.status},
+            )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -238,6 +242,11 @@ class ApplicationManageStatus(APIView):
 
         serializer.save()
 
-        set_application_status_case_activity(new_status.status, request.user, application)
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=application.get_case(),
+            payload={"status": CaseStatusEnum.human_readable(new_status.status)},
+        )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

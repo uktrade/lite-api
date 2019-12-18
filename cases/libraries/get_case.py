@@ -1,6 +1,6 @@
-from lite_content.lite_api import strings
-from cases.models import Case, CaseDocument, CaseActivity
+from cases.models import Case, CaseDocument
 from conf.exceptions import NotFoundError
+from lite_content.lite_api import strings
 
 
 def get_case(pk):
@@ -31,7 +31,3 @@ def get_case_document_by_pk(pk):
         return CaseDocument.objects.get(pk=pk)
     except CaseDocument.DoesNotExist:
         raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
-
-
-def get_case_activity(case: Case):
-    return list(CaseActivity.objects.filter(case=case))

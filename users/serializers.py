@@ -160,9 +160,14 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class CaseNotificationGetSerializer(serializers.ModelSerializer):
+    audit_id = serializers.SerializerMethodField()
+
     class Meta:
         model = Notification
-        fields = ("case_activity",)
+        fields = ("audit_id",)
+
+    def get_audit_id(self, obj):
+        return str(obj.audit.id)
 
 
 class NotificationSerializer(serializers.ModelSerializer):

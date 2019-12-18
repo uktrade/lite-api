@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.case_activity import set_party_case_activity
-from cases.libraries.activity_types import CaseActivityType
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -35,6 +35,7 @@ class ApplicationEndUser(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = application.get_case()
 
         serializer = EndUserSerializer(data=data)
         if not serializer.is_valid():
@@ -45,21 +46,21 @@ class ApplicationEndUser(APIView):
         new_end_user = serializer.save()
         application.end_user = new_end_user
         application.save()
-
         if previous_end_user:
             delete_party_document_if_exists(previous_end_user)
             previous_end_user.delete()
-
-            set_party_case_activity(
-                CaseActivityType.REMOVE_PARTY,
-                previous_end_user.type,
-                previous_end_user.name,
-                request.user,
-                application,
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_PARTY,
+                target=case,
+                payload={"party_type": previous_end_user.type.replace("_", " "), "party_name": previous_end_user.name,},
             )
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, new_end_user.type, new_end_user.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.ADD_PARTY,
+            target=case,
+            payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name,},
         )
 
         return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -81,8 +82,11 @@ class ApplicationEndUser(APIView):
         delete_party_document_if_exists(end_user)
         end_user.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, end_user.type, end_user.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.REMOVE_PARTY,
+            target=application.get_case(),
+            payload={"party_type": end_user.type.replace("_", " "), "party_name": end_user.name,},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -118,8 +122,11 @@ class ApplicationUltimateEndUsers(APIView):
         ultimate_end_user = serializer.save()
         application.ultimate_end_users.add(ultimate_end_user.id)
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.ADD_PARTY,
+            target=application.get_case(),
+            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
         )
 
         return JsonResponse(data={"ultimate_end_user": serializer.data}, status=status.HTTP_201_CREATED)
@@ -143,9 +150,11 @@ class RemoveApplicationUltimateEndUser(APIView):
         application.ultimate_end_users.remove(ultimate_end_user.id)
         delete_party_document_if_exists(ultimate_end_user)
         ultimate_end_user.delete()
-
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, ultimate_end_user.type, ultimate_end_user.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.REMOVE_PARTY,
+            target=application.get_case(),
+            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
         )
 
         return JsonResponse(data={"ultimate_end_user": "deleted"}, status=status.HTTP_200_OK)
@@ -163,6 +172,7 @@ class ApplicationConsignee(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = application.get_case()
 
         serializer = ConsigneeSerializer(data=data)
         if not serializer.is_valid():
@@ -178,16 +188,21 @@ class ApplicationConsignee(APIView):
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
 
-            set_party_case_activity(
-                CaseActivityType.REMOVE_PARTY,
-                previous_consignee.type,
-                previous_consignee.name,
-                request.user,
-                application,
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_PARTY,
+                target=case,
+                payload={
+                    "party_type": previous_consignee.type.replace("_", " "),
+                    "party_name": previous_consignee.name,
+                },
             )
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, new_consignee.type, new_consignee.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.ADD_PARTY,
+            target=case,
+            payload={"party_type": new_consignee.type.replace("_", " "), "party_name": new_consignee.name,},
         )
 
         return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
@@ -200,6 +215,7 @@ class ApplicationConsignee(APIView):
         Delete a consignee and their document from an application
         """
         consignee = application.consignee
+        case = application.get_case()
 
         if not consignee:
             return JsonResponse(data={"errors": "consignee not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -209,8 +225,11 @@ class ApplicationConsignee(APIView):
         delete_party_document_if_exists(consignee)
         consignee.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, consignee.type, consignee.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.REMOVE_PARTY,
+            target=case,
+            payload={"party_type": consignee.type.replace("_", " "), "party_name": consignee.name,},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -238,6 +257,7 @@ class ApplicationThirdParties(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        case = application.get_case()
 
         serializer = ThirdPartySerializer(data=data)
         if not serializer.is_valid():
@@ -246,8 +266,11 @@ class ApplicationThirdParties(APIView):
         third_party = serializer.save()
         application.third_parties.add(third_party.id)
 
-        set_party_case_activity(
-            CaseActivityType.ADD_PARTY, third_party.type, third_party.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.ADD_PARTY,
+            target=case,
+            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
         )
 
         return JsonResponse(data={"third_party": serializer.data}, status=status.HTTP_201_CREATED)
@@ -270,8 +293,11 @@ class RemoveThirdParty(APIView):
         delete_party_document_if_exists(third_party)
         third_party.delete()
 
-        set_party_case_activity(
-            CaseActivityType.REMOVE_PARTY, third_party.type, third_party.name, request.user, application,
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.REMOVE_PARTY,
+            target=application.get_case(),
+            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
         )
 
         return JsonResponse(data={"third_party": "deleted"}, status=status.HTTP_200_OK)

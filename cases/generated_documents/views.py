@@ -4,12 +4,12 @@ from django.utils import timezone
 from rest_framework import status, generics
 from rest_framework.views import APIView
 
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer
-from cases.libraries.activity_types import CaseActivityType
-from cases.models import CaseActivity
 from conf.authentication import GovAuthentication
 from documents.libraries import s3_operations
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
@@ -59,13 +59,13 @@ class GeneratedDocuments(APIView):
                     text=document.text,
                 )
 
-                # Generate timeline entry
-                case_activity = {
-                    "activity_type": CaseActivityType.GENERATE_CASE_DOCUMENT,
-                    "file_name": document_name,
-                    "template": document.template.name,
-                }
-                CaseActivity.create(case=document.case, user=request.user, **case_activity)
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.GENERATE_CASE_DOCUMENT,
+                    action_object=generated_doc,
+                    target=document.case,
+                    payload={"file_name": document_name, "template": document.template.name},
+                )
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa

@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from conf import constants
 from letter_templates.models import LetterTemplate
@@ -31,3 +33,7 @@ class LetterTemplateEditTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["name"], data["name"])
+
+        audit_trail = Audit.objects.all()
+        self.assertEqual(audit_trail.count(), 1)
+        self.assertEqual(AuditType(audit_trail.first().verb), AuditType.UPDATED_LETTER_TEMPLATE_NAME)
