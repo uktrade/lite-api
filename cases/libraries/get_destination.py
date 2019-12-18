@@ -44,7 +44,7 @@ def get_destination_flags(instance):
     flags = []
 
     countries = CountryOnApplication.objects.filter(application=instance).select_related("country")
-    for country in countries.values_list("id", flat=True):
+    for country in countries:
         flags += country.country.flags.all()
 
     application = get_application(instance.id)
