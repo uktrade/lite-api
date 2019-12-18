@@ -51,9 +51,8 @@ def get_destination_flags(instance):
     flags = list(itertools.chain.from_iterable([c.country.flags.order_by("name") for c in countries]))
     if isinstance(application, StandardApplication):
         flags += get_standard_application_destination_flags(application)
-    distinct_flags = list(set(flags))
 
-    return distinct_flags
+    return flags
 
 
 def get_ordered_flags(instance: Case, team: Team):
@@ -73,8 +72,8 @@ def get_ordered_flags(instance: Case, team: Team):
     flag_data = (
         FlagSerializer(case_flags, many=True).data
         + FlagSerializer(org_flags, many=True).data
-        + FlagSerializer(goods_flags, many=True).data
-        + FlagSerializer(destination_flags, many=True).data
+        + FlagSerializer(set(goods_flags), many=True).data
+        + FlagSerializer(set(destination_flags), many=True).data
     )
     flag_data = sorted(flag_data, key=lambda x: x["name"])
 
