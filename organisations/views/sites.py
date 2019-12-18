@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
+from organisations.libraries.get_site import get_site
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer
 from users.libraries.get_user import get_user_organisation_relationship
@@ -60,8 +61,7 @@ class SiteDetail(APIView):
     def get(self, request, org_pk, site_pk):
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
-        Organisation.objects.get(pk=org_pk)
-        site = Site.objects.get(pk=site_pk)
+        site = get_site(site_pk, org_pk)
 
         serializer = SiteViewSerializer(site)
         return JsonResponse(data={"site": serializer.data})
@@ -70,8 +70,7 @@ class SiteDetail(APIView):
     def put(self, request, org_pk, site_pk):
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
-        Organisation.objects.get(pk=org_pk)
-        site = Site.objects.get(pk=site_pk)
+        site = get_site(site_pk, org_pk)
 
         serializer = SiteSerializer(instance=site, data=request.data, partial=True)
         if serializer.is_valid():

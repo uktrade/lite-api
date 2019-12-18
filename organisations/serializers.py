@@ -157,7 +157,7 @@ class SiteViewSerializer(serializers.ModelSerializer):
     users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
-        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__in=[instance.id])])
+        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
         super_users = set(
             [
                 x.user

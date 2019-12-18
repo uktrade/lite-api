@@ -19,7 +19,7 @@ from applications.libraries.application_helpers import (
     validate_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
+from applications.models import GoodOnApplication, BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -31,6 +31,7 @@ from conf.decorators import authorised_users, application_in_major_editable_stat
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from organisations.enums import OrganisationType
+from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -58,18 +59,19 @@ class ApplicationList(ListCreateAPIView):
             else:
                 applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
-            if submitted is None:
-                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
-            elif submitted:
-                applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
+            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, self.request.user.organisation)
+            allowed_applications = SiteOnApplication.objects.filter(site__id__in=users_sites).values_list("application", flat=True)
+            filtered_applications = BaseApplication.objects.filter(id__in=allowed_applications)
+            draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
+
+            print(filtered_applications)
+
+            if submitted:
+                applications = filtered_applications.exclude(status=draft).order_by("-submitted_at")
             else:
-                applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
+                applications = filtered_applications.filter(status=draft).order_by("-created")
+
+            applications = applications.exclude(application_type=ApplicationType.HMRC_QUERY)
 
         return applications
 
