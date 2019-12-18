@@ -1,18 +1,30 @@
 import itertools
 
+from django.http import Http404
+
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
 from cases.enums import CaseTypeEnum
+from cases.models import Case
 from flags.serializers import FlagSerializer
 from parties.models import Party
 from static.countries.models import Country
+from teams.models import Team
+
+
+class DestinationNotFoundError(Exception):
+    def __init__(self):
+        raise Http404
 
 
 def get_destination(pk):
     try:
         destination = Country.objects.get(pk=pk)
     except Country.DoesNotExist:
-        destination = Party.objects.get(pk=pk)
+        try:
+            destination = Party.objects.get(pk=pk)
+        except Party.DoesNotExist:
+            raise DestinationNotFoundError
     return destination
 
 
@@ -36,12 +48,11 @@ def get_destination_flags(instance):
     flags = [country.country.flags.all() for country in countries.values_list("id", flat=True)]
     if isinstance(application, StandardApplication):
         flags += get_standard_application_destination_flags(application)
-    deduplicated_flags = list(set(flags))
 
-    return deduplicated_flags
+    return flags
 
 
-def get_ordered_flags(instance, team):
+def get_ordered_flags(instance: Case, team: Team):
     case_flags = instance.flags.order_by("name")
     org_flags = instance.organisation.flags.order_by("name")
 
@@ -58,15 +69,15 @@ def get_ordered_flags(instance, team):
     flag_data = (
         FlagSerializer(case_flags, many=True).data
         + FlagSerializer(org_flags, many=True).data
-        + FlagSerializer(goods_flags, many=True).data
-        + FlagSerializer(destination_flags, many=True).data
+        + FlagSerializer(set(goods_flags), many=True).data
+        + FlagSerializer(set(destination_flags), many=True).data
     )
     flag_data = sorted(flag_data, key=lambda x: x["name"])
 
     if not team:
         return flag_data
 
-    # Sort flags by user's team.
+    # Group flags by user's team.
     team_flags, non_team_flags = [], []
     for flag in flag_data:
         team_flags.append(flag) if flag["team"]["id"] == str(team.id) else non_team_flags.append(flag)
