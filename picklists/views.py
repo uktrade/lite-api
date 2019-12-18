@@ -1,3 +1,4 @@
+from lite_content.lite_api import strings
 import operator
 from functools import reduce
 
@@ -10,7 +11,6 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from content_strings.strings import get_string
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
@@ -80,8 +80,7 @@ class PicklistItemDetail(APIView):
 
         if request.user.team != picklist_item.team:
             return JsonResponse(
-                data={"errors": get_string("picklist_items.error_messages.forbidden")},
-                status=status.HTTP_403_FORBIDDEN,
+                data={"errors": strings.PicklistItems.ErrorMessages.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)

@@ -1,7 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from cases.libraries.get_case import get_case_activity
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.models import Case
 from conf import constants
 from goods.enums import GoodControlled, GoodStatus
@@ -82,10 +84,12 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that only the response activity item has been added
-        case_activities = get_case_activity(self.query)
-        self.assertEqual(len(case_activities), 1)
-        self.assertEqual(case_activities[0].type, "clc_response")
+        case = self.query.get_case()
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 1)
 
     def test_respond_to_control_list_classification_query_update_control_code_success(self):
         previous_query_control_code = self.query.good.control_code
@@ -98,11 +102,18 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that the response and good review activity items have been added
-        case_activities = get_case_activity(self.query)
-        self.assertEqual(len(case_activities), 2)
-        for case_activity in case_activities:
-            self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
+        audit_qs = Audit.objects.all()
+        self.assertEqual(audit_qs.count(), 2)
+        for audit in audit_qs:
+            verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE
+            self.assertEqual(AuditType(audit.verb), verb)
+            if verb == AuditType.GOOD_REVIEWED:
+                payload = {
+                    "good_name": self.query.good.description,
+                    "old_control_code": previous_query_control_code,
+                    "new_control_code": self.data["control_code"],
+                }
+                self.assertEqual(audit.payload, payload)
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
@@ -121,11 +132,13 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
-        # Check that  that the response and good review activity items have been added
-        case_activities = get_case_activity(self.query)
-        self.assertEqual(len(case_activities), 2)
-        for case_activity in case_activities:
-            self.assertTrue(case_activity.type in ["clc_response", "good_reviewed"])
+        # Check that an activity item has been added
+        qs = Audit.objects.filter(
+            target_object_id=self.query.id, target_content_type=ContentType.objects.get_for_model(self.query)
+        )
+        for audit in qs:
+            verb = AuditType.GOOD_REVIEWED if audit.payload else AuditType.CLC_RESPONSE
+            self.assertEqual(AuditType(audit.verb), verb)
 
     def test_respond_to_control_list_classification_query_failure(self):
         """
@@ -164,5 +177,5 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
 
-        self.assertEqual(len(get_case_activity(self.query)), 0)
+        self.assertEqual(Audit.objects.all().count(), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

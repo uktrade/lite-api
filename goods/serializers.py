@@ -3,15 +3,15 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
-from content_strings.strings import get_string
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
-from lite_content.lite_api import strings
+from lite_content.lite_api import strings, goods
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
@@ -46,17 +46,21 @@ class GoodListSerializer(serializers.ModelSerializer):
             "status",
             "documents",
             "query_id",
+            "missing_document_reason",
         )
 
 
 class GoodSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=280, error_messages={"blank": strings.FORM_DEFAULT_ERROR_TEXT_BLANK})
+    description = serializers.CharField(
+        max_length=280, error_messages={"blank": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK}
+    )
     is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices, error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
+        choices=GoodControlled.choices,
+        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField(
-        error_messages={"required": strings.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
@@ -65,6 +69,12 @@ class GoodSerializer(serializers.ModelSerializer):
     query_id = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
+    missing_document_reason = serializers.ChoiceField(
+        choices=GoodMissingDocumentReasons.choices,
+        allow_blank=True,
+        required=False,
+        error_messages={"invalid_choice": goods.Good.INVALID_MISSING_DOCUMENT_REASON},
+    )
 
     class Meta:
         model = Good
@@ -82,6 +92,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "query_id",
             "documents",
             "case_status",
+            "missing_document_reason",
         )
 
     def __init__(self, *args, **kwargs):
@@ -238,8 +249,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": get_string("picklist_items.error_messages." "required_report_summary"),
-                    "null": get_string("picklist_items.error_messages.required_report_summary"),
+                    "required": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
+                    "null": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
                 },
             )
 

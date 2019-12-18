@@ -1,10 +1,10 @@
+from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import StandardApplication, GoodOnApplication
 from conf.serializers import KeyValueChoiceField
-from content_strings.strings import get_string
 from goods.models import Good
 from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from static.units.enums import Units
@@ -45,20 +45,18 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
     quantity = DecimalField(
-        max_digits=256, decimal_places=6, error_messages={"invalid": get_string("goods.error_messages.invalid_qty")},
+        max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.ErrorMessages.INVALID_QTY},
     )
     value = (
         DecimalField(
-            max_digits=256,
-            decimal_places=2,
-            error_messages={"invalid": get_string("goods.error_messages.invalid_value")},
+            max_digits=256, decimal_places=2, error_messages={"invalid": strings.Goods.ErrorMessages.INVALID_VALUE},
         ),
     )
     unit = ChoiceField(
         choices=Units.choices,
         error_messages={
-            "required": get_string("goods.error_messages.required_unit"),
-            "invalid_choice": get_string("goods.error_messages.required_unit"),
+            "required": strings.Goods.ErrorMessages.REQUIRED_UNIT,
+            "invalid_choice": strings.Goods.ErrorMessages.REQUIRED_UNIT,
         },
     )
 

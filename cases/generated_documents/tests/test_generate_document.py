@@ -3,12 +3,12 @@ from unittest import mock
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseActivity, Notification
+from cases.models import Notification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
-from lite_content.lite_api.letter_templates import LetterTemplatesPage
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -54,7 +54,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
             Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
         )
@@ -72,7 +72,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [GeneratedDocumentsEndpoint.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(CaseActivity.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
             Notification.objects.filter(generated_case_document__isnull=False, user=self.exporter_user).count() == 0
         )
