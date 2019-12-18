@@ -7,7 +7,7 @@ from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument
-from lite_content.lite_api import strings, goods
+from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
@@ -51,15 +51,14 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 class GoodSerializer(serializers.ModelSerializer):
     description = serializers.CharField(
-        max_length=280, error_messages={"blank": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_TEXT_BLANK}
+        max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
     )
     is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices,
-        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
+        choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_end_product = serializers.BooleanField(
-        error_messages={"required": strings.Goods.ErrorMessages.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+        error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
@@ -72,7 +71,7 @@ class GoodSerializer(serializers.ModelSerializer):
         choices=GoodMissingDocumentReasons.choices,
         allow_blank=True,
         required=False,
-        error_messages={"invalid_choice": goods.Good.INVALID_MISSING_DOCUMENT_REASON},
+        error_messages={"invalid_choice": strings.Goods.INVALID_MISSING_DOCUMENT_REASON},
     )
 
     class Meta:
@@ -252,8 +251,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
-                    "null": strings.PicklistItems.ErrorMessages.REQUIRED_REPORT_SUMMARY,
+                    "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
+                    "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
                 },
             )
 

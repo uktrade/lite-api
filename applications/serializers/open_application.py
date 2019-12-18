@@ -61,7 +61,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": strings.Goods.REF_NAME},
     )
 
     class Meta:
