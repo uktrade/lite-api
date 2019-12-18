@@ -7,6 +7,7 @@ from test_helpers.clients import DataTestClient
 
 
 class EndUserAdvisoryStatus(DataTestClient):
+
     def setUp(self):
         super().setUp()
         self.query = self.create_end_user_advisory("A note", "Unsure about something", self.organisation)
@@ -17,10 +18,10 @@ class EndUserAdvisoryStatus(DataTestClient):
 
     def test_gov_set_status_when_no_permission_to_reopen_closed_cases_failure(self):
         data = {"status": CaseStatusEnum.SUBMITTED}
-
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.query.status.status, CaseStatusEnum.CLOSED)
 
     def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self):
         data = {"status": CaseStatusEnum.SUBMITTED}
@@ -32,3 +33,6 @@ class EndUserAdvisoryStatus(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.query.status.status, CaseStatusEnum.SUBMITTED)
+
+

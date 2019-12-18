@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -24,12 +22,8 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json.loads(response.content).get("errors")[0], "Status cannot be set by Gov user.",
-        )
-        self.assertEqual(
-            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-        )
+        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
         self.submit_application(self.standard_application)
@@ -119,9 +113,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json.loads(response.content).get("errors")[0], "Status cannot be set by Gov user.",
-        )
+        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )

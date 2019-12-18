@@ -15,8 +15,8 @@ from applications.helpers import (
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
-    check_status_can_be_set_by_exporter_user,
-    check_status_can_be_set_by_gov_user,
+    can_status_can_be_set_by_exporter_user,
+    can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
@@ -219,12 +219,12 @@ class ApplicationManageStatus(APIView):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            if not check_status_can_be_set_by_exporter_user(application.status.status, new_status):
+            if not can_status_can_be_set_by_exporter_user(application.status.status, new_status):
                 return JsonResponse(
                     data={"errors": ["Status cannot be set by Exporter user."]}, status=status.HTTP_400_BAD_REQUEST
                 )
         else:
-            if not check_status_can_be_set_by_gov_user(request.user, application.status.status, new_status):
+            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, new_status):
                 return JsonResponse(
                     data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
                 )

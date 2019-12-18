@@ -16,7 +16,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from applications.libraries.application_helpers import check_status_can_be_set_by_gov_user
+from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 
 
 class EndUserAdvisoriesList(APIView):
@@ -85,7 +85,7 @@ class EndUserAdvisoryDetail(APIView):
             new_status = data.get("status")
             # Only attempt to change status if it differs from the original
             if end_user_advisory.status.status != new_status:
-                if not check_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+                if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
                     return JsonResponse(
                         data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
                     )

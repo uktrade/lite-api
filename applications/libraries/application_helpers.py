@@ -14,8 +14,8 @@ def optional_str_to_bool(optional_string: str):
         raise ValueError("You provided " + optional_string + ', while the allowed values are None, "true" or "false"')
 
 
-def check_status_can_be_set_by_exporter_user(original_status: str, new_status: str) -> bool:
-    """ Check that a status can be set by an exporter user. Exporter users cannot withdrawn an application
+def can_status_can_be_set_by_exporter_user(original_status: str, new_status: str) -> bool:
+    """ Check that a status can be set by an exporter user. Exporter users cannot withdraw an application
     that is already in a terminal state and they cannot set an application to applicant editing if the
     application is read only.
     """
@@ -28,9 +28,9 @@ def check_status_can_be_set_by_exporter_user(original_status: str, new_status: s
     return True
 
 
-def check_status_can_be_set_by_gov_user(user, original_status: str, new_status: str) -> bool:
+def can_status_can_be_set_by_gov_user(user, original_status: str, new_status: str) -> bool:
     """ Check that a status can be set by a gov user. Gov users can not set a case's status to
-    Applicant editing. They also cannot set a case's status to `Finalised` or open a closed case
+    `Applicant editing`. They also cannot set a case's status to `Finalised` or open a closed case
     without additional permissions.
     """
     if new_status == CaseStatusEnum.APPLICANT_EDITING:
