@@ -17,6 +17,7 @@ class SitesList(APIView):
     """
     List all sites for an organisation/create site
     """
+
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk):
@@ -44,7 +45,7 @@ class SitesList(APIView):
 
         if serializer.is_valid():
             site = serializer.save()
-            return JsonResponse(data={"site":  SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
