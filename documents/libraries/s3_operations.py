@@ -29,4 +29,4 @@ def delete_file(s3_key):
     try:
         _client.delete_object(Bucket=_bucket_name, Key=s3_key)
     except Exception:  # noqa
-        logging.warning(DocumentsEndpoint.DELETE_ERROR)
+        logging.warning("Failed to delete file")
