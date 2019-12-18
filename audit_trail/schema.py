@@ -30,6 +30,7 @@ class Registry:
     """
     Registry holds Audit schemas for validation.
     """
+
     __registry = set()
 
     def check_kwargs(self, **kwargs):
