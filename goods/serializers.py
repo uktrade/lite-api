@@ -1,5 +1,3 @@
-from django.db.models import Count
-
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -15,7 +13,11 @@ from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.models import ExporterUser, ExporterNotification
+from users.libraries.notifications import (
+    get_exporter_user_notifications_total_count,
+    get_exporter_user_notifications_individual_counts,
+)
+from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
 
@@ -35,19 +37,15 @@ class GoodListSerializer(serializers.ModelSerializer):
     def get_query(self, instance):
         query = {}
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+
         if clc_query:
             clc_query = clc_query.first()
-            query["id"] = clc_query.id
-
-            # TODO: LT-1443 Refactor into helper method
-            # Count the number of notifications on the query for the request user
-            exporter_user = self.context.get("exporter_user")
-            if exporter_user:
-                user_notifications_total_count = ExporterNotification.objects.filter(
-                    user=exporter_user, organisation=exporter_user.organisation, case=clc_query
-                ).count()
-
-                query["exporter_user_notifications_count"] = {"total": user_notifications_total_count}
+            query = {
+                "id": clc_query.id,
+                "exporter_user_notifications_count": get_exporter_user_notifications_total_count(
+                    exporter_user=self.context.get("exporter_user"), case=clc_query
+                ),
+            }
 
         return query
 
@@ -130,29 +128,15 @@ class GoodSerializer(serializers.ModelSerializer):
     def get_query(self, instance):
         query = {}
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
+
         if clc_query:
             clc_query = clc_query.first()
-            query["id"] = clc_query.id
-
-            # TODO: LT-1443 Refactor into helper method
-            exporter_user = self.context.get("exporter_user")
-            if exporter_user:
-                count_queryset = (
-                    ExporterNotification.objects.filter(
-                        user=exporter_user, organisation=exporter_user.organisation, case=clc_query
-                    )
-                    .values("content_type__model")
-                    .annotate(count=Count("content_type__model"))
-                )
-
-                user_notifications_total_count = 0
-                user_notifications_count = {}
-                for content_type in count_queryset:
-                    user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                    user_notifications_total_count += content_type["count"]
-                user_notifications_count["total"] = user_notifications_total_count
-
-                query["exporter_user_notifications_count"] = user_notifications_count
+            query = {
+                "id": clc_query.id,
+                "exporter_user_notifications_count": get_exporter_user_notifications_individual_counts(
+                    exporter_user=self.context.get("exporter_user"), case=clc_query
+                ),
+            }
 
         return query
 

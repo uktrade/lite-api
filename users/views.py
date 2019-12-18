@@ -152,9 +152,8 @@ class NotificationViewSet(APIView):
         data = {}
         queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
 
-        case_types = request.GET.get("case_types")
+        case_types = request.GET.getlist("case_type")
         if case_types:
-            case_types = case_types.split(",")
             queries = [Q(case__type=case_type) for case_type in case_types]
             queryset = queryset.filter(reduce(or_, queries))
 

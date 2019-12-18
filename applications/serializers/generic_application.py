@@ -23,7 +23,10 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
-from users.models import ExporterNotification
+from users.libraries.notifications import (
+    get_exporter_user_notifications_total_count,
+    get_exporter_user_notifications_individual_counts,
+)
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
@@ -40,6 +43,22 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notifications_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "id",
+            "name",
+            "organisation",
+            "application_type",
+            "export_type",
+            "created",
+            "modified",
+            "submitted_at",
+            "status",
+            "case",
+            "exporter_user_notifications_count",
+        )
 
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
@@ -69,31 +88,23 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         override this function in child classes
         """
 
-        # TODO: LT-1443 Refactor into helper method
-        exporter_user = self.context.get("exporter_user")
-        if exporter_user:
-            user_notifications_total_count = ExporterNotification.objects.filter(
-                user=exporter_user, organisation=exporter_user.organisation, case=instance
-            ).count()
+        return get_exporter_user_notifications_total_count(
+            exporter_user=self.context.get("exporter_user"), case=instance
+        )
 
-            return {"total": user_notifications_total_count}
-        else:
-            return None
 
+class GenericApplicationViewSerializer(GenericApplicationListSerializer):
     class Meta:
         model = BaseApplication
-        fields = (
-            "id",
-            "name",
-            "organisation",
-            "application_type",
-            "export_type",
-            "created",
-            "modified",
-            "submitted_at",
-            "status",
-            "case",
-            "exporter_user_notifications_count",
+        fields = GenericApplicationListSerializer.Meta.fields
+
+    def get_exporter_user_notifications_count(self, instance):
+        """
+        Overriding parent class
+        """
+
+        return get_exporter_user_notifications_individual_counts(
+            exporter_user=self.context.get("exporter_user"), case=instance
         )
 
 

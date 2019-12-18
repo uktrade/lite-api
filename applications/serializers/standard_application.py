@@ -1,5 +1,3 @@
-from django.db.models import Count
-
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -9,7 +7,7 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
-    GenericApplicationListSerializer,
+    GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
 from cases.enums import CaseTypeEnum
@@ -23,10 +21,9 @@ from parties.serializers import (
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import ExporterNotification
 
 
-class StandardApplicationViewSerializer(GenericApplicationListSerializer):
+class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
@@ -39,7 +36,7 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationViewSerializer.Meta.fields + (
             "end_user",
             "ultimate_end_users",
             "third_parties",
@@ -53,33 +50,6 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
             "usage",
             "additional_documents",
         )
-
-    def get_exporter_user_notifications_count(self, instance):
-        """
-        Overriding parent class
-        """
-
-        # TODO: LT-1443 Refactor into helper method
-        exporter_user = self.context.get("exporter_user")
-        if exporter_user:
-            count_queryset = (
-                ExporterNotification.objects.filter(
-                    user=exporter_user, organisation=exporter_user.organisation, case=instance
-                )
-                .values("content_type__model")
-                .annotate(count=Count("content_type__model"))
-            )
-
-            user_notifications_total_count = 0
-            user_notifications_count = {}
-            for content_type in count_queryset:
-                user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                user_notifications_total_count += content_type["count"]
-            user_notifications_count["total"] = user_notifications_total_count
-
-            return user_notifications_count
-        else:
-            return None
 
     def get_additional_documents(self, instance):
         documents = ApplicationDocument.objects.filter(application=instance)

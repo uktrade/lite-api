@@ -1,11 +1,10 @@
-from django.db.models import Count
 from rest_framework import exceptions
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
-from applications.serializers.generic_application import GenericApplicationListSerializer
+from applications.serializers.generic_application import GenericApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -24,10 +23,9 @@ from parties.serializers import (
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import ExporterNotification
 
 
-class HmrcQueryViewSerializer(GenericApplicationListSerializer):
+class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
@@ -60,36 +58,9 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
         documents = ApplicationDocument.objects.filter(application=application)
         return ApplicationDocumentSerializer(documents, many=True).data
 
-    def get_exporter_user_notifications_count(self, instance):
-        """
-        Overriding parent class
-        """
-
-        # TODO: LT-1443 Refactor into helper method
-        exporter_user = self.context.get("exporter_user")
-        if exporter_user:
-            count_queryset = (
-                ExporterNotification.objects.filter(
-                    user=exporter_user, organisation=exporter_user.organisation, case=instance
-                )
-                .values("content_type__model")
-                .annotate(count=Count("content_type__model"))
-            )
-
-            user_notifications_total_count = 0
-            user_notifications_count = {}
-            for content_type in count_queryset:
-                user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                user_notifications_total_count += content_type["count"]
-            user_notifications_count["total"] = user_notifications_total_count
-
-            return user_notifications_count
-        else:
-            return None
-
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationViewSerializer.Meta.fields + (
             "goods_types",
             "end_user",
             "ultimate_end_users",

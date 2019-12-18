@@ -1,7 +1,6 @@
 import abc
 from datetime import datetime, timezone
 
-from django.db.models import Count
 from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
@@ -13,7 +12,10 @@ from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
-from users.models import ExporterNotification
+from users.libraries.notifications import (
+    get_exporter_user_notifications_individual_counts,
+    get_exporter_user_notifications_total_count,
+)
 
 
 class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
@@ -101,19 +103,12 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
         override this function in child classes
         """
 
-        # TODO: LT-1443 Refactor into helper method
-        exporter_user = self.context.get("exporter_user")
-        if exporter_user:
-            user_notifications_total_count = ExporterNotification.objects.filter(
-                user=exporter_user, organisation=exporter_user.organisation, case=instance
-            ).count()
-
-            return {"total": user_notifications_total_count}
-        else:
-            return None
+        return get_exporter_user_notifications_total_count(
+            exporter_user=self.context.get("exporter_user"), case=instance
+        )
 
 
-class EndUserAdvisoryDetailSerializer(EndUserAdvisoryListSerializer):
+class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
     class Meta:
         model = EndUserAdvisoryQuery
         fields = EndUserAdvisoryListSerializer.Meta.fields
@@ -123,24 +118,6 @@ class EndUserAdvisoryDetailSerializer(EndUserAdvisoryListSerializer):
         Overriding parent class
         """
 
-        # TODO: LT-1443 Refactor into helper method
-        exporter_user = self.context.get("exporter_user")
-        if exporter_user:
-            count_queryset = (
-                ExporterNotification.objects.filter(
-                    user=exporter_user, organisation=exporter_user.organisation, case=instance
-                )
-                .values("content_type__model")
-                .annotate(count=Count("content_type__model"))
-            )
-
-            user_notifications_total_count = 0
-            user_notifications_count = {}
-            for content_type in count_queryset:
-                user_notifications_count[content_type["content_type__model"]] = content_type["count"]
-                user_notifications_total_count += content_type["count"]
-            user_notifications_count["total"] = user_notifications_total_count
-
-            return user_notifications_count
-        else:
-            return None
+        return get_exporter_user_notifications_individual_counts(
+            exporter_user=self.context.get("exporter_user"), case=instance
+        )
