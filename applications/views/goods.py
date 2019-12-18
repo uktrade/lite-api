@@ -29,7 +29,7 @@ from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
 from lite_content.lite_api.goods import GoodsOnApplication
-from lite_content.lite_api.applications import EditApplicationPage
+from lite_content.lite_api.strings import Applications
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -107,11 +107,11 @@ class ApplicationGoodOnApplication(APIView):
         application = good_on_application.application
 
         if application.status.status in get_case_statuses(read_only=True):
-            return JsonResponse(data={"errors": [EditApplicationPage.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(data={"errors": [Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(
-                data={"errors": EditApplicationPage.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
             )
 
         if (
@@ -131,7 +131,7 @@ class ApplicationGoodOnApplication(APIView):
             payload={"good_name": good_on_application.good.description},
         )
 
-        return JsonResponse(data={"status": EditApplicationPage.SUCCESS}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
 class ApplicationGoodsTypes(APIView):
