@@ -10,11 +10,6 @@ from static.countries.models import Country
 from teams.models import Team
 
 
-class DestinationNotFoundError(Exception):
-    def __init__(self):
-        raise Http404
-
-
 def get_destination(pk):
     try:
         destination = Country.objects.get(pk=pk)
@@ -22,7 +17,7 @@ def get_destination(pk):
         try:
             destination = Party.objects.get(pk=pk)
         except Party.DoesNotExist:
-            raise DestinationNotFoundError
+            raise Http404
     return destination
 
 
