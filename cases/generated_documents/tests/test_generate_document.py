@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import Notification
 from letter_templates.models import LetterTemplate
-from lite_content.lite_api.strings import Cases
+from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -52,7 +52,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.json()["errors"], [Cases.PDF_ERROR])
+        self.assertEqual(response.json()["errors"], [strings.Cases.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
@@ -70,7 +70,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.json()["errors"], [Cases.UPLOAD_ERROR])
+        self.assertEqual(response.json()["errors"], [strings.Cases.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 0)
         self.assertTrue(
@@ -99,7 +99,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [Cases.MISSING_TEMPLATE])
+        self.assertEqual(body["errors"], [strings.Cases.MISSING_TEMPLATE])
 
     def test_get_document_preview_without_text_query_param_failure(self):
         url = (
@@ -113,7 +113,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [Cases.MISSING_TEXT])
+        self.assertEqual(body["errors"], [strings.Cases.MISSING_TEXT])
 
     @mock.patch("cases.generated_documents.helpers.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")
