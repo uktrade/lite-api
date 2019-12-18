@@ -7,7 +7,6 @@ from test_helpers.clients import DataTestClient
 
 
 class EndUserAdvisoryStatus(DataTestClient):
-
     def setUp(self):
         super().setUp()
         self.query = self.create_end_user_advisory("A note", "Unsure about something", self.organisation)
@@ -34,5 +33,3 @@ class EndUserAdvisoryStatus(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.query.status.status, CaseStatusEnum.SUBMITTED)
-
-
