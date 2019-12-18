@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
+from conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship
 
@@ -72,9 +73,14 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(user_organisation_relationship.sites.count(), 3)
 
-    # TODO
-    # Test that a superuser cannot be assigned to sites - as they have access to all sites
+    def test_user_cannot_be_assigned_to_sites_if_they_have_administer_sites_permission(self):
+        self.exporter_user.role.permissions.set([ExporterPermissions.ADMINISTER_SITES.name])
+        data = {"sites": [self.site_1.id]}
 
-    # TODO
-    # User with "Administer sites" permission has access to ALL sites
-    # Write a test around this
+        response = self.client.put(
+            reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers
+        )
+        user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(user_organisation_relationship.sites.count(), 3)

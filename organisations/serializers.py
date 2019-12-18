@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
-from conf.constants import Roles
+from conf.constants import ExporterPermissions
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -12,7 +12,7 @@ from conf.serializers import (
 )
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import GovUser, UserOrganisationRelationship
+from users.models import GovUser, UserOrganisationRelationship, Permission
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
@@ -158,15 +158,16 @@ class SiteViewSerializer(serializers.ModelSerializer):
 
     def get_users(self, instance):
         users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
-        super_users = set(
+        permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
+        users_with_permission = set(
             [
                 x.user
                 for x in UserOrganisationRelationship.objects.filter(
-                    organisation=instance.organisation, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
+                    organisation=instance.organisation, role__permissions__id=permission.id
                 )
             ]
         )
-        return ExporterUserSimpleSerializer(users.union(super_users), many=True).data
+        return ExporterUserSimpleSerializer(users.union(users_with_permission), many=True).data
 
     class Meta:
         model = Site

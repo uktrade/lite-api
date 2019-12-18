@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from addresses.models import Address
-from conf.constants import Roles
+from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
 from organisations.enums import OrganisationType
@@ -54,8 +54,14 @@ class SiteManager(models.Manager):
         return self.get_by_user_organisation_relationship(exporter_user_relationship)
 
     def get_by_user_organisation_relationship(self, exporter_user_organisation_relationship):
-        # Super users have access to all sites
-        if exporter_user_organisation_relationship.role.id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
+        # Users with Administer Sites permission have access to all sites
+        from conf.permissions import has_permission
+
+        if has_permission(
+            exporter_user_organisation_relationship.user,
+            ExporterPermissions.ADMINISTER_SITES,
+            exporter_user_organisation_relationship.organisation,
+        ):
             return self.get_by_organisation(exporter_user_organisation_relationship.organisation)
 
         return exporter_user_organisation_relationship.sites.all()
