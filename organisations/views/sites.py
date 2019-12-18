@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -18,7 +17,6 @@ class SitesList(APIView):
     """
     List all sites for an organisation/create site
     """
-
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk):
@@ -38,17 +36,17 @@ class SitesList(APIView):
     def post(self, request, org_pk):
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
-        with reversion.create_revision():
-            organisation = Organisation.objects.get(pk=org_pk)
-            data = JSONParser().parse(request)
-            data["organisation"] = organisation.id
-            serializer = SiteSerializer(data=data)
 
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(data={"site": serializer.data}, status=status.HTTP_201_CREATED)
+        organisation = Organisation.objects.get(pk=org_pk)
+        data = JSONParser().parse(request)
+        data["organisation"] = organisation.id
+        serializer = SiteSerializer(data=data)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if serializer.is_valid():
+            site = serializer.save()
+            return JsonResponse(data={"site":  SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SiteDetail(APIView):
@@ -74,11 +72,10 @@ class SiteDetail(APIView):
         Organisation.objects.get(pk=org_pk)
         site = Site.objects.get(pk=site_pk)
 
-        with reversion.create_revision():
-            serializer = SiteSerializer(instance=site, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
+        serializer = SiteSerializer(instance=site, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
 
-                return JsonResponse(data={"site": serializer.data}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"site": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=400)
+        return JsonResponse(data={"errors": serializer.errors}, status=400)
