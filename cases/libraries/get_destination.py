@@ -1,5 +1,3 @@
-import itertools
-
 from django.http import Http404
 
 from applications.libraries.get_applications import get_application
@@ -43,9 +41,13 @@ def get_standard_application_destination_flags(application):
 
 
 def get_destination_flags(instance):
-    application = get_application(instance.id)
+    flags = []
+
     countries = CountryOnApplication.objects.filter(application=instance).select_related("country")
-    flags = [country.country.flags.all() for country in countries.values_list("id", flat=True)]
+    for country in countries.values_list("id", flat=True):
+        flags += country.country.flags.all()
+
+    application = get_application(instance.id)
     if isinstance(application, StandardApplication):
         flags += get_standard_application_destination_flags(application)
 
@@ -53,18 +55,16 @@ def get_destination_flags(instance):
 
 
 def get_ordered_flags(instance: Case, team: Team):
-    case_flags = instance.flags.order_by("name")
-    org_flags = instance.organisation.flags.order_by("name")
+    case_flags = instance.flags.all()
+    org_flags = instance.organisation.flags.all()
+    goods_flags = []
+    destination_flags = []
 
     if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
         goods = GoodOnApplication.objects.filter(application=instance).select_related("good")
-        goods_flags = list(itertools.chain.from_iterable([g.good.flags.order_by("name") for g in goods]))
-        good_ids = {}
-        goods_flags = [good_ids.setdefault(g, g) for g in goods_flags if g.id not in good_ids]  # dedup
+        for good in goods:
+            goods_flags += good.good.flags.all()
         destination_flags = get_destination_flags(instance)
-    else:
-        goods_flags = []
-        destination_flags = []
 
     flag_data = (
         FlagSerializer(case_flags, many=True).data
@@ -72,6 +72,7 @@ def get_ordered_flags(instance: Case, team: Team):
         + FlagSerializer(set(goods_flags), many=True).data
         + FlagSerializer(set(destination_flags), many=True).data
     )
+
     flag_data = sorted(flag_data, key=lambda x: x["name"])
 
     if not team:
