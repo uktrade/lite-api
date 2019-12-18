@@ -27,7 +27,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api.strings import Goods
+from lite_content.lite_api.strings import Goods, Applications
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -47,7 +47,7 @@ class GoodsListControlCode(APIView):
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
-                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
