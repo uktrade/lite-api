@@ -46,7 +46,9 @@ class GoodListSerializer(serializers.ModelSerializer):
             return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
     def get_query(self, instance):
-        return get_good_query_with_notifications(good=instance, exporter_user=self.context.get("exporter_user"))
+        return get_good_query_with_notifications(
+            good=instance, exporter_user=self.context.get("exporter_user"), total_count=True
+        )
 
 
 class GoodSerializer(serializers.ModelSerializer):
@@ -110,7 +112,9 @@ class GoodSerializer(serializers.ModelSerializer):
             return clc_query.first().id
 
     def get_query(self, instance):
-        return get_good_query_with_notifications(good=instance, exporter_user=self.context.get("exporter_user"))
+        return get_good_query_with_notifications(
+            good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+        )
 
     def get_case_status(self, instance):
         try:

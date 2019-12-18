@@ -1,6 +1,5 @@
 import abc
 
-from applications.serializers.document import ApplicationDocumentSerializer
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -12,7 +11,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
+from applications.models import BaseApplication, ApplicationDenialReason
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from organisations.models import Organisation, Site, ExternalLocation
@@ -88,37 +87,25 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         To get the count for each type of notification on an application,
         override this function in child classes
         """
-
         return get_exporter_user_notifications_total_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
 
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
-    additional_documents = serializers.SerializerMethodField()
     goods_locations = serializers.SerializerMethodField()
-    destinations = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
-            "additional_documents",
-            "goods_locations",
-            "destinations",
-        )
+        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations",)
 
     def get_exporter_user_notifications_count(self, instance):
         """
         Overriding parent class
         """
-
         return get_exporter_user_notifications_individual_counts(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_goods_locations(self, application):
         sites = Site.objects.filter(sites_on_application__application=application)
@@ -132,14 +119,6 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
             return {"type": "external_locations", "data": serializer.data}
 
         return {}
-
-    @abc.abstractmethod
-    def get_destinations(self, application):
-        """
-        Override this function in child classes
-        """
-
-        pass
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):

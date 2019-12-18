@@ -102,7 +102,6 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
         To get the count for each type of notification on an end user advisory query,
         override this function in child classes
         """
-
         return get_exporter_user_notifications_total_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
@@ -117,7 +116,6 @@ class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
         """
         Overriding parent class
         """
-
         return get_exporter_user_notifications_individual_counts(
             exporter_user=self.context.get("exporter_user"), case=instance
         )

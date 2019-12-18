@@ -1,8 +1,9 @@
+from applications.serializers.document import ApplicationDocumentSerializer
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import OpenApplication
+from applications.models import OpenApplication, ApplicationDocument
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -19,20 +20,32 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+    additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + ("goods_types", "activity", "usage",)
+        fields = GenericApplicationViewSerializer.Meta.fields + (
+            "activity",
+            "usage",
+            "goods_types",
+            "destinations",
+            "additional_documents",
+        )
+
+    def get_goods_types(self, application):
+        goods_types = GoodsType.objects.filter(application=application)
+        serializer = FullGoodsTypeSerializer(goods_types, many=True)
+        return serializer.data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
         serializer = CountrySerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
-    def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        serializer = FullGoodsTypeSerializer(goods_types, many=True)
-        return serializer.data
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):

@@ -1,7 +1,10 @@
+from rest_framework import serializers
+
+from applications.serializers.document import ApplicationDocumentSerializer
 from lite_content.lite_api import strings
 from rest_framework.fields import CharField
 
-from applications.models import StandardApplication
+from applications.models import StandardApplication, ApplicationDocument
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -25,6 +28,8 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
+    destinations = serializers.SerializerMethodField()
+    additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -38,6 +43,8 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
             "reference_number_on_information_form",
             "activity",
             "usage",
+            "destinations",
+            "additional_documents",
         )
 
     def get_destinations(self, application):
@@ -46,6 +53,10 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}
+
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
