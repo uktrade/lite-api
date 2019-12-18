@@ -14,4 +14,4 @@ class ControlListClassificationQuery(Query):
     details = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name="good")
 
-    notifications = GenericRelation(ExporterNotification, related_query_name="clc_queries")
+    notifications = GenericRelation(ExporterNotification, related_query_name="clc_query")

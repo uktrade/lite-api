@@ -1,3 +1,4 @@
+import abc
 from datetime import datetime, timezone
 
 from django.db.models import Count
@@ -15,7 +16,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status,
 from users.models import ExporterNotification
 
 
-class EndUserAdvisorySerializer(serializers.ModelSerializer):
+class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
@@ -92,7 +93,36 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
 
         return end_user_advisory_query
 
+    @abc.abstractmethod
     def get_exporter_user_notifications_count(self, instance):
+        """
+        This is used for list views only.
+        To get the count for each type of notification on an end user advisory query,
+        override this function in child classes
+        """
+
+        # TODO: LT-1443 Refactor into helper method
+        exporter_user = self.context.get("exporter_user")
+        if exporter_user:
+            user_notifications_total_count = ExporterNotification.objects.filter(
+                user=exporter_user, organisation=exporter_user.organisation, case=instance
+            ).count()
+
+            return {"total": user_notifications_total_count}
+        else:
+            return None
+
+
+class EndUserAdvisoryDetailSerializer(EndUserAdvisoryListSerializer):
+    class Meta:
+        model = EndUserAdvisoryQuery
+        fields = EndUserAdvisoryListSerializer.Meta.fields
+
+    def get_exporter_user_notifications_count(self, instance):
+        """
+        Overriding parent class
+        """
+
         # TODO: LT-1443 Refactor into helper method
         exporter_user = self.context.get("exporter_user")
         if exporter_user:

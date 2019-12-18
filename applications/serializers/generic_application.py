@@ -64,8 +64,12 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     @abc.abstractmethod
     def get_exporter_user_notifications_count(self, instance):
         """
-        Override in child classes
+        This is used for list views only.
+        To get the count for each type of notification on an application,
+        override this function in child classes
         """
+
+        # TODO: LT-1443 Refactor into helper method
         exporter_user = self.context.get("exporter_user")
         if exporter_user:
             user_notifications_total_count = ExporterNotification.objects.filter(

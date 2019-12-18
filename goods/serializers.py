@@ -38,6 +38,8 @@ class GoodListSerializer(serializers.ModelSerializer):
             clc_query = clc_query.first()
             query["id"] = clc_query.id
 
+            # TODO: LT-1443 Refactor into helper method
+            # Count the number of notifications on the query for the request user
             exporter_user = self.context.get("exporter_user")
             if exporter_user:
                 user_notifications_total_count = ExporterNotification.objects.filter(
@@ -231,7 +233,13 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
-        fields = ("id", "name", "description", "size", "safe")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "size",
+            "safe",
+        )
 
 
 class GoodWithFlagsSerializer(GoodSerializer):

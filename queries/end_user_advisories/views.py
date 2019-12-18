@@ -13,7 +13,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
+from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer, EndUserAdvisoryDetailSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
@@ -27,7 +27,9 @@ class EndUserAdvisoriesList(APIView):
         View all end user advisories belonging to an organisation.
         """
         end_user_advisories = EndUserAdvisoryQuery.objects.filter(organisation=request.user.organisation)
-        serializer = EndUserAdvisorySerializer(end_user_advisories, many=True, context={"exporter_user": request.user})
+        serializer = EndUserAdvisoryListSerializer(
+            end_user_advisories, many=True, context={"exporter_user": request.user}
+        )
         return JsonResponse(data={"end_user_advisories": serializer.data})
 
     def post(self, request):
@@ -42,7 +44,7 @@ class EndUserAdvisoriesList(APIView):
         data["organisation"] = request.user.organisation.id
         data["end_user"]["organisation"] = request.user.organisation.id
 
-        serializer = EndUserAdvisorySerializer(data=data)
+        serializer = EndUserAdvisoryListSerializer(data=data)
 
         try:
             if serializer.is_valid():
@@ -70,7 +72,7 @@ class EndUserAdvisoryDetail(APIView):
         if isinstance(request.user, ExporterUser):
             context["exporter_user"] = request.user
 
-        serializer = EndUserAdvisorySerializer(end_user_advisory, context=context)
+        serializer = EndUserAdvisoryDetailSerializer(end_user_advisory, context=context)
         return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
@@ -88,7 +90,7 @@ class EndUserAdvisoryDetail(APIView):
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 
-            serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
+            serializer = EndUserAdvisoryDetailSerializer(end_user_advisory, data=request.data, partial=True)
 
             if serializer.is_valid():
                 audit_trail_service.create(
