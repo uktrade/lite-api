@@ -429,7 +429,6 @@ class GoodsCountriesDecisions(APIView):
 
 class Destination(APIView):
     def get(self, request, pk):
-        destination = get_destination(pk)
-        serializer = PartyWithFlagsSerializer(destination)
+        serializer = PartyWithFlagsSerializer(get_destination(pk))
 
         return JsonResponse(data={"destination": serializer.data})
