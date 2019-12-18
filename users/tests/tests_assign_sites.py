@@ -74,13 +74,13 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(user_organisation_relationship.sites.count(), 3)
 
     def test_user_cannot_be_assigned_to_sites_if_they_have_administer_sites_permission(self):
-        self.exporter_user.role.permissions.set([ExporterPermissions.ADMINISTER_SITES.name])
+        user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
+        user_organisation_relationship.role.permissions.set([ExporterPermissions.ADMINISTER_SITES.name])
         data = {"sites": [self.site_1.id]}
 
         response = self.client.put(
             reverse_lazy("users:assign_sites", kwargs={"pk": self.exporter_user.id}), data, **self.exporter_headers
         )
-        user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(user_organisation_relationship.sites.count(), 3)
