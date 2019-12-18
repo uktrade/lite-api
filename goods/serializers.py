@@ -46,7 +46,6 @@ class GoodListSerializer(serializers.ModelSerializer):
             "status",
             "documents",
             "query_id",
-            "missing_document_reason",
         )
 
 
@@ -69,7 +68,7 @@ class GoodSerializer(serializers.ModelSerializer):
     query_id = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
-    missing_document_reason = serializers.ChoiceField(
+    missing_document_reason = KeyValueChoiceField(
         choices=GoodMissingDocumentReasons.choices,
         allow_blank=True,
         required=False,
