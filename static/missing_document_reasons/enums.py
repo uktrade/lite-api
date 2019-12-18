@@ -1,4 +1,4 @@
-from lite_content.lite_api.static import GoodMissingDocumentReasonsOptions
+from lite_content.lite_api.strings import Static
 
 
 class GoodMissingDocumentReasons:
@@ -16,7 +16,7 @@ class GoodMissingDocumentReasons:
     COMMERCIALLY_SENSITIVE = "COMMERCIALLY_SENSITIVE"
 
     choices = [
-        (NO_DOCUMENT, GoodMissingDocumentReasonsOptions.NO_DOCUMENT),
-        (OFFICIAL_SENSITIVE, GoodMissingDocumentReasonsOptions.OFFICIAL_SENSITIVE),
-        (COMMERCIALLY_SENSITIVE, GoodMissingDocumentReasonsOptions.COMMERCIALLY_SENSITIVE),
+        (NO_DOCUMENT, Static.MissingDocuments.NO_DOCUMENT),
+        (OFFICIAL_SENSITIVE, Static.MissingDocuments.OFFICIAL_SENSITIVE),
+        (COMMERCIALLY_SENSITIVE, Static.MissingDocuments.COMMERCIALLY_SENSITIVE),
     ]
