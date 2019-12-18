@@ -1,5 +1,5 @@
-from typing import Optional
-
+from conf.constants import GovPermissions
+from conf.permissions import assert_user_has_permission
 from static.statuses.enums import CaseStatusEnum
 
 
@@ -14,17 +14,36 @@ def optional_str_to_bool(optional_string: str):
         raise ValueError("You provided " + optional_string + ', while the allowed values are None, "true" or "false"')
 
 
-def validate_status_can_be_set_by_exporter_user(original_status: str, new_status: str) -> Optional[str]:
-    error_message_template = 'Setting application status to "{}" when application status "{}" is not allowed.'
-
+def can_status_can_be_set_by_exporter_user(original_status: str, new_status: str) -> bool:
+    """ Check that a status can be set by an exporter user. Exporter users cannot withdraw an application
+    that is already in a terminal state and they cannot set an application to `Applicant editing` if the
+    application is read only.
+    """
     if new_status == CaseStatusEnum.WITHDRAWN:
         if CaseStatusEnum.is_terminal(original_status):
-            return error_message_template.format(new_status, original_status)
-        return
+            return False
     elif CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
-        return error_message_template.format(new_status, original_status)
+        return False
+
+    return True
 
 
-def validate_status_can_be_set_by_gov_user(status: str) -> Optional[str]:
-    if status == CaseStatusEnum.APPLICANT_EDITING:
-        return f'Setting application status to "{status}" is not allowed for GovUsers.'
+def can_status_can_be_set_by_gov_user(user, original_status: str, new_status: str) -> bool:
+    """ Check that a status can be set by a gov user. Gov users can not set a case's status to
+    `Applicant editing`. They also cannot set a case's status to `Finalised` or open a closed case
+    without additional permissions.
+    """
+    if new_status == CaseStatusEnum.APPLICANT_EDITING:
+        return False
+
+    elif CaseStatusEnum.is_terminal(original_status) and not assert_user_has_permission(
+        user, GovPermissions.REOPEN_CLOSED_CASES
+    ):
+        return False
+
+    elif new_status == CaseStatusEnum.FINALISED and not assert_user_has_permission(
+        user, GovPermissions.MANAGE_FINAL_ADVICE
+    ):
+        return False
+
+    return True
