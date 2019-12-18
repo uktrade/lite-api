@@ -1,6 +1,6 @@
 from actstream.gfk import GFKQuerySet, GFKManager
 
-from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 from users.models import GovUser
 
@@ -23,7 +23,7 @@ class AuditManager(GFKManager):
 
         if isinstance(target, Case):
             # Only audit cases if they do not have status set to 'draft'
-            if target.status.status != CaseStatusEnum.DRAFT:
+            if not is_case_status_draft(target.status):
                 audit = super(AuditManager, self).create(*args, **kwargs)
                 actor = kwargs.get("actor")
 
