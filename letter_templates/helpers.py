@@ -8,7 +8,7 @@ from conf.exceptions import NotFoundError
 from conf.settings import CSS_ROOT
 from letter_templates.exceptions import InvalidVarException
 from letter_templates.models import LetterTemplate
-from lite_content.lite_api.strings import LetterTemplates
+from lite_content.lite_api import strings
 
 
 def get_letter_template(pk):
@@ -64,4 +64,4 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
 
         return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
-        return {"error": LetterTemplates.PREVIEW_ERROR}
+        return {"error": strings.LetterTemplates.PREVIEW_ERROR}
