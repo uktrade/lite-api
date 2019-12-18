@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -74,7 +73,6 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Site.objects.count(), number_of_initial_sites)
 
-    @tag("only")
     def test_view_site(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse(
