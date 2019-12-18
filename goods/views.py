@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
@@ -127,7 +128,7 @@ class GoodList(ListCreateAPIView):
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
                 "good", flat=True
             )
-            queryset = queryset.filter(id__in=good_document_ids)
+            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(missing_document_reason__isnull=False))
 
         return queryset
 
