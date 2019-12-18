@@ -24,6 +24,9 @@ class EndUserAdvisoryStatus(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.query.status.status, CaseStatusEnum.CLOSED)
 
+
+
+
     def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self):
         data = {"status": CaseStatusEnum.SUBMITTED}
 
