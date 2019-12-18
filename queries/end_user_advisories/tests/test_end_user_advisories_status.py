@@ -17,8 +17,8 @@ class EndUserAdvisoryStatus(DataTestClient):
 
     def test_gov_set_status_when_no_permission_to_reopen_closed_cases_failure(self):
         data = {"status": CaseStatusEnum.SUBMITTED}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
 
+        response = self.client.put(self.url, data=data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -32,6 +32,7 @@ class EndUserAdvisoryStatus(DataTestClient):
         self.gov_user.save()
 
         response = self.client.put(self.url, data=data, **self.gov_headers)
+        self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()['end_user_advisory']['status']['key'], CaseStatusEnum.SUBMITTED)
+        self.assertEqual(self.query.status.status, CaseStatusEnum.SUBMITTED)
