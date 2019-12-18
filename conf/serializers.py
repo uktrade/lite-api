@@ -39,7 +39,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 class CountrySerializerField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.queryset = Country.objects.all()
-        self.error_messages = {"null": strings.Address.NULL_COUNTRY}
+        self.error_messages = {"null": strings.Addresses.NULL_COUNTRY}
         super(CountrySerializerField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
@@ -48,7 +48,7 @@ class CountrySerializerField(PrimaryKeyRelatedField):
         try:
             return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist:
-            raise serializers.ValidationError(strings.Address.NULL_COUNTRY)
+            raise serializers.ValidationError(strings.Addresses.NULL_COUNTRY)
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
