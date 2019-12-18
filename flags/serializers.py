@@ -12,7 +12,7 @@ from teams.serializers import TeamSerializer
 class FlagSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.ErrorMessages.BLANK_LEVEL},
+        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
@@ -20,10 +20,10 @@ class FlagSerializer(serializers.ModelSerializer):
         trim_whitespace=True,
         validators=[
             UniqueValidator(
-                queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.ErrorMessages.NON_UNIQUE,
+                queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.NON_UNIQUE,
             )
         ],
-        error_messages={"blank": strings.Flags.ErrorMessages.BLANK_NAME},
+        error_messages={"blank": strings.Flags.BLANK_NAME},
     )
 
     class Meta:
