@@ -28,7 +28,7 @@ from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
-from lite_content.lite_api.strings import Applications, Goods
+from lite_content.lite_api import strings
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -54,7 +54,7 @@ class ApplicationGoodsOnApplication(APIView):
         data["application"] = application.id
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
-            return JsonResponse(data={"error": Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(data={"error": strings.Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
         if "validate_only" in data and data["validate_only"] is True:
             # validate the value, quantity, and units relating to a good on an application.
@@ -64,14 +64,14 @@ class ApplicationGoodsOnApplication(APIView):
                 return HttpResponse(status=status.HTTP_200_OK)
         else:
             if "good_id" not in data:
-                return JsonResponse(data={"error": Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(data={"error": strings.Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
             data["good"] = data["good_id"]
 
             good = get_good_with_organisation(data.get("good"), request.user.organisation)
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
-                return JsonResponse(data={"error": Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
+                return JsonResponse(data={"error": strings.Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
@@ -100,10 +100,10 @@ class ApplicationGoodOnApplication(APIView):
         application = good_on_application.application
 
         if application.status.status in get_case_statuses(read_only=True):
-            return JsonResponse(data={"errors": [Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(data={"errors": [strings.Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
-            return JsonResponse(data={"errors": Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,)
+            return JsonResponse(data={"errors": strings.Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,)
 
         if (
             good_on_application.good.status == GoodStatus.SUBMITTED
