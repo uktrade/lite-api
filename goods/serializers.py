@@ -249,8 +249,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
                 queryset=PicklistItem.objects.all(),
                 required=True,
                 error_messages={
-                    "required": strings.PicklistItems.REQUIRED_REPORT_SUMMARY,
-                    "null": strings.PicklistItems.REQUIRED_REPORT_SUMMARY,
+                    "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
+                    "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
                 },
             )
 
