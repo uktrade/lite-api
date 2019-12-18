@@ -12,7 +12,7 @@ from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer
 from conf.authentication import GovAuthentication
 from documents.libraries import s3_operations
-from lite_content.lite_api.cases import GeneratedDocumentsEndpoint
+from lite_content.lite_api.strings import Cases
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
@@ -38,7 +38,7 @@ class GeneratedDocuments(APIView):
             pdf = html_to_pdf(request, document.document_html, document.template.layout.filename)
         except Exception:  # noqa
             return JsonResponse(
-                {"errors": [GeneratedDocumentsEndpoint.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"errors": [Cases.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
@@ -70,7 +70,7 @@ class GeneratedDocuments(APIView):
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
             return JsonResponse(
-                {"errors": [GeneratedDocumentsEndpoint.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"errors": [Cases.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
