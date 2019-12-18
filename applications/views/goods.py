@@ -28,8 +28,7 @@ from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
-from lite_content.lite_api.goods import GoodsOnApplication
-from lite_content.lite_api.strings import Applications
+from lite_content.lite_api.strings import Applications, Goods
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -56,7 +55,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(
-                data={"error": GoodsOnApplication.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,
+                data={"error": Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if "validate_only" in data and data["validate_only"] is True:
@@ -68,7 +67,7 @@ class ApplicationGoodsOnApplication(APIView):
         else:
             if "good_id" not in data:
                 return JsonResponse(
-                    data={"error": GoodsOnApplication.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             data["good"] = data["good_id"]
@@ -77,7 +76,7 @@ class ApplicationGoodsOnApplication(APIView):
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(
-                    data={"error": GoodsOnApplication.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             serializer = GoodOnApplicationCreateSerializer(data=data)

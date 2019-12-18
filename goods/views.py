@@ -27,7 +27,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api import goods, strings
+from lite_content.lite_api.strings import Goods
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -163,7 +163,7 @@ class GoodDocumentCriteriaCheck(APIView):
                 good_data = GoodSerializer(good).data
         else:
             return JsonResponse(
-                data={"errors": {"has_document_to_upload": [goods.Good.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                data={"errors": {"has_document_to_upload": [Goods.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

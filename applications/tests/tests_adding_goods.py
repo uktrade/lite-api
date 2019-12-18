@@ -7,7 +7,7 @@ from rest_framework import status
 from applications.models import GoodOnApplication
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-from lite_content.lite_api.goods import GoodsOnApplication
+from lite_content.lite_api.strings import Goods
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 
 
@@ -171,7 +171,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["error"], GoodsOnApplication.DOCUMENT_ERROR)
+        self.assertEqual(response.json()["error"], Goods.DOCUMENT_ERROR)
 
     def test_adding_good_with_reason_official_sensitive_success(self):
         good = self.create_controlled_good("A good", self.organisation)
