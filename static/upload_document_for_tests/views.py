@@ -14,7 +14,7 @@ class UploadDocumentForTests(APIView):
 
         if not upload_document_endpoint_enabled or upload_document_endpoint_enabled.lower() != "true":
             return JsonResponse(
-                data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
+                data={"errors": "This endpoinft is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
         bucket_name = env("AWS_STORAGE_BUCKET_NAME")
