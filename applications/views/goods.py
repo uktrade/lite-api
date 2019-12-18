@@ -28,6 +28,8 @@ from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 from users.models import ExporterUser
+from lite_content.lite_api.goods import GoodsOnApplication
+from lite_content.lite_api.applications import EditApplicationPage
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -54,7 +56,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
             return JsonResponse(
-                data={"error": "Invalid value supplied for validate_only"}, status=status.HTTP_400_BAD_REQUEST,
+                data={"error": GoodsOnApplication.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if "validate_only" in data and data["validate_only"] is True:
@@ -66,17 +68,16 @@ class ApplicationGoodsOnApplication(APIView):
         else:
             if "good_id" not in data:
                 return JsonResponse(
-                    data={"error": "Good ID required when adding good to application"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": GoodsOnApplication.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             data["good"] = data["good_id"]
 
             good = get_good_with_organisation(data.get("good"), request.user.organisation)
 
-            if GoodDocument.objects.filter(good=good).count() == 0:
+            if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(
-                    data={"error": "Cannot attach a good with no documents"}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"error": GoodsOnApplication.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
@@ -106,16 +107,11 @@ class ApplicationGoodOnApplication(APIView):
         application = good_on_application.application
 
         if application.status.status in get_case_statuses(read_only=True):
-            return JsonResponse(
-                data={
-                    "errors": ["You can only perform this operation when the application " "is in an editable state"]
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return JsonResponse(data={"errors": [EditApplicationPage.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(
-                data={"errors": "Your organisation is not the owner of this good"}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": EditApplicationPage.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
             )
 
         if (
@@ -135,7 +131,7 @@ class ApplicationGoodOnApplication(APIView):
             payload={"good_name": good_on_application.good.description},
         )
 
-        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": EditApplicationPage.SUCCESS}, status=status.HTTP_200_OK)
 
 
 class ApplicationGoodsTypes(APIView):
