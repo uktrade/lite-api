@@ -1,5 +1,3 @@
-import json
-
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -24,13 +22,8 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json.loads(response.content).get("errors")[0],
-            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
-        )
-        self.assertEqual(
-            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-        )
+        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
         self.submit_application(self.standard_application)
@@ -120,10 +113,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json.loads(response.content).get("errors")[0],
-            'Setting application status to "applicant_editing" is not allowed for GovUsers.',
-        )
+        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
@@ -143,3 +133,34 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
+
+    def test_gov_set_status_when_they_have_do_not_permission_to_reopen_closed_cases_failure(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        self.standard_application.save()
+
+        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
+
+    def test_gov_set_status_when_they_have_permission_to_reopen_closed_cases_success(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        self.standard_application.save()
+
+        # Give gov user super used role, to include reopen closed cases permission
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+
+        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            self.standard_application.status, get_case_status_by_status(CaseStatusEnum.REOPENED_FOR_CHANGES)
+        )
