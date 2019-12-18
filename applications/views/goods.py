@@ -54,9 +54,7 @@ class ApplicationGoodsOnApplication(APIView):
         data["application"] = application.id
 
         if "validate_only" in data and not isinstance(data["validate_only"], bool):
-            return JsonResponse(
-                data={"error": Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,
-            )
+            return JsonResponse(data={"error": Goods.VALIDATE_ONLY_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
         if "validate_only" in data and data["validate_only"] is True:
             # validate the value, quantity, and units relating to a good on an application.
@@ -66,18 +64,14 @@ class ApplicationGoodsOnApplication(APIView):
                 return HttpResponse(status=status.HTTP_200_OK)
         else:
             if "good_id" not in data:
-                return JsonResponse(
-                    data={"error": Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,
-                )
+                return JsonResponse(data={"error": Goods.GOOD_ID_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
             data["good"] = data["good_id"]
 
             good = get_good_with_organisation(data.get("good"), request.user.organisation)
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
-                return JsonResponse(
-                    data={"error": Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,
-                )
+                return JsonResponse(data={"error": Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
 
             serializer = GoodOnApplicationCreateSerializer(data=data)
             if serializer.is_valid():
@@ -109,9 +103,7 @@ class ApplicationGoodOnApplication(APIView):
             return JsonResponse(data={"errors": [Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
-            return JsonResponse(
-                data={"errors": Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
-            )
+            return JsonResponse(data={"errors": Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,)
 
         if (
             good_on_application.good.status == GoodStatus.SUBMITTED

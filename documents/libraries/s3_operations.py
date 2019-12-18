@@ -4,7 +4,6 @@ import uuid
 import boto3
 
 from conf.settings import env
-from lite_content.lite_api.documents import DocumentsEndpoint
 
 _client = boto3.client(
     "s3", aws_access_key_id=env("AWS_ACCESS_KEY_ID"), aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),

@@ -88,8 +88,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
     have_you_been_informed = KeyValueChoiceField(
-        choices=ApplicationExportLicenceOfficialType.choices,
-        error_messages={"required": strings.Goods.INFORMED},
+        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
