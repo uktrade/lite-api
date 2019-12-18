@@ -1,6 +1,5 @@
 from django.db.models import Count
 
-from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -9,10 +8,12 @@ from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.models import Good, GoodDocument
+from lite_content.lite_api import strings, goods
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser, ExporterNotification
 from users.serializers import ExporterUserSimpleSerializer
@@ -61,6 +62,7 @@ class GoodListSerializer(serializers.ModelSerializer):
             "status",
             "documents",
             "query",
+            "missing_document_reason",
         )
 
 
@@ -83,6 +85,12 @@ class GoodSerializer(serializers.ModelSerializer):
     query = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
+    missing_document_reason = serializers.ChoiceField(
+        choices=GoodMissingDocumentReasons.choices,
+        allow_blank=True,
+        required=False,
+        error_messages={"invalid_choice": goods.Good.INVALID_MISSING_DOCUMENT_REASON},
+    )
 
     class Meta:
         model = Good
@@ -100,6 +108,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "query",
             "documents",
             "case_status",
+            "missing_document_reason",
         )
 
     def __init__(self, *args, **kwargs):

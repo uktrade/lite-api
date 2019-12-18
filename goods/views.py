@@ -12,6 +12,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -26,7 +27,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api import strings
+from lite_content.lite_api import goods, strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -142,6 +143,33 @@ class GoodList(APIView):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
+class GoodDocumentCriteriaCheck(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def post(self, request, pk):
+        good = get_good(pk)
+        data = request.data
+        if data.get("has_document_to_upload"):
+            document_to_upload = str_to_bool(data["has_document_to_upload"])
+            if not document_to_upload:
+                good.missing_document_reason = data["missing_document_reason"]
+                serializer = GoodSerializer(instance=good, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    good_data = serializer.data
+                else:
+                    return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                good_data = GoodSerializer(good).data
+        else:
+            return JsonResponse(
+                data={"errors": {"has_document_to_upload": [goods.Good.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
+
+
 class GoodDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
@@ -246,6 +274,9 @@ class GoodDocuments(APIView):
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
+            # Delete missing document reason as a document has now been uploaded
+            good.missing_document_reason = None
+            good.save()
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)
