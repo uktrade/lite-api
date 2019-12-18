@@ -95,7 +95,6 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
 
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
-    # TODO: Rename to supporting_documentation when possible
     additional_documents = serializers.SerializerMethodField()
     goods_locations = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()

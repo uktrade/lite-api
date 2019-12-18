@@ -152,9 +152,12 @@ class NotificationViewSet(APIView):
         data = {}
         queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
 
+        # Iterate through the case types and build an 'OR' queryset
+        # to get notifications matching different case types
         case_types = request.GET.getlist("case_type")
         if case_types:
             queries = [Q(case__type=case_type) for case_type in case_types]
+            # Collapses the queries list into a usable filter
             queryset = queryset.filter(reduce(or_, queries))
 
         # Count the number of notifications for each type
@@ -172,18 +175,19 @@ class NotificationViewSet(APIView):
 
 class CaseNotification(APIView):
     authentication_classes = (GovAuthentication,)
+    queryset = GovNotification.objects.all()
 
     def get(self, request):
         user = request.user
         case = self.request.GET.get("case")
+        notification_data = None
 
-        try:
-            content_type = ContentType.objects.get_for_model(Audit)
-            notification = GovNotification.objects.get(user=user, content_type=content_type, case__id=case)
-        except GovNotification.DoesNotExist:
-            return JsonResponse(data={"notification": None}, status=status.HTTP_200_OK)
+        content_type = ContentType.objects.get_for_model(Audit)
+        queryset = GovNotification.objects.filter(user=user, content_type=content_type, case__id=case)
 
-        serializer = CaseNotificationGetSerializer(notification)
-        notification.delete()
+        if queryset.exists():
+            notification = queryset.first()
+            notification_data = CaseNotificationGetSerializer(notification).data
+            notification.delete()
 
-        return JsonResponse(data={"notification": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"notification": notification_data}, status=status.HTTP_200_OK)

@@ -3,6 +3,9 @@ from django.http import Http404
 
 from conf.exceptions import NotFoundError
 from goods.models import Good, GoodDocument
+from queries.control_list_classifications.models import ControlListClassificationQuery
+from users.libraries.notifications import get_exporter_user_notifications_total_count
+from users.models import ExporterUser
 
 
 def get_good(pk):
@@ -32,3 +35,18 @@ def get_good_with_organisation(pk, organisation):
         return good
     except Good.DoesNotExist:
         raise Http404
+
+
+def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser):
+    clc_query = ControlListClassificationQuery.objects.filter(good=good)
+
+    if clc_query:
+        clc_query = clc_query.first()
+        return {
+            "id": clc_query.id,
+            "exporter_user_notifications_count": get_exporter_user_notifications_total_count(
+                exporter_user=exporter_user, case=clc_query
+            ),
+        }
+
+    return {}
