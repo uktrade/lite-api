@@ -60,18 +60,18 @@ class ApplicationList(ListCreateAPIView):
                 applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
             users_sites = Site.objects.get_by_user_and_organisation(self.request.user, self.request.user.organisation)
-            allowed_applications = SiteOnApplication.objects.filter(site__id__in=users_sites).values_list("application", flat=True)
-            filtered_applications = BaseApplication.objects.filter(id__in=allowed_applications)
+            allowed_applications = SiteOnApplication.objects.filter(site__id__in=users_sites).values_list(
+                "application", flat=True
+            )
+            filtered_applications = BaseApplication.objects.filter(id__in=allowed_applications).exclude(
+                application_type=ApplicationType.HMRC_QUERY
+            )
             draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
-
-            print(filtered_applications)
 
             if submitted:
                 applications = filtered_applications.exclude(status=draft).order_by("-submitted_at")
             else:
                 applications = filtered_applications.filter(status=draft).order_by("-created")
-
-            applications = applications.exclude(application_type=ApplicationType.HMRC_QUERY)
 
         return applications
 
