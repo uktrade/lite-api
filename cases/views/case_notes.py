@@ -33,7 +33,7 @@ class CaseNoteList(APIView):
 
         if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
-                data={"errors": {"text": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
+                data={"errors": {"text": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
