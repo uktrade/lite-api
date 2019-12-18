@@ -265,5 +265,5 @@ class AssignFlags(APIView):
                 | Q(ultimate_end_users__in=[party])
                 | Q(third_parties__in=[party])
             )
-        if qs:
-            return qs.first().get_case()
+
+        return qs.first().get_case()
