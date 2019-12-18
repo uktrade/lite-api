@@ -103,7 +103,9 @@ class ApplicationGoodOnApplication(APIView):
             return JsonResponse(data={"errors": [strings.Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
-            return JsonResponse(data={"errors": strings.Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,)
+            return JsonResponse(
+                data={"errors": strings.Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
+            )
 
         if (
             good_on_application.good.status == GoodStatus.SUBMITTED
