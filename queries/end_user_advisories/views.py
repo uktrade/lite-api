@@ -83,14 +83,12 @@ class EndUserAdvisoryDetail(APIView):
                 assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
 
             new_status = data.get("status")
-            # Only attempt to change status if it differs from the original
-            if end_user_advisory.status.status != new_status:
-                if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
-                    return JsonResponse(
-                        data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
-                    )
+            if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-                request.data["status"] = get_case_status_by_status(data.get("status"))
+            request.data["status"] = get_case_status_by_status(data.get("status"))
 
             serializer = EndUserAdvisorySerializer(end_user_advisory, data=request.data, partial=True)
 
