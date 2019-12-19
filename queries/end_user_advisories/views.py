@@ -16,6 +16,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 
 
 class EndUserAdvisoriesList(APIView):
@@ -79,7 +80,13 @@ class EndUserAdvisoryDetail(APIView):
 
             # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
             if data.get("status") == CaseStatusEnum.FINALISED:
-                assert_user_has_permission(request.user, constants.Permission.MANAGE_FINAL_ADVICE)
+                assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+
+            new_status = data.get("status")
+            if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             request.data["status"] = get_case_status_by_status(data.get("status"))
 

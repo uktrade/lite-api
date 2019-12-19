@@ -1,14 +1,14 @@
 import uuid
 
 from django.urls import reverse
-from lite_content.lite_api.goods import GoodsOnApplication
 from parameterized import parameterized
 from rest_framework import status
-from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 
 from applications.models import GoodOnApplication
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from lite_content.lite_api import strings
+from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
@@ -191,7 +191,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["error"], GoodsOnApplication.DOCUMENT_ERROR)
+        self.assertEqual(response.json()["error"], strings.Goods.DOCUMENT_ERROR)
 
     def test_adding_good_with_reason_official_sensitive_success(self):
         good = self.create_controlled_good("A good", self.organisation)
