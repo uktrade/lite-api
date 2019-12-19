@@ -46,14 +46,6 @@ class ExporterUserNotificationTests(DataTestClient):
         self.create_generated_case_document(eua_query, template=self.create_letter_template())
         return eua_query
 
-    def _create_hmrc_query_with_notifications(self):
-        hmrc_query = self.create_hmrc_query(self.organisation)
-        self.create_case_note(hmrc_query, "This is a test note 1", self.gov_user, True)
-        self.create_case_note(hmrc_query, "This is a test note 2", self.gov_user, False)
-        self.create_ecju_query(hmrc_query, "This is an ecju query")
-        self.create_generated_case_document(hmrc_query, template=self.create_letter_template())
-        return hmrc_query
-
     @parameterized.expand(
         [
             [_create_application_with_notifications],
@@ -162,6 +154,16 @@ class ExporterUserNotificationTests(DataTestClient):
         for data in response_data["notifications"]:
             self.assertTrue(data["object_id"] in notification_object_ids)
 
+    def test_get_applications_with_notifications_success(self):
+        self._create_application_with_notifications()
+
+        response = self.client.get(reverse_lazy("applications:applications"), **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        application_response_data = response.json()["results"][0]
+        self.assertIn("exporter_user_notification_count", application_response_data)
+        self.assertEqual(application_response_data["exporter_user_notification_count"]["total"], 3)
+
     def test_get_application_with_notifications_success(self):
         case = self._create_application_with_notifications()
 
@@ -174,6 +176,16 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertIn("exporter_user_notification_count", response_data)
         self.assertEqual(len(response_data["exporter_user_notification_count"]), 3)
 
+    def test_get_goods_with_notifications_success(self):
+        self._create_clc_query_with_notifications()
+
+        response = self.client.get(reverse_lazy("goods:goods"), **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        good_response_data = response.json()["goods"][0]["query"]
+        self.assertIn("exporter_user_notification_count", good_response_data)
+        self.assertEqual(good_response_data["exporter_user_notification_count"]["total"], 3)
+
     def test_get_good_with_notifications_success(self):
         case = self._create_clc_query_with_notifications()
 
@@ -185,6 +197,18 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("exporter_user_notification_count", response_data["good"]["query"])
         self.assertEqual(len(response_data["good"]["query"]["exporter_user_notification_count"]), 3)
+
+    def test_get_end_user_advisory_queries_with_notifications_success(self):
+        self._create_end_user_advisory_query_with_notifications()
+
+        response = self.client.get(
+            reverse_lazy("queries:end_user_advisories:end_user_advisories"), **self.exporter_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        eua_query_response_data = response.json()["end_user_advisories"][0]
+        self.assertIn("exporter_user_notification_count", eua_query_response_data)
+        self.assertEqual(eua_query_response_data["exporter_user_notification_count"]["total"], 3)
 
     def test_get_end_user_advisory_query_with_notifications_success(self):
         case = self._create_end_user_advisory_query_with_notifications()
