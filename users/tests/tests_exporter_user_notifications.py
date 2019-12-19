@@ -17,6 +17,12 @@ class ExporterUserNotificationTests(DataTestClient):
         self.ecju_query_content_type = ContentType.objects.get_for_model(EcjuQuery)
         self.generated_case_doc_content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
 
+    def _create_all_case_types_with_notifications(self):
+        self._create_end_user_advisory_query_with_notifications()
+        self._create_hmrc_query_with_notifications()
+        self._create_application_with_notifications()
+        self._create_clc_query_with_notifications()
+
     def _create_clc_query_with_notifications(self):
         clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
         self.create_case_note(clc_query, "This is a test note 1", self.gov_user, True)
@@ -87,51 +93,55 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(case_ecju_query_notification_count, 1)
         self.assertEqual(case_generated_case_document_notification_count, 1)
 
-    def tests_get_notifications_for_user_success(self):
-        self._create_end_user_advisory_query_with_notifications()
-        self._create_hmrc_query_with_notifications()
-        self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
+    @parameterized.expand([[False], [True]])
+    def tests_get_notifications_for_user_with_and_without_count_only_param_success(self, count_only):
+        self._create_all_case_types_with_notifications()
 
-        response = self.client.get(reverse_lazy("users:notifications"), **self.exporter_headers)
+        response = self.client.get(
+            reverse_lazy("users:notifications") + f"?count_only={count_only}", **self.exporter_headers
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("notifications", response_data)
-        self.assertIn("notification_count", response_data)
-        self.assertEqual(len(response_data["notifications"]), 12)
+        self.assertEqual("notifications" in response_data and len(response_data["notifications"]) == 12, not count_only)
         self.assertEqual(response_data["notification_count"]["application"], 3)
         self.assertEqual(response_data["notification_count"]["end_user_advisory_query"], 3)
         self.assertEqual(response_data["notification_count"]["hmrc_query"], 3)
         self.assertEqual(response_data["notification_count"]["clc_query"], 3)
 
-    def tests_get_notifications_for_user_count_only_success(self):
-        self._create_end_user_advisory_query_with_notifications()
-        self._create_hmrc_query_with_notifications()
-        self._create_application_with_notifications()
-        self._create_clc_query_with_notifications()
+    @parameterized.expand([["application"], ["end_user_advisory_query"], ["hmrc_query"], ["clc_query"]])
+    def tests_get_notifications_for_user_individual_case_type_without_count_only_param_success(self, case_type):
+        self._create_all_case_types_with_notifications()
 
-        response = self.client.get(reverse_lazy("users:notifications") + "?count_only=True", **self.exporter_headers)
+        response = self.client.get(
+            reverse_lazy("users:notifications") + f"?case_type={case_type}", **self.exporter_headers
+        )
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data["notifications"]), 3)
+        self.assertEqual(response_data["notification_count"][case_type], 3)
+
+    @parameterized.expand([["application"], ["end_user_advisory_query"], ["hmrc_query"], ["clc_query"]])
+    def tests_get_notifications_for_user_individual_case_type_with_count_only_param_success(self, case_type):
+        self._create_all_case_types_with_notifications()
+
+        response = self.client.get(
+            reverse_lazy("users:notifications") + f"?count_only=True&case_type={case_type}", **self.exporter_headers
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn("notifications", response_data)
-        self.assertIn("notification_count", response_data)
-        self.assertEqual(response_data["notification_count"]["application"], 3)
-        self.assertEqual(response_data["notification_count"]["end_user_advisory_query"], 3)
-        self.assertEqual(response_data["notification_count"]["hmrc_query"], 3)
-        self.assertEqual(response_data["notification_count"]["clc_query"], 3)
+        self.assertEqual(response_data["notification_count"][case_type], 3)
 
     def tests_get_notifications_for_user_in_multiple_orgs_success(self):
         """
         Given an exporter user in multiple orgs
         When an API user gets notifications for the exporter user and one of their orgs
-        Then the notifications specific to that user and org combination are returned
+        Then only the notifications specific to that user and org combination are returned
         """
-        url = reverse_lazy("users:notifications")
-        application1 = self.create_standard_application_case(self.organisation)
-        self.create_case_note(application1, "This is a test note 1", self.gov_user, True)
-        self.create_case_note(application1, "This is a test note 2", self.gov_user, True)
+        application1 = self._create_application_with_notifications()
 
         org_2, _ = self.create_organisation_with_exporter_user("Org 2")
         self.add_exporter_user_to_org(org_2, self.exporter_user)
@@ -140,17 +150,17 @@ class ExporterUserNotificationTests(DataTestClient):
             "HTTP_ORGANISATION_ID": org_2.id,
         }
         application2 = self.create_standard_application_case(org_2)
-        case_note1 = self.create_case_note(application2, "This is a test note 3", self.gov_user, True)
-        case_note2 = self.create_case_note(application2, "This is a test note 4", self.gov_user, True)
-        case_notes = [str(case_note1.id), str(case_note2.id)]
+        case_note = self.create_case_note(application2, "This is a test note 3", self.gov_user, True)
+        ecju_query = self.create_ecju_query(application2, "This is an ecju query")
+        notification_object_ids = [str(case_note.id), str(ecju_query.id)]
 
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(reverse_lazy("users:notifications"), **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["notification_count"]["application"], 2)
         self.assertEqual(len(response_data["notifications"]), 2)
         # Check that the 2 notifications we got are the ones arising from notes on application 2, i.e. the application
         # created while org_2 is the currently selected org
         for data in response_data["notifications"]:
-            self.assertTrue(data["object_id"] in case_notes)
-        self.assertEqual(response_data["notification_count"]["application"], 2)
+            self.assertTrue(data["object_id"] in notification_object_ids)
