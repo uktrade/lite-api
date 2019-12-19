@@ -1,4 +1,3 @@
-from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -12,10 +11,11 @@ from applications.serializers.generic_application import (
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from organisations.models import Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
-from static.countries.serializers import CountrySerializer, CountryWithFlagsSerializer
+from static.countries.serializers import CountryWithFlagsSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
