@@ -1,15 +1,26 @@
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
+from parameterized import parameterized
 from rest_framework import status
 
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.models import CaseNote, EcjuQuery
 from users.models import ExporterNotification
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 
 
 class ExporterUserNotificationTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.case_note_content_type = ContentType.objects.get_for_model(CaseNote)
+        self.ecju_query_content_type = ContentType.objects.get_for_model(EcjuQuery)
+        self.generated_case_doc_content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
+
     def _create_clc_query_with_notifications(self):
         clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
         self.create_case_note(clc_query, "This is a test note 1", self.gov_user, True)
+        self.create_case_note(clc_query, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(clc_query, "This is an ecju query")
         self.create_generated_case_document(clc_query, template=self.create_letter_template())
         return clc_query
@@ -17,6 +28,7 @@ class ExporterUserNotificationTests(DataTestClient):
     def _create_application_with_notifications(self):
         application = self.create_standard_application_case(self.organisation)
         self.create_case_note(application, "This is a test note 1", self.gov_user, True)
+        self.create_case_note(application, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(application, "This is an ecju query")
         self.create_generated_case_document(application, template=self.create_letter_template())
         return application
@@ -24,6 +36,7 @@ class ExporterUserNotificationTests(DataTestClient):
     def _create_end_user_advisory_query_with_notifications(self):
         eua_query = self.create_end_user_advisory_case("note", "reasoning", self.organisation)
         self.create_case_note(eua_query, "This is a test note 1", self.gov_user, True)
+        self.create_case_note(eua_query, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(eua_query, "This is an ecju query")
         self.create_generated_case_document(eua_query, template=self.create_letter_template())
         return eua_query
@@ -31,53 +44,48 @@ class ExporterUserNotificationTests(DataTestClient):
     def _create_hmrc_query_with_notifications(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
         self.create_case_note(hmrc_query, "This is a test note 1", self.gov_user, True)
+        self.create_case_note(hmrc_query, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(hmrc_query, "This is an ecju query")
         self.create_generated_case_document(hmrc_query, template=self.create_letter_template())
         return hmrc_query
 
-    def tests_create_new_clc_query_notifications_success(self):
-        clc_query = self._create_clc_query_with_notifications()
-        self.create_case_note(clc_query, "This is a test note 4", self.gov_user, False)
+    @parameterized.expand(
+        [
+            [_create_application_with_notifications],
+            [_create_clc_query_with_notifications],
+            [_create_hmrc_query_with_notifications],
+            [_create_end_user_advisory_query_with_notifications],
+        ]
+    )
+    def tests_create_case_notifications_success(self, create_case_func):
+        case = create_case_func(self)
 
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, organisation=self.exporter_user.organisation, case=clc_query,
-            ).count(),
-            3,
-        )
+        case_notification_count = ExporterNotification.objects.filter(
+            user=self.exporter_user, organisation=self.exporter_user.organisation, case=case,
+        ).count()
+        case_case_note_notification_count = ExporterNotification.objects.filter(
+            user=self.exporter_user,
+            organisation=self.exporter_user.organisation,
+            content_type=self.case_note_content_type,
+            case=case,
+        ).count()
+        case_ecju_query_notification_count = ExporterNotification.objects.filter(
+            user=self.exporter_user,
+            organisation=self.exporter_user.organisation,
+            content_type=self.ecju_query_content_type,
+            case=case,
+        ).count()
+        case_generated_case_document_notification_count = ExporterNotification.objects.filter(
+            user=self.exporter_user,
+            organisation=self.exporter_user.organisation,
+            content_type=self.generated_case_doc_content_type,
+            case=case,
+        ).count()
 
-    def test_create_new_application_notifications_success(self):
-        application = self._create_application_with_notifications()
-        self.create_case_note(application, "This is a test note 2", self.gov_user, False)
-
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, organisation=self.exporter_user.organisation, case=application,
-            ).count(),
-            3,
-        )
-
-    def test_create_new_eua_query_notifications_success(self):
-        eua_query = self._create_end_user_advisory_query_with_notifications()
-        self.create_case_note(eua_query, "This is a test note 2", self.gov_user, False)
-
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, organisation=self.exporter_user.organisation, case=eua_query,
-            ).count(),
-            3,
-        )
-
-    def test_create_new_hmrc_query_notifications_success(self):
-        hmrc_query = self._create_hmrc_query_with_notifications()
-        self.create_case_note(hmrc_query, "This is a test note 2", self.gov_user, False)
-
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, organisation=self.exporter_user.organisation, case=hmrc_query,
-            ).count(),
-            3,
-        )
+        self.assertEqual(case_notification_count, 3)
+        self.assertEqual(case_case_note_notification_count, 1)
+        self.assertEqual(case_ecju_query_notification_count, 1)
+        self.assertEqual(case_generated_case_document_notification_count, 1)
 
     def tests_get_notifications_for_user_success(self):
         self._create_end_user_advisory_query_with_notifications()
@@ -90,12 +98,12 @@ class ExporterUserNotificationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("notifications", response_data)
-        self.assertIn("notifications_count", response_data)
+        self.assertIn("notification_count", response_data)
         self.assertEqual(len(response_data["notifications"]), 12)
-        self.assertEqual(response_data["notifications_count"]["application"], 3)
-        self.assertEqual(response_data["notifications_count"]["end_user_advisory_query"], 3)
-        self.assertEqual(response_data["notifications_count"]["hmrc_query"], 3)
-        self.assertEqual(response_data["notifications_count"]["clc_query"], 3)
+        self.assertEqual(response_data["notification_count"]["application"], 3)
+        self.assertEqual(response_data["notification_count"]["end_user_advisory_query"], 3)
+        self.assertEqual(response_data["notification_count"]["hmrc_query"], 3)
+        self.assertEqual(response_data["notification_count"]["clc_query"], 3)
 
     def tests_get_notifications_for_user_count_only_success(self):
         self._create_end_user_advisory_query_with_notifications()
@@ -108,11 +116,11 @@ class ExporterUserNotificationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn("notifications", response_data)
-        self.assertIn("notifications_count", response_data)
-        self.assertEqual(response_data["notifications_count"]["application"], 3)
-        self.assertEqual(response_data["notifications_count"]["end_user_advisory_query"], 3)
-        self.assertEqual(response_data["notifications_count"]["hmrc_query"], 3)
-        self.assertEqual(response_data["notifications_count"]["clc_query"], 3)
+        self.assertIn("notification_count", response_data)
+        self.assertEqual(response_data["notification_count"]["application"], 3)
+        self.assertEqual(response_data["notification_count"]["end_user_advisory_query"], 3)
+        self.assertEqual(response_data["notification_count"]["hmrc_query"], 3)
+        self.assertEqual(response_data["notification_count"]["clc_query"], 3)
 
     def tests_get_notifications_for_user_in_multiple_orgs_success(self):
         """
@@ -145,4 +153,4 @@ class ExporterUserNotificationTests(DataTestClient):
         # created while org_2 is the currently selected org
         for data in response_data["notifications"]:
             self.assertTrue(data["object_id"] in case_notes)
-        self.assertEqual(response_data["notifications_count"]["application"], 2)
+        self.assertEqual(response_data["notification_count"]["application"], 2)

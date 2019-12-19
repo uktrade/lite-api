@@ -28,8 +28,8 @@ def get_exporter_user_notification_individual_count(exporter_user: ExporterUser,
         )
 
         # Set the model name as the key and the count as the value E.G. {"casenote": 12, "ecjuquery": 3}
-        for content_type in queryset:
-            key = content_type["content_type__model"]
-            exporter_user_notification_individual_count[key] = content_type["count"]
+        exporter_user_notification_individual_count = {
+            content_type["content_type__model"]: content_type["count"] for content_type in queryset
+        }
 
     return exporter_user_notification_individual_count

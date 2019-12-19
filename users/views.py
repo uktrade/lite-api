@@ -162,7 +162,7 @@ class NotificationViewSet(APIView):
 
         # Count the number of notifications for each type
         count_queryset = queryset.values("case__type").annotate(total=Count("case__type"))
-        data["notifications_count"] = {
+        data["notification_count"] = {
             content_type["case__type"]: content_type["total"] for content_type in count_queryset
         }
 
