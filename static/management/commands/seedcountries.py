@@ -3,7 +3,7 @@ from django.db import transaction
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
-COUNTRIES_FILE = "lite_content/lite-api/countries.csv"
+COUNTRIES_FILE = "lite_content/lite_api/countries.csv"
 
 
 class Command(SeedCommand):
