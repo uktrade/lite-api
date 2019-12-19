@@ -3,7 +3,7 @@ from django.db import transaction
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
-LAYOUTS_FILE = "lite_content/lite-api/document_layouts.csv"
+LAYOUTS_FILE = "lite_content/lite_api/document_layouts.csv"
 
 
 class Command(SeedCommand):

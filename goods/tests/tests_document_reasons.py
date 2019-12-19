@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from lite_content.lite_api.goods import Good
+from lite_content.lite_api import strings
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from test_helpers.clients import DataTestClient
 
@@ -28,7 +28,7 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
         errors = response.json()["errors"]
         self.assertTrue("missing_document_reason" in errors)
-        self.assertEquals(errors["missing_document_reason"][0], Good.INVALID_MISSING_DOCUMENT_REASON)
+        self.assertEquals(errors["missing_document_reason"][0], strings.Goods.INVALID_MISSING_DOCUMENT_REASON)
 
     def test_missing_document_reason_valid_success(self):
         data = {
@@ -39,7 +39,7 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
 
         self.assertEquals(status.HTTP_200_OK, response.status_code)
         good = response.json()["good"]
-        self.assertEquals(good["missing_document_reason"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
+        self.assertEquals(good["missing_document_reason"]["key"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_uploading_document_clears_missing_document_reason(self, prepare_document_function):

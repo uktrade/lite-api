@@ -8,7 +8,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication
-from lite_content.lite_api.applications import CreateApplicationPage
+from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
@@ -103,4 +103,4 @@ class DraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["application_type"][0], CreateApplicationPage.SELECT_A_LICENCE_TYPE)
+        self.assertEqual(response.json()["errors"]["application_type"][0], strings.Applications.SELECT_A_LICENCE_TYPE)

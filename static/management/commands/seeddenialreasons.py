@@ -3,7 +3,7 @@ from django.db import transaction
 from static.denial_reasons.models import DenialReason
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
-DENIAL_REASONS_FILE = "lite_content/lite-api/denial_reasons.csv"
+DENIAL_REASONS_FILE = "lite_content/lite_api/denial_reasons.csv"
 
 
 class Command(SeedCommand):

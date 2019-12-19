@@ -30,7 +30,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
 )
-from lite_content.lite_api import goods, strings
+from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -50,7 +50,7 @@ class GoodsListControlCode(APIView):
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
-                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -172,7 +172,7 @@ class GoodDocumentCriteriaCheck(APIView):
                 good_data = GoodSerializer(good).data
         else:
             return JsonResponse(
-                data={"errors": {"has_document_to_upload": [goods.Good.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                data={"errors": {"has_document_to_upload": [strings.Goods.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
