@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from rest_framework import serializers
 
@@ -31,12 +30,11 @@ class SiteSerializer(serializers.ModelSerializer):
         address_data["country"] = address_data["country"].id
 
         address_serializer = AddressSerializer(data=address_data)
-        with reversion.create_revision():
-            if address_serializer.is_valid():
-                address = Address(**address_serializer.validated_data)
-                address.save()
-            else:
-                raise serializers.ValidationError(address_serializer.errors)
+        if address_serializer.is_valid():
+            address = Address(**address_serializer.validated_data)
+            address.save()
+        else:
+            raise serializers.ValidationError(address_serializer.errors)
 
         site = Site.objects.create(address=address, **validated_data)
         return site
@@ -130,18 +128,16 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         site_data["address"]["country"] = site_data["address"]["country"].id
 
         site_serializer = SiteSerializer(data=site_data)
-        with reversion.create_revision():
-            if site_serializer.is_valid():
-                site = site_serializer.save()
-            else:
-                raise serializers.ValidationError(site_serializer.errors)
+        if site_serializer.is_valid():
+            site = site_serializer.save()
+        else:
+            raise serializers.ValidationError(site_serializer.errors)
 
         user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
-        with reversion.create_revision():
-            if user_serializer.is_valid():
-                user_serializer.save()
-            else:
-                raise serializers.ValidationError(user_serializer.errors)
+        if user_serializer.is_valid():
+            user_serializer.save()
+        else:
+            raise serializers.ValidationError(user_serializer.errors)
 
         organisation.primary_site = site
         organisation.save()
@@ -167,7 +163,9 @@ class SiteViewSerializer(serializers.ModelSerializer):
                 )
             ]
         )
-        return ExporterUserSimpleSerializer(users.union(users_with_permission), many=True).data
+        users_union = users.union(users_with_permission)
+        users_union = sorted(users_union, key=lambda x: x.first_name)
+        return ExporterUserSimpleSerializer(users_union, many=True).data
 
     class Meta:
         model = Site
