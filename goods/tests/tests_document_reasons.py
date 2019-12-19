@@ -39,7 +39,7 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
 
         self.assertEquals(status.HTTP_200_OK, response.status_code)
         good = response.json()["good"]
-        self.assertEquals(good["missing_document_reason"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
+        self.assertEquals(good["missing_document_reason"]["key"], GoodMissingDocumentReasons.OFFICIAL_SENSITIVE)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_uploading_document_clears_missing_document_reason(self, prepare_document_function):
