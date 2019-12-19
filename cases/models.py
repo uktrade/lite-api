@@ -72,17 +72,16 @@ class CaseNote(models.Model):
     notifications = GenericRelation(ExporterNotification, related_query_name="case_note")
 
     def save(self, *args, **kwargs):
-        try:
-            ExporterUser.objects.get(id=self.user.id)
+        exporter_user = False
+        if isinstance(self.user, ExporterUser) or ExporterUser.objects.filter(id=self.user.id).exists():
             self.is_visible_to_exporter = True
-        except ExporterUser.DoesNotExist:
-            pass
-        creating = self._state.adding is True
+            exporter_user = True
+
+        send_notification = not exporter_user and self.is_visible_to_exporter and self._state.adding
         super(CaseNote, self).save(*args, **kwargs)
 
-        if creating and self.is_visible_to_exporter:
-            organisation = self.case.organisation
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
+        if send_notification:
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
                 user_relationship.send_notification(content_object=self, case=self.case)
 
 
