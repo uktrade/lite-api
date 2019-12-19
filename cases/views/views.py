@@ -438,4 +438,4 @@ class Destination(APIView):
         else:
             serializer = PartyWithFlagsSerializer(destination)
 
-        return JsonResponse(data={"destination": serializer.data})
+        return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)

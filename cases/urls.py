@@ -7,7 +7,7 @@ app_name = "cases"
 
 urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),
-    path("destinations/<str:pk>", views.Destination.as_view(), name="destination"),
+    path("destinations/<str:pk>/", views.Destination.as_view(), name="destination"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),
     path("<uuid:pk>/activity/", activity.Activity.as_view(), name="activity"),
