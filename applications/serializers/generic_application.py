@@ -24,8 +24,8 @@ from static.statuses.libraries.get_case_status import (
 )
 from static.statuses.models import CaseStatus
 from users.libraries.notifications import (
-    get_exporter_user_notifications_total_count,
-    get_exporter_user_notifications_individual_counts,
+    get_exporter_user_notification_total_count,
+    get_exporter_user_notification_individual_count,
 )
 
 
@@ -42,7 +42,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
-    exporter_user_notifications_count = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseApplication
@@ -57,7 +57,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "submitted_at",
             "status",
             "case",
-            "exporter_user_notifications_count",
+            "exporter_user_notification_count",
         )
 
     def get_export_type(self, instance):
@@ -81,13 +81,13 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         return instance.pk
 
     @abc.abstractmethod
-    def get_exporter_user_notifications_count(self, instance):
+    def get_exporter_user_notification_count(self, instance):
         """
         This is used for list views only.
         To get the count for each type of notification on an application,
         override this function in child classes
         """
-        return get_exporter_user_notifications_total_count(
+        return get_exporter_user_notification_total_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
 
@@ -99,11 +99,11 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
         model = BaseApplication
         fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations",)
 
-    def get_exporter_user_notifications_count(self, instance):
+    def get_exporter_user_notification_count(self, instance):
         """
         Overriding parent class
         """
-        return get_exporter_user_notifications_individual_counts(
+        return get_exporter_user_notification_individual_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
 

@@ -197,7 +197,7 @@ class ApplicationSubmission(APIView):
         data = {"application": {**serializer.data}}
 
         if not is_case_status_draft(previous_application_status.status):
-            # If the application is being submitted after being edited
+            # Only create the audit if the application was not previously in `Draft` status
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,

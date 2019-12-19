@@ -8,7 +8,7 @@ from users.models import GovNotification
 from test_helpers.clients import DataTestClient
 
 
-class NotificationTests(DataTestClient):
+class GovUserNotificationTests(DataTestClient):
     def tests_edit_application_creates_new_case_notification_success(self):
         case = self.create_standard_application_case(self.organisation, "Case")
         content_type = ContentType.objects.get_for_model(Audit)
@@ -50,7 +50,6 @@ class NotificationTests(DataTestClient):
 
         response = self.client.put(url, data, **self.exporter_headers)
         case.refresh_from_db()
-        case.refresh_from_db()
 
         new_notification = GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case)
 
@@ -59,7 +58,7 @@ class NotificationTests(DataTestClient):
         self.assertEqual(data["name"], new_notification.last().content_object.payload["new_name"])
         self.assertNotEqual(new_notification.last().content_object, audit)
 
-    def tests_get_case_notification_deletes_case_notification_and_returns_data(self):
+    def tests_get_case_notification_deletes_case_notification_and_returns_data_success(self):
         case = self.create_standard_application_case(self.organisation, "Case")
         content_type = ContentType.objects.get_for_model(Audit)
 
@@ -83,7 +82,7 @@ class NotificationTests(DataTestClient):
             GovNotification.objects.filter(user=self.gov_user, content_type=content_type, case=case).count(), 0,
         )
 
-    def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
+    def tests_edit_application_as_gov_user_does_not_create_a_case_notification_success(self):
         case = self.create_standard_application_case(self.organisation, "Case")
         content_type = ContentType.objects.get_for_model(Audit)
         prev_notification_count = GovNotification.objects.filter(

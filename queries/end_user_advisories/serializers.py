@@ -13,8 +13,8 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 from users.libraries.notifications import (
-    get_exporter_user_notifications_individual_counts,
-    get_exporter_user_notifications_total_count,
+    get_exporter_user_notification_individual_count,
+    get_exporter_user_notification_total_count,
 )
 
 
@@ -28,7 +28,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     contact_email = serializers.EmailField()
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
     status = serializers.SerializerMethodField()
-    exporter_user_notifications_count = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -45,7 +45,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             "contact_job_title",
             "contact_telephone",
             "status",
-            "exporter_user_notifications_count",
+            "exporter_user_notification_count",
         )
 
     standard_blank_error_message = "This field may not be blank"
@@ -96,13 +96,13 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
         return end_user_advisory_query
 
     @abc.abstractmethod
-    def get_exporter_user_notifications_count(self, instance):
+    def get_exporter_user_notification_count(self, instance):
         """
         This is used for list views only.
         To get the count for each type of notification on an end user advisory query,
         override this function in child classes
         """
-        return get_exporter_user_notifications_total_count(
+        return get_exporter_user_notification_total_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )
 
@@ -112,10 +112,10 @@ class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
         model = EndUserAdvisoryQuery
         fields = EndUserAdvisoryListSerializer.Meta.fields
 
-    def get_exporter_user_notifications_count(self, instance):
+    def get_exporter_user_notification_count(self, instance):
         """
         Overriding parent class
         """
-        return get_exporter_user_notifications_individual_counts(
+        return get_exporter_user_notification_individual_count(
             exporter_user=self.context.get("exporter_user"), case=instance
         )

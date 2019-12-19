@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from rest_framework import status
 
@@ -7,7 +6,7 @@ from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 
 
-class NotificationTests(DataTestClient):
+class ExporterUserNotificationTests(DataTestClient):
     def _create_clc_query_with_notifications(self):
         clc_query = self.create_clc_query(description="this is a clc query", organisation=self.organisation)
         self.create_case_note(clc_query, "This is a test note 1", self.gov_user, True)

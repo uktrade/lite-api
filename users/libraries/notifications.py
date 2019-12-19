@@ -4,18 +4,20 @@ from users.models import ExporterNotification, ExporterUser
 from cases.models import Case
 
 
-def get_exporter_user_notifications_total_count(exporter_user: ExporterUser, case: Case) -> {}:
+def get_exporter_user_notification_total_count(exporter_user: ExporterUser, case: Case) -> dict:
+    exporter_user_notification_total_count = {}
+
     if exporter_user:
-        return {
-            "total": ExporterNotification.objects.filter(
-                user=exporter_user, organisation=exporter_user.organisation, case=case
-            ).count()
-        }
+        exporter_user_notification_total_count["total"] = ExporterNotification.objects.filter(
+            user=exporter_user, organisation=exporter_user.organisation, case=case
+        ).count()
 
-    return {"total": 0}
+    return exporter_user_notification_total_count
 
 
-def get_exporter_user_notifications_individual_counts(exporter_user: ExporterUser, case: Case) -> {}:
+def get_exporter_user_notification_individual_count(exporter_user: ExporterUser, case: Case) -> dict:
+    exporter_user_notification_individual_count = {}
+
     if exporter_user:
         # Group by content_type (casenote, ecjuquery, generatedcasedocument).
         # Get the total number of notifications for each type
@@ -25,7 +27,9 @@ def get_exporter_user_notifications_individual_counts(exporter_user: ExporterUse
             .annotate(count=Count("content_type__model"))
         )
 
-        # Set the model name as the key and the count as the value.
-        return {content_type["content_type__model"]: content_type["count"] for content_type in queryset}
+        # Set the model name as the key and the count as the value E.G. {"casenote": 12, "ecjuquery": 3}
+        for content_type in queryset:
+            key = content_type["content_type__model"]
+            exporter_user_notification_individual_count[key] = content_type["count"]
 
-    return {}
+    return exporter_user_notification_individual_count
