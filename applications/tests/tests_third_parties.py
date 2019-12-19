@@ -54,17 +54,17 @@ class ThirdPartiesOnDraft(DataTestClient):
             },
         ]
 
-        for third_party in parties:
+        for count, third_party in enumerate(parties, 1):
             self.client.post(self.url, third_party, **self.exporter_headers)
+            audit = Audit.objects.all().first()
 
-        self.assertEqual(self.draft.third_parties.count(), 2)
+            self.assertEqual(self.draft.third_parties.count(), count)
+            self.assertEqual(audit.payload, {"party_name": third_party["name"], "party_type": "third party"})
+            self.assertEqual(AuditType(audit.verb), AuditType.ADD_PARTY)
 
         audit_qs = Audit.objects.all()
-
         self.assertEqual(audit_qs.count(), len(parties))
-        for audit, party in zip(reversed(audit_qs), parties):
-            self.assertEqual(audit.payload, {"party_name": party["name"], "party_type": "third party"})
-            self.assertEqual(AuditType(audit.verb), AuditType.ADD_PARTY)
+
 
     def test_unsuccessful_add_third_party(self):
         """

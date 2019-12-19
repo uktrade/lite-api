@@ -39,17 +39,14 @@ class EditApplicationTests(DataTestClient):
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
         modified = application.modified
-
         response = self.client.put(url, self.data, **self.exporter_headers)
-
         application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(application.name, self.data["name"])
-        self.assertNotEqual(application.modified, modified)
-
         audit_qs = Audit.objects.all()
         audit_object = audit_qs.first()
 
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.name, self.data["name"])
+        self.assertNotEqual(application.modified, modified)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 

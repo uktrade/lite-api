@@ -43,39 +43,35 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
-        # The standard draft comes with one good pre-added, plus the good added in this test makes 2
-        self.assertEqual(len(response_data["goods"]), 2)
         audit_qs = Audit.objects.all()
         audit = audit_qs.first()
 
+        # The standard draft comes with one good pre-added, plus the good added in this test makes 2
+        self.assertEqual(len(response_data["goods"]), 2)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit.payload, {"good_name": good_name})
         self.assertEqual(AuditType(audit.verb), AuditType.ADD_GOOD_TO_APPLICATION)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         good_name = "A good"
-
         organisation_2, _ = self.create_organisation_with_exporter_user()
-
         good = self.create_controlled_good(good_name, organisation_2)
-
         self.create_good_document(
             good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
-
         data = {"good_id": good.id, "quantity": 1200, "unit": Units.KGM, "value": 50000}
-
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
-        # The good that came with the pre-created standard draft remains the only good on the draft
-        self.assertEqual(len(response_data["goods"]), 1)
-
         audit_qs = Audit.objects.all()
 
+        # The good that came with the pre-created standard draft remains the only good on the draft
+        self.assertEqual(len(response_data["goods"]), 1)
         self.assertEqual(audit_qs.count(), 0)
 
     @parameterized.expand(
@@ -126,12 +122,10 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         url = reverse("applications:application_goods", kwargs={"pk": draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
+        audit_qs = Audit.objects.all()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
-
-        audit_qs = Audit.objects.all()
-
         self.assertEqual(audit_qs.count(), 0)
 
     def test_add_a_good_to_a_submitted_application__failure(self):

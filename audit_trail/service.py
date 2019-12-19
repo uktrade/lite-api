@@ -1,9 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from rest_framework.exceptions import PermissionDenied
 
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
-from audit_trail.serializers import AuditSerializer
 from users.models import ExporterUser, GovUser
 
 
@@ -19,9 +19,9 @@ def create(actor, verb, action_object=None, target=None, payload=None):
 
 def get_obj_trail_qs(obj):
     """
-    Retrieve audit trail for an object as an action object or target.
-    :param obj:
-    :return:
+    Retrieve complete audit trail queryset for a Django model object.
+    :param obj: models.Model object
+    :return: QuerySet
     """
     audit_qs = Audit.objects.all()
 
@@ -33,15 +33,20 @@ def get_obj_trail_qs(obj):
     return audit_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
 
-def get_user_obj_trail(user, obj):
+def get_user_obj_trail_qs(user, obj):
+    """
+    Retrieve audit trail for a Django model object available for a particular user.
+    :param user: Union[GovUser, ExporterUser]
+    :param obj: models.Model
+    :return: QuerySet
+    """
+    if not isinstance(user, (ExporterUser, GovUser)):
+        raise PermissionDenied(f'Invalid user object: {type(user)}')
+
     audit_trail_qs = get_obj_trail_qs(obj)
 
     if isinstance(user, ExporterUser):
         # Show exporter audit only
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
-    elif not isinstance(user, GovUser):
-        audit_trail_qs = []
 
-    serializer = AuditSerializer(audit_trail_qs, many=True)
-
-    return serializer.data
+    return audit_trail_qs

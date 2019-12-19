@@ -88,9 +88,7 @@ class NotificationTests(DataTestClient):
         notification = response.json()["notification"]
 
         self.assertEqual(len(notification), 1)
-
         self.assertEqual(int(notification["audit_id"]), audit.id)
-
         self.assertEqual(Notification.objects.filter(user=self.gov_user, audit=audit).count(), 0)
 
     def tests_edit_application_as_gov_user_does_not_create_a_case_notification(self):
