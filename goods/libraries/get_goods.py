@@ -48,12 +48,13 @@ def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, t
         clc_query = clc_query.first()
         query["id"] = clc_query.id
 
-        exporter_user_notification_count = (
-            get_exporter_user_notification_total_count(exporter_user=exporter_user, case=clc_query)
-            if total_count
-            else get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=clc_query)
-        )
+        if exporter_user:
+            exporter_user_notification_count = (
+                get_exporter_user_notification_total_count(exporter_user=exporter_user, case=clc_query)
+                if total_count
+                else get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=clc_query)
+            )
 
-        query["exporter_user_notification_count"] = exporter_user_notification_count
+            query["exporter_user_notification_count"] = exporter_user_notification_count
 
     return query

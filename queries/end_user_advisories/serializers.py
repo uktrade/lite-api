@@ -16,6 +16,7 @@ from users.libraries.notifications import (
     get_exporter_user_notification_individual_count,
     get_exporter_user_notification_total_count,
 )
+from users.models import ExporterUser
 
 
 class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
@@ -29,6 +30,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
     status = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
+    standard_blank_error_message = "This field may not be blank"
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -48,7 +50,11 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             "exporter_user_notification_count",
         )
 
-    standard_blank_error_message = "This field may not be blank"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
 
     def get_status(self, instance):
         if instance.status:
@@ -102,9 +108,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
         To get the count for each type of notification on an end user advisory query,
         override this function in child classes
         """
-        return get_exporter_user_notification_total_count(
-            exporter_user=self.context.get("exporter_user"), case=instance
-        )
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
 
 
 class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
@@ -116,6 +120,4 @@ class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
         """
         Overriding parent class
         """
-        return get_exporter_user_notification_individual_count(
-            exporter_user=self.context.get("exporter_user"), case=instance
-        )
+        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)

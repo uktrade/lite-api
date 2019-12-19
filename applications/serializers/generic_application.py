@@ -27,6 +27,7 @@ from users.libraries.notifications import (
     get_exporter_user_notification_total_count,
     get_exporter_user_notification_individual_count,
 )
+from users.models import ExporterUser
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
@@ -60,6 +61,12 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "exporter_user_notification_count",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
+
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
         if hasattr(instance, "export_type"):
@@ -87,9 +94,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         To get the count for each type of notification on an application,
         override this function in child classes
         """
-        return get_exporter_user_notification_total_count(
-            exporter_user=self.context.get("exporter_user"), case=instance
-        )
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
 
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
@@ -103,9 +108,7 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
         """
         Overriding parent class
         """
-        return get_exporter_user_notification_individual_count(
-            exporter_user=self.context.get("exporter_user"), case=instance
-        )
+        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
 
     def get_goods_locations(self, application):
         sites = Site.objects.filter(sites_on_application__application=application)

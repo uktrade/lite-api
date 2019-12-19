@@ -16,7 +16,6 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer, EndUserAdvisoryViewSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import ExporterUser
 from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 
 
@@ -69,11 +68,8 @@ class EndUserAdvisoryDetail(APIView):
         """
         end_user_advisory = get_end_user_advisory_by_pk(pk)
         case_id = end_user_advisory.id
-        context = {}
-        if isinstance(request.user, ExporterUser):
-            context["exporter_user"] = request.user
 
-        serializer = EndUserAdvisoryViewSerializer(end_user_advisory, context=context)
+        serializer = EndUserAdvisoryViewSerializer(end_user_advisory, context={"exporter_user": request.user})
         return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
