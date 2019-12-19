@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="missing_document_reason",
             field=models.CharField(
                 choices=[
-                    ("NO_DOCUMENT", "No document available for the good"),
+                    ("NO_DOCUMENT", "No document available for the product"),
                     ("OFFICIAL_SENSITIVE", "Document is above official-sensitive"),
                     ("COMMERCIALLY_SENSITIVE", "Document is commercially sensitive"),
                 ],
