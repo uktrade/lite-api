@@ -40,6 +40,8 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from goodstype.helpers import get_goods_type
 from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
+from static.countries.models import Country
+from static.countries.serializers import CountryWithFlagsSerializer
 from users.models import ExporterUser
 
 
@@ -429,6 +431,11 @@ class GoodsCountriesDecisions(APIView):
 
 class Destination(APIView):
     def get(self, request, pk):
-        serializer = PartyWithFlagsSerializer(get_destination(pk))
+        destination = get_destination(pk)
+
+        if isinstance(destination, Country):
+            serializer = CountryWithFlagsSerializer(destination)
+        else:
+            serializer = PartyWithFlagsSerializer(destination)
 
         return JsonResponse(data={"destination": serializer.data})

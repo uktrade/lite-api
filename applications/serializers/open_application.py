@@ -15,7 +15,7 @@ from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.models import Site, ExternalLocation
 from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
-from static.countries.serializers import CountrySerializer
+from static.countries.serializers import CountrySerializer, CountryWithFlagsSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -44,7 +44,7 @@ class OpenApplicationViewSerializer(GenericApplicationListSerializer):
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
-        serializer = CountrySerializer(countries, many=True)
+        serializer = CountryWithFlagsSerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
     def get_goods_types(self, application):
