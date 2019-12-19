@@ -54,8 +54,6 @@ class CasesAuditTrail(DataTestClient):
 
         gov_audit_trail_qs = service.get_user_obj_trail_qs(user=self.gov_user, obj=self.draft)
         exp_audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.draft)
-        draft_audit_qs = service.get_obj_trail_qs(obj=self.draft)
 
         self.assertEqual(gov_audit_trail_qs.count(), 1)
         self.assertEqual(exp_audit_trail_qs.count(), 0)
-        self.assertEqual(draft_audit_qs.count(), 1)

@@ -17,22 +17,6 @@ def create(actor, verb, action_object=None, target=None, payload=None):
     )
 
 
-def get_obj_trail_qs(obj):
-    """
-    Retrieve complete audit trail queryset for a Django model object.
-    :param obj: models.Model object
-    :return: QuerySet
-    """
-    audit_qs = Audit.objects.all()
-
-    obj_as_action_filter = Q(
-        action_object_object_id=obj.id, action_object_content_type=ContentType.objects.get_for_model(obj)
-    )
-    obj_as_target_filter = Q(target_object_id=obj.id, target_content_type=ContentType.objects.get_for_model(obj))
-
-    return audit_qs.filter(obj_as_action_filter | obj_as_target_filter)
-
-
 def get_user_obj_trail_qs(user, obj):
     """
     Retrieve audit trail for a Django model object available for a particular user.
@@ -43,10 +27,17 @@ def get_user_obj_trail_qs(user, obj):
     if not isinstance(user, (ExporterUser, GovUser)):
         raise PermissionDenied(f'Invalid user object: {type(user)}')
 
-    audit_trail_qs = get_obj_trail_qs(obj)
+    audit_trail_qs = Audit.objects.all()
 
     if isinstance(user, ExporterUser):
-        # Show exporter audit only
+        # Show exporter-only audit trail.
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
+
+    obj_content_type = ContentType.objects.get_for_model(obj)
+
+    obj_as_action_filter = Q(action_object_object_id=obj.id, action_object_content_type=obj_content_type)
+    obj_as_target_filter = Q(target_object_id=obj.id, target_content_type=obj_content_type)
+
+    audit_trail_qs = audit_trail_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
     return audit_trail_qs
