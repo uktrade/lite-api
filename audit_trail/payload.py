@@ -12,9 +12,6 @@ class AuditType(Enum):
     GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} from good: {good_name}"
     DESTINATION_ADD_FLAGS = "added flags: {added_flags} to destination: {destination_name}"
     DESTINATION_REMOVE_FLAGS = "removed flags: {removed_flags} from destination: {destination_name}"
-    DESTINATION_ADD_REMOVE_FLAGS = (
-        "added flags: {added_flags}, and removed: {removed_flags} from destination: {destination_name}"
-    )
     ADD_GOOD_TO_APPLICATION = "added good: {good_name}"
     REMOVE_GOOD_FROM_APPLICATION = "removed good: {good_name}"
     ADD_GOOD_TYPE_TO_APPLICATION = "added good type: {good_type_name}"
