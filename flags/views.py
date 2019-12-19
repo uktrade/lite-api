@@ -179,7 +179,7 @@ class AssignFlags(APIView):
 
         if isinstance(obj, Country):
             cases = Case.objects.filter(
-                id__in=CountryOnApplication.objects.filter(country=obj).values_list("id", flat=True)
+                id__in=CountryOnApplication.objects.filter(country=obj.id).values_list("application", flat=True)
             )
 
             for case in cases:
