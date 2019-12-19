@@ -53,7 +53,7 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, context=request)
+        serializer = CaseDetailSerializer(case, context=request, team=request.user.team)
 
         return JsonResponse(data={"case": serializer.data})
 
@@ -64,7 +64,7 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+        serializer = CaseDetailSerializer(case, data=request.data, team=request.user.team, partial=True)
         if serializer.is_valid():
             service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()

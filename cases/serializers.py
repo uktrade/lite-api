@@ -135,19 +135,15 @@ class CaseDetailSerializer(CaseSerializer):
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
+    all_flags = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
-        fields = (
-            "id",
-            "type",
-            "flags",
-            "queues",
-            "queue_names",
-            "application",
-            "query",
-            "has_advice",
-        )
+        fields = ("id", "type", "flags", "queues", "queue_names", "application", "query", "has_advice", "all_flags")
+
+    def __init__(self, *args, **kwargs):
+        self.team = kwargs.pop("team", None)
+        super().__init__(*args, **kwargs)
 
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
@@ -185,6 +181,12 @@ class CaseDetailSerializer(CaseSerializer):
         except AttributeError:
             pass
         return has_advice
+
+    def get_all_flags(self, instance):
+        """
+        Gets flags for a case and returns in sorted order by team.
+        """
+        return get_ordered_flags(instance, self.team)
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
