@@ -35,31 +35,31 @@ def get_standard_application_destination_flags(application):
     return flags
 
 
-def get_destination_flags(instance):
+def get_destination_flags(case):
     flags = []
 
-    countries = CountryOnApplication.objects.filter(application=instance).select_related("country")
-    for country in countries:
-        flags += country.country.flags.all()
+    countries_on_application = CountryOnApplication.objects.filter(application=case).select_related("country")
+    for country_on_application in countries_on_application:
+        flags += country_on_application.country.flags.all()
 
-    application = get_application(instance.id)
+    application = get_application(case.id)
     if isinstance(application, StandardApplication):
         flags += get_standard_application_destination_flags(application)
 
     return flags
 
 
-def get_ordered_flags(instance: Case, team: Team):
-    case_flags = instance.flags.all()
-    org_flags = instance.organisation.flags.all()
+def get_ordered_flags(case: Case, team: Team):
+    case_flags = case.flags.all()
+    org_flags = case.organisation.flags.all()
     goods_flags = []
     destination_flags = []
 
-    if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
-        goods = GoodOnApplication.objects.filter(application=instance).select_related("good")
+    if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+        goods = GoodOnApplication.objects.filter(application=case).select_related("good")
         for good in goods:
             goods_flags += good.good.flags.all()
-        destination_flags = get_destination_flags(instance)
+        destination_flags = get_destination_flags(case)
 
     flag_data = (
         FlagSerializer(case_flags, many=True).data
