@@ -42,7 +42,7 @@ def get_good_with_organisation(pk, organisation):
 
 def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, total_count: bool) -> dict:
     query = {}
-    clc_query = ControlListClassificationQuery.objects.filter(good=good)
+    clc_query = ControlListClassificationQuery.objects.filter(good__id=good.id)
 
     if clc_query:
         clc_query = clc_query.first()
