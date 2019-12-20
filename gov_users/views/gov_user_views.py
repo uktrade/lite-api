@@ -178,17 +178,7 @@ class NotificationViewSet(APIView):
     authentication_classes = (GovAuthentication,)
     queryset = GovNotification.objects.all()
 
+    # TODO: LT-1180 endpoint
     def get(self, request):
-        user = request.user
-        case = self.request.GET.get("case")
-        notification_data = None
 
-        content_type = ContentType.objects.get_for_model(Audit)
-        queryset = GovNotification.objects.filter(user=user, content_type=content_type, case__id=case)
-
-        if queryset.exists():
-            notification = queryset.first()
-            notification_data = GovUserNotificationSerializer(notification).data
-            notification.delete()
-
-        return JsonResponse(data={"notification": notification_data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"notifications": []}, status=status.HTTP_200_OK)
