@@ -11,24 +11,21 @@ class CasesAuditTrail(DataTestClient):
     # TODO: test schema and creation
     def setUp(self):
         super().setUp()
-        self.draft = self.create_open_application(self.organisation)
+        self.case = self.create_standard_application_case(self.organisation)
 
     def test_audit_not_cascade_deleted(self):
         audit_qs = Audit.objects.all()
-        draft = self.create_open_application(self.organisation)
 
         self.assertEqual(audit_qs.count(), 0)
 
-        service.create(actor=self.exporter_user, verb=AuditType.ADD_FLAGS, target=draft)
+        service.create(actor=self.exporter_user, verb=AuditType.ADD_FLAGS, target=self.case)
 
         self.assertEqual(audit_qs.count(), 1)
-
-        draft.delete()
-
+        self.case.delete()
         self.assertEqual(audit_qs.count(), 1)
 
     def test_retrieve_audit_trail(self):
-        service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.draft)
+        service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)
 
         audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.draft)
 

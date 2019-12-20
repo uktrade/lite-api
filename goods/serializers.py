@@ -5,6 +5,7 @@ from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
+from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument
 from lite_content.lite_api import strings
 from organisations.models import Organisation
@@ -23,17 +24,7 @@ class GoodListSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     documents = serializers.SerializerMethodField()
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    query_id = serializers.SerializerMethodField()
-
-    def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
-
-    def get_query_id(self, instance):
-        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        if clc_query:
-            return clc_query.first().id
+    query = serializers.SerializerMethodField()
 
     class Meta:
         model = Good
@@ -45,8 +36,18 @@ class GoodListSerializer(serializers.ModelSerializer):
             "part_number",
             "status",
             "documents",
-            "query_id",
+            "query",
             "missing_document_reason",
+        )
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        if documents:
+            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+    def get_query(self, instance):
+        return get_good_query_with_notifications(
+            good=instance, exporter_user=self.context.get("exporter_user"), total_count=True
         )
 
 
@@ -65,7 +66,7 @@ class GoodSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
-    query_id = serializers.SerializerMethodField()
+    query = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     missing_document_reason = KeyValueChoiceField(
@@ -88,7 +89,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "organisation",
             "status",
             "not_sure_details_details",
-            "query_id",
+            "query",
             "documents",
             "case_status",
             "missing_document_reason",
@@ -110,10 +111,10 @@ class GoodSerializer(serializers.ModelSerializer):
         if clc_query:
             return clc_query.first().id
 
-    def get_query_id(self, instance):
-        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        if clc_query:
-            return clc_query.first().id
+    def get_query(self, instance):
+        return get_good_query_with_notifications(
+            good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+        )
 
     def get_case_status(self, instance):
         try:
@@ -201,7 +202,13 @@ class GoodDocumentViewSerializer(serializers.ModelSerializer):
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodDocument
-        fields = ("id", "name", "description", "size", "safe")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "size",
+            "safe",
+        )
 
 
 class GoodWithFlagsSerializer(GoodSerializer):

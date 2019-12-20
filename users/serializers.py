@@ -1,21 +1,23 @@
 from rest_framework import serializers
 
-from applications.models import BaseApplication
-from cases.enums import CaseTypeEnum
-from cases.models import Notification
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
-from conf.helpers import convert_pascal_case_to_snake_case
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from queries.helpers import get_exporter_query
-from queries.models import Query
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
+from users.models import (
+    ExporterUser,
+    BaseUser,
+    GovUser,
+    UserOrganisationRelationship,
+    Role,
+    ExporterNotification,
+    GovNotification,
+)
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
@@ -176,60 +178,30 @@ class CaseNotificationGetSerializer(serializers.ModelSerializer):
     audit_id = serializers.SerializerMethodField()
 
     class Meta:
-        model = Notification
+        model = GovNotification
         fields = ("audit_id",)
 
     def get_audit_id(self, obj):
-        return str(obj.audit.id)
+        return obj.object_id
 
 
-class NotificationSerializer(serializers.ModelSerializer):
-    object = serializers.SerializerMethodField()
-    object_type = serializers.SerializerMethodField()
-    parent = serializers.SerializerMethodField()
-    parent_type = serializers.SerializerMethodField()
+class ExporterNotificationSerializer(serializers.ModelSerializer):
+    content_type = serializers.SerializerMethodField()
+    case = serializers.SerializerMethodField()
 
     class Meta:
-        model = Notification
+        model = ExporterNotification
         fields = (
-            "object",
-            "object_type",
-            "parent",
-            "parent_type",
+            "object_id",
+            "content_type",
+            "case",
         )
 
-    def get_object(self, obj):
-        return obj.get_item().id
+    def get_content_type(self, obj):
+        return obj.content_type.model
 
-    def get_object_type(self, obj):
-        object_item = obj.get_item()
-
-        if isinstance(object_item, Query):
-            object_item = get_exporter_query(object_item)
-
-        return convert_pascal_case_to_snake_case(object_item.__class__.__name__)
-
-    def get_parent(self, obj):
-        if obj.query:
-            return None
-
-        parent = obj.get_case()
-        return parent.id if parent else None
-
-    def get_parent_type(self, obj):
-        if obj.query:
-            return None
-
-        parent = obj.get_case()
-        if not parent:
-            return None
-
-        if parent.type in [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
-            parent = get_exporter_query(parent)
-        elif parent.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
-            parent = BaseApplication.objects.get(pk=parent.id)
-
-        return convert_pascal_case_to_snake_case(parent.__class__.__name__)
+    def get_case(self, obj):
+        return {"id": obj.case.id, "type": obj.case.type}
 
 
 class ExporterUserSimpleSerializer(serializers.ModelSerializer):

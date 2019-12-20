@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -20,6 +22,8 @@ class Audit(TimestampableModel):
         <actor> <verb> <target> <time>
         <actor> <verb> <action_object> <target> <time>
     """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     actor_content_type = models.ForeignKey(
         ContentType, related_name="actor", on_delete=models.SET_NULL, db_index=True, null=True
