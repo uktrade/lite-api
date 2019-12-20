@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponse
-from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -9,9 +8,11 @@ from rest_framework.views import APIView
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
@@ -46,7 +47,7 @@ class GoodsListControlCode(APIView):
 
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
-                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -119,8 +120,8 @@ class GoodList(APIView):
         if control_rating:
             goods = goods.filter(control_code__icontains=control_rating)
 
-        serializer = GoodListSerializer(goods, many=True)
-        return JsonResponse(data={"goods": serializer.data})
+        serializer = GoodListSerializer(goods, many=True, context={"exporter_user": request.user})
+        return JsonResponse(data={"goods": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
         """
@@ -142,6 +143,33 @@ class GoodList(APIView):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
+class GoodDocumentCriteriaCheck(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def post(self, request, pk):
+        good = get_good(pk)
+        data = request.data
+        if data.get("has_document_to_upload"):
+            document_to_upload = str_to_bool(data["has_document_to_upload"])
+            if not document_to_upload:
+                good.missing_document_reason = data["missing_document_reason"]
+                serializer = GoodSerializer(instance=good, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    good_data = serializer.data
+                else:
+                    return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                good_data = GoodSerializer(good).data
+        else:
+            return JsonResponse(
+                data={"errors": {"has_document_to_upload": [strings.Goods.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
+
+
 class GoodDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
@@ -152,19 +180,16 @@ class GoodDetail(APIView):
             if good.organisation != request.user.organisation:
                 raise Http404
 
-            serializer = GoodSerializer(good)
+            serializer = GoodSerializer(good, context={"exporter_user": request.user})
 
             # If there's a query with this good, update the notifications on it
-
             query = ControlListClassificationQuery.objects.filter(good=good)
             if query:
-                query = query.first()
-                request.user.notification_set.filter(case_note__case=query).update(viewed_at=timezone.now())
-                request.user.notification_set.filter(query=query.id).update(viewed_at=timezone.now())
+                delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
         else:
             serializer = GoodWithFlagsSerializer(good)
 
-        return JsonResponse(data={"good": serializer.data})
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         good = get_good(pk)
@@ -249,6 +274,9 @@ class GoodDocuments(APIView):
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
+            # Delete missing document reason as a document has now been uploaded
+            good.missing_document_reason = None
+            good.save()
             return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)

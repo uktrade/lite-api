@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from queries.control_list_classifications.serializers import ControlListClassificationQuerySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.end_user_advisories.serializers import EndUserAdvisorySerializer
+from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer
 from queries.helpers import get_exporter_query
 from queries.models import Query
 
@@ -12,7 +12,7 @@ class QueryViewSerializer(serializers.ModelSerializer):
         instance = get_exporter_query(instance.id)
 
         if isinstance(instance, EndUserAdvisoryQuery):
-            return EndUserAdvisorySerializer(instance=instance).data
+            return EndUserAdvisoryListSerializer(instance=instance).data
         else:
             return ControlListClassificationQuerySerializer(instance=instance).data
 

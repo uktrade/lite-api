@@ -67,7 +67,7 @@ class ControlListClassificationDetail(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -109,7 +109,7 @@ class ControlListClassificationDetail(APIView):
 
                 # Send a notification to the user
                 for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
-                    user_relationship.user.send_notification(query=query)
+                    user_relationship.send_notification(content_object=query, case=query)
 
                 return JsonResponse(
                     data={"control_list_classification_query": clc_good_serializer.data}, status=status.HTTP_200_OK

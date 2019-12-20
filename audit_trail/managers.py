@@ -1,5 +1,6 @@
 from actstream.gfk import GFKQuerySet, GFKManager
 
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 from users.models import GovUser
 
@@ -18,11 +19,21 @@ class AuditManager(GFKManager):
         # TODO: decouple notifications and audit (signals?)
         from cases.models import Case
 
-        audit = super(AuditManager, self).create(*args, **kwargs)
+        target = kwargs.get("target")
 
-        if isinstance(kwargs.get("target"), Case) and isinstance(kwargs.get("actor"), ExporterUser):
-            # Notify gov users when exporter updates a case
-            for gov_user in GovUser.objects.all():
-                gov_user.send_notification(audit=audit)
+        if isinstance(target, Case):
+            # Only audit cases if they do not have status set to 'Draft'
+            if not is_case_status_draft(target.status.status):
+                audit = super(AuditManager, self).create(*args, **kwargs)
+                actor = kwargs.get("actor")
 
-        return audit
+                if isinstance(actor, ExporterUser):
+                    # Notify gov users when exporter updates a case
+                    for gov_user in GovUser.objects.all():
+                        gov_user.send_notification(content_object=audit, case=target)
+
+                return audit
+
+            return None
+
+        return super(AuditManager, self).create(*args, **kwargs)

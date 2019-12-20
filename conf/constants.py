@@ -10,6 +10,7 @@ class GovPermissions(Enum):
     ADMINISTER_ROLES = "Administer roles"
     CONFIRM_OWN_ADVICE = "Confirm own advice"
     CONFIGURE_TEMPLATES = "Create and edit templates"
+    REOPEN_CLOSED_CASES = "Can re-open closed cases"
 
 
 class ExporterPermissions(Enum):

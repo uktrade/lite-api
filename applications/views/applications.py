@@ -15,8 +15,8 @@ from applications.helpers import (
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
-    validate_status_can_be_set_by_exporter_user,
-    validate_status_can_be_set_by_gov_user,
+    can_status_can_be_set_by_exporter_user,
+    can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
@@ -24,7 +24,6 @@ from applications.serializers.generic_application import GenericApplicationListS
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
-from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -40,6 +39,9 @@ from users.models import ExporterUser
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
+
+    def get_serializer_context(self):
+        return {"exporter_user": self.request.user}
 
     def get_queryset(self):
         """
@@ -99,8 +101,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        serializer = serializer(application)
-        return JsonResponse(data=serializer.data)
+        serializer = serializer(application, context={"exporter_user": request.user})
+        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -194,8 +196,8 @@ class ApplicationSubmission(APIView):
 
         data = {"application": {**serializer.data}}
 
-        if previous_application_status:
-            # If the application is being submitted after being edited
+        if not is_case_status_draft(previous_application_status.status):
+            # Only create the audit if the previous application status was not `Draft`
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
@@ -214,24 +216,23 @@ class ApplicationManageStatus(APIView):
         application = get_application(pk)
 
         data = request.data
-        new_status_enum = data.get("status")
+        new_status = data.get("status")
 
         if isinstance(request.user, ExporterUser):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            validation_error = validate_status_can_be_set_by_exporter_user(application.status.status, new_status_enum)
+            if not can_status_can_be_set_by_exporter_user(application.status.status, new_status):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Exporter user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            validation_error = validate_status_can_be_set_by_gov_user(new_status_enum)
+            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, new_status):
+                return JsonResponse(
+                    data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-        if validation_error:
-            return JsonResponse(data={"errors": [validation_error]}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Only allow status change to FINALISED if user has MANAGE_FINAL_ADVICE permission
-        if new_status_enum == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
-
-        new_status = get_case_status_by_status(new_status_enum)
+        new_status = get_case_status_by_status(new_status)
         request.data["status"] = str(new_status.pk)
 
         serializer = get_application_update_serializer(application)

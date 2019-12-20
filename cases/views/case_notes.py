@@ -6,7 +6,7 @@ from audit_trail import service
 from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
 from cases.libraries.get_case_note import get_case_notes_from_case
-from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
 from lite_content.lite_api import strings
@@ -20,11 +20,13 @@ class CaseNoteList(APIView):
     def get(self, request, pk):
         """ Gets all case notes. """
         case = get_case(pk)
-        case_notes = get_case_notes_from_case(case, isinstance(request.user, ExporterUser))
+        if isinstance(request.user, ExporterUser):
+            case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=True)
+            delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
+        else:
+            case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=False)
+
         serializer = CaseNoteSerializer(case_notes, many=True)
-
-        mark_notifications_as_viewed(request.user, case_notes)
-
         return JsonResponse(data={"case_notes": serializer.data})
 
     def post(self, request, pk):
@@ -33,7 +35,7 @@ class CaseNoteList(APIView):
 
         if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
-                data={"errors": {"text": [strings.System.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
+                data={"errors": {"text": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

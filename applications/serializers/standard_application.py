@@ -1,18 +1,17 @@
-from lite_content.lite_api import strings
 from rest_framework import serializers
+
+from applications.serializers.document import ApplicationDocumentSerializer
+from lite_content.lite_api import strings
 from rest_framework.fields import CharField
 
 from applications.models import StandardApplication, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
-    GenericApplicationListSerializer,
+    GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
 from cases.enums import CaseTypeEnum
-from organisations.models import ExternalLocation, Site
-from organisations.serializers import ExternalLocationSerializer, SiteViewSerializer
 from parties.serializers import (
     EndUserSerializer,
     UltimateEndUserSerializer,
@@ -23,37 +22,30 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class StandardApplicationViewSerializer(GenericApplicationListSerializer):
+class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
-    goods_locations = serializers.SerializerMethodField()
-    # TODO: Rename to supporting_documentation when possible
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationViewSerializer.Meta.fields + (
             "end_user",
             "ultimate_end_users",
             "third_parties",
             "consignee",
             "goods",
-            "destinations",
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "goods_locations",
             "activity",
             "usage",
+            "destinations",
             "additional_documents",
         )
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
 
     def get_destinations(self, application):
         if application.end_user:
@@ -62,20 +54,9 @@ class StandardApplicationViewSerializer(GenericApplicationListSerializer):
         else:
             return {"type": "end_user", "data": ""}
 
-    def get_goods_locations(self, application):
-        sites = Site.objects.filter(sites_on_application__application=application)
-
-        if sites:
-            serializer = SiteViewSerializer(sites, many=True)
-            return {"type": "sites", "data": serializer.data}
-
-        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
-
-        if external_locations:
-            serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {"type": "external_locations", "data": serializer.data}
-
-        return {}
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
@@ -106,7 +87,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.ErrorMessages.REF_NAME},
+        error_messages={"blank": strings.Goods.REF_NAME},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
