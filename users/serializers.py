@@ -160,31 +160,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ExporterUserCreateSerializer(serializers.ModelSerializer):
-    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=True)
-    email = serializers.EmailField(
-        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
-    )
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
-    class Meta:
-        model = ExporterUser
-        fields = (
-            "id",
-            "email",
-            "first_name",
-            "last_name",
-            "organisation",
-        )
-
-    def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
-        UserOrganisationRelationship(user=exporter, organisation=organisation).save()
-        return exporter
-
-
 class ExporterNotificationSerializer(serializers.ModelSerializer):
     content_type = serializers.SerializerMethodField()
     case = serializers.SerializerMethodField()
