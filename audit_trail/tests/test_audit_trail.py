@@ -43,10 +43,7 @@ class CasesAuditTrail(DataTestClient):
     def test_exporter_cannot_retrieve_internal_audit_trail_for_draft(self):
         # Create an audit entry on draft
         service.create(
-            actor=self.gov_user,
-            verb=AuditType.CREATED_CASE_NOTE,
-            target=self.case,
-            payload={'case_note': 'note'}
+            actor=self.gov_user, verb=AuditType.CREATED_CASE_NOTE, target=self.case, payload={"case_note": "note"}
         )
 
         gov_audit_trail_qs = service.get_user_obj_trail_qs(user=self.gov_user, obj=self.case)

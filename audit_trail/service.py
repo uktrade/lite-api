@@ -25,7 +25,7 @@ def get_user_obj_trail_qs(user, obj):
     :return: QuerySet
     """
     if not isinstance(user, (ExporterUser, GovUser)):
-        raise PermissionDenied(f'Invalid user object: {type(user)}')
+        raise PermissionDenied(f"Invalid user object: {type(user)}")
 
     audit_trail_qs = Audit.objects.all()
 
