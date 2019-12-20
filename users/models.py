@@ -162,7 +162,7 @@ class GovUser(BaseUser):
                 GovNotification.objects.create(user=self, content_object=content_object, case=case)
 
     def has_permission(self, permission):
-        user_permissions = user.role.permissions.values_list("id", flat=True)
+        user_permissions = self.role.permissions.values_list("id", flat=True)
         return permission.name in user_permissions
 
 

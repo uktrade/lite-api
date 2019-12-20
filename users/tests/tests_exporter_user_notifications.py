@@ -155,6 +155,7 @@ class ExporterUserNotificationTests(DataTestClient):
             self.assertTrue(data["object_id"] in notification_object_ids)
 
     def test_get_applications_with_notifications_success(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self._create_application_with_notifications()
 
         response = self.client.get(reverse_lazy("applications:applications"), **self.exporter_headers)
