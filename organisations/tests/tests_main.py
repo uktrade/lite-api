@@ -10,6 +10,7 @@ from users.models import UserOrganisationRelationship
 
 
 class OrganisationCreateTests(DataTestClient):
+
     url = reverse("organisations:organisations")
 
     def test_create_organisation_with_first_user(self):
@@ -182,7 +183,7 @@ class OrganisationCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        organisation = Organisation.objects.get(id=response.json()["organisation"]["id"])
+        organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 

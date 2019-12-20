@@ -1,4 +1,3 @@
-import json
 import operator
 from functools import reduce
 
@@ -39,25 +38,16 @@ class OrganisationsList(generics.ListCreateAPIView):
         """
         Create a new organisation
         """
-        data = json.loads(request.body)
-
-        if data.get("type") == "individual":
-            try:
-                data["name"] = data["user"]["first_name"] + " " + data["user"]["last_name"]
-            except (AttributeError, KeyError):
-                pass
-
-        serializer = OrganisationCreateSerializer(data=data)
+        serializer = OrganisationCreateSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrganisationsDetail(generics.RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
-
     queryset = Organisation.objects.all()
     serializer_class = OrganisationDetailSerializer

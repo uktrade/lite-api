@@ -73,6 +73,19 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Site.objects.count(), number_of_initial_sites)
 
+    def test_view_site(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        url = reverse(
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site_id}
+        )
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()["site"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["name"], self.organisation.primary_site.name)
+        self.assertEqual(len(response_data["users"]), 1)
+
     def test_cannot_edit_site_without_permission(self):
         url = reverse(
             "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site_id}
@@ -84,11 +97,3 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotEqual(self.organisation.primary_site.name, payload_name)
-
-    def test_cannot_see_sites_without_permission(self):
-        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
-
-        response = self.client.get(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertNotIn("sites", response.json())
