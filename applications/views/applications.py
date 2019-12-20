@@ -61,7 +61,9 @@ class ApplicationList(ListCreateAPIView):
             else:
                 applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
-            if submitted:
+            if submitted is None:
+                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
+            elif submitted:
                 applications = BaseApplication.objects.submitted(self.request.user.organisation)
             else:
                 applications = BaseApplication.objects.drafts(self.request.user.organisation)
