@@ -129,6 +129,10 @@ class ExporterUser(BaseUser):
         uor.role = role
         uor.save()
 
+    def has_permission(self, permission, organisation):
+        user_permissions = self.get_role(organisation).permissions.values_list("id", flat=True)
+        return permission.name in user_permissions
+
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
@@ -156,6 +160,10 @@ class GovUser(BaseUser):
                 notification.save()
             except GovNotification.DoesNotExist:
                 GovNotification.objects.create(user=self, content_object=content_object, case=case)
+
+    def has_permission(self, permission):
+        user_permissions = user.role.permissions.values_list("id", flat=True)
+        return permission.name in user_permissions
 
 
 class UserOrganisationRelationship(TimeStampedModel):

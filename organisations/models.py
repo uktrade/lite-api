@@ -47,7 +47,7 @@ class Organisation(models.Model):
 
 class SiteManager(models.Manager):
     def get_by_organisation(self, organisation):
-        return self.filter(organisation=organisation).all()
+        return self.filter(organisation=organisation)
 
     def get_by_user_and_organisation(self, exporter_user, organisation):
         exporter_user_relationship = get_user_organisation_relationship(exporter_user, organisation)
@@ -55,10 +55,7 @@ class SiteManager(models.Manager):
 
     def get_by_user_organisation_relationship(self, exporter_user_organisation_relationship):
         # Users with Administer Sites permission have access to all sites
-        from conf.permissions import has_permission
-
-        if has_permission(
-            exporter_user_organisation_relationship.user,
+        if exporter_user_organisation_relationship.user.has_permission(
             ExporterPermissions.ADMINISTER_SITES,
             exporter_user_organisation_relationship.organisation,
         ):

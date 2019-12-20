@@ -201,14 +201,14 @@ class AssignSites(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     def put(self, request, *args, **kwargs):
+        # Ensure that the request user isn't the same as the user being acted upon
+        if str(request.user.id) == str(kwargs["pk"]):
+            raise PermissionDenied()
+
         sites = request.data.get("sites", [])
         organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
         request_user_relationship = get_user_organisation_relationship(request.user, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
-
-        # Ensure that the request user isn't the same as the user being acted upon
-        if str(request.user.id) == str(kwargs["pk"]):
-            raise PermissionDenied()
 
         # Get a list of all the sites that the request user has access to!
         request_user_sites = list(Site.objects.get_by_user_organisation_relationship(request_user_relationship))
@@ -216,15 +216,15 @@ class AssignSites(UpdateAPIView):
         diff_sites = [x for x in user_sites if x not in request_user_sites]
         combined_sites = diff_sites + sites
 
+        # If (after the PUT) the user isn't assigned to any sites, raise an error
+        if not combined_sites:
+            raise serializers.ValidationError({"errors": {"sites": ["Select at least one site to assign the user to"]}})
+
         # Ensure user has access to the sites they're trying to assign the user to
         for site in sites:
             site = get_site(site, organisation)
             if site not in request_user_sites:
                 raise NotFoundError("You don't have access to the sites you're trying to assign the user to.")
-
-        # If (after the PUT) the user isn't assigned to any sites, raise an error
-        if not combined_sites:
-            raise serializers.ValidationError({"errors": {"sites": ["Select at least one site to assign the user to"]}})
 
         user_organisation_relationship.sites.set(combined_sites)
 
