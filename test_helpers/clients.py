@@ -21,13 +21,7 @@ from applications.models import (
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import (
-    CaseNote,
-    Case,
-    CaseDocument,
-    CaseAssignment,
-    GoodCountryDecision,
-)
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
@@ -36,17 +30,20 @@ from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartySubType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
+from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
 from static.management.commands.seedall import SEED_COMMANDS
 from static.statuses.enums import CaseStatusEnum
@@ -649,3 +646,22 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         generated_case_doc.save()
         return generated_case_doc
+
+    def create_letter_template(self, name=None, case_type=CaseTypeEnum.APPLICATION):
+        if not name:
+            name = str(uuid.uuid4())[0:35]
+
+        picklist_item = self.create_picklist_item("#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE)
+        letter_layout = LetterLayout.objects.first()
+
+        letter_template = LetterTemplate.objects.create(name=name, layout=letter_layout)
+        letter_template.case_types.add(case_type)
+        letter_template.letter_paragraphs.add(picklist_item)
+        letter_template.save()
+
+        return letter_template
+
+    def create_ecju_query(self, case, question="ECJU question"):
+        ecju_query = EcjuQuery(case=case, question=question, raised_by_user=self.gov_user)
+        ecju_query.save()
+        return ecju_query
