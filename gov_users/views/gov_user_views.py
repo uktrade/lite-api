@@ -7,12 +7,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from audit_trail.models import Audit
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, GovNotification
