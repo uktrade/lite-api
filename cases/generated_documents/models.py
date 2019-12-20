@@ -14,7 +14,7 @@ class GeneratedCaseDocument(CaseDocument):
     notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
 
     def save(self, *args, **kwargs):
-        creating = self._state.adding is True
+        creating = self._state.adding
         super(GeneratedCaseDocument, self).save(*args, **kwargs)
 
         if creating:
