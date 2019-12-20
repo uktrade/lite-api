@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.test import tag
 from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
@@ -154,11 +155,16 @@ class ExporterUserNotificationTests(DataTestClient):
         for data in response_data["notifications"]:
             self.assertTrue(data["object_id"] in notification_object_ids)
 
+    @tag("only")
     def test_get_applications_with_notifications_success(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self._create_application_with_notifications()
 
         response = self.client.get(reverse_lazy("applications:applications"), **self.exporter_headers)
+
+        print('\n')
+        print(response.json())
+        print('\n')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         application_response_data = response.json()["results"][0]
