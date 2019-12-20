@@ -6,8 +6,6 @@ orbs:
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.7
       - image: circleci/postgres:11
 
@@ -44,13 +42,13 @@ jobs:
             fi
             exit $VULNERABILITY_COUNT
 
-
       - run:
           name: Set Environment File
           command: cp local.env .env
 
       # Download and cache dependencies
-      - restore_cache:  # ensure this step occurs *before* installing dependencies
+      # ensure this step occurs *before* installing dependencies
+      - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
@@ -66,29 +64,22 @@ jobs:
           name: Check migrations are made
           command: pipenv run ./manage.py makemigrations --check
 
-      # Linting: dodgy, mccabe, pep8, profile-validator, pyflakes, pylint
       - run:
-          name: Run Linting
+          name: Run linting
           command: pipenv run prospector
 
       - run:
-          name: check code formatting
+          name: Check code formatting
           command: pipenv run black . --check --diff
 
-      # Tests
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
-          name: Run Unit Tests
+          name: Run tests
           command: pipenv run ./manage.py test --parallel
       - store_test_results:
           path: test-results
 
-      # Code Coverage
       - run:
-          name: Run Code Coverage
+          name: Run code coverage
           command: pipenv run ./manage.py coverage --threshold=80 --html=False
 
       - run:
