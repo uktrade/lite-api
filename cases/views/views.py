@@ -12,7 +12,7 @@ from cases.helpers import create_grouped_advice
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
-from cases.libraries.mark_notifications_as_viewed import mark_notifications_as_viewed
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -55,7 +55,7 @@ class CaseDetail(APIView):
         case = get_case(pk)
         serializer = CaseDetailSerializer(case, context=request, team=request.user.team)
 
-        return JsonResponse(data={"case": serializer.data})
+        return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={400: 'Input error, "queues" should be an array with at least one existing queue'})
     @transaction.atomic
@@ -69,7 +69,7 @@ class CaseDetail(APIView):
             service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
 
-            return JsonResponse(data={"case": serializer.data})
+            return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -85,7 +85,7 @@ class CaseDocuments(APIView):
         case_documents = CaseDocument.objects.filter(case=case).order_by("-created_at")
         serializer = CaseDocumentViewSerializer(case_documents, many=True)
 
-        return JsonResponse({"documents": serializer.data})
+        return JsonResponse(data={"documents": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseDocumentCreateSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
@@ -113,10 +113,10 @@ class CaseDocuments(APIView):
                     payload={"file_name": document["name"]},
                 )
 
-            return JsonResponse({"documents": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"documents": serializer.data}, status=status.HTTP_201_CREATED)
 
         delete_documents_on_bad_request(data)
-        return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CaseDocumentDetail(APIView):
@@ -129,7 +129,7 @@ class CaseDocumentDetail(APIView):
         case = get_case(pk)
         case_document = get_case_document(case, s3_key)
         serializer = CaseDocumentViewSerializer(case_document)
-        return JsonResponse({"document": serializer.data})
+        return JsonResponse(data={"document": serializer.data}, status=status.HTTP_200_OK)
 
 
 class CaseAdvice(APIView):
@@ -154,7 +154,7 @@ class CaseAdvice(APIView):
         Returns all advice for a case
         """
         serializer = self.serializer_object(self.advice, many=True)
-        return JsonResponse({"advice": serializer.data})
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -176,7 +176,7 @@ class ViewTeamAdvice(APIView):
         team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
 
         serializer = CaseTeamAdviceSerializer(team_advice, many=True)
-        return JsonResponse({"advice": serializer.data})
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class CaseTeamAdvice(APIView):
@@ -217,7 +217,7 @@ class CaseTeamAdvice(APIView):
         else:
             team_advice = self.team_advice
         serializer = self.serializer_object(team_advice, many=True)
-        return JsonResponse({"advice": serializer.data})
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseTeamAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -246,9 +246,8 @@ class CaseTeamAdvice(APIView):
 
         self.team_advice.filter(team=self.request.user.team).delete()
         case_advice_contains_refusal(pk)
-
         audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_TEAM_ADVICE, target=self.case)
-        return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
 class ViewFinalAdvice(APIView):
@@ -257,7 +256,7 @@ class ViewFinalAdvice(APIView):
         final_advice = FinalAdvice.objects.filter(case=case)
 
         serializer = CaseFinalAdviceSerializer(final_advice, many=True)
-        return JsonResponse({"advice": serializer.data})
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class CaseFinalAdvice(APIView):
@@ -293,7 +292,7 @@ class CaseFinalAdvice(APIView):
             final_advice = self.final_advice
 
         serializer = self.serializer_object(final_advice, many=True)
-        return JsonResponse({"advice": serializer.data})
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseFinalAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -309,11 +308,10 @@ class CaseFinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
         self.final_advice.delete()
-
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
         )
-        return JsonResponse({"status": "success"}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
 class CaseEcjuQueries(APIView):
@@ -328,12 +326,13 @@ class CaseEcjuQueries(APIView):
 
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
+            delete_exporter_notifications(
+                user=request.user, organisation=request.user.organisation, objects=case_ecju_queries
+            )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)
 
-        mark_notifications_as_viewed(request.user, case_ecju_queries)
-
-        return JsonResponse({"ecju_queries": serializer.data})
+        return JsonResponse(data={"ecju_queries": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
@@ -376,7 +375,7 @@ class EcjuQueryDetail(APIView):
         """
         ecju_query = get_ecju_query(ecju_pk)
         serializer = EcjuQueryExporterSerializer(ecju_query)
-        return JsonResponse(data={"ecju_query": serializer.data})
+        return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, ecju_pk):
         """
@@ -408,7 +407,7 @@ class GoodsCountriesDecisions(APIView):
         goods_countries = GoodCountryDecision.objects.filter(case=pk)
         serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
-        return JsonResponse(data={"data": serializer.data})
+        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
@@ -424,7 +423,7 @@ class GoodsCountriesDecisions(APIView):
                     decision=item["decision"],
                 ).save()
 
-            return JsonResponse(data={"data": data})
+            return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

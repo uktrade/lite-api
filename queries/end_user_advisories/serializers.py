@@ -1,3 +1,4 @@
+import abc
 from datetime import datetime, timezone
 
 from rest_framework import serializers
@@ -11,9 +12,14 @@ from parties.serializers import EndUserSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
+from users.libraries.notifications import (
+    get_exporter_user_notification_individual_count,
+    get_exporter_user_notification_total_count,
+)
+from users.models import ExporterUser
 
 
-class EndUserAdvisorySerializer(serializers.ModelSerializer):
+class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
@@ -23,6 +29,8 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
     contact_email = serializers.EmailField()
     copy_of = serializers.PrimaryKeyRelatedField(queryset=EndUserAdvisoryQuery.objects.all(), required=False)
     status = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+    standard_blank_error_message = "This field may not be blank"
 
     class Meta:
         model = EndUserAdvisoryQuery
@@ -39,9 +47,14 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
             "contact_job_title",
             "contact_telephone",
             "status",
+            "exporter_user_notification_count",
         )
 
-    standard_blank_error_message = "This field may not be blank"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
 
     def get_status(self, instance):
         if instance.status:
@@ -87,3 +100,24 @@ class EndUserAdvisorySerializer(serializers.ModelSerializer):
         end_user_advisory_query.save()
 
         return end_user_advisory_query
+
+    @abc.abstractmethod
+    def get_exporter_user_notification_count(self, instance):
+        """
+        This is used for list views only.
+        To get the count for each type of notification on an end user advisory query,
+        override this function in child classes
+        """
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+
+
+class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
+    class Meta:
+        model = EndUserAdvisoryQuery
+        fields = EndUserAdvisoryListSerializer.Meta.fields
+
+    def get_exporter_user_notification_count(self, instance):
+        """
+        Overriding parent class
+        """
+        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)

@@ -1,27 +1,29 @@
+from operator import or_
+from functools import reduce
 from uuid import UUID
 
+from django.db.models import Count, Q
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from cases.models import Case
-from cases.models import Notification
+from audit_trail.models import Audit
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification, GovNotification
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
-    NotificationSerializer,
+    ExporterNotificationSerializer,
     CaseNotificationGetSerializer,
 )
 
@@ -140,50 +142,52 @@ class UserMeDetail(APIView):
         return JsonResponse(data={"user": serializer.data})
 
 
-class NotificationViewSet(generics.ListAPIView):
-    model = Notification
-    serializer_class = NotificationSerializer
+class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
-    queryset = Notification.objects.all()
+    queryset = ExporterNotification.objects.all()
+    serializer_class = ExporterNotificationSerializer
 
-    def get_queryset(self):
-        organisation_id = self.request.META["HTTP_ORGANISATION_ID"]
+    def get(self, request):
+        data = {}
+        queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
 
-        # Get all notifications for the current user and organisation on License Application cases,
-        # both those arising from case notes and those arising from ECJU queries
-        queryset = Notification.objects.filter(user=self.request.user).filter(
-            Q(case_note__case__organisation_id=organisation_id)
-            | Q(ecju_query__case__organisation_id=organisation_id)
-            | Q(query__organisation__id=organisation_id)
-            | Q(generated_case_document__case__organisation__id=organisation_id)
-        )
+        # Iterate through the case types and build an 'OR' queryset
+        # to get notifications matching different case types
+        case_types = request.GET.getlist("case_type")
+        if case_types:
+            queries = [Q(case__type=case_type) for case_type in case_types]
+            # Collapses the queries list into a usable filter
+            queryset = queryset.filter(reduce(or_, queries))
 
-        if self.request.GET.get("unviewed"):
-            queryset = queryset.filter(viewed_at__isnull=True)
+        # Count the number of notifications for each type
+        count_queryset = queryset.values("case__type").annotate(total=Count("case__type"))
+        data["notification_count"] = {
+            content_type["case__type"]: content_type["total"] for content_type in count_queryset
+        }
 
-        return queryset
+        # Serialize notifications
+        if not str_to_bool(request.GET.get("count_only")):
+            data["notifications"] = ExporterNotificationSerializer(queryset, many=True).data
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
 
 class CaseNotification(APIView):
     authentication_classes = (GovAuthentication,)
+    queryset = GovNotification.objects.all()
 
     def get(self, request):
         user = request.user
         case = self.request.GET.get("case")
+        notification_data = None
 
-        case = Case.objects.get(id=case)
+        content_type = ContentType.objects.get_for_model(Audit)
+        queryset = GovNotification.objects.filter(user=user, content_type=content_type, case__id=case)
 
-        try:
-            notification = Notification.objects.get(
-                user=user,
-                audit__target_object_id=case.id,
-                audit__target_content_type=ContentType.objects.get_for_model(case),
-            )
-        except Notification.DoesNotExist:
-            return JsonResponse(data={"notification": None})
+        if queryset.exists():
+            notification = queryset.first()
+            notification_data = CaseNotificationGetSerializer(notification).data
+            notification.delete()
 
-        serializer = CaseNotificationGetSerializer(notification)
-        notification.delete()
-
-        return JsonResponse(data={"notification": serializer.data})
+        return JsonResponse(data={"notification": notification_data}, status=status.HTTP_200_OK)

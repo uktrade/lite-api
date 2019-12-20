@@ -1,11 +1,11 @@
 import uuid
 
 import reversion
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 from model_utils.models import TimeStampedModel
 
-from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.managers import CaseManager
 from documents.models import Document
@@ -17,7 +17,13 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.models import CaseStatus
 from teams.models import Team
-from users.models import BaseUser, ExporterUser, GovUser, UserOrganisationRelationship
+from users.models import (
+    BaseUser,
+    ExporterUser,
+    GovUser,
+    UserOrganisationRelationship,
+    ExporterNotification,
+)
 
 
 @reversion.register()
@@ -63,19 +69,20 @@ class CaseNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
+    notifications = GenericRelation(ExporterNotification, related_query_name="case_note")
+
     def save(self, *args, **kwargs):
-        try:
-            ExporterUser.objects.get(id=self.user.id)
+        exporter_user = False
+        if isinstance(self.user, ExporterUser) or ExporterUser.objects.filter(id=self.user.id).exists():
             self.is_visible_to_exporter = True
-        except ExporterUser.DoesNotExist:
-            pass
-        creating = self._state.adding is True
+            exporter_user = True
+
+        send_notification = not exporter_user and self.is_visible_to_exporter and self._state.adding
         super(CaseNote, self).save(*args, **kwargs)
 
-        if creating and self.is_visible_to_exporter:
-            organisation = self.case.organisation
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.user.send_notification(case_note=self)
+        if send_notification:
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
+                user_relationship.send_notification(content_object=self, case=self.case)
 
 
 class CaseAssignment(models.Model):
@@ -224,22 +231,22 @@ class EcjuQuery(models.Model):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
 
+    notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
+
     def save(self, *args, **kwargs):
         existing_instance_count = EcjuQuery.objects.filter(id=self.id).count()
 
         # Only create a notification when saving a ECJU query for the first time
         if existing_instance_count == 0:
             super(EcjuQuery, self).save(*args, **kwargs)
-            organisation = self.case.organisation
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=organisation):
-                user_relationship.user.send_notification(ecju_query=self)
+            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
+                user_relationship.send_notification(content_object=self, case=self.case)
         else:
             self.responded_at = timezone.now()
             super(EcjuQuery, self).save(*args, **kwargs)
 
 
 class GoodCountryDecision(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
@@ -250,28 +257,6 @@ class GoodCountryDecision(models.Model):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class Notification(models.Model):
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
-    case_note = models.ForeignKey(CaseNote, on_delete=models.CASCADE, null=True)
-    query = models.ForeignKey("queries.Query", on_delete=models.CASCADE, null=True)
-    ecju_query = models.ForeignKey(EcjuQuery, on_delete=models.CASCADE, null=True)
-    audit = models.ForeignKey(Audit, on_delete=models.CASCADE, null=True)
-    generated_case_document = models.ForeignKey(
-        "generated_documents.GeneratedCaseDocument", on_delete=models.CASCADE, null=True
-    )
-    viewed_at = models.DateTimeField(null=True)
-
-    def get_item(self):
-        return next(
-            item
-            for item in [self.case_note, self.query, self.ecju_query, self.generated_case_document]
-            if item is not None
-        )
-
-    def get_case(self):
-        return getattr(self.get_item(), "case", None)
 
 
 class CaseType(models.Model):

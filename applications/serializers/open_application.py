@@ -6,66 +6,46 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
-    GenericApplicationListSerializer,
+    GenericApplicationViewSerializer,
 )
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
-from organisations.models import Site, ExternalLocation
-from organisations.serializers import SiteViewSerializer, ExternalLocationSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class OpenApplicationViewSerializer(GenericApplicationListSerializer):
-    destinations = serializers.SerializerMethodField()
+class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
-    goods_locations = serializers.SerializerMethodField()
-    # TODO: Rename to supporting_documentation when possible
+    destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
-            "destinations",
-            "goods_types",
-            "goods_locations",
+        fields = GenericApplicationViewSerializer.Meta.fields + (
             "activity",
             "usage",
+            "goods_types",
+            "destinations",
             "additional_documents",
         )
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
-
-    def get_destinations(self, application):
-        countries = Country.objects.filter(countries_on_application__application=application)
-        serializer = CountryWithFlagsSerializer(countries, many=True)
-        return {"type": "countries", "data": serializer.data}
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(application=application)
         serializer = FullGoodsTypeSerializer(goods_types, many=True)
         return serializer.data
 
-    def get_goods_locations(self, application):
-        sites = Site.objects.filter(sites_on_application__application=application)
+    def get_destinations(self, application):
+        countries = Country.objects.filter(countries_on_application__application=application)
+        serializer = CountryWithFlagsSerializer(countries, many=True)
+        return {"type": "countries", "data": serializer.data}
 
-        if sites:
-            serializer = SiteViewSerializer(sites, many=True)
-            return {"type": "sites", "data": serializer.data}
-
-        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
-
-        if external_locations:
-            serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {"type": "external_locations", "data": serializer.data}
-
-        return {}
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
