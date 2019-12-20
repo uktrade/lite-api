@@ -196,6 +196,7 @@ class CaseNotification(APIView):
 
         return JsonResponse(data={"notification": notification_data}, status=status.HTTP_200_OK)
 
+
 class AssignSites(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
