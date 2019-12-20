@@ -1,11 +1,13 @@
 import itertools
 
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.models import (
     Case,
@@ -25,7 +27,7 @@ from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
-from gov_users.serializers import GovUserSimpleSerializer
+from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
@@ -33,7 +35,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamSerializer
-from users.models import BaseUser, GovUser, ExporterUser
+from users.models import BaseUser, GovUser, ExporterUser, GovNotification
 from users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
@@ -161,6 +163,7 @@ class CaseDetailSerializer(CaseSerializer):
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
+    audit_notification = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -173,6 +176,7 @@ class CaseDetailSerializer(CaseSerializer):
             "application",
             "query",
             "has_advice",
+            "audit_notification",
         )
 
     def get_application(self, instance):
@@ -211,6 +215,18 @@ class CaseDetailSerializer(CaseSerializer):
         except AttributeError:
             pass
         return has_advice
+
+    def get_audit_notification(self, instance):
+        content_type = ContentType.objects.get_for_model(Audit)
+        queryset = GovNotification.objects.filter(user=self.context.user, content_type=content_type, case=instance)
+
+        if queryset.exists():
+            notification = queryset.first()
+            notification_data = GovUserNotificationSerializer(notification).data
+            notification.delete()
+            return notification_data
+
+        return None
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

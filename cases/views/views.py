@@ -42,7 +42,7 @@ from users.models import ExporterUser
 
 
 class CaseDetail(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         """
