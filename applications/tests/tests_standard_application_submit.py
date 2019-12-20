@@ -28,7 +28,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
-        # 'Draft' applications should not create audit entries when submitted for the first time
+        # 'Draft' applications should not create audit entries when submitted
         self.assertEqual(Audit.objects.all().count(), 0)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
