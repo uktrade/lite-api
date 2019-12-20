@@ -20,6 +20,7 @@ from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.countries.models import Country
 
 
@@ -256,6 +257,9 @@ class AssignFlags(APIView):
         qs = StandardApplication.objects.filter(
             Q(consignee=party) | Q(end_user=party) | Q(ultimate_end_users__in=[party]) | Q(third_parties__in=[party])
         )
+        if not qs:
+            qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
+
         if not qs:
             qs = HmrcQuery.objects.filter(
                 Q(consignee=party)

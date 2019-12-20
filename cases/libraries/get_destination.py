@@ -6,6 +6,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.serializers import FlagSerializer
 from parties.models import Party
+from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.countries.models import Country
 from teams.models import Team
 
@@ -42,9 +43,13 @@ def get_destination_flags(case):
     for country_on_application in countries_on_application:
         flags += country_on_application.country.flags.all()
 
-    application = get_application(case.id)
-    if isinstance(application, StandardApplication):
-        flags += get_standard_application_destination_flags(application)
+    if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+        query = get_end_user_advisory_by_pk(case.id)
+        flags += query.end_user.flags.all()
+    else:
+        application = get_application(case.id)
+        if isinstance(application, StandardApplication):
+            flags += get_standard_application_destination_flags(application)
 
     return flags
 
@@ -55,7 +60,7 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = []
     destination_flags = []
 
-    if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+    if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
         goods = GoodOnApplication.objects.filter(application=case).select_related("good")
         for good in goods:
             goods_flags += good.good.flags.all()
