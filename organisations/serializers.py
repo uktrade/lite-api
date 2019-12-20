@@ -1,9 +1,9 @@
-import reversion
 from django.db import transaction
 from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
+from conf.constants import ExporterPermissions
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -11,8 +11,8 @@ from conf.serializers import (
 )
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import GovUser
-from users.serializers import ExporterUserCreateUpdateSerializer
+from users.models import GovUser, UserOrganisationRelationship, Permission
+from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
 class SiteSerializer(serializers.ModelSerializer):
@@ -30,12 +30,11 @@ class SiteSerializer(serializers.ModelSerializer):
         address_data["country"] = address_data["country"].id
 
         address_serializer = AddressSerializer(data=address_data)
-        with reversion.create_revision():
-            if address_serializer.is_valid():
-                address = Address(**address_serializer.validated_data)
-                address.save()
-            else:
-                raise serializers.ValidationError(address_serializer.errors)
+        if address_serializer.is_valid():
+            address = Address(**address_serializer.validated_data)
+            address.save()
+        else:
+            raise serializers.ValidationError(address_serializer.errors)
 
         site = Site.objects.create(address=address, **validated_data)
         return site
@@ -75,6 +74,12 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     registration_number = serializers.CharField(required=False)
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteSerializer(write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("data").get("user"):
+            kwargs["data"]["user"]["sites"] = kwargs["data"]["user"].get("sites", [])
+
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Organisation
@@ -123,18 +128,16 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         site_data["address"]["country"] = site_data["address"]["country"].id
 
         site_serializer = SiteSerializer(data=site_data)
-        with reversion.create_revision():
-            if site_serializer.is_valid():
-                site = site_serializer.save()
-            else:
-                raise serializers.ValidationError(site_serializer.errors)
+        if site_serializer.is_valid():
+            site = site_serializer.save()
+        else:
+            raise serializers.ValidationError(site_serializer.errors)
 
-        user_serializer = ExporterUserCreateUpdateSerializer(data=user_data)
-        with reversion.create_revision():
-            if user_serializer.is_valid():
-                user_serializer.save()
-            else:
-                raise serializers.ValidationError(user_serializer.errors)
+        user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
+        if user_serializer.is_valid():
+            user_serializer.save()
+        else:
+            raise serializers.ValidationError(user_serializer.errors)
 
         organisation.primary_site = site
         organisation.save()
@@ -147,10 +150,26 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
 class SiteViewSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    users = serializers.SerializerMethodField()
+
+    def get_users(self, instance):
+        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
+        permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
+        users_with_permission = set(
+            [
+                x.user
+                for x in UserOrganisationRelationship.objects.filter(
+                    organisation=instance.organisation, role__permissions__id=permission.id
+                )
+            ]
+        )
+        users_union = users.union(users_with_permission)
+        users_union = sorted(users_union, key=lambda x: x.first_name)
+        return ExporterUserSimpleSerializer(users_union, many=True).data
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address")
+        fields = ("id", "name", "address", "users")
 
 
 class TinyOrganisationViewSerializer(serializers.ModelSerializer):

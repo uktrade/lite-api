@@ -1,5 +1,4 @@
 import reversion
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status

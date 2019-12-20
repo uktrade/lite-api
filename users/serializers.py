@@ -5,10 +5,10 @@ from conf.exceptions import NotFoundError
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
-from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
+from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email, get_user_organisation_relationship
 from users.models import (
     ExporterUser,
     BaseUser,
@@ -37,6 +37,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisations = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
+    sites = serializers.SerializerMethodField()
 
     class Meta:
         model = ExporterUser
@@ -68,8 +69,16 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     def get_role(self, instance):
         if self.context:
-            role = UserOrganisationRelationship.objects.get(user=instance, organisation=self.context).role
+            role = get_user_organisation_relationship(instance, self.context).role
             return RoleSerializer(role).data
+        return None
+
+    def get_sites(self, instance):
+        from organisations.serializers import SiteViewSerializer
+
+        if self.context:
+            sites = Site.objects.get_by_user_and_organisation(instance, self.context)
+            return SiteViewSerializer(sites, many=True).data
         return None
 
 
@@ -90,15 +99,11 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
     role = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, required=False)
+    sites = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), write_only=True, many=True)
 
     class Meta:
         model = ExporterUser
-        fields = (
-            "id",
-            "email",
-            "role",
-            "organisation",
-        )
+        fields = ("id", "email", "role", "organisation", "sites")
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -127,16 +132,23 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
+        sites = validated_data.pop("sites")
         role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         if "role" in validated_data:
             role = validated_data.pop("role")
         exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
+
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
-            UserOrganisationRelationship(user=exporter, organisation=organisation, role=role).save()
+            relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
+            relationship.save()
+            relationship.sites.set(sites)
         else:
-            UserOrganisationRelationship(
+            relationship = UserOrganisationRelationship(
                 user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
-            ).save()
+            )
+            relationship.save()
+            relationship.sites.set(sites)
+
         return exporter
 
     def update(self, instance, validated_data):

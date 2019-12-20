@@ -70,6 +70,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": "Matt",
             "last_name": "Berninger",
             "email": "matt.berninger@americanmary.com",
+            "sites": [self.organisation.primary_site.id],
         }
 
         ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"]).save()
@@ -89,6 +90,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": exporter_user_2.first_name,
             "last_name": exporter_user_2.last_name,
             "email": exporter_user_2.email,
+            "sites": [self.organisation.primary_site.id],
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -105,6 +107,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": self.exporter_user.first_name,
             "last_name": self.exporter_user.last_name,
             "email": self.exporter_user.email,
+            "sites": [self.organisation.primary_site.id],
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

@@ -11,6 +11,7 @@ from applications.models import (
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
+from users.libraries.get_user import get_user_organisation_relationship
 
 
 class DraftTests(DataTestClient):
@@ -20,10 +21,10 @@ class DraftTests(DataTestClient):
         """
         Ensure we can get a list of drafts.
         """
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         standard_application = self.create_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
-
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -37,6 +38,35 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(response_data[0]["modified"])
         self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
+
+    def test_ensure_user_cannot_see_applications_they_dont_have_access_to(self):
+        """
+        Ensure that the exporter cannot see applications with sites that they don't have access to.
+        """
+        self.create_standard_application(self.organisation)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
+
+    def test_ensure_user_cannot_see_applications_they_only_have_partial_access_to_(self):
+        """
+        Ensure that the exporter cannot see applications with sites that they don't have access to AND
+        sites that they are assigned to.
+        """
+        relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
+        relationship.sites.set([self.organisation.primary_site])
+        site_2, _ = self.create_site("Site #2", self.organisation)
+        application = self.create_standard_application(self.organisation)
+        SiteOnApplication(site=site_2, application=application).save()
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 0)
 
     def test_cant_view_draft_hmrc_query_list_as_exporter_success(self):
         self.create_hmrc_query(organisation=self.organisation)

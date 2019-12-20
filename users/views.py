@@ -1,21 +1,25 @@
-from operator import or_
 from functools import reduce
+from operator import or_
 from uuid import UUID
 
 from django.db.models import Count, Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
-from rest_framework.exceptions import ParseError
-from rest_framework.parsers import JSONParser
+from rest_framework import status, serializers
+from rest_framework.exceptions import ParseError, PermissionDenied
+from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
+from conf.exceptions import NotFoundError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from users.libraries.get_user import get_user_by_pk
+from organisations.libraries.get_organisation import get_organisation_by_pk
+from organisations.libraries.get_site import get_site
+from organisations.models import Site
+from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, ExporterNotification
 from users.serializers import (
@@ -39,7 +43,7 @@ class AuthenticateExporterUser(APIView):
         Returns a token which is just our ID for the user
         """
         try:
-            data = JSONParser().parse(request)
+            data = request.data
         except ParseError:
             return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -101,7 +105,7 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         if request.user.id != pk:
-            assert_user_has_permission(user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
+            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
 
         serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
         return JsonResponse(data={"user": serializer.data})
@@ -112,7 +116,7 @@ class UserDetail(APIView):
         Update Exporter user
         """
         user = get_user_by_pk(pk)
-        data = JSONParser().parse(request)
+        data = request.data
         data["organisation"] = request.user.organisation.id
 
         serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
@@ -168,3 +172,37 @@ class NotificationViewSet(APIView):
             data["notifications"] = ExporterNotificationSerializer(queryset, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class AssignSites(UpdateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def put(self, request, *args, **kwargs):
+        # Ensure that the request user isn't the same as the user being acted upon
+        if str(request.user.id) == str(kwargs["pk"]):
+            raise PermissionDenied()
+
+        sites = request.data.get("sites", [])
+        organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
+        request_user_relationship = get_user_organisation_relationship(request.user, organisation)
+        user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
+
+        # Get a list of all the sites that the request user has access to!
+        request_user_sites = list(Site.objects.get_by_user_organisation_relationship(request_user_relationship))
+        user_sites = list(Site.objects.get_by_user_organisation_relationship(user_organisation_relationship))
+        diff_sites = [x for x in user_sites if x not in request_user_sites]
+        combined_sites = diff_sites + sites
+
+        # If (after the PUT) the user isn't assigned to any sites, raise an error
+        if not combined_sites:
+            raise serializers.ValidationError({"errors": {"sites": ["Select at least one site to assign the user to"]}})
+
+        # Ensure user has access to the sites they're trying to assign the user to
+        for site in sites:
+            site = get_site(site, organisation)
+            if site not in request_user_sites:
+                raise NotFoundError("You don't have access to the sites you're trying to assign the user to.")
+
+        user_organisation_relationship.sites.set(combined_sites)
+
+        return JsonResponse(data={"status": "success"})
