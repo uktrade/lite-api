@@ -18,3 +18,45 @@ class GoodControlled:
     UNSURE = "unsure"
 
     choices = [(YES, "Yes"), (NO, "No"), (UNSURE, "I don't know")]
+
+
+class GoodPVGraded:
+    YES = "yes"
+    NO = "no"
+    GRADING_REQUIRED = "grading_required"
+
+    choices = [(YES, "Yes"), (NO, "No"), (GRADING_REQUIRED, "Good needs to be graded")]
+
+
+class PVGrading:
+    OTHER = "other"
+    UK_UNCLASSIFIED = "uk_unclassified"
+    UK_OFFICIAL = "uk_official"
+    UK_OFFICIAL_SENSITIVE = "uk_official_sensitive"
+    UK_SECRET = "uk_secret"
+    UK_TOP_SECRET = "uk_top_secret"
+    NATO_UNCLASSIFIED = "nato_unclassified"
+    NATO_CONFIDENTIAL = "nato_confidential"
+    NATO_RESTRICTED = "nato_restricted"
+    NATO_SECRET = "nato_secret"
+    OCCAR_UNCLASSIFIED = "occar_unclassified"
+    OCCAR_CONFIDENTIAL = "occar_confidential"
+    OCCAR_RESTRICTED = "occar_restricted"
+    OCCAR_SECRET = "occar_secret"
+
+    choices = [
+        (OTHER, "Other"),
+        (UK_UNCLASSIFIED, "UK unclassified"),
+        (UK_OFFICIAL, "UK official"),
+        (UK_OFFICIAL_SENSITIVE, "UK official - sensitive"),
+        (UK_SECRET, "UK secret"),
+        (UK_TOP_SECRET, "UK top secret"),
+        (NATO_UNCLASSIFIED, "NATO unclassified"),
+        (NATO_CONFIDENTIAL, "NATO confidential"),
+        (NATO_RESTRICTED, "NATO restricted"),
+        (NATO_SECRET, "NATO secret"),
+        (OCCAR_UNCLASSIFIED, "OCCAR unclassified"),
+        (OCCAR_CONFIDENTIAL, "OCCAR confidential"),
+        (OCCAR_RESTRICTED, "OCCAR restricted"),
+        (OCCAR_SECRET, "OCCAR secret")
+    ]

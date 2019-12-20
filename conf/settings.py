@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "reversion",
     "static",
     "static.control_list_entries",
+    "static.private_venture_gradings",
     "static.countries",
     "static.denial_reasons",
     "static.letter_layouts",

@@ -5,7 +5,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus, GoodControlled, GoodPVGraded, PVGrading
 from goods.models import Good, GoodDocument
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
@@ -84,6 +84,15 @@ class GoodSerializer(serializers.ModelSerializer):
             "query_id",
             "documents",
             "case_status",
+            "holds_pv_grading",
+            "pv_grading",
+            "pv_grading_custom",
+            "pv_grading_prefix",
+            "pv_grading_suffix",
+            "pv_grading_issuing_authority",
+            "pv_grading_reference",
+            "pv_grading_date_of_issue",
+            "pv_grading_comment",
         )
 
     def __init__(self, *args, **kwargs):
@@ -95,6 +104,19 @@ class GoodSerializer(serializers.ModelSerializer):
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
+
+        if self.get_initial().get("holds_pv_grading") == GoodPVGraded.YES:
+            pass
+        else:
+            if hasattr(self, "initial_data"):
+                self.initial_data["pv_grading"] = None
+                self.initial_data["pv_grading_custom"] = None
+                self.initial_data["pv_grading_prefix"] = None
+                self.initial_data["pv_grading_suffix"] = None
+                self.initial_data["pv_grading_issuing_authority"] = None
+                self.initial_data["pv_grading_reference"] = None
+                self.initial_data["pv_grading_date_of_issue"] = None
+                self.initial_data["pv_grading_comment"] = None
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
@@ -126,6 +148,20 @@ class GoodSerializer(serializers.ModelSerializer):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
         if is_controlled_good and not value.get("control_code"):
             raise serializers.ValidationError("Control Code must be set when good is controlled")
+
+        good_holds_pv_grading = value.get("holds_pv_grading") == GoodPVGraded.YES
+        # TODO: figure out how to add custom 'error_messages' to these errors so that auto scrolling is enabled on frontend
+        if good_holds_pv_grading:
+            if not value.get("pv_grading"):
+                raise serializers.ValidationError("Enter a valid PV grading")
+            elif not value.get("pv_grading_issuing_authority"):
+                raise serializers.ValidationError("Enter a issuing authority")
+            elif not value.get("pv_grading_reference"):
+                raise serializers.ValidationError("Enter a reference")
+            elif not value.get("pv_grading_date_of_issue"):
+                raise serializers.ValidationError("Enter a date of issue")
+            elif value.get("pv_grading") == PVGrading.OTHER and not value.get("pv_grading_custom"):
+                raise serializers.ValidationError("Enter a custom PV grading")
 
         return value
 

@@ -35,7 +35,7 @@ class ControlListClassificationsList(APIView):
         good = get_good(data["good_id"])
         data["organisation"] = request.user.organisation
 
-        # A CLC Query can only be created if the good is in draft status
+        # A CLC/PV Query can only be created if the good is in draft status
         if good.status != GoodStatus.DRAFT:
             raise Http404
 

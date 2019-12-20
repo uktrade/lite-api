@@ -5,7 +5,7 @@ from django.db import models
 
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus, GoodControlled, PVGrading, GoodPVGraded
 from organisations.models import Organisation
 from users.models import ExporterUser
 
@@ -14,8 +14,24 @@ from users.models import ExporterUser
 class Good(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(max_length=280)
+
+    # CLC
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
     control_code = models.TextField(default="", blank=True, null=True)
+
+    # PV
+    holds_pv_grading = models.CharField(
+        choices=GoodPVGraded.choices, default=GoodPVGraded.GRADING_REQUIRED, max_length=20
+    )
+    pv_grading = models.CharField(choices=PVGrading.choices, default=None, blank=True, null=True, max_length=30)
+    pv_grading_custom = models.TextField(default="", blank=True, null=True)
+    pv_grading_prefix = models.TextField(default="", blank=True, null=True)
+    pv_grading_suffix = models.TextField(default="", blank=True, null=True)
+    pv_grading_issuing_authority = models.TextField(default="", blank=True, null=True)
+    pv_grading_reference = models.TextField(default="", blank=True, null=True)
+    pv_grading_date_of_issue = models.DateField(blank=True, null=True)
+    pv_grading_comment = models.TextField(default="", blank=True, null=True)
+
     is_good_end_product = models.BooleanField()
     part_number = models.TextField(default="", blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
