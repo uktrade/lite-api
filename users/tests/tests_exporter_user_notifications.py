@@ -183,7 +183,7 @@ class ExporterUserNotificationTests(DataTestClient):
         response = self.client.get(reverse_lazy("goods:goods"), **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        good_response_data = response.json()["goods"][0]["query"]
+        good_response_data = response.json()["results"][0]["query"]
         self.assertIn("exporter_user_notification_count", good_response_data)
         self.assertEqual(good_response_data["exporter_user_notification_count"]["total"], 3)
 
