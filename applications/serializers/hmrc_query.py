@@ -4,17 +4,13 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
-from applications.serializers.generic_application import GenericApplicationListSerializer
+from applications.serializers.generic_application import GenericApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
-from organisations.models import Organisation, Site, ExternalLocation
-from organisations.serializers import (
-    TinyOrganisationViewSerializer,
-    SiteViewSerializer,
-    ExternalLocationSerializer,
-)
+from organisations.models import Organisation
+from organisations.serializers import TinyOrganisationViewSerializer
 from parties.serializers import (
     EndUserSerializer,
     UltimateEndUserSerializer,
@@ -25,42 +21,18 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class HmrcQueryViewSerializer(GenericApplicationListSerializer):
+class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     end_user = EndUserSerializer()
     ultimate_end_users = UltimateEndUserSerializer(many=True)
     third_parties = ThirdPartySerializer(many=True)
     consignee = ConsigneeSerializer()
     hmrc_organisation = TinyOrganisationViewSerializer()
-    goods_locations = serializers.SerializerMethodField()
     supporting_documentation = serializers.SerializerMethodField()
-
-    def get_goods_types(self, instance):
-        goods_types = GoodsType.objects.filter(application=instance)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
-
-    def get_goods_locations(self, application):
-        sites = Site.objects.filter(sites_on_application__application=application)
-
-        if sites:
-            serializer = SiteViewSerializer(sites, many=True)
-            return {"type": "sites", "data": serializer.data}
-
-        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
-
-        if external_locations:
-            serializer = ExternalLocationSerializer(external_locations, many=True)
-            return {"type": "external_locations", "data": serializer.data}
-
-        return {}
-
-    def get_supporting_documentation(self, application):
-        documents = ApplicationDocument.objects.filter(application=application)
-        return ApplicationDocumentSerializer(documents, many=True).data
 
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationViewSerializer.Meta.fields + (
             "goods_types",
             "end_user",
             "ultimate_end_users",
@@ -68,9 +40,16 @@ class HmrcQueryViewSerializer(GenericApplicationListSerializer):
             "consignee",
             "hmrc_organisation",
             "reasoning",
-            "goods_locations",
             "supporting_documentation",
         )
+
+    def get_goods_types(self, instance):
+        goods_types = GoodsType.objects.filter(application=instance)
+        return FullGoodsTypeSerializer(goods_types, many=True).data
+
+    def get_supporting_documentation(self, application):
+        documents = ApplicationDocument.objects.filter(application=application)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):

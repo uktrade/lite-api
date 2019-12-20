@@ -41,6 +41,9 @@ class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
 
+    def get_serializer_context(self):
+        return {"exporter_user": self.request.user}
+
     def get_queryset(self):
         """
         Filter applications on submitted
@@ -100,8 +103,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        serializer = serializer(application)
-        return JsonResponse(data=serializer.data)
+        serializer = serializer(application, context={"exporter_user": request.user})
+        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -195,8 +198,8 @@ class ApplicationSubmission(APIView):
 
         data = {"application": {**serializer.data}}
 
-        if previous_application_status:
-            # If the application is being submitted after being edited
+        if not is_case_status_draft(previous_application_status.status):
+            # Only create the audit if the previous application status was not `Draft`
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
