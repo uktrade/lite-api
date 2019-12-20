@@ -98,12 +98,12 @@ class GoodSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
-        # Only validate the control code if the good is controlled
-        if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
-            self.fields["control_code"] = ControlListEntryField(required=True)
-        else:
-            if hasattr(self, "initial_data"):
-                self.initial_data["control_code"] = None
+        if not self.get_initial().get("missing_document_reason"):
+            if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
+                self.fields["control_code"] = ControlListEntryField(required=True)
+            else:
+                if hasattr(self, "initial_data"):
+                    self.initial_data["control_code"] = None
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
