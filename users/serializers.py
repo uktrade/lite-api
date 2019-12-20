@@ -6,12 +6,11 @@ from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation, Site
-from queries.helpers import get_exporter_query
-from queries.models import Query
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email, get_user_organisation_relationship
-from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role
+from users.models import ExporterUser, BaseUser, GovUser, UserOrganisationRelationship, Role, GovNotification, \
+    ExporterNotification
 
 
 class BaseUserViewSerializer(serializers.ModelSerializer):
