@@ -2,9 +2,10 @@ import uuid
 from abc import abstractmethod
 
 import reversion
-from compat import get_model
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from model_utils.models import TimeStampedModel
 
@@ -94,23 +95,31 @@ class BaseUser(AbstractUser):
         pass
 
 
-class ExporterUser(BaseUser):
-    def send_notification(self, case_note=None, query=None, ecju_query=None, generated_case_document=None):
-        # getting a reference to models by name to avoid circular imports
-        Query = get_model("queries.Query")
-        Notification = get_model("cases.Notification")
+class BaseNotification(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, null=False)
 
-        if case_note:
-            Notification.objects.create(user=self, case_note=case_note)
-        elif query:
-            actual_query = Query.objects.get(id=query.id)
-            Notification.objects.create(user=self, query=actual_query)
-        elif ecju_query:
-            Notification.objects.create(user=self, ecju_query=ecju_query)
-        elif generated_case_document:
-            Notification.objects.create(user=self, generated_case_document=generated_case_document)
-        else:
-            raise Exception("ExporterUser.send_notification: objects expected have not been added.")
+    # All notifications are currently linked to a case
+    case = models.ForeignKey("cases.Case", on_delete=models.CASCADE, null=False)
+
+    # Generic Foriegn Key Fields
+    content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
+    object_id = models.UUIDField(default=uuid.uuid4)
+    content_object = GenericForeignKey("content_type", "object_id")
+
+
+class ExporterNotification(BaseNotification):
+    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=False)
+
+
+class GovNotification(BaseNotification):
+    pass
+
+
+class ExporterUser(BaseUser):
+    def send_notification(self, organisation, content_object, case):
+        ExporterNotification.objects.create(
+            user=self, organisation=organisation, content_object=content_object, case=case
+        )
 
     def get_role(self, organisation):
         return self.userorganisationrelationship_set.get(organisation=organisation).role
@@ -119,15 +128,6 @@ class ExporterUser(BaseUser):
         uor = self.userorganisationrelationship_set.get(organisation=organisation)
         uor.role = role
         uor.save()
-
-
-class UserOrganisationRelationship(TimeStampedModel):
-    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
-    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE)
-    role = models.ForeignKey(
-        Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
-    )
-    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
 
 
 class GovUser(BaseUser):
@@ -143,23 +143,28 @@ class GovUser(BaseUser):
         """
         self.case_assignments.clear()
 
-    # pylint: disable=W0221
-    def send_notification(self, audit=None):
-        if audit:
-            # circular import prevention
-            from cases.models import Notification
+    def send_notification(self, content_object, case):
+        from audit_trail.models import Audit
 
+        if isinstance(content_object, Audit):
             # There can only be one notification per gov user's case
             # If a notification for that gov user's case already exists, update the case activity it points to
             try:
-                notification = Notification.objects.get(
-                    user=self,
-                    audit__target_content_type=audit.target_content_type,
-                    audit__target_object_id=audit.target_object_id,
-                )
-                notification.audit = audit
+                content_type = ContentType.objects.get_for_model(Audit)
+                notification = GovNotification.objects.get(user=self, content_type=content_type, case=case)
+                notification.content_object = content_object
                 notification.save()
-            except Notification.DoesNotExist:
-                Notification.objects.create(user=self, audit=audit)
-        else:
-            raise Exception("GovUser.send_notification: objects expected have not been added.")
+            except GovNotification.DoesNotExist:
+                GovNotification.objects.create(user=self, content_object=content_object, case=case)
+
+
+class UserOrganisationRelationship(TimeStampedModel):
+    user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
+    organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE)
+    role = models.ForeignKey(
+        Role, related_name="exporter_role", default=Roles.EXPORTER_DEFAULT_ROLE_ID, on_delete=models.PROTECT
+    )
+    status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
+
+    def send_notification(self, content_object, case):
+        self.user.send_notification(organisation=self.organisation, content_object=content_object, case=case)

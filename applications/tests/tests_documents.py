@@ -41,35 +41,40 @@ class DraftDocumentTests(DataTestClient):
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
-        response_data = response.json()["documents"][1]
+        response_data = [
+            {
+                "name": document["name"],
+                "s3_key": document["s3_key"],
+                "size": document["size"],
+                "description": document["description"],
+            }
+            for document in response.json()["documents"]
+        ]
 
-        self.assertEqual(response_data["name"], self.data["name"])
-        self.assertEqual(response_data["s3_key"], self.data["s3_key"])
-        self.assertEqual(response_data["size"], self.data["size"])
-        self.assertEqual(response_data["description"], self.data["description"])
+        self.assertEqual(len(response_data), 2)
+        self.assertTrue(self.data in response_data)
 
     @mock.patch("documents.tasks.prepare_document.now")
     def test_upload_multiple_documents_on_unsubmitted_application(self, mock_prepare_doc):
         """ Test success in adding multiple documents to an unsubmitted application. """
+        data = [self.data, self.data2]
         self.client.post(self.url_draft, data=self.data, **self.exporter_headers)
         self.client.post(self.url_draft, data=self.data2, **self.exporter_headers)
 
         response = self.client.get(self.url_draft, **self.exporter_headers)
-        response_data = response.json()["documents"]
+        response_data = [
+            {
+                "name": document["name"],
+                "s3_key": document["s3_key"],
+                "size": document["size"],
+                "description": document["description"],
+            }
+            for document in response.json()["documents"]
+        ]
+
         self.assertEqual(len(response_data), 3)
-
-        document1 = list(filter(lambda x: x["name"] == self.data["name"], response_data))[0]
-        document2 = list(filter(lambda x: x["name"] == self.data2["name"], response_data))[0]
-
-        self.assertEqual(self.data["name"], document1["name"])
-        self.assertEqual(self.data["s3_key"], document1["s3_key"])
-        self.assertEqual(self.data["size"], document1["size"])
-        self.assertEqual(self.data["description"], document1["description"])
-
-        self.assertEqual(self.data2["name"], document2["name"])
-        self.assertEqual(self.data2["s3_key"], document2["s3_key"])
-        self.assertEqual(self.data2["size"], document2["size"])
-        self.assertEqual(self.data2["description"], document2["description"])
+        for document in data:
+            self.assertTrue(document in response_data)
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")

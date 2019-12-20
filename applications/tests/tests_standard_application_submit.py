@@ -1,3 +1,4 @@
+from audit_trail.models import Audit
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
@@ -27,6 +28,8 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
+        # 'Draft' applications should not create audit entries when submitted
+        self.assertEqual(Audit.objects.all().count(), 0)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)

@@ -1,3 +1,5 @@
+import abc
+
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -12,8 +14,8 @@ from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
-from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
+from organisations.models import Organisation, Site, ExternalLocation
+from organisations.serializers import OrganisationDetailSerializer, SiteViewSerializer, ExternalLocationSerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import (
@@ -21,6 +23,11 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
+from users.libraries.notifications import (
+    get_exporter_user_notification_total_count,
+    get_exporter_user_notification_individual_count,
+)
+from users.models import ExporterUser
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
@@ -36,6 +43,29 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "id",
+            "name",
+            "organisation",
+            "application_type",
+            "export_type",
+            "created",
+            "modified",
+            "submitted_at",
+            "status",
+            "case",
+            "exporter_user_notification_count",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        if not isinstance(self.exporter_user, ExporterUser):
+            self.fields.pop("exporter_user_notification_count")
 
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
@@ -57,20 +87,41 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return instance.pk
 
+    @abc.abstractmethod
+    def get_exporter_user_notification_count(self, instance):
+        """
+        This is used for list views only.
+        To get the count for each type of notification on an application,
+        override this function in child classes
+        """
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+
+
+class GenericApplicationViewSerializer(GenericApplicationListSerializer):
+    goods_locations = serializers.SerializerMethodField()
+
     class Meta:
         model = BaseApplication
-        fields = (
-            "id",
-            "name",
-            "organisation",
-            "application_type",
-            "export_type",
-            "created",
-            "modified",
-            "submitted_at",
-            "status",
-            "case",
-        )
+        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations",)
+
+    def get_exporter_user_notification_count(self, instance):
+        """
+        Overriding parent class
+        """
+        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
+
+    def get_goods_locations(self, application):
+        sites = Site.objects.filter(sites_on_application__application=application)
+        if sites:
+            serializer = SiteViewSerializer(sites, many=True)
+            return {"type": "sites", "data": serializer.data}
+
+        external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)
+        if external_locations:
+            serializer = ExternalLocationSerializer(external_locations, many=True)
+            return {"type": "external_locations", "data": serializer.data}
+
+        return {}
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):

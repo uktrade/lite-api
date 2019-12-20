@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
+from audit_trail.models import Audit
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -13,9 +14,9 @@ class EditApplicationTests(DataTestClient):
         super().setUp()
         self.data = {"name": "new app name!"}
 
-    def test_edit_unsubmitted_application_name(self):
+    def test_edit_unsubmitted_application_name_success(self):
         """ Test edit the application name of an unsubmitted application. An unsubmitted application
-        has no status.
+        has the 'draft' status.
         """
         application = self.create_standard_application(self.organisation)
 
@@ -28,6 +29,8 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
         self.assertNotEqual(application.modified, modified)
+        # Unsubmitted (draft) applications should not create audit entries when edited
+        self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
@@ -77,3 +80,5 @@ class EditApplicationTests(DataTestClient):
             application.reference_number_on_information_form, data["reference_number_on_information_form"],
         )
         self.assertNotEqual(application.modified, modified)
+        # Editable status applications (other than draft) should create audit entries when edited
+        self.assertEqual(Audit.objects.all().count(), 1)

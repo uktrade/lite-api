@@ -27,33 +27,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="notification",
-            name="user",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name="goodcountrydecision",
-            name="case",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),
-        ),
-        migrations.AddField(
-            model_name="goodcountrydecision",
-            name="country",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="countries.Country"),
-        ),
-        migrations.AddField(
-            model_name="goodcountrydecision",
-            name="good",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goodstype.GoodsType"),
-        ),
-        migrations.AddField(
-            model_name="ecjuquery",
-            name="case",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, related_name="case_ecju_query", to="cases.Case"
-            ),
-        ),
-        migrations.AddField(
             model_name="ecjuquery",
             name="raised_by_user",
             field=models.ForeignKey(
@@ -139,11 +112,6 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="baseactivity",
-            name="user",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
             model_name="advice",
             name="case",
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),
@@ -207,15 +175,5 @@ class Migration(migrations.Migration):
             model_name="teamadvice",
             name="team",
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team"),
-        ),
-        migrations.AddField(
-            model_name="notification",
-            name="case_activity",
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="cases.CaseActivity"),
-        ),
-        migrations.AddField(
-            model_name="caseactivity",
-            name="case",
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="cases.Case"),
         ),
     ]
