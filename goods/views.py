@@ -110,6 +110,9 @@ class GoodList(ListCreateAPIView):
     serializer_class = GoodListSerializer
     pagination_class = GoodListPaginator
 
+    def get_serializer_context(self):
+        return {"exporter_user": self.request.user}
+
     def get_queryset(self):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
