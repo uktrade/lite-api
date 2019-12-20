@@ -44,13 +44,11 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
         audit_qs = Audit.objects.all()
-        audit = audit_qs.first()
 
         # The standard draft comes with one good pre-added, plus the good added in this test makes 2
         self.assertEqual(len(response_data["goods"]), 2)
-        self.assertEqual(audit_qs.count(), 1)
-        self.assertEqual(audit.payload, {"good_name": good_name})
-        self.assertEqual(AuditType(audit.verb), AuditType.ADD_GOOD_TO_APPLICATION)
+        # No audit created for drafts.
+        self.assertEqual(audit_qs.count(), 0)
 
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         good_name = "A good"

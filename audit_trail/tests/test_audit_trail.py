@@ -27,7 +27,7 @@ class CasesAuditTrail(DataTestClient):
     def test_retrieve_audit_trail(self):
         service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)
 
-        audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.draft)
+        audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.case)
 
         self.assertEqual(audit_trail_qs.count(), 1)
 
@@ -38,19 +38,19 @@ class CasesAuditTrail(DataTestClient):
         user = InvalidUser()
 
         with self.assertRaises(PermissionDenied):
-            service.get_user_obj_trail_qs(user=user, obj=self.draft)
+            service.get_user_obj_trail_qs(user=user, obj=self.case)
 
     def test_exporter_cannot_retrieve_internal_audit_trail_for_draft(self):
         # Create an audit entry on draft
         service.create(
             actor=self.gov_user,
             verb=AuditType.CREATED_CASE_NOTE,
-            target=self.draft,
+            target=self.case,
             payload={'case_note': 'note'}
         )
 
-        gov_audit_trail_qs = service.get_user_obj_trail_qs(user=self.gov_user, obj=self.draft)
-        exp_audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.draft)
+        gov_audit_trail_qs = service.get_user_obj_trail_qs(user=self.gov_user, obj=self.case)
+        exp_audit_trail_qs = service.get_user_obj_trail_qs(user=self.exporter_user, obj=self.case)
 
         self.assertEqual(gov_audit_trail_qs.count(), 1)
         self.assertEqual(exp_audit_trail_qs.count(), 0)

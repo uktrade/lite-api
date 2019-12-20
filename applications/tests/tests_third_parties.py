@@ -36,6 +36,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         When multiple third parties are added
         Then all third parties are successfully added to the draft
         """
+        audit_qs = Audit.objects.all()
         self.draft.third_parties.set([])
         parties = [
             {
@@ -56,15 +57,11 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         for count, third_party in enumerate(parties, 1):
             self.client.post(self.url, third_party, **self.exporter_headers)
-            audit = Audit.objects.all().first()
-
             self.assertEqual(self.draft.third_parties.count(), count)
-            self.assertEqual(audit.payload, {"party_name": third_party["name"], "party_type": "third party"})
-            self.assertEqual(AuditType(audit.verb), AuditType.ADD_PARTY)
 
-        audit_qs = Audit.objects.all()
-        self.assertEqual(audit_qs.count(), len(parties))
-
+        # Drafts do not create audit
+        self.assertEqual(audit_qs.count(), 0)
+        self.assertEqual(self.draft.third_parties.count(), len(parties))
 
     def test_unsuccessful_add_third_party(self):
         """
