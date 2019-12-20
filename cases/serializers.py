@@ -156,14 +156,13 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.status.status
 
 
-class CaseDetailSerializer(CaseSerializer):
+class CaseUpdateSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
-    audit_notification = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -176,7 +175,6 @@ class CaseDetailSerializer(CaseSerializer):
             "application",
             "query",
             "has_advice",
-            "audit_notification",
         )
 
     def get_application(self, instance):
@@ -215,6 +213,14 @@ class CaseDetailSerializer(CaseSerializer):
         except AttributeError:
             pass
         return has_advice
+
+
+class CaseDetailSerializer(CaseUpdateSerializer):
+    audit_notification = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Case
+        fields = CaseUpdateSerializer.Meta.fields + ("audit_notification",)
 
     def get_audit_notification(self, instance):
         content_type = ContentType.objects.get_for_model(Audit)

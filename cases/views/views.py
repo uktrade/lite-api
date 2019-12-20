@@ -24,6 +24,7 @@ from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
+    CaseUpdateSerializer,
     CaseDetailSerializer,
     CaseAdviceSerializer,
     EcjuQueryGovSerializer,
@@ -60,7 +61,7 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+        serializer = CaseUpdateSerializer(case, data=request.data, partial=True)
         if serializer.is_valid():
             service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
