@@ -1,14 +1,14 @@
-from operator import or_
 from functools import reduce
+from operator import or_
 from uuid import UUID
 
-from django.db.models import Count, Q
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count, Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
-from rest_framework.generics import ListAPIView, UpdateAPIView
+from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
