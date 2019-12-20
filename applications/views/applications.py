@@ -102,7 +102,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_view_serializer(application)
         serializer = serializer(application, context={"exporter_user": request.user})
-        return JsonResponse(data=serializer.data)
+        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     @application_in_editable_state()
