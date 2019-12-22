@@ -6,7 +6,6 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
 from lite_content.lite_api import strings
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.units.enums import Units

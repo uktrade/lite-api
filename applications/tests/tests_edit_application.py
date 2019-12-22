@@ -4,6 +4,7 @@ from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -73,16 +74,43 @@ class EditApplicationTests(DataTestClient):
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
         modified = application.modified
+        audit_qs = Audit.objects.all()
+        new_ref = "35236246"
+        update_ref = "13124124"
 
-        data = {"reference_number_on_information_form": "35236246"}
-
+        # Add ref
+        data = {"reference_number_on_information_form": new_ref}
         response = self.client.put(url, data, **self.exporter_headers)
 
         application.refresh_from_db()
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             application.reference_number_on_information_form, data["reference_number_on_information_form"],
         )
         self.assertNotEqual(application.modified, modified)
-        # Editable status applications (other than draft) should create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 1)
+
+        # Check add audit
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.ADDED_APPLICATION_LETTER_REFERENCE)
+        self.assertEqual(audit_qs.first().payload, {'new_ref_number': new_ref})
+
+        # Update ref
+        data = {"reference_number_on_information_form": update_ref}
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        # Check update audit
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(audit_qs.count(), 2)
+        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
+        self.assertEqual(audit_qs.first().payload, {"old_ref_number": new_ref, 'new_ref_number': update_ref})
+
+        # Remove ref
+        data = {"reference_number_on_information_form": ""}
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        # Check remove audit
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(audit_qs.count(), 3)
+        self.assertEqual(AuditType(audit_qs.first().verb), AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
+        self.assertEqual(audit_qs.first().payload, {"old_ref_number": update_ref})

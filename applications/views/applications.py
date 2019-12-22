@@ -116,6 +116,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         old_name = application.name
+        old_ref_number = application.reference_number_on_information_form
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if not serializer.is_valid():
@@ -126,6 +127,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if application.application_type == ApplicationType.HMRC_QUERY:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
+        # Audit block
         if request.data.get("name"):
             audit_trail_service.create(
                 actor=request.user,
@@ -134,19 +136,34 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
 
-        if (
-            request.data.get("reference_number_on_information_form")
-            and application.application_type == ApplicationType.STANDARD_LICENCE
-        ):
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_APPLICATION_REFERENCE_NUMBER,
-                target=case,
-                payload={
-                    "old_ref_number": application.reference_number_on_information_form,
-                    "new_ref_number": serializer.data.get("reference_number_on_information_form"),
-                },
-            )
+        # Audit block
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
+            if request.data.get("reference_number_on_information_form"):
+                if old_ref_number:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={
+                            "old_ref_number": old_ref_number,
+                            "new_ref_number": application.reference_number_on_information_form,
+                        },
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"new_ref_number": application.reference_number_on_information_form},
+                    )
+            else:
+                if old_ref_number:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"old_ref_number": old_ref_number},
+                    )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
