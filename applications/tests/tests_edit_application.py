@@ -93,7 +93,7 @@ class EditApplicationTests(DataTestClient):
         # Check add audit
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.ADDED_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {'new_ref_number': new_ref})
+        self.assertEqual(audit_qs.first().payload, {"new_ref_number": new_ref})
 
         # Update ref
         data = {"reference_number_on_information_form": update_ref}
@@ -103,7 +103,7 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(audit_qs.count(), 2)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
-        self.assertEqual(audit_qs.first().payload, {"old_ref_number": new_ref, 'new_ref_number': update_ref})
+        self.assertEqual(audit_qs.first().payload, {"old_ref_number": new_ref, "new_ref_number": update_ref})
 
         # Remove ref
         data = {"reference_number_on_information_form": ""}
