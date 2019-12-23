@@ -138,8 +138,18 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
 
+        if application.application_type != ApplicationType.STANDARD_LICENCE:
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
         # Audit block
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
+        if not has_been_informed:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                target=case,
+                payload={"old_ref_number": old_ref_number if old_ref_number else "no reference"},
+            )
+        else:
             if request.data.get("reference_number_on_information_form"):
                 if old_ref_number:
                     audit_trail_service.create(
@@ -160,28 +170,19 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                     )
             else:
                 if old_ref_number:
-                    if has_been_informed:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                            target=case,
-                            payload={"old_ref_number": old_ref_number, "new_ref_number": "unknown"},
-                        )
-                    else:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                            target=case,
-                            payload={"old_ref_number": old_ref_number},
-                        )
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"old_ref_number": old_ref_number, "new_ref_number": "no reference"},
+                    )
                 else:
-                    if has_been_informed:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
-                            target=case,
-                            payload={"new_ref_number": "unknown"},
-                        )
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"new_ref_number": "no reference"},
+                    )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
