@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from documents.models import Document
+from flags.models import Flag
 from organisations.models import Organisation
 from parties.enums import PartyType, SubType, ThirdPartySubType
 from static.countries.models import Country
@@ -18,6 +19,7 @@ class Party(models.Model):
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
     )
+    flags = models.ManyToManyField(Flag, related_name="parties")
 
 
 class Consignee(Party):
