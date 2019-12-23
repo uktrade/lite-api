@@ -120,19 +120,17 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
-
         if application.application_type == ApplicationType.HMRC_QUERY:
+            serializer.save()
+
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-        old_name = application.name
-        old_ref_number = application.reference_number_on_information_form
-        old_have_you_been_informed = application.have_you_been_informed == "yes"
-
-        have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
 
         # Audit block
         if request.data.get("name"):
+            old_name = application.name
+
+            serializer.save()
+
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
@@ -143,7 +141,11 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         # Audit block
         if application.application_type == ApplicationType.STANDARD_LICENCE:
-            old_ref_number = old_ref_number or "no reference"
+            old_have_you_been_informed = application.have_you_been_informed == "yes"
+            have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
+
+            old_ref_number = application.reference_number_on_information_form or "no reference"
+            serializer.save()
             new_ref_number = application.reference_number_on_information_form or "no reference"
 
             if old_have_you_been_informed and not have_you_been_informed:
