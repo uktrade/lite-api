@@ -69,12 +69,7 @@ class GoodSerializer(serializers.ModelSerializer):
     query = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
-    missing_document_reason = KeyValueChoiceField(
-        choices=GoodMissingDocumentReasons.choices,
-        allow_blank=True,
-        required=False,
-        error_messages={"invalid_choice": strings.Goods.INVALID_MISSING_DOCUMENT_REASON},
-    )
+    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
 
     class Meta:
         model = Good
@@ -98,7 +93,6 @@ class GoodSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
-        # Only validate the control code if the good is controlled
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
             self.fields["control_code"] = ControlListEntryField(required=True)
         else:
@@ -147,6 +141,19 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.save()
         return instance
+
+
+class GoodMissingDocumentSerializer(serializers.ModelSerializer):
+    missing_document_reason = KeyValueChoiceField(
+        choices=GoodMissingDocumentReasons.choices,
+        allow_blank=True,
+        required=False,
+        error_messages={"invalid_choice": strings.Goods.INVALID_MISSING_DOCUMENT_REASON},
+    )
+
+    class Meta:
+        model = Good
+        fields = ("id", "missing_document_reason")
 
 
 class GoodDocumentCreateSerializer(serializers.ModelSerializer):

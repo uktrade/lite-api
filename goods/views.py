@@ -29,6 +29,7 @@ from goods.serializers import (
     ClcControlGoodSerializer,
     GoodListSerializer,
     GoodWithFlagsSerializer,
+    GoodMissingDocumentSerializer,
 )
 from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -165,10 +166,10 @@ class GoodDocumentCriteriaCheck(APIView):
             document_to_upload = str_to_bool(data["has_document_to_upload"])
             if not document_to_upload:
                 good.missing_document_reason = data["missing_document_reason"]
-                serializer = GoodSerializer(instance=good, data=data, partial=True)
+                serializer = GoodMissingDocumentSerializer(instance=good, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    good_data = serializer.data
+                    good_data = GoodSerializer(good).data
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
