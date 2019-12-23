@@ -98,6 +98,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
+        # if missing_document_reason isn't in the list of data, this means we are creating/editing a good
         if not self.get_initial().get("missing_document_reason"):
             if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
                 self.fields["control_code"] = ControlListEntryField(required=True)
