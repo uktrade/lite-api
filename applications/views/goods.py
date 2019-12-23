@@ -212,6 +212,7 @@ class ApplicationGoodsTypeCountries(APIView):
 
     @transaction.atomic
     @allowed_application_types([ApplicationType.OPEN_LICENCE])
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application, goodstype_pk):
         data = request.data
