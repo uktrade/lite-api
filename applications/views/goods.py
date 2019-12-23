@@ -20,6 +20,7 @@ from conf.decorators import (
     application_in_major_editable_state,
     allowed_application_types,
 )
+from conf.helpers import convert_queryset_to_str
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -222,6 +223,21 @@ class ApplicationGoodsTypeCountries(APIView):
             if not Country.objects.filter(pk__in=countries).count() == len(countries):
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
+            initial_countries = list(good.countries.all())
             good.countries.set(countries)
+            updated_countries = list(good.countries.all())
+
+            if initial_countries != updated_countries:
+                if not updated_countries:
+                    updated_countries = list(Country.objects.filter(countries_on_application__application=application))
+
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ASSIGNED_GOOD_TO_COUNTRY,
+                    action_object=good,
+                    target=Case.objects.get(id=application.id),
+                    payload={"good_type_name": good.description,
+                             "countries": ", ".join([x.name for x in updated_countries])},
+                )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

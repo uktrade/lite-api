@@ -30,6 +30,7 @@ class AuditType(Enum):
     UPDATED_APPLICATION_REFERENCE_NUMBER = (
         "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
     )
+    ASSIGNED_GOOD_TO_COUNTRY = "updated the good '{good_type_name}' destinations to {countries}"
     CREATED_FINAL_ADVICE = "created final advice"
     CLEARED_FINAL_ADVICE = "cleared final advice"
     CREATED_TEAM_ADVICE = "created team advice"
