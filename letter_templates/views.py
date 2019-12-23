@@ -3,6 +3,7 @@ from rest_framework import generics, status
 
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
@@ -69,7 +70,8 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         if str_to_bool(request.GET.get("activity")):
-            data["activity"] = audit_trail_service.get_obj_trail(template_object)
+            audit_qs = audit_trail_service.get_user_obj_trail_qs(request.user, template_object)
+            data["activity"] = AuditSerializer(audit_qs, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
