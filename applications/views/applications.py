@@ -115,9 +115,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_update_serializer(application)
         case = application.get_case()
-        old_name = application.name
-        old_ref_number = application.reference_number_on_information_form
-        old_have_you_been_informed = application.have_you_been_informed == "yes"
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if not serializer.is_valid():
@@ -127,6 +124,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if application.application_type == ApplicationType.HMRC_QUERY:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        old_name = application.name
+        old_ref_number = application.reference_number_on_information_form
+        old_have_you_been_informed = application.have_you_been_informed == "yes"
 
         have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
 
