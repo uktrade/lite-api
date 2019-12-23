@@ -26,9 +26,13 @@ class SitesList(APIView):
         Endpoint for listing the sites of an organisation
         filtered on whether or not the user belongs to the site
         """
-        user_organisation_relationship = get_user_organisation_relationship(request.user, org_pk)
+        if isinstance(request.user, ExporterUser):
+            user_organisation_relationship = get_user_organisation_relationship(request.user, org_pk)
 
-        sites = list(Site.objects.get_by_user_organisation_relationship(user_organisation_relationship))
+            sites = list(Site.objects.get_by_user_organisation_relationship(user_organisation_relationship))
+        else:
+            sites = list(Site.objects.filter(organisation=org_pk))
+
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
 
         serializer = SiteViewSerializer(sites, many=True)

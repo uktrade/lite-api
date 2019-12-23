@@ -1,9 +1,8 @@
-from applications.serializers.document import ApplicationDocumentSerializer
-from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.models import OpenApplication, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -12,8 +11,9 @@ from applications.serializers.generic_application import (
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from static.countries.models import Country
-from static.countries.serializers import CountrySerializer
+from static.countries.serializers import CountryWithFlagsSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -40,7 +40,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
-        serializer = CountrySerializer(countries, many=True)
+        serializer = CountryWithFlagsSerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
     def get_additional_documents(self, instance):
