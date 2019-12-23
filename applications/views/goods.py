@@ -194,10 +194,10 @@ class ApplicationGoodsType(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
+            verb=AuditType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
             action_object=goods_type,
             target=Case.objects.get(id=application.id),
-            payload={"good_type_name": goods_type.description,},
+            payload={"good_type_name": goods_type.description},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

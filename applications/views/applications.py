@@ -117,6 +117,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         case = application.get_case()
         old_name = application.name
         old_ref_number = application.reference_number_on_information_form
+        old_have_you_been_informed = application.have_you_been_informed == "yes"
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if not serializer.is_valid():
@@ -127,7 +128,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if application.application_type == ApplicationType.HMRC_QUERY:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        has_been_informed = request.data.get("have_you_been_informed") == "yes"
+        have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
 
         # Audit block
         if request.data.get("name"):
@@ -137,51 +138,34 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
-
-        if application.application_type != ApplicationType.STANDARD_LICENCE:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
-        if not has_been_informed:
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                target=case,
-                payload={"old_ref_number": old_ref_number if old_ref_number else "no reference"},
-            )
-        else:
-            if request.data.get("reference_number_on_information_form"):
-                if old_ref_number:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={
-                            "old_ref_number": old_ref_number,
-                            "new_ref_number": application.reference_number_on_information_form,
-                        },
-                    )
-                else:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={"new_ref_number": application.reference_number_on_information_form},
-                    )
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
+            old_ref_number = old_ref_number or "no reference"
+            new_ref_number = application.reference_number_on_information_form or "no reference"
+
+            if old_have_you_been_informed and not have_you_been_informed:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                    target=case,
+                    payload={"old_ref_number": old_ref_number},
+                )
             else:
-                if old_ref_number:
+                if old_have_you_been_informed:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
                         target=case,
-                        payload={"old_ref_number": old_ref_number, "new_ref_number": "no reference"},
+                        payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
                     )
                 else:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
                         target=case,
-                        payload={"new_ref_number": "no reference"},
+                        payload={"new_ref_number": new_ref_number},
                     )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
