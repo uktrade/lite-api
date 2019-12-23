@@ -127,6 +127,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if application.application_type == ApplicationType.HMRC_QUERY:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
+        has_been_informed = request.data.get("have_you_been_informed") == "yes"
+
         # Audit block
         if request.data.get("name"):
             audit_trail_service.create(
@@ -158,12 +160,28 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                     )
             else:
                 if old_ref_number:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={"old_ref_number": old_ref_number},
-                    )
+                    if has_been_informed:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                            target=case,
+                            payload={"old_ref_number": old_ref_number, "new_ref_number": "unknown"},
+                        )
+                    else:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                            target=case,
+                            payload={"old_ref_number": old_ref_number},
+                        )
+                else:
+                    if has_been_informed:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                            target=case,
+                            payload={"new_ref_number": "unknown"},
+                        )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
