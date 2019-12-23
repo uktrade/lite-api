@@ -11,3 +11,14 @@ class CountrySerializer(serializers.ModelSerializer):
             "name",
             "type",
         )
+
+
+class CountryWithFlagsSerializer(CountrySerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = Country
+        fields = "__all__"

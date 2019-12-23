@@ -10,6 +10,7 @@ from audit_trail.payload import AuditType
 from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.get_case import get_case, get_case_document
+from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
@@ -37,7 +38,10 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
+from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
+from static.countries.models import Country
+from static.countries.serializers import CountryWithFlagsSerializer
 from users.models import ExporterUser
 
 
@@ -49,7 +53,7 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, context=request)
+        serializer = CaseDetailSerializer(case, context=request, team=request.user.team)
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
@@ -60,7 +64,7 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+        serializer = CaseDetailSerializer(case, data=request.data, team=request.user.team, partial=True)
         if serializer.is_valid():
             service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
@@ -422,3 +426,15 @@ class GoodsCountriesDecisions(APIView):
             return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Destination(APIView):
+    def get(self, request, pk):
+        destination = get_destination(pk)
+
+        if isinstance(destination, Country):
+            serializer = CountryWithFlagsSerializer(destination)
+        else:
+            serializer = PartyWithFlagsSerializer(destination)
+
+        return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
