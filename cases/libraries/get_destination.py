@@ -67,10 +67,10 @@ def get_ordered_flags(case: Case, team: Team):
         destination_flags = get_destination_flags(case)
 
     flag_data = (
-            sort_flags_by_team_and_name(FlagSerializer(set(goods_flags), many=True).data, team)
-            + sort_flags_by_team_and_name(FlagSerializer(set(destination_flags), many=True).data, team)
-            + sort_flags_by_team_and_name(FlagSerializer(case_flags, many=True).data, team)
-            + sort_flags_by_team_and_name(FlagSerializer(org_flags, many=True).data, team)
+        sort_flags_by_team_and_name(FlagSerializer(set(goods_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(FlagSerializer(set(destination_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(FlagSerializer(case_flags, many=True).data, team)
+        + sort_flags_by_team_and_name(FlagSerializer(org_flags, many=True).data, team)
     )
     return flag_data
 
