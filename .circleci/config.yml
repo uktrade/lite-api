@@ -4,7 +4,7 @@ orbs:
   jq: circleci/jq@1.8.0
 
 jobs:
-  build:
+  tests:
     docker:
       - image: circleci/python:3.7
       - image: circleci/postgres:11
@@ -65,14 +65,6 @@ jobs:
           command: pipenv run ./manage.py makemigrations --check
 
       - run:
-          name: Run linting
-          command: pipenv run prospector
-
-      - run:
-          name: Check code formatting
-          command: pipenv run black . --check --diff
-
-      - run:
           name: Run tests
           command: pipenv run ./manage.py test --parallel
       - store_test_results:
@@ -87,3 +79,42 @@ jobs:
           command: |
             pipenv install bandit
             pipenv run bandit -r .
+
+  linting:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+
+      - run:
+          name: Git Submodule Checkout
+          command: |
+            git submodule sync
+            git submodule update --init
+
+      - restore_cache:
+          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
+      - run:
+          name: Install Dependencies
+          command: pipenv sync --dev
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
+      - run:
+          name: Prospector
+          command: pipenv run prospector
+
+      - run:
+          name: Black
+          command: pipenv run black . --check --diff
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - tests
+      - linting
