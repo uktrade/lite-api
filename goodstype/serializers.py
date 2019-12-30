@@ -3,7 +3,6 @@ from rest_framework import serializers
 from applications.models import BaseApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
-from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagStatuses
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
