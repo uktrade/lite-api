@@ -236,8 +236,10 @@ class ApplicationGoodsTypeCountries(APIView):
                     verb=AuditType.ASSIGNED_GOOD_TO_COUNTRY,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
-                    payload={"good_type_name": good.description,
-                             "countries": ", ".join([x.name for x in updated_countries])},
+                    payload={
+                        "good_type_name": good.description,
+                        "countries": ", ".join([x.name for x in updated_countries]),
+                    },
                 )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
