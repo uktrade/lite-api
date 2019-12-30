@@ -85,19 +85,26 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
+
+      - restore_cache:
+          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
+      - run:
+          name: Install Dependencies
+          command: pipenv sync --dev
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
       - run:
           name: Run linting
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install prospector
-            prospector
+          command: pipenv run prospector
 
       - run:
           name: Check code formatting
-          command: |
-            pip install black
-            black . --check --diff
+          command: pipenv run black . --check --diff
 
 workflows:
   version: 2
