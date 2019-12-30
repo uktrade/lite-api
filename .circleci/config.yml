@@ -87,11 +87,17 @@ jobs:
       - checkout
       - run:
           name: Run linting
-          command: pipenv run prospector
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install prospector
+            prospector
 
       - run:
           name: Check code formatting
-          command: pipenv run black . --check --diff
+          command: |
+            pip install black
+            black . --check --diff
 
 workflows:
   version: 2
