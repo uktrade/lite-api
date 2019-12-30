@@ -215,7 +215,7 @@ class ApplicationGoodsTypeCountries(APIView):
     @allowed_application_types([ApplicationType.OPEN_LICENCE])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
-    def put(self, request, application, goodstype_pk):
+    def put(self, request, application):
         data = request.data
 
         for good, countries in data.items():
@@ -228,6 +228,7 @@ class ApplicationGoodsTypeCountries(APIView):
             updated_countries = list(good.countries.all())
 
             if initial_countries != updated_countries:
+                # Assigning the good to no countries is the same as assigning the good to all countries
                 if not updated_countries:
                     updated_countries = list(Country.objects.filter(countries_on_application__application=application))
 
