@@ -85,7 +85,7 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      
+
       - run:
           name: Git Submodule Checkout
           command: |
