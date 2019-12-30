@@ -84,6 +84,7 @@ class ControlListClassificationDetail(APIView):
                 clc_good_serializer.save()
                 query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
                 query.save()
+
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
                     new_control_code = clc_good_serializer.validated_data.get(

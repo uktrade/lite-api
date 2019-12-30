@@ -10,6 +10,8 @@ class AuditType(Enum):
     GOOD_ADD_FLAGS = "added flags: {added_flags} to good: {good_name}"
     GOOD_REMOVE_FLAGS = "removed flags: {removed_flags} from good: {good_name}"
     GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} from good: {good_name}"
+    DESTINATION_ADD_FLAGS = "added flags: {added_flags} to destination: {destination_name}"
+    DESTINATION_REMOVE_FLAGS = "removed flags: {removed_flags} from destination: {destination_name}"
     ADD_GOOD_TO_APPLICATION = "added good: {good_name}"
     REMOVE_GOOD_FROM_APPLICATION = "removed good: {good_name}"
     ADD_GOOD_TYPE_TO_APPLICATION = "added good type: {good_type_name}"
@@ -27,9 +29,9 @@ class AuditType(Enum):
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
     UPDATED_STATUS = "updated the status to: {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
-    UPDATED_APPLICATION_REFERENCE_NUMBER = (
-        "updated the application reference number from " "{old_ref_number} to {new_ref_number}"
-    )
+    UPDATE_APPLICATION_LETTER_REFERENCE = "updated the letter reference from " "{old_ref_number} to {new_ref_number}"
+    ADDED_APPLICATION_LETTER_REFERENCE = "added the letter reference: {new_ref_number}"
+    REMOVED_APPLICATION_LETTER_REFERENCE = "removed the letter reference: {old_ref_number}"
     ASSIGNED_GOOD_TO_COUNTRY = "updated the good '{good_type_name}' destinations to {countries}"
     CREATED_FINAL_ADVICE = "created final advice"
     CLEARED_FINAL_ADVICE = "cleared final advice"

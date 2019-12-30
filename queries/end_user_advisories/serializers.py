@@ -8,7 +8,7 @@ from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
-from parties.serializers import EndUserSerializer
+from parties.serializers import EndUserSerializer, EndUserWithFlagsSerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
@@ -23,7 +23,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
-    end_user = EndUserSerializer()
+    end_user = EndUserWithFlagsSerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     contact_email = serializers.EmailField()
