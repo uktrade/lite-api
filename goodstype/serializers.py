@@ -18,9 +18,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
     is_good_controlled = serializers.BooleanField()
     is_good_end_product = serializers.BooleanField()
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
-    countries = PrimaryKeyRelatedSerializerField(
-        required=False, queryset=Country.objects.all(), serializer=CountrySerializer, many=True
-    )
+    countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
 
     class Meta:
@@ -48,6 +46,12 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
+
+    def get_countries(self, instance):
+        countries = instance.countries
+        if not countries.count():
+            countries = Country.objects.filter(countries_on_application__application=instance.application)
+        return CountrySerializer(countries, many=True).data
 
     def get_document(self, instance):
         docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()

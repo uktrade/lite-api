@@ -219,6 +219,12 @@ class ApplicationGoodsTypeCountries(APIView):
 
         for good, countries in data.items():
             good = get_goods_type(good)
+
+            # Validate that at least one country has been selected per good
+            if not countries:
+                return JsonResponse({"errors": "Select at least one country for each good"})
+
+            # Validate that the countries given are valid countries
             if not Country.objects.filter(pk__in=countries).count() == len(countries):
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
@@ -227,10 +233,6 @@ class ApplicationGoodsTypeCountries(APIView):
             updated_countries = list(good.countries.all())
 
             if initial_countries != updated_countries:
-                # Assigning the good to no countries is the same as assigning the good to all countries
-                if not updated_countries:
-                    updated_countries = list(Country.objects.filter(countries_on_application__application=application))
-
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.ASSIGNED_GOOD_TO_COUNTRY,
