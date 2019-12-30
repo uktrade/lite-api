@@ -31,8 +31,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
             kwargs={"pk": self.open_draft.id, "goodstype_pk": self.goods_type_1.id},
         )
         self.good_country_url = reverse(
-            "applications:application_goodstype_assign_countries",
-            kwargs={"pk": self.open_draft.id},
+            "applications:application_goodstype_assign_countries", kwargs={"pk": self.open_draft.id},
         )
 
     def test_no_county_for_goods_type_are_returned(self):
