@@ -4,7 +4,7 @@ orbs:
   jq: circleci/jq@1.8.0
 
 jobs:
-  test:
+  tests:
     docker:
       - image: circleci/python:3.7
       - image: circleci/postgres:11
@@ -85,6 +85,12 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
+      
+      - run:
+          name: Git Submodule Checkout
+          command: |
+            git submodule sync
+            git submodule update --init
 
       - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
@@ -99,16 +105,16 @@ jobs:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
-          name: Run linting
+          name: Prospector
           command: pipenv run prospector
 
       - run:
-          name: Check code formatting
+          name: Black
           command: pipenv run black . --check --diff
 
 workflows:
   version: 2
   test:
     jobs:
-      - test
+      - tests
       - linting
