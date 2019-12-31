@@ -239,10 +239,7 @@ class ApplicationGoodsTypeCountries(APIView):
                     verb=AuditType.REMOVED_COUNTRIES_FROM_GOOD,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
-                    payload={
-                        "good_type_name": good.description,
-                        "countries": ", ".join(removed_countries),
-                    },
+                    payload={"good_type_name": good.description, "countries": ", ".join(removed_countries),},
                 )
 
             if added_countries:
@@ -251,10 +248,7 @@ class ApplicationGoodsTypeCountries(APIView):
                     verb=AuditType.ASSIGNED_COUNTRIES_TO_GOOD,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
-                    payload={
-                        "good_type_name": good.description,
-                        "countries": ", ".join(added_countries),
-                    },
+                    payload={"good_type_name": good.description, "countries": ", ".join(added_countries),},
                 )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
