@@ -34,15 +34,15 @@ class GoodTypeCountriesManagementTests(DataTestClient):
             "applications:application_goodstype_assign_countries", kwargs={"pk": self.open_draft.id},
         )
 
-    def test_no_county_for_goods_type_are_returned(self):
+    def test_all_counties_are_returned_for_goods_type(self):
         """
         Given a Good with no Countries assigned
         When a user requests the Good
-        Then the correct Good with an empty Country list is returned
+        Then the correct Good with all countries assigned to the application is returned
         """
         response = self.client.get(self.good_url, **self.exporter_headers)
 
-        self.assertEqual([], response.json()["good"]["countries"])
+        self.assertEqual(len(response.json()["good"]["countries"]), self.open_draft.application_countries.count())
 
     def test_all_countries_for_goods_type_are_returned(self):
         """
