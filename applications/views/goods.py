@@ -230,17 +230,30 @@ class ApplicationGoodsTypeCountries(APIView):
 
             initial_countries = list(good.countries.all())
             good.countries.set(countries)
-            updated_countries = list(good.countries.all())
+            removed_countries = [country.name for country in initial_countries if country not in good.countries.all()]
+            added_countries = [country.name for country in good.countries.all() if country not in initial_countries]
 
-            if initial_countries != updated_countries:
+            if removed_countries:
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=AuditType.ASSIGNED_GOOD_TO_COUNTRY,
+                    verb=AuditType.REMOVED_COUNTRIES_FROM_GOOD,
                     action_object=good,
                     target=Case.objects.get(id=application.id),
                     payload={
                         "good_type_name": good.description,
-                        "countries": ", ".join([x.name for x in updated_countries]),
+                        "countries": ", ".join(removed_countries),
+                    },
+                )
+
+            if added_countries:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ASSIGNED_COUNTRIES_TO_GOOD,
+                    action_object=good,
+                    target=Case.objects.get(id=application.id),
+                    payload={
+                        "good_type_name": good.description,
+                        "countries": ", ".join(added_countries),
                     },
                 )
 
