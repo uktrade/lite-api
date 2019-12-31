@@ -72,6 +72,19 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         self.assertTrue(self.country_1 in self.goods_type_1.countries.all())
         self.assertTrue(self.country_2 in self.goods_type_1.countries.all())
 
+    def test_cannot_set_no_countries_on_good(self):
+        """
+        Tests that a user cannot set no countries on a good
+        """
+        data = {
+            str(self.goods_type_1.id): [],
+            str(self.goods_type_2.id): [self.country_3.id, self.country_1.id],
+        }
+
+        response = self.client.put(self.good_country_url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_setting_countries_on_two_goods(self):
         """
         Tests setting multiple countries on multiple goods types simultaneously
