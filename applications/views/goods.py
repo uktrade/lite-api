@@ -222,8 +222,9 @@ class ApplicationGoodsTypeCountries(APIView):
 
             # Validate that at least one country has been selected per good
             if not countries:
-                return JsonResponse({"errors": "Select at least one country for each good"},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(
+                    {"errors": "Select at least one country for each good"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Validate that the countries given are valid countries
             if not Country.objects.filter(pk__in=countries).count() == len(countries):
