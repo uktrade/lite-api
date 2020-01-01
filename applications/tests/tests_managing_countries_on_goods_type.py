@@ -36,7 +36,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
             "applications:application_goodstype_assign_countries", kwargs={"pk": self.open_draft.id},
         )
 
-    def test_all_counties_are_returned_for_goods_type(self):
+    def test_all_countries_are_returned_for_goods_type(self):
         """
         Given a Good with no Countries assigned
         When a user requests the Good
