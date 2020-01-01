@@ -4,6 +4,8 @@ from rest_framework import status
 from applications.models import CountryOnApplication
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -117,7 +119,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
     def test_invalid_request_data_returns_404(self):
         """
-        404 with invalid request county key
+        404 with invalid request country key
         """
         data = {
             str(self.goods_type_1.id): [self.country_1.id, self.country_2.id],
@@ -127,3 +129,24 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_audit_entries_are_created(self):
+        """
+        Given a Good with Countries already assigned
+        When a user assigns a new country to the good and removes the existing one
+        Then two audit entries should be made showing the addition and removal
+        """
+        case = self.submit_application(self.open_draft)
+        case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        case.save()
+
+        self.goods_type_1.countries.set([self.country_1])
+        data = {str(self.goods_type_1.id): [self.country_2.id]}
+
+        self.client.put(self.good_country_url, data, **self.exporter_headers)
+
+        response_data = self.client.get(reverse("cases:activity", kwargs={"pk": case.id}), **self.gov_headers).json()
+
+        self.assertEqual(len(response_data["activity"]), 2)
+        self.assertIn("added the destinations United States to 'thing'", str(response_data))
+        self.assertIn("removed the destinations Spain from 'thing'", str(response_data))
