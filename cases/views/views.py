@@ -45,6 +45,7 @@ from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser, GovUser
 from users.serializers import CaseOfficerUserDetailsSerializer
@@ -488,9 +489,9 @@ class CaseOfficers(APIView):
         else:
             data["case_officer"] = None
         data["users"] = CaseOfficerUserDetailsSerializer(
-            GovUser.objects.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
-                full_name__icontains=name
-            ),
+            GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
+            .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
+            .filter(full_name__icontains=name),
             many=True,
         ).data
 
