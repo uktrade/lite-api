@@ -212,3 +212,14 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
             "status",
             "role",
         )
+
+
+class CaseOfficerUserDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GovUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email"
+        )

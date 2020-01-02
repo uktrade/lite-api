@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -32,6 +32,7 @@ from cases.serializers import (
     CaseTeamAdviceSerializer,
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
+    CaseOfficerSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
@@ -42,7 +43,9 @@ from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
-from users.models import ExporterUser
+from users.libraries.get_user import get_user_by_pk
+from users.models import ExporterUser, GovUser
+from users.serializers import CaseOfficerUserDetailsSerializer
 
 
 class CaseDetail(APIView):
@@ -438,3 +441,46 @@ class Destination(APIView):
             serializer = PartyWithFlagsSerializer(destination)
 
         return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
+
+
+class CaseOfficer(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk, govpk):
+        case = get_case(pk)
+        data = {"case_officer": govpk}
+
+        serializer = CaseOfficerSerializer(instance=case, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CaseOfficers(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        data = dict()
+        case_officer = get_case(pk).case_officer
+        if case_officer:
+            data["case_officer"] = CaseOfficerUserDetailsSerializer(get_case(pk).case_officer).data
+        else:
+            data["case_officer"] = None
+        data["users"] = CaseOfficerUserDetailsSerializer(GovUser.objects.all(), many=True).data
+
+        return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        case = get_case(pk)
+        data = {"case_officer": None}
+
+        serializer = CaseOfficerSerializer(instance=case, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

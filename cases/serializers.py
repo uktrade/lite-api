@@ -136,10 +136,22 @@ class CaseDetailSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
+    case_officer = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Case
-        fields = ("id", "type", "flags", "queues", "queue_names", "application", "query", "has_advice", "all_flags")
+        fields = (
+            "id",
+            "type",
+            "flags",
+            "queues",
+            "queue_names",
+            "application",
+            "query",
+            "has_advice",
+            "all_flags",
+            "case_officer",
+        )
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -457,3 +469,11 @@ class CaseTypeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return dict(key=instance.id, value=instance.name)
+
+
+class CaseOfficerSerializer(serializers.ModelSerializer):
+    case_officer = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all(), allow_null=True)
+
+    class Meta:
+        model = Case
+        fields = ("id", "case_officer")
