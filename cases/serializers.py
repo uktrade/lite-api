@@ -35,6 +35,7 @@ from users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
     ExporterUserViewSerializer,
+    CaseOfficerUserDetailsSerializer,
 )
 
 
@@ -136,7 +137,7 @@ class CaseDetailSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
-    case_officer = serializers.PrimaryKeyRelatedField(read_only=True)
+    case_officer = CaseOfficerUserDetailsSerializer(read_only=True)
 
     class Meta:
         model = Case
