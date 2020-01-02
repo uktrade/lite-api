@@ -44,6 +44,8 @@ class AuditType(Enum):
     DELETE_APPLICATION_DOCUMENT = "deleted the application document {file_name}"
     UPLOAD_CASE_DOCUMENT = "uploaded the case document {file_name}"
     GENERATE_CASE_DOCUMENT = "generated the case document {file_name} from template {template}"
+    ADD_CASE_OFFICER_TO_CASE = "{case_officer} has been set as the Case Officer"
+    REMOVE_CASE_OFFICER_TO_CASE = "{case_officer} has been removed as the Case Officer"
 
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = "updated letter template types from {old_case_types} to {new_case_types}"

@@ -218,10 +218,14 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
 class CaseOfficerUserDetailsSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    team = serializers.SerializerMethodField()
 
     class Meta:
         model = GovUser
         fields = ("id", "full_name", "email", "team")
 
-    def get_full_name(self, obj):
-        return obj.first_name + " " + obj.last_name
+    def get_full_name(self, instance):
+        return instance.first_name + " " + instance.last_name
+
+    def get_team(self, instance):
+        return instance.team.name

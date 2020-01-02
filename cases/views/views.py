@@ -449,12 +449,23 @@ class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk, govpk):
+        """
+        Assigns a gov user to be the case officer for a case
+        """
         case = get_case(pk)
         data = {"case_officer": govpk}
 
         serializer = CaseOfficerSerializer(instance=case, data=data)
 
         if serializer.is_valid():
+            user = get_user_by_pk(govpk)
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+                target=case,
+                payload={"case_officer": (user.first_name + " " + user.last_name)},
+            )
+
             serializer.save()
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -465,6 +476,10 @@ class CaseOfficers(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        """
+        gets the current case officer for a case, and gets a list of gov users based on the
+        search_term(name of user) passed in
+        """
         data = dict()
         case_officer = get_case(pk).case_officer
         name = request.GET.get("search_term", "")
@@ -482,12 +497,26 @@ class CaseOfficers(APIView):
         return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
+        """
+        removes the case officer currently assigned to a case off of it.
+        """
         case = get_case(pk)
+        if not case.case_officer:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
         data = {"case_officer": None}
 
         serializer = CaseOfficerSerializer(instance=case, data=data)
 
         if serializer.is_valid():
+            user = case.case_officer
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_CASE_OFFICER_TO_CASE,
+                target=case,
+                payload={"case_officer": (user.first_name + " " + user.last_name)},
+            )
+
             serializer.save()
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
