@@ -1,5 +1,3 @@
-from django.db.models import Value
-from django.db.models.functions import Concat
 from rest_framework import serializers
 
 from conf.constants import Roles
