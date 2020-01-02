@@ -16,29 +16,29 @@ class CaseGetTests(DataTestClient):
     def test_assign_gov_user(self):
         self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id, "govpk": self.user.id})
 
-        assert not self.case.case_officer
+        self.assertIsNone(self.case.case_officer)
 
         request = self.client.get(self.url, **self.gov_headers)
 
-        assert request.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
         self.case.refresh_from_db()
 
-        assert self.case.case_officer
+        self.assertIsNotNone(self.case.case_officer)
 
     def test_unassign_gov_user(self):
         self.case.case_officer = self.user
         self.case.save()
         self.url = reverse("cases:case_officers", kwargs={"pk": self.case.id})
 
-        assert self.case.case_officer
+        self.assertIsNotNone(self.case.case_officer)
 
         request = self.client.post(self.url, **self.gov_headers)
 
-        assert request.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
 
         self.case.refresh_from_db()
 
-        assert not self.case.case_officer
+        self.assertIsNone(self.case.case_officer)
 
     def test_get_case_officer(self):
         self.case.case_officer = self.user
@@ -47,4 +47,4 @@ class CaseGetTests(DataTestClient):
 
         request = self.client.get(self.url, **self.gov_headers)
 
-        assert request.status_code == status.HTTP_200_OK
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
