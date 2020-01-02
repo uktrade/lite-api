@@ -1,4 +1,6 @@
 from django.db import transaction
+from django.db.models import Value
+from django.db.models.functions import Concat
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -465,11 +467,17 @@ class CaseOfficers(APIView):
     def get(self, request, pk):
         data = dict()
         case_officer = get_case(pk).case_officer
+        name = request.GET.get("search_term", "")
         if case_officer:
             data["case_officer"] = CaseOfficerUserDetailsSerializer(get_case(pk).case_officer).data
         else:
             data["case_officer"] = None
-        data["users"] = CaseOfficerUserDetailsSerializer(GovUser.objects.all(), many=True).data
+        data["users"] = CaseOfficerUserDetailsSerializer(
+            GovUser.objects.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
+                full_name__icontains=name
+            ),
+            many=True,
+        ).data
 
         return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
 

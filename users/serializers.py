@@ -1,3 +1,5 @@
+from django.db.models import Value
+from django.db.models.functions import Concat
 from rest_framework import serializers
 
 from conf.constants import Roles
@@ -215,11 +217,11 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
 
 
 class CaseOfficerUserDetailsSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = GovUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email"
-        )
+        fields = ("id", "full_name", "email", "team")
+
+    def get_full_name(self, obj):
+        return obj.first_name + " " + obj.last_name
