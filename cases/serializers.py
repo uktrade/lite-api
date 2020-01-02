@@ -30,6 +30,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamSerializer
+from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser
 from users.serializers import (
     BaseUserViewSerializer,
@@ -473,7 +474,9 @@ class CaseTypeSerializer(serializers.ModelSerializer):
 
 
 class CaseOfficerSerializer(serializers.ModelSerializer):
-    case_officer = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all(), allow_null=True)
+    case_officer = serializers.PrimaryKeyRelatedField(
+        queryset=GovUser.objects.exclude(status=UserStatuses.DEACTIVATED).all(), allow_null=True
+    )
 
     class Meta:
         model = Case
