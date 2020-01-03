@@ -11,13 +11,10 @@ class CaseGetTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)
         self.case = self.submit_application(self.standard_application)
-        team = get_team_by_pk("00000000-0000-0000-0000-000000000001")
-        self.user = self.create_gov_user("new_user@their.email.com", team)
+        self.user = self.create_gov_user("new_user@their.email.com", self.team)
 
     def test_assign_gov_user(self):
         self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id, "gov_user_pk": self.user.id})
-
-        self.assertIsNone(self.case.case_officer)
 
         request = self.client.post(self.url, data={}, **self.gov_headers)
 
@@ -30,8 +27,6 @@ class CaseGetTests(DataTestClient):
         self.case.case_officer = self.user
         self.case.save()
         self.url = reverse("cases:case_officers", kwargs={"pk": self.case.id})
-
-        self.assertIsNotNone(self.case.case_officer)
 
         request = self.client.delete(self.url, data={}, **self.gov_headers)
 
