@@ -1,5 +1,4 @@
-from rest_framework.exceptions import PermissionDenied
-
+from conf.exceptions import PermissionDeniedError
 from organisations.models import Organisation
 from users.models import GovUser
 
@@ -9,9 +8,9 @@ def assert_user_has_permission(user, permission, organisation: Organisation = No
         if user.has_permission(permission):
             return True
         else:
-            raise PermissionDenied()
+            raise PermissionDeniedError()
     else:
         if user.has_permission(permission, organisation):
             return True
         else:
-            raise PermissionDenied()
+            raise PermissionDeniedError()
