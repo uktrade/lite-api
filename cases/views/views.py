@@ -449,6 +449,7 @@ class Destination(APIView):
 class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
 
+    @transaction.atomic
     def post(self, request, pk, gov_user_pk):
         """
         Assigns a gov user to be the case officer for a case
@@ -497,6 +498,7 @@ class CaseOfficers(APIView):
 
         return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def delete(self, request, pk):
         """
         removes the case officer currently assigned to a case off of it.

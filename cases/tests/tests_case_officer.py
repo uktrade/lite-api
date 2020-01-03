@@ -3,6 +3,7 @@ from rest_framework import status
 
 from teams.helpers import get_team_by_pk
 from test_helpers.clients import DataTestClient
+from users.enums import UserStatuses
 
 
 class CaseGetTests(DataTestClient):
@@ -48,3 +49,18 @@ class CaseGetTests(DataTestClient):
         request = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(request.status_code, status.HTTP_200_OK)
+
+    def test_dont_get_deactivated_users(self):
+        self.user.status = UserStatuses.DEACTIVATED
+        self.user.save()
+
+        self.url = reverse("cases:case_officers", kwargs={"pk": self.case.id})
+
+        request = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
+
+        response_data = request.json()["GovUsers"]
+
+        for user in response_data["users"]:
+            self.assertIsNot(user["id"], self.user.id, "deactivated user should not be returned")
