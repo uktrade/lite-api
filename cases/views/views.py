@@ -34,7 +34,7 @@ from cases.serializers import (
     CaseTeamAdviceSerializer,
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
-    CaseOfficerSerializer,
+    CaseOfficerUpdateSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
@@ -48,7 +48,7 @@ from static.countries.serializers import CountryWithFlagsSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser, GovUser
-from users.serializers import CaseOfficerUserDetailsSerializer
+from users.serializers import CaseOfficerUserDisplaySerializer
 
 
 class CaseDetail(APIView):
@@ -449,17 +449,17 @@ class Destination(APIView):
 class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
 
-    def get(self, request, pk, govpk):
+    def post(self, request, pk, gov_user_pk):
         """
         Assigns a gov user to be the case officer for a case
         """
         case = get_case(pk)
-        data = {"case_officer": govpk}
+        data = {"case_officer": gov_user_pk}
 
-        serializer = CaseOfficerSerializer(instance=case, data=data)
+        serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
         if serializer.is_valid():
-            user = get_user_by_pk(govpk)
+            user = get_user_by_pk(gov_user_pk)
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
@@ -485,10 +485,10 @@ class CaseOfficers(APIView):
         case_officer = get_case(pk).case_officer
         name = request.GET.get("search_term", "")
         if case_officer:
-            data["case_officer"] = CaseOfficerUserDetailsSerializer(get_case(pk).case_officer).data
+            data["case_officer"] = CaseOfficerUserDisplaySerializer(case_officer).data
         else:
             data["case_officer"] = None
-        data["users"] = CaseOfficerUserDetailsSerializer(
+        data["users"] = CaseOfficerUserDisplaySerializer(
             GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
             .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
             .filter(full_name__icontains=name),
@@ -497,7 +497,7 @@ class CaseOfficers(APIView):
 
         return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
 
-    def post(self, request, pk):
+    def delete(self, request, pk):
         """
         removes the case officer currently assigned to a case off of it.
         """
@@ -507,13 +507,13 @@ class CaseOfficers(APIView):
 
         data = {"case_officer": None}
 
-        serializer = CaseOfficerSerializer(instance=case, data=data)
+        serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
         if serializer.is_valid():
             user = case.case_officer
             audit_trail_service.create(
                 actor=request.user,
-                verb=AuditType.REMOVE_CASE_OFFICER_TO_CASE,
+                verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
                 target=case,
                 payload={"case_officer": (user.first_name + " " + user.last_name)},
             )

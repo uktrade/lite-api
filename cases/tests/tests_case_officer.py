@@ -14,11 +14,11 @@ class CaseGetTests(DataTestClient):
         self.user = self.create_gov_user("new_user@their.email.com", team)
 
     def test_assign_gov_user(self):
-        self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id, "govpk": self.user.id})
+        self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id, "gov_user_pk": self.user.id})
 
         self.assertIsNone(self.case.case_officer)
 
-        request = self.client.get(self.url, **self.gov_headers)
+        request = self.client.post(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
         self.case.refresh_from_db()
@@ -32,7 +32,7 @@ class CaseGetTests(DataTestClient):
 
         self.assertIsNotNone(self.case.case_officer)
 
-        request = self.client.post(self.url, **self.gov_headers)
+        request = self.client.delete(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
 

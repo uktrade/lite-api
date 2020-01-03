@@ -36,7 +36,7 @@ from users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
     ExporterUserViewSerializer,
-    CaseOfficerUserDetailsSerializer,
+    CaseOfficerUserDisplaySerializer,
 )
 
 
@@ -138,7 +138,7 @@ class CaseDetailSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
-    case_officer = CaseOfficerUserDetailsSerializer(read_only=True)
+    case_officer = CaseOfficerUserDisplaySerializer(read_only=True)
 
     class Meta:
         model = Case
@@ -473,7 +473,11 @@ class CaseTypeSerializer(serializers.ModelSerializer):
         return dict(key=instance.id, value=instance.name)
 
 
-class CaseOfficerSerializer(serializers.ModelSerializer):
+class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for assigning and removing case officers from a case.
+    """
+
     case_officer = serializers.PrimaryKeyRelatedField(
         queryset=GovUser.objects.exclude(status=UserStatuses.DEACTIVATED).all(), allow_null=True
     )

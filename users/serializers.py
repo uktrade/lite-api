@@ -214,7 +214,11 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseOfficerUserDetailsSerializer(serializers.ModelSerializer):
+class CaseOfficerUserDisplaySerializer(serializers.ModelSerializer):
+    """
+    Will return all the details required to display the case_officer
+    """
+
     full_name = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
 
