@@ -47,9 +47,17 @@ class OrganisationUsersViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_cannot_see_user_details_without_permission(self):
+    def test_can_see_own_user_details(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_cannot_see_user_details_without_permission(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_default_role)
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.gov_user.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
