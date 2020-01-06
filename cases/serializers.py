@@ -130,7 +130,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.status.status
 
 
-class CaseUpdateSerializer(CaseSerializer):
+class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
@@ -138,6 +138,7 @@ class CaseUpdateSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
+    audit_notification = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -151,10 +152,12 @@ class CaseUpdateSerializer(CaseSerializer):
             "query",
             "has_advice",
             "all_flags",
+            "audit_notification",
         )
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
     def get_application(self, instance):
@@ -200,17 +203,9 @@ class CaseUpdateSerializer(CaseSerializer):
         """
         return get_ordered_flags(instance, self.team)
 
-
-class CaseDetailSerializer(CaseUpdateSerializer):
-    audit_notification = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Case
-        fields = CaseUpdateSerializer.Meta.fields + ("audit_notification",)
-
     def get_audit_notification(self, instance):
         content_type = ContentType.objects.get_for_model(Audit)
-        queryset = GovNotification.objects.filter(user=self.context.user, content_type=content_type, case=instance)
+        queryset = GovNotification.objects.filter(user=self.user, content_type=content_type, case=instance)
 
         if queryset.exists():
             notification = queryset.first()
@@ -240,7 +235,10 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseAssignment
-        fields = ("case", "users")
+        fields = (
+            "case",
+            "users",
+        )
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):
