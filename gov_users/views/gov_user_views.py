@@ -14,7 +14,7 @@ from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser
+from users.models import GovUser, GovNotification
 
 
 class AuthenticateGovUser(APIView):
@@ -170,3 +170,13 @@ class UserMeDetail(APIView):
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
         return JsonResponse(data={"user": serializer.data})
+
+
+class NotificationViewSet(APIView):
+    authentication_classes = (GovAuthentication,)
+    queryset = GovNotification.objects.all()
+
+    # TODO: LT-1180 endpoint
+    def get(self, request):
+
+        return JsonResponse(data={"notifications": []}, status=status.HTTP_200_OK)
