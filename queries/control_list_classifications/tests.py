@@ -10,6 +10,7 @@ from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -117,8 +118,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
     def test_respond_to_control_list_classification_query_nlr(self):
         """
-        Ensure that a gov user can respond to a control list
-        classification query with no licence required
+        Ensure that a gov user can respond to a control list classification query with no licence required.
         """
         previous_query_control_code = self.query.good.control_code
         data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
@@ -142,8 +142,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
     def test_respond_to_control_list_classification_query_failure(self):
         """
-        Ensure that a gov user cannot respond to a control list
-        classification query without providing data
+        Ensure that a gov user cannot respond to a control list classification query without providing data.
         """
         data = {}
 
@@ -179,3 +178,21 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
         self.assertEqual(Audit.objects.all().count(), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ControlListClassificationsQueryManageStatusTests(DataTestClient):
+
+    def test_user_set_clc_status_success(self):
+        query = self.create_clc_query("This is a widget", self.organisation)
+        url = reverse("queries:control_list_classifications:manage_status", kwargs={"pk": query.pk})
+        data = {
+            "status": "withdrawn"
+        }
+
+        response = self.client.put(url, data, **self.gov_headers)
+
+        self.query.refresh_from_db()
+
+        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
