@@ -461,11 +461,13 @@ class CaseOfficer(APIView):
 
         if serializer.is_valid():
             user = get_user_by_pk(gov_user_pk)
+            if user.first_name:
+                payload = {"case_officer": (user.first_name + " " + user.last_name)}
+            else:
+                payload = {"case_officer": user.email}
+
             audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
-                target=case,
-                payload={"case_officer": (user.first_name + " " + user.last_name)},
+                actor=request.user, verb=AuditType.ADD_CASE_OFFICER_TO_CASE, target=case, payload=payload,
             )
 
             serializer.save()
@@ -513,11 +515,13 @@ class CaseOfficers(APIView):
 
         if serializer.is_valid():
             user = case.case_officer
+            if user.first_name:
+                payload = {"case_officer": (user.first_name + " " + user.last_name)}
+            else:
+                payload = {"case_officer": user.email}
+
             audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
-                target=case,
-                payload={"case_officer": (user.first_name + " " + user.last_name)},
+                actor=request.user, verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE, target=case, payload=payload,
             )
 
             serializer.save()
