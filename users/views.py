@@ -2,7 +2,6 @@ from functools import reduce
 from operator import or_
 from uuid import UUID
 
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -12,8 +11,7 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
-from audit_trail.models import Audit
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import str_to_bool
@@ -23,12 +21,11 @@ from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, ExporterNotification, GovNotification
+from users.models import ExporterUser, ExporterNotification
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     ExporterNotificationSerializer,
-    CaseNotificationGetSerializer,
 )
 
 
@@ -175,26 +172,6 @@ class NotificationViewSet(APIView):
             data["notifications"] = ExporterNotificationSerializer(queryset, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
-
-
-class CaseNotification(APIView):
-    authentication_classes = (GovAuthentication,)
-    queryset = GovNotification.objects.all()
-
-    def get(self, request):
-        user = request.user
-        case = self.request.GET.get("case")
-        notification_data = None
-
-        content_type = ContentType.objects.get_for_model(Audit)
-        queryset = GovNotification.objects.filter(user=user, content_type=content_type, case__id=case)
-
-        if queryset.exists():
-            notification = queryset.first()
-            notification_data = CaseNotificationGetSerializer(notification).data
-            notification.delete()
-
-        return JsonResponse(data={"notification": notification_data}, status=status.HTTP_200_OK)
 
 
 class AssignSites(UpdateAPIView):
