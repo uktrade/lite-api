@@ -219,20 +219,16 @@ class CaseOfficerUserDisplaySerializer(serializers.ModelSerializer):
     Will return all the details required to display the case_officer
     """
 
-    full_name = serializers.SerializerMethodField()
     team = serializers.SerializerMethodField()
 
     class Meta:
         model = GovUser
         fields = (
             "id",
-            "full_name",
-            "email",
+            "first_name",
+            "last_name" "email",
             "team",
         )
-
-    def get_full_name(self, instance):
-        return instance.first_name + " " + instance.last_name
 
     def get_team(self, instance):
         return instance.team.name
