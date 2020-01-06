@@ -479,10 +479,10 @@ class CaseOfficers(APIView):
 
     def get(self, request, pk):
         """
-        gets the current case officer for a case, and gets a list of gov users based on the
+        Gets the current case officer for a case, and gets a list of gov users based on the
         search_term(name of user) passed in
         """
-        data = dict()
+        data = {}
         case_officer = get_case(pk).case_officer
         name = request.GET.get("search_term", "")
         if case_officer:
@@ -501,7 +501,7 @@ class CaseOfficers(APIView):
     @transaction.atomic
     def delete(self, request, pk):
         """
-        removes the case officer currently assigned to a case off of it.
+        Removes the case officer currently assigned to a case off of it.
         """
         case = get_case(pk)
         if not case.case_officer:

@@ -224,7 +224,12 @@ class CaseOfficerUserDisplaySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GovUser
-        fields = ("id", "full_name", "email", "team")
+        fields = (
+            "id",
+            "full_name",
+            "email",
+            "team",
+        )
 
     def get_full_name(self, instance):
         return instance.first_name + " " + instance.last_name

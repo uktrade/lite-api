@@ -484,4 +484,7 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Case
-        fields = ("id", "case_officer")
+        fields = (
+            "id",
+            "case_officer",
+        )
