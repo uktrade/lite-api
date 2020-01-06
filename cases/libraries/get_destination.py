@@ -59,15 +59,14 @@ def get_destination_flags(case):
 
 def get_ordered_flags(case: Case, team: Team):
     case_flags = case.flags.all()
-    org_flags = case.organisation.flags.all() if case.organisation else []
+    org_flags = case.organisation.flags.all()
     goods_flags = []
     destination_flags = []
 
     if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
-        goods = GoodOnApplication.objects.filter(application=case).select_related("good")
-        for good in goods:
-            if good.good:
-                goods_flags += good.good.flags.all()
+        goods_on_application = GoodOnApplication.objects.filter(application=case).select_related("good")
+        for good_on_application in goods_on_application:
+            goods_flags += good_on_application.good.flags.all()
         destination_flags = get_destination_flags(case)
 
     flag_data = (
