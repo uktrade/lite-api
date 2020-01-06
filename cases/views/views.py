@@ -26,7 +26,6 @@ from cases.serializers import (
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
-    CaseDetailSerializer,
     CaseAdviceSerializer,
     EcjuQueryGovSerializer,
     EcjuQueryExporterSerializer,
