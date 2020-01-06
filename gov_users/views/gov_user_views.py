@@ -69,8 +69,8 @@ class GovUserList(APIView):
         Fetches all government users
         """
         teams = request.GET.get("teams", None)
-        activated_only = request.GET.get("Activated", None)
-        full_name = request.GET.get("user_name", None)
+        activated_only = request.GET.get("activated", None)
+        full_name = request.GET.get("name", None)
 
         if activated_only:
             gov_users = GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
