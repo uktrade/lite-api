@@ -1,4 +1,6 @@
 import reversion
+from django.db.models import Value
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -12,6 +14,7 @@ from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, GovNotification
@@ -66,11 +69,23 @@ class GovUserList(APIView):
         Fetches all government users
         """
         teams = request.GET.get("teams", None)
+        activated_only = request.GET.get("Activated", None)
+        full_name = request.GET.get("user_name", None)
+
+        if activated_only:
+            gov_users = GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
+        else:
+            gov_users = GovUser.objects
+
+        if full_name:
+            gov_users.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
+                full_name__icontains=full_name
+            )
 
         if teams:
-            gov_users = GovUser.objects.filter(team__id__in=teams.split(",")).order_by("email")
-        else:
-            gov_users = GovUser.objects.all().order_by("email")
+            gov_users = gov_users.filter(team__id__in=teams.split(","))
+
+        gov_users.all()
 
         serializer = GovUserViewSerializer(gov_users, many=True)
         return JsonResponse(data={"gov_users": serializer.data})

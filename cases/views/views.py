@@ -41,6 +41,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
+from gov_users.serializers import GovUserSimpleSerializer
 from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -48,7 +49,6 @@ from static.countries.serializers import CountryWithFlagsSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser, GovUser
-from users.serializers import CaseOfficerUserDisplaySerializer
 
 
 class CaseDetail(APIView):
@@ -451,12 +451,27 @@ class Destination(APIView):
 class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
 
+    def get(self, request, pk):
+        """
+        Gets the current case officer for a case, and gets a list of gov users based on the
+        search_term(name of user) passed in
+        """
+        data = {}
+        case_officer = get_case(pk).case_officer
+        if case_officer:
+            data["case_officer"] = GovUserSimpleSerializer(case_officer).data
+        else:
+            data["case_officer"] = None
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
     @transaction.atomic
-    def post(self, request, pk, gov_user_pk):
+    def put(self, request, pk):
         """
         Assigns a gov user to be the case officer for a case
         """
         case = get_case(pk)
+        gov_user_pk = request.GET.get("gov_user_pk")
         data = {"case_officer": gov_user_pk}
 
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
@@ -475,31 +490,6 @@ class CaseOfficer(APIView):
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CaseOfficers(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def get(self, request, pk):
-        """
-        Gets the current case officer for a case, and gets a list of gov users based on the
-        search_term(name of user) passed in
-        """
-        data = {}
-        case_officer = get_case(pk).case_officer
-        name = request.GET.get("search_term", "")
-        if case_officer:
-            data["case_officer"] = CaseOfficerUserDisplaySerializer(case_officer).data
-        else:
-            data["case_officer"] = None
-        data["users"] = CaseOfficerUserDisplaySerializer(
-            GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
-            .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
-            .filter(full_name__icontains=name),
-            many=True,
-        ).data
-
-        return JsonResponse(data={"GovUsers": data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def delete(self, request, pk):

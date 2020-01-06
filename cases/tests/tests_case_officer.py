@@ -1,12 +1,11 @@
 from django.urls import reverse
 from rest_framework import status
 
-from teams.helpers import get_team_by_pk
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 
 
-class CaseGetTests(DataTestClient):
+class CaseOfficerTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application(self.organisation)

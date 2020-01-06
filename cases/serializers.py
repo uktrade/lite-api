@@ -38,7 +38,6 @@ from users.serializers import (
     BaseUserViewSerializer,
     GovUserViewSerializer,
     ExporterUserViewSerializer,
-    CaseOfficerUserDisplaySerializer,
 )
 
 
@@ -140,7 +139,7 @@ class CaseDetailSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
-    case_officer = CaseOfficerUserDisplaySerializer(read_only=True)
+    case_officer = GovUserSimpleSerializer(read_only=True)
     audit_notification = serializers.SerializerMethodField()
 
     class Meta:

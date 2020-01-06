@@ -78,6 +78,8 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+
     class Meta:
         model = GovUser
         fields = (
@@ -85,7 +87,11 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "team",
         )
+
+        def get_team(self, instance):
+            return instance.team.name
 
 
 class GovUserNotificationSerializer(serializers.ModelSerializer):

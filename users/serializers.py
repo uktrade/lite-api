@@ -200,24 +200,3 @@ class UserOrganisationRelationshipSerializer(serializers.ModelSerializer):
             "status",
             "role",
         )
-
-
-class CaseOfficerUserDisplaySerializer(serializers.ModelSerializer):
-    """
-    Will return all the details required to display the case_officer
-    """
-
-    team = serializers.SerializerMethodField()
-
-    class Meta:
-        model = GovUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "team",
-        )
-
-    def get_team(self, instance):
-        return instance.team.name
