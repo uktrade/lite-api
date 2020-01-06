@@ -461,16 +461,15 @@ class CaseOfficer(APIView):
 
         if serializer.is_valid():
             user = get_user_by_pk(gov_user_pk)
-            if user.first_name:
-                payload = {"case_officer": (user.first_name + " " + user.last_name)}
-            else:
-                payload = {"case_officer": user.email}
-
-            audit_trail_service.create(
-                actor=request.user, verb=AuditType.ADD_CASE_OFFICER_TO_CASE, target=case, payload=payload,
-            )
 
             serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+                target=case,
+                payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
+            )
+
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -515,16 +514,15 @@ class CaseOfficers(APIView):
 
         if serializer.is_valid():
             user = case.case_officer
-            if user.first_name:
-                payload = {"case_officer": (user.first_name + " " + user.last_name)}
-            else:
-                payload = {"case_officer": user.email}
-
-            audit_trail_service.create(
-                actor=request.user, verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE, target=case, payload=payload,
-            )
 
             serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
+                target=case,
+                payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
+            )
+
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
