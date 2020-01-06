@@ -226,7 +226,8 @@ class CaseOfficerUserDisplaySerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "first_name",
-            "last_name" "email",
+            "last_name",
+            "email",
             "team",
         )
 
