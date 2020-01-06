@@ -90,8 +90,8 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
             "team",
         )
 
-        def get_team(self, instance):
-            return instance.team.name
+    def get_team(self, instance):
+        return instance.team.name
 
 
 class GovUserNotificationSerializer(serializers.ModelSerializer):

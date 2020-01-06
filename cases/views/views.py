@@ -471,7 +471,7 @@ class CaseOfficer(APIView):
         Assigns a gov user to be the case officer for a case
         """
         case = get_case(pk)
-        gov_user_pk = request.GET.get("gov_user_pk")
+        gov_user_pk = request.data.get("gov_user_pk")
         data = {"case_officer": gov_user_pk}
 
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)

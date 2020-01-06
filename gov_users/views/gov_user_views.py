@@ -78,7 +78,7 @@ class GovUserList(APIView):
             gov_users = GovUser.objects
 
         if full_name:
-            gov_users.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
+            gov_users = gov_users.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
                 full_name__icontains=full_name
             )
 
