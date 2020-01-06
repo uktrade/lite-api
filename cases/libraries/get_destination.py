@@ -24,8 +24,10 @@ def get_destination(pk):
 
 def get_standard_application_destination_flags(application):
     flags = []
-    flags += application.end_user.flags.all()
-    flags += application.consignee.flags.all()
+    if application.end_user:
+        flags += application.end_user.flags.all()
+    if application.consignee:
+        flags += application.consignee.flags.all()
 
     for ultimate_end_user in application.ultimate_end_users.values_list("id", flat=True):
         flags += get_destination(ultimate_end_user).flags.all()
@@ -45,7 +47,8 @@ def get_destination_flags(case):
 
     if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
         query = get_end_user_advisory_by_pk(case.id)
-        flags += query.end_user.flags.all()
+        if query.end_user:
+            flags += query.end_user.flags.all()
     else:
         application = get_application(case.id)
         if isinstance(application, StandardApplication):
@@ -61,9 +64,9 @@ def get_ordered_flags(case: Case, team: Team):
     destination_flags = []
 
     if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
-        goods = GoodOnApplication.objects.filter(application=case).select_related("good")
-        for good in goods:
-            goods_flags += good.good.flags.all()
+        goods_on_application = GoodOnApplication.objects.filter(application=case).select_related("good")
+        for good_on_application in goods_on_application:
+            goods_flags += good_on_application.good.flags.all()
         destination_flags = get_destination_flags(case)
 
     flag_data = (
