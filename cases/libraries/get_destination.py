@@ -24,8 +24,10 @@ def get_destination(pk):
 
 def get_standard_application_destination_flags(application):
     flags = []
-    flags += application.end_user.flags.all()
-    flags += application.consignee.flags.all()
+    if hasattr(application, "end_user"):
+        flags += application.end_user.flags.all()
+    if hasattr(application, "consignee"):
+        flags += application.consignee.flags.all()
 
     for ultimate_end_user in application.ultimate_end_users.values_list("id", flat=True):
         flags += get_destination(ultimate_end_user).flags.all()
