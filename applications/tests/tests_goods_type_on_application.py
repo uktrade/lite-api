@@ -40,7 +40,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         )
 
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
-
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)

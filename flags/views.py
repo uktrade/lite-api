@@ -1,11 +1,11 @@
-from lite_content.lite_api import strings
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import GoodOnApplication
+from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.models import Case
@@ -17,7 +17,11 @@ from flags.libraries.get_flag import get_flag
 from flags.models import Flag
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer
 from goods.models import Good
+from lite_content.lite_api import strings
+from parties.models import Party
 from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from static.countries.models import Country
 
 
 @permission_classes((permissions.AllowAny,))
@@ -170,6 +174,18 @@ class AssignFlags(APIView):
             for case in cases:
                 self._set_case_activity_for_goods(added_flags, removed_flags, case, user, note, good=obj)
 
+        if isinstance(obj, Party):
+            case = self._get_case_for_destination(obj)
+            self._set_case_activity_for_destinations(added_flags, removed_flags, case, user, note, destination=obj)
+
+        if isinstance(obj, Country):
+            cases = Case.objects.filter(
+                id__in=CountryOnApplication.objects.filter(country=obj.id).values_list("application", flat=True)
+            )
+
+            for case in cases:
+                self._set_case_activity_for_destinations(added_flags, removed_flags, case, user, note, destination=obj)
+
         obj.flags.set(
             flags + list(previously_assigned_not_team_flags) + list(previously_assigned_deactivated_team_flags)
         )
@@ -209,5 +225,47 @@ class AssignFlags(APIView):
                 verb=AuditType.GOOD_REMOVE_FLAGS,
                 action_object=good,
                 target=case,
-                payload={"removed_flags": removed_flags, "good_name": good.description, "additional_text": note,},
+                payload={"removed_flags": removed_flags, "good_name": good.description, "additional_text": note},
             )
+
+    def _set_case_activity_for_destinations(self, added_flags, removed_flags, case, user, note, destination):
+        # Add an activity item for the case
+        if added_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.DESTINATION_ADD_FLAGS,
+                action_object=destination,
+                target=case,
+                payload={"added_flags": added_flags, "destination_name": destination.name, "additional_text": note},
+            )
+
+        if removed_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.DESTINATION_REMOVE_FLAGS,
+                action_object=destination,
+                target=case,
+                payload={
+                    "removed_flags": removed_flags,
+                    "destination_name": destination.name,
+                    "additional_text": note,
+                },
+            )
+
+    @staticmethod
+    def _get_case_for_destination(party):
+        qs = StandardApplication.objects.filter(
+            Q(consignee=party) | Q(end_user=party) | Q(ultimate_end_users__in=[party]) | Q(third_parties__in=[party])
+        )
+        if not qs:
+            qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
+
+        if not qs:
+            qs = HmrcQuery.objects.filter(
+                Q(consignee=party)
+                | Q(end_user=party)
+                | Q(ultimate_end_users__in=[party])
+                | Q(third_parties__in=[party])
+            )
+        if qs:
+            return qs.first().get_case()

@@ -35,7 +35,7 @@ urlpatterns = [
         name="goods_type_document",
     ),
     path(
-        "<uuid:pk>/goodstype/<uuid:goodstype_pk>/assign-countries/",
+        "<uuid:pk>/goodstype/assign-countries/",
         goods.ApplicationGoodsTypeCountries.as_view(),
         name="application_goodstype_assign_countries",
     ),

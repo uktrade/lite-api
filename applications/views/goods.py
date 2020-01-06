@@ -26,9 +26,9 @@ from goods.models import GoodDocument
 from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer
+from lite_content.lite_api import strings
 from static.countries.models import Country
 from users.models import ExporterUser
-from lite_content.lite_api import strings
 
 
 class ApplicationGoodsOnApplication(APIView):
@@ -194,10 +194,10 @@ class ApplicationGoodsType(APIView):
 
         audit_trail_service.create(
             actor=request.user,
-            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
+            verb=AuditType.REMOVE_GOOD_TYPE_FROM_APPLICATION,
             action_object=goods_type,
             target=Case.objects.get(id=application.id),
-            payload={"good_type_name": goods_type.description,},
+            payload={"good_type_name": goods_type.description},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
@@ -212,15 +212,45 @@ class ApplicationGoodsTypeCountries(APIView):
 
     @transaction.atomic
     @allowed_application_types([ApplicationType.OPEN_LICENCE])
+    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
-    def put(self, request, application, goodstype_pk):
+    def put(self, request, application):
         data = request.data
 
         for good, countries in data.items():
             good = get_goods_type(good)
+
+            # Validate that at least one country has been selected per good
+            if not countries:
+                return JsonResponse(
+                    {"errors": "Select at least one country for each good"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate that the countries given are valid countries
             if not Country.objects.filter(pk__in=countries).count() == len(countries):
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
+            initial_countries = list(good.countries.all())
             good.countries.set(countries)
+            removed_countries = [country.name for country in initial_countries if country not in good.countries.all()]
+            added_countries = [country.name for country in good.countries.all() if country not in initial_countries]
+
+            if removed_countries:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVED_COUNTRIES_FROM_GOOD,
+                    action_object=good,
+                    target=Case.objects.get(id=application.id),
+                    payload={"good_type_name": good.description, "countries": ", ".join(removed_countries),},
+                )
+
+            if added_countries:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ASSIGNED_COUNTRIES_TO_GOOD,
+                    action_object=good,
+                    target=Case.objects.get(id=application.id),
+                    payload={"good_type_name": good.description, "countries": ", ".join(added_countries),},
+                )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

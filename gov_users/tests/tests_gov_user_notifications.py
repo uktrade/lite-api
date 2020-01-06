@@ -1,9 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import GovNotification
 from test_helpers.clients import DataTestClient
 
@@ -34,8 +36,8 @@ class GovUserNotificationTests(DataTestClient):
     def test_edit_application_updates_previous_audit_notification_success(self):
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=AuditType.UPDATED_APPLICATION_NAME,
-            target=self.case,
+            verb=AuditType.UPDATED_APPLICATION_NAME.value,
+            target=self.case.get_case(),
             payload={"old_name": "old_app_name", "new_name": "new_app_name"},
         )
 
@@ -74,16 +76,19 @@ class GovUserNotificationTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(case_audit_notification_count, prev_case_audit_notification_count)
 
-    def test_get_case_deletes_audit_notification_and_returns_data_success(self):
+    def test_get_case_deletes_audit_notification_success(self):
+        self.case = self.create_standard_application_case(self.organisation).get_case()
+        self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.case.save()
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=AuditType.UPDATED_APPLICATION_NAME,
+            verb=AuditType.UPDATED_STATUS.value,
             target=self.case,
-            payload={"old_name": "old_app_name", "new_name": "new_app_name"},
+            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
         )
 
         self.gov_user.send_notification(content_object=audit, case=self.case)
-        url = reverse_lazy("cases:case", kwargs={"pk": str(self.case.id)})
+        url = reverse("cases:activity", kwargs={"pk": self.case.id})
 
         response = self.client.get(url, **self.gov_headers)
         case_audit_notification_count = GovNotification.objects.filter(
@@ -91,6 +96,6 @@ class GovUserNotificationTests(DataTestClient):
         ).count()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case = response.json()["case"]
-        self.assertEqual(case["audit_notification"]["audit_id"], str(audit.id))
+        case_activity = response.json()["activity"]
+        self.assertEqual(len(case_activity), 1)
         self.assertEqual(case_audit_notification_count, 0)
