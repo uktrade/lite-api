@@ -15,7 +15,6 @@ from users.models import (
     GovUser,
     UserOrganisationRelationship,
     Role,
-    GovNotification,
     ExporterNotification,
 )
 
@@ -159,17 +158,6 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get("email", instance.email)
         instance.save()
         return instance
-
-
-class CaseNotificationGetSerializer(serializers.ModelSerializer):
-    audit_id = serializers.SerializerMethodField()
-
-    class Meta:
-        model = GovNotification
-        fields = ("audit_id",)
-
-    def get_audit_id(self, obj):
-        return obj.object_id
 
 
 class ExporterNotificationSerializer(serializers.ModelSerializer):
