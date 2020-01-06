@@ -181,18 +181,14 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 
 
 class ControlListClassificationsQueryManageStatusTests(DataTestClient):
-
     def test_user_set_clc_status_success(self):
         query = self.create_clc_query("This is a widget", self.organisation)
         url = reverse("queries:control_list_classifications:manage_status", kwargs={"pk": query.pk})
-        data = {
-            "status": "withdrawn"
-        }
+        data = {"status": "withdrawn"}
 
         response = self.client.put(url, data, **self.gov_headers)
 
-        self.query.refresh_from_db()
+        query.refresh_from_db()
 
         self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
