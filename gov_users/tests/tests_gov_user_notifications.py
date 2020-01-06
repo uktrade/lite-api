@@ -76,7 +76,7 @@ class GovUserNotificationTests(DataTestClient):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(case_audit_notification_count, prev_case_audit_notification_count)
 
-    def test_get_case_deletes_audit_notification_success(self):
+    def test_get_case_activity_deletes_audit_notification_success(self):
         self.case = self.create_standard_application_case(self.organisation).get_case()
         self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         self.case.save()
