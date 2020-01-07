@@ -7,7 +7,6 @@ from cases.models import Case, CaseAssignment
 from queues.constants import UPDATED_CASES_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
@@ -248,7 +247,7 @@ class CasesQueueTests(DataTestClient):
             target=self.case,
             payload={"status": CaseStatusEnum.APPLICANT_EDITING},
         )
-        self.gov_user.send_notification(content_object=audit, case=self.case)
+        self.gov_user.send_notification(content_object=self.audit, case=self.case)
 
         self.url = reverse("cases:search") + "?queue_id="
 
