@@ -72,22 +72,22 @@ class GovUserList(APIView):
         activated_only = request.GET.get("activated", None)
         full_name = request.GET.get("name", None)
 
+        gov_users_qs = GovUser.objects.all()
+
         if activated_only:
-            gov_users = GovUser.objects.exclude(status=UserStatuses.DEACTIVATED)
-        else:
-            gov_users = GovUser.objects
+            gov_users_qs = gov_users_qs.exclude(status=UserStatuses.DEACTIVATED)
 
         if full_name:
-            gov_users = gov_users.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
+            gov_users_qs = gov_users_qs.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
                 full_name__icontains=full_name
             )
 
         if teams:
-            gov_users = gov_users.filter(team__id__in=teams.split(","))
+            gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        gov_users.all()
+        gov_users_qs.all()
 
-        serializer = GovUserViewSerializer(gov_users, many=True)
+        serializer = GovUserViewSerializer(gov_users_qs, many=True)
         return JsonResponse(data={"gov_users": serializer.data})
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})

@@ -1,6 +1,4 @@
 from django.db import transaction
-from django.db.models import Value
-from django.db.models.functions import Concat
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -46,9 +44,8 @@ from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
-from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
-from users.models import ExporterUser, GovUser
+from users.models import ExporterUser
 
 
 class CaseDetail(APIView):
@@ -456,12 +453,8 @@ class CaseOfficer(APIView):
         Gets the current case officer for a case, and gets a list of gov users based on the
         search_term(name of user) passed in
         """
-        data = {}
         case_officer = get_case(pk).case_officer
-        if case_officer:
-            data["case_officer"] = GovUserSimpleSerializer(case_officer).data
-        else:
-            data["case_officer"] = None
+        data = {"case_officer": GovUserSimpleSerializer(case_officer).data if case_officer else None}
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
