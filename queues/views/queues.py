@@ -20,10 +20,14 @@ class QueuesList(APIView):
         Gets all queues.
         Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
         """
-        queues = get_queues(request.user.team, str_to_bool(request.GET.get("include_system_queues", False)),)
+        queues = get_queues(
+            user=request.user,
+            team=request.user.team,
+            include_system_queues=str_to_bool(request.GET.get("include_system_queues", False)),
+        )
 
         serializer = QueueViewSerializer(queues, many=True)
-        return JsonResponse(data={"queues": serializer.data})
+        return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
         data = JSONParser().parse(request)

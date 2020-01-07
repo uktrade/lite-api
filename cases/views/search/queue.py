@@ -5,6 +5,7 @@ from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
     OPEN_CASES_SYSTEM_QUEUE_ID,
+    UPDATED_CASES_QUEUE_ID,
 )
 from queues.models import Queue
 from teams.models import Team
@@ -31,7 +32,7 @@ class SearchQueue:
         )
 
     @classmethod
-    def system(cls, team, case_qs=None) -> List["SearchQueue"]:
+    def system(cls, user=None, team=None, case_qs=None) -> List["SearchQueue"]:
         if not case_qs:
             case_qs = Case.objects.all()
 
@@ -54,11 +55,17 @@ class SearchQueue:
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.in_team(team=team).count(),
             ),
+            cls(
+                id=UPDATED_CASES_QUEUE_ID,
+                name="Updated cases",
+                team=Team.objects.get(name="Admin"),
+                case_count=case_qs.is_updated(user=user).count(),
+            ),
         ]
 
     @classmethod
-    def all(cls, team, case_qs=None, queue_qs=None):
-        return cls.system(team, case_qs) + cls.from_queue_qs(queue_qs)
+    def all(cls, user=None, team=None, case_qs=None, queue_qs=None):
+        return cls.system(user=user, team=team, case_qs=case_qs) + cls.from_queue_qs(queue_qs)
 
     @classmethod
     def from_queue_qs(cls, queue_qs=None):

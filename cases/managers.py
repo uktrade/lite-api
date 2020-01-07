@@ -6,9 +6,11 @@ from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
     OPEN_CASES_SYSTEM_QUEUE_ID,
+    UPDATED_CASES_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.models import GovNotification
 
 
 class CaseQuerySet(models.QuerySet):
@@ -34,6 +36,18 @@ class CaseQuerySet(models.QuerySet):
 
     def in_team(self, team):
         return self.filter(queues__team=team).distinct()
+
+    def is_updated(self, user):
+        from cases.models import CaseAssignment
+
+        user_assigned_cases = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+        notification_cases = GovNotification.objects.filter(user=user, case__id__in=user_assigned_cases).values_list(
+            "case__id", flat=True
+        )
+
+        distinct_cases = self.filter(id__in=notification_cases).distinct()
+
+        return distinct_cases
 
     def has_status(self, status):
         return self.filter(status__status=status)
@@ -70,7 +84,7 @@ class CaseManager(models.Manager):
         return CaseQuerySet(self.model, using=self.db)
 
     def search(
-        self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None,
+        self, queue_id=None, user=None, status=None, case_type=None, sort=None, date_order=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -78,11 +92,11 @@ class CaseManager(models.Manager):
         case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:
-            case_qs = case_qs.in_team(team=team)
-
+            case_qs = case_qs.in_team(team=user.team)
         elif queue_id == OPEN_CASES_SYSTEM_QUEUE_ID:
             case_qs = case_qs.is_open()
-
+        elif queue_id == UPDATED_CASES_QUEUE_ID:
+            case_qs = case_qs.is_updated(user=user)
         elif queue_id is not None and queue_id != ALL_CASES_SYSTEM_QUEUE_ID:
             case_qs = case_qs.in_queue(queue_id=queue_id)
 

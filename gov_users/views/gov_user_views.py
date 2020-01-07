@@ -177,7 +177,7 @@ class NotificationViewSet(APIView):
 
     def get(self, request):
         # Get the notifications for the cases that the user is assigned to
-        user_assigned_cases = CaseAssignment.objects.filter(user=request.user).values_list("id", flat=True)
+        user_assigned_cases = CaseAssignment.objects.filter(users=request.user).values_list("case__id", flat=True)
         notifications_queryset = GovNotification.objects.filter(user=request.user, case__id__in=user_assigned_cases)
         notifications_data = GovUserNotificationSerializer(notifications_queryset).data
 

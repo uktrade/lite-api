@@ -22,14 +22,16 @@ class CasesSearchView(generics.ListAPIView):
         page = self.paginate_queryset(
             Case.objects.search(
                 queue_id=queue_id,
-                team=request.user.team,
+                user=request.user,
                 status=request.GET.get("status"),
                 case_type=request.GET.get("case_type"),
                 sort=request.GET.get("sort"),
                 date_order="-" if queue_id in SYSTEM_QUEUES else "",
             )
         )
-        queues = SearchQueueSerializer(service.get_search_queues(team=request.user.team), many=True).data
+        queues = SearchQueueSerializer(
+            service.get_search_queues(user=request.user, team=request.user.team), many=True
+        ).data
         cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_list()
