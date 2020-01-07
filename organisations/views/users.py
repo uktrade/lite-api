@@ -56,26 +56,22 @@ class UsersList(APIView):
 class UserDetail(APIView):
     authentication_classes = (SharedAuthentication,)
 
-    user = None
-    user_relationship = None
-
-    def dispatch(self, request, *args, **kwargs):
-        self.user = get_user_by_pk(kwargs["user_pk"])
-        organisation = get_organisation_by_pk(kwargs["org_pk"])
-
-        # Set the user's status in that org
-        self.user_relationship = organisation.get_user_relationship(self.user)
-        self.user.status = self.user_relationship.status
-
-        return super(UserDetail, self).dispatch(request, *args, **kwargs)
-
     def get(self, request, org_pk, user_pk):
         """
         Return a user from the specified organisation
         """
-        if isinstance(request.user, ExporterUser):
+        is_self = str(request.user.id) == str(user_pk)
+        if not is_self and isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
-        view_serializer = ExporterUserViewSerializer(self.user, context=org_pk)
+
+        user = get_user_by_pk(user_pk)
+        org = get_organisation_by_pk(org_pk)
+
+        # Set the user's status in that org
+        user_relationship = org.get_user_relationship(user)
+        user.status = user_relationship.status
+
+        view_serializer = ExporterUserViewSerializer(user, context=org_pk)
         return JsonResponse(data={"user": view_serializer.data})
 
     def put(self, request, org_pk, user_pk):
@@ -84,8 +80,14 @@ class UserDetail(APIView):
         """
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
+
         data = JSONParser().parse(request)
         user = get_user_by_pk(user_pk)
+        org = get_organisation_by_pk(org_pk)
+
+        # Set the user's status in that org
+        user_relationship = org.get_user_relationship(user)
+        user.status = user_relationship.status
 
         # Cannot perform actions on another super user without super user role
         if (
@@ -121,7 +123,7 @@ class UserDetail(APIView):
             ):
                 raise PermissionDenied()
 
-        serializer = UserOrganisationRelationshipSerializer(instance=self.user_relationship, data=data, partial=True)
+        serializer = UserOrganisationRelationshipSerializer(instance=user_relationship, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
