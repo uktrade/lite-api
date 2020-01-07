@@ -138,4 +138,11 @@ class CLCManageStatus(APIView):
         query.status = get_case_status_by_status(new_status)
         query.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=query.get_case(),
+            payload={"status": CaseStatusEnum.human_readable(new_status)},
+        )
+
         return JsonResponse(data={}, status=status.HTTP_200_OK)
