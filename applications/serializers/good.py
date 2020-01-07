@@ -1,6 +1,6 @@
 from lite_content.lite_api import strings
 from rest_framework import serializers
-from rest_framework.fields import DecimalField, ChoiceField
+from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import StandardApplication, GoodOnApplication
@@ -44,12 +44,15 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
-    quantity = DecimalField(max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QTY},)
-    value = (DecimalField(max_digits=256, decimal_places=2, error_messages={"invalid": strings.Goods.INVALID_VALUE},),)
+    value = DecimalField(max_digits=256, decimal_places=2, error_messages={"invalid": strings.Goods.INVALID_VALUE})
+    quantity = DecimalField(max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QUANTITY})
     unit = ChoiceField(
         choices=Units.choices,
-        error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT,},
+        error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
     )
+    is_good_incorporated = BooleanField(required=True, error_messages={
+        "required": "Select whether your good is incorporated or not"
+    })
 
     class Meta:
         model = GoodOnApplication
@@ -57,7 +60,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "id",
             "good",
             "application",
+            "value",
             "quantity",
             "unit",
-            "value",
+            "is_good_incorporated"
         )
