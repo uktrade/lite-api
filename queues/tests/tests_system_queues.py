@@ -1,13 +1,15 @@
 from django.urls import reverse
 from rest_framework import status
 
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.models import CaseAssignment
 from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     OPEN_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
+    UPDATED_CASES_QUEUE_ID,
 )
-from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -30,6 +32,7 @@ class RetrieveAllCases(DataTestClient):
         self.all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID})
         self.open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
         self.my_team_queues_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": MY_TEAMS_QUEUES_CASES_ID})
+        self.all_updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
 
     def test_get_all_case_assignments(self):
         """
@@ -70,7 +73,7 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data["queue"]["id"])
         self.assertEqual(response_data["queue"]["cases_count"], 3)
 
-    def test_get_open_cases_system_queue_returns_expected_cases(self):
+    def test_get_open_cases_system_queue_returns_expected_cases_count(self):
         """
         Given that a number of open and closed cases exist
         When a user gets the open cases system queue
@@ -84,7 +87,7 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["id"], OPEN_CASES_SYSTEM_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 2)
 
-    def test_get_all_my_team_queues_cases(self):
+    def test_get_all_my_team_cases_queue(self):
         """
         Tests that only a team's queue's cases are returned
         when calling that system queue
@@ -108,3 +111,25 @@ class RetrieveAllCases(DataTestClient):
         response_data = response.json()["queue"]
 
         self.assertEqual(response_data["cases_count"], 3)
+
+    def test_get_all_updated_case_queue(self):
+        case = self.create_standard_application_case(self.organisation).get_case()
+        case.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue)
+        case_assignment.users.set([self.gov_user])
+        case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        case.save()
+        audit = Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=case,
+            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+        )
+        self.gov_user.send_notification(content_object=audit, case=case)
+
+        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["cases_count"], 1)
