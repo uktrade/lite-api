@@ -38,6 +38,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "quantity",
             "unit",
             "value",
+            "is_good_incorporated"
         )
 
 
