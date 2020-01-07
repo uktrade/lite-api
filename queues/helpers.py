@@ -32,7 +32,7 @@ def _open_cases_queue():
 
 
 def _updated_cases_queue(user: GovUser):
-    queue = Queue(id=UPDATED_CASES_QUEUE_ID, name="Updated cases", team=Team.objects.get(name="Admin"))
+    queue = Queue(id=UPDATED_CASES_QUEUE_ID, name="New Exporter Amendments", team=Team.objects.get(name="Admin"))
     queue.is_system_queue = True
 
     user_assigned_cases = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)

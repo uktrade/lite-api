@@ -57,7 +57,7 @@ class SearchQueue:
             ),
             cls(
                 id=UPDATED_CASES_QUEUE_ID,
-                name="Updated cases",
+                name="New Exporter Amendments",
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.is_updated(user=user).count(),
             ),
