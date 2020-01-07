@@ -1,4 +1,3 @@
-import reversion
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -7,11 +6,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
+from cases.models import CaseAssignment
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer, GovUserNotificationSerializer
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser, GovNotification
@@ -147,18 +147,17 @@ class GovUserDetail(APIView):
 
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
-        with reversion.create_revision():
-            serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
+        serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
 
-                # Remove user from assigned cases
-                if gov_user.status == GovUserStatuses.DEACTIVATED:
-                    gov_user.unassign_from_cases()
+            # Remove user from assigned cases
+            if gov_user.status == GovUserStatuses.DEACTIVATED:
+                gov_user.unassign_from_cases()
 
-                return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):
@@ -176,7 +175,10 @@ class NotificationViewSet(APIView):
     authentication_classes = (GovAuthentication,)
     queryset = GovNotification.objects.all()
 
-    # TODO: LT-1180 endpoint
     def get(self, request):
+        # Get the notifications for the cases that the user is assigned to
+        user_assigned_cases = CaseAssignment.objects.filter(user=request.user).values_list("id", flat=True)
+        notifications_queryset = GovNotification.objects.filter(user=request.user, case__id__in=user_assigned_cases)
+        notifications_data = GovUserNotificationSerializer(notifications_queryset).data
 
-        return JsonResponse(data={"notifications": []}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"notifications": notifications_data}, status=status.HTTP_200_OK)
