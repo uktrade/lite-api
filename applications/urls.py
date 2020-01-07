@@ -98,9 +98,5 @@ urlpatterns = [
         name="application_generated_document",
     ),
     # Copy parties
-    path(
-        "<uuid:pk>/existing-parties/",
-        existing_parties.ExistingParties.as_view(),
-        name="existing_parties",
-    ),
+    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties",),
 ]
