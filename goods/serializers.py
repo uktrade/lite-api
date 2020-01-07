@@ -59,9 +59,6 @@ class GoodSerializer(serializers.ModelSerializer):
         choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    is_good_end_product = serializers.BooleanField(
-        error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
-    )
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
@@ -79,7 +76,6 @@ class GoodSerializer(serializers.ModelSerializer):
             "is_good_controlled",
             "case_id",
             "control_code",
-            "is_good_end_product",
             "part_number",
             "organisation",
             "status",
@@ -136,7 +132,6 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.control_code = validated_data.get("control_code", "")
-        instance.is_good_end_product = validated_data.get("is_good_end_product", instance.is_good_end_product)
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.save()
