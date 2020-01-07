@@ -45,9 +45,11 @@ def get_case_payload(case):
 
     if payload.application_type == ApplicationType.STANDARD_LICENCE:
         return payload.standardapplication
-    elif application_type == ApplicationType.OPEN_LICENCE:
+    elif payload.application_type == ApplicationType.OPEN_LICENCE:
         return payload.openapplication
-    elif application_type == ApplicationType.HMRC_QUERY:
+    elif payload.application_type == ApplicationType.HMRC_QUERY:
         return None
     else:
-        raise NotImplementedError(f"get_case_payload does not support this application type: {application_type}")
+        raise NotImplementedError(
+            f"get_case_payload does not support this application type: {payload.application_type}"
+        )
