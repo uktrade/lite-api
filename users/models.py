@@ -68,7 +68,7 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class BaseUser(AbstractUser):
+class BaseUser(AbstractUser, TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True)

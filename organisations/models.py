@@ -62,7 +62,7 @@ class SiteManager(models.Manager):
         return exporter_user_organisation_relationship.sites.all()
 
 
-class Site(models.Model):
+class Site(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE)
@@ -77,7 +77,7 @@ class Site(models.Model):
         ordering = ["name"]
 
 
-class ExternalLocation(models.Model):
+class ExternalLocation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     address = models.TextField(default=None, blank=False)
