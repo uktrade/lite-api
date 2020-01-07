@@ -13,6 +13,8 @@ from queues.constants import (
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from users.libraries.user_to_token import user_to_token
+from users.models import GovUser
 
 
 class RetrieveAllCases(DataTestClient):
@@ -113,6 +115,28 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["cases_count"], 3)
 
     def test_get_all_updated_case_queue(self):
+        self._create_assigned_case_with_updates()
+
+        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["cases_count"], 1)
+
+    def test_get_all_updated_case_queue_as_other_user(self):
+        self._create_assigned_case_with_updates()
+        other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
+        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
+
+        response = self.client.get(self.all_updated_cases_system_queue_url, **gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["cases_count"], 0)
+
+    def _create_assigned_case_with_updates(self):
         case = self.create_standard_application_case(self.organisation).get_case()
         case.queues.set([self.queue])
         case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue)
@@ -126,10 +150,3 @@ class RetrieveAllCases(DataTestClient):
             payload={"status": CaseStatusEnum.APPLICANT_EDITING},
         )
         self.gov_user.send_notification(content_object=audit, case=case)
-
-        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
-        self.assertEqual(response_data["queue"]["cases_count"], 1)

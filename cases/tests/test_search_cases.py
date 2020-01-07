@@ -1,10 +1,16 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.models import Case
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
+from cases.models import Case, CaseAssignment
+from queues.constants import UPDATED_CASES_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from teams.models import Team
 from test_helpers.clients import DataTestClient
+from users.libraries.user_to_token import user_to_token
+from users.models import GovUser
 
 
 class CasesFilterAndSortTests(DataTestClient):
@@ -223,3 +229,43 @@ class CasesFilterAndSortTests(DataTestClient):
             # Assert ordering
             self.assertEqual(case["status"], expected_case["status"])
             self.assertEqual(case["id"], expected_case["id"])
+
+
+class CasesQueueTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.case = self.create_standard_application_case(self.organisation).get_case()
+        self.case.queues.set([self.queue])
+        self.case_assignment = CaseAssignment.objects.create(case=self.case, queue=self.queue)
+        self.case_assignment.users.set([self.gov_user])
+        self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.case.save()
+
+        self.audit = Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=self.case,
+            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+        )
+        self.gov_user.send_notification(content_object=audit, case=self.case)
+
+        self.url = reverse("cases:search") + "?queue_id="
+
+    def test_get_updated_user_assigned_cases_success(self):
+        response = self.client.get(self.url + UPDATED_CASES_QUEUE_ID, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]
+        self.assertEqual(len(response_data["cases"]), 1)
+        self.assertEqual(response_data["cases"][0]["id"], str(self.case.id))
+
+    def test_get_updated_user_assigned_cases_as_other_user_shows_no_cases_succes(self):
+        other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
+        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
+
+        response = self.client.get(self.url + UPDATED_CASES_QUEUE_ID, **gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]
+        self.assertEqual(len(response_data["cases"]), 0)
