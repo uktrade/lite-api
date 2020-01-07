@@ -18,7 +18,6 @@ class Good(TimeStampedModel):
     description = models.TextField(max_length=280)
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
     control_code = models.TextField(default="", blank=True, null=True)
-    is_good_end_product = models.BooleanField()
     part_number = models.TextField(default="", blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
