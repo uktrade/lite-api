@@ -8,36 +8,38 @@ import model_utils.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='userorganisationrelationship',
-            name='created',
-        ),
-        migrations.RemoveField(
-            model_name='userorganisationrelationship',
-            name='modified',
+        migrations.RemoveField(model_name="userorganisationrelationship", name="created",),
+        migrations.RemoveField(model_name="userorganisationrelationship", name="modified",),
+        migrations.AddField(
+            model_name="baseuser",
+            name="created_at",
+            field=model_utils.fields.AutoCreatedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+            ),
         ),
         migrations.AddField(
-            model_name='baseuser',
-            name='created_at',
-            field=model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at'),
+            model_name="baseuser",
+            name="updated_at",
+            field=model_utils.fields.AutoLastModifiedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+            ),
         ),
         migrations.AddField(
-            model_name='baseuser',
-            name='updated_at',
-            field=model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at'),
+            model_name="userorganisationrelationship",
+            name="created_at",
+            field=model_utils.fields.AutoCreatedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+            ),
         ),
         migrations.AddField(
-            model_name='userorganisationrelationship',
-            name='created_at',
-            field=model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at'),
-        ),
-        migrations.AddField(
-            model_name='userorganisationrelationship',
-            name='updated_at',
-            field=model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at'),
+            model_name="userorganisationrelationship",
+            name="updated_at",
+            field=model_utils.fields.AutoLastModifiedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+            ),
         ),
     ]

@@ -8,18 +8,22 @@ import model_utils.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0002_party_flags'),
+        ("parties", "0002_party_flags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='party',
-            name='created_at',
-            field=model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at'),
+            model_name="party",
+            name="created_at",
+            field=model_utils.fields.AutoCreatedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+            ),
         ),
         migrations.AddField(
-            model_name='party',
-            name='updated_at',
-            field=model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at'),
+            model_name="party",
+            name="updated_at",
+            field=model_utils.fields.AutoLastModifiedField(
+                default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+            ),
         ),
     ]
