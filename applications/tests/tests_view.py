@@ -34,8 +34,8 @@ class DraftTests(DataTestClient):
             response_data[0]["application_type"]["key"], standard_application.application_type,
         )
         self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
-        self.assertIsNotNone(response_data[0]["created"])
-        self.assertIsNotNone(response_data[0]["modified"])
+        self.assertIsNotNone(response_data[0]["created_at"])
+        self.assertIsNotNone(response_data[0]["updated_at"])
         self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
@@ -93,8 +93,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["application_type"]["key"], hmrc_query.application_type)
         self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]["export_type"])
-        self.assertIsNotNone(response_data[0]["created"])
-        self.assertIsNotNone(response_data[0]["modified"])
+        self.assertIsNotNone(response_data[0]["created_at"])
+        self.assertIsNotNone(response_data[0]["updated_at"])
         self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
@@ -115,8 +115,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(
             retrieved_application["export_type"]["key"], standard_application.export_type,
         )
-        self.assertIsNotNone(retrieved_application["created"])
-        self.assertIsNotNone(retrieved_application["modified"])
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEquals(
@@ -147,8 +147,8 @@ class DraftTests(DataTestClient):
             retrieved_application["application_type"]["key"], open_application.application_type,
         )
         self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
-        self.assertIsNotNone(retrieved_application["created"])
-        self.assertIsNotNone(retrieved_application["modified"])
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
@@ -173,8 +173,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(
             retrieved_application["application_type"]["key"], hmrc_query.application_type,
         )
-        self.assertIsNotNone(retrieved_application["created"])
-        self.assertIsNotNone(retrieved_application["modified"])
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(retrieved_application["organisation"]["id"], str(hmrc_query.organisation.id))
