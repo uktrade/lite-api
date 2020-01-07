@@ -48,7 +48,7 @@ class QueueDetail(APIView):
         """
         queue = get_queue(pk=pk, user=request.user)
         serializer = QueueViewSerializer(queue)
-        return JsonResponse(data={"queue": serializer.data})
+        return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):
@@ -58,6 +58,6 @@ class QueueDetail(APIView):
         serializer = QueueCreateSerializer(instance=queue, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(data={"queue": serializer.data})
+            return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
