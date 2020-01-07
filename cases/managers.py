@@ -2,7 +2,6 @@ from typing import List
 
 from django.db import models
 
-from audit_trail.models import Audit
 from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,

@@ -21,9 +21,7 @@ class QueuesList(APIView):
         Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
         """
         queues = get_queues(
-            user=request.user,
-            team=request.user.team,
-            include_system_queues=str_to_bool(request.GET.get("include_system_queues", False)),
+            include_system_queues=str_to_bool(request.GET.get("include_system_queues", False)), user=request.user
         )
 
         serializer = QueueViewSerializer(queues, many=True)
@@ -48,8 +46,7 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance
         """
-        team = request.user.team
-        queue = get_queue(pk=pk, team=team)
+        queue = get_queue(pk=pk, user=request.user)
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data={"queue": serializer.data})
 

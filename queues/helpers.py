@@ -55,7 +55,7 @@ def _all_my_team_cases_queue(team: Team):
     return queue
 
 
-def get_queues(team: Team, user: GovUser, include_system_queues=False):
+def get_queues(include_system_queues=False, user: GovUser = None):
     """
     Returns all queues
     Optionally returns system queues
@@ -66,17 +66,18 @@ def get_queues(team: Team, user: GovUser, include_system_queues=False):
         queues = list(queues)
         queues.insert(0, _all_cases_queue())
         queues.insert(1, _open_cases_queue())
-        queues.insert(2, _all_my_team_cases_queue(team))
-        queues.insert(3, _updated_cases_queue(user))
+        if user:
+            queues.insert(2, _all_my_team_cases_queue(team=user.team))
+            queues.insert(3, _updated_cases_queue(user=user))
 
     return queues
 
 
-def get_queue(pk, team=None, user=None):
+def get_queue(pk, user: GovUser = None):
     """
     Returns the specified queue
     """
-    queues = get_queues(team, user, True)
+    queues = get_queues(include_system_queues=True, user=user)
     queue = [queue for queue in queues if str(queue.id) == str(pk)]
 
     if queue:
