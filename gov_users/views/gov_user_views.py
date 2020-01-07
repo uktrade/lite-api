@@ -85,8 +85,6 @@ class GovUserList(APIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        gov_users_qs.all()
-
         serializer = GovUserViewSerializer(gov_users_qs, many=True)
         return JsonResponse(data={"gov_users": serializer.data})
 

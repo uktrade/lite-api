@@ -450,8 +450,7 @@ class CaseOfficer(APIView):
 
     def get(self, request, pk):
         """
-        Gets the current case officer for a case, and gets a list of gov users based on the
-        search_term(name of user) passed in
+        Gets the current case officer for a case
         """
         case_officer = get_case(pk).case_officer
         data = {"case_officer": GovUserSimpleSerializer(case_officer).data if case_officer else None}
