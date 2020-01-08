@@ -11,6 +11,14 @@ class ExistingParties(generics.ListCreateAPIView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
+        params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items()}
+        # Rename country to country__name for filter
+        if "country__contains" in params:
+            params["country__name__contains"] = params.pop("country__contains")
+
         application_id = self.kwargs["pk"]
         application = get_application(application_id)
-        return Party.objects.filter(organisation=application.organisation)
+        return Party.objects.filter(
+            organisation=application.organisation,
+            **params
+        )
