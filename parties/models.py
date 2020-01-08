@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 
+from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
@@ -9,7 +10,7 @@ from parties.enums import PartyType, SubType, ThirdPartySubType
 from static.countries.models import Country
 
 
-class Party(models.Model):
+class Party(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
     address = models.TextField(default=None, blank=True)

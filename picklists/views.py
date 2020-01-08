@@ -41,7 +41,7 @@ class PickListItems(APIView):
             query.append(Q(id__in=ids))
 
         picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
-        picklist_items = picklist_items.order_by("-last_modified_at")
+        picklist_items = picklist_items.order_by("-updated_at")
         serializer = PicklistSerializer(picklist_items, many=True)
         return JsonResponse(data={"picklist_items": serializer.data})
 
