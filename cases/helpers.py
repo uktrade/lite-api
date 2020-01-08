@@ -147,11 +147,11 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice("third_party", third_parties.items(), case, request.user, level)
 
 
-def get_exporter_amendment_queue_case_ids(user: GovUser):
+def get_updated_case_ids(user: GovUser):
     from cases.models import Case, CaseAssignment
 
-    user_assigned_cases = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
-    case_officer_cases = Case.objects.filter(case_officer=user).values_list("id", flat=True)
-    cases = user_assigned_cases.union(case_officer_cases)
+    cases_assigned_to_user = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+    cases_assigned_as_case_officer = Case.objects.filter(case_officer=user).values_list("id", flat=True)
+    cases = cases_assigned_to_user.union(cases_assigned_as_case_officer)
 
     return GovNotification.objects.filter(user=user, case__id__in=cases).values_list("case__id", flat=True)

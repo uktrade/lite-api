@@ -2,7 +2,7 @@ from typing import List
 
 from django.db import models
 
-from cases.helpers import get_exporter_amendment_queue_case_ids
+from cases.helpers import get_updated_case_ids
 from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -38,8 +38,8 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(queues__team=team).distinct()
 
     def is_updated(self, user):
-        exporter_amendment_queue_case_ids = get_exporter_amendment_queue_case_ids(user)
-        return self.filter(id__in=exporter_amendment_queue_case_ids).distinct()
+        updated_case_ids = get_updated_case_ids(user)
+        return self.filter(id__in=updated_case_ids)
 
     def has_status(self, status):
         return self.filter(status__status=status)

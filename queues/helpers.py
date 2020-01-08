@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from cases.helpers import get_exporter_amendment_queue_case_ids
+from cases.helpers import get_updated_case_ids
 from conf.exceptions import NotFoundError
 from queues.constants import (
     MY_TEAMS_QUEUES_CASES_ID,
@@ -34,8 +34,8 @@ def _open_cases_queue():
 def _updated_cases_queue(user: GovUser):
     queue = Queue(id=UPDATED_CASES_QUEUE_ID, name="New Exporter Amendments", team=Team.objects.get(name="Admin"))
     queue.is_system_queue = True
-    exporter_amendment_queue_case_ids = get_exporter_amendment_queue_case_ids(user)
-    queue.query = Q(id__in=exporter_amendment_queue_case_ids)
+    updated_case_ids = get_updated_case_ids(user)
+    queue.query = Q(id__in=updated_case_ids)
     queue.reverse_ordering = True
 
     return queue
