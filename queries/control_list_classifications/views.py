@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
@@ -86,6 +87,7 @@ class ControlListClassificationDetail(APIView):
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
+
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
                     new_control_code = clc_good_serializer.validated_data.get(
                         "control_code", strings.Goods.GOOD_NO_CONTROL_CODE
@@ -119,3 +121,28 @@ class ControlListClassificationDetail(APIView):
             return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CLCManageStatus(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def put(self, request, pk):
+        query = get_exporter_query(pk)
+        new_status = request.data.get("status")
+
+        if not can_status_can_be_set_by_gov_user(request.user, query.status.status, new_status):
+            return JsonResponse(
+                data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        query.status = get_case_status_by_status(new_status)
+        query.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=query.get_case(),
+            payload={"status": CaseStatusEnum.human_readable(new_status)},
+        )
+
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
