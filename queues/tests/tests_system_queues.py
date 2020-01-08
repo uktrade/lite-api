@@ -127,6 +127,16 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 1)
 
+    def test_get_all_updated_cases_queue_returns_no_cases_when_nothing_has_been_updated_success(self):
+        updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
+
+        response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["cases_count"], 0)
+
     def test_get_all_updated_cases_queue_as_other_user(self):
         updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
         self._create_case_with_updates_assigned_user()

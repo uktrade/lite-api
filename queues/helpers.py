@@ -65,11 +65,11 @@ def get_queues(include_system_queues=False, user: GovUser = None):
 
     if include_system_queues:
         queues = list(queues)
-        queues.insert(0, _all_cases_queue())
-        queues.insert(1, _open_cases_queue())
+        queues.append(_all_cases_queue())
+        queues.append(_open_cases_queue())
         if user:
-            queues.insert(2, _all_my_team_cases_queue(team=user.team))
-            queues.insert(3, _updated_cases_queue(user=user))
+            queues.append(_all_my_team_cases_queue(team=user.team))
+            queues.append(_updated_cases_queue(user=user))
 
     return queues
 

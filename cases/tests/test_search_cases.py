@@ -259,7 +259,19 @@ class CasesQueueTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
-    def test_get_updated_user_assigned_cases_as_other_user_shows_no_cases_succes(self):
+    def test_get_updated_user_assigned_cases_success_when_a_case_exists_with_no_updates_success(self):
+        case = self.create_standard_application_case(self.organisation).get_case()
+        case.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue)
+        case_assignment.users.set([self.gov_user])
+
+        response = self.client.get(self.url + UPDATED_CASES_QUEUE_ID, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+
+    def test_cases_not_returned_when_not_assigned_to_user_success(self):
         other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
         gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
 
