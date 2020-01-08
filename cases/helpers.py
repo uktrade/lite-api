@@ -150,8 +150,8 @@ def create_grouped_advice(case, request, advice, level):
 def get_exporter_amendment_queue_case_ids(user: GovUser):
     from cases.models import Case, CaseAssignment
 
-    user_assigned_cases = CaseAssignment.objects.filter(users=user).all().values_list("case__id", flat=True)
-    case_officer_cases = Case.objects.filter(case_officer=user).all().values_list("id", flat=True)
+    user_assigned_cases = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+    case_officer_cases = Case.objects.filter(case_officer=user).values_list("id", flat=True)
     cases = user_assigned_cases.union(case_officer_cases)
 
     return GovNotification.objects.filter(user=user, case__id__in=cases).values_list("case__id", flat=True)
