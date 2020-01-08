@@ -31,10 +31,6 @@ class RetrieveAllCases(DataTestClient):
         self.case_3.query.save()
 
         self.url = reverse("queues:queues")
-        self.all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID})
-        self.open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
-        self.my_team_queues_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": MY_TEAMS_QUEUES_CASES_ID})
-        self.all_updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
 
     def test_get_all_case_assignments(self):
         """
@@ -67,7 +63,9 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the all cases system queue
         Then all cases are returned regardless of which user defined queues they are assigned to
         """
-        response = self.client.get(self.all_cases_system_queue_url, **self.gov_headers)
+        all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID})
+
+        response = self.client.get(all_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -81,7 +79,9 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the open cases system queue
         Then only open cases are returned
         """
-        response = self.client.get(self.open_cases_system_queue_url, **self.gov_headers)
+        open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
+
+        response = self.client.get(open_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -94,6 +94,8 @@ class RetrieveAllCases(DataTestClient):
         Tests that only a team's queue's cases are returned
         when calling that system queue
         """
+        my_team_queues_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": MY_TEAMS_QUEUES_CASES_ID})
+
         team_2 = self.create_team("team 2")
 
         self.queue1 = self.create_queue("new_queue1", self.team)
@@ -109,15 +111,16 @@ class RetrieveAllCases(DataTestClient):
         self.case_3.queues.set([self.queue2.id])
         self.case_4.queues.set([self.queue3.id])
 
-        response = self.client.get(self.my_team_queues_cases_system_queue_url, **self.gov_headers)
+        response = self.client.get(my_team_queues_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()["queue"]
 
         self.assertEqual(response_data["cases_count"], 3)
 
     def test_get_all_updated_cases_queue(self):
+        updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
         self._create_case_with_updates_assigned_user()
 
-        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
+        response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -125,11 +128,12 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["cases_count"], 1)
 
     def test_get_all_updated_cases_queue_as_other_user(self):
+        updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
         self._create_case_with_updates_assigned_user()
         other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
         gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
 
-        response = self.client.get(self.all_updated_cases_system_queue_url, **gov_headers)
+        response = self.client.get(updated_cases_system_queue_url, **gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -137,9 +141,10 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["cases_count"], 0)
 
     def test_get_all_updated_cases_queue_as_case_officer(self):
+        updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
         self._create_case_with_updates_case_officer()
 
-        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
+        response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

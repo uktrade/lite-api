@@ -148,6 +148,9 @@ def create_grouped_advice(case, request, advice, level):
 
 
 def get_updated_case_ids(user: GovUser):
+    """
+    Get the cases that have raised notifications when updated by an exporter
+    """
     from cases.models import Case, CaseAssignment
 
     cases_assigned_to_user = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)

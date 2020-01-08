@@ -1,14 +1,10 @@
 from typing import List
 
 from cases.models import Case
-from queues.constants import (
-    ALL_CASES_SYSTEM_QUEUE_ID,
-    MY_TEAMS_QUEUES_CASES_ID,
-    OPEN_CASES_SYSTEM_QUEUE_ID,
-    UPDATED_CASES_QUEUE_ID,
-)
 from queues.models import Queue
 from teams.models import Team
+
+import queues.constants as queues
 
 
 class SearchQueue:
@@ -38,26 +34,26 @@ class SearchQueue:
 
         return [
             cls(
-                id=ALL_CASES_SYSTEM_QUEUE_ID,
-                name="All cases",
+                id=queues.ALL_CASES_SYSTEM_QUEUE_ID,
+                name=queues.ALL_CASES_SYSTEM_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.count(),
             ),
             cls(
-                id=OPEN_CASES_SYSTEM_QUEUE_ID,
-                name="Open cases",
+                id=queues.OPEN_CASES_SYSTEM_QUEUE_ID,
+                name=queues.OPEN_CASES_SYSTEM_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.is_open().count(),
             ),
             cls(
-                id=MY_TEAMS_QUEUES_CASES_ID,
-                name="My cases",
+                id=queues.MY_TEAMS_QUEUES_CASES_ID,
+                name=queues.MY_TEAMS_QUEUES_CASES_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.in_team(team=team).count(),
             ),
             cls(
-                id=UPDATED_CASES_QUEUE_ID,
-                name="New Exporter Amendments",
+                id=queues.UPDATED_CASES_QUEUE_ID,
+                name=queues.UPDATED_CASES_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.is_updated(user=user).count(),
             ),

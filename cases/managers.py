@@ -38,6 +38,9 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(queues__team=team).distinct()
 
     def is_updated(self, user):
+        """
+        Get the cases that have raised notifications when updated by an exporter
+        """
         updated_case_ids = get_updated_case_ids(user)
         return self.filter(id__in=updated_case_ids)
 
