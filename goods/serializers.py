@@ -52,12 +52,8 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(
-        max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
-    )
-    is_good_controlled = serializers.ChoiceField(
-        choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED},
-    )
+    description = serializers.CharField(max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK})
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED})
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(choices=GoodStatus.choices)
