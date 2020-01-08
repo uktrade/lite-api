@@ -18,7 +18,4 @@ class ExistingParties(generics.ListCreateAPIView):
 
         application_id = self.kwargs["pk"]
         application = get_application(application_id)
-        return Party.objects.filter(
-            organisation=application.organisation,
-            **params
-        )
+        return Party.objects.filter(organisation=application.organisation, **params)
