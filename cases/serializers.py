@@ -32,6 +32,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamSerializer
+from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
 from users.serializers import (
     BaseUserViewSerializer,
@@ -138,6 +139,7 @@ class CaseDetailSerializer(CaseSerializer):
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
+    case_officer = GovUserSimpleSerializer(read_only=True)
     audit_notification = serializers.SerializerMethodField()
 
     class Meta:
@@ -152,6 +154,7 @@ class CaseDetailSerializer(CaseSerializer):
             "query",
             "has_advice",
             "all_flags",
+            "case_officer",
             "audit_notification",
         )
 
@@ -492,3 +495,20 @@ class CaseTypeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return dict(key=instance.id, value=instance.name)
+
+
+class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for assigning and removing case officers from a case.
+    """
+
+    case_officer = serializers.PrimaryKeyRelatedField(
+        queryset=GovUser.objects.exclude(status=UserStatuses.DEACTIVATED).all(), allow_null=True
+    )
+
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "case_officer",
+        )
