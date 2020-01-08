@@ -1,4 +1,3 @@
-import reversion
 from django.db.models import Value
 from django.db.models.functions import Concat
 from django.http import JsonResponse
@@ -160,18 +159,17 @@ class GovUserDetail(APIView):
 
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
-        with reversion.create_revision():
-            serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
+        serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
 
-                # Remove user from assigned cases
-                if gov_user.status == GovUserStatuses.DEACTIVATED:
-                    gov_user.unassign_from_cases()
+            # Remove user from assigned cases
+            if gov_user.status == GovUserStatuses.DEACTIVATED:
+                gov_user.unassign_from_cases()
 
-                return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):
