@@ -1,18 +1,16 @@
-from django.http import JsonResponse
-from rest_framework.views import APIView
+from rest_framework import generics
 
+from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users
-from parties.serializers import PartySerializer
 from parties.models import Party
-from users.models import ExporterUser
+from parties.serializers import PartySerializer
 
 
-class ExistingParties(APIView):
+class ExistingParties(generics.ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = PartySerializer
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        parties = Party.objects.filter(organisation=application.organisation)
-        parties = PartySerializer(parties, many=True).data
-        return JsonResponse(data={"parties": parties})
+    def get_queryset(self):
+        application_id = self.kwargs["pk"]
+        application = get_application(application_id)
+        return Party.objects.filter(organisation=application.organisation)
