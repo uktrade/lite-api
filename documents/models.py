@@ -3,17 +3,17 @@ import uuid
 
 from django.db import models
 
+from common.models import TimestampableModel
 from documents.libraries import s3_operations
 
 
-class Document(models.Model):
+class Document(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False, blank=False)
     s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
     safe = models.NullBooleanField()
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __str__(self):
         return self.name

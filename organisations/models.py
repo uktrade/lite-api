@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from addresses.models import Address
+from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
@@ -12,7 +13,7 @@ from users.libraries.get_user import get_user_organisation_relationship
 from users.models import UserOrganisationRelationship
 
 
-class Organisation(models.Model):
+class Organisation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
     type = models.CharField(choices=OrganisationType.choices, default=OrganisationType.COMMERCIAL, max_length=20,)
@@ -23,8 +24,6 @@ class Organisation(models.Model):
     primary_site = models.ForeignKey(
         "Site", related_name="organisation_primary_site", on_delete=models.CASCADE, blank=True, null=True, default=None,
     )
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
-    last_modified_at = models.DateTimeField(auto_now_add=True, blank=True)
     flags = models.ManyToManyField(Flag, related_name="organisations")
 
     def get_user_relationship(self, user):
@@ -63,7 +62,7 @@ class SiteManager(models.Manager):
         return exporter_user_organisation_relationship.sites.all()
 
 
-class Site(models.Model):
+class Site(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE)
@@ -78,7 +77,7 @@ class Site(models.Model):
         ordering = ["name"]
 
 
-class ExternalLocation(models.Model):
+class ExternalLocation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
     address = models.TextField(default=None, blank=False)
