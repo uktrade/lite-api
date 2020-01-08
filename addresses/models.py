@@ -1,12 +1,10 @@
 import uuid
 
-import reversion
 from django.db import models
 
 from static.countries.models import Country
 
 
-@reversion.register()
 class Address(models.Model):
     """
     Used for address fields

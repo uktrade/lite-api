@@ -92,7 +92,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
             "vat_number",
             "registration_number",
             "created_at",
-            "last_modified_at",
+            "updated_at",
             "user",
             "site",
         )

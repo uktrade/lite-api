@@ -22,14 +22,14 @@ class EditApplicationTests(DataTestClient):
         application = self.create_standard_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
-        modified = application.modified
+        updated_at = application.updated_at
 
         response = self.client.put(url, self.data, **self.exporter_headers)
 
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
-        self.assertNotEqual(application.modified, modified)
+        self.assertNotEqual(application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
         self.assertEqual(Audit.objects.all().count(), 0)
 
@@ -41,7 +41,7 @@ class EditApplicationTests(DataTestClient):
         application.status = get_case_status_by_status(editable_status)
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
-        modified = application.modified
+        updated_at = application.updated_at
         response = self.client.put(url, self.data, **self.exporter_headers)
         application.refresh_from_db()
         audit_qs = Audit.objects.all()
@@ -49,7 +49,7 @@ class EditApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
-        self.assertNotEqual(application.modified, modified)
+        self.assertNotEqual(application.updated_at, updated_at)
         self.assertEqual(audit_qs.count(), 1)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
@@ -73,7 +73,7 @@ class EditApplicationTests(DataTestClient):
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
-        modified = application.modified
+        updated_at = application.updated_at
         audit_qs = Audit.objects.all()
         new_ref = "35236246"
         update_ref = "13124124"
@@ -88,7 +88,7 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(
             application.reference_number_on_information_form, data["reference_number_on_information_form"],
         )
-        self.assertNotEqual(application.modified, modified)
+        self.assertNotEqual(application.updated_at, updated_at)
 
         # Check add audit
         self.assertEqual(audit_qs.count(), 1)
