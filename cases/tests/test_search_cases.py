@@ -288,3 +288,15 @@ class CasesQueueTests(DataTestClient):
         response_data = response.json()["results"]
         self.assertEqual(len(response_data["cases"]), 1)
         self.assertEqual(response_data["cases"][0]["id"], str(self.case.id))
+
+    def test_get_updated_cases_as_case_officer_success(self):
+        CaseAssignment.objects.filter(case=self.case, queue=self.queue).delete()
+        self.case.case_officer = self.gov_user
+        self.case.save()
+
+        response = self.client.get(self.url + UPDATED_CASES_QUEUE_ID, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]
+        self.assertEqual(len(response_data["cases"]), 1)
+        self.assertEqual(response_data["cases"][0]["id"], str(self.case.id))

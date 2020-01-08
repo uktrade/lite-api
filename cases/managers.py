@@ -38,10 +38,13 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(queues__team=team).distinct()
 
     def is_updated(self, user):
-        from cases.models import CaseAssignment
+        from cases.models import Case, CaseAssignment
 
-        user_assigned_cases = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
-        notification_cases = GovNotification.objects.filter(user=user, case__id__in=user_assigned_cases).values_list(
+        user_assigned_cases = CaseAssignment.objects.filter(users=user).all().values_list("case__id", flat=True)
+        case_officer_cases = Case.objects.filter(case_officer=user).all().values_list("id", flat=True)
+        cases = user_assigned_cases.union(case_officer_cases)
+
+        notification_cases = GovNotification.objects.filter(user=user, case__id__in=cases).values_list(
             "case__id", flat=True
         )
 

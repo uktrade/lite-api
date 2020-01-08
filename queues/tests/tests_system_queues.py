@@ -114,8 +114,8 @@ class RetrieveAllCases(DataTestClient):
 
         self.assertEqual(response_data["cases_count"], 3)
 
-    def test_get_all_updated_case_queue(self):
-        self._create_assigned_case_with_updates()
+    def test_get_all_updated_cases_queue(self):
+        self._create_case_with_updates_assigned_user()
 
         response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
@@ -124,8 +124,8 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 1)
 
-    def test_get_all_updated_case_queue_as_other_user(self):
-        self._create_assigned_case_with_updates()
+    def test_get_all_updated_cases_queue_as_other_user(self):
+        self._create_case_with_updates_assigned_user()
         other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
         gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
 
@@ -136,11 +136,35 @@ class RetrieveAllCases(DataTestClient):
         self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 0)
 
-    def _create_assigned_case_with_updates(self):
+    def test_get_all_updated_cases_queue_as_case_officer(self):
+        self._create_case_with_updates_case_officer()
+
+        response = self.client.get(self.all_updated_cases_system_queue_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["queue"]["id"], UPDATED_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["cases_count"], 1)
+
+    def _create_case_with_updates_assigned_user(self):
         case = self.create_standard_application_case(self.organisation).get_case()
         case.queues.set([self.queue])
         case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue)
         case_assignment.users.set([self.gov_user])
+        case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        case.save()
+        audit = Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=case,
+            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+        )
+        self.gov_user.send_notification(content_object=audit, case=case)
+
+    def _create_case_with_updates_case_officer(self):
+        case = self.create_standard_application_case(self.organisation).get_case()
+        case.queues.set([self.queue])
+        case.case_officer = self.gov_user
         case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         case.save()
         audit = Audit.objects.create(
