@@ -8,16 +8,15 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from cases.models import CaseAssignment
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser, GovNotification
+from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):
@@ -181,17 +180,4 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
-        return JsonResponse(data={"user": serializer.data})
-
-
-class NotificationViewSet(APIView):
-    authentication_classes = (GovAuthentication,)
-    queryset = GovNotification.objects.all()
-
-    def get(self, request):
-        # Get the notifications for the cases that the user is assigned to
-        user_assigned_cases = CaseAssignment.objects.filter(users=request.user).values_list("case__id", flat=True)
-        notifications_queryset = GovNotification.objects.filter(user=request.user, case__id__in=user_assigned_cases)
-        notifications_data = GovUserNotificationSerializer(notifications_queryset).data
-
-        return JsonResponse(data={"notifications": notifications_data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
