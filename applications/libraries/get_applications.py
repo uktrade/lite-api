@@ -38,18 +38,3 @@ def _get_application_type(pk):
         return BaseApplication.objects.values_list("application_type", flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:
         raise Http404
-
-
-def get_case_payload(case):
-    payload = case.baseapplication
-
-    if payload.application_type == ApplicationType.STANDARD_LICENCE:
-        return payload.standardapplication
-    elif payload.application_type == ApplicationType.OPEN_LICENCE:
-        return payload.openapplication
-    elif payload.application_type == ApplicationType.HMRC_QUERY:
-        return None
-    else:
-        raise NotImplementedError(
-            f"get_case_payload does not support this application type: {payload.application_type}"
-        )
