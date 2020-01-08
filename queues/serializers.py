@@ -28,7 +28,13 @@ class QueueViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Queue
-        fields = ("id", "name", "team", "cases_count", "is_system_queue")
+        fields = (
+            "id",
+            "name",
+            "team",
+            "cases_count",
+            "is_system_queue",
+        )
 
 
 class QueueCreateSerializer(serializers.ModelSerializer):
