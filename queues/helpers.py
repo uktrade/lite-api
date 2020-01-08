@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from cases.models import Case, CaseAssignment
+from cases.helpers import get_exporter_amendment_queue_case_ids
 from conf.exceptions import NotFoundError
 from queues.constants import (
     MY_TEAMS_QUEUES_CASES_ID,
@@ -11,7 +11,7 @@ from queues.constants import (
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
-from users.models import GovNotification, GovUser
+from users.models import GovUser
 
 
 def _all_cases_queue():
@@ -34,16 +34,8 @@ def _open_cases_queue():
 def _updated_cases_queue(user: GovUser):
     queue = Queue(id=UPDATED_CASES_QUEUE_ID, name="New Exporter Amendments", team=Team.objects.get(name="Admin"))
     queue.is_system_queue = True
-
-    user_assigned_cases = CaseAssignment.objects.filter(users=user).all().values_list("case__id", flat=True)
-    case_officer_cases = Case.objects.filter(case_officer=user).all().values_list("id", flat=True)
-    cases = user_assigned_cases.union(case_officer_cases)
-
-    notification_cases = GovNotification.objects.filter(user=user, case__id__in=cases).values_list(
-        "case__id", flat=True
-    )
-
-    queue.query = Q(id__in=notification_cases)
+    exporter_amendment_queue_case_ids = get_exporter_amendment_queue_case_ids(user)
+    queue.query = Q(id__in=exporter_amendment_queue_case_ids)
     queue.reverse_ordering = True
 
     return queue

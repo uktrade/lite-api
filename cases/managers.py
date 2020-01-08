@@ -2,6 +2,7 @@ from typing import List
 
 from django.db import models
 
+from cases.helpers import get_exporter_amendment_queue_case_ids
 from queues.constants import (
     ALL_CASES_SYSTEM_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -10,7 +11,6 @@ from queues.constants import (
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from users.models import GovNotification
 
 
 class CaseQuerySet(models.QuerySet):
@@ -38,17 +38,8 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(queues__team=team).distinct()
 
     def is_updated(self, user):
-        from cases.models import Case, CaseAssignment
-
-        user_assigned_cases = CaseAssignment.objects.filter(users=user).all().values_list("case__id", flat=True)
-        case_officer_cases = Case.objects.filter(case_officer=user).all().values_list("id", flat=True)
-        cases = user_assigned_cases.union(case_officer_cases)
-
-        notification_cases = GovNotification.objects.filter(user=user, case__id__in=cases).values_list(
-            "case__id", flat=True
-        )
-
-        return self.filter(id__in=notification_cases).distinct()
+        exporter_amendment_queue_case_ids = get_exporter_amendment_queue_case_ids(user)
+        return self.filter(id__in=exporter_amendment_queue_case_ids).distinct()
 
     def has_status(self, status):
         return self.filter(status__status=status)
