@@ -39,6 +39,7 @@ class Case(TimestampableModel):
     status = models.ForeignKey(
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
+    case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
 
