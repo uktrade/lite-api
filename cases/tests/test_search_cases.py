@@ -268,3 +268,23 @@ class CasesQueueTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]
         self.assertEqual(len(response_data["cases"]), 0)
+
+    def test_show_only_notifications_for_user_assigned_cases_success(self):
+        case = self.create_standard_application_case(self.organisation).get_case()
+        case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        case.save()
+
+        audit = Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=case,
+            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+        )
+        self.gov_user.send_notification(content_object=audit, case=case)
+
+        response = self.client.get(self.url + UPDATED_CASES_QUEUE_ID, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]
+        self.assertEqual(len(response_data["cases"]), 1)
+        self.assertEqual(response_data["cases"][0]["id"], str(self.case.id))
