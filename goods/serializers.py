@@ -110,11 +110,10 @@ class GoodSerializer(serializers.ModelSerializer):
             return clc_query.first().id
 
     def get_case_officer(self, instance):
-        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        if clc_query:
-            if clc_query.first().case_officer:
-                user = get_user_by_pk(clc_query.first().case_officer)
-                return GovUserSimpleSerializer(user).data
+        clc_query_qs = ControlListClassificationQuery.objects.filter(good=instance, case_officer__isnull=False)
+        if clc_query_qs:
+            user = get_user_by_pk(clc_query_qs.first().case_officer)
+            return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
         return get_good_query_with_notifications(
