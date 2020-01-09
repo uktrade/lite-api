@@ -370,7 +370,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             description="thing",
             is_good_controlled=False,
             control_code="ML1a",
-            is_good_end_product=True,
+            is_good_incorporated=True,
             application=application,
         )
         goods_type.save()

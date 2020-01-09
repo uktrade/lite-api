@@ -18,13 +18,13 @@ class GoodsCreateTests(DataTestClient):
         ]
     )
     def test_create_good(
-        self, description, is_good_controlled, control_code, is_good_end_product, part_number,
+        self, description, is_good_controlled, control_code, is_good_incorporated, part_number,
     ):
         data = {
             "description": description,
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
-            "is_good_end_product": is_good_end_product,
+            "is_good_incorporated": is_good_incorporated,
             "part_number": part_number,
         }
 
@@ -44,13 +44,13 @@ class GoodsCreateTests(DataTestClient):
         ]
     )
     def test_create_good_failure(
-        self, description, is_good_controlled, control_code, is_good_end_product, part_number,
+        self, description, is_good_controlled, control_code, is_good_incorporated, part_number,
     ):
         data = {
             "description": description,
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
-            "is_good_end_product": is_good_end_product,
+            "is_good_incorporated": is_good_incorporated,
             "part_number": part_number,
         }
 
@@ -69,13 +69,13 @@ class GoodsCreateTests(DataTestClient):
         ]
     )
     def test_create_validate_only(
-        self, description, is_good_controlled, control_code, is_good_end_product, part_number, validate_only,
+        self, description, is_good_controlled, control_code, is_good_incorporated, part_number, validate_only,
     ):
         data = {
             "description": description,
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
-            "is_good_end_product": is_good_end_product,
+            "is_good_incorporated": is_good_incorporated,
             "part_number": part_number,
             "validate_only": validate_only,
         }
