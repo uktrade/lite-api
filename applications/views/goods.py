@@ -135,7 +135,7 @@ class ApplicationGoodsTypes(APIView):
     @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
-        goods_types = GoodsType.objects.filter(application=application)
+        goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
         goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
