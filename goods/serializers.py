@@ -7,6 +7,7 @@ from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument
+from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
@@ -14,6 +15,7 @@ from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -63,6 +65,7 @@ class GoodSerializer(serializers.ModelSerializer):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
+    case_officer = serializers.SerializerMethodField()
     query = serializers.SerializerMethodField()
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
@@ -75,6 +78,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "description",
             "is_good_controlled",
             "case_id",
+            "case_officer",
             "control_code",
             "part_number",
             "organisation",
@@ -100,6 +104,12 @@ class GoodSerializer(serializers.ModelSerializer):
         clc_query = ControlListClassificationQuery.objects.filter(good=instance)
         if clc_query:
             return clc_query.first().id
+
+    def get_case_officer(self, instance):
+        clc_query_qs = ControlListClassificationQuery.objects.filter(good=instance, case_officer__isnull=False)
+        if clc_query_qs:
+            user = get_user_by_pk(clc_query_qs.first().case_officer)
+            return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
         return get_good_query_with_notifications(
