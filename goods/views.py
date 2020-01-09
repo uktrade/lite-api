@@ -64,7 +64,12 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        serializer = ClcControlGoodSerializer(data=data)
+        if application.application_type == ApplicationType.OPEN_LICENCE:
+            serializer_class = ClcControlGoodTypeSerializer
+        else:
+            serializer_class = ClcControlGoodSerializer
+
+        serializer = serializer_class(data=data)
 
         if serializer.is_valid():
             error_occurred = False
@@ -74,10 +79,8 @@ class GoodsListControlCode(APIView):
                 try:
                     if application.application_type == ApplicationType.OPEN_LICENCE:
                         good = get_goods_type(pk=pk)
-                        serializer_class = ClcControlGoodTypeSerializer
                     else:
                         good = get_good(pk)
-                        serializer_class = ClcControlGoodSerializer
 
                     old_control_code = good.control_code
                     if not old_control_code:

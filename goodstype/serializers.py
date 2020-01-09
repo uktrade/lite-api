@@ -8,6 +8,8 @@ from goods.serializers import ClcControlGoodSerializer
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
+from picklists.models import PicklistItem
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -80,6 +82,53 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
         fields = "__all__"
 
 
-class ClcControlGoodTypeSerializer(ClcControlGoodSerializer):
+class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    is_good_controlled = serializers.BooleanField
+    comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
+    report_summary = serializers.PrimaryKeyRelatedField(
+        queryset=PicklistItem.objects.all(), required=False, allow_null=True
+    )
+
     class Meta:
         model = GoodsType
+        fields = (
+            "control_code",
+            "is_good_controlled",
+            "comment",
+            "report_summary",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(ClcControlGoodTypeSerializer, self).__init__(*args, **kwargs)
+
+        # Only validate the control code if the good is controlled
+        if eval(self.get_initial().get("is_good_controlled")):
+            self.fields["control_code"] = ControlListEntryField(required=True, write_only=True)
+            self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
+                queryset=PicklistItem.objects.all(),
+                required=True,
+                error_messages={
+                    "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
+                    "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
+                },
+            )
+
+    # pylint: disable = W0221
+    def update(self, instance, validated_data):
+        # Update the good's details
+        instance.comment = validated_data.get("comment")
+        if validated_data["report_summary"]:
+            instance.report_summary = validated_data.get("report_summary").text
+        else:
+            instance.report_summary = ""
+        instance.is_good_controlled = validated_data.get("is_good_controlled")
+        if instance.is_good_controlled:
+            instance.control_code = validated_data.get("control_code")
+        else:
+            instance.control_code = ""
+        instance.flags.clear()
+
+        instance.save()
+
+        return instance
