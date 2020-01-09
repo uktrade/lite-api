@@ -84,7 +84,7 @@ class GovUserList(APIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        serializer = GovUserViewSerializer(gov_users_qs, many=True)
+        serializer = GovUserViewSerializer(gov_users_qs.order_by("email"), many=True)
         return JsonResponse(data={"gov_users": serializer.data})
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
