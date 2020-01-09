@@ -5,7 +5,6 @@ from rest_framework import status
 from applications.models import GoodOnApplication
 from conf import constants
 from goods.models import Good
-from goodstype.models import GoodsType
 from picklists.enums import PicklistType, PickListStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -227,11 +226,11 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
-        verified_good = GoodsType.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_code, "ML1a")
+        self.good_1.refresh_from_db()
+        self.assertEqual(self.good_1.control_code, "ML1a")
 
         # determine that flags have been removed when good verified
-        self.assertEqual(verified_good.flags.count(), 0)
+        self.assertEqual(self.good_1.flags.count(), 0)
 
     def test_verify_multiple_goods(self):
         data = {
