@@ -5,8 +5,8 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import CaseAssignment
 from queues.constants import (
-    ALL_CASES_SYSTEM_QUEUE_ID,
-    OPEN_CASES_SYSTEM_QUEUE_ID,
+    ALL_CASES_QUEUE_ID,
+    OPEN_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
     UPDATED_CASES_QUEUE_ID,
 )
@@ -43,7 +43,7 @@ class RetrieveAllCases(DataTestClient):
         case_assignment = CaseAssignment(queue=self.queue2, case=self.case_2)
         case_assignment.save()
 
-        url = reverse("queues:case_assignments", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
+        url = reverse("queues:case_assignments", kwargs={"pk": OPEN_CASES_QUEUE_ID})
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -63,14 +63,14 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the all cases system queue
         Then all cases are returned regardless of which user defined queues they are assigned to
         """
-        all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_SYSTEM_QUEUE_ID})
+        all_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": ALL_CASES_QUEUE_ID})
 
         response = self.client.get(all_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(ALL_CASES_SYSTEM_QUEUE_ID, response_data["queue"]["id"])
+        self.assertEqual(ALL_CASES_QUEUE_ID, response_data["queue"]["id"])
         self.assertEqual(response_data["queue"]["cases_count"], 3)
 
     def test_get_open_cases_system_queue_returns_expected_cases_count(self):
@@ -79,14 +79,14 @@ class RetrieveAllCases(DataTestClient):
         When a user gets the open cases system queue
         Then only open cases are returned
         """
-        open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_SYSTEM_QUEUE_ID})
+        open_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": OPEN_CASES_QUEUE_ID})
 
         response = self.client.get(open_cases_system_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response_data["queue"]["id"], OPEN_CASES_SYSTEM_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["id"], OPEN_CASES_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 2)
 
     def test_get_all_my_team_cases_queue(self):

@@ -7,7 +7,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
-from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID, OPEN_CASES_SYSTEM_QUEUE_ID
+from queues.constants import ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
 from queues.helpers import get_queue
 from users.libraries.get_user import get_user_by_pk
 
@@ -16,7 +16,7 @@ class CaseAssignments(views.APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        if ALL_CASES_SYSTEM_QUEUE_ID == str(pk) or OPEN_CASES_SYSTEM_QUEUE_ID == str(pk):
+        if ALL_CASES_QUEUE_ID == str(pk) or OPEN_CASES_QUEUE_ID == str(pk):
             return self._get_all_case_assignments()
         else:
             return self._get_case_assignments_for_specific_queue(pk)

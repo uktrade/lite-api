@@ -34,14 +34,14 @@ class SearchQueue:
 
         return [
             cls(
-                id=queues.ALL_CASES_SYSTEM_QUEUE_ID,
-                name=queues.ALL_CASES_SYSTEM_QUEUE_NAME,
+                id=queues.ALL_CASES_QUEUE_ID,
+                name=queues.ALL_CASES_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.count(),
             ),
             cls(
-                id=queues.OPEN_CASES_SYSTEM_QUEUE_ID,
-                name=queues.OPEN_CASES_SYSTEM_QUEUE_NAME,
+                id=queues.OPEN_CASES_QUEUE_ID,
+                name=queues.OPEN_CASES_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.is_open().count(),
             ),
@@ -56,6 +56,18 @@ class SearchQueue:
                 name=queues.UPDATED_CASES_QUEUE_NAME,
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.is_updated(user=user).count(),
+            ),
+            cls(
+                id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
+                name=queues.MY_ASSIGNED_CASES_QUEUE_NAME,
+                team=Team.objects.get(name="Admin"),
+                case_count=case_qs.assigned_to_user(user=user).count(),
+            ),
+            cls(
+                id=queues.MY_CASE_OFFICER_CASES_QUEUE_ID,
+                name=queues.MY_CASE_OFFICER_CASES_QUEUE_NAME,
+                team=Team.objects.get(name="Admin"),
+                case_count=case_qs.assigned_as_case_officer(user=user).count(),
             ),
         ]
 
