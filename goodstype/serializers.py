@@ -4,6 +4,7 @@ from applications.models import BaseApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from flags.enums import FlagStatuses
+from goods.serializers import ClcControlGoodSerializer
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -77,3 +78,8 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
     class Meta:
         model = GoodsType
         fields = "__all__"
+
+
+class ClcControlGoodTypeSerializer(ClcControlGoodSerializer):
+    class Meta:
+        model = GoodsType

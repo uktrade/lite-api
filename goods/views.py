@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationType
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -31,6 +32,8 @@ from goods.serializers import (
     GoodWithFlagsSerializer,
     GoodMissingDocumentSerializer,
 )
+from goodstype.helpers import get_goods_type
+from goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
 from static.statuses.enums import CaseStatusEnum
@@ -69,7 +72,13 @@ class GoodsListControlCode(APIView):
 
             for pk in objects:
                 try:
-                    good = get_good(pk)
+                    if application.application_type == ApplicationType.OPEN_LICENCE:
+                        good = get_goods_type(pk=pk)
+                        serializer_class = ClcControlGoodTypeSerializer
+                    else:
+                        good = get_good(pk)
+                        serializer_class = ClcControlGoodSerializer
+
                     old_control_code = good.control_code
                     if not old_control_code:
                         old_control_code = "No control code"
@@ -78,7 +87,7 @@ class GoodsListControlCode(APIView):
                     if data.get("is_good_controlled", "no").lower() == "yes":
                         new_control_code = data.get("control_code", "No control code")
 
-                    serializer = ClcControlGoodSerializer(good, data=data)
+                    serializer = serializer_class(good, data=data)
                     if serializer.is_valid():
                         serializer.save()
 

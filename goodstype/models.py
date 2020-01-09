@@ -21,3 +21,7 @@ class GoodsType(TimestampableModel):
     )
     flags = models.ManyToManyField(Flag, related_name="goods_type")
     countries = models.ManyToManyField(Country, related_name="goods_type", default=[])
+
+    # Gov
+    comment = models.TextField(default=None, blank=True, null=True)
+    report_summary = models.TextField(default=None, blank=True, null=True)
