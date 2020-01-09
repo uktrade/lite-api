@@ -16,7 +16,7 @@ from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
-from users.models import GovUser, GovNotification
+from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):
@@ -84,7 +84,7 @@ class GovUserList(APIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        serializer = GovUserViewSerializer(gov_users_qs, many=True)
+        serializer = GovUserViewSerializer(gov_users_qs.order_by("email"), many=True)
         return JsonResponse(data={"gov_users": serializer.data})
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
@@ -180,14 +180,4 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
-        return JsonResponse(data={"user": serializer.data})
-
-
-class NotificationViewSet(APIView):
-    authentication_classes = (GovAuthentication,)
-    queryset = GovNotification.objects.all()
-
-    # TODO: LT-1180 endpoint
-    def get(self, request):
-
-        return JsonResponse(data={"notifications": []}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)

@@ -2,9 +2,9 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from goods.models import Good
-from goodstype.models import GoodsType
 from parties.models import UltimateEndUser, EndUser, Consignee, ThirdParty
 from static.countries.models import Country
+from users.models import GovUser, GovNotification
 
 
 def filter_out_duplicates(advice_list):
@@ -69,6 +69,8 @@ def construct_coalesced_advice_values(
 
 
 def assign_field(application_field, advice, key):
+    from goodstype.models import GoodsType
+
     if application_field == "good":
         advice.good = Good.objects.get(pk=key)
     elif application_field == "end_user":
@@ -143,3 +145,16 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice("goods_type", goods_types.items(), case, request.user, level)
     collate_advice("consignee", consignees.items(), case, request.user, level)
     collate_advice("third_party", third_parties.items(), case, request.user, level)
+
+
+def get_updated_case_ids(user: GovUser):
+    """
+    Get the cases that have raised notifications when updated by an exporter
+    """
+    from cases.models import Case, CaseAssignment
+
+    cases_assigned_to_user = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+    cases_assigned_as_case_officer = Case.objects.filter(case_officer=user).values_list("id", flat=True)
+    cases = cases_assigned_to_user.union(cases_assigned_as_case_officer)
+
+    return GovNotification.objects.filter(user=user, case__id__in=cases).values_list("case__id", flat=True)
