@@ -4,7 +4,6 @@ from applications.models import BaseApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from flags.enums import FlagStatuses
-from goods.serializers import ClcControlGoodSerializer
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -103,7 +102,7 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
         super(ClcControlGoodTypeSerializer, self).__init__(*args, **kwargs)
 
         # Only validate the control code if the good is controlled
-        if eval(self.get_initial().get("is_good_controlled")):
+        if self.get_initial().get("is_good_controlled") == "True":
             self.fields["control_code"] = ControlListEntryField(required=True, write_only=True)
             self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
                 queryset=PicklistItem.objects.all(),
