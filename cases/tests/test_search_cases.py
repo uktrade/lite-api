@@ -4,7 +4,11 @@ from rest_framework import status
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import Case, CaseAssignment
-from queues.constants import UPDATED_CASES_QUEUE_ID, MY_ASSIGNED_CASES_QUEUE_ID, MY_CASE_OFFICER_CASES_QUEUE_ID
+from queues.constants import (
+    UPDATED_CASES_QUEUE_ID,
+    MY_ASSIGNED_CASES_QUEUE_ID,
+    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
+)
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -330,7 +334,7 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
         self.case_officer_case.case_officer = self.gov_user
         self.case_officer_case.save()
 
-        self.url = reverse("cases:search") + "?queue_id=" + MY_CASE_OFFICER_CASES_QUEUE_ID
+        self.url = reverse("cases:search") + "?queue_id=" + MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID
 
     def test_get_cases_on_user_assigned_as_case_officer_queue_returns_expected_cases(self):
         response = self.client.get(self.url, **self.gov_headers)

@@ -10,7 +10,7 @@ from queues.constants import (
     MY_TEAMS_QUEUES_CASES_ID,
     UPDATED_CASES_QUEUE_ID,
     MY_ASSIGNED_CASES_QUEUE_ID,
-    MY_CASE_OFFICER_CASES_QUEUE_ID,
+    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -26,12 +26,11 @@ def _setup_common(self):
     self.case = self.create_clc_query("Query", self.organisation)
     self.case_2 = self.create_clc_query("Query", self.organisation)
     self.case_3 = self.create_clc_query("Query", self.organisation)
-
     self.case_3.query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
     self.case_3.query.save()
 
 
-def _create_case_user_is_assigned_to(self):
+def _create_case_and_assign_user(self):
     case_assigned_to_user = self.create_standard_application_case(self.organisation).get_case()
     case_assigned_to_user.queues.set([self.queue])
     case_assignment = CaseAssignment.objects.create(case=case_assigned_to_user, queue=self.queue)
@@ -39,7 +38,7 @@ def _create_case_user_is_assigned_to(self):
     return case_assigned_to_user
 
 
-def _create_case_user_is_assigned_as_case_officer_to(self):
+def _create_case_and_assign_user_as_case_officer(self):
     case_as_case_officer = self.create_standard_application_case(self.organisation)
     case_as_case_officer.queues.set([self.queue])
     case_as_case_officer.case_officer = self.gov_user
@@ -168,7 +167,7 @@ class UpdatedCasesQueueTests(DataTestClient):
 
     def test_get_cases_count_on_updated_cases_queue_when_user_is_assigned_to_a_case_returns_expected_count(self):
         updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
-        case = _create_case_user_is_assigned_to(self)
+        case = _create_case_and_assign_user(self)
         _update_case(self, case)
 
         response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
@@ -179,7 +178,7 @@ class UpdatedCasesQueueTests(DataTestClient):
         self.assertEqual(response_data["queue"]["cases_count"], 1)
 
     def test_get_cases_count_on_updated_cases_queue_when_nothing_has_been_updated_returns_zero(self):
-        _create_case_user_is_assigned_to(self)
+        _create_case_and_assign_user(self)
         updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
 
         response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
@@ -191,7 +190,7 @@ class UpdatedCasesQueueTests(DataTestClient):
 
     def test_get_updated_cases_count_when_user_is_not_assigned_to_any_updated_cases_returns_zero(self):
         updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
-        case = _create_case_user_is_assigned_to(self)
+        case = _create_case_and_assign_user(self)
         _update_case(self, case)
         # Create a user that is not assigned to any cases
         other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
@@ -206,7 +205,7 @@ class UpdatedCasesQueueTests(DataTestClient):
 
     def test_get_updated_cases_count_when_user_is_assigned_as_case_officer_returns_expected_count(self):
         updated_cases_system_queue_url = reverse("queues:queue", kwargs={"pk": UPDATED_CASES_QUEUE_ID})
-        case = _create_case_user_is_assigned_as_case_officer_to(self)
+        case = _create_case_and_assign_user_as_case_officer(self)
         _update_case(self, case)
 
         response = self.client.get(updated_cases_system_queue_url, **self.gov_headers)
@@ -224,7 +223,7 @@ class UserAssignedCasesQueueTests(DataTestClient):
 
     def test_get_cases_count_on_user_assigned_cases_queue_returns_expected_cases_count(self):
         assigned_as_user_queue_url = reverse("queues:queue", kwargs={"pk": MY_ASSIGNED_CASES_QUEUE_ID})
-        _create_case_user_is_assigned_to(self)
+        _create_case_and_assign_user(self)
 
         response = self.client.get(assigned_as_user_queue_url, **self.gov_headers)
         response_data = response.json()
@@ -240,12 +239,12 @@ class CaseOfficerCasesQueueTests(DataTestClient):
         _setup_common(self)
 
     def test_get_cases_count_on_user_assigned_as_case_officer_cases_queue_returns_expected_cases_count(self):
-        case_officer_queue_url = reverse("queues:queue", kwargs={"pk": MY_CASE_OFFICER_CASES_QUEUE_ID})
-        _create_case_user_is_assigned_as_case_officer_to(self)
+        case_officer_queue_url = reverse("queues:queue", kwargs={"pk": MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID})
+        _create_case_and_assign_user_as_case_officer(self)
 
         response = self.client.get(case_officer_queue_url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["queue"]["id"], MY_CASE_OFFICER_CASES_QUEUE_ID)
+        self.assertEqual(response_data["queue"]["id"], MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID)
         self.assertEqual(response_data["queue"]["cases_count"], 1)

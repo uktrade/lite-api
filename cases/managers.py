@@ -9,7 +9,7 @@ from queues.constants import (
     OPEN_CASES_QUEUE_ID,
     UPDATED_CASES_QUEUE_ID,
     MY_ASSIGNED_CASES_QUEUE_ID,
-    MY_CASE_OFFICER_CASES_QUEUE_ID,
+    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -104,7 +104,7 @@ class CaseManager(models.Manager):
             case_qs = case_qs.is_updated(user=user)
         elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
             case_qs = case_qs.assigned_to_user(user=user)
-        elif queue_id == MY_CASE_OFFICER_CASES_QUEUE_ID:
+        elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
             case_qs = case_qs.assigned_as_case_officer(user=user)
         elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
             case_qs = case_qs.in_queue(queue_id=queue_id)

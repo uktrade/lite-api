@@ -57,8 +57,8 @@ def _my_assigned_cases_queue(user: GovUser):
 
 def _my_case_officer_cases_queue(user: GovUser):
     queue = Queue(
-        id=queues.MY_CASE_OFFICER_CASES_QUEUE_ID,
-        name=queues.MY_CASE_OFFICER_CASES_QUEUE_NAME,
+        id=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
+        name=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME,
         team=Team.objects.get(name="Admin"),
     )
     queue.is_system_queue = True
