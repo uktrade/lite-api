@@ -45,9 +45,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         choices=Units.choices,
         error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
     )
-    is_good_incorporated = BooleanField(
-        required=True, error_messages={"required": strings.Goods.INCORPORATED_ERROR}
-    )
+    is_good_incorporated = BooleanField(required=True, error_messages={"required": strings.Goods.INCORPORATED_ERROR})
 
     class Meta:
         model = GoodOnApplication
