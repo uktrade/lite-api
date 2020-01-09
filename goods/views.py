@@ -66,8 +66,10 @@ class GoodsListControlCode(APIView):
 
         if application.application_type == ApplicationType.OPEN_LICENCE:
             serializer_class = ClcControlGoodTypeSerializer
+            get_good_func = get_goods_type
         else:
             serializer_class = ClcControlGoodSerializer
+            get_good_func = get_good
 
         serializer = serializer_class(data=data)
 
@@ -77,10 +79,7 @@ class GoodsListControlCode(APIView):
 
             for pk in objects:
                 try:
-                    if application.application_type == ApplicationType.OPEN_LICENCE:
-                        good = get_goods_type(pk=pk)
-                    else:
-                        good = get_good(pk)
+                    good = get_good_func(pk=pk)
 
                     old_control_code = good.control_code
                     if not old_control_code:
