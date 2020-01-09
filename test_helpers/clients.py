@@ -534,7 +534,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         part_good.save()
 
-        GoodOnApplication(good=part_good, application=application, quantity=17, value=18).save()
+        GoodOnApplication(good=part_good, application=application, quantity=17, value=18, is_good_incorporated=True).save()
 
         application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
         self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)

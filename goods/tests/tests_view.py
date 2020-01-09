@@ -14,7 +14,6 @@ class GoodViewTests(DataTestClient):
         good = Good(
             description="thing",
             is_good_controlled=GoodControlled.NO,
-            is_good_end_product=True,
             organisation=self.organisation,
         )
         good.save()
@@ -31,7 +30,6 @@ class GoodViewTests(DataTestClient):
         good = Good(
             description="thing",
             is_good_controlled=GoodControlled.NO,
-            is_good_end_product=True,
             organisation=self.organisation,
         )
         good.save()
@@ -79,7 +77,6 @@ class GoodViewTests(DataTestClient):
             description="car1",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="cl500",
             organisation=org,
         )
@@ -88,7 +85,6 @@ class GoodViewTests(DataTestClient):
             description="Car2",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="CL300",
             organisation=org,
         )
@@ -97,7 +93,6 @@ class GoodViewTests(DataTestClient):
             description="car3",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="ML500",
             organisation=org,
         )
@@ -106,7 +101,6 @@ class GoodViewTests(DataTestClient):
             description="Truck",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="CL1000",
             organisation=org,
         )

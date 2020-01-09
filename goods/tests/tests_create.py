@@ -33,7 +33,7 @@ class GoodsCreateTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(response_data["description"], description)
-        self.assertEquals(response_data["is_good_controlled"]["value"], is_good_controlled)
+        self.assertEquals(response_data["is_good_controlled"]["key"], is_good_controlled)
         self.assertEquals(response_data["control_code"], control_code)
         self.assertEquals(response_data["part_number"], part_number)
 

@@ -32,6 +32,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -89,6 +90,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": data["quantity"],
             "unit": Units.NAR,
             "value": data["value"],
+            "is_good_incorporated": True
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -182,6 +184,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -199,6 +202,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
