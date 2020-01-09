@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from gov_users.serializers import GovUserSimpleSerializer
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -112,9 +113,11 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
 
 
 class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
+    case_officer = GovUserSimpleSerializer()
+
     class Meta:
         model = EndUserAdvisoryQuery
-        fields = EndUserAdvisoryListSerializer.Meta.fields
+        fields = EndUserAdvisoryListSerializer.Meta.fields + ("case_officer",)
 
     def get_exporter_user_notification_count(self, instance):
         """
