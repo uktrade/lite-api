@@ -91,9 +91,9 @@ def get_queues(include_system_queues=False, user: GovUser = None):
         queues.append(_open_cases_queue())
         if user:
             queues.append(_my_team_cases_queue(team=user.team))
-            queues.append(_updated_cases_queue(user=user))
             queues.append(_my_assigned_cases_queue(user=user))
             queues.append(_my_case_officer_cases_queue(user=user))
+            queues.append(_updated_cases_queue(user=user))
 
     return queues
 

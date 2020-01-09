@@ -8,6 +8,8 @@ from queues.constants import (
     MY_TEAMS_QUEUES_CASES_ID,
     OPEN_CASES_QUEUE_ID,
     UPDATED_CASES_QUEUE_ID,
+    MY_ASSIGNED_CASES_QUEUE_ID,
+    MY_CASE_OFFICER_CASES_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -26,7 +28,7 @@ class CaseQuerySet(models.QuerySet):
 
     def is_open(self, is_open: bool = True):
         func = self.exclude if is_open else self.filter
-        return func(status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED,])
+        return func(status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED])
 
     def in_queues(self, queues: List):
         return self.filter(queues__in=queues)
@@ -100,6 +102,10 @@ class CaseManager(models.Manager):
             case_qs = case_qs.is_open()
         elif queue_id == UPDATED_CASES_QUEUE_ID:
             case_qs = case_qs.is_updated(user=user)
+        elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
+            case_qs = case_qs.assigned_to_user(user=user)
+        elif queue_id == MY_CASE_OFFICER_CASES_QUEUE_ID:
+            case_qs = case_qs.assigned_as_case_officer(user=user)
         elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
             case_qs = case_qs.in_queue(queue_id=queue_id)
 

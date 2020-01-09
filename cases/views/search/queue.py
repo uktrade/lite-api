@@ -24,11 +24,11 @@ class SearchQueue:
             case_qs = Case.objects.all()
 
         return cls(
-            id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count(),
+            id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count()
         )
 
     @classmethod
-    def system(cls, user=None, team=None, case_qs=None) -> List["SearchQueue"]:
+    def system(cls, user, case_qs=None) -> List["SearchQueue"]:
         if not case_qs:
             case_qs = Case.objects.all()
 
@@ -49,13 +49,7 @@ class SearchQueue:
                 id=queues.MY_TEAMS_QUEUES_CASES_ID,
                 name=queues.MY_TEAMS_QUEUES_CASES_NAME,
                 team=Team.objects.get(name="Admin"),
-                case_count=case_qs.in_team(team=team).count(),
-            ),
-            cls(
-                id=queues.UPDATED_CASES_QUEUE_ID,
-                name=queues.UPDATED_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.is_updated(user=user).count(),
+                case_count=case_qs.in_team(team=user.team).count(),
             ),
             cls(
                 id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
@@ -69,11 +63,17 @@ class SearchQueue:
                 team=Team.objects.get(name="Admin"),
                 case_count=case_qs.assigned_as_case_officer(user=user).count(),
             ),
+            cls(
+                id=queues.UPDATED_CASES_QUEUE_ID,
+                name=queues.UPDATED_CASES_QUEUE_NAME,
+                team=Team.objects.get(name="Admin"),
+                case_count=case_qs.is_updated(user=user).count(),
+            ),
         ]
 
     @classmethod
-    def all(cls, user=None, team=None, case_qs=None, queue_qs=None):
-        return cls.system(user=user, team=team, case_qs=case_qs) + cls.from_queue_qs(queue_qs)
+    def all(cls, user, case_qs=None, queue_qs=None):
+        return cls.system(user=user, case_qs=case_qs) + cls.from_queue_qs(queue_qs)
 
     @classmethod
     def from_queue_qs(cls, queue_qs=None):
