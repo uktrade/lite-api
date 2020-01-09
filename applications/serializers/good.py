@@ -31,38 +31,24 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodOnApplication
-        fields = (
-            "id",
-            "good",
-            "application",
-            "quantity",
-            "unit",
-            "value",
-            "is_good_incorporated"
-        )
+        fields = ("id", "good", "application", "quantity", "unit", "value", "is_good_incorporated")
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
     application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
     value = DecimalField(max_digits=256, decimal_places=2, error_messages={"invalid": strings.Goods.INVALID_VALUE})
-    quantity = DecimalField(max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QUANTITY})
+    quantity = DecimalField(
+        max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QUANTITY}
+    )
     unit = ChoiceField(
         choices=Units.choices,
         error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
     )
-    is_good_incorporated = BooleanField(required=True, error_messages={
-        "required": "Select whether your good is incorporated or not"
-    })
+    is_good_incorporated = BooleanField(
+        required=True, error_messages={"required": "Select whether your good is incorporated or not"}
+    )
 
     class Meta:
         model = GoodOnApplication
-        fields = (
-            "id",
-            "good",
-            "application",
-            "value",
-            "quantity",
-            "unit",
-            "is_good_incorporated"
-        )
+        fields = ("id", "good", "application", "value", "quantity", "unit", "is_good_incorporated")

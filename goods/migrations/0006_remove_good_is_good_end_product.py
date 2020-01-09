@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0005_merge_20191220_1432'),
+        ("goods", "0005_merge_20191220_1432"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='good',
-            name='is_good_end_product',
-        ),
+        migrations.RemoveField(model_name="good", name="is_good_end_product",),
     ]

@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0003_auto_20191209_1209'),
+        ("applications", "0003_auto_20191209_1209"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goodonapplication',
-            name='is_good_incorporated',
-            field=models.BooleanField(default=False),
+            model_name="goodonapplication", name="is_good_incorporated", field=models.BooleanField(default=False),
         ),
     ]
