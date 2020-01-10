@@ -3,7 +3,6 @@ from django.db.models import Q
 from cases.helpers import get_updated_case_ids, get_assigned_as_case_officer_case_ids, get_assigned_to_user_case_ids
 from conf.exceptions import NotFoundError
 from queues.models import Queue
-from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from users.models import GovUser
 
