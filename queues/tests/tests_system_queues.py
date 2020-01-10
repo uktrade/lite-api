@@ -223,7 +223,10 @@ class UserAssignedCasesQueueTests(DataTestClient):
 
     def test_get_cases_count_on_user_assigned_cases_queue_returns_expected_cases_count(self):
         assigned_as_user_queue_url = reverse("queues:queue", kwargs={"pk": MY_ASSIGNED_CASES_QUEUE_ID})
-        _create_case_and_assign_user(self)
+        open_case = _create_case_and_assign_user(self)
+        closed_case = _create_case_and_assign_user(self)
+        closed_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        closed_case.save()
 
         response = self.client.get(assigned_as_user_queue_url, **self.gov_headers)
         response_data = response.json()
@@ -240,7 +243,10 @@ class CaseOfficerCasesQueueTests(DataTestClient):
 
     def test_get_cases_count_on_user_assigned_as_case_officer_cases_queue_returns_expected_cases_count(self):
         case_officer_queue_url = reverse("queues:queue", kwargs={"pk": MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID})
-        _create_case_and_assign_user_as_case_officer(self)
+        open_case = _create_case_and_assign_user_as_case_officer(self)
+        closed_case = _create_case_and_assign_user_as_case_officer(self)
+        closed_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        closed_case.save()
 
         response = self.client.get(case_officer_queue_url, **self.gov_headers)
         response_data = response.json()

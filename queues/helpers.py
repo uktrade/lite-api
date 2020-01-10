@@ -11,7 +11,7 @@ import queues.constants as queues
 
 
 def _all_cases_queue():
-    queue = Queue(id=queues.ALL_CASES_QUEUE_ID, name=queues.ALL_CASES_QUEUE_NAME, team=Team.objects.get(name="Admin"),)
+    queue = Queue(id=queues.ALL_CASES_QUEUE_ID, name=queues.ALL_CASES_QUEUE_NAME, team=Team.objects.get(name="Admin"))
     queue.is_system_queue = True
     queue.query = Q()
     queue.reverse_ordering = True
@@ -20,9 +20,7 @@ def _all_cases_queue():
 
 
 def _open_cases_queue():
-    queue = Queue(
-        id=queues.OPEN_CASES_QUEUE_ID, name=queues.OPEN_CASES_QUEUE_NAME, team=Team.objects.get(name="Admin"),
-    )
+    queue = Queue(id=queues.OPEN_CASES_QUEUE_ID, name=queues.OPEN_CASES_QUEUE_NAME, team=Team.objects.get(name="Admin"))
     queue.is_system_queue = True
     queue.query = ~Q(status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED])
 
@@ -49,8 +47,9 @@ def _my_assigned_cases_queue(user: GovUser):
     )
     queue.is_system_queue = True
     assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-    queue.query = Q(id__in=assigned_to_user_case_ids)
-    queue.reverse_ordering = True
+    queue.query = Q(id__in=assigned_to_user_case_ids) & ~Q(
+        status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
+    )
 
     return queue
 
@@ -63,8 +62,9 @@ def _my_case_officer_cases_queue(user: GovUser):
     )
     queue.is_system_queue = True
     assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
-    queue.query = Q(id__in=assigned_as_case_officer_case_ids)
-    queue.reverse_ordering = True
+    queue.query = Q(id__in=assigned_as_case_officer_case_ids) & ~Q(
+        status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
+    )
 
     return queue
 

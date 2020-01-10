@@ -48,11 +48,15 @@ class CaseQuerySet(models.QuerySet):
 
     def assigned_to_user(self, user):
         assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-        return self.filter(id__in=assigned_to_user_case_ids)
+        return self.filter(id__in=assigned_to_user_case_ids).exclude(
+            status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
+        )
 
     def assigned_as_case_officer(self, user):
         assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
-        return self.filter(id__in=assigned_as_case_officer_case_ids)
+        return self.filter(id__in=assigned_as_case_officer_case_ids).exclude(
+            status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
+        )
 
     def has_status(self, status):
         return self.filter(status__status=status)
