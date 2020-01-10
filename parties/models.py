@@ -17,7 +17,6 @@ class Party(TimestampableModel):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
     )
@@ -25,25 +24,31 @@ class Party(TimestampableModel):
 
 
 class Consignee(Party):
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+
     def save(self, *args, **kwargs):
         self.type = PartyType.CONSIGNEE
         super(Consignee, self).save(*args, **kwargs)
 
 
 class EndUser(Party):
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+
     def save(self, *args, **kwargs):
         self.type = PartyType.END
         super(EndUser, self).save(*args, **kwargs)
 
 
 class UltimateEndUser(Party):
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+
     def save(self, *args, **kwargs):
         self.type = PartyType.ULTIMATE
         super(UltimateEndUser, self).save(*args, **kwargs)
 
 
 class ThirdParty(Party):
-    third_party_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=22,)
+    sub_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=22,)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.THIRD
