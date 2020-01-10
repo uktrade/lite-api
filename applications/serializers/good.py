@@ -31,7 +31,15 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodOnApplication
-        fields = ("id", "good", "application", "quantity", "unit", "value", "is_good_incorporated")
+        fields = (
+            "id",
+            "good",
+            "application",
+            "quantity",
+            "unit",
+            "value",
+            "is_good_incorporated",
+        )
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
@@ -49,4 +57,12 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodOnApplication
-        fields = ("id", "good", "application", "value", "quantity", "unit", "is_good_incorporated")
+        fields = (
+            "id",
+            "good",
+            "application",
+            "value",
+            "quantity",
+            "unit",
+            "is_good_incorporated",
+        )
