@@ -151,7 +151,7 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
-        self.assertIn("is_good_incorporated", str(retrieved_application))
+        self.assertIn("is_good_incorporated", retrieved_application["goods_types"][0])
         self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
         self.assertIsNotNone(
             CountryOnApplication.objects.filter(application__id=open_application.id).count(), 1,
