@@ -38,6 +38,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
+        """
+        Post a singular good to the endpoint, and check that the control code is updated, and flags are removed
+        """
+
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -56,6 +60,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good.flags.count(), 0)
 
     def test_verify_multiple_goods(self):
+        """
+        Post a multiple goods to the endpoint, and check that the control code is updated for both
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -74,6 +82,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good.control_code, "ML1a")
 
     def test_verify_single_good_NLR(self):
+        """
+        Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
+        """
+
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -92,6 +104,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good.flags.count(), 0)
 
     def test_verify_multiple_goods_NLR(self):
+        """
+        Post a multiple goods to the endpoint, and check that the control code is not set if good is not controlled
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -109,7 +125,11 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_2.pk)
         self.assertEqual(verified_good.control_code, "")
 
-    def test_invalid_pk(self):
+    def test_invalid_good_pk(self):
+        """
+        Post a multiple goods to the endpoint, and test that 404 response, and that other good is updated
+        """
+
         data = {
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
@@ -125,6 +145,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good.control_code, "")
 
     def test_invalid_control_code(self):
+        """
+        Post a multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -141,6 +165,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEqual(verified_good.flags.count(), 1)
 
     def test_controlled_good_empty_control_code(self):
+        """
+        Post multiple goods, with an blank control_code and is controlled, for a 400 response, and not update of good.
+        """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -156,9 +183,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.flags.count(), 1)
 
-    def test_user_cannot_respond_to_good_without_permissions(self):
+    def test_user_cannot_review_good_without_permissions(self):
         """
-        Tests that the right level of permissions are required
+        Tests that the right level of permissions are required by a gov user to review a good.
         """
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
@@ -215,6 +242,9 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.url = reverse_lazy("goods:control_code", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
+        """
+        Post a singular good to the endpoint, and check that the control code is updated, and flags are removed
+        """
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -233,6 +263,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEqual(self.good_1.flags.count(), 0)
 
     def test_verify_multiple_goods(self):
+        """
+        Post a multiple goods to the endpoint, and check that the control code is updated for both
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -251,6 +285,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEqual(self.good_2.control_code, "ML1a")
 
     def test_verify_single_good_NLR(self):
+        """
+        Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
+        """
+
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -269,6 +307,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEqual(self.good_1.flags.count(), 0)
 
     def test_verify_multiple_goods_NLR(self):
+        """
+        Post a multiple goods to the endpoint, and check that the control code is not set if good is not controlled
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -286,7 +328,11 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.good_2.refresh_from_db()
         self.assertEqual(self.good_2.control_code, "")
 
-    def test_invalid_pk(self):
+    def test_invalid_good_pk(self):
+        """
+        Post a multiple goods to the endpoint, and test that 404 response, and that other good is updated
+        """
+
         data = {
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
@@ -302,6 +348,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEqual(self.good_1.control_code, "")
 
     def test_invalid_control_code(self):
+        """
+        Post a multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -318,6 +368,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEqual(self.good_1.flags.count(), 1)
 
     def test_controlled_good_empty_control_code(self):
+        """
+        Post multiple goods, with an blank control_code and is controlled, for a 400 response, and not update of good.
+        """
+
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
@@ -333,7 +387,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.good_1.refresh_from_db()
         self.assertEqual(self.good_1.flags.count(), 1)
 
-    def test_user_cannot_respond_to_good_without_permissions(self):
+    def test_user_cannot_review_goods_without_permissions(self):
         """
         Tests that the right level of permissions are required
         """
