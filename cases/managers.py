@@ -26,9 +26,8 @@ class CaseQuerySet(models.QuerySet):
        > qs = Case.objects.is_open().in_queue('0001')
     """
 
-    def is_open(self, is_open: bool = True):
-        is_terminal = not is_open
-        return self.filter(status__is_terminal=is_terminal)
+    def is_open(self):
+        return self.filter(status__is_terminal=False)
 
     def in_queues(self, queues: List):
         return self.filter(queues__in=queues)
