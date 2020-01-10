@@ -40,6 +40,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         super(GoodsTypeSerializer, self).__init__(*args, **kwargs)
 
         # Only add is_good_incorporated if application is of type OPEN_LICENCE
+        # and not if it's a HMRC_QUERY
         application = self.get_initial().get("application")
         if application:
             if get_application(application).application_type == ApplicationType.OPEN_LICENCE:
