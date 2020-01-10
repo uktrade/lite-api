@@ -64,12 +64,14 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        if application.application_type == ApplicationType.OPEN_LICENCE:
-            serializer_class = ClcControlGoodTypeSerializer
-            get_good_func = get_goods_type
-        else:
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
             serializer_class = ClcControlGoodSerializer
             get_good_func = get_good
+            controlled = data.get("is_good_controlled", "no").lower() == "yes"
+        else:
+            serializer_class = ClcControlGoodTypeSerializer
+            get_good_func = get_goods_type
+            controlled = data.get("is_good_controlled", "false").lower() == "true"
 
         serializer = serializer_class(data=data)
 
@@ -86,7 +88,7 @@ class GoodsListControlCode(APIView):
                         old_control_code = "No control code"
 
                     new_control_code = "No control code"
-                    if data.get("is_good_controlled", "no").lower() == "yes":
+                    if controlled:
                         new_control_code = data.get("control_code", "No control code")
 
                     serializer = serializer_class(good, data=data)
