@@ -23,7 +23,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodsType
-        fields = [
+        fields = (
             "id",
             "description",
             "is_good_controlled",
@@ -31,7 +31,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             "application",
             "countries",
             "document",
-        ]
+        )
 
     def __init__(self, *args, **kwargs):
         """
@@ -45,7 +45,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         if application:
             if get_application(application).application_type == ApplicationType.OPEN_LICENCE:
                 self.fields["is_good_incorporated"] = serializers.BooleanField()
-                self.Meta.fields.append("is_good_incorporated")
+                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", )
             else:
                 if hasattr(self, "initial_data"):
                     self.initial_data["is_good_incorporated"] = None
