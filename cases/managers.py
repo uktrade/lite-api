@@ -27,8 +27,8 @@ class CaseQuerySet(models.QuerySet):
     """
 
     def is_open(self, is_open: bool = True):
-        func = self.exclude if is_open else self.filter
-        return func(status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED])
+        is_terminal = not is_open
+        return self.filter(status__is_terminal=is_terminal)
 
     def in_queues(self, queues: List):
         return self.filter(queues__in=queues)
@@ -48,15 +48,11 @@ class CaseQuerySet(models.QuerySet):
 
     def assigned_to_user(self, user):
         assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-        return self.filter(id__in=assigned_to_user_case_ids).exclude(
-            status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
-        )
+        return self.filter(id__in=assigned_to_user_case_ids, status__is_terminal=False)
 
     def assigned_as_case_officer(self, user):
         assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
-        return self.filter(id__in=assigned_as_case_officer_case_ids).exclude(
-            status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED]
-        )
+        return self.filter(id__in=assigned_as_case_officer_case_ids, status__is_terminal=False)
 
     def has_status(self, status):
         return self.filter(status__status=status)
