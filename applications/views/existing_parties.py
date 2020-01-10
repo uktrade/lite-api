@@ -7,6 +7,16 @@ from parties.serializers import PartySerializer
 
 
 class ExistingParties(generics.ListCreateAPIView):
+    """
+    Gets all existing parties for a given organisation (extracted from the application)
+    in a paginated format.
+
+    Allows additional get params to be passed to filter the parties.
+    Also adds __contains to the get params to make the result set include partial matches
+    i.e. name=Abc becomes name__contains=Abc when in filter.
+    Country is filtered by name (i.e. United Kingdom)
+    """
+
     authentication_classes = (ExporterAuthentication,)
     serializer_class = PartySerializer
 

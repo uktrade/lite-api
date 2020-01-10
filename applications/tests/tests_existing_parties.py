@@ -7,7 +7,7 @@ from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
-class GetExistingPartyTests(DataTestClient):
+class GetExistingPartiesTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
@@ -27,7 +27,7 @@ class GetExistingPartyTests(DataTestClient):
         self.assertEqual(len(response.data["results"]), Party.objects.count())
 
     @parameterized.expand(
-        [("name", "Abc", 2), ("address", "123 abc st.", 1), ("address", "456 abc st.", 1),]
+        [("name", "Abc", 2), ("name", "blah", 0), ("address", "123 abc st.", 1), ("address", "456 abc st.", 1),]
     )
     def test_get_existing_parties_with_filters(self, key, value, expected_results):
         params = f"?{key}={value}"
