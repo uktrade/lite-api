@@ -61,10 +61,7 @@ class GoodsCreateTests(DataTestClient):
     # This data is the first successful created good in the test above, if both tests fail it may be related to that
     # data being incorrect now
     @parameterized.expand(
-        [
-            ("Widget", GoodControlled.YES, "ML1a", "1337", True),
-            ("Widget", GoodControlled.YES, "ML1a", "1337", False),
-        ]
+        [("Widget", GoodControlled.YES, "ML1a", "1337", True), ("Widget", GoodControlled.YES, "ML1a", "1337", False),]
     )
     def test_create_validate_only(
         self, description, is_good_controlled, control_code, part_number, validate_only,
