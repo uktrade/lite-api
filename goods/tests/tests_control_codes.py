@@ -61,7 +61,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
     def test_verify_multiple_goods(self):
         """
-        Post a multiple goods to the endpoint, and check that the control code is updated for both
+        Post multiple goods to the endpoint, and check that the control code is updated for both
         """
 
         data = {
@@ -105,7 +105,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
     def test_verify_multiple_goods_NLR(self):
         """
-        Post a multiple goods to the endpoint, and check that the control code is not set if good is not controlled
+        Post multiple goods to the endpoint, and check that the control code is not set if good is not controlled
         """
 
         data = {
@@ -127,7 +127,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
     def test_invalid_good_pk(self):
         """
-        Post a multiple goods to the endpoint, and test that 404 response, and that other good is updated
+        Post multiple goods to the endpoint, and test that 404 response, and that other good is updated
         """
 
         data = {
@@ -146,7 +146,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
     def test_invalid_control_code(self):
         """
-        Post a multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
+        Post multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
         """
 
         data = {
@@ -264,7 +264,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
     def test_verify_multiple_goods(self):
         """
-        Post a multiple goods to the endpoint, and check that the control code is updated for both
+        Post multiple goods to the endpoint, and check that the control code is updated for both
         """
 
         data = {
@@ -308,7 +308,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
     def test_verify_multiple_goods_NLR(self):
         """
-        Post a multiple goods to the endpoint, and check that the control code is not set if good is not controlled
+        Post multiple goods to the endpoint, and check that the control code is not set if good is not controlled
         """
 
         data = {
@@ -330,7 +330,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
     def test_invalid_good_pk(self):
         """
-        Post a multiple goods to the endpoint, and test that 404 response, and that other good is updated
+        Post multiple goods to the endpoint, and test that 404 response, and that other good is updated
         """
 
         data = {
@@ -349,7 +349,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
     def test_invalid_control_code(self):
         """
-        Post a multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
+        Post multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
         """
 
         data = {
