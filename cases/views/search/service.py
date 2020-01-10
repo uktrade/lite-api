@@ -13,5 +13,5 @@ def get_case_type_list() -> List[Dict]:
     return CaseTypeEnum.as_list()
 
 
-def get_search_queues(user, team):
-    return SearchQueue.all(user=user, team=team)
+def get_search_queues(user):
+    return SearchQueue.all(user=user)

@@ -147,14 +147,24 @@ def create_grouped_advice(case, request, advice, level):
     collate_advice("third_party", third_parties.items(), case, request.user, level)
 
 
+def get_assigned_to_user_case_ids(user: GovUser):
+    from cases.models import CaseAssignment
+
+    return CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+
+
+def get_assigned_as_case_officer_case_ids(user: GovUser):
+    from cases.models import Case
+
+    return Case.objects.filter(case_officer=user).values_list("id", flat=True)
+
+
 def get_updated_case_ids(user: GovUser):
     """
     Get the cases that have raised notifications when updated by an exporter
     """
-    from cases.models import Case, CaseAssignment
-
-    cases_assigned_to_user = CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
-    cases_assigned_as_case_officer = Case.objects.filter(case_officer=user).values_list("id", flat=True)
-    cases = cases_assigned_to_user.union(cases_assigned_as_case_officer)
+    assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
+    assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
+    cases = assigned_to_user_case_ids.union(assigned_as_case_officer_case_ids)
 
     return GovNotification.objects.filter(user=user, case__id__in=cases).values_list("case__id", flat=True)
