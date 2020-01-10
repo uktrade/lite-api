@@ -127,7 +127,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
         self.assertEqual(audit_qs.count(), 0)
 
-    def test_add_a_good_to_a_submitted_application__failure(self):
+    def test_add_a_good_to_a_submitted_application_failure(self):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
         self.create_good_document(
