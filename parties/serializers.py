@@ -15,6 +15,7 @@ class PartySerializer(serializers.ModelSerializer):
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
+    sub_type = KeyValueChoiceField(choices=SubType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
 
@@ -29,6 +30,7 @@ class PartySerializer(serializers.ModelSerializer):
             "type",
             "organisation",
             "document",
+            "sub_type",
         )
 
     @staticmethod
@@ -58,21 +60,9 @@ class PartySerializer(serializers.ModelSerializer):
 
 
 class EndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = EndUser
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
+        fields = "__all__"
 
 
 class EndUserWithFlagsSerializer(EndUserSerializer):
@@ -87,21 +77,9 @@ class EndUserWithFlagsSerializer(EndUserSerializer):
 
 
 class UltimateEndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = UltimateEndUser
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
+        fields = "__all__"
 
 
 class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
@@ -116,21 +94,9 @@ class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
 
 
 class ConsigneeSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = Consignee
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
+        fields = "__all__"
 
 
 class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
@@ -145,7 +111,7 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
+    third_party_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
 
     class Meta:
         model = ThirdParty
@@ -159,6 +125,7 @@ class ThirdPartySerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
+            "third_party_type"
         )
 
 
