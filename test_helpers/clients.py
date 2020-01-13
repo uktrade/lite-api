@@ -241,7 +241,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",
             website="www." + name + ".com",
-            sub_type=ThirdPartyRole.AGENT,
+            sub_type=SubType.GOVERNMENT,
+            role=ThirdPartyRole.AGENT,
             type=PartyType.THIRD,
             country=get_country("GB"),
         )

@@ -150,18 +150,7 @@ class ThirdPartySerializer(PartySerializer):
 
     class Meta:
         model = ThirdParty
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-            "role"
-        )
+        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role")
 
 
 class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
