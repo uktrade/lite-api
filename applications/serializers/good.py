@@ -1,4 +1,3 @@
-from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -6,7 +5,8 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import StandardApplication, GoodOnApplication
 from conf.serializers import KeyValueChoiceField
 from goods.models import Good
-from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
+from goods.serializers import GoodSerializer
+from lite_content.lite_api import strings
 from static.units.enums import Units
 
 
