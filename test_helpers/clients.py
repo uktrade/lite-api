@@ -34,7 +34,7 @@ from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.models import PartyDocument
-from parties.enums import SubType, PartyType, ThirdPartySubType
+from parties.enums import SubType, PartyType, ThirdPartyRole
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
@@ -241,7 +241,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",
             website="www." + name + ".com",
-            sub_type=ThirdPartySubType.AGENT,
+            sub_type=ThirdPartyRole.AGENT,
             type=PartyType.THIRD,
             country=get_country("GB"),
         )

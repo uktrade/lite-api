@@ -6,7 +6,7 @@ from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
-from parties.enums import PartyType, SubType, ThirdPartySubType
+from parties.enums import PartyType, SubType, ThirdPartyRole
 from static.countries.models import Country
 
 
@@ -48,7 +48,8 @@ class UltimateEndUser(Party):
 
 
 class ThirdParty(Party):
-    sub_type = models.CharField(choices=ThirdPartySubType.choices, default=ThirdPartySubType.OTHER, max_length=22,)
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+    role = models.CharField(choices=ThirdPartyRole.choices, default=ThirdPartyRole.OTHER, max_length=22)
 
     def save(self, *args, **kwargs):
         self.type = PartyType.THIRD

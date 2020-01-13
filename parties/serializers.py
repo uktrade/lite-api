@@ -5,7 +5,7 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from organisations.models import Organisation
 from parties.models import PartyDocument
-from parties.enums import PartyType, SubType, ThirdPartySubType
+from parties.enums import PartyType, SubType, ThirdPartyRole
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 
 
@@ -145,7 +145,8 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
+    sub_type = KeyValueChoiceField(choices=SubType.choices)
+    role = KeyValueChoiceField(choices=ThirdPartyRole.choices)
 
     class Meta:
         model = ThirdParty
@@ -159,6 +160,7 @@ class ThirdPartySerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
+            "role"
         )
 
 
