@@ -74,7 +74,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.control_code = validated_data.get("control_code", instance.control_code)
-        instance.is_good_incorporated = validated_data.get("is_good_end_product", instance.is_good_end_product)
+        instance.is_good_incorporated = validated_data.get("is_good_incorporated", instance.is_good_incorporated)
         instance.save()
         return instance
 
