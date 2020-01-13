@@ -202,7 +202,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         response = self.client.delete(remove_tp_url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(ThirdParty.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
@@ -222,7 +222,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(application.third_parties.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=True))

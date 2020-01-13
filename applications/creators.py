@@ -97,10 +97,7 @@ def _validate_standard_licence(draft, errors):
         errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
 
     ultimate_end_user_required = False
-    if next(
-        filter(lambda x: x.good.is_good_end_product is False, GoodOnApplication.objects.filter(application=draft),),
-        None,
-    ):
+    if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft),), None,):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:

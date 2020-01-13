@@ -17,7 +17,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             "description": "Widget",
             "is_good_controlled": True,
             "control_code": "ML1a",
-            "is_good_end_product": True,
+            "is_good_incorporated": True,
         }
 
         self.hmrc_query = self.create_hmrc_query(self.organisation)
@@ -47,7 +47,25 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
         self.assertEquals(response_data["control_code"], "ML1a")
-        self.assertEquals(response_data["is_good_end_product"], True)
+        self.assertEquals(response_data["is_good_incorporated"], True)
+
+    def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):
+        url = reverse("applications:application_goodstypes", kwargs={"pk": self.hmrc_query.id})
+
+        data = {
+            "description": "Widget",
+            "is_good_controlled": True,
+            "control_code": "ML1a",
+        }
+
+        response = self.client.post(url, data, **self.hmrc_exporter_headers)
+        response_data = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response_data["description"], "Widget")
+        self.assertEquals(response_data["is_good_controlled"], True)
+        self.assertEquals(response_data["control_code"], "ML1a")
+        self.assertNotIn("is_good_incorporated", response_data)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}
@@ -69,7 +87,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             "description": "Widget",
             "is_good_controlled": True,
             "control_code": "ML1a",
-            "is_good_end_product": True,
+            "is_good_incorporated": True,
         }
 
         response = self.client.post(url, data, **self.exporter_headers)

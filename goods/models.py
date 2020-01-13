@@ -32,7 +32,6 @@ class Good(TimestampableModel):
     pv_grading_date_of_issue = models.DateField(blank=True, null=True)
     pv_grading_comment = models.TextField(default="", blank=True, null=True)
 
-    is_good_end_product = models.BooleanField()
     part_number = models.TextField(default="", blank=True, null=True)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
