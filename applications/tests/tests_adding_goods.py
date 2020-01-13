@@ -10,6 +10,7 @@ from lite_content.lite_api import strings
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
+from test_helpers.decorators import none_param_tester
 
 
 class AddingGoodsOnApplicationTests(DataTestClient):
@@ -32,6 +33,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True,
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -89,6 +91,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": data["quantity"],
             "unit": Units.NAR,
             "value": data["value"],
+            "is_good_incorporated": True,
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -125,7 +128,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.all().count(), pre_test_good_count)
         self.assertEqual(audit_qs.count(), 0)
 
-    def test_add_a_good_to_a_submitted_application__failure(self):
+    def test_add_a_good_to_a_submitted_application_failure(self):
         application = self.create_standard_application(self.organisation)
         self.submit_application(application)
         self.create_good_document(
@@ -182,6 +185,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True,
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
@@ -199,9 +203,34 @@ class AddingGoodsOnApplicationTests(DataTestClient):
             "quantity": 1200.098896,
             "unit": Units.NAR,
             "value": 50000.45,
+            "is_good_incorporated": True,
         }
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @none_param_tester(12, Units.NAR, 50, True)
+    def test_add_a_good_to_a_draft_failure(self, quantity, unit, value, is_good_incorporated):
+        """
+        Ensure all params have to be sent otherwise fail
+        """
+        self.create_standard_application(self.organisation)
+        self.create_controlled_good("A good", self.organisation)
+        self.create_good_document(
+            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+        )
+        data = {
+            "good_id": self.good.id,
+            "quantity": quantity,
+            "unit": unit,
+            "value": value,
+            "is_good_incorporated": is_good_incorporated,
+        }
+
+        response = self.client.post(
+            reverse("applications:application_goods", kwargs={"pk": self.draft.id}), data, **self.exporter_headers
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

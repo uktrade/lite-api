@@ -11,12 +11,7 @@ from users.libraries.user_to_token import user_to_token
 
 class GoodViewTests(DataTestClient):
     def test_view_good_details(self):
-        good = Good(
-            description="thing",
-            is_good_controlled=GoodControlled.NO,
-            is_good_end_product=True,
-            organisation=self.organisation,
-        )
+        good = Good(description="thing", is_good_controlled=GoodControlled.NO, organisation=self.organisation,)
         good.save()
 
         url = reverse("goods:good", kwargs={"pk": good.id})
@@ -28,12 +23,7 @@ class GoodViewTests(DataTestClient):
         organisation_2, _ = self.create_organisation_with_exporter_user()
         organisation_2_admin = get_users_from_organisation(organisation_2)[0]
 
-        good = Good(
-            description="thing",
-            is_good_controlled=GoodControlled.NO,
-            is_good_end_product=True,
-            organisation=self.organisation,
-        )
+        good = Good(description="thing", is_good_controlled=GoodControlled.NO, organisation=self.organisation,)
         good.save()
 
         url = reverse("goods:good", kwargs={"pk": good.id})
@@ -79,7 +69,6 @@ class GoodViewTests(DataTestClient):
             description="car1",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="cl500",
             organisation=org,
         )
@@ -88,7 +77,6 @@ class GoodViewTests(DataTestClient):
             description="Car2",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="CL300",
             organisation=org,
         )
@@ -97,7 +85,6 @@ class GoodViewTests(DataTestClient):
             description="car3",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="ML500",
             organisation=org,
         )
@@ -106,7 +93,6 @@ class GoodViewTests(DataTestClient):
             description="Truck",
             is_good_controlled=GoodControlled.YES,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="CL1000",
             organisation=org,
         )

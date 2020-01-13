@@ -371,7 +371,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             description="thing",
             is_good_controlled=False,
             control_code="ML1a",
-            is_good_end_product=True,
+            is_good_incorporated=True,
             application=application,
         )
         goods_type.save()
@@ -395,7 +395,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             description=description,
             is_good_controlled=GoodControlled.YES,
             control_code=control_code,
-            is_good_end_product=True,
             part_number="123456",
             organisation=org,
         )
@@ -408,7 +407,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             description=description,
             is_good_controlled=GoodControlled.UNSURE,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="123456",
             organisation=organisation,
             comment=None,
@@ -529,7 +527,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = self.create_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
-            is_good_end_product=False,
             is_good_controlled=True,
             control_code="ML17",
             organisation=self.organisation,
@@ -538,7 +535,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         part_good.save()
 
-        GoodOnApplication(good=part_good, application=application, quantity=17, value=18).save()
+        GoodOnApplication(
+            good=part_good, application=application, quantity=17, value=18, is_good_incorporated=True
+        ).save()
 
         application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
         self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)
