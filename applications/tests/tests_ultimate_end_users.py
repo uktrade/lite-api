@@ -194,7 +194,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(UltimateEndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
@@ -214,7 +214,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(application.ultimate_end_users.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=True))
