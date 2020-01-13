@@ -25,7 +25,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "unit",
             "value",
             "is_good_incorporated",
-            "flags"
+            "flags",
         )
 
     def get_flags(self, instance):
