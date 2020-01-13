@@ -99,6 +99,7 @@ class GoodOnApplication(models.Model):
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
+    is_good_incorporated = models.BooleanField(default=False)
 
 
 class CountryOnApplication(models.Model):
