@@ -136,7 +136,7 @@ class GoodList(ListCreateAPIView):
 
         return queryset
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """
         Add a good to to an organisation
         """

@@ -58,5 +58,5 @@ class PVGrading:
         (OCCAR_UNCLASSIFIED, "OCCAR unclassified"),
         (OCCAR_CONFIDENTIAL, "OCCAR confidential"),
         (OCCAR_RESTRICTED, "OCCAR restricted"),
-        (OCCAR_SECRET, "OCCAR secret")
+        (OCCAR_SECRET, "OCCAR secret"),
     ]
