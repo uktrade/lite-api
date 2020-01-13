@@ -21,34 +21,28 @@ class Party(TimestampableModel):
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
 
 
 class Consignee(Party):
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
-
     def save(self, *args, **kwargs):
         self.type = PartyType.CONSIGNEE
         super(Consignee, self).save(*args, **kwargs)
 
 
 class EndUser(Party):
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
-
     def save(self, *args, **kwargs):
         self.type = PartyType.END
         super(EndUser, self).save(*args, **kwargs)
 
 
 class UltimateEndUser(Party):
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
-
     def save(self, *args, **kwargs):
         self.type = PartyType.ULTIMATE
         super(UltimateEndUser, self).save(*args, **kwargs)
 
 
 class ThirdParty(Party):
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
     role = models.CharField(choices=ThirdPartyRole.choices, default=ThirdPartyRole.OTHER, max_length=22)
 
     def save(self, *args, **kwargs):

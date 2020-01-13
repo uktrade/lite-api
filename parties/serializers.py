@@ -17,19 +17,11 @@ class PartySerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
+    sub_type = KeyValueChoiceField(choices=SubType.choices)
 
     class Meta:
         model = Party
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-        )
+        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type")
 
     @staticmethod
     def validate_website(value):
@@ -58,8 +50,6 @@ class PartySerializer(serializers.ModelSerializer):
 
 
 class EndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = EndUser
         fields = (
@@ -87,8 +77,6 @@ class EndUserWithFlagsSerializer(EndUserSerializer):
 
 
 class UltimateEndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = UltimateEndUser
         fields = (
@@ -116,8 +104,6 @@ class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
 
 
 class ConsigneeSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = Consignee
         fields = (
@@ -145,7 +131,6 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
     role = KeyValueChoiceField(choices=ThirdPartyRole.choices)
 
     class Meta:
