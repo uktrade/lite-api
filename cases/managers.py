@@ -2,10 +2,14 @@ from typing import List
 
 from django.db import models
 
+from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
-    ALL_CASES_SYSTEM_QUEUE_ID,
+    ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
-    OPEN_CASES_SYSTEM_QUEUE_ID,
+    OPEN_CASES_QUEUE_ID,
+    UPDATED_CASES_QUEUE_ID,
+    MY_ASSIGNED_CASES_QUEUE_ID,
+    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -22,9 +26,8 @@ class CaseQuerySet(models.QuerySet):
        > qs = Case.objects.is_open().in_queue('0001')
     """
 
-    def is_open(self, is_open: bool = True):
-        func = self.exclude if is_open else self.filter
-        return func(status__status__in=[CaseStatusEnum.WITHDRAWN, CaseStatusEnum.FINALISED,])
+    def is_open(self):
+        return self.filter(status__is_terminal=False)
 
     def in_queues(self, queues: List):
         return self.filter(queues__in=queues)
@@ -34,6 +37,21 @@ class CaseQuerySet(models.QuerySet):
 
     def in_team(self, team):
         return self.filter(queues__team=team).distinct()
+
+    def is_updated(self, user):
+        """
+        Get the cases that have raised notifications when updated by an exporter
+        """
+        updated_case_ids = get_updated_case_ids(user)
+        return self.filter(id__in=updated_case_ids)
+
+    def assigned_to_user(self, user):
+        assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
+        return self.filter(id__in=assigned_to_user_case_ids, status__is_terminal=False)
+
+    def assigned_as_case_officer(self, user):
+        assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
+        return self.filter(id__in=assigned_as_case_officer_case_ids, status__is_terminal=False)
 
     def has_status(self, status):
         return self.filter(status__status=status)
@@ -70,7 +88,7 @@ class CaseManager(models.Manager):
         return CaseQuerySet(self.model, using=self.db)
 
     def search(
-        self, queue_id=None, team=None, status=None, case_type=None, sort=None, date_order=None,
+        self, queue_id=None, user=None, status=None, case_type=None, sort=None, date_order=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -78,12 +96,16 @@ class CaseManager(models.Manager):
         case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:
-            case_qs = case_qs.in_team(team=team)
-
-        elif queue_id == OPEN_CASES_SYSTEM_QUEUE_ID:
+            case_qs = case_qs.in_team(team=user.team)
+        elif queue_id == OPEN_CASES_QUEUE_ID:
             case_qs = case_qs.is_open()
-
-        elif queue_id is not None and queue_id != ALL_CASES_SYSTEM_QUEUE_ID:
+        elif queue_id == UPDATED_CASES_QUEUE_ID:
+            case_qs = case_qs.is_updated(user=user)
+        elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
+            case_qs = case_qs.assigned_to_user(user=user)
+        elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
+            case_qs = case_qs.assigned_as_case_officer(user=user)
+        elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
             case_qs = case_qs.in_queue(queue_id=queue_id)
 
         if status:

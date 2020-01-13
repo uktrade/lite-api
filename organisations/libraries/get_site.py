@@ -3,14 +3,9 @@ from conf.exceptions import NotFoundError
 from organisations.models import Site
 
 
-def get_site(pk, organisation=None):
-    kwargs = {"pk": pk}
-
-    if organisation:
-        kwargs["organisation"] = organisation
-
+def get_site(pk, organisation) -> Site:
     try:
-        return Site.objects.get(**kwargs)
+        return Site.objects.get(pk=pk, organisation=organisation)
     except Site.DoesNotExist:
         raise NotFoundError({"site": "Site not found - " + str(pk)})
 

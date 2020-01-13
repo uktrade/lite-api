@@ -45,6 +45,21 @@ class NotFoundError(APIException):
         self.detail = _get_error_details({"errors": detail}, code)
 
 
+class PermissionDeniedError(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "You don't have permission to do that action"
+    default_code = "invalid"
+
+    def __init__(self, detail=None, code=None):
+        super(PermissionDeniedError, self).__init__()
+        if detail is None:
+            detail = self.default_detail
+        if code is None:
+            code = self.default_code
+
+        self.detail = _get_error_details({"errors": {"error": detail}}, code)
+
+
 class BadRequestError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = "Invalid input."

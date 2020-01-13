@@ -33,7 +33,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIn(CaseTypeEnum.CLC_QUERY, str(response_data["case_types"]))
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(response_data["case_types"]))
         self.assertIsNotNone(response_data.get("created_at"))
-        self.assertIsNotNone(response_data.get("last_modified_at"))
+        self.assertIsNotNone(response_data.get("updated_at"))
 
     def test_get_letter_templates_for_case_success(self):
         url = reverse("letter_templates:letter_templates")
@@ -50,7 +50,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
         self.assertIn(CaseTypeEnum.APPLICATION, str(response_data["case_types"]))
         self.assertIsNotNone(response_data.get("created_at"))
-        self.assertIsNotNone(response_data.get("last_modified_at"))
+        self.assertIsNotNone(response_data.get("updated_at"))
 
     def test_get_letter_template_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
@@ -66,7 +66,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIn(CaseTypeEnum.CLC_QUERY, str(template["case_types"]))
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(template["case_types"]))
         self.assertIsNotNone(template.get("created_at"))
-        self.assertIsNotNone(template.get("last_modified_at"))
+        self.assertIsNotNone(template.get("updated_at"))
 
     def test_get_letter_template_with_preview_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})

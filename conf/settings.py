@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "queries.end_user_advisories",
     "queues",
     "rest_framework",
-    "reversion",
     "static",
     "static.control_list_entries",
     "static.private_venture_gradings",

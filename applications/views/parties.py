@@ -270,7 +270,7 @@ class ApplicationThirdParties(APIView):
             actor=request.user,
             verb=AuditType.ADD_PARTY,
             target=case,
-            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
+            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name},
         )
 
         return JsonResponse(data={"third_party": serializer.data}, status=status.HTTP_201_CREATED)

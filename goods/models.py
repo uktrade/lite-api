@@ -1,8 +1,8 @@
 import uuid
 
-import reversion
 from django.db import models
 
+from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled, PVGrading, GoodPVGraded
@@ -11,8 +11,7 @@ from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser
 
 
-@reversion.register()
-class Good(models.Model):
+class Good(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.TextField(max_length=280)
 

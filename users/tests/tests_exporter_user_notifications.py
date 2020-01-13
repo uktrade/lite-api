@@ -5,9 +5,9 @@ from rest_framework import status
 
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
-from users.models import ExporterNotification
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
+from users.models import ExporterNotification
 
 
 class ExporterUserNotificationTests(DataTestClient):
@@ -155,6 +155,7 @@ class ExporterUserNotificationTests(DataTestClient):
             self.assertTrue(data["object_id"] in notification_object_ids)
 
     def test_get_applications_with_notifications_success(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self._create_application_with_notifications()
 
         response = self.client.get(reverse_lazy("applications:applications"), **self.exporter_headers)
@@ -182,7 +183,7 @@ class ExporterUserNotificationTests(DataTestClient):
         response = self.client.get(reverse_lazy("goods:goods"), **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        good_response_data = response.json()["goods"][0]["query"]
+        good_response_data = response.json()["results"][0]["query"]
         self.assertIn("exporter_user_notification_count", good_response_data)
         self.assertEqual(good_response_data["exporter_user_notification_count"]["total"], 3)
 

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -10,6 +10,7 @@ from audit_trail.payload import AuditType
 from cases import service
 from cases.helpers import create_grouped_advice
 from cases.libraries.get_case import get_case, get_case_document
+from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
@@ -31,25 +32,31 @@ from cases.serializers import (
     CaseTeamAdviceSerializer,
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
+    CaseOfficerUpdateSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from goodstype.helpers import get_goods_type
+from gov_users.serializers import GovUserSimpleSerializer
+from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
+from static.countries.models import Country
+from static.countries.serializers import CountryWithFlagsSerializer
+from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 
 
 class CaseDetail(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         """
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, context=request)
+        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
@@ -60,7 +67,9 @@ class CaseDetail(APIView):
         Change the queues a case belongs to
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, data=request.data, partial=True)
+        serializer = CaseDetailSerializer(
+            case, data=request.data, user=request.user, team=request.user.team, partial=True
+        )
         if serializer.is_valid():
             service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
             serializer.save()
@@ -420,5 +429,84 @@ class GoodsCountriesDecisions(APIView):
                 ).save()
 
             return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Destination(APIView):
+    def get(self, request, pk):
+        destination = get_destination(pk)
+
+        if isinstance(destination, Country):
+            serializer = CountryWithFlagsSerializer(destination)
+        else:
+            serializer = PartyWithFlagsSerializer(destination)
+
+        return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
+
+
+class CaseOfficer(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Gets the current case officer for a case
+        """
+        case_officer = get_case(pk).case_officer
+        data = {"case_officer": GovUserSimpleSerializer(case_officer).data if case_officer else None}
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Assigns a gov user to be the case officer for a case
+        """
+        case = get_case(pk)
+        gov_user_pk = request.data.get("gov_user_pk")
+        data = {"case_officer": gov_user_pk}
+
+        serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
+
+        if serializer.is_valid():
+            user = get_user_by_pk(gov_user_pk)
+
+            serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
+                target=case,
+                payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
+            )
+
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    def delete(self, request, pk):
+        """
+        Removes the case officer currently assigned to a case off of it.
+        """
+        case = get_case(pk)
+        if not case.case_officer:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+        data = {"case_officer": None}
+
+        serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
+
+        if serializer.is_valid():
+            user = case.case_officer
+
+            serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
+                target=case,
+                payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
+            )
+
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

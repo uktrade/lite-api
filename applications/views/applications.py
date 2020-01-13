@@ -19,7 +19,7 @@ from applications.libraries.application_helpers import (
     can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, BaseApplication, HmrcQuery
+from applications.models import GoodOnApplication, BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -30,6 +30,7 @@ from conf.decorators import authorised_users, application_in_major_editable_stat
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
 from organisations.enums import OrganisationType
+from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -61,17 +62,19 @@ class ApplicationList(ListCreateAPIView):
                 applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
         else:
             if submitted is None:
-                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
+                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
             elif submitted:
-                applications = BaseApplication.objects.submitted(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
+                applications = BaseApplication.objects.submitted(self.request.user.organisation)
             else:
-                applications = BaseApplication.objects.drafts(organisation=self.request.user.organisation).exclude(
-                    application_type=ApplicationType.HMRC_QUERY
-                )
+                applications = BaseApplication.objects.drafts(self.request.user.organisation)
+
+            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, self.request.user.organisation)
+            disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
+                "application", flat=True
+            )
+            applications = applications.exclude(id__in=disallowed_applications).exclude(
+                application_type=ApplicationType.HMRC_QUERY
+            )
 
         return applications
 
@@ -112,38 +115,61 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_update_serializer(application)
         case = application.get_case()
-        old_name = application.name
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
-
         if application.application_type == ApplicationType.HMRC_QUERY:
+            serializer.save()
+
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
+        # Audit block
         if request.data.get("name"):
+            old_name = application.name
+
+            serializer.save()
+
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_APPLICATION_NAME,
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if (
-            request.data.get("reference_number_on_information_form")
-            and application.application_type == ApplicationType.STANDARD_LICENCE
-        ):
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_APPLICATION_REFERENCE_NUMBER,
-                target=case,
-                payload={
-                    "old_ref_number": application.reference_number_on_information_form,
-                    "new_ref_number": serializer.data.get("reference_number_on_information_form"),
-                },
-            )
+        # Audit block
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
+            old_have_you_been_informed = application.have_you_been_informed == "yes"
+            have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
+
+            old_ref_number = application.reference_number_on_information_form or "no reference"
+            serializer.save()
+            new_ref_number = application.reference_number_on_information_form or "no reference"
+
+            if old_have_you_been_informed and not have_you_been_informed:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                    target=case,
+                    payload={"old_ref_number": old_ref_number},
+                )
+            else:
+                if old_have_you_been_informed:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                        target=case,
+                        payload={"new_ref_number": new_ref_number},
+                    )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

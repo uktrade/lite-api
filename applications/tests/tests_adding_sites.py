@@ -34,7 +34,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response["sites"]), 1)
 
     def test_add_multiple_sites_to_a_draft(self):
-        site2, address = self.create_site("site2", self.organisation)
+        site2, _ = self.create_site("site2", self.organisation)
 
         data = {"sites": [self.primary_site.id, site2.id]}
 

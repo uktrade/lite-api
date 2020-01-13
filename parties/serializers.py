@@ -62,7 +62,27 @@ class EndUserSerializer(PartySerializer):
 
     class Meta:
         model = EndUser
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+        )
 
+
+class EndUserWithFlagsSerializer(EndUserSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = EndUser
         fields = "__all__"
 
 
@@ -71,7 +91,27 @@ class UltimateEndUserSerializer(PartySerializer):
 
     class Meta:
         model = UltimateEndUser
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+        )
 
+
+class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = UltimateEndUser
         fields = "__all__"
 
 
@@ -80,7 +120,27 @@ class ConsigneeSerializer(PartySerializer):
 
     class Meta:
         model = Consignee
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+        )
 
+
+class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = Consignee
         fields = "__all__"
 
 
@@ -89,7 +149,27 @@ class ThirdPartySerializer(PartySerializer):
 
     class Meta:
         model = ThirdParty
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+        )
 
+
+class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = ThirdParty
         fields = "__all__"
 
 
@@ -112,3 +192,14 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
+
+
+class PartyWithFlagsSerializer(PartySerializer):
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    class Meta:
+        model = Party
+        fields = "__all__"

@@ -1,5 +1,6 @@
 import abc
 
+from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -53,8 +54,8 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "organisation",
             "application_type",
             "export_type",
-            "created",
-            "modified",
+            "created_at",
+            "updated_at",
             "submitted_at",
             "status",
             "case",
@@ -99,10 +100,11 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
     goods_locations = serializers.SerializerMethodField()
+    case_officer = GovUserSimpleSerializer()
 
     class Meta:
         model = BaseApplication
-        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations",)
+        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer",)
 
     def get_exporter_user_notification_count(self, instance):
         """

@@ -8,7 +8,7 @@ from organisations.models import Organisation
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserType
-from users.models import GovUser
+from users.models import GovUser, GovNotification
 from users.models import Role, Permission
 
 
@@ -78,6 +78,8 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+
     class Meta:
         model = GovUser
         fields = (
@@ -85,4 +87,19 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "team",
         )
+
+    def get_team(self, instance):
+        return instance.team.name
+
+
+class GovUserNotificationSerializer(serializers.ModelSerializer):
+    audit_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GovNotification
+        fields = ("audit_id",)
+
+    def get_audit_id(self, obj):
+        return obj.object_id

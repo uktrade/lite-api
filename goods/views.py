@@ -1,7 +1,9 @@
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -17,6 +19,7 @@ from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
 from goods.enums import GoodStatus
+from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
 from goods.serializers import (
@@ -26,6 +29,7 @@ from goods.serializers import (
     ClcControlGoodSerializer,
     GoodListSerializer,
     GoodWithFlagsSerializer,
+    GoodMissingDocumentSerializer,
 )
 from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -101,27 +105,36 @@ class GoodsListControlCode(APIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GoodList(APIView):
+class GoodList(ListCreateAPIView):
+    model = Good
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = GoodListSerializer
+    pagination_class = GoodListPaginator
 
-    def get(self, request):
-        """
-        Returns a list of all goods belonging to an organisation
-        """
-        description = request.GET.get("description", "")
-        part_number = request.GET.get("part_number", "")
-        control_rating = request.GET.get("control_rating")
-        goods = Good.objects.filter(
-            organisation_id=request.user.organisation.id,
-            description__icontains=description,
-            part_number__icontains=part_number,
-        ).order_by("description")
+    def get_serializer_context(self):
+        return {"exporter_user": self.request.user}
+
+    def get_queryset(self):
+        description = self.request.GET.get("description", "")
+        part_number = self.request.GET.get("part_number", "")
+        control_rating = self.request.GET.get("control_rating")
+        for_application = self.request.GET.get("for_application")
+        organisation = self.request.user.organisation.id
+
+        queryset = Good.objects.filter(
+            organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
+        ).order_by("-created_at")
 
         if control_rating:
-            goods = goods.filter(control_code__icontains=control_rating)
+            queryset = queryset.filter(control_code__icontains=control_rating)
 
-        serializer = GoodListSerializer(goods, many=True, context={"exporter_user": request.user})
-        return JsonResponse(data={"goods": serializer.data}, status=status.HTTP_200_OK)
+        if for_application:
+            good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
+                "good", flat=True
+            )
+            queryset = queryset.filter(Q(id__in=good_document_ids) | Q(missing_document_reason__isnull=False))
+
+        return queryset
 
     def post(self, request):
         """
@@ -153,10 +166,10 @@ class GoodDocumentCriteriaCheck(APIView):
             document_to_upload = str_to_bool(data["has_document_to_upload"])
             if not document_to_upload:
                 good.missing_document_reason = data["missing_document_reason"]
-                serializer = GoodSerializer(instance=good, data=data, partial=True)
+                serializer = GoodMissingDocumentSerializer(instance=good, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    good_data = serializer.data
+                    good_data = GoodSerializer(good).data
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:

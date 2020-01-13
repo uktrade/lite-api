@@ -1,15 +1,16 @@
-from rest_framework.exceptions import PermissionDenied
-
+from conf.exceptions import PermissionDeniedError
 from organisations.models import Organisation
-from users.models import ExporterUser
+from users.models import GovUser
 
 
 def assert_user_has_permission(user, permission, organisation: Organisation = None):
-    if isinstance(user, ExporterUser):
-        user_permissions = user.get_role(organisation).permissions.values_list("id", flat=True)
+    if isinstance(user, GovUser):
+        if user.has_permission(permission):
+            return True
+        else:
+            raise PermissionDeniedError()
     else:
-        user_permissions = user.role.permissions.values_list("id", flat=True)
-    if permission.name in user_permissions:
-        return True
-    else:
-        raise PermissionDenied()
+        if user.has_permission(permission, organisation):
+            return True
+        else:
+            raise PermissionDeniedError()

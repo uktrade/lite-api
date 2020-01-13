@@ -1,13 +1,12 @@
 import uuid
 from abc import abstractmethod
 
-import reversion
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from model_utils.models import TimeStampedModel
+from common.models import TimestampableModel
 
 from conf.constants import Roles
 from teams.models import Team
@@ -69,8 +68,7 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-@reversion.register()
-class BaseUser(AbstractUser):
+class BaseUser(AbstractUser, TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(default=None, blank=True)
@@ -129,6 +127,10 @@ class ExporterUser(BaseUser):
         uor.role = role
         uor.save()
 
+    def has_permission(self, permission, organisation):
+        user_permissions = self.get_role(organisation).permissions.values_list("id", flat=True)
+        return permission.name in user_permissions
+
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
@@ -157,8 +159,12 @@ class GovUser(BaseUser):
             except GovNotification.DoesNotExist:
                 GovNotification.objects.create(user=self, content_object=content_object, case=case)
 
+    def has_permission(self, permission):
+        user_permissions = self.role.permissions.values_list("id", flat=True)
+        return permission.name in user_permissions
 
-class UserOrganisationRelationship(TimeStampedModel):
+
+class UserOrganisationRelationship(TimestampableModel):
     user = models.ForeignKey(ExporterUser, on_delete=models.CASCADE)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE)
     role = models.ForeignKey(

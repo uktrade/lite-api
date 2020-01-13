@@ -14,19 +14,20 @@ from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializ
 from cases.enums import CaseTypeEnum
 from parties.serializers import (
     EndUserSerializer,
-    UltimateEndUserSerializer,
-    ThirdPartySerializer,
-    ConsigneeSerializer,
+    EndUserWithFlagsSerializer,
+    UltimateEndUserWithFlagsSerializer,
+    ThirdPartyWithFlagsSerializer,
+    ConsigneeWithFlagsSerializer,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserSerializer()
-    ultimate_end_users = UltimateEndUserSerializer(many=True)
-    third_parties = ThirdPartySerializer(many=True)
-    consignee = ConsigneeSerializer()
+    end_user = EndUserWithFlagsSerializer()
+    ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
+    third_parties = ThirdPartyWithFlagsSerializer(many=True)
+    consignee = ConsigneeWithFlagsSerializer()
     goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()

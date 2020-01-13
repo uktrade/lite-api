@@ -4,6 +4,8 @@ from rest_framework import status
 from applications.models import CountryOnApplication
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -31,19 +33,18 @@ class GoodTypeCountriesManagementTests(DataTestClient):
             kwargs={"pk": self.open_draft.id, "goodstype_pk": self.goods_type_1.id},
         )
         self.good_country_url = reverse(
-            "applications:application_goodstype_assign_countries",
-            kwargs={"pk": self.open_draft.id, "goodstype_pk": self.goods_type_1.id},
+            "applications:application_goodstype_assign_countries", kwargs={"pk": self.open_draft.id},
         )
 
-    def test_no_county_for_goods_type_are_returned(self):
+    def test_all_countries_are_returned_for_goods_type(self):
         """
         Given a Good with no Countries assigned
         When a user requests the Good
-        Then the correct Good with an empty Country list is returned
+        Then the correct Good with all countries assigned to the application is returned
         """
         response = self.client.get(self.good_url, **self.exporter_headers)
 
-        self.assertEqual([], response.json()["good"]["countries"])
+        self.assertEqual(len(response.json()["good"]["countries"]), self.open_draft.application_countries.count())
 
     def test_all_countries_for_goods_type_are_returned(self):
         """
@@ -72,6 +73,19 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         self.assertEquals(2, len(self.goods_type_1.countries.all()))
         self.assertTrue(self.country_1 in self.goods_type_1.countries.all())
         self.assertTrue(self.country_2 in self.goods_type_1.countries.all())
+
+    def test_cannot_set_no_countries_on_good(self):
+        """
+        Tests that a user cannot set no countries on a good
+        """
+        data = {
+            str(self.goods_type_1.id): [],
+            str(self.goods_type_2.id): [self.country_3.id, self.country_1.id],
+        }
+
+        response = self.client.put(self.good_country_url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_setting_countries_on_two_goods(self):
         """
@@ -105,7 +119,7 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
     def test_invalid_request_data_returns_404(self):
         """
-        404 with invalid request county key
+        404 with invalid request country key
         """
         data = {
             str(self.goods_type_1.id): [self.country_1.id, self.country_2.id],
@@ -115,3 +129,24 @@ class GoodTypeCountriesManagementTests(DataTestClient):
         response = self.client.put(self.good_country_url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_audit_entries_are_created(self):
+        """
+        Given a Good with Countries already assigned
+        When a user assigns a new country to the good and removes the existing one
+        Then two audit entries should be made showing the addition and removal
+        """
+        case = self.submit_application(self.open_draft)
+        case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        case.save()
+
+        self.goods_type_1.countries.set([self.country_1])
+        data = {str(self.goods_type_1.id): [self.country_2.id]}
+
+        self.client.put(self.good_country_url, data, **self.exporter_headers)
+
+        response_data = self.client.get(reverse("cases:activity", kwargs={"pk": case.id}), **self.gov_headers).json()
+
+        self.assertEqual(len(response_data["activity"]), 2)
+        self.assertIn("added the destinations United States to 'thing'", str(response_data))
+        self.assertIn("removed the destinations Spain from 'thing'", str(response_data))

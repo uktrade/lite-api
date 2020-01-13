@@ -1,4 +1,5 @@
-import reversion
+from django.db.models import Value
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -12,6 +13,7 @@ from conf.constants import Roles
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
@@ -66,13 +68,23 @@ class GovUserList(APIView):
         Fetches all government users
         """
         teams = request.GET.get("teams", None)
+        activated_only = request.GET.get("activated", None)
+        full_name = request.GET.get("name", None)
+
+        gov_users_qs = GovUser.objects.all()
+
+        if activated_only:
+            gov_users_qs = gov_users_qs.exclude(status=UserStatuses.DEACTIVATED)
+
+        if full_name:
+            gov_users_qs = gov_users_qs.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
+                full_name__icontains=full_name
+            )
 
         if teams:
-            gov_users = GovUser.objects.filter(team__id__in=teams.split(",")).order_by("email")
-        else:
-            gov_users = GovUser.objects.all().order_by("email")
+            gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        serializer = GovUserViewSerializer(gov_users, many=True)
+        serializer = GovUserViewSerializer(gov_users_qs.order_by("email"), many=True)
         return JsonResponse(data={"gov_users": serializer.data})
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
@@ -147,18 +159,17 @@ class GovUserDetail(APIView):
 
         data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
-        with reversion.create_revision():
-            serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
+        serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
 
-                # Remove user from assigned cases
-                if gov_user.status == GovUserStatuses.DEACTIVATED:
-                    gov_user.unassign_from_cases()
+            # Remove user from assigned cases
+            if gov_user.status == GovUserStatuses.DEACTIVATED:
+                gov_user.unassign_from_cases()
 
-                return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_200_OK)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserMeDetail(APIView):
@@ -169,4 +180,4 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
-        return JsonResponse(data={"user": serializer.data})
+        return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)

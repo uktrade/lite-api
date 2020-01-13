@@ -1,4 +1,3 @@
-import reversion
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -23,12 +22,11 @@ class ExternalLocationList(APIView):
 
     @transaction.atomic
     def post(self, request, org_pk):
-        with reversion.create_revision():
-            data = JSONParser().parse(request)
-            data["organisation"] = org_pk
-            serializer = ExternalLocationSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return JsonResponse(data={"external_location": serializer.data}, status=status.HTTP_201_CREATED,)
+        data = JSONParser().parse(request)
+        data["organisation"] = org_pk
+        serializer = ExternalLocationSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={"external_location": serializer.data}, status=status.HTTP_201_CREATED,)
 
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

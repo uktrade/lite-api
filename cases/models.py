@@ -1,13 +1,12 @@
 import uuid
 
-import reversion
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
-from model_utils.models import TimeStampedModel
 
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.managers import CaseManager
+from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
@@ -26,8 +25,7 @@ from users.models import (
 )
 
 
-@reversion.register()
-class Case(TimeStampedModel):
+class Case(TimestampableModel):
     """
     Base model for applications and queries
     """
@@ -41,6 +39,7 @@ class Case(TimeStampedModel):
     status = models.ForeignKey(
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
+    case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
 
@@ -56,8 +55,7 @@ class Case(TimeStampedModel):
         return Case.objects.get(id=self.id)
 
 
-@reversion.register()
-class CaseNote(models.Model):
+class CaseNote(TimestampableModel):
     """
     Note on a case, visible to internal users and exporters depending on is_visible_to_exporter.
     """
@@ -66,7 +64,6 @@ class CaseNote(models.Model):
     case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
     user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="case_note")
@@ -85,7 +82,7 @@ class CaseNote(models.Model):
                 user_relationship.send_notification(content_object=self, case=self.case)
 
 
-class CaseAssignment(models.Model):
+class CaseAssignment(TimestampableModel):
     """
     Assigns users to a case on a particular queue
     """
@@ -105,7 +102,7 @@ class CaseDocument(Document):
     )
 
 
-class Advice(models.Model):
+class Advice(TimestampableModel):
     """
     Advice for goods and destinations on cases
     """
@@ -116,7 +113,6 @@ class Advice(models.Model):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     # Optional goods/destinations
     good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
@@ -213,7 +209,7 @@ class FinalAdvice(Advice):
         super(Advice, self).save(*args, **kwargs)
 
 
-class EcjuQuery(models.Model):
+class EcjuQuery(TimestampableModel):
     """
     Query from ECJU to exporters
     """
@@ -222,7 +218,6 @@ class EcjuQuery(models.Model):
     question = models.CharField(null=False, blank=False, max_length=5000)
     response = models.CharField(null=True, blank=False, max_length=2200)
     case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(
         GovUser, related_name="govuser_ecju_query", on_delete=models.CASCADE, default=None, null=False,
@@ -246,7 +241,7 @@ class EcjuQuery(models.Model):
             super(EcjuQuery, self).save(*args, **kwargs)
 
 
-class GoodCountryDecision(models.Model):
+class GoodCountryDecision(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)

@@ -13,7 +13,13 @@ class AuditSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Audit
-        fields = ("id", "created_at", "user", "text", "additional_text")
+        fields = (
+            "id",
+            "created_at",
+            "user",
+            "text",
+            "additional_text",
+        )
 
     def get_user(self, instance):
         return {

@@ -47,9 +47,17 @@ class OrganisationUsersViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_cannot_see_user_details_without_permission(self):
+    def test_can_see_own_user_details(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)
         url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_cannot_see_user_details_without_permission(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_default_role)
+        url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.gov_user.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
@@ -70,6 +78,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": "Matt",
             "last_name": "Berninger",
             "email": "matt.berninger@americanmary.com",
+            "sites": [self.organisation.primary_site.id],
         }
 
         ExporterUser(first_name=data["first_name"], last_name=data["last_name"], email=data["email"]).save()
@@ -89,6 +98,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": exporter_user_2.first_name,
             "last_name": exporter_user_2.last_name,
             "email": exporter_user_2.email,
+            "sites": [self.organisation.primary_site.id],
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -105,6 +115,7 @@ class OrganisationUsersCreateTests(DataTestClient):
             "first_name": self.exporter_user.first_name,
             "last_name": self.exporter_user.last_name,
             "email": self.exporter_user.email,
+            "sites": [self.organisation.primary_site.id],
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

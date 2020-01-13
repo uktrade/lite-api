@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from queues.constants import ALL_CASES_SYSTEM_QUEUE_ID
+from queues.constants import ALL_CASES_QUEUE_ID
 from queues.helpers import get_queue
 from test_helpers.clients import DataTestClient
 
@@ -17,7 +17,7 @@ class QueuesViewTests(DataTestClient):
         data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data["queues"]), 4)
+        self.assertEqual(len(data["queues"]), 7)
 
     def test_list_queues(self):
         """
@@ -35,7 +35,7 @@ class QueuesViewTests(DataTestClient):
         """
         View an individual system queue
         """
-        queue = get_queue(ALL_CASES_SYSTEM_QUEUE_ID)
+        queue = get_queue(ALL_CASES_QUEUE_ID)
         url = reverse("queues:queue", kwargs={"pk": queue.id})
 
         response = self.client.get(url, **self.gov_headers)
