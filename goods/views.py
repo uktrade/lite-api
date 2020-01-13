@@ -143,6 +143,14 @@ class GoodList(ListCreateAPIView):
         data = request.data
         data["organisation"] = request.user.organisation.id
         data["status"] = GoodStatus.DRAFT
+
+        if data.get("holds_pv_grading") == "yes":
+            data["pv_grading_date_of_issue"] = "%s-%s-%s" % (
+                data.get("pv_grading_date_of_issueyear"),
+                data.get("pv_grading_date_of_issuemonth"),
+                data.get("pv_grading_date_of_issueday"),
+            )
+
         serializer = GoodSerializer(data=data)
 
         if not serializer.is_valid():
