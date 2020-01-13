@@ -2,9 +2,11 @@ from django.db import transaction
 
 from conf.constants import GovPermissions, ExporterPermissions
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus, CaseStatusCaseType
 from users.enums import UserType
 from users.models import Permission, Role
-
+from . import seedcasestatuses
 DEFAULT_ID = "00000000-0000-0000-0000-000000000001"
 SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000002"
 EX_SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000003"
@@ -12,6 +14,9 @@ EX_DEFAULT_ID = "00000000-0000-0000-0000-000000000004"
 TEAM_NAME = "Admin"
 ROLE_NAME = "Default"
 SUPER_USER = "Super User"
+
+STATUSES_FILE = "lite_content/lite_api/case_statuses.csv"
+STATUS_ON_TYPE_FILE = "lite_content/lite_api/case_status_on_type.csv"
 
 
 def _create_role_and_output(id, type, name):
@@ -61,14 +66,23 @@ class Command(SeedCommand):
         _create_role_and_output(id=SUPER_USER_ROLE_ID, type=UserType.INTERNAL, name=SUPER_USER)
         _create_role_and_output(id=EX_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=SUPER_USER)
 
+        # Add all permissions and statuses to internal super user
         role = Role.objects.get(id=SUPER_USER_ROLE_ID)
-        for permission in Permission.internal.all():
-            role.permissions.add(permission)
+
+        permissions = list(Permission.internal.all())
+        role.permissions.add(*permissions)
+
+        statuses = list(CaseStatus.objects.all())
+        role.statuses.add(*statuses)
+
         role.save()
 
+        # Add all permissions to exporter super user
         role = Role.objects.get(id=EX_SUPER_USER_ROLE_ID)
-        for permission in Permission.exporter.all():
-            role.permissions.add(permission)
+
+        permissions = list(Permission.exporter.all())
+        role.permissions.add(*permissions)
+
         role.save()
 
 

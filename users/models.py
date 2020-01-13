@@ -9,6 +9,7 @@ from django.db import models
 from common.models import TimestampableModel
 
 from conf.constants import Roles
+from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.enums import UserStatuses, UserType
 from users.managers import InternalManager, ExporterManager
@@ -34,6 +35,7 @@ class Role(models.Model):
     permissions = models.ManyToManyField(Permission, related_name="roles")
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
+    statuses = models.ManyToManyField(CaseStatus, related_name="roles")
 
 
 class CustomUserManager(BaseUserManager):
