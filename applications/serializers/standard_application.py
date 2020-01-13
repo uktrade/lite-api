@@ -10,7 +10,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from applications.serializers.good import GoodOnApplicationWithFlagsViewSerializer
+from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from parties.serializers import (
     EndUserSerializer,
@@ -28,7 +28,7 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
     ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
     third_parties = ThirdPartyWithFlagsSerializer(many=True)
     consignee = ConsigneeWithFlagsSerializer()
-    goods = GoodOnApplicationWithFlagsViewSerializer(many=True, read_only=True)
+    goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
 

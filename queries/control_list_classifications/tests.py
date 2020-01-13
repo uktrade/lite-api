@@ -29,7 +29,6 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             description="Good description",
             is_good_controlled=GoodControlled.UNSURE,
             control_code="ML1",
-            is_good_end_product=True,
             part_number="123456",
             organisation=self.organisation,
         )

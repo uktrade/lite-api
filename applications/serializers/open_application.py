@@ -35,8 +35,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(application=application)
-        serializer = FullGoodsTypeSerializer(goods_types, many=True)
-        return serializer.data
+        return FullGoodsTypeSerializer(goods_types, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
