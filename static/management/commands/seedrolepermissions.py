@@ -2,11 +2,10 @@ from django.db import transaction
 
 from conf.constants import GovPermissions, ExporterPermissions
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.models import CaseStatus, CaseStatusCaseType
+from static.statuses.models import CaseStatus
 from users.enums import UserType
 from users.models import Permission, Role
-from . import seedcasestatuses
+
 DEFAULT_ID = "00000000-0000-0000-0000-000000000001"
 SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000002"
 EX_SUPER_USER_ROLE_ID = "00000000-0000-0000-0000-000000000003"
@@ -14,9 +13,6 @@ EX_DEFAULT_ID = "00000000-0000-0000-0000-000000000004"
 TEAM_NAME = "Admin"
 ROLE_NAME = "Default"
 SUPER_USER = "Super User"
-
-STATUSES_FILE = "lite_content/lite_api/case_statuses.csv"
-STATUS_ON_TYPE_FILE = "lite_content/lite_api/case_status_on_type.csv"
 
 
 def _create_role_and_output(id, type, name):

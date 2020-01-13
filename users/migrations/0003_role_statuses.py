@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0001_initial'),
-        ('users', '0002_timestampable'),
+        ("statuses", "0001_initial"),
+        ("users", "0002_timestampable"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='role',
-            name='statuses',
-            field=models.ManyToManyField(related_name='roles', to='statuses.CaseStatus'),
+            model_name="role",
+            name="statuses",
+            field=models.ManyToManyField(related_name="roles", to="statuses.CaseStatus"),
         ),
     ]
