@@ -10,21 +10,6 @@ from goods.serializers import GoodWithFlagsSerializer, GoodSerializer
 from static.units.enums import Units
 
 
-class GoodOnApplicationWithFlagsViewSerializer(serializers.ModelSerializer):
-    good = GoodWithFlagsSerializer(read_only=True)
-    unit = KeyValueChoiceField(choices=Units.choices)
-
-    class Meta:
-        model = GoodOnApplication
-        fields = (
-            "id",
-            "good",
-            "quantity",
-            "unit",
-            "value",
-        )
-
-
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
