@@ -6,18 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goodstype', '0003_auto_20200109_1428'),
+        ("goodstype", "0003_auto_20200109_1428"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goodstype',
-            name='comment',
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="goodstype", name="comment", field=models.TextField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='goodstype',
-            name='report_summary',
-            field=models.TextField(blank=True, default=None, null=True),
+            model_name="goodstype", name="report_summary", field=models.TextField(blank=True, default=None, null=True),
         ),
     ]
