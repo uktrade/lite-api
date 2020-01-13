@@ -35,7 +35,7 @@ class Role(models.Model):
     permissions = models.ManyToManyField(Permission, related_name="roles")
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
-    statuses = models.ManyToManyField(CaseStatus, related_name="roles")
+    statuses = models.ManyToManyField(CaseStatus, related_name="roles_statuses")
 
 
 class CustomUserManager(BaseUserManager):
