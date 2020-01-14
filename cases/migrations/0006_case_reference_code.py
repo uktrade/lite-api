@@ -6,23 +6,22 @@ from cases.libraries.reference_code import generate_reference_code
 
 
 class Migration(migrations.Migration):
-
     def initialize(apps, schema_editor):
         # All cases need to have a reference code
-        Case = apps.get_model('cases', 'Case')
+        Case = apps.get_model("cases", "Case")
         for case in Case.objects.all():
             if not case.reference_code:
                 case.reference_code = generate_reference_code(case)
                 case.save()
 
     dependencies = [
-        ('cases', '0005_timestampable'),
+        ("cases", "0005_timestampable"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='case',
-            name='reference_code',
+            model_name="case",
+            name="reference_code",
             field=models.CharField(default=None, editable=False, max_length=30, unique=True, null=True, blank=True),
         ),
         migrations.RunPython(initialize),

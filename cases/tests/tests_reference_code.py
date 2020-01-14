@@ -7,7 +7,6 @@ from test_helpers.clients import DataTestClient
 
 @tag("only")
 class ReferenceCode(DataTestClient):
-
     def test_standard_application_reference_code(self):
         standard_application = self.create_standard_application(self.organisation)
         self.assertEquals(standard_application.reference_code, "P/GBS??/" + str(datetime.now().year) + "/0000001")

@@ -7,7 +7,7 @@ def generate_reference_code(case):
     """
     Generates a unique reference code for each case.
 
-    Example for licence application cases: P/GBOIE/2020/000012
+    Example for licence application cases: P/GBOIE/2020/0000012
     First character T or P (temporary or permanent)
     Second-fourth characters /GB
     Fifth character O or S (open or standard)
