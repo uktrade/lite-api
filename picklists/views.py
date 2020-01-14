@@ -108,6 +108,22 @@ class PicklistItemDetail(APIView):
                         payload={"old_name": picklist_item.name, "new_name": serializer.validated_data["name"],},
                     )
 
+            if serializer.validated_data.get("status"):
+                picklist_status = serializer.validated_data["status"]
+                if picklist_item.status != picklist_status:
+                    if picklist_status == PickListStatus.DEACTIVATED:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.DEACTIVATE_PICKLIST,
+                            target=serializer.instance,
+                        )
+                    else:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.REACTIVATE_PICKLIST,
+                            target=serializer.instance,
+                        )
+
             serializer.save()
             return JsonResponse(data={"picklist_item": serializer.data})
 
