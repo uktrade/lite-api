@@ -3,6 +3,7 @@ from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
+from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
 from parties.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartyRole
@@ -17,7 +18,7 @@ class PartySerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
+    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
 
     class Meta:
         model = Party
@@ -131,7 +132,7 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    role = KeyValueChoiceField(choices=ThirdPartyRole.choices)
+    role = KeyValueChoiceField(choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE})
 
     class Meta:
         model = ThirdParty
