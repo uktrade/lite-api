@@ -2,6 +2,7 @@ from django.urls import path
 
 from applications.views import (
     applications,
+    existing_parties,
     goods,
     parties,
     party_documents,
@@ -96,4 +97,6 @@ urlpatterns = [
         documents.GeneratedDocument.as_view(),
         name="application_generated_document",
     ),
+    # Existing parties
+    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties",),
 ]

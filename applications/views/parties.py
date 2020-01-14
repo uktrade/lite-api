@@ -157,7 +157,7 @@ class RemoveApplicationUltimateEndUser(APIView):
             payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
         )
 
-        return JsonResponse(data={"ultimate_end_user": "deleted"}, status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 class ApplicationConsignee(APIView):
@@ -300,4 +300,4 @@ class RemoveThirdParty(APIView):
             payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
         )
 
-        return JsonResponse(data={"third_party": "deleted"}, status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
