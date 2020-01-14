@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager
 from common.models import TimestampableModel
 from documents.models import Document
@@ -31,6 +32,7 @@ class Case(TimestampableModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference_code = models.CharField(max_length=30, unique=True, null=False, blank=False, editable=False, default=None)
     type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
@@ -42,6 +44,11 @@ class Case(TimestampableModel):
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.reference_code = generate_reference_code(self)
+        super(Case, self).save(*args, **kwargs)
 
     def get_case(self):
         """
