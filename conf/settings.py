@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "parties",
     "picklists",
     "queries",
-    "queries.control_list_classifications",
+    "queries.goods_query",
     "queries.end_user_advisories",
     "queues",
     "rest_framework",

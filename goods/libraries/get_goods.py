@@ -3,7 +3,7 @@ from django.http import Http404
 
 from conf.exceptions import NotFoundError
 from goods.models import Good, GoodDocument
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from users.libraries.notifications import (
     get_exporter_user_notification_total_count,
     get_exporter_user_notification_individual_count,
@@ -42,7 +42,7 @@ def get_good_with_organisation(pk, organisation):
 
 def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, total_count: bool) -> dict:
     query = {}
-    clc_query = ControlListClassificationQuery.objects.filter(good__id=good.id)
+    clc_query = GoodsQuery.objects.filter(good__id=good.id)
 
     if clc_query:
         clc_query = clc_query.first()

@@ -1,7 +1,6 @@
 import json
 
 from django.http import JsonResponse, Http404
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -14,17 +13,19 @@ from conf import constants
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
 
 
+# TODO: 1027 generate GoodsQuery with correct flags
 class ControlListClassificationsList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
@@ -43,13 +44,13 @@ class ControlListClassificationsList(APIView):
         good.status = GoodStatus.CLC_QUERY
         good.control_code = data.get("not_sure_details_control_code")
 
-        clc_query = ControlListClassificationQuery.objects.create(
-            details=data.get("not_sure_details_details"),
+        clc_query = GoodsQuery.objects.create(
+            clc_=data.get("not_sure_details_details"),
             good=good,
             organisation=data["organisation"],
             type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=timezone.now(),
+            flags=[SystemFlags.GOOD_CLC_QUERY_ID],
         )
 
         good.save()
@@ -58,6 +59,7 @@ class ControlListClassificationsList(APIView):
         return JsonResponse(data={"id": clc_query.id}, status=status.HTTP_201_CREATED)
 
 
+# TODO: 1027 update to remove flag instead of close case
 class ControlListClassificationDetail(APIView):
     authentication_classes = (GovAuthentication,)
 

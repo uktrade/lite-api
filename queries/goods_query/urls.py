@@ -1,6 +1,6 @@
 from django.urls import path
 
-from queries.control_list_classifications import views
+from queries.goods_query import views
 
 app_name = "control_list_classifications"
 

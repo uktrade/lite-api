@@ -9,7 +9,7 @@ from conf import constants
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -40,7 +40,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["id"], str(ControlListClassificationQuery.objects.get().id))
+        self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(Case.objects.count(), 1)
 
 

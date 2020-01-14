@@ -25,6 +25,7 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCount
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
+from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus
 from goods.models import Good, GoodDocument
@@ -38,7 +39,7 @@ from parties.enums import SubType, PartyType, ThirdPartySubType
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
@@ -413,13 +414,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good.save()
 
-        clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text",
+        clc_query = GoodsQuery.objects.create(
+            clc_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
             type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+        clc_query.flags = [Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)]
+        clc_query.save()
         return clc_query
 
     @staticmethod

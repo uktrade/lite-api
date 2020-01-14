@@ -33,7 +33,7 @@ from goods.serializers import (
     GoodPvGradingDetailsSerializer,
 )
 from lite_content.lite_api import strings
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
@@ -198,7 +198,7 @@ class GoodDetail(APIView):
             serializer = GoodSerializer(good, context={"exporter_user": request.user})
 
             # If there's a query with this good, update the notifications on it
-            query = ControlListClassificationQuery.objects.filter(good=good)
+            query = GoodsQuery.objects.filter(good=good)
             if query:
                 delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
         else:
