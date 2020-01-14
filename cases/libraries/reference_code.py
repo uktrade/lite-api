@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from organisations.models import Site, ExternalLocation
+
 SLASH = "/"
 
 
@@ -42,10 +44,13 @@ def generate_reference_code(case):
             reference_code += case.application_type[0]
 
         # General or individual
-        reference_code += "?"
+        reference_code += "I"
 
         # Export, transhipment and trade control
-        reference_code += "?" + SLASH
+        if Site.objects.filter(sites_on_application__application=case):
+            reference_code += "E" + SLASH
+        if ExternalLocation.objects.filter(external_locations_on_application__application=case):
+            reference_code += "C" + SLASH
 
     if case.type == CaseTypeEnum.CLC_QUERY:
         reference_code += "GQY" + SLASH
