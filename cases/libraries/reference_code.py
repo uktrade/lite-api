@@ -25,7 +25,6 @@ def generate_reference_code(case):
     For compliance site cases: COMP
     For compliance visit cases: CVIS
     """
-    from cases.models import Case
     from cases.enums import CaseTypeEnum
 
     reference_code = ""
