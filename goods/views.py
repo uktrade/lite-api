@@ -18,7 +18,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodPVGraded
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.models import Good, GoodDocument
@@ -30,6 +30,7 @@ from goods.serializers import (
     GoodListSerializer,
     GoodWithFlagsSerializer,
     GoodMissingDocumentSerializer,
+    GoodPvGradingDetailsSerializer,
 )
 from lite_content.lite_api import strings
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -143,13 +144,6 @@ class GoodList(ListCreateAPIView):
         data = request.data
         data["organisation"] = request.user.organisation.id
         data["status"] = GoodStatus.DRAFT
-
-        if data.get("holds_pv_grading") == "yes":
-            data["pv_grading_date_of_issue"] = "%s-%s-%s" % (
-                data.get("pv_grading_date_of_issueyear"),
-                data.get("pv_grading_date_of_issuemonth"),
-                data.get("pv_grading_date_of_issueday"),
-            )
 
         serializer = GoodSerializer(data=data)
 

@@ -11,7 +11,6 @@ from test_helpers.decorators import none_param_tester
 
 
 class GoodsCreateTests(DataTestClient):
-
     url = reverse("goods:goods")
 
     @parameterized.expand(
@@ -29,7 +28,7 @@ class GoodsCreateTests(DataTestClient):
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
             "part_number": part_number,
-            "holds_pv_grading": GoodPVGraded.NO,
+            "is_pv_graded": GoodPVGraded.NO,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -40,7 +39,7 @@ class GoodsCreateTests(DataTestClient):
         self.assertEquals(response_data["is_good_controlled"]["key"], is_good_controlled)
         self.assertEquals(response_data["control_code"], control_code)
         self.assertEquals(response_data["part_number"], part_number)
-        self.assertEquals(response_data["holds_pv_grading"], data.get("holds_pv_grading"))
+        self.assertEquals(response_data["is_pv_graded"]["key"], GoodPVGraded.NO)
 
     @none_param_tester("Widget", True, "ML1a", "1337")
     def test_create_good_failure(
@@ -71,7 +70,7 @@ class GoodsCreateTests(DataTestClient):
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
             "part_number": part_number,
-            "holds_pv_grading": GoodPVGraded.NO,
+            "is_pv_graded": GoodPVGraded.NO,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -83,43 +82,46 @@ class GoodsCreateTests(DataTestClient):
     @parameterized.expand(
         [
             (
+                # Create a new good successfully with all fields
                 GoodPVGraded.YES,
                 PVGrading.UK_UNCLASSIFIED,
                 None,
-                "pr3f",
-                "s00f",
-                "authoritah",
+                "prefix",
+                "suffix",
+                "Pv Grading Issuing Authority",
                 "reference123",
                 "2019-01-01",
-                "Badget badger badger mushroom mushroom",
-            ),  # Create a new good successfully with all fields
+                "Pv Grading comment",
+            ),
             (
+                # Custom grading needs to be present when choosing Other
                 GoodPVGraded.YES,
                 PVGrading.OTHER,
                 "Custom grading",
-                "pr3f",
-                "s00f",
-                "authoritah",
+                "prefix",
+                "suffix",
+                "Pv Grading Issuing Authority",
                 "reference123",
                 "2019-01-01",
-                "Badget badger badger mushroom mushroom",
-            ),  # Custom grading needs to be present when choosing Other
+                "Pv Grading comment",
+            ),
             (
+                # Create a new good successfully without optional fields
                 GoodPVGraded.YES,
                 PVGrading.UK_UNCLASSIFIED,
                 None,
                 None,
                 None,
-                "authoritah",
+                "Pv Grading Issuing Authority",
                 "reference123",
                 "2019-01-01",
                 None,
-            ),  # Create a new good successfully without optional fields
+            ),
         ]
     )
-    def test_create_good_pv(
+    def test_create_good_with_pv_grading_returns_success(
         self,
-        holds_pv_grading,
+        is_pv_graded,
         pv_grading,
         pv_grading_custom,
         pv_grading_prefix,
@@ -133,15 +135,17 @@ class GoodsCreateTests(DataTestClient):
             "description": "Plastic bag " + str(uuid.uuid4()),
             "is_good_controlled": GoodControlled.NO,
             "is_good_end_product": True,
-            "holds_pv_grading": holds_pv_grading,
-            "pv_grading": pv_grading,
-            "pv_grading_custom": pv_grading_custom,
-            "pv_grading_prefix": pv_grading_prefix,
-            "pv_grading_suffix": pv_grading_suffix,
-            "pv_grading_issuing_authority": pv_grading_issuing_authority,
-            "pv_grading_reference": pv_grading_reference,
-            "pv_grading_date_of_issue": pv_grading_date_of_issue,
-            "pv_grading_comment": pv_grading_comment,
+            "is_pv_graded": is_pv_graded,
+            "pv_grading_details": {
+                "grading": pv_grading,
+                "custom": pv_grading_custom,
+                "prefix": pv_grading_prefix,
+                "suffix": pv_grading_suffix,
+                "issuing_authority": pv_grading_issuing_authority,
+                "reference": pv_grading_reference,
+                "date_of_issue": pv_grading_date_of_issue,
+                "comment": pv_grading_comment,
+            },
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -150,15 +154,17 @@ class GoodsCreateTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEquals(response_data["description"], data.get("description"))
         self.assertEquals(response_data["is_good_controlled"]["key"], data.get("is_good_controlled"))
-        self.assertEquals(response_data["holds_pv_grading"], holds_pv_grading)
-        self.assertEquals(response_data["pv_grading"], pv_grading)
-        self.assertEquals(response_data["pv_grading_custom"], pv_grading_custom)
-        self.assertEquals(response_data["pv_grading_prefix"], pv_grading_prefix)
-        self.assertEquals(response_data["pv_grading_suffix"], pv_grading_suffix)
-        self.assertEquals(response_data["pv_grading_issuing_authority"], pv_grading_issuing_authority)
-        self.assertEquals(response_data["pv_grading_reference"], pv_grading_reference)
-        self.assertEquals(response_data["pv_grading_date_of_issue"], pv_grading_date_of_issue)
-        self.assertEquals(response_data["pv_grading_comment"], pv_grading_comment)
+        self.assertEquals(response_data["is_pv_graded"]["key"], is_pv_graded)
+        if is_pv_graded:
+            pv_grading_details = response_data["pv_grading_details"]
+            self.assertEquals(pv_grading_details["grading"], pv_grading)
+            self.assertEquals(pv_grading_details["custom"], pv_grading_custom)
+            self.assertEquals(pv_grading_details["prefix"], pv_grading_prefix)
+            self.assertEquals(pv_grading_details["suffix"], pv_grading_suffix)
+            self.assertEquals(pv_grading_details["issuing_authority"], pv_grading_issuing_authority)
+            self.assertEquals(pv_grading_details["reference"], pv_grading_reference)
+            self.assertEquals(pv_grading_details["date_of_issue"], pv_grading_date_of_issue)
+            self.assertEquals(pv_grading_details["comment"], pv_grading_comment)
 
         self.assertEquals(Good.objects.all().count(), 1)
 
@@ -206,13 +212,13 @@ class GoodsCreateTests(DataTestClient):
                 "authoritah",
                 "reference123",
                 None,
-                "Badget badger badger mushroom mushroom",
+                "Pv Grading Comment",
             ),
         ]
     )
-    def test_create_good_pv_failure(
+    def test_create_good_with_pv_grading_returns_failure(
         self,
-        holds_pv_grading,
+        is_pv_graded,
         pv_grading,
         pv_grading_custom,
         pv_grading_prefix,
@@ -226,15 +232,17 @@ class GoodsCreateTests(DataTestClient):
             "description": "Plastic bag " + str(uuid.uuid4()),
             "is_good_controlled": GoodControlled.NO,
             "is_good_end_product": True,
-            "holds_pv_grading": holds_pv_grading,
-            "pv_grading": pv_grading,
-            "pv_grading_custom": pv_grading_custom,
-            "pv_grading_prefix": pv_grading_prefix,
-            "pv_grading_suffix": pv_grading_suffix,
-            "pv_grading_issuing_authority": pv_grading_issuing_authority,
-            "pv_grading_reference": pv_grading_reference,
-            "pv_grading_date_of_issue": pv_grading_date_of_issue,
-            "pv_grading_comment": pv_grading_comment,
+            "is_pv_graded": is_pv_graded,
+            "pv_grading_details": {
+                "grading": pv_grading,
+                "custom": pv_grading_custom,
+                "prefix": pv_grading_prefix,
+                "suffix": pv_grading_suffix,
+                "issuing_authority": pv_grading_issuing_authority,
+                "reference": pv_grading_reference,
+                "date_of_issue": pv_grading_date_of_issue,
+                "comment": pv_grading_comment,
+            },
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
