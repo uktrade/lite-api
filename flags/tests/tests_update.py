@@ -33,3 +33,16 @@ class FlagsUpdateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(flag.status, FlagStatuses.ACTIVE)
+
+    def test_flag_level_cannot_be_changed(self):
+        team = self.create_team("Secondary team")
+        flag = self.create_flag("New Flag", "Case", team)
+
+        data = {
+            "level": "Good",
+        }
+
+        url = reverse("flags:flag", kwargs={"pk": flag.id})
+        self.client.put(url, data, **self.gov_headers)
+
+        self.assertEqual(flag.level, "Case")
