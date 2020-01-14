@@ -55,6 +55,8 @@ class AuditType(Enum):
     UPDATED_LETTER_TEMPLATE_LAYOUT = "updated letter layout from {old_layout} to {new_layout}"
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = "updated letter paragraphs ordering"
 
+    UPDATED_PICKLIST_TEXT = "updated picklist text from {old_text} to {new_text}"
+
     def format(self, payload):
         text = self.value.format(**payload)
         if text[-1] not in [":", ".", "?"]:
