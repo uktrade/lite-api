@@ -1,38 +1,66 @@
+from datetime import datetime
+
 SLASH = "/"
 
 
 def generate_reference_code(case):
-    # P/GBOIE/2020/000012
-    # For licence application cases:
-    # First character T or P (temporary or permanent)
-    # Second-fourth characters /GB
-    # Fifth character O or S (open or standard)
-    # Sixth character G or I (general or individual)
-    # Seventh character E, T, C (export, transhipment, trade control)
-    # For all other case types, prefixes as described below followed by the 4 digit year and 6 digit sequential number:
-    # For clearance application cases:
-    # F680
-    # EXHC - exhibition clearance
-    # For query cases
-    # EUA for End user advisory
-    # GQY for goods queries
-    # CRE for HMRC / Border Force customs enquiry/snag
-    # For compliance site cases:
-    # COMP
-    # For compliance visit cases:
-    # CVIS
+    """
+    Generates a unique reference code for each case.
+
+    Example for licence application cases: P/GBOIE/2020/000012
+    First character T or P (temporary or permanent)
+    Second-fourth characters /GB
+    Fifth character O or S (open or standard)
+    Sixth character G or I (general or individual)
+    Seventh character E, T, C (export, transhipment, trade control)
+
+    For all other case types, prefixes as described below followed by the 4 digit year and 6 digit sequential number:
+
+    For clearance application cases: F680
+    Exhibition clearance: EXHC
+
+    End user advisory: EUA
+    Goods queries: GQY
+    HMRC / Border Force customs enquiry: CRE
+    For compliance site cases: COMP
+    For compliance visit cases: CVIS
+    """
+    from cases.models import Case
     from cases.enums import CaseTypeEnum
-    from applications.libraries.get_applications import get_application
+
     reference_code = ""
 
     if case.type == CaseTypeEnum.APPLICATION:
-        application = get_application(case.id)
+        # Export type
+        if hasattr(case, "export_type"):
+            reference_code += case.export_type[0] + SLASH
 
-        if hasattr(application, "export_type"):
-            reference_code += application.export_type[0] + SLASH
+        # GB
+        reference_code += "GB"
 
-    print('\n')
-    print(reference_code)
-    print('\n')
+        # Application type
+        if hasattr(case, "application_type"):
+            reference_code += case.application_type[0]
+
+        # General or individual
+        reference_code += "?"
+
+        # Export, transhipment and trade control
+        reference_code += "?" + SLASH
+
+    if case.type == CaseTypeEnum.CLC_QUERY:
+        reference_code += "GQY" + SLASH
+
+    if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+        reference_code += "EUA" + SLASH
+
+    if case.type == CaseTypeEnum.HMRC_QUERY:
+        reference_code += "CRE" + SLASH
+
+    # Year
+    reference_code += str(datetime.now().year) + SLASH
+
+    # Int
+    reference_code += str(Case.objects.count() + 1).zfill(7)
 
     return reference_code.upper()
