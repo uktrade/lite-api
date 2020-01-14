@@ -56,6 +56,7 @@ class AuditType(Enum):
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = "updated letter paragraphs ordering"
 
     UPDATED_PICKLIST_TEXT = "updated picklist text from {old_text} to {new_text}"
+    UPDATED_PICKLIST_NAME = "updated picklist name from {old_name} to {new_name}"
 
     def format(self, payload):
         text = self.value.format(**payload)
