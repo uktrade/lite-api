@@ -18,7 +18,7 @@ from users.models import Role, GovUser
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
 
-    url = reverse("queries:control_list_classifications:control_list_classifications")
+    url = reverse("queries:goods_queries:goods_queries")
 
     def test_create_control_list_classification_query(self):
         """
@@ -59,9 +59,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.url = reverse(
-            "queries:control_list_classifications:control_list_classification", kwargs={"pk": self.query.pk}
-        )
+        self.url = reverse("queries:goods_queries:goods_query", kwargs={"pk": self.query.pk})
 
         self.data = {
             "comment": "I Am Easy to Find",
@@ -182,7 +180,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
 class ControlListClassificationsQueryManageStatusTests(DataTestClient):
     def test_user_set_clc_status_success(self):
         query = self.create_clc_query("This is a widget", self.organisation)
-        url = reverse("queries:control_list_classifications:manage_status", kwargs={"pk": query.pk})
+        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
         data = {"status": "withdrawn"}
 
         response = self.client.put(url, data, **self.gov_headers)
