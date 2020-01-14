@@ -132,7 +132,9 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    role = KeyValueChoiceField(choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE})
+    role = KeyValueChoiceField(
+        choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
+    )
 
     class Meta:
         model = ThirdParty

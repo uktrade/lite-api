@@ -6,30 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0003_timestampable'),
+        ("parties", "0003_timestampable"),
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='thirdparty',
-            old_name='sub_type',
-            new_name='role',
-        ),
-        migrations.RemoveField(
-            model_name='consignee',
-            name='sub_type',
-        ),
-        migrations.RemoveField(
-            model_name='enduser',
-            name='sub_type',
-        ),
-        migrations.RemoveField(
-            model_name='ultimateenduser',
-            name='sub_type',
-        ),
+        migrations.RenameField(model_name="thirdparty", old_name="sub_type", new_name="role",),
+        migrations.RemoveField(model_name="consignee", name="sub_type",),
+        migrations.RemoveField(model_name="enduser", name="sub_type",),
+        migrations.RemoveField(model_name="ultimateenduser", name="sub_type",),
         migrations.AddField(
-            model_name='party',
-            name='sub_type',
-            field=models.CharField(choices=[('government', 'Government'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual'), ('other', 'Other')], default='other', max_length=20),
+            model_name="party",
+            name="sub_type",
+            field=models.CharField(
+                choices=[
+                    ("government", "Government"),
+                    ("commercial", "Commercial Organisation"),
+                    ("individual", "Individual"),
+                    ("other", "Other"),
+                ],
+                default="other",
+                max_length=20,
+            ),
         ),
     ]
