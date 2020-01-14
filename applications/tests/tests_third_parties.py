@@ -11,6 +11,7 @@ from parties.models import PartyDocument
 from parties.models import ThirdParty
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from lite_content.lite_api.strings import Parties
 
 
 class ThirdPartiesOnDraft(DataTestClient):
@@ -84,7 +85,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data, {"errors": {"sub_type": ["This field is required."], "role": ["This field is required."]}}
+            response_data, {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}}
         )
 
     def test_get_third_parties(self):

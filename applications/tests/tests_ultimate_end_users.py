@@ -9,6 +9,7 @@ from parties.models import PartyDocument
 from parties.models import UltimateEndUser
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from lite_content.lite_api.strings import Parties
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
@@ -64,7 +65,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {"errors": {"sub_type": ["This field is required."]}})
+        self.assertEqual(response_data, {"errors": {"sub_type": [Parties.NULL_TYPE]}})
 
     def test_get_ultimate_end_users(self):
         self.draft.ultimate_end_users.set([])
