@@ -113,15 +113,11 @@ class PicklistItemDetail(APIView):
                 if picklist_item.status != picklist_status:
                     if picklist_status == PickListStatus.DEACTIVATED:
                         audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.DEACTIVATE_PICKLIST,
-                            target=serializer.instance,
+                            actor=request.user, verb=AuditType.DEACTIVATE_PICKLIST, target=serializer.instance,
                         )
                     else:
                         audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.REACTIVATE_PICKLIST,
-                            target=serializer.instance,
+                            actor=request.user, verb=AuditType.REACTIVATE_PICKLIST, target=serializer.instance,
                         )
 
             serializer.save()
