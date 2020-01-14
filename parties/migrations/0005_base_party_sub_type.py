@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("parties", "0004_auto_20200113_1129"),
+        ("parties", "0004_third_party_role"),
     ]
 
     operations = [
