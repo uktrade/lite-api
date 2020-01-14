@@ -26,7 +26,7 @@ from users.models import UserOrganisationRelationship
 
 
 # TODO: 1027 generate GoodsQuery with correct flags
-class ControlListClassificationsList(APIView):
+class GoodsQueriesList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request):
@@ -60,7 +60,7 @@ class ControlListClassificationsList(APIView):
 
 
 # TODO: 1027 update to remove flag instead of close case
-class ControlListClassificationDetail(APIView):
+class GoodQueryDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
@@ -125,7 +125,7 @@ class ControlListClassificationDetail(APIView):
         return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CLCManageStatus(APIView):
+class GoodQueryManageStatus(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
