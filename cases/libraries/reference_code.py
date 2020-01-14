@@ -61,6 +61,9 @@ def generate_reference_code(case):
     reference_code += str(datetime.now().year) + SLASH
 
     # Int
-    reference_code += str(Case.objects.count() + 1).zfill(7)
+    from cases.models import CaseReferenceCode
+
+    value = CaseReferenceCode.objects.create()
+    reference_code += str(value.reference_number).zfill(7)
 
     return reference_code.upper()

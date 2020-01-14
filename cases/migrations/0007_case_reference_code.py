@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
                 case.save()
 
     dependencies = [
-        ("cases", "0005_timestampable"),
+        ("cases", "0006_casereferencecode"),
     ]
 
     operations = [

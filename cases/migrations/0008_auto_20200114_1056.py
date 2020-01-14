@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0006_case_reference_code"),
+        ("cases", "0007_case_reference_code"),
     ]
 
     operations = [

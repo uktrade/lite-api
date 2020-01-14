@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
 from cases.libraries.reference_code import generate_reference_code
-from cases.managers import CaseManager
+from cases.managers import CaseManager, CaseReferenceCodeManager
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
@@ -48,6 +48,7 @@ class Case(TimestampableModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             if not self.reference_code:
+                CaseReferenceCode.objects.create()
                 self.reference_code = generate_reference_code(self)
         super(Case, self).save(*args, **kwargs)
 
@@ -61,6 +62,14 @@ class Case(TimestampableModel):
             return self
 
         return Case.objects.get(id=self.id)
+
+
+class CaseReferenceCode(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference_number = models.IntegerField()
+    year = models.IntegerField(editable=False)
+
+    objects = CaseReferenceCodeManager()
 
 
 class CaseNote(TimestampableModel):
