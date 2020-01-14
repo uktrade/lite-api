@@ -31,7 +31,14 @@ class RoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ("id", "name", "permissions", "type", "organisation", "statuses")
+        fields = (
+            "id",
+            "name",
+            "permissions",
+            "type",
+            "organisation",
+            "statuses",
+        )
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):

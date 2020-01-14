@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
+
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
 
