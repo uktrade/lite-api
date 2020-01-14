@@ -90,13 +90,14 @@ class PicklistItemDetail(APIView):
         serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
 
         if serializer.is_valid():
-            if picklist_item.text != serializer.validated_data["text"]:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_PICKLIST_TEXT,
-                    target=serializer.instance,
-                    payload={"old_text": picklist_item.text, "new_text": serializer.validated_data["text"],},
-                )
+            if serializer.validated_data.get("text"):
+                if picklist_item.text != serializer.validated_data["text"]:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_PICKLIST_TEXT,
+                        target=serializer.instance,
+                        payload={"old_text": picklist_item.text, "new_text": serializer.validated_data["text"],},
+                    )
 
             serializer.save()
             return JsonResponse(data={"picklist_item": serializer.data})
