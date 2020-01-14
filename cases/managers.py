@@ -178,7 +178,7 @@ class CaseReferenceCodeManager(models.Manager):
         CaseReferenceCode = self.model
 
         year = datetime.now().year
-        reference_number = CaseReferenceCode.objects.filter(year=year).count() + 1
+        reference_number = CaseReferenceCode.objects.filter(year=year).count()
 
         case_reference_code = CaseReferenceCode(reference_number=reference_number, year=year)
         case_reference_code.save()

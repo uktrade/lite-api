@@ -1,11 +1,9 @@
 from datetime import datetime
 
-from django.test import tag
-
+from cases.models import Case
 from test_helpers.clients import DataTestClient
 
 
-@tag("only")
 class ReferenceCode(DataTestClient):
     def test_standard_application_reference_code(self):
         standard_application = self.create_standard_application(self.organisation)
