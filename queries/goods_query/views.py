@@ -26,7 +26,7 @@ from users.models import UserOrganisationRelationship
 
 
 # TODO: 1027 generate GoodsQuery with correct flags
-class GoodsQueriesList(APIView):
+class GoodsQueriesCreate(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def post(self, request):
@@ -50,7 +50,6 @@ class GoodsQueriesList(APIView):
             organisation=data["organisation"],
             type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            flags=[SystemFlags.GOOD_CLC_QUERY_ID],
         )
 
         good.save()
@@ -60,7 +59,7 @@ class GoodsQueriesList(APIView):
 
 
 # TODO: 1027 update to remove flag instead of close case
-class GoodQueryDetail(APIView):
+class GoodQueryCLCResponse(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
