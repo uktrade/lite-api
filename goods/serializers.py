@@ -144,6 +144,7 @@ class GoodSerializer(serializers.ModelSerializer):
             self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
 
     def validate_pv_grading_details(self, data):
+        pass
 
     def create(self, validated_data):
         pv_grading_details = None
