@@ -1,16 +1,17 @@
 from datetime import datetime
 
+
 from test_helpers.clients import DataTestClient
 
 
 class ReferenceCode(DataTestClient):
     def test_standard_application_reference_code(self):
         standard_application = self.create_standard_application(self.organisation)
-        self.assertEquals(standard_application.reference_code, "P/GBS??/" + str(datetime.now().year) + "/0000001")
+        self.assertEquals(standard_application.reference_code, "P/GBSIE/" + str(datetime.now().year) + "/0000001")
 
     def test_open_application_reference_code(self):
         open_application = self.create_open_application(self.organisation)
-        self.assertEquals(open_application.reference_code, "P/GBO??/" + str(datetime.now().year) + "/0000001")
+        self.assertEquals(open_application.reference_code, "P/GBOIE/" + str(datetime.now().year) + "/0000001")
 
     def test_hmrc_query_reference_code(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
