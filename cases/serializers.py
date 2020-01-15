@@ -6,6 +6,7 @@ from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.helpers import get_users_assigned_to_case
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -134,6 +135,7 @@ class TinyCaseSerializer(serializers.Serializer):
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
@@ -150,6 +152,7 @@ class CaseDetailSerializer(CaseSerializer):
             "flags",
             "queues",
             "queue_names",
+            "users",
             "application",
             "query",
             "has_advice",
@@ -176,6 +179,9 @@ class CaseDetailSerializer(CaseSerializer):
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
+
+    def get_users(self, instance):
+        return get_users_assigned_to_case(instance)
 
     def get_has_advice(self, instance):
         has_advice = {"team": False, "my_team": False, "final": False}
