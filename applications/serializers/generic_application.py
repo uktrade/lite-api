@@ -45,6 +45,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
+    duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -60,6 +61,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
+            "duration",
         )
 
     def __init__(self, *args, **kwargs):
@@ -69,13 +71,11 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             self.fields.pop("exporter_user_notification_count")
 
     def get_export_type(self, instance):
-        instance = get_application(instance.pk)
         if hasattr(instance, "export_type"):
             return {
                 "key": instance.export_type,
                 "value": get_value_from_enum(ApplicationExportType, instance.export_type),
             }
-        return None
 
     def get_status(self, instance):
         if instance.status:
@@ -171,6 +171,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
+    duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -179,6 +180,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
             "status",
             "reasons",
             "reason_details",
+            "duration",
         )
 
     def update(self, instance, validated_data):
@@ -187,6 +189,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         instance.name = validated_data.get("name", instance.name)
         instance.status = validated_data.get("status", instance.status)
+        instance.duration = validated_data.get("duration", instance.duration)
 
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):

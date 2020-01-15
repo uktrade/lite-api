@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from applications.enums import (
@@ -23,6 +24,12 @@ class BaseApplication(Case):
     application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
+    duration = models.IntegerField(
+        default=None,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(999)],
+        help_text="Set when application finalised"
+    )
 
     objects = BaseApplicationManager()
 

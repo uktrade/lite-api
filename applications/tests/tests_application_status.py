@@ -86,6 +86,16 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
 
+    def test_status_cannot_be_set_to_finalised(self):
+        data = {"status": CaseStatusEnum.FINALISED}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json().get("errors")[0], "Status cannot be set to finalised.")
+
+
     @parameterized.expand(
         [
             status

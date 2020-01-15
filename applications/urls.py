@@ -19,6 +19,8 @@ urlpatterns = [
     path("", applications.ApplicationList.as_view(), name="applications"),
     path("<uuid:pk>/", applications.ApplicationDetail.as_view(), name="application"),
     path("<uuid:pk>/submit/", applications.ApplicationSubmission.as_view(), name="application_submit",),
+    path("<uuid:pk>/finalise/", applications.FinaliseView.as_view(), name="finalise"),
+    path("<uuid:pk>/duration/", applications.DurationView.as_view(), name="duration"),
     path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status",),
     # Goods
     path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods",),
