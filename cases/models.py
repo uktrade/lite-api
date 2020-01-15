@@ -48,7 +48,6 @@ class Case(TimestampableModel):
     def save(self, *args, **kwargs):
         if not self.pk:
             if not self.reference_code:
-                CaseReferenceCode.objects.create()
                 self.reference_code = generate_reference_code(self)
         super(Case, self).save(*args, **kwargs)
 
