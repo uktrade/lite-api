@@ -155,16 +155,15 @@ def get_assigned_to_user_case_ids(user: GovUser):
 
 def get_users_assigned_to_case(case):
     from cases.models import CaseAssignment
+
     case_assignments = CaseAssignment.objects.filter(case=case).order_by("queue__name").select_related("queue")
 
     users = []
 
     for case_assignment in case_assignments:
         queue_users = [
-            {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name, }
-            for first_name, last_name, email in case_assignment.users.values_list(
-                "first_name", "last_name", "email"
-            )
+            {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
+            for first_name, last_name, email in case_assignment.users.values_list("first_name", "last_name", "email")
         ]
 
         users.extend(queue_users)
