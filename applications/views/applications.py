@@ -312,12 +312,20 @@ class FinaliseView(APIView):
 
         serializer.save()
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.FINALISED_APPLICATION,
-            target=application.get_case(),
-            payload={"duration": serializer.validated_data["duration"]},
-        )
+        if "duration" in serializer.validated_data:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.FINALISED_APPLICATION,
+                target=application.get_case(),
+                payload={"duration": serializer.validated_data["duration"]},
+            )
+        else:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_STATUS,
+                target=application.get_case(),
+                payload={"status": CaseStatusEnum.human_readable(CaseStatusEnum.FINALISED)},
+            )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -327,7 +335,7 @@ class DurationView(APIView):
 
     def get(self, request, pk):
         """
-        Retrieve an application instance
+        Retrieve default duration for an application.
         """
         application = get_application(pk)
 
