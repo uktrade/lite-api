@@ -13,7 +13,7 @@ from users.models import ExporterUser
 
 class PvGradingDetails(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=PVGrading.choices, default=None, blank=True, null=True, max_length=30)
+    grading = models.CharField(choices=PVGrading.choices, default=None, blank=True, null=True, max_length=30)
     custom_grading = models.TextField(default="", blank=True, null=True)
     prefix = models.TextField(default="", blank=True, null=True)
     suffix = models.TextField(default="", blank=True, null=True)

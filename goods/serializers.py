@@ -23,8 +23,8 @@ from users.serializers import ExporterUserSimpleSerializer
 class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
     grading = KeyValueChoiceField(choices=PVGrading.choices, required=True)
     custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
-    prefix = serializers.CharField(allow_blank=False, allow_null=False)
-    suffix = serializers.CharField(allow_blank=False, allow_null=False)
+    prefix = serializers.CharField(allow_blank=True, allow_null=True)
+    suffix = serializers.CharField(allow_blank=True, allow_null=True)
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
     comment = serializers.CharField(max_length=280, allow_blank=True, allow_null=True)
@@ -43,18 +43,28 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
             "comment",
         )
 
-    def __init__(self, *args, **kwargs):
-        super(GoodPvGradingDetailsSerializer, self).__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    # super().__init__(*args, **kwargs)
+    #
+    # grading = self.get_initial().get("grading")
+    # if grading == PVGrading.OTHER:
+    #     self.fields["custom_grading"] = serializers.CharField(allow_blank=False, allow_null=False)
+    #     self.fields["prefix"] = serializers.CharField(allow_blank=True, allow_null=True)
+    #     self.fields["suffix"] = serializers.CharField(allow_blank=True, allow_null=True)
+    #     if hasattr(self, "initial_data"):
+    #         self.initial_data["prefix"] = None
+    #         self.initial_data["suffix"] = None
+    # else:
+    #     if hasattr(self, "initial_data"):
+    #         self.initial_data["custom_grading"] = None
 
-        grading = self.get_initial().get("grading")
-        if grading == PVGrading.OTHER:
-            self.fields["custom_grading"] = serializers.CharField(allow_blank=False, allow_null=False)
-            if hasattr(self, "initial_data"):
-                self.initial_data["prefix"] = None
-                self.initial_data["suffix"] = None
-        else:
-            if hasattr(self, "initial_data"):
-                self.initial_data["custom_grading"] = None
+    def validate(self, data):
+        if data.get("grading") == PVGrading.OTHER:
+            if not data.get("custom_grading"):
+                raise serializers.ValidationError(
+                    f"You must provide a 'custom_grading' if 'grading' is set to {PVGrading.OTHER}"
+                )
+        return data
 
 
 class GoodListSerializer(serializers.ModelSerializer):
@@ -107,7 +117,9 @@ class GoodSerializer(serializers.ModelSerializer):
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
-    is_pv_graded = KeyValueChoiceField(choices=GoodPVGraded.choices)
+    is_pv_graded = KeyValueChoiceField(
+        choices=GoodPVGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+    )
     pv_grading_details = GoodPvGradingDetailsSerializer(required=False)
 
     class Meta:
@@ -140,17 +152,29 @@ class GoodSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
 
-        if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
-            self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
+        # if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
+        #     self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
 
     def validate_pv_grading_details(self, data):
-        pass
+        if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
+            pv_grading_details_serializer = GoodPvGradingDetailsSerializer(data=data)
+
+            if not pv_grading_details_serializer.is_valid():
+                raise serializers.ValidationError({"pv_grading_details": pv_grading_details_serializer.errors})
+
+            return pv_grading_details_serializer.data
+
+        return None
 
     def create(self, validated_data):
         pv_grading_details = None
+
         if "pv_grading_details" in validated_data:
+            pv_grading_details_data = validated_data.pop("pv_grading_details")
+            pv_grading_details_data["grading"] = pv_grading_details_data["grading"]["key"]
+
             pv_grading_details = GoodPvGradingDetailsSerializer.create(
-                GoodPvGradingDetailsSerializer(), validated_data=validated_data.pop("pv_grading_details")
+                GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details_data
             )
 
         good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)

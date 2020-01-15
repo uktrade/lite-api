@@ -138,7 +138,7 @@ class GoodsCreateTests(DataTestClient):
             "is_pv_graded": is_pv_graded,
             "pv_grading_details": {
                 "grading": pv_grading,
-                "custom": pv_grading_custom,
+                "custom_grading": pv_grading_custom,
                 "prefix": pv_grading_prefix,
                 "suffix": pv_grading_suffix,
                 "issuing_authority": pv_grading_issuing_authority,
@@ -157,8 +157,8 @@ class GoodsCreateTests(DataTestClient):
         self.assertEquals(response_data["is_pv_graded"]["key"], is_pv_graded)
         if is_pv_graded:
             pv_grading_details = response_data["pv_grading_details"]
-            self.assertEquals(pv_grading_details["grading"], pv_grading)
-            self.assertEquals(pv_grading_details["custom"], pv_grading_custom)
+            self.assertEquals(pv_grading_details["grading"]["key"], pv_grading)
+            self.assertEquals(pv_grading_details["custom_grading"], pv_grading_custom)
             self.assertEquals(pv_grading_details["prefix"], pv_grading_prefix)
             self.assertEquals(pv_grading_details["suffix"], pv_grading_suffix)
             self.assertEquals(pv_grading_details["issuing_authority"], pv_grading_issuing_authority)
@@ -235,7 +235,7 @@ class GoodsCreateTests(DataTestClient):
             "is_pv_graded": is_pv_graded,
             "pv_grading_details": {
                 "grading": pv_grading,
-                "custom": pv_grading_custom,
+                "custom_grading": pv_grading_custom,
                 "prefix": pv_grading_prefix,
                 "suffix": pv_grading_suffix,
                 "issuing_authority": pv_grading_issuing_authority,
@@ -253,16 +253,20 @@ class GoodsCreateTests(DataTestClient):
     # This data is the first successful created good in the test above, if both tests fail it may be related to that
     # data being incorrect now
     @parameterized.expand(
-        [("Widget", GoodControlled.YES, "ML1a", "1337", True), ("Widget", GoodControlled.YES, "ML1a", "1337", False),]
+        [
+            ("Widget", GoodControlled.YES, "ML1a", "1337", GoodPVGraded.YES, True),
+            ("Widget", GoodControlled.YES, "ML1a", "1337", GoodPVGraded.YES, False),
+        ]
     )
     def test_create_validate_only(
-        self, description, is_good_controlled, control_code, part_number, validate_only,
+        self, description, is_good_controlled, control_code, part_number, is_pv_graded, validate_only,
     ):
         data = {
             "description": description,
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
             "part_number": part_number,
+            "is_pv_graded": is_pv_graded,
             "validate_only": validate_only,
         }
 
