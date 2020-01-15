@@ -23,20 +23,20 @@ class DurationViewTest(DataTestClient):
         country.save()
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 5)
+        self.assertEqual(response.json()["duration"], 5 * 12)
 
         # eu
         country.is_eu = True
         country.save()
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 3)
+        self.assertEqual(response.json()["duration"], 3 * 12)
 
     def test_get_standard_licence_duration(self):
         url = reverse("applications:duration", kwargs={"pk": self.standard_application.pk})
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 2)
+        self.assertEqual(response.json()["duration"], 2 * 12)
 
     def test_temporary_licence_duration(self):
         self.standard_application.export_type = ApplicationExportType.TEMPORARY
@@ -45,4 +45,4 @@ class DurationViewTest(DataTestClient):
         url = reverse("applications:duration", kwargs={"pk": self.standard_application.pk})
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 1)
+        self.assertEqual(response.json()["duration"], 1 * 12)

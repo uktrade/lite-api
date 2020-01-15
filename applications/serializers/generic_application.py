@@ -71,6 +71,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             self.fields.pop("exporter_user_notification_count")
 
     def get_export_type(self, instance):
+        instance = get_application(instance.pk)
         if hasattr(instance, "export_type"):
             return {
                 "key": instance.export_type,

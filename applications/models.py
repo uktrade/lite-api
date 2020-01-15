@@ -28,7 +28,7 @@ class BaseApplication(Case):
         default=None,
         null=True,
         validators=[MinValueValidator(1), MaxValueValidator(999)],
-        help_text="Set when application finalised"
+        help_text="Set when application finalised",
     )
 
     objects = BaseApplicationManager()

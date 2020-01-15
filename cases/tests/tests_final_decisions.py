@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from conf.constants import GovPermissions
-from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from users.models import Role
 
@@ -17,10 +16,11 @@ class CaseFinalDecisionTests(DataTestClient):
     def test_cannot_make_final_decision_without_permission(self):
         self.gov_user.role = self.default_role
         self.gov_user.save()
-        data = {"status": CaseStatusEnum.FINALISED}
+
+        data = {"duration": 10}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
+            reverse("applications:finalise", kwargs={"pk": self.standard_application.id}),
             data=data,
             **self.gov_headers,
         )
@@ -33,10 +33,10 @@ class CaseFinalDecisionTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        data = {"status": CaseStatusEnum.FINALISED}
+        data = {"duration": 10}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
+            reverse("applications:finalise", kwargs={"pk": self.standard_application.id}),
             data=data,
             **self.gov_headers,
         )

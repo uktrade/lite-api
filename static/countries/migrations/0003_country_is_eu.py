@@ -6,14 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('countries', '0002_country_flags'),
+        ("countries", "0002_country_flags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='is_eu',
-            field=models.BooleanField(default=0),
-            preserve_default=False,
+            model_name="country", name="is_eu", field=models.BooleanField(default=0), preserve_default=False,
         ),
     ]

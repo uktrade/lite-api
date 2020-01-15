@@ -317,7 +317,7 @@ class FinaliseView(APIView):
             actor=request.user,
             verb=AuditType.FINALISED_APPLICATION,
             target=application.get_case(),
-            payload={"duration": serializer.validated_data["duration"]}
+            payload={"duration": serializer.validated_data["duration"]},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
@@ -333,5 +333,5 @@ class DurationView(APIView):
         application = get_application(pk)
 
         duration = get_default_duration(application)
-        
+
         return JsonResponse(data={"duration": duration}, status=status.HTTP_200_OK)
