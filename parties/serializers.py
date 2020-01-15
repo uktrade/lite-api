@@ -3,9 +3,10 @@ from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
+from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
 from parties.models import PartyDocument
-from parties.enums import PartyType, SubType, ThirdPartySubType
+from parties.enums import PartyType, SubType, ThirdPartyRole
 from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 
 
@@ -17,19 +18,11 @@ class PartySerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
+    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
 
     class Meta:
         model = Party
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-        )
+        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type")
 
     @staticmethod
     def validate_website(value):
@@ -58,8 +51,6 @@ class PartySerializer(serializers.ModelSerializer):
 
 
 class EndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = EndUser
         fields = (
@@ -87,8 +78,6 @@ class EndUserWithFlagsSerializer(EndUserSerializer):
 
 
 class UltimateEndUserSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = UltimateEndUser
         fields = (
@@ -116,8 +105,6 @@ class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
 
 
 class ConsigneeSerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=SubType.choices)
-
     class Meta:
         model = Consignee
         fields = (
@@ -145,21 +132,13 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 
 class ThirdPartySerializer(PartySerializer):
-    sub_type = KeyValueChoiceField(choices=ThirdPartySubType.choices)
+    role = KeyValueChoiceField(
+        choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
+    )
 
     class Meta:
         model = ThirdParty
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
+        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role")
 
 
 class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):

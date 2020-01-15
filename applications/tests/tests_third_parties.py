@@ -11,6 +11,7 @@ from parties.models import PartyDocument
 from parties.models import ThirdParty
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from lite_content.lite_api.strings import Parties
 
 
 class ThirdPartiesOnDraft(DataTestClient):
@@ -43,14 +44,16 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "name": "UK Government",
                 "address": "Westminster, London SW1A 0AA",
                 "country": "GB",
-                "sub_type": "agent",
+                "sub_type": "government",
+                "role": "agent",
                 "website": "https://www.gov.uk",
             },
             {
                 "name": "French Government",
                 "address": "Paris",
                 "country": "FR",
-                "sub_type": "other",
+                "sub_type": "government",
+                "role": "other",
                 "website": "https://www.gov.fr",
             },
         ]
@@ -81,7 +84,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {"errors": {"sub_type": ["This field is required."]}})
+        self.assertEqual(
+            response_data, {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}}
+        )
 
     def test_get_third_parties(self):
         third_party = self.draft.third_parties.first()
@@ -96,6 +101,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(third_parties[0]["type"], str(third_party.type))
         self.assertEqual(third_parties[0]["organisation"], str(third_party.organisation.id))
         self.assertEqual(third_parties[0]["sub_type"]["key"], str(third_party.sub_type))
+        self.assertEqual(third_parties[0]["role"]["key"], str(third_party.role))
 
     def test_set_third_parties_on_draft_open_application_failure(self):
         """
