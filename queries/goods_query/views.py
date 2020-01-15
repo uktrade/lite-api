@@ -35,7 +35,7 @@ class GoodsQueriesCreate(APIView):
         """
         Create a new CLC query case instance
         """
-        data = JSONParser().parse(request)
+        data = request.data
         good = get_good(data["good_id"])
         data["organisation"] = request.user.organisation
 
