@@ -43,21 +43,6 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
             "comment",
         )
 
-    # def __init__(self, *args, **kwargs):
-    # super().__init__(*args, **kwargs)
-    #
-    # grading = self.get_initial().get("grading")
-    # if grading == PVGrading.OTHER:
-    #     self.fields["custom_grading"] = serializers.CharField(allow_blank=False, allow_null=False)
-    #     self.fields["prefix"] = serializers.CharField(allow_blank=True, allow_null=True)
-    #     self.fields["suffix"] = serializers.CharField(allow_blank=True, allow_null=True)
-    #     if hasattr(self, "initial_data"):
-    #         self.initial_data["prefix"] = None
-    #         self.initial_data["suffix"] = None
-    # else:
-    #     if hasattr(self, "initial_data"):
-    #         self.initial_data["custom_grading"] = None
-
     def validate(self, data):
         if data.get("grading") == PVGrading.OTHER:
             if not data.get("custom_grading"):
@@ -151,9 +136,6 @@ class GoodSerializer(serializers.ModelSerializer):
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
-
-        # if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
-        #     self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
 
     def validate_pv_grading_details(self, data):
         if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
