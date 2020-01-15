@@ -44,12 +44,15 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if data.get("grading") == PVGrading.OTHER:
-            if not data.get("custom_grading"):
+        validated_data = super(GoodPvGradingDetailsSerializer, self).validate(data)
+
+        if validated_data.get("grading") == PVGrading.OTHER:
+            if not validated_data.get("custom_grading"):
                 raise serializers.ValidationError(
-                    f"You must provide a 'custom_grading' if 'grading' is set to {PVGrading.OTHER}"
+                    {"custom_grading": 'You must provide a Custom Grading if the Grading is set to "Other"'}
                 )
-        return data
+
+        return validated_data
 
 
 class GoodListSerializer(serializers.ModelSerializer):
@@ -162,7 +165,6 @@ class GoodSerializer(serializers.ModelSerializer):
         good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
         return good
 
-    # pylint: disable=W0703
     def get_case_id(self, instance):
         goods_query = GoodsQuery.objects.filter(good=instance)
         if goods_query:
