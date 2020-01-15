@@ -147,14 +147,16 @@ class GoodList(ListCreateAPIView):
         serializer = GoodSerializer(data=data)
 
         if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            errors = serializer.errors
+            pv_grading_errors = errors.pop("pv_grading_details", None)
+            flattened_errors = {**errors, **pv_grading_errors} if pv_grading_errors else errors
+            return JsonResponse(data={"errors": flattened_errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        if "validate_only" in data and data["validate_only"] is True:
+        if str_to_bool(data.get("validate_only")):
             return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
-        else:
-            serializer.save()
 
-            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class GoodDocumentCriteriaCheck(APIView):
