@@ -6,7 +6,7 @@ from documents.models import Document
 
 class GeneratedCaseDocumentExporterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Document
+        model = GeneratedCaseDocument
         fields = (
             "id",
             "name",
