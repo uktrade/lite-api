@@ -1,6 +1,6 @@
 import json
 
-from django.http import JsonResponse, Http404, HttpResponseBadRequest
+from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -47,7 +47,7 @@ class GoodsQueriesCreate(APIView):
         pv_grading_required = good.is_pv_graded == GoodPVGraded.GRADING_REQUIRED
 
         if not (clc_required or pv_grading_required):
-            raise HttpResponseBadRequest
+            raise Http404
 
         good.status = GoodStatus.QUERY
         good.control_code = data.get("not_sure_details_control_code", None)
