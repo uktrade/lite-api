@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from cases.generated_documents.models import GeneratedCaseDocument
-from documents.models import Document
 
 
 class GeneratedCaseDocumentExporterSerializer(serializers.ModelSerializer):
