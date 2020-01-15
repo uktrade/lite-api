@@ -19,6 +19,7 @@ from goods.enums import GoodStatus, GoodControlled, GoodPVGraded
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
+from queries.goods_query.helpers import is_goods_query_finished
 from queries.goods_query.models import GoodsQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
@@ -99,7 +100,8 @@ class GoodQueryCLCResponse(APIView):
                 )
 
                 clc_good_serializer.save()
-                query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+                query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+                query.status = is_goods_query_finished(query)
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
