@@ -57,7 +57,7 @@ class GoodsQueriesCreate(APIView):
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            type=CaseTypeEnum.CLC_QUERY,
+            type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         # attach flags based on what's required
