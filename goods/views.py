@@ -150,7 +150,7 @@ class GoodList(ListCreateAPIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         if "validate_only" in data and data["validate_only"] is True:
-            return HttpResponse(status=status.HTTP_200_OK)
+            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
         else:
             serializer.save()
 

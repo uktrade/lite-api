@@ -182,22 +182,27 @@ class GoodSerializer(serializers.ModelSerializer):
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
-        clc_query = GoodsQuery.objects.filter(good=instance)
-        if clc_query:
-            return clc_query.first().id
+        if "id" in instance:
+            clc_query = GoodsQuery.objects.filter(good=instance)
+            if clc_query:
+                return clc_query.first().id
 
     def get_case_officer(self, instance):
-        clc_query_qs = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
-        if clc_query_qs:
-            user = get_user_by_pk(clc_query_qs.first().case_officer)
-            return GovUserSimpleSerializer(user).data
+        if "id" in instance:
+            clc_query_qs = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
+            if clc_query_qs:
+                user = get_user_by_pk(clc_query_qs.first().case_officer)
+                return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
-        return get_good_query_with_notifications(
-            good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
-        )
+        if "id" in instance:
+            return get_good_query_with_notifications(
+                good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+            )
 
     def get_case_status(self, instance):
+        if "id" not in instance:
+            return None
         try:
             clc_query = GoodsQuery.objects.get(good=instance)
             return {
@@ -208,9 +213,10 @@ class GoodSerializer(serializers.ModelSerializer):
             return None
 
     def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        if "id" in instance:
+            documents = GoodDocument.objects.filter(good=instance)
+            if documents:
+                return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
