@@ -250,28 +250,56 @@ class GoodsCreateTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(Good.objects.all().count(), 0)
 
-    # This data is the first successful created good in the test above, if both tests fail it may be related to that
-    # data being incorrect now
-    @parameterized.expand(
-        [
-            ("Widget", GoodControlled.YES, "ML1a", "1337", GoodPVGraded.YES, True),
-            ("Widget", GoodControlled.YES, "ML1a", "1337", GoodPVGraded.YES, False),
-        ]
-    )
-    def test_create_validate_only(
-        self, description, is_good_controlled, control_code, part_number, is_pv_graded, validate_only,
+    def test_create_pv_graded_good_when_grading_is_other_and_custom_grading_is_null_then_bad_response_is_returned(self):
+        pass
+
+    def test_create_good_when_validate_only_is_true_then_ok_response_is_returned_and_good_is_not_created(self):
+        good_data = self._setup_good_data(
+            GoodControlled.YES, "ML1a", GoodPVGraded.YES, self._setup_pv_grading_details(), validate_only=True
+        )
+
+        response = self.client.post(self.url, good_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(Good.objects.all().count(), 0)
+
+    @staticmethod
+    def _setup_good_data(
+        is_good_controlled=False,
+        control_code=None,
+        is_pv_graded=False,
+        pv_grading_details=None,
+        part_number="1337",
+        validate_only=False,
     ):
-        data = {
-            "description": description,
+        return {
+            "description": "Plastic bag " + str(uuid.uuid4()),
             "is_good_controlled": is_good_controlled,
             "control_code": control_code,
-            "part_number": part_number,
             "is_pv_graded": is_pv_graded,
+            "pv_grading_details": pv_grading_details,
+            "part_number": part_number,
             "validate_only": validate_only,
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        if validate_only:
-            self.assertEquals(response.status_code, status.HTTP_200_OK)
-        else:
-            self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+    @staticmethod
+    def _setup_pv_grading_details(
+        grading=PVGrading.OTHER,
+        custom_grading="Other",
+        prefix=None,
+        suffix=None,
+        issuing_authority="Issuing Authority",
+        reference="ref123",
+        date="2019-12-25",
+        comment="This is a pv graded good",
+    ):
+        return {
+            "grading": grading,
+            "custom_grading": custom_grading,
+            "prefix": prefix,
+            "suffix": suffix,
+            "issuing_authority": issuing_authority,
+            "reference": reference,
+            "date_of_issue": date,
+            "comment": comment,
+        }
