@@ -108,7 +108,7 @@ class GoodSerializer(serializers.ModelSerializer):
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPVGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
-    pv_grading_details = GoodPvGradingDetailsSerializer(required=False)
+    pv_grading_details = GoodPvGradingDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -141,11 +141,11 @@ class GoodSerializer(serializers.ModelSerializer):
                 self.initial_data["control_code"] = None
 
     def create(self, validated_data):
-        pv_grading_details = None
+        pv_grading_details = validated_data.pop("pv_grading_details", None)
 
-        if "pv_grading_details" in validated_data:
+        if pv_grading_details:
             pv_grading_details = GoodPvGradingDetailsSerializer.create(
-                GoodPvGradingDetailsSerializer(), validated_data=validated_data.pop("pv_grading_details")
+                GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
             )
 
         good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
