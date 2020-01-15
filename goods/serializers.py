@@ -166,26 +166,26 @@ class GoodSerializer(serializers.ModelSerializer):
         return good
 
     def get_case_id(self, instance):
-        if "id" in instance:
+        if isinstance(instance, Good):
             goods_query = GoodsQuery.objects.filter(good=instance)
             if goods_query:
                 return goods_query.first().id
 
     def get_case_officer(self, instance):
-        if "id" in instance:
+        if isinstance(instance, Good):
             goods_query = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
             if goods_query:
                 user = get_user_by_pk(goods_query.first().case_officer)
                 return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
-        if "id" in instance:
+        if isinstance(instance, Good):
             return get_good_query_with_notifications(
                 good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
             )
 
     def get_case_status(self, instance):
-        if "id" not in instance:
+        if not isinstance(instance, Good):
             return None
         try:
             goods_query = GoodsQuery.objects.get(good=instance)
@@ -197,10 +197,11 @@ class GoodSerializer(serializers.ModelSerializer):
             return None
 
     def get_documents(self, instance):
-        if "id" in instance:
-            documents = GoodDocument.objects.filter(good=instance)
-            if documents:
-                return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        if not isinstance(instance, Good):
+            return None
+        documents = GoodDocument.objects.filter(good=instance)
+        if documents:
+            return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
