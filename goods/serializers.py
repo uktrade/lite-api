@@ -164,14 +164,14 @@ class GoodSerializer(serializers.ModelSerializer):
 
     # pylint: disable=W0703
     def get_case_id(self, instance):
-        clc_query = GoodsQuery.objects.filter(good=instance)
-        if clc_query:
-            return clc_query.first().id
+        goods_query = GoodsQuery.objects.filter(good=instance)
+        if goods_query:
+            return goods_query.first().id
 
     def get_case_officer(self, instance):
-        clc_query_qs = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
-        if clc_query_qs:
-            user = get_user_by_pk(clc_query_qs.first().case_officer)
+        goods_query = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
+        if goods_query:
+            user = get_user_by_pk(goods_query.first().case_officer)
             return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
@@ -181,10 +181,10 @@ class GoodSerializer(serializers.ModelSerializer):
 
     def get_case_status(self, instance):
         try:
-            clc_query = GoodsQuery.objects.get(good=instance)
+            goods_query = GoodsQuery.objects.get(good=instance)
             return {
-                "key": clc_query.status.status,
-                "value": get_status_value_from_case_status_enum(clc_query.status.status),
+                "key": goods_query.status.status,
+                "value": get_status_value_from_case_status_enum(goods_query.status.status),
             }
         except GoodsQuery.DoesNotExist:
             return None
