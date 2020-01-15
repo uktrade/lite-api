@@ -1,13 +1,13 @@
 class GoodStatus:
     DRAFT = "draft"  # Freshly created good, fully editable
     SUBMITTED = "submitted"  # This good is on use in an application
-    CLC_QUERY = "clc_query"  # This good is in a CLC Query
+    QUERY = "query"  # This good is in a Goods Query
     VERIFIED = "verified"  # This good's details have been verified to be correct
 
     choices = [
         (DRAFT, "Draft"),
         (SUBMITTED, "Submitted"),
-        (CLC_QUERY, "Control List Classification Query"),
+        (QUERY, "Goods Query"),
         (VERIFIED, "Verified"),
     ]
 

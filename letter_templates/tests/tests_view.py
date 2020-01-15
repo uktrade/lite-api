@@ -16,7 +16,7 @@ class LetterTemplatesListTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
-        self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
+        self.letter_template.case_types.set([CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
 
     def test_get_letter_templates_success(self):
@@ -30,7 +30,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["name"], self.letter_template.name)
         self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseTypeEnum.CLC_QUERY, str(response_data["case_types"]))
+        self.assertIn(CaseTypeEnum.GOODS_QUERY, str(response_data["case_types"]))
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(response_data["case_types"]))
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("updated_at"))
@@ -63,7 +63,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(template["name"], self.letter_template.name)
         self.assertEqual(template["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(template["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseTypeEnum.CLC_QUERY, str(template["case_types"]))
+        self.assertIn(CaseTypeEnum.GOODS_QUERY, str(template["case_types"]))
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, str(template["case_types"]))
         self.assertIsNotNone(template.get("created_at"))
         self.assertIsNotNone(template.get("updated_at"))

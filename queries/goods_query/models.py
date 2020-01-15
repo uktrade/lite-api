@@ -16,4 +16,4 @@ class GoodsQuery(Query):
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name="good")
 
     # TODO: fix related query name
-    notifications = GenericRelation(ExporterNotification, related_query_name="clc_query")
+    notifications = GenericRelation(ExporterNotification, related_query_name="goods_query")

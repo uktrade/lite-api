@@ -14,10 +14,12 @@ from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
-from goods.enums import GoodStatus
+from flags.models import Flag
+from goods.enums import GoodStatus, GoodControlled, GoodPVGraded
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
+from queries.goods_query.helpers import is_goods_query_finished
 from queries.goods_query.models import GoodsQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
@@ -41,21 +43,35 @@ class GoodsQueriesCreate(APIView):
         if good.status != GoodStatus.DRAFT:
             raise Http404
 
-        good.status = GoodStatus.CLC_QUERY
-        good.control_code = data.get("not_sure_details_control_code")
+        clc_required = good.is_good_controlled == GoodControlled.UNSURE
+        pv_grading_required = good.is_pv_graded == GoodPVGraded.GRADING_REQUIRED
 
-        clc_query = GoodsQuery.objects.create(
-            clc_=data.get("not_sure_details_details"),
+        if not (clc_required or pv_grading_required):
+            raise Http404
+
+        good.status = GoodStatus.QUERY
+        good.control_code = data.get("not_sure_details_control_code", None)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=data.get("not_sure_details_details"),
+            pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            type=CaseTypeEnum.CLC_QUERY,
+            type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+        # attach flags based on what's required
+        if clc_required:
+            flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
+            goods_query.flags.add(flag)
+        if pv_grading_required:
+            flag = Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID)
+            goods_query.flags.add(flag)
 
         good.save()
-        clc_query.save()
+        goods_query.save()
 
-        return JsonResponse(data={"id": clc_query.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
 
 
 # TODO: 1027 update to remove flag instead of close case
@@ -84,7 +100,8 @@ class GoodQueryCLCResponse(APIView):
                 )
 
                 clc_good_serializer.save()
-                query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+                query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+                query.status = is_goods_query_finished(query)
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
