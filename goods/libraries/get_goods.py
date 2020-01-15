@@ -42,17 +42,17 @@ def get_good_with_organisation(pk, organisation):
 
 def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, total_count: bool) -> dict:
     query = {}
-    clc_query = GoodsQuery.objects.filter(good__id=good.id)
+    good_query = GoodsQuery.objects.filter(good__id=good.id)
 
-    if clc_query:
-        clc_query = clc_query.first()
-        query["id"] = clc_query.id
+    if good_query:
+        good_query = good_query.first()
+        query["id"] = good_query.id
 
         if exporter_user:
             exporter_user_notification_count = (
-                get_exporter_user_notification_total_count(exporter_user=exporter_user, case=clc_query)
+                get_exporter_user_notification_total_count(exporter_user=exporter_user, case=good_query)
                 if total_count
-                else get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=clc_query)
+                else get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=good_query)
             )
 
             query["exporter_user_notification_count"] = exporter_user_notification_count

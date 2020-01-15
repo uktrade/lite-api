@@ -6,7 +6,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-def get_clc_query_by_good(good):
+def get_goods_query_by_good(good):
     try:
         return GoodsQuery.objects.get(good=good)
     except GoodsQuery.DoesNotExist:

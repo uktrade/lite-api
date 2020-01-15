@@ -43,21 +43,6 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
             "comment",
         )
 
-    # def __init__(self, *args, **kwargs):
-    # super().__init__(*args, **kwargs)
-    #
-    # grading = self.get_initial().get("grading")
-    # if grading == PVGrading.OTHER:
-    #     self.fields["custom_grading"] = serializers.CharField(allow_blank=False, allow_null=False)
-    #     self.fields["prefix"] = serializers.CharField(allow_blank=True, allow_null=True)
-    #     self.fields["suffix"] = serializers.CharField(allow_blank=True, allow_null=True)
-    #     if hasattr(self, "initial_data"):
-    #         self.initial_data["prefix"] = None
-    #         self.initial_data["suffix"] = None
-    # else:
-    #     if hasattr(self, "initial_data"):
-    #         self.initial_data["custom_grading"] = None
-
     def validate(self, data):
         if data.get("grading") == PVGrading.OTHER:
             if not data.get("custom_grading"):
@@ -152,9 +137,6 @@ class GoodSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
 
-        # if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
-        #     self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
-
     def validate_pv_grading_details(self, data):
         if self.get_initial().get("is_pv_graded") == GoodPVGraded.YES:
             pv_grading_details_serializer = GoodPvGradingDetailsSerializer(data=data)
@@ -183,15 +165,15 @@ class GoodSerializer(serializers.ModelSerializer):
     # pylint: disable=W0703
     def get_case_id(self, instance):
         if "id" in instance:
-            clc_query = GoodsQuery.objects.filter(good=instance)
-            if clc_query:
-                return clc_query.first().id
+            goods_query = GoodsQuery.objects.filter(good=instance)
+            if goods_query:
+                return goods_query.first().id
 
     def get_case_officer(self, instance):
         if "id" in instance:
-            clc_query_qs = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
-            if clc_query_qs:
-                user = get_user_by_pk(clc_query_qs.first().case_officer)
+            goods_query = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
+            if goods_query:
+                user = get_user_by_pk(goods_query.first().case_officer)
                 return GovUserSimpleSerializer(user).data
 
     def get_query(self, instance):
@@ -204,10 +186,10 @@ class GoodSerializer(serializers.ModelSerializer):
         if "id" not in instance:
             return None
         try:
-            clc_query = GoodsQuery.objects.get(good=instance)
+            goods_query = GoodsQuery.objects.get(good=instance)
             return {
-                "key": clc_query.status.status,
-                "value": get_status_value_from_case_status_enum(clc_query.status.status),
+                "key": goods_query.status.status,
+                "value": get_status_value_from_case_status_enum(goods_query.status.status),
             }
         except GoodsQuery.DoesNotExist:
             return None
