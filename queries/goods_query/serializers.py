@@ -20,7 +20,8 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
         model = GoodsQuery
         fields = (
             "id",
-            "details",
+            "clc_raised_reasons",
+            "pv_grading_raised_reasons",
             "good",
             "submitted_at",
             "organisation",

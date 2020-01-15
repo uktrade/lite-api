@@ -15,11 +15,11 @@ def get_clc_query_by_good(good):
 
 def is_goods_query_finished(query: GoodsQuery):
     flags = [
-        Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID),
-        Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID),
+        Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID).id,
+        Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID).id,
     ]
 
-    if query.objects.filter(flags__id__in=flags):
+    if query.flags.filter(id__in=flags):
         return get_case_status_by_status(CaseStatusEnum.SUBMITTED)
     else:
         return get_case_status_by_status(CaseStatusEnum.FINALISED)
