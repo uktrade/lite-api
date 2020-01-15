@@ -59,7 +59,7 @@ class ControlListClassificationsQueryUpdateTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.url = reverse("queries:goods_queries:goods_query", kwargs={"pk": self.query.pk})
+        self.url = reverse("queries:goods_queries:clc_query_response", kwargs={"pk": self.query.pk})
 
         self.data = {
             "comment": "I Am Easy to Find",

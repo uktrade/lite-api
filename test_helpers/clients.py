@@ -421,7 +421,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseTypeEnum.CLC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
-        clc_query.flags = [Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)]
+        clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
         return clc_query
 
