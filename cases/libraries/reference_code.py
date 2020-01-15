@@ -32,10 +32,6 @@ def generate_reference_code(case):
     reference_code = ""
 
     if case.type == CaseTypeEnum.APPLICATION:
-        # Export type
-        if hasattr(case, "export_type"):
-            reference_code += case.export_type[0] + SLASH
-
         # GB
         reference_code += "GB"
 
@@ -69,5 +65,10 @@ def generate_reference_code(case):
 
     value = CaseReferenceCode.objects.create()
     reference_code += str(value.reference_number).zfill(7)
+
+    if case.type == CaseTypeEnum.APPLICATION:
+        # Export type
+        if hasattr(case, "export_type"):
+            reference_code += SLASH + case.export_type[0]
 
     return reference_code.upper()
