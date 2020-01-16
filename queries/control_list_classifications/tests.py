@@ -4,6 +4,7 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from conf import constants
 from goods.enums import GoodControlled, GoodStatus
@@ -191,3 +192,29 @@ class ControlListClassificationsQueryManageStatusTests(DataTestClient):
 
         self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class ControlListClassificationsGeneratedDocumentsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.query = self.create_clc_query("This is a widget", self.organisation)
+        self.url = reverse("queries:control_list_classifications:generated_documents", kwargs={"pk": self.query.pk})
+
+    def test_get_generated_documents_none_success(self):
+        response = self.client.get(self.url, **self.exporter_headers)
+        results = response.json()["generated_documents"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(results), 0)
+
+    def test_get_generated_documents_success(self):
+        document_name = "Abc"
+        template = self.create_letter_template("Template", case_type=CaseTypeEnum.CLC_QUERY)
+        self.create_generated_case_document(self.query, template, document_name=document_name)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        results = response.json()["generated_documents"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["name"], document_name)
