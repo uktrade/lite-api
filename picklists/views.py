@@ -57,6 +57,9 @@ class PickListItems(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.CREATED_PICKLIST, target=serializer.instance,
+            )
             return JsonResponse(data={"picklist_item": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
