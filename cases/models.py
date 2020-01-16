@@ -15,6 +15,8 @@ from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.models import (
@@ -32,7 +34,7 @@ class Case(TimestampableModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference_code = models.CharField(max_length=30, unique=True, null=False, blank=False, editable=False, default=None)
+    reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
     type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
@@ -46,9 +48,8 @@ class Case(TimestampableModel):
     objects = CaseManager()
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            if not self.reference_code:
-                self.reference_code = generate_reference_code(self)
+        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
+            self.reference_code = generate_reference_code(self)
         super(Case, self).save(*args, **kwargs)
 
     def get_case(self):
