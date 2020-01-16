@@ -44,7 +44,7 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json(), {'errors': {'error': "You don't have permission to do that action"}})
+        self.assertEqual(response.json(), {"errors": {"error": "You don't have permission to do that action"}})
 
     def test_invalid_duration_data(self):
         self.gov_user.role = self.role
@@ -57,7 +57,7 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {'errors': {'non_field_errors': ['Duration 1000 not in range [1-999]']}})
+        self.assertEqual(response.json(), {"errors": {"non_field_errors": ["Duration 1000 not in range [1-999]"]}})
 
     def test_default_duration_can_be_set_without_role(self):
         self.gov_user.role = self.role

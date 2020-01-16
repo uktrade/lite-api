@@ -2,11 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.enums import (
-    ApplicationType,
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType
-)
+from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from documents.models import Document

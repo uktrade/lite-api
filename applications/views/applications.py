@@ -249,8 +249,7 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.FINALISED:
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]},
-                status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         if isinstance(request.user, ExporterUser):
@@ -260,13 +259,13 @@ class ApplicationManageStatus(APIView):
             if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
         case_status = get_case_status_by_status(data["status"])
@@ -302,17 +301,16 @@ class FinaliseView(APIView):
 
         if not can_status_can_be_set_by_gov_user(request.user, application.status.status, CaseStatusEnum.FINALISED):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]},
-                status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         data = deepcopy(request.data)
 
-        if data.get('duration') and data.get('duration') != get_default_duration(application):
+        if data.get("duration") and data.get("duration") != get_default_duration(application):
             if not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_DURATION]},
-                    status=status.HTTP_403_FORBIDDEN
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
         data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
