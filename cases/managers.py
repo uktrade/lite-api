@@ -176,10 +176,14 @@ class CaseManager(models.Manager):
 class CaseReferenceCodeManager(models.Manager):
     def create(self):
         CaseReferenceCode = self.model
-
         year = datetime.now().year
-        reference_number = CaseReferenceCode.objects.filter(year=year).count() + 1
+        case_reference_code, _ = CaseReferenceCode.objects.get_or_create(defaults={"year": year, "reference_number": 0})
 
-        case_reference_code = CaseReferenceCode(reference_number=reference_number, year=year)
+        if case_reference_code.year != year:
+            case_reference_code.year = year
+            case_reference_code.reference_number = 1
+        else:
+            case_reference_code.reference_number += 1
+
         case_reference_code.save()
         return case_reference_code

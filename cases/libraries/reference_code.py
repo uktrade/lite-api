@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from organisations.models import Site, ExternalLocation
-
 SLASH = "/"
 
 
