@@ -37,7 +37,6 @@ def _setup_pv_grading_details(
     issuing_authority="Issuing Authority",
     reference="ref123",
     date="2019-12-25",
-    comment="This is a pv graded good",
 ):
     return {
         "grading": grading,
@@ -47,7 +46,6 @@ def _setup_pv_grading_details(
         "issuing_authority": issuing_authority,
         "reference": reference,
         "date_of_issue": date,
-        "comment": comment,
     }
 
 
@@ -70,7 +68,6 @@ def _assert_response_data(self, response_data, request_data):
         )
         self.assertEquals(pv_grading_details["reference"], request_data["pv_grading_details"]["reference"])
         self.assertEquals(pv_grading_details["date_of_issue"], request_data["pv_grading_details"]["date_of_issue"])
-        self.assertEquals(pv_grading_details["comment"], request_data["pv_grading_details"]["comment"])
 
 
 class GoodsCreateGoodTests(DataTestClient):
@@ -94,8 +91,7 @@ class GoodsCreateGoodTests(DataTestClient):
         response = self.client.post(url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        response_data = response.json()["good"]
-        _assert_response_data(self, response_data, request_data)
+        _assert_response_data(self, response.json()["good"], request_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_create_good_when_is_good_controlled_field_is_missing_then_bad_request_response_is_returned(self):

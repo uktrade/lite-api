@@ -202,7 +202,6 @@ class PvGradingQueryCreateTests(DataTestClient):
             "issuing_authority": "Issuing Authority",
             "reference": "ref123",
             "date_of_issue": "2019-12-25",
-            "comment": "This is a pv graded good",
         }
 
         self.pv_grading_details = PvGradingDetails.objects.create(**self.pv_grading_details_data)
@@ -229,3 +228,23 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(Case.objects.count(), 1)
+
+    def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
+        self.pv_graded_good.is_pv_graded = GoodPvGraded.YES
+        self.pv_graded_good.save()
+        data = {
+            "good_id": self.pv_graded_good.id,
+            "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"],
+            [
+                f'A good must have either "is_good_controlled" set to "{GoodControlled.UNSURE}" '
+                f'or "is_pv_graded" set to "{GoodPvGraded.GRADING_REQUIRED}" to raise a Goods Query'
+            ],
+        )
+        self.assertEqual(Case.objects.count(), 0)

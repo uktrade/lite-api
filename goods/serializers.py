@@ -27,7 +27,6 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
-    comment = serializers.CharField(max_length=280, allow_blank=True, allow_null=True)
     date_of_issue = serializers.DateField(required=True)
 
     class Meta:
@@ -40,7 +39,6 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
             "issuing_authority",
             "reference",
             "date_of_issue",
-            "comment",
         )
 
     def validate(self, data):

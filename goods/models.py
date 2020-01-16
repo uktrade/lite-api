@@ -20,7 +20,6 @@ class PvGradingDetails(models.Model):
     issuing_authority = models.TextField(default="", blank=True, null=True)
     reference = models.TextField(default="", blank=True, null=True)
     date_of_issue = models.DateField(blank=True, null=True)
-    comment = models.TextField(default="", blank=True, null=True)
 
 
 class Good(TimestampableModel):

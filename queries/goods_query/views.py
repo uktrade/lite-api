@@ -1,8 +1,7 @@
 import json
 
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
@@ -17,6 +16,7 @@ from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.libraries.get_goods import get_good
+from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
 from queries.goods_query.helpers import is_goods_query_finished
@@ -31,6 +31,20 @@ from users.models import UserOrganisationRelationship
 class GoodsQueriesCreate(APIView):
     authentication_classes = (ExporterAuthentication,)
 
+    @staticmethod
+    def _check_request_for_errors(good: Good, is_clc_required: bool, is_pv_grading_required: bool):
+        errors = []
+        if good.status != GoodStatus.DRAFT:
+            errors += [{"status": f'A good must have its status set to "{GoodStatus.DRAFT}" to raise a Goods Query"'}]
+
+        if not (is_clc_required or is_pv_grading_required):
+            errors += [
+                f'A good must have either "is_good_controlled" set to "{GoodControlled.UNSURE}" '
+                f'or "is_pv_graded" set to "{GoodPvGraded.GRADING_REQUIRED}" to raise a Goods Query'
+            ]
+
+        return errors
+
     def post(self, request):
         """
         Create a new GoodsQuery case instance
@@ -39,15 +53,12 @@ class GoodsQueriesCreate(APIView):
         good = get_good(data["good_id"])
         data["organisation"] = request.user.organisation
 
-        # A CLC/PV Query can only be created if the good is in draft status
-        if good.status != GoodStatus.DRAFT:
-            raise Http404
+        is_clc_required = good.is_good_controlled == GoodControlled.UNSURE
+        is_pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
 
-        clc_required = good.is_good_controlled == GoodControlled.UNSURE
-        pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
-
-        if not (clc_required or pv_grading_required):
-            raise Http404
+        errors = self._check_request_for_errors(good, is_clc_required, is_pv_grading_required)
+        if errors:
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         good.status = GoodStatus.QUERY
         good.control_code = data.get("not_sure_details_control_code", None)
@@ -62,10 +73,10 @@ class GoodsQueriesCreate(APIView):
         )
 
         # attach flags based on what's required
-        if clc_required:
+        if is_clc_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
             goods_query.flags.add(flag)
-        if pv_grading_required:
+        if is_pv_grading_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID)
             goods_query.flags.add(flag)
 

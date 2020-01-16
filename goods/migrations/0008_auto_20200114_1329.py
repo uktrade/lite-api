@@ -47,7 +47,6 @@ class Migration(migrations.Migration):
                 ("issuing_authority", models.TextField(blank=True, default="", null=True)),
                 ("reference", models.TextField(blank=True, default="", null=True)),
                 ("date_of_issue", models.DateField(blank=True, null=True)),
-                ("comment", models.TextField(blank=True, default="", null=True)),
             ],
         ),
         migrations.AddField(
@@ -68,6 +67,20 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="goods.PvGradingDetails",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="good",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Draft"),
+                    ("submitted", "Submitted"),
+                    ("query", "Goods Query"),
+                    ("verified", "Verified"),
+                ],
+                default="draft",
+                max_length=20,
             ),
         ),
     ]
