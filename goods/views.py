@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.enums import ApplicationType
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -31,6 +32,8 @@ from goods.serializers import (
     GoodWithFlagsSerializer,
     GoodMissingDocumentSerializer,
 )
+from goodstype.helpers import get_goods_type
+from goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
@@ -61,7 +64,16 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        serializer = ClcControlGoodSerializer(data=data)
+        if application.application_type == ApplicationType.STANDARD_LICENCE:
+            serializer_class = ClcControlGoodSerializer
+            get_good_func = get_good
+            controlled = data.get("is_good_controlled", "no").lower() == "yes"
+        else:
+            serializer_class = ClcControlGoodTypeSerializer
+            get_good_func = get_goods_type
+            controlled = data.get("is_good_controlled", "false").lower() == "true"
+
+        serializer = serializer_class(data=data)
 
         if serializer.is_valid():
             error_occurred = False
@@ -69,16 +81,17 @@ class GoodsListControlCode(APIView):
 
             for pk in objects:
                 try:
-                    good = get_good(pk)
+                    good = get_good_func(pk=pk)
+
                     old_control_code = good.control_code
                     if not old_control_code:
                         old_control_code = "No control code"
 
                     new_control_code = "No control code"
-                    if data.get("is_good_controlled", "no").lower() == "yes":
+                    if controlled:
                         new_control_code = data.get("control_code", "No control code")
 
-                    serializer = ClcControlGoodSerializer(good, data=data)
+                    serializer = serializer_class(good, data=data)
                     if serializer.is_valid():
                         serializer.save()
 

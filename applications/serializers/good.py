@@ -13,6 +13,7 @@ from static.units.enums import Units
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
+    flags = serializers.SerializerMethodField()
 
     class Meta:
         model = GoodOnApplication
@@ -24,7 +25,11 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "unit",
             "value",
             "is_good_incorporated",
+            "flags",
         )
+
+    def get_flags(self, instance):
+        return list(instance.good.flags.values("id", "name"))
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
