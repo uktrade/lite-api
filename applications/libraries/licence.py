@@ -2,6 +2,13 @@ from applications.enums import ApplicationType, ApplicationExportType
 from static.countries.models import Country
 
 
+class DefaultDuration:
+    TEMPORARY = 1 * 12
+    PERMANENT_STANDARD = 2 * 12
+    PERMANENT_OPEN = 3 * 12
+    PERMANENT_OPEN_EU = 5 * 12
+
+
 def get_default_duration(application):
     """
     Returns default duration in months
@@ -10,17 +17,17 @@ def get_default_duration(application):
     """
 
     if application.export_type == ApplicationExportType.TEMPORARY:
-        return 1 * 12
+        return DefaultDuration.TEMPORARY
 
     if (
         application.application_type == ApplicationType.STANDARD_LICENCE
         and application.export_type == ApplicationExportType.PERMANENT
     ):
-        return 2 * 12
+        return DefaultDuration.PERMANENT_STANDARD
 
     if (
         application.application_type == ApplicationType.OPEN_LICENCE
         and application.export_type == ApplicationExportType.PERMANENT
     ):
         is_eu = Country.objects.filter(countries_on_application__application=application, is_eu=True).exists()
-        return 3 * 12 if is_eu else 5 * 12
+        return DefaultDuration.PERMANENT_OPEN if is_eu else DefaultDuration.PERMANENT_OPEN_EU

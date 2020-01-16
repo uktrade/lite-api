@@ -28,10 +28,11 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
-from conf.constants import ExporterPermissions
+from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
 from goods.enums import GoodStatus
+from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
@@ -248,21 +249,24 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.FINALISED:
             return JsonResponse(
-                data={"errors": ["Status cannot be set to finalised."]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         if isinstance(request.user, ExporterUser):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            if not can_status_can_be_set_by_exporter_user(application.status.status, data.get("status")):
+            if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": ["Status cannot be set by Exporter user."]}, status=status.HTTP_400_BAD_REQUEST
+                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
         else:
-            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data.get("status")):
+            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
         case_status = get_case_status_by_status(data["status"])
@@ -298,12 +302,20 @@ class FinaliseView(APIView):
 
         if not can_status_can_be_set_by_gov_user(request.user, application.status.status, CaseStatusEnum.FINALISED):
             return JsonResponse(
-                data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         data = deepcopy(request.data)
-        data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
 
+        if data.get('duration') and data.get('duration') != get_default_duration(application):
+            if not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION):
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION]},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
         serializer = get_application_update_serializer(application)
         serializer = serializer(application, data=data, partial=True)
 

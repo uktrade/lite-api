@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from applications.enums import ApplicationExportType
+from applications.libraries.licence import DefaultDuration
 from applications.models import CountryOnApplication
 from test_helpers.clients import DataTestClient
 
@@ -13,7 +14,7 @@ class DurationViewTest(DataTestClient):
         self.submit_application(self.standard_application)
         self.submit_application(self.open_application)
 
-    def test_get_open_licence_duration(self):
+    def test_get_open_licence_duration_non_eu(self):
         url = reverse("applications:duration", kwargs={"pk": self.open_application.pk})
 
         country = CountryOnApplication.objects.get(application=self.open_application).country
@@ -23,20 +24,25 @@ class DurationViewTest(DataTestClient):
         country.save()
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 5 * 12)
+        self.assertEqual(response.json()["duration"], DefaultDuration.PERMANENT_OPEN)
+
+    def test_get_open_licence_duration_non_eu(self):
+        url = reverse("applications:duration", kwargs={"pk": self.open_application.pk})
+
+        country = CountryOnApplication.objects.get(application=self.open_application).country
 
         # eu
         country.is_eu = True
         country.save()
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 3 * 12)
+        self.assertEqual(response.json()["duration"], DefaultDuration.PERMANENT_OPEN_EU)
 
     def test_get_standard_licence_duration(self):
         url = reverse("applications:duration", kwargs={"pk": self.standard_application.pk})
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 2 * 12)
+        self.assertEqual(response.json()["duration"], DefaultDuration.PERMANENT_STANDARD)
 
     def test_temporary_licence_duration(self):
         self.standard_application.export_type = ApplicationExportType.TEMPORARY
@@ -45,4 +51,4 @@ class DurationViewTest(DataTestClient):
         url = reverse("applications:duration", kwargs={"pk": self.standard_application.pk})
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(response.json()["duration"], 1 * 12)
+        self.assertEqual(response.json()["duration"], DefaultDuration.TEMPORARY)
