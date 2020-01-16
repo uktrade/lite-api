@@ -28,3 +28,8 @@ class ApplicationExportLicenceOfficialType:
         (YES, "Yes"),
         (NO, "No"),
     ]
+
+
+class Duration:
+    MIN = 1
+    MAX = 999

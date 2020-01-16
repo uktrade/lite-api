@@ -1,7 +1,5 @@
 import abc
 
-from gov_users.serializers import GovUserSimpleSerializer
-from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -10,11 +8,14 @@ from applications.enums import (
     ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
+    Duration
 )
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
+from gov_users.serializers import GovUserSimpleSerializer
+from lite_content.lite_api import strings
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import OrganisationDetailSerializer, SiteViewSerializer, ExternalLocationSerializer
 from static.denial_reasons.models import DenialReason
@@ -198,3 +199,12 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+    def validate(self, data):
+        """
+        Check that the start is before the stop.
+        """
+        if data['duration'] is not None and (data['duration'] > Duration.MAX or data['duration'] < Duration.MIN):
+            error_message = f"Duration {data['duration']} not in range [{Duration.MIN}-{Duration.MAX}]"
+            raise serializers.ValidationError(error_message)
+        return data
