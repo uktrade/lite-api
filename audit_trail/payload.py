@@ -56,8 +56,8 @@ class AuditType(Enum):
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = "updated letter paragraphs ordering"
 
     CREATED_PICKLIST = "created the picklist item"
-    UPDATED_PICKLIST_TEXT = "updated picklist text from {old_text} to {new_text}"
-    UPDATED_PICKLIST_NAME = "updated picklist name from {old_name} to {new_name}"
+    UPDATED_PICKLIST_TEXT = 'updated picklist text from "{old_text}" to "{new_text}"'
+    UPDATED_PICKLIST_NAME = 'updated picklist name from "{old_name}" to "{new_name}"'
     DEACTIVATE_PICKLIST = "deactivated the picklist item"
     REACTIVATE_PICKLIST = "reactivated the picklist item"
 
