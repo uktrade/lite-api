@@ -199,7 +199,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         Check that the start is before the stop.
         """
-        if data["duration"] is not None and (data["duration"] > Duration.MAX or data["duration"] < Duration.MIN):
+        if data.get("duration") is not None and (data["duration"] > Duration.MAX or data["duration"] < Duration.MIN):
             error_message = f"Duration {data['duration']} not in range [{Duration.MIN}-{Duration.MAX}]"
             raise serializers.ValidationError(error_message)
         return data

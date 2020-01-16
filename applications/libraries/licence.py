@@ -30,4 +30,4 @@ def get_default_duration(application):
         and application.export_type == ApplicationExportType.PERMANENT
     ):
         is_eu = Country.objects.filter(countries_on_application__application=application, is_eu=True).exists()
-        return DefaultDuration.PERMANENT_OPEN if is_eu else DefaultDuration.PERMANENT_OPEN_EU
+        return DefaultDuration.PERMANENT_OPEN_EU if is_eu else DefaultDuration.PERMANENT_OPEN
