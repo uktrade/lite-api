@@ -27,7 +27,6 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
 
 
-# TODO: 1027 generate GoodsQuery with correct flags
 class GoodsQueriesCreate(APIView):
     authentication_classes = (ExporterAuthentication,)
 
@@ -86,7 +85,6 @@ class GoodsQueriesCreate(APIView):
         return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
 
 
-# TODO: 1027 update to remove flag instead of close case
 class GoodQueryCLCResponse(APIView):
     authentication_classes = (GovAuthentication,)
 
