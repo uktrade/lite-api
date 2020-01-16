@@ -36,9 +36,7 @@ class RolesViews(APIView):
 
     @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
-        """
-        Create a role
-        """
+        """ Create a role """
         assert_user_has_permission(request.user, constants.GovPermissions.ADMINISTER_ROLES)
         data = JSONParser().parse(request)
         data["type"] = UserType.INTERNAL
