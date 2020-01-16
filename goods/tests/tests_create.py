@@ -3,7 +3,7 @@ import uuid
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded, PVGrading
+from goods.enums import GoodControlled, GoodPvGraded
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -30,7 +30,7 @@ def _setup_request_data(
 
 
 def _setup_pv_grading_details(
-    grading=PVGrading.OTHER,
+    grading=None,
     custom_grading="Custom Grading",
     prefix="Prefix",
     suffix="Suffix",
@@ -59,7 +59,6 @@ def _assert_response_data(self, response_data, request_data):
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
         pv_grading_details = response_data["pv_grading_details"]
-        self.assertEquals(pv_grading_details["grading"]["key"], request_data["pv_grading_details"]["grading"])
         self.assertEquals(pv_grading_details["custom_grading"], request_data["pv_grading_details"]["custom_grading"])
         self.assertEquals(pv_grading_details["prefix"], request_data["pv_grading_details"]["prefix"])
         self.assertEquals(pv_grading_details["suffix"], request_data["pv_grading_details"]["suffix"])
@@ -68,6 +67,8 @@ def _assert_response_data(self, response_data, request_data):
         )
         self.assertEquals(pv_grading_details["reference"], request_data["pv_grading_details"]["reference"])
         self.assertEquals(pv_grading_details["date_of_issue"], request_data["pv_grading_details"]["date_of_issue"])
+        if request_data["pv_grading_details"]["grading"]:
+            self.assertEquals(pv_grading_details["grading"]["key"], request_data["pv_grading_details"]["grading"])
 
 
 class GoodsCreateGoodTests(DataTestClient):
@@ -160,7 +161,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         _assert_response_data(self, response.json()["good"], request_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_create_good_when_grading_is_other_and_custom_grading_is_missing_then_bad_response_is_returned(self):
+    def test_create_good_when_grading_is_none_and_custom_grading_is_missing_then_bad_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details(custom_grading="")
         request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
