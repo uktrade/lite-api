@@ -5,7 +5,7 @@ from django.db import models
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import GoodStatus, GoodControlled, PVGrading, GoodPvGraded
+from goods.enums import GoodStatus, GoodControlled, PvGrading, GoodPvGraded
 from organisations.models import Organisation
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser
@@ -13,7 +13,7 @@ from users.models import ExporterUser
 
 class PvGradingDetails(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    grading = models.CharField(choices=PVGrading.choices, default=None, blank=True, null=True, max_length=30)
+    grading = models.CharField(choices=PvGrading.choices, default=None, blank=True, null=True, max_length=30)
     custom_grading = models.TextField(default="", blank=True, null=True)
     prefix = models.TextField(default="", blank=True, null=True)
     suffix = models.TextField(default="", blank=True, null=True)
