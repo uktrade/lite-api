@@ -45,7 +45,7 @@ def generate_reference_code(case):
         # Export, transhipment and trade control
         if Site.objects.filter(sites_on_application__application=case):
             reference_code += "E" + SLASH
-        if ExternalLocation.objects.filter(external_locations_on_application__application=case):
+        elif ExternalLocation.objects.filter(external_locations_on_application__application=case):
             reference_code += "C" + SLASH
 
     if case.type == CaseTypeEnum.CLC_QUERY:
