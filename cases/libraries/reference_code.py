@@ -45,14 +45,11 @@ def generate_reference_code(case):
             reference_code += "E" + SLASH
         elif case.external_application_sites.count():
             reference_code += "C" + SLASH
-
-    if case.type == CaseTypeEnum.CLC_QUERY:
+    elif case.type == CaseTypeEnum.CLC_QUERY:
         reference_code += "GQY" + SLASH
-
-    if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+    elif case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
         reference_code += "EUA" + SLASH
-
-    if case.type == CaseTypeEnum.HMRC_QUERY:
+    elif case.type == CaseTypeEnum.HMRC_QUERY:
         reference_code += "CRE" + SLASH
 
     # Year
