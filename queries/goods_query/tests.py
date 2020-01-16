@@ -4,7 +4,6 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.models import Case
 from conf import constants
 from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PVGrading
 from goods.models import Good, PvGradingDetails
@@ -40,7 +39,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
-        self.assertEqual(Case.objects.count(), 1)
+        self.assertEqual(GoodsQuery.objects.count(), 1)
 
 
 class ControlListClassificationsQueryUpdateTests(DataTestClient):
@@ -227,7 +226,8 @@ class PvGradingQueryCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
-        self.assertEqual(Case.objects.count(), 1)
+        self.assertEqual(GoodsQuery.objects.count(), 1)
+        self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, "This is the reason why I'm unsure...")
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
         self.pv_graded_good.is_pv_graded = GoodPvGraded.YES
@@ -247,4 +247,4 @@ class PvGradingQueryCreateTests(DataTestClient):
                 f'or "is_pv_graded" set to "{GoodPvGraded.GRADING_REQUIRED}" to raise a Goods Query'
             ],
         )
-        self.assertEqual(Case.objects.count(), 0)
+        self.assertEqual(GoodsQuery.objects.count(), 0)

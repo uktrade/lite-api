@@ -21,7 +21,7 @@ from users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
-    grading = KeyValueChoiceField(choices=PVGrading.choices, required=True)
+    grading = KeyValueChoiceField(choices=PVGrading.choices, allow_null=True, allow_blank=True)
     custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
     prefix = serializers.CharField(allow_blank=True, allow_null=True)
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
@@ -44,11 +44,13 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(GoodPvGradingDetailsSerializer, self).validate(data)
 
-        if validated_data.get("grading") == PVGrading.OTHER:
-            if not validated_data.get("custom_grading"):
-                raise serializers.ValidationError(
-                    {"custom_grading": 'You must provide a Custom Grading if the Grading is set to "Other"'}
-                )
+        if not validated_data.get("grading") and not validated_data.get("custom_grading"):
+            raise serializers.ValidationError(
+                {
+                    "custom_grading": "You must provide an other grading if you have not selected a grading from the "
+                    "dropdown list"
+                }
+            )
 
         return validated_data
 

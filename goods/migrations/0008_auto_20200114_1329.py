@@ -21,7 +21,6 @@ class Migration(migrations.Migration):
                     models.CharField(
                         blank=True,
                         choices=[
-                            ("other", "Other"),
                             ("uk_unclassified", "UK unclassified"),
                             ("uk_official", "UK official"),
                             ("uk_official_sensitive", "UK official - sensitive"),

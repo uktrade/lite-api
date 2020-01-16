@@ -29,7 +29,6 @@ class GoodPvGraded:
 
 
 class PVGrading:
-    OTHER = "other"
     UK_UNCLASSIFIED = "uk_unclassified"
     UK_OFFICIAL = "uk_official"
     UK_OFFICIAL_SENSITIVE = "uk_official_sensitive"
@@ -45,7 +44,6 @@ class PVGrading:
     OCCAR_SECRET = "occar_secret"
 
     choices = [
-        (OTHER, "Other"),
         (UK_UNCLASSIFIED, "UK unclassified"),
         (UK_OFFICIAL, "UK official"),
         (UK_OFFICIAL_SENSITIVE, "UK official - sensitive"),
