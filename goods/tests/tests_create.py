@@ -3,7 +3,7 @@ import uuid
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPVGraded, PVGrading
+from goods.enums import GoodControlled, GoodPvGraded, PVGrading
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -13,7 +13,7 @@ url = reverse("goods:goods")
 def _setup_request_data(
     is_good_controlled=GoodControlled.NO,
     control_code=None,
-    is_pv_graded=GoodPVGraded.NO,
+    is_pv_graded=GoodPvGraded.NO,
     pv_grading_details=None,
     part_number="1337",
     validate_only=False,
@@ -56,10 +56,10 @@ def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["is_good_controlled"]["key"], request_data["is_good_controlled"])
     self.assertEquals(response_data["is_pv_graded"]["key"], request_data["is_pv_graded"])
 
-    if request_data["is_good_controlled"] == GoodPVGraded.YES:
+    if request_data["is_good_controlled"] == GoodPvGraded.YES:
         self.assertEquals(response_data["control_code"], request_data["control_code"])
 
-    if request_data["is_pv_graded"] == GoodPVGraded.YES:
+    if request_data["is_pv_graded"] == GoodPvGraded.YES:
         pv_grading_details = response_data["pv_grading_details"]
         self.assertEquals(pv_grading_details["grading"]["key"], request_data["pv_grading_details"]["grading"])
         self.assertEquals(pv_grading_details["custom_grading"], request_data["pv_grading_details"]["custom_grading"])
@@ -87,7 +87,7 @@ class GoodsCreateGoodTests(DataTestClient):
         request_data = _setup_request_data(
             is_good_controlled=GoodControlled.YES,
             control_code="ML1a",
-            is_pv_graded=GoodPVGraded.YES,
+            is_pv_graded=GoodPvGraded.YES,
             pv_grading_details=_setup_pv_grading_details(),
         )
 
@@ -124,7 +124,7 @@ class GoodsCreateGoodTests(DataTestClient):
 
     def test_create_good_when_validate_only_is_true_then_ok_response_is_returned_and_good_is_not_created(self):
         request_data = _setup_request_data(
-            is_good_controlled=GoodControlled.NO, is_pv_graded=GoodPVGraded.NO, validate_only=True
+            is_good_controlled=GoodControlled.NO, is_pv_graded=GoodPvGraded.NO, validate_only=True
         )
 
         response = self.client.post(url, request_data, **self.exporter_headers)
@@ -156,7 +156,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 class GoodsCreatePvGradedGoodTests(DataTestClient):
     def test_create_good_when_all_fields_are_provided_then_created_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details()
-        request_data = _setup_request_data(is_pv_graded=GoodPVGraded.YES, pv_grading_details=pv_grading_details)
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 
@@ -166,7 +166,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
     def test_create_good_when_grading_is_other_and_custom_grading_is_missing_then_bad_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details(custom_grading="")
-        request_data = _setup_request_data(is_pv_graded=GoodPVGraded.YES, pv_grading_details=pv_grading_details)
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 
@@ -179,7 +179,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
     def test_create_good_when_authority_is_missing_then_bad_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details(issuing_authority="")
-        request_data = _setup_request_data(is_pv_graded=GoodPVGraded.YES, pv_grading_details=pv_grading_details)
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 
@@ -191,7 +191,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
     def test_create_good_when_reference_is_missing_then_bad_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details(reference="")
-        request_data = _setup_request_data(is_pv_graded=GoodPVGraded.YES, pv_grading_details=pv_grading_details)
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 
@@ -203,7 +203,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
     def test_create_good_when_date_is_missing_then_bad_response_is_returned(self):
         pv_grading_details = _setup_pv_grading_details(date="")
-        request_data = _setup_request_data(is_pv_graded=GoodPVGraded.YES, pv_grading_details=pv_grading_details)
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 

@@ -6,8 +6,8 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import Case
 from conf import constants
-from goods.enums import GoodControlled, GoodStatus
-from goods.models import Good
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PVGrading
+from goods.models import Good, PvGradingDetails
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
@@ -17,7 +17,6 @@ from users.models import Role, GovUser
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
-
     url = reverse("queries:goods_queries:goods_queries")
 
     def test_create_control_list_classification_query(self):
@@ -189,3 +188,44 @@ class ControlListClassificationsQueryManageStatusTests(DataTestClient):
 
         self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class PvGradingQueryCreateTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.pv_grading_details_data = {
+            "grading": PVGrading.OTHER,
+            "custom_grading": "Custom Grading",
+            "prefix": "Prefix",
+            "suffix": "Suffix",
+            "issuing_authority": "Issuing Authority",
+            "reference": "ref123",
+            "date_of_issue": "2019-12-25",
+            "comment": "This is a pv graded good",
+        }
+
+        self.pv_grading_details = PvGradingDetails.objects.create(**self.pv_grading_details_data)
+        self.pv_graded_good = Good.objects.create(
+            description="Good description",
+            is_good_controlled=GoodControlled.NO,
+            part_number="123456",
+            organisation=self.organisation,
+            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+            pv_grading_details=self.pv_grading_details,
+        )
+
+        self.url = reverse("queries:goods_queries:goods_queries")
+
+    def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self,):
+        data = {
+            "good_id": self.pv_graded_good.id,
+            "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
+        self.assertEqual(Case.objects.count(), 1)

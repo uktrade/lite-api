@@ -4,7 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled, GoodPVGraded, PVGrading
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PVGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
@@ -106,7 +106,7 @@ class GoodSerializer(serializers.ModelSerializer):
     documents = serializers.SerializerMethodField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
     is_pv_graded = KeyValueChoiceField(
-        choices=GoodPVGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+        choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     pv_grading_details = GoodPvGradingDetailsSerializer(allow_null=True, required=False)
 

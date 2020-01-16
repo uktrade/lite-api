@@ -15,7 +15,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodStatus, GoodControlled, GoodPVGraded
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.libraries.get_goods import get_good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
@@ -33,7 +33,7 @@ class GoodsQueriesCreate(APIView):
 
     def post(self, request):
         """
-        Create a new CLC query case instance
+        Create a new GoodsQuery case instance
         """
         data = request.data
         good = get_good(data["good_id"])
@@ -44,7 +44,7 @@ class GoodsQueriesCreate(APIView):
             raise Http404
 
         clc_required = good.is_good_controlled == GoodControlled.UNSURE
-        pv_grading_required = good.is_pv_graded == GoodPVGraded.GRADING_REQUIRED
+        pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
 
         if not (clc_required or pv_grading_required):
             raise Http404
@@ -60,6 +60,7 @@ class GoodsQueriesCreate(APIView):
             type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+
         # attach flags based on what's required
         if clc_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)

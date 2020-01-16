@@ -5,7 +5,7 @@ from django.db import models
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import GoodStatus, GoodControlled, PVGrading, GoodPVGraded
+from goods.enums import GoodStatus, GoodControlled, PVGrading, GoodPvGraded
 from organisations.models import Organisation
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser
@@ -32,7 +32,7 @@ class Good(TimestampableModel):
     control_code = models.TextField(default="", blank=True, null=True)
 
     # PV
-    is_pv_graded = models.CharField(choices=GoodPVGraded.choices, default=GoodPVGraded.GRADING_REQUIRED, max_length=20)
+    is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
     pv_grading_details = models.ForeignKey(
         PvGradingDetails, on_delete=models.CASCADE, default=None, blank=True, null=True
     )

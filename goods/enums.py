@@ -20,7 +20,7 @@ class GoodControlled:
     choices = [(YES, "Yes"), (NO, "No"), (UNSURE, "I don't know")]
 
 
-class GoodPVGraded:
+class GoodPvGraded:
     YES = "yes"
     NO = "no"
     GRADING_REQUIRED = "grading_required"
