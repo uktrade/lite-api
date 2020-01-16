@@ -50,10 +50,10 @@ class GoodsQueriesCreate(APIView):
             raise Http404
 
         good.status = GoodStatus.QUERY
-        good.control_code = data.get("not_sure_details_control_code", None)
+        good.control_code = data.get("clc_control_code", None)
 
         goods_query = GoodsQuery.objects.create(
-            clc_raised_reasons=data.get("not_sure_details_details"),
+            clc_raised_reasons=data.get("clc_raised_reasons"),
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
