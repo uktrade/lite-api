@@ -97,7 +97,7 @@ class GoodSerializer(serializers.ModelSerializer):
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()

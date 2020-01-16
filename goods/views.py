@@ -22,6 +22,7 @@ from documents.models import Document
 from goods.enums import GoodStatus
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
+from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
 from goods.serializers import (
     GoodSerializer,
@@ -159,17 +160,7 @@ class GoodList(ListCreateAPIView):
 
         serializer = GoodSerializer(data=data)
 
-        if not serializer.is_valid():
-            errors = serializer.errors
-            pv_grading_errors = errors.pop("pv_grading_details", None)
-            flattened_errors = {**errors, **pv_grading_errors} if pv_grading_errors else errors
-            return JsonResponse(data={"errors": flattened_errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if str_to_bool(data.get("validate_only")):
-            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
-
-        serializer.save()
-        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+        return create_or_update_good(serializer, data)
 
 
 class GoodDocumentCriteriaCheck(APIView):
@@ -239,10 +230,7 @@ class GoodDetail(APIView):
 
         data["organisation"] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"good": serializer.data})
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return create_or_update_good(serializer, data)
 
     def delete(self, request, pk):
         good = get_good(pk)
