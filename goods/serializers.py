@@ -4,7 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PVGrading
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
@@ -21,7 +21,7 @@ from users.serializers import ExporterUserSimpleSerializer
 
 
 class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
-    grading = KeyValueChoiceField(choices=PVGrading.choices, allow_null=True, allow_blank=True)
+    grading = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, allow_blank=True)
     custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
     prefix = serializers.CharField(allow_blank=True, allow_null=True)
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
@@ -49,6 +49,14 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
                 {
                     "custom_grading": "You must provide an other grading if you have not selected a grading from the "
                     "dropdown list"
+                }
+            )
+
+        if validated_data.get("grading") and validated_data.get("custom_grading"):
+            raise serializers.ValidationError(
+                {
+                    "custom_grading": "You cannot provide an other grading if you have already selected a grading from "
+                    "the dropdown list"
                 }
             )
 

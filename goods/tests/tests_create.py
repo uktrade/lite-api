@@ -3,7 +3,7 @@ import uuid
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -170,7 +170,28 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
             response.json()["errors"],
-            {"custom_grading": ["You must provide a Custom Grading if the " 'Grading is set to "Other"']},
+            {
+                "custom_grading": [
+                    "You must provide an other grading if you have not selected a grading from the dropdown list"
+                ]
+            },
+        )
+        self.assertEquals(Good.objects.all().count(), 0)
+
+    def test_create_good_when_grading_is_provided_and_custom_grading_is_provided_then_bad_response_is_returned(self):
+        pv_grading_details = _setup_pv_grading_details(grading=PvGrading.UK_OFFICIAL, custom_grading="Custom Grading")
+        request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
+
+        response = self.client.post(url, request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(
+            response.json()["errors"],
+            {
+                "custom_grading": [
+                    "You cannot provide an other grading if you have already selected a grading from the dropdown list"
+                ]
+            },
         )
         self.assertEquals(Good.objects.all().count(), 0)
 

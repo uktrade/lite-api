@@ -28,7 +28,7 @@ class GoodPvGraded:
     choices = [(YES, "Yes"), (NO, "No"), (GRADING_REQUIRED, "Good needs to be graded")]
 
 
-class PVGrading:
+class PvGrading:
     UK_UNCLASSIFIED = "uk_unclassified"
     UK_OFFICIAL = "uk_official"
     UK_OFFICIAL_SENSITIVE = "uk_official_sensitive"

@@ -27,8 +27,8 @@ from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus
-from goods.models import Good, GoodDocument
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
@@ -412,6 +412,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             comment=None,
             report_summary=None,
+            is_pv_graded=GoodPvGraded.NO,
+            pv_grading_details=None,
         )
         good.save()
 
@@ -425,6 +427,43 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
         return clc_query
+
+    @staticmethod
+    def create_pv_grading_query(description, organisation):
+        pv_grading_details = PvGradingDetails.objects.create(
+            grading=None,
+            custom_grading="Custom Grading",
+            prefix="Prefix",
+            suffix="Suffix",
+            issuing_authority="Issuing Authority",
+            reference="ref123",
+            date_of_issue="2019-12-25",
+        )
+
+        good = Good(
+            description=description,
+            is_good_controlled=GoodControlled.NO,
+            control_code=None,
+            part_number="123456",
+            organisation=organisation,
+            comment=None,
+            report_summary=None,
+            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+            pv_grading_details=pv_grading_details,
+        )
+        good.save()
+
+        pv_grading_query = GoodsQuery.objects.create(
+            clc_raised_reasons=None,
+            pv_grading_raised_reasons="this is a test text",
+            good=good,
+            organisation=organisation,
+            type=CaseTypeEnum.GOODS_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )
+        pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        pv_grading_query.save()
+        return pv_grading_query
 
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level):

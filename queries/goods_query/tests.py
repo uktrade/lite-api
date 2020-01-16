@@ -5,7 +5,7 @@ from rest_framework import status
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from conf import constants
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PVGrading
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from goods.models import Good, PvGradingDetails
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.models import GoodsQuery
@@ -194,7 +194,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         super().setUp()
 
         self.pv_grading_details_data = {
-            "grading": PVGrading.OTHER,
+            "grading": None,
             "custom_grading": "Custom Grading",
             "prefix": "Prefix",
             "suffix": "Suffix",
@@ -248,3 +248,16 @@ class PvGradingQueryCreateTests(DataTestClient):
             ],
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
+
+
+class PvGradingQueryManageStatusTests(DataTestClient):
+    def test_when_setting_pv_graded_good_query_to_withdrawn_then_the_status_is_updated_and_a_200_ok_is_returned(self):
+        query = self.create_pv_grading_query("This is a widget", self.organisation)
+        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
+        data = {"status": "withdrawn"}
+
+        response = self.client.put(url, data, **self.gov_headers)
+        query.refresh_from_db()
+
+        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
