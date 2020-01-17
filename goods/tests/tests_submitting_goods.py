@@ -39,8 +39,8 @@ class GoodTests(DataTestClient):
         Tests that the good can be edited after submission
         """
         draft = self.create_standard_application(self.organisation)
-        good = Good.objects.get()
-        url = reverse("goods:good", kwargs={"pk": good.id})
+        good_on_app = GoodOnApplication.objects.get(application=draft)
+        url = reverse("goods:good", kwargs={"pk": good_on_app.good.id})
         data = {"description": "some great good"}
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

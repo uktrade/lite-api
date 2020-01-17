@@ -19,7 +19,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -160,7 +160,7 @@ class GoodList(ListCreateAPIView):
 
         serializer = GoodSerializer(data=data)
 
-        return create_or_update_good(serializer, data)
+        return create_or_update_good(serializer, data, status.HTTP_201_CREATED)
 
 
 class GoodDocumentCriteriaCheck(APIView):
@@ -224,13 +224,16 @@ class GoodDetail(APIView):
 
         data = request.data.copy()
 
-        if data.get("is_good_controlled") == "unsure":
+        if (
+            data.get("is_good_controlled") == GoodControlled.UNSURE
+            or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED
+        ):
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 
         data["organisation"] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
-        return create_or_update_good(serializer, data)
+        return create_or_update_good(serializer, data, status.HTTP_200_OK)
 
     def delete(self, request, pk):
         good = get_good(pk)

@@ -51,14 +51,19 @@ def _setup_pv_grading_details(
 
 def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["description"], request_data["description"])
-    self.assertEquals(response_data["is_good_controlled"]["key"], request_data["is_good_controlled"])
-    self.assertEquals(response_data["is_pv_graded"]["key"], request_data["is_pv_graded"])
 
-    if request_data["is_good_controlled"] == GoodPvGraded.YES:
+    if request_data["is_good_controlled"] == GoodControlled.YES:
+        self.assertEquals(response_data["is_good_controlled"]["key"], request_data["is_good_controlled"])
         self.assertEquals(response_data["control_code"], request_data["control_code"])
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
+        self.assertEquals(response_data["is_pv_graded"]["key"], request_data["is_pv_graded"])
+
         pv_grading_details = response_data["pv_grading_details"]
+
+        if request_data["pv_grading_details"]["grading"]:
+            self.assertEquals(pv_grading_details["grading"]["key"], request_data["pv_grading_details"]["grading"])
+
         self.assertEquals(pv_grading_details["custom_grading"], request_data["pv_grading_details"]["custom_grading"])
         self.assertEquals(pv_grading_details["prefix"], request_data["pv_grading_details"]["prefix"])
         self.assertEquals(pv_grading_details["suffix"], request_data["pv_grading_details"]["suffix"])
@@ -67,8 +72,6 @@ def _assert_response_data(self, response_data, request_data):
         )
         self.assertEquals(pv_grading_details["reference"], request_data["pv_grading_details"]["reference"])
         self.assertEquals(pv_grading_details["date_of_issue"], request_data["pv_grading_details"]["date_of_issue"])
-        if request_data["pv_grading_details"]["grading"]:
-            self.assertEquals(pv_grading_details["grading"]["key"], request_data["pv_grading_details"]["grading"])
 
 
 class GoodsCreateGoodTests(DataTestClient):

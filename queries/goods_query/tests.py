@@ -190,38 +190,21 @@ class ControlListClassificationsQueryManageStatusTests(DataTestClient):
 
 
 class PvGradingQueryCreateTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-
-        self.pv_grading_details_data = {
-            "grading": None,
-            "custom_grading": "Custom Grading",
-            "prefix": "Prefix",
-            "suffix": "Suffix",
-            "issuing_authority": "Issuing Authority",
-            "reference": "ref123",
-            "date_of_issue": "2019-12-25",
-        }
-
-        self.pv_grading_details = PvGradingDetails.objects.create(**self.pv_grading_details_data)
-        self.pv_graded_good = Good.objects.create(
-            description="Good description",
+    def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self):
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            org=self.organisation,
             is_good_controlled=GoodControlled.NO,
-            part_number="123456",
-            organisation=self.organisation,
+            control_code="",
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
-            pv_grading_details=self.pv_grading_details,
         )
-
-        self.url = reverse("queries:goods_queries:goods_queries")
-
-    def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self,):
         data = {
-            "good_id": self.pv_graded_good.id,
+            "good_id": pv_graded_good.id,
             "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
         }
+        url = reverse("queries:goods_queries:goods_queries")
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -230,14 +213,20 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, "This is the reason why I'm unsure...")
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
-        self.pv_graded_good.is_pv_graded = GoodPvGraded.YES
-        self.pv_graded_good.save()
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            org=self.organisation,
+            is_good_controlled=GoodControlled.NO,
+            control_code="",
+            is_pv_graded=GoodPvGraded.YES,
+        )
         data = {
-            "good_id": self.pv_graded_good.id,
+            "good_id": pv_graded_good.id,
             "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
         }
+        url = reverse("queries:goods_queries:goods_queries")
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(

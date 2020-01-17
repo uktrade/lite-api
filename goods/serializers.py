@@ -148,27 +148,6 @@ class GoodSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
 
-    def pv_create_save(self, validated_data, instance_id=None):
-        pv_grading_details = validated_data.pop("pv_grading_details", None)
-
-        if pv_grading_details:
-            if instance_id:
-                instance = PvGradingDetails.objects.get(id=instance_id)
-                serializer = GoodPvGradingDetailsSerializer(instance=instance, data=pv_grading_details)
-                if serializer.is_valid():
-                    pv_grading_details = serializer.save()
-            else:
-                pv_grading_details = GoodPvGradingDetailsSerializer.create(
-                    GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
-                )
-        return pv_grading_details
-
-    def create(self, validated_data):
-        pv_grading_details = self.pv_create_save(validated_data)
-
-        good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
-        return good
-
     def get_case_id(self, instance):
         if isinstance(instance, Good):
             goods_query = GoodsQuery.objects.filter(good=instance)
@@ -214,8 +193,17 @@ class GoodSerializer(serializers.ModelSerializer):
 
         return value
 
+    def create(self, validated_data):
+        pv_grading_details = self._pv_grading_details_create_or_update(validated_data)
+
+        good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
+        return good
+
     def update(self, instance, validated_data):
-        instance.pv_grading_details = self.pv_create_save(validated_data, instance.pv_grading_details.id)
+        instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+        instance.pv_grading_details = self._pv_grading_details_create_or_update(
+            validated_data, instance.pv_grading_details
+        )
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.control_code = validated_data.get("control_code", "")
@@ -223,6 +211,24 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.save()
         return instance
+
+    @staticmethod
+    def _pv_grading_details_create_or_update(validated_data, instance=None):
+        """
+        Creates or Updates PV Grading Details depending on instance being passed as an argument
+        """
+        pv_grading_details = validated_data.pop("pv_grading_details", None)
+        if pv_grading_details:
+            if instance:
+                pv_grading_details = GoodPvGradingDetailsSerializer.update(
+                    GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
+                )
+            else:
+                pv_grading_details = GoodPvGradingDetailsSerializer.create(
+                    GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
+                )
+
+        return pv_grading_details
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):

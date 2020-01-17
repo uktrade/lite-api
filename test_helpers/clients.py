@@ -391,31 +391,42 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return picklist_item
 
     @staticmethod
-    def create_controlled_good(description: str, org: Organisation, control_code: str = "ML1") -> Good:
+    def create_good(
+        description: str,
+        org: Organisation,
+        is_good_controlled: str = GoodControlled.YES,
+        control_code: str = "ML1X",
+        is_pv_graded: str = GoodPvGraded.YES,
+        pv_grading_details: PvGradingDetails = None,
+    ) -> Good:
+        if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
+            pv_grading_details = PvGradingDetails.objects.create(
+                grading=None,
+                custom_grading="Custom Grading",
+                prefix="Prefix",
+                suffix="Suffix",
+                issuing_authority="Issuing Authority",
+                reference="ref123",
+                date_of_issue="2019-12-25",
+            )
+
         good = Good(
             description=description,
-            is_good_controlled=GoodControlled.YES,
+            is_good_controlled=is_good_controlled,
             control_code=control_code,
             part_number="123456",
             organisation=org,
+            comment=None,
+            report_summary=None,
+            is_pv_graded=is_pv_graded,
+            pv_grading_details=pv_grading_details,
         )
         good.save()
         return good
 
     @staticmethod
-    def create_clc_query(description, organisation):
-        good = Good(
-            description=description,
-            is_good_controlled=GoodControlled.UNSURE,
-            control_code="ML1",
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-            is_pv_graded=GoodPvGraded.NO,
-            pv_grading_details=None,
-        )
-        good.save()
+    def create_clc_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -429,29 +440,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return clc_query
 
     @staticmethod
-    def create_pv_grading_query(description, organisation):
-        pv_grading_details = PvGradingDetails.objects.create(
-            grading=None,
-            custom_grading="Custom Grading",
-            prefix="Prefix",
-            suffix="Suffix",
-            issuing_authority="Issuing Authority",
-            reference="ref123",
-            date_of_issue="2019-12-25",
-        )
-
-        good = Good(
-            description=description,
-            is_good_controlled=GoodControlled.NO,
-            control_code=None,
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
-            pv_grading_details=pv_grading_details,
-        )
-        good.save()
+    def create_pv_grading_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.YES)
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,
@@ -542,7 +532,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(
-            good=self.create_controlled_good("a thing", organisation),
+            good=self.create_good("a thing", organisation),
             application=application,
             quantity=10,
             unit=Units.NAR,
