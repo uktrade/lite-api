@@ -249,7 +249,7 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.FINALISED:
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         if isinstance(request.user, ExporterUser):
@@ -298,15 +298,14 @@ class FinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-
         if not can_status_can_be_set_by_gov_user(request.user, application.status.status, CaseStatusEnum.FINALISED):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISE]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         data = deepcopy(request.data)
 
-        if data.get("duration") and data.get("duration") != get_default_duration(application):
+        if data.get("licence_duration") and data.get("licence_duration") != get_default_duration(application):
             if not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_DURATION]},
@@ -322,12 +321,12 @@ class FinaliseView(APIView):
 
         serializer.save()
 
-        if "duration" in serializer.validated_data:
+        if "licence_duration" in serializer.validated_data:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.FINALISED_APPLICATION,
                 target=application.get_case(),
-                payload={"duration": serializer.validated_data["duration"]},
+                payload={"licence_duration": serializer.validated_data["licence_duration"]},
             )
         else:
             audit_trail_service.create(
@@ -351,4 +350,4 @@ class DurationView(APIView):
 
         duration = get_default_duration(application)
 
-        return JsonResponse(data={"duration": duration}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"licence_duration": duration}, status=status.HTTP_200_OK)

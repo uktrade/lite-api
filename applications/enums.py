@@ -30,6 +30,6 @@ class ApplicationExportLicenceOfficialType:
     ]
 
 
-class Duration:
+class LicenceDuration:
     MIN = 1
     MAX = 999

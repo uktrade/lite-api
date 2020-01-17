@@ -42,6 +42,8 @@ class AuthenticateGovUser(APIView):
         email = data.get("email")
         first_name = data.get("first_name")
         last_name = data.get("last_name")
+        print('\n')
+        print(data)
 
         try:
             user = GovUser.objects.get(email=email)

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType, Duration
+from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType, LicenceDuration
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from conf.helpers import get_value_from_enum
@@ -41,7 +41,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
-    duration = serializers.IntegerField(allow_null=True)
+    licence_duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -57,7 +57,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
-            "duration",
+            "licence_duration",
         )
 
     def __init__(self, *args, **kwargs):
@@ -168,7 +168,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
-    duration = serializers.IntegerField(allow_null=True)
+    licence_duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -177,7 +177,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
             "status",
             "reasons",
             "reason_details",
-            "duration",
+            "licence_duration",
         )
 
     def update(self, instance, validated_data):
@@ -186,7 +186,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         instance.name = validated_data.get("name", instance.name)
         instance.status = validated_data.get("status", instance.status)
-        instance.duration = validated_data.get("duration", instance.duration)
+        instance.licence_duration = validated_data.get("licence_duration", instance.licence_duration)
 
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
@@ -199,7 +199,11 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         Check that the start is before the stop.
         """
-        if data.get("duration") is not None and (data["duration"] > Duration.MAX or data["duration"] < Duration.MIN):
-            error_message = f"Duration {data['duration']} not in range [{Duration.MIN}-{Duration.MAX}]"
-            raise serializers.ValidationError(error_message)
+        if (
+                data.get("licence_duration") is not None and
+                (data["licence_duration"] > LicenceDuration.MAX or data["licence_duration"] < LicenceDuration.MIN)
+        ):
+            raise serializers.ValidationError(
+                f"Duration {data['licence_duration']} not in range [{LicenceDuration.MIN}-{LicenceDuration.MAX}]"
+            )
         return data
