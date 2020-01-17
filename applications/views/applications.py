@@ -308,7 +308,10 @@ class FinaliseView(APIView):
         if data.get("licence_duration") and data.get("licence_duration") != get_default_duration(application):
             if not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION]},
+                    data={"errors": [
+                        strings.Applications.Finalise.Error.SET_DURATION,
+                        strings.Applications.Finalise.Error.PERMISSION,
+                    ]},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 

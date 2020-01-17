@@ -19,13 +19,13 @@ def get_default_duration(application):
     if application.export_type == ApplicationExportType.TEMPORARY:
         return DefaultDuration.TEMPORARY
 
-    if (
+    elif (
         application.application_type == ApplicationType.STANDARD_LICENCE
         and application.export_type == ApplicationExportType.PERMANENT
     ):
         return DefaultDuration.PERMANENT_STANDARD
 
-    if (
+    elif (
         application.application_type == ApplicationType.OPEN_LICENCE
         and application.export_type == ApplicationExportType.PERMANENT
     ):
