@@ -3,7 +3,7 @@ import uuid
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus
 from goods.models import Good
 from test_helpers.clients import DataTestClient
 
@@ -51,6 +51,7 @@ def _setup_pv_grading_details(
 
 def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["description"], request_data["description"])
+    self.assertEquals(response_data["status"]["key"], GoodStatus.DRAFT)
 
     if request_data["is_good_controlled"] == GoodControlled.YES:
         self.assertEquals(response_data["is_good_controlled"]["key"], request_data["is_good_controlled"])
