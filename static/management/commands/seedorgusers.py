@@ -7,9 +7,10 @@ from conf.settings import env
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.countries.models import Country
+from static.management.SeedCommand import SeedCommand
 from users.enums import UserStatuses
-from users.models import ExporterUser, UserOrganisationRelationship
+from users.models import ExporterUser, UserOrganisationRelationship, Role
 
 ORGANISATIONS = [
     {"name": "Archway Communications", "type": OrganisationType.COMMERCIAL, "reg_no": "09876543",},
@@ -29,6 +30,9 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
+        assert Role.objects.count(), "Role permissions must be seeded first!"
+        assert Country.objects.count(), "Countries must be seeded first!"
+
         for org in ORGANISATIONS:
             organisation = seed_organisation(org)
             _seed_exporter_users_to_organisation(organisation)
@@ -101,13 +105,3 @@ def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
             email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
         )
         print(f"CREATED: {user_org}")
-
-
-class SeedOrgUsersTests(SeedCommandTest):
-    def test_seed_org_users(self):
-        self.seed_command(Command)
-        self.assertTrue(Organisation.objects)
-        self.assertTrue(Site.objects)
-        num_exporter_users = len(_get_exporter_users())
-        self.assertTrue(num_exporter_users == ExporterUser.objects.count())
-        self.assertTrue(num_exporter_users <= UserOrganisationRelationship.objects.count())
