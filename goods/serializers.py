@@ -203,7 +203,8 @@ class GoodSerializer(serializers.ModelSerializer):
                 validated_data, instance.pv_grading_details
             )
         else:
-            instance.pv_grading_details.delete()
+            if instance.pv_grading_details:
+                instance.pv_grading_details.delete()
             instance.pv_grading_details = None
 
         instance.save()
