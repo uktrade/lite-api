@@ -193,7 +193,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         pv_grading_details = self._pv_grading_details_create_or_update(validated_data)
 
-        good, created = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
+        good, _ = Good.objects.update_or_create(pv_grading_details=pv_grading_details, **validated_data)
         return good
 
     def update(self, instance, validated_data):
