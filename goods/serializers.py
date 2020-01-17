@@ -197,15 +197,21 @@ class GoodSerializer(serializers.ModelSerializer):
         return good
 
     def update(self, instance, validated_data):
-        instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
-        instance.pv_grading_details = self._pv_grading_details_create_or_update(
-            validated_data, instance.pv_grading_details
-        )
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.control_code = validated_data.get("control_code", "")
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
+        instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+
+        if instance.is_pv_graded == GoodPvGraded.YES:
+            instance.pv_grading_details = self._pv_grading_details_create_or_update(
+                validated_data, instance.pv_grading_details
+            )
+        else:
+            instance.pv_grading_details.delete()
+            instance.pv_grading_details = None
+
         instance.save()
         return instance
 
@@ -215,12 +221,18 @@ class GoodSerializer(serializers.ModelSerializer):
         Creates or Updates PV Grading Details depending on instance being passed as an argument
         """
         pv_grading_details = validated_data.pop("pv_grading_details", None)
-        if pv_grading_details:
-            if instance:
+
+        if instance:
+            # Only update pv_grading_details if data was provided
+            if pv_grading_details:
                 pv_grading_details = GoodPvGradingDetailsSerializer.update(
                     GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
                 )
             else:
+                pv_grading_details = instance
+        else:
+            # Only create pv_grading_details if data was provided
+            if pv_grading_details:
                 pv_grading_details = GoodPvGradingDetailsSerializer.create(
                     GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
                 )

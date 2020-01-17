@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from goods.enums import GoodPvGraded, GoodControlled
-from goods.models import Good
+from goods.models import Good, PvGradingDetails
 from test_helpers.clients import DataTestClient
 
 
@@ -31,14 +31,16 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         self.assertEquals(response.json()["good"]["control_code"], "ML1a")
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_edit_good_pv_grading_is_pv_graded_returns_200_ok_response(self):
+    def test_when_editing_good_pv_grading_is_pv_graded_to_no_then_pv_grading_details_is_deleted(self):
         request_data = {"is_pv_graded": GoodPvGraded.NO}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(response.json()["good"]["is_pv_graded"]["key"], GoodPvGraded.NO)
+        self.assertEquals(response.json()["good"]["pv_grading_details"], None)
         self.assertEquals(Good.objects.all().count(), 1)
+        self.assertEquals(PvGradingDetails.objects.all().count(), 0)
 
     def test_edit_good_pv_grading_details_returns_200_ok_response(self):
         pv_grading_details = self.good.pv_grading_details.__dict__

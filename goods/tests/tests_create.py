@@ -173,11 +173,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
             response.json()["errors"],
-            {
-                "custom_grading": [
-                    "You must provide an other grading if you have not selected a grading from the dropdown list"
-                ]
-            },
+            {"custom_grading": ["Enter the grading if it's not listed in the dropdown list"]},
         )
         self.assertEquals(Good.objects.all().count(), 0)
 
@@ -192,7 +188,8 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
             response.json()["errors"],
             {
                 "custom_grading": [
-                    "You cannot provide an other grading if you have already selected a grading from the dropdown list"
+                    "Check if this grading or the grading selected on the dropdown list is the correct one for the "
+                    "product"
                 ]
             },
         )
