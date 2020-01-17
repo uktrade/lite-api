@@ -4,7 +4,12 @@ from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType, LicenceDuration
+from applications.enums import (
+    ApplicationType,
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    LicenceDuration,
+)
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason
 from conf.helpers import get_value_from_enum
@@ -199,9 +204,8 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         Check that the start is before the stop.
         """
-        if (
-                data.get("licence_duration") is not None and
-                (data["licence_duration"] > LicenceDuration.MAX or data["licence_duration"] < LicenceDuration.MIN)
+        if data.get("licence_duration") is not None and (
+            data["licence_duration"] > LicenceDuration.MAX or data["licence_duration"] < LicenceDuration.MIN
         ):
             raise serializers.ValidationError(
                 f"Duration {data['licence_duration']} not in range [{LicenceDuration.MIN}-{LicenceDuration.MAX}]"

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0004_goodonapplication_is_good_incorporated'),
+        ("applications", "0004_goodonapplication_is_good_incorporated"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseapplication',
-            name='licence_duration',
-            field=models.IntegerField(default=None, help_text='Set when application finalised', null=True),
+            model_name="baseapplication",
+            name="licence_duration",
+            field=models.IntegerField(default=None, help_text="Set when application finalised", null=True),
         ),
     ]

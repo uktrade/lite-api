@@ -59,8 +59,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json(),
-            {"errors": {"non_field_errors": [strings.Applications.Finalise.Error.DURATION_RANGE]}}
+            response.json(), {"errors": {"non_field_errors": [strings.Applications.Finalise.Error.DURATION_RANGE]}}
         )
 
     def test_default_duration_no_permission_application_finalised_success(self):
