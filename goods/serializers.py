@@ -193,7 +193,9 @@ class GoodSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        pv_grading_details = self._pv_grading_details_create_or_update(validated_data)
+        pv_grading_details = validated_data.pop("pv_grading_details", None)
+        if pv_grading_details:
+            pv_grading_details = GoodSerializer._create_pv_grading_details(pv_grading_details)
 
         return Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
 
@@ -204,42 +206,51 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
-
-        if instance.is_pv_graded == GoodPvGraded.YES:
-            instance.pv_grading_details = self._pv_grading_details_create_or_update(
-                validated_data, instance.pv_grading_details
-            )
-        else:
-            if instance.pv_grading_details:
-                instance.pv_grading_details.delete()
-            instance.pv_grading_details = None
+        instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
+            is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
+            pv_grading_details=validated_data.get("pv_grading_details"),
+            instance=instance.pv_grading_details,
+        )
 
         instance.save()
         return instance
 
     @staticmethod
-    def _pv_grading_details_create_or_update(validated_data, instance=None):
+    def _create_update_or_delete_pv_grading_details(is_pv_graded=False, pv_grading_details=None, instance=None):
         """
-        Creates or Updates PV Grading Details depending on instance being passed as an argument
+        Creates/Updates/Deletes PV Grading Details depending on the parameters supplied
+        :param is_pv_graded: If the good is not PV Graded, ensure there are no PV Grading Details
+        :param pv_grading_details: The PV Grading Details to be created or updated
+        :param instance: If supplied, it implies the instance of PV Grading Details to be updated or deleted
+        :return:
         """
-        pv_grading_details = validated_data.pop("pv_grading_details", None)
+        if not is_pv_graded and instance:
+            return GoodSerializer._delete_pv_grading_details(instance)
 
-        if instance:
-            # Only update pv_grading_details if data was provided
-            if pv_grading_details:
-                pv_grading_details = GoodPvGradingDetailsSerializer.update(
-                    GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
-                )
-            else:
-                pv_grading_details = instance
-        else:
-            # Only create pv_grading_details if data was provided
-            if pv_grading_details:
-                pv_grading_details = GoodPvGradingDetailsSerializer.create(
-                    GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
-                )
+        if pv_grading_details:
+            if instance:
+                return GoodSerializer._update_pv_grading_details(pv_grading_details, instance)
 
-        return pv_grading_details
+            return GoodSerializer._create_pv_grading_details(pv_grading_details)
+
+        return None
+
+    @staticmethod
+    def _create_pv_grading_details(pv_grading_details):
+        return GoodPvGradingDetailsSerializer.create(
+            GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
+        )
+
+    @staticmethod
+    def _update_pv_grading_details(pv_grading_details, instance):
+        return GoodPvGradingDetailsSerializer.update(
+            GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
+        )
+
+    @staticmethod
+    def _delete_pv_grading_details(instance):
+        instance.delete()
+        return None
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
