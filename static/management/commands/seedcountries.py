@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from static.countries.enums import Misc
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand, SeedCommandTest
 
@@ -26,4 +27,5 @@ class Command(SeedCommand):
 class SeedCountriesTests(SeedCommandTest):
     def test_seed_countries(self):
         self.seed_command(Command)
-        self.assertTrue(Country.objects.count() == len(Command.read_csv(COUNTRIES_FILE)))
+        self.assertEqual(Country.objects.count(), len(Command.read_csv(COUNTRIES_FILE)))
+        self.assertEqual(Country.objects.filter(is_eu=True).count(), Misc.EU_COUNT.value)
