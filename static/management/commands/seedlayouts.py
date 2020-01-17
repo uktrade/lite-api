@@ -1,5 +1,8 @@
+import os
+
 from django.db import transaction
 
+from conf.settings import BASE_DIR
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest, SeedCommand
 
@@ -29,4 +32,8 @@ class Command(SeedCommand):
 class SeedLayoutsTests(SeedCommandTest):
     def test_seed_layouts(self):
         self.seed_command(Command)
-        self.assertTrue(LetterLayout.objects.count() == len(Command.read_csv(LAYOUTS_FILE)))
+        csv = Command.read_csv(LAYOUTS_FILE)
+        html_layouts = os.listdir(os.path.join(BASE_DIR, "letter_templates", "layouts"))
+        for row in csv:
+            self.assertTrue(f"{row['filename']}.html" in html_layouts)
+        self.assertTrue(LetterLayout.objects.count() == len(csv))
