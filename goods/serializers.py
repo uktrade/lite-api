@@ -45,16 +45,11 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
         validated_data = super(GoodPvGradingDetailsSerializer, self).validate(data)
 
         if not validated_data.get("grading") and not validated_data.get("custom_grading"):
-            raise serializers.ValidationError(
-                {"custom_grading": "Enter the grading if it's not listed in the dropdown list"}
-            )
+            raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
 
         if validated_data.get("grading") and validated_data.get("custom_grading"):
             raise serializers.ValidationError(
-                {
-                    "custom_grading": "Check if this grading or the grading selected on the dropdown list is the "
-                    "correct one for the product"
-                }
+                {"custom_grading": strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR}
             )
 
         return validated_data
