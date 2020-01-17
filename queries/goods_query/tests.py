@@ -4,12 +4,16 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeEnum
 from conf import constants
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
-from goods.models import Good, PvGradingDetails
+from flags.enums import SystemFlags
+from flags.models import Flag
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -42,7 +46,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(GoodsQuery.objects.count(), 1)
 
 
-class ControlListClassificationsQueryUpdateTests(DataTestClient):
+class ControlListClassificationsQueryRespondTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.report_summary = self.create_picklist_item(
@@ -182,7 +186,6 @@ class ControlListClassificationsQueryManageStatusTests(DataTestClient):
         data = {"status": "withdrawn"}
 
         response = self.client.put(url, data, **self.gov_headers)
-
         query.refresh_from_db()
 
         self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
@@ -248,5 +251,75 @@ class PvGradingQueryManageStatusTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
         query.refresh_from_db()
 
-        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
+
+
+class CombinedPvGradingAndClcQuery(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.report_summary = self.create_picklist_item(
+            "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
+        )
+
+        self.pv_graded_and_controlled_good = self.create_good(
+            description="This is a good",
+            org=self.organisation,
+            is_good_controlled=GoodControlled.UNSURE,
+            control_code="ML1a",
+            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+        )
+
+        self.clc_and_pv_query = GoodsQuery.objects.create(
+            clc_raised_reasons="some clc reasons",
+            pv_grading_raised_reasons="some pv reasons",
+            good=self.pv_graded_and_controlled_good,
+            organisation=self.organisation,
+            type=CaseTypeEnum.GOODS_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )
+        self.clc_and_pv_query.flags.set(
+            [
+                Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID),
+                Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID),
+            ]
+        )
+        self.clc_and_pv_query.save()
+
+        self.clc_response_url = reverse(
+            "queries:goods_queries:clc_query_response", kwargs={"pk": self.clc_and_pv_query.pk}
+        )
+
+        # The control_code and is_good_controlled must be equal to what they are currently on the good
+        # otherwise two audits will be created;
+        # One for the response to the query and another for updating the good
+        self.data = {
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.pk,
+            "control_code": "ML1a",
+            "is_good_controlled": "yes",
+        }
+
+    def test_when_responding_to_only_clc_then_only_the_clc_system_flag_is_removed_from_case(self):
+        response = self.client.put(self.clc_response_url, self.data, **self.gov_headers)
+        self.clc_and_pv_query.refresh_from_db()
+        case = self.clc_and_pv_query.get_case()
+        remaining_flags = [str(id) for id in case.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(SystemFlags.GOOD_CLC_QUERY_ID not in remaining_flags)
+        self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
+        self.assertEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
+
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 1)
