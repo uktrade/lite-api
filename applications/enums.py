@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class ApplicationExportType:
     PERMANENT = "permanent"
     TEMPORARY = "temporary"
@@ -30,6 +33,6 @@ class ApplicationExportLicenceOfficialType:
     ]
 
 
-class LicenceDuration:
+class LicenceDuration(Enum):
     MIN = 1
     MAX = 999

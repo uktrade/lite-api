@@ -305,41 +305,48 @@ class FinaliseView(APIView):
 
         data = deepcopy(request.data)
 
-        if data.get("licence_duration") and data.get("licence_duration") != get_default_duration(application):
-            if not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION):
-                return JsonResponse(
-                    data={
-                        "errors": [
-                            strings.Applications.Finalise.Error.SET_DURATION,
-                            strings.Applications.Finalise.Error.PERMISSION,
-                        ]
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        default_licence_duration = get_default_duration(application)
+
+        if (
+                data.get("licence_duration") is not None and
+                data["licence_duration"] != default_licence_duration and
+                not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
+        ):
+            #
+            return JsonResponse(
+                data={
+                    "errors": [
+                        strings.Applications.Finalise.Error.SET_DURATION,
+                        strings.Applications.Finalise.Error.PERMISSION,
+                    ]
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        else:
+            data["licence_duration"] = data.get("licence_duration", default_licence_duration)
 
         data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
-        serializer = get_application_update_serializer(application)
-        serializer = serializer(application, data=data, partial=True)
+
+        serializer_cls = get_application_update_serializer(application)
+        serializer = serializer_cls(application, data=data, partial=True)
 
         if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-
-        if "licence_duration" in serializer.validated_data:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.FINALISED_APPLICATION,
                 target=application.get_case(),
-                payload={"licence_duration": serializer.validated_data["licence_duration"]},
+                payload={"licence_duration": str({"errors": serializer.errors, "data": data})},
             )
-        else:
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_STATUS,
-                target=application.get_case(),
-                payload={"status": CaseStatusEnum.human_readable(CaseStatusEnum.FINALISED)},
-            )
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.FINALISED_APPLICATION,
+            target=application.get_case(),
+            payload={"licence_duration": serializer.validated_data["licence_duration"]},
+        )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 

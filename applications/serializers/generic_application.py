@@ -205,9 +205,11 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         Check that the start is before the stop.
         """
         if data.get("licence_duration") is not None and (
-            data["licence_duration"] > LicenceDuration.MAX or data["licence_duration"] < LicenceDuration.MIN
+            data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
         ):
+            _min = LicenceDuration.MIN.value
+            _max = LicenceDuration.MAX.value
             raise serializers.ValidationError(
-                f"Duration {data['licence_duration']} not in range [{LicenceDuration.MIN}-{LicenceDuration.MAX}]"
+                f"Duration {data['licence_duration']} not in range [{_min}-{_max}]"
             )
         return data
