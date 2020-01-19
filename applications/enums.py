@@ -34,11 +34,26 @@ class ApplicationExportLicenceOfficialType:
 
 
 class LicenceDuration(Enum):
+    """
+    Minimum and maximum duration of a granted licence.
+
+    Scale: months
+    """
     MIN = 1
     MAX = 999
 
 
 class DefaultDuration(Enum):
+    """
+    Default licence durations for different application types.
+
+    TEMPORARY: 1 * 12
+    PERMANENT_STANDARD: 2 * 12
+    PERMANENT_OPEN: 3 * 12
+    PERMANENT_OPEN_EU: 5 * 12
+
+    Scale: months
+    """
     TEMPORARY = 1 * 12
     PERMANENT_STANDARD = 2 * 12
     PERMANENT_OPEN = 3 * 12
