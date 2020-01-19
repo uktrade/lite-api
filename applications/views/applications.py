@@ -314,12 +314,7 @@ class FinaliseView(APIView):
         ):
             #
             return JsonResponse(
-                data={
-                    "errors": [
-                        strings.Applications.Finalise.Error.SET_DURATION,
-                        strings.Applications.Finalise.Error.PERMISSION,
-                    ]
-                },
+                data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
         else:

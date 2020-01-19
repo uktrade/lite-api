@@ -36,3 +36,10 @@ class ApplicationExportLicenceOfficialType:
 class LicenceDuration(Enum):
     MIN = 1
     MAX = 999
+
+
+class DefaultDuration(Enum):
+    TEMPORARY = 1 * 12
+    PERMANENT_STANDARD = 2 * 12
+    PERMANENT_OPEN = 3 * 12
+    PERMANENT_OPEN_EU = 5 * 12
