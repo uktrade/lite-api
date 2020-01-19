@@ -326,12 +326,6 @@ class FinaliseView(APIView):
         serializer = serializer_cls(application, data=data, partial=True)
 
         if not serializer.is_valid():
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.FINALISED_APPLICATION,
-                target=application.get_case(),
-                payload={"licence_duration": str({"errors": serializer.errors, "data": data})},
-            )
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
