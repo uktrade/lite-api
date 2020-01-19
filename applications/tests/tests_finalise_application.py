@@ -19,6 +19,16 @@ class FinaliseApplicationTests(DataTestClient):
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.role = Role.objects.create(name="test")
 
+    def test_gov_user_finalise_permission_error(self):
+        self.gov_user.role = self.role
+        self.gov_user.role.permissions.set([])
+        self.gov_user.save()
+
+        data = {"licence_duration": 13}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_gov_user_finalise_application_success(self):
         self.assertEqual(self.standard_application.licence_duration, None)
 
@@ -36,16 +46,16 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
         self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
 
-    def test_gov_user_permission_denied(self):
+    def test_gov_use_set_duration_permission_denied(self):
         self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([])
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
         self.gov_user.save()
 
         data = {"licence_duration": 13}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json(), {"errors": {"error": strings.Applications.Finalise.Error.PERMISSION}})
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]})
 
     def test_invalid_duration_data(self):
         self.gov_user.role = self.role
@@ -54,7 +64,7 @@ class FinaliseApplicationTests(DataTestClient):
         )
         self.gov_user.save()
 
-        data = {"licence_duration": LicenceDuration.MAX + 1}
+        data = {"licence_duration": LicenceDuration.MAX.value + 1}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
