@@ -209,7 +209,5 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         ):
             _min = LicenceDuration.MIN.value
             _max = LicenceDuration.MAX.value
-            raise serializers.ValidationError(
-                f"Duration {data['licence_duration']} not in range [{_min}-{_max}]"
-            )
+            raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data

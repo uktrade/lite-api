@@ -309,7 +309,7 @@ class FinaliseView(APIView):
 
         if (
                 data.get("licence_duration") is not None and
-                data["licence_duration"] != default_licence_duration and
+                str(data["licence_duration"]) != str(default_licence_duration) and
                 not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
         ):
             #
