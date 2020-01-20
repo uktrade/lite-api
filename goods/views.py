@@ -160,7 +160,7 @@ class GoodList(ListCreateAPIView):
 
         serializer = GoodSerializer(data=data)
 
-        return create_or_update_good(serializer, data, status.HTTP_201_CREATED)
+        return create_or_update_good(serializer, data.get("validate_only"), status.HTTP_201_CREATED)
 
 
 class GoodDocumentCriteriaCheck(APIView):
@@ -233,7 +233,7 @@ class GoodDetail(APIView):
 
         data["organisation"] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
-        return create_or_update_good(serializer, data, status.HTTP_200_OK)
+        return create_or_update_good(serializer, data.get("validate_only"), status.HTTP_200_OK)
 
     def delete(self, request, pk):
         good = get_good(pk)
