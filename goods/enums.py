@@ -32,16 +32,16 @@ class PvGrading:
     UK_UNCLASSIFIED = "uk_unclassified"
     UK_OFFICIAL = "uk_official"
     UK_OFFICIAL_SENSITIVE = "uk_official_sensitive"
-    UK_SECRET = "uk_secret"  # nosec
-    UK_TOP_SECRET = "uk_top_secret"  # nosec
+    UK_SECRET = "uk_secret"  # nosec noqa
+    UK_TOP_SECRET = "uk_top_secret"  # nosec noqa
     NATO_UNCLASSIFIED = "nato_unclassified"
     NATO_CONFIDENTIAL = "nato_confidential"
     NATO_RESTRICTED = "nato_restricted"
-    NATO_SECRET = "nato_secret"  # nosec
+    NATO_SECRET = "nato_secret"  # nosec noqa
     OCCAR_UNCLASSIFIED = "occar_unclassified"
     OCCAR_CONFIDENTIAL = "occar_confidential"
     OCCAR_RESTRICTED = "occar_restricted"
-    OCCAR_SECRET = "occar_secret"  # nosec
+    OCCAR_SECRET = "occar_secret"  # nosec noqa
 
     choices = [
         (UK_UNCLASSIFIED, "UK unclassified"),
