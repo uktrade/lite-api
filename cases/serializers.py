@@ -110,7 +110,12 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.organisation.name
 
     def get_users(self, instance):
-        case_assignments = CaseAssignment.objects.filter(case=instance).order_by("queue__name").select_related("queue")
+        case_assignments = (
+            CaseAssignment.objects.filter(case=instance)
+            .select_related("queue")
+            .order_by("queue__name")
+            .prefetch_related("users")
+        )
 
         if not self.context["is_system_queue"]:
             case_assignments = case_assignments.filter(queue=self.context["queue_id"])
@@ -170,7 +175,12 @@ class CaseDetailSerializer(CaseSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_users(self, instance):
-        case_assignments = CaseAssignment.objects.filter(case=instance).order_by("queue__name").select_related("queue")
+        case_assignments = (
+            CaseAssignment.objects.filter(case=instance)
+            .select_related("queue")
+            .order_by("queue__name")
+            .prefetch_related("users")
+        )
 
         return get_users_assigned_to_case(case_assignments)
 
