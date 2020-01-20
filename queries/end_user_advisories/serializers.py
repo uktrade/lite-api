@@ -49,6 +49,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             "contact_telephone",
             "status",
             "exporter_user_notification_count",
+            "reference_code",
         )
 
     def __init__(self, *args, **kwargs):
