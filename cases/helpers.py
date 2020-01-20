@@ -154,7 +154,6 @@ def get_assigned_to_user_case_ids(user: GovUser):
 
 
 def get_users_assigned_to_case(case_assignments):
-    from cases.models import CaseAssignment
 
     users = []
 
