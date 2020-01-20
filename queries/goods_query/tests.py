@@ -10,6 +10,7 @@ from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
 from goods.models import Good
+from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
@@ -201,9 +202,10 @@ class PvGradingQueryCreateTests(DataTestClient):
             control_code="",
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
         )
+        pv_grading_raised_reasons = "This is the reason why I'm unsure..."
         data = {
             "good_id": pv_graded_good.id,
-            "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
+            "pv_grading_raised_reasons": pv_grading_raised_reasons,
         }
         url = reverse("queries:goods_queries:goods_queries")
 
@@ -213,7 +215,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(GoodsQuery.objects.count(), 1)
-        self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, "This is the reason why I'm unsure...")
+        self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, pv_grading_raised_reasons)
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
         pv_graded_good = self.create_good(
@@ -223,9 +225,10 @@ class PvGradingQueryCreateTests(DataTestClient):
             control_code="",
             is_pv_graded=GoodPvGraded.YES,
         )
+        pv_grading_raised_reasons = "This is the reason why I'm unsure..."
         data = {
             "good_id": pv_graded_good.id,
-            "pv_grading_raised_reasons": "This is the reason why I'm unsure...",
+            "pv_grading_raised_reasons": pv_grading_raised_reasons,
         }
         url = reverse("queries:goods_queries:goods_queries")
 
@@ -233,11 +236,7 @@ class PvGradingQueryCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"],
-            [
-                f'A good must have either "is_good_controlled" set to "{GoodControlled.UNSURE}" '
-                f'or "is_pv_graded" set to "{GoodPvGraded.GRADING_REQUIRED}" to raise a Goods Query'
-            ],
+            response.json()["errors"], [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
 

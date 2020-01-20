@@ -6,5 +6,4 @@ app_name = "private_venture_gradings"
 
 urlpatterns = [
     path("", PVGradingsList.as_view(), name="private_venture_gradings"),
-    # path("<str:rating>/", views.ControlListEntryDetail.as_view(), name="control_list_entry",),
 ]

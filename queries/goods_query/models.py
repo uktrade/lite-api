@@ -15,5 +15,4 @@ class GoodsQuery(Query):
     pv_grading_raised_reasons = models.TextField(default=None, blank=True, null=True)
     good = models.ForeignKey(Good, on_delete=models.DO_NOTHING, null=False, related_name="good")
 
-    # TODO: fix related query name
     notifications = GenericRelation(ExporterNotification, related_query_name="goods_query")

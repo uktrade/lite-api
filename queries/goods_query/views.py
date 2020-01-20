@@ -28,19 +28,20 @@ from users.models import UserOrganisationRelationship
 
 
 class GoodsQueriesCreate(APIView):
+    """
+    Create a Goods Query which can contain a CLC part and a PV Grading part
+    """
+
     authentication_classes = (ExporterAuthentication,)
 
     @staticmethod
     def _check_request_for_errors(good: Good, is_clc_required: bool, is_pv_grading_required: bool):
         errors = []
         if good.status != GoodStatus.DRAFT:
-            errors += [{"status": f'A good must have its status set to "{GoodStatus.DRAFT}" to raise a Goods Query"'}]
+            errors += [{"status": strings.GoodsQuery.GOOD_DRAFT_STATUS_REQUIRED_ERROR}]
 
         if not (is_clc_required or is_pv_grading_required):
-            errors += [
-                f'A good must have either "is_good_controlled" set to "{GoodControlled.UNSURE}" '
-                f'or "is_pv_graded" set to "{GoodPvGraded.GRADING_REQUIRED}" to raise a Goods Query'
-            ]
+            errors += [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR]
 
         return errors
 
@@ -86,6 +87,10 @@ class GoodsQueriesCreate(APIView):
 
 
 class GoodQueryCLCResponse(APIView):
+    """
+    Respond to the CLC query part of a Goods Query
+    """
+
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
@@ -152,6 +157,10 @@ class GoodQueryCLCResponse(APIView):
 
 
 class GoodQueryManageStatus(APIView):
+    """
+    Modify the status of a Goods Query
+    """
+
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):

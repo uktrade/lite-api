@@ -145,18 +145,17 @@ class GoodSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["pv_grading_details"] = None
 
+        self.goods_query_case = (
+            GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
+        )
+
     def get_case_id(self, instance):
-        if isinstance(instance, Good):
-            goods_query = GoodsQuery.objects.filter(good=instance)
-            if goods_query:
-                return goods_query.first().id
+        return str(self.goods_query_case.id) if self.goods_query_case else None
 
     def get_case_officer(self, instance):
-        if isinstance(instance, Good):
-            goods_query = GoodsQuery.objects.filter(good=instance, case_officer__isnull=False)
-            if goods_query:
-                user = get_user_by_pk(goods_query.first().case_officer)
-                return GovUserSimpleSerializer(user).data
+        if self.goods_query_case:
+            return GovUserSimpleSerializer(self.goods_query_case.case_officer).data
+        return None
 
     def get_query(self, instance):
         if isinstance(instance, Good):
@@ -164,24 +163,24 @@ class GoodSerializer(serializers.ModelSerializer):
                 good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
             )
 
+        return None
+
     def get_case_status(self, instance):
-        if not isinstance(instance, Good):
-            return None
-        try:
-            goods_query = GoodsQuery.objects.get(good=instance)
+        if self.goods_query_case:
             return {
-                "key": goods_query.status.status,
-                "value": get_status_value_from_case_status_enum(goods_query.status.status),
+                "key": self.goods_query_case.status.status,
+                "value": get_status_value_from_case_status_enum(self.goods_query_case.status.status),
             }
-        except GoodsQuery.DoesNotExist:
-            return None
+
+        return None
 
     def get_documents(self, instance):
-        if not isinstance(instance, Good):
-            return None
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        if isinstance(instance, Good):
+            documents = GoodDocument.objects.filter(good=instance)
+            if documents.exists():
+                return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+        return None
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
