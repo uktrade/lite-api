@@ -83,6 +83,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
 class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+    reference_code = serializers.CharField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
     queue_names = serializers.SerializerMethodField()
@@ -153,6 +154,7 @@ class CaseDetailSerializer(CaseSerializer):
             "all_flags",
             "case_officer",
             "audit_notification",
+            "reference_code",
         )
 
     def __init__(self, *args, **kwargs):
