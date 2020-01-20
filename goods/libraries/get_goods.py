@@ -47,6 +47,7 @@ def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, t
     if good_query:
         good_query = good_query.first()
         query["id"] = good_query.id
+        query["reference_code"] = good_query.reference_code
 
         if exporter_user:
             exporter_user_notification_count = (

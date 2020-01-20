@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from django.db import models
@@ -170,3 +171,19 @@ class CaseManager(models.Manager):
             return query
 
         return case
+
+
+class CaseReferenceCodeManager(models.Manager):
+    def create(self):
+        CaseReferenceCode = self.model
+        year = datetime.now().year
+        case_reference_code, _ = CaseReferenceCode.objects.get_or_create(defaults={"year": year, "reference_number": 0})
+
+        if case_reference_code.year != year:
+            case_reference_code.year = year
+            case_reference_code.reference_number = 1
+        else:
+            case_reference_code.reference_number += 1
+
+        case_reference_code.save()
+        return case_reference_code
