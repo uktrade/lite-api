@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus
 from goods.models import Good
+from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 url = reverse("goods:goods")
@@ -19,7 +20,7 @@ def _setup_request_data(
     validate_only=False,
 ):
     return {
-        "description": "Plastic bag " + str(uuid.uuid4()),
+        "description": f"Plastic bag {uuid.uuid4()}",
         "is_good_controlled": is_good_controlled,
         "control_code": control_code,
         "is_pv_graded": is_pv_graded,
@@ -173,8 +174,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            response.json()["errors"],
-            {"custom_grading": ["Enter the grading if it's not listed in the dropdown list"]},
+            response.json()["errors"], {"custom_grading": [strings.Goods.NO_CUSTOM_GRADING_ERROR]},
         )
         self.assertEquals(Good.objects.all().count(), 0)
 
@@ -186,13 +186,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            response.json()["errors"],
-            {
-                "custom_grading": [
-                    "Check if this grading or the grading selected on the dropdown list is the correct one for the "
-                    "product"
-                ]
-            },
+            response.json()["errors"], {"custom_grading": [strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR]},
         )
         self.assertEquals(Good.objects.all().count(), 0)
 

@@ -4,7 +4,7 @@ from rest_framework import status
 from conf.helpers import str_to_bool
 
 
-def create_or_update_good(serializer, validate_only, success_response_code):
+def create_or_update_good(serializer, validate_only, is_created):
     if not serializer.is_valid():
         errors = serializer.errors
         pv_grading_errors = errors.pop("pv_grading_details", None)
@@ -15,4 +15,6 @@ def create_or_update_good(serializer, validate_only, success_response_code):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     serializer.save()
-    return JsonResponse(data={"good": serializer.data}, status=success_response_code)
+    return JsonResponse(
+        data={"good": serializer.data}, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK
+    )

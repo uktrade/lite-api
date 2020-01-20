@@ -19,7 +19,7 @@ from goods.libraries.get_goods import get_good
 from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
-from queries.goods_query.helpers import is_goods_query_finished
+from queries.goods_query.helpers import update_goods_query_status
 from queries.goods_query.models import GoodsQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
@@ -111,7 +111,7 @@ class GoodQueryCLCResponse(APIView):
 
                 clc_good_serializer.save()
                 query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
-                query.status = is_goods_query_finished(query)
+                query.status = update_goods_query_status(query)
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE

@@ -14,11 +14,11 @@ from users.models import ExporterUser
 class PvGradingDetails(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     grading = models.CharField(choices=PvGrading.choices, default=None, blank=True, null=True, max_length=30)
-    custom_grading = models.TextField(default="", blank=True, null=True)
-    prefix = models.TextField(default="", blank=True, null=True)
-    suffix = models.TextField(default="", blank=True, null=True)
-    issuing_authority = models.TextField(default="", blank=True, null=True)
-    reference = models.TextField(default="", blank=True, null=True)
+    custom_grading = models.TextField(default="", blank=True, null=True, max_length=100)
+    prefix = models.TextField(default="", blank=True, null=True, max_length=30)
+    suffix = models.TextField(default="", blank=True, null=True, max_length=30)
+    issuing_authority = models.TextField(default="", blank=True, null=True, max_length=100)
+    reference = models.TextField(default="", blank=True, null=True, max_length=100)
     date_of_issue = models.DateField(blank=True, null=True)
 
 
