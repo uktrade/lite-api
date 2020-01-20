@@ -15,7 +15,6 @@ from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
