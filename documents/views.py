@@ -2,12 +2,13 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from cases.libraries.get_case import get_case
+from cases.models import CaseDocument
 from conf.authentication import GovAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
+from documents.libraries.s3_operations import download_document_from_s3
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
-from documents.helpers import download_document
-from goods.libraries.get_goods import get_good
 
 
 class DocumentDetail(APIView):
@@ -25,11 +26,15 @@ class DocumentDetail(APIView):
             raise NotFoundError({"document": "Document not found"})
 
 
-class ExporterGoodDocumentDownload(APIView):
+class ExporterCaseDocumentDownload(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def get(self, request, good_pk, file_pk):
-        good = get_good(good_pk)
-        if good.organisation != request.user.organisation:
+    def get(self, request, case_pk, file_pk):
+        case = get_case(case_pk)
+        if case.organisation != request.user.organisation:
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
-        return download_document(file_pk)
+        try:
+            document = CaseDocument.objects.get(id=file_pk, case=case)
+            return download_document_from_s3(s3_key=document.s3_key, original_file_name=document.name)
+        except Document.DoesNotExist:
+            raise NotFoundError({"document": "Document not found"})
