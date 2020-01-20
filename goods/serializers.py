@@ -141,9 +141,7 @@ class GoodSerializer(serializers.ModelSerializer):
                 self.initial_data["control_code"] = None
 
         # This removes data being passed forward from product grading forms on editing goods when not needed
-        if self.get_initial().get("is_pv_graded") == GoodControlled.YES:
-            self.fields["pv_grading_details"] = GoodPvGradingDetailsSerializer(required=True)
-        else:
+        if not self.get_initial().get("is_pv_graded") == GoodControlled.YES:
             if hasattr(self, "initial_data"):
                 self.initial_data["pv_grading_details"] = None
 
