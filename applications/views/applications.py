@@ -289,7 +289,7 @@ class ApplicationManageStatus(APIView):
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-class FinaliseView(APIView):
+class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
 
     @transaction.atomic
@@ -312,7 +312,6 @@ class FinaliseView(APIView):
                 str(data["licence_duration"]) != str(default_licence_duration) and
                 not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
         ):
-            #
             return JsonResponse(
                 data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
@@ -337,7 +336,7 @@ class FinaliseView(APIView):
             payload={"licence_duration": serializer.validated_data["licence_duration"]},
         )
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class DurationView(APIView):

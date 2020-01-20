@@ -207,7 +207,5 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         if data.get("licence_duration") is not None and (
             data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
         ):
-            _min = LicenceDuration.MIN.value
-            _max = LicenceDuration.MAX.value
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data

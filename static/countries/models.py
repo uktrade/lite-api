@@ -1,7 +1,6 @@
 from django.db import models
 
 from flags.models import Flag
-from static.countries.enums import Misc
 
 
 class Country(models.Model):
@@ -10,7 +9,3 @@ class Country(models.Model):
     type = models.CharField(max_length=100)
     flags = models.ManyToManyField(Flag, related_name="countries")
     is_eu = models.BooleanField()
-
-    @classmethod
-    def eu_count(cls):
-        return Misc.EU_COUNT.value

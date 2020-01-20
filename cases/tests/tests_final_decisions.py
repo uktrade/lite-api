@@ -26,7 +26,11 @@ class CaseFinalDecisionTests(DataTestClient):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_can_record_final_decision_with_correct_permissions(self):
+    def test_can_record_final_decision_with_correct_permissions_success(self):
+        """
+        Test a user with manage final advice and manage licence duration permissions can
+        finalise application.
+        """
         role = Role(name="some")
         role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name])
         role.save()
