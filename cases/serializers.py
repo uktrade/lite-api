@@ -115,18 +115,7 @@ class TinyCaseSerializer(serializers.Serializer):
         if not self.context["is_system_queue"]:
             case_assignments = case_assignments.filter(queue=self.context["queue_id"])
 
-        users = []
-
-        for case_assignment in case_assignments:
-            queue_users = [
-                {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
-                for first_name, last_name, email in case_assignment.users.values_list(
-                    "first_name", "last_name", "email"
-                )
-            ]
-
-            users.extend(queue_users)
-        return users
+        return get_users_assigned_to_case(case_assignments)
 
     def get_status(self, instance):
         return instance.status.status
@@ -181,7 +170,9 @@ class CaseDetailSerializer(CaseSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_users(self, instance):
-        return get_users_assigned_to_case(instance)
+        case_assignments = CaseAssignment.objects.filter(case=instance).order_by("queue__name").select_related("queue")
+
+        return get_users_assigned_to_case(case_assignments)
 
     def get_has_advice(self, instance):
         has_advice = {"team": False, "my_team": False, "final": False}

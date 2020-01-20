@@ -153,10 +153,8 @@ def get_assigned_to_user_case_ids(user: GovUser):
     return CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
 
 
-def get_users_assigned_to_case(case):
+def get_users_assigned_to_case(case_assignments):
     from cases.models import CaseAssignment
-
-    case_assignments = CaseAssignment.objects.filter(case=case).order_by("queue__name").select_related("queue")
 
     users = []
 
