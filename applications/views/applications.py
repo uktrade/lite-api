@@ -308,9 +308,9 @@ class ApplicationFinaliseView(APIView):
         default_licence_duration = get_default_duration(application)
 
         if (
-                data.get("licence_duration") is not None and
-                str(data["licence_duration"]) != str(default_licence_duration) and
-                not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
+            data.get("licence_duration") is not None
+            and str(data["licence_duration"]) != str(default_licence_duration)
+            and not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
         ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},

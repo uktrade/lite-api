@@ -39,6 +39,7 @@ class LicenceDuration(Enum):
 
     Scale: months
     """
+
     MIN = 1
     MAX = 999
 
@@ -54,6 +55,7 @@ class DefaultDuration(Enum):
 
     Scale: months
     """
+
     TEMPORARY = 1 * 12
     PERMANENT_STANDARD = 2 * 12
     PERMANENT_OPEN_EU = 3 * 12
