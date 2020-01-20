@@ -47,14 +47,14 @@ class DefaultDuration(Enum):
     """
     Default licence durations for different application types.
 
-    TEMPORARY: 1 * 12
-    PERMANENT_STANDARD: 2 * 12
-    PERMANENT_OPEN: 3 * 12
-    PERMANENT_OPEN_EU: 5 * 12
+    TEMPORARY: 1 year
+    PERMANENT_STANDARD: 2 years
+    PERMANENT_OPEN_EU: 3 years
+    PERMANENT_OPEN: 5 years
 
     Scale: months
     """
     TEMPORARY = 1 * 12
     PERMANENT_STANDARD = 2 * 12
-    PERMANENT_OPEN = 3 * 12
-    PERMANENT_OPEN_EU = 5 * 12
+    PERMANENT_OPEN_EU = 3 * 12
+    PERMANENT_OPEN = 5 * 12
