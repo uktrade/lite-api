@@ -552,6 +552,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             activity="Trade",
             usage="Trade",
             organisation=organisation,
+            type=CaseTypeEnum.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
