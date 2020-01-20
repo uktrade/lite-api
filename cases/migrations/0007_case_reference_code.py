@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("cases", "0006_casereferencecode"),
+        ("applications", "0004_goodonapplication_is_good_incorporated"),
     ]
 
     operations = [
