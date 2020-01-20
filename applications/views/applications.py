@@ -339,7 +339,7 @@ class ApplicationFinaliseView(APIView):
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
 
-class DurationView(APIView):
+class ApplicationDurationView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
