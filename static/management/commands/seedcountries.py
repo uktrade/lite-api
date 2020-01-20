@@ -27,4 +27,3 @@ class SeedCountriesTests(SeedCommandTest):
     def test_seed_countries(self):
         self.seed_command(Command)
         self.assertEqual(Country.objects.count(), len(Command.read_csv(COUNTRIES_FILE)))
-        self.assertNotEqual(Country.objects.filter(is_eu=True).count(), 0)
