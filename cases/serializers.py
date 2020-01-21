@@ -6,7 +6,6 @@ from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
-from cases.helpers import get_users_assigned_to_case
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
