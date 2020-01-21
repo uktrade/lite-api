@@ -9,6 +9,7 @@ from conf.exceptions import NotFoundError
 from documents.libraries.s3_operations import download_document_from_s3
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
+from lite_content.lite_api.strings import Documents
 
 
 class DocumentDetail(APIView):
@@ -40,7 +41,7 @@ class DocumentDownload(APIView):
             document = Document.objects.get(id=pk)
             return download_document_from_s3(s3_key=document.s3_key, original_file_name=document.name)
         except Document.DoesNotExist:
-            raise NotFoundError({"document": "Document not found"})
+            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
 
 
 class ExporterCaseDocumentDownload(APIView):
@@ -54,4 +55,4 @@ class ExporterCaseDocumentDownload(APIView):
             document = CaseDocument.objects.get(id=file_pk, case=case)
             return JsonResponse({"document": document.id})
         except Document.DoesNotExist:
-            raise NotFoundError({"document": "Document not found"})
+            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
