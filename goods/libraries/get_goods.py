@@ -47,6 +47,7 @@ def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, t
     if clc_query:
         clc_query = clc_query.first()
         query["id"] = clc_query.id
+        query["reference_code"] = clc_query.reference_code
 
         if exporter_user:
             exporter_user_notification_count = (

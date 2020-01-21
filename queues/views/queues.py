@@ -27,7 +27,9 @@ class QueuesList(APIView):
         return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = QueueCreateSerializer(data=request.data)
+        data = request.data.copy()
+        data["team"] = request.user.team.id
+        serializer = QueueCreateSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
