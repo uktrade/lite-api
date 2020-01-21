@@ -48,6 +48,7 @@ class AuditType(Enum):
     GENERATE_CASE_DOCUMENT = "generated the case document {file_name} from template {template}"
     ADD_CASE_OFFICER_TO_CASE = "set {case_officer} as the Case Officer"
     REMOVE_CASE_OFFICER_FROM_CASE = "removed {case_officer} as the Case Officer"
+    FINALISED_APPLICATION = "granted licence for {licence_duration} months"
 
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = "updated letter template types from {old_case_types} to {new_case_types}"
