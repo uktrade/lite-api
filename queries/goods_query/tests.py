@@ -250,6 +250,29 @@ class PvGradingQueryCreateTests(DataTestClient):
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
 
+    def test_given_good_doesnt_require_pv_grading_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            org=self.organisation,
+            is_good_controlled=GoodControlled.NO,
+            control_code="",
+            is_pv_graded=GoodPvGraded.NO,
+        )
+        pv_grading_raised_reasons = "This is the reason why I'm unsure..."
+        data = {
+            "good_id": pv_graded_good.id,
+            "pv_grading_raised_reasons": pv_grading_raised_reasons,
+        }
+        url = reverse("queries:goods_queries:goods_queries")
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
+        )
+        self.assertEqual(GoodsQuery.objects.count(), 0)
+
 
 class PvGradingQueryManageStatusTests(DataTestClient):
     def test_when_setting_pv_graded_good_query_to_withdrawn_then_the_status_is_updated_and_a_200_ok_is_returned(self):
