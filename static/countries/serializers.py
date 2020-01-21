@@ -10,6 +10,7 @@ class CountrySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "type",
+            "is_eu",
         )
 
 
