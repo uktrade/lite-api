@@ -76,14 +76,15 @@ class Case(TimestampableModel):
 
         for case_assignment in case_assignments:
             queue_users = [
-                {"first_name": first_name, "last_name": last_name, "email": email,
-                 "queue": case_assignment.queue.name, }
-                for first_name, last_name, email in
-                case_assignment.users.values_list("first_name", "last_name", "email")
+                {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
+                for first_name, last_name, email in case_assignment.users.values_list(
+                    "first_name", "last_name", "email"
+                )
             ]
             users.extend(queue_users)
 
         return users
+
 
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
