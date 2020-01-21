@@ -19,7 +19,7 @@ from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
 
-class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
+class PvGradingDetailsSerializer(serializers.ModelSerializer):
     grading = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, allow_blank=True)
     custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
     prefix = serializers.CharField(allow_blank=True, allow_null=True)
@@ -41,7 +41,7 @@ class GoodPvGradingDetailsSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        validated_data = super(GoodPvGradingDetailsSerializer, self).validate(data)
+        validated_data = super(PvGradingDetailsSerializer, self).validate(data)
 
         if not validated_data.get("grading") and not validated_data.get("custom_grading"):
             raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
@@ -107,7 +107,7 @@ class GoodSerializer(serializers.ModelSerializer):
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
-    pv_grading_details = GoodPvGradingDetailsSerializer(allow_null=True, required=False)
+    pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -140,7 +140,7 @@ class GoodSerializer(serializers.ModelSerializer):
                 self.initial_data["control_code"] = None
 
         # This removes data being passed forward from product grading forms on editing goods when not needed
-        if not self.get_initial().get("is_pv_graded") == GoodControlled.YES:
+        if not self.get_initial().get("is_pv_graded") == GoodPvGraded.YES:
             if hasattr(self, "initial_data"):
                 self.initial_data["pv_grading_details"] = None
 
@@ -233,14 +233,12 @@ class GoodSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _create_pv_grading_details(pv_grading_details):
-        return GoodPvGradingDetailsSerializer.create(
-            GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details
-        )
+        return PvGradingDetailsSerializer.create(PvGradingDetailsSerializer(), validated_data=pv_grading_details)
 
     @staticmethod
     def _update_pv_grading_details(pv_grading_details, instance):
-        return GoodPvGradingDetailsSerializer.update(
-            GoodPvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
+        return PvGradingDetailsSerializer.update(
+            PvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
         )
 
     @staticmethod

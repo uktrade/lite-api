@@ -19,8 +19,8 @@ def update_goods_query_status(query: GoodsQuery):
     Ascertain if the Goods Query status should be updated to Finalised or Submitted
     """
     flags = [
-        Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID).id,
-        Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID).id,
+        SystemFlags.GOOD_CLC_QUERY_ID,
+        SystemFlags.GOOD_PV_GRADING_QUERY_ID,
     ]
 
     if query.flags.filter(id__in=flags):

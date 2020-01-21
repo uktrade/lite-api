@@ -8,6 +8,7 @@ def create_or_update_good(serializer, validate_only, is_created):
     if not serializer.is_valid():
         errors = serializer.errors
         pv_grading_errors = errors.pop("pv_grading_details", None)
+        # The errors need to be flattened otherwise they will be contained within a 'pv_grading_details' dict
         flattened_errors = {**errors, **pv_grading_errors} if pv_grading_errors else errors
         return JsonResponse(data={"errors": flattened_errors}, status=status.HTTP_400_BAD_REQUEST)
 
