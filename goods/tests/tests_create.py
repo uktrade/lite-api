@@ -136,6 +136,15 @@ class GoodsCreateGoodTests(DataTestClient):
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):
+    def test_create_good_when_all_fields_are_provided_then_created_response_is_returned(self):
+        request_data = _setup_request_data(is_good_controlled=GoodControlled.YES, control_code="ML1a")
+
+        response = self.client.post(url, request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        _assert_response_data(self, response.json()["good"], request_data)
+        self.assertEquals(Good.objects.all().count(), 1)
+
     def test_create_good_when_control_code_is_missing_then_bad_request_response_is_returned(self):
         request_data = _setup_request_data(is_good_controlled=GoodControlled.YES)
 
@@ -214,15 +223,15 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         )
         self.assertEquals(Good.objects.all().count(), 0)
 
-    def test_create_good_when_date_is_missing_then_bad_response_is_returned(self):
-        pv_grading_details = _setup_pv_grading_details(date="")
+    def test_when_creating_a_good_with_date_of_issue_missing_then_bad_response_is_returned(self):
+        pv_grading_details = _setup_pv_grading_details()
+        pv_grading_details.pop("date_of_issue")
         request_data = _setup_request_data(is_pv_graded=GoodPvGraded.YES, pv_grading_details=pv_grading_details)
 
         response = self.client.post(url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(
-            response.json()["errors"],
-            {"date_of_issue": ["Date has wrong format. Use one of these formats instead: YYYY-MM-DD."]},
+            response.json()["errors"], {"date_of_issue": ["This field is required."]},
         )
         self.assertEquals(Good.objects.all().count(), 0)

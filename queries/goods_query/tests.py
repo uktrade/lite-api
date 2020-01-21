@@ -31,6 +31,8 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         good = Good(
             description="Good description",
             is_good_controlled=GoodControlled.UNSURE,
+            is_pv_graded=GoodPvGraded.NO,
+            pv_grading_details=None,
             control_code="ML1",
             part_number="123456",
             organisation=self.organisation,
@@ -45,6 +47,10 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(GoodsQuery.objects.count(), 1)
+        self.assertEqual(
+            [str(id) for id in GoodsQuery.objects.get().flags.values_list("id", flat=True)],
+            [SystemFlags.GOOD_CLC_QUERY_ID],
+        )
 
 
 class ControlListClassificationsQueryRespondTests(DataTestClient):
@@ -216,6 +222,10 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(GoodsQuery.objects.count(), 1)
         self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, pv_grading_raised_reasons)
+        self.assertEqual(
+            [str(id) for id in GoodsQuery.objects.get().flags.values_list("id", flat=True)],
+            [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
+        )
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
         pv_graded_good = self.create_good(
