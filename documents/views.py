@@ -16,6 +16,7 @@ class DocumentDetail(APIView):
     """
     Get information about a Document
     """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -31,11 +32,15 @@ class DocumentDetail(APIView):
 
 
 class DocumentDownload(APIView):
-    authentication_classes = (ExporterAuthentication, GovAuthentication,)
+    authentication_classes = (
+        ExporterAuthentication,
+        GovAuthentication,
+    )
 
     """
     Download a document
     """
+
     def get(self, request, pk):
         try:
             document = Document.objects.get(id=pk)
