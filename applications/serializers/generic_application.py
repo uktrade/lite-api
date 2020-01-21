@@ -60,6 +60,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
+            "reference_code",
         )
 
     def __init__(self, *args, **kwargs):
