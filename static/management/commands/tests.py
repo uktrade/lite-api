@@ -10,8 +10,18 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest
-from static.management.commands import seedlayouts, seedcasestatuses, seedcasetypes, seedcontrollistentries, \
-    seedcountries, seeddenialreasons, seedgovusers, seedorgusers, seedrolepermissions, seedsystemflags
+from static.management.commands import (
+    seedlayouts,
+    seedcasestatuses,
+    seedcasetypes,
+    seedcontrollistentries,
+    seedcountries,
+    seeddenialreasons,
+    seedgovusers,
+    seedorgusers,
+    seedrolepermissions,
+    seedsystemflags,
+)
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 from users.models import Permission, GovUser, Role, ExporterUser, UserOrganisationRelationship
 
@@ -19,12 +29,19 @@ from users.models import Permission, GovUser, Role, ExporterUser, UserOrganisati
 class SeedingTests(SeedCommandTest):
     def test_seed_case_statuses(self):
         self.seed_command(seedcasestatuses.Command)
-        self.assertEqual(CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE)))
-        self.assertEqual(CaseStatusCaseType.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUS_ON_TYPE_FILE)))
+        self.assertEqual(
+            CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
+        )
+        self.assertEqual(
+            CaseStatusCaseType.objects.count(),
+            len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUS_ON_TYPE_FILE)),
+        )
 
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
-        self.assertEqual(CaseType.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasetypes.CASE_TYPES_FILE)))
+        self.assertEqual(
+            CaseType.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasetypes.CASE_TYPES_FILE))
+        )
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
@@ -36,7 +53,9 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_denial_reasons(self):
         self.seed_command(seeddenialreasons.Command)
-        self.assertEqual(DenialReason.objects.count(), len(seeddenialreasons.Command.read_csv(seeddenialreasons.DENIAL_REASONS_FILE)))
+        self.assertEqual(
+            DenialReason.objects.count(), len(seeddenialreasons.Command.read_csv(seeddenialreasons.DENIAL_REASONS_FILE))
+        )
 
     def test_seed_gov_user(self):
         self.seed_command(seedrolepermissions.Command)
