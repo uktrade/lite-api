@@ -110,22 +110,11 @@ class TinyCaseSerializer(serializers.Serializer):
     def get_organisation(self, instance):
         return instance.organisation.name
 
-    def get_users(self, instance):
-        case_assignments = (
-            CaseAssignment.objects.filter(case=instance)
-            .select_related("queue")
-            .order_by("queue__name")
-            .prefetch_related("users")
-        )
-
-        if not self.context["is_system_queue"]:
-            case_assignments = case_assignments.filter(queue=self.context["queue_id"])
-
-        return get_users_assigned_to_case(case_assignments)
-
     def get_status(self, instance):
         return instance.status.status
 
+    def get_users(self, instance):
+        return instance.get_users(queue=self.context['queue_id'] if self.context['is_system_queue'] else None)
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
@@ -177,14 +166,7 @@ class CaseDetailSerializer(CaseSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_users(self, instance):
-        case_assignments = (
-            CaseAssignment.objects.filter(case=instance)
-            .select_related("queue")
-            .order_by("queue__name")
-            .prefetch_related("users")
-        )
-
-        return get_users_assigned_to_case(case_assignments)
+        return instance.get_users()
 
     def get_has_advice(self, instance):
         has_advice = {"team": False, "my_team": False, "final": False}
