@@ -8,3 +8,4 @@ class Country(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     flags = models.ManyToManyField(Flag, related_name="countries")
+    is_eu = models.BooleanField()

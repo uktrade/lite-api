@@ -26,4 +26,4 @@ class Command(SeedCommand):
 class SeedCountriesTests(SeedCommandTest):
     def test_seed_countries(self):
         self.seed_command(Command)
-        self.assertTrue(Country.objects.count() == len(Command.read_csv(COUNTRIES_FILE)))
+        self.assertEqual(Country.objects.count(), len(Command.read_csv(COUNTRIES_FILE)))

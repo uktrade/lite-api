@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from conf.constants import GovPermissions
-from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from users.models import Role
 
@@ -17,26 +16,31 @@ class CaseFinalDecisionTests(DataTestClient):
     def test_cannot_make_final_decision_without_permission(self):
         self.gov_user.role = self.default_role
         self.gov_user.save()
-        data = {"status": CaseStatusEnum.FINALISED}
+
+        data = {"duration": 10}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
+            reverse("applications:finalise", kwargs={"pk": self.standard_application.id}),
             data=data,
             **self.gov_headers,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_can_record_final_decision_with_correct_permissions(self):
+    def test_can_record_final_decision_with_correct_permissions_success(self):
+        """
+        Test a user with manage final advice and manage licence duration permissions can
+        finalise application.
+        """
         role = Role(name="some")
-        role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
+        role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name])
         role.save()
         self.gov_user.role = role
         self.gov_user.save()
 
-        data = {"status": CaseStatusEnum.FINALISED}
+        data = {"duration": 10}
 
         response = self.client.put(
-            reverse("applications:manage_status", kwargs={"pk": self.standard_application.id}),
+            reverse("applications:finalise", kwargs={"pk": self.standard_application.id}),
             data=data,
             **self.gov_headers,
         )
