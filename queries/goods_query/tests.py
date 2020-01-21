@@ -21,14 +21,10 @@ from users.models import Role, GovUser
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
-    url = reverse("queries:goods_queries:goods_queries")
+    def setUp(self):
+        super().setUp()
 
-    def test_create_control_list_classification_query(self):
-        """
-        Ensure that an exporter can raise a control list
-        classification query and that a case has been created
-        """
-        good = Good(
+        self.good = Good(
             description="Good description",
             is_good_controlled=GoodControlled.UNSURE,
             is_pv_graded=GoodPvGraded.NO,
@@ -37,11 +33,22 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             part_number="123456",
             organisation=self.organisation,
         )
-        good.save()
+        self.good.save()
 
-        data = {"good_id": good.id, "not_sure_details_control_code": "ML1a", "not_sure_details_details": "I don't know"}
+        self.data = {
+            "good_id": self.good.id,
+            "not_sure_details_control_code": "ML1a",
+            "not_sure_details_details": "I " "don't know",
+        }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.url = reverse("queries:goods_queries:goods_queries")
+
+    def test_create_control_list_classification_query(self):
+        """
+        Ensure that an exporter can raise a control list
+        classification query and that a case has been created
+        """
+        response = self.client.post(self.url, self.data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -51,6 +58,14 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             [str(id) for id in GoodsQuery.objects.get().flags.values_list("id", flat=True)],
             [SystemFlags.GOOD_CLC_QUERY_ID],
         )
+
+    def test_cannot_create_control_list_classification_query_on_good_when_good_already_exists(self):
+        self.client.post(self.url, self.data, **self.exporter_headers)
+        response = self.client.post(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR in response.json()["errors"],)
+        self.assertEqual(GoodsQuery.objects.count(), 1)
 
 
 class ControlListClassificationsQueryRespondTests(DataTestClient):

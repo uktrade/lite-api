@@ -37,6 +37,9 @@ class GoodsQueriesCreate(APIView):
     @staticmethod
     def _check_request_for_errors(good: Good, is_clc_required: bool, is_pv_grading_required: bool):
         errors = []
+        if GoodsQuery.objects.filter(good_id=good).exists():
+            errors += [strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR]
+
         if good.status != GoodStatus.DRAFT:
             errors += [{"status": strings.GoodsQuery.GOOD_DRAFT_STATUS_REQUIRED_ERROR}]
 
@@ -51,6 +54,7 @@ class GoodsQueriesCreate(APIView):
         """
         data = request.data
         good = get_good(data["good_id"])
+
         data["organisation"] = request.user.organisation
 
         is_clc_required = good.is_good_controlled == GoodControlled.UNSURE
