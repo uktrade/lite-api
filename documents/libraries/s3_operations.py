@@ -41,9 +41,9 @@ def _generate_file(result):
         yield chunk
 
 
-def download_document_from_s3(s3_key, original_file_name):
-    s3_response = get_object(s3_key)
-    content_type = mimetypes.MimeTypes().guess_type(original_file_name)[0]
+def document_download_stream(document):
+    s3_response = get_object(document.s3_key)
+    content_type = mimetypes.MimeTypes().guess_type(document.name)[0]
     response = StreamingHttpResponse(_generate_file(s3_response), content_type=content_type)
-    response["Content-Disposition"] = f'attachment; filename="{original_file_name}"'
+    response["Content-Disposition"] = f'attachment; filename="{document.name}"'
     return response

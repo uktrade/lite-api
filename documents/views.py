@@ -6,7 +6,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseDocument
 from conf.authentication import GovAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
-from documents.libraries.s3_operations import download_document_from_s3
+from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
 from lite_content.lite_api.strings import Documents
@@ -31,24 +31,6 @@ class DocumentDetail(APIView):
             raise NotFoundError({"document": "Document not found"})
 
 
-class DocumentDownload(APIView):
-    authentication_classes = (
-        ExporterAuthentication,
-        GovAuthentication,
-    )
-
-    """
-    Download a document
-    """
-
-    def get(self, request, pk):
-        try:
-            document = Document.objects.get(id=pk)
-            return download_document_from_s3(s3_key=document.s3_key, original_file_name=document.name)
-        except Document.DoesNotExist:
-            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
-
-
 class ExporterCaseDocumentDownload(APIView):
     authentication_classes = (ExporterAuthentication,)
 
@@ -58,6 +40,6 @@ class ExporterCaseDocumentDownload(APIView):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
             document = CaseDocument.objects.get(id=file_pk, case=case)
-            return JsonResponse({"document": document.id})
+            return document_download_stream(document)
         except Document.DoesNotExist:
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
