@@ -57,13 +57,6 @@ class SeedingTests(SeedCommandTest):
             DenialReason.objects.count(), len(seeddenialreasons.Command.read_csv(seeddenialreasons.DENIAL_REASONS_FILE))
         )
 
-    def test_seed_gov_user(self):
-        self.seed_command(seedrolepermissions.Command)
-        self.seed_command(seedgovusers.Command)
-        self.assertTrue(Permission.objects)
-        self.assertTrue(GovUser.objects)
-        self.assertTrue(Role.objects)
-
     def test_seed_layouts(self):
         self.seed_command(seedlayouts.Command)
         csv = seedlayouts.Command.read_csv(seedlayouts.LAYOUTS_FILE)
@@ -71,16 +64,6 @@ class SeedingTests(SeedCommandTest):
         for row in csv:
             self.assertTrue(f"{row['filename']}.html" in html_layouts)
         self.assertEqual(LetterLayout.objects.count(), len(csv))
-
-    def test_seed_org_users(self):
-        self.seed_command(seedrolepermissions.Command)
-        self.seed_command(seedcountries.Command)
-        self.seed_command(seedorgusers.Command)
-        # self.assertTrue(Organisation.objects)
-        # self.assertTrue(Site.objects)
-        # num_exporter_users = len(seedorgusers._get_exporter_users())
-        # self.assertEqual(num_exporter_users, ExporterUser.objects.count())
-        # self.assertTrue(num_exporter_users <= UserOrganisationRelationship.objects.count())
 
     def test_seed_role_permissions(self):
         self.seed_command(seedrolepermissions.Command)
