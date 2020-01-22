@@ -9,7 +9,7 @@ from common.models import TimestampableModel
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.models import EndUser, UltimateEndUser, ThirdParty, Party
+from parties.models import UltimateEndUser, ThirdParty, Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.units.enums import Units
@@ -32,7 +32,7 @@ class StandardApplication(BaseApplication):
         choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
     )
     end_user = models.ForeignKey(
-        EndUser, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+        Party, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="application_ultimate_end_users")
     consignee = models.ForeignKey(
@@ -48,7 +48,7 @@ class OpenApplication(BaseApplication):
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     end_user = models.ForeignKey(
-        EndUser, related_name="hmrc_query_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+        Party, related_name="hmrc_query_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
     ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="hmrc_query_ultimate_end_users")
     consignee = models.ForeignKey(

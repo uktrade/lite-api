@@ -2,7 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.models import Party, EndUser
+from parties.enums import PartyType
+from parties.models import Party
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
@@ -18,7 +19,13 @@ class GetExistingPartiesTests(DataTestClient):
             {"name": "Abc", "address": "456 abc st.", "website": "https://www.gov.py"},
         ]
         for party in self.parties:
-            EndUser.objects.create(**party, country=self.country, sub_type="government", organisation=self.organisation)
+            Party.objects.create(
+                **party,
+                type=PartyType.END,
+                country=self.country,
+                sub_type="government",
+                organisation=self.organisation
+            )
 
     def test_get_existing_parties(self):
         response = self.client.get(self.url, **self.exporter_headers)

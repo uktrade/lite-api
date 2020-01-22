@@ -24,12 +24,6 @@ class Party(TimestampableModel):
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
 
 
-class EndUser(Party):
-    def save(self, *args, **kwargs):
-        self.type = PartyType.END
-        super(EndUser, self).save(*args, **kwargs)
-
-
 class UltimateEndUser(Party):
     def save(self, *args, **kwargs):
         self.type = PartyType.ULTIMATE

@@ -34,7 +34,7 @@ from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, ThirdPartyRole
-from parties.models import EndUser, UltimateEndUser, ThirdParty, Party
+from parties.models import UltimateEndUser, ThirdParty, Party
 from parties.models import PartyDocument
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
@@ -194,7 +194,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_end_user(name, organisation):
-        end_user = EndUser(
+        end_user = Party(
             name=name,
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",
