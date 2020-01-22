@@ -1,5 +1,7 @@
 import os
 
+from django.test import tag
+
 from cases.models import CaseType
 from conf.constants import GovPermissions, ExporterPermissions
 from conf.settings import BASE_DIR
@@ -26,6 +28,7 @@ from static.statuses.models import CaseStatus, CaseStatusCaseType
 from users.models import Permission, GovUser, Role, ExporterUser, UserOrganisationRelationship
 
 
+@tag("seeding")
 class SeedingTests(SeedCommandTest):
     def test_seed_case_statuses(self):
         self.seed_command(seedcasestatuses.Command)
