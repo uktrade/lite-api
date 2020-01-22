@@ -113,7 +113,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.status.status
 
     def get_users(self, instance):
-        return instance.get_users(queue=self.context["queue_id"] if self.context["is_system_queue"] else None)
+        return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
 
 class CaseDetailSerializer(CaseSerializer):
