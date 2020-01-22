@@ -29,8 +29,8 @@ class Migration(migrations.Migration):
                         to="queries.Query",
                     ),
                 ),
-                ("clc_raised_reasons", models.TextField(blank=True, default=None, null=True)),
-                ("pv_grading_raised_reasons", models.TextField(blank=True, default=None, null=True)),
+                ("clc_raised_reasons", models.TextField(blank=True, default=None, null=True, max_length=2000)),
+                ("pv_grading_raised_reasons", models.TextField(blank=True, default=None, null=True, max_length=2000)),
                 (
                     "good",
                     models.ForeignKey(

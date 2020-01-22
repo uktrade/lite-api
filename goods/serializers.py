@@ -107,6 +107,10 @@ class GoodSerializer(serializers.ModelSerializer):
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
+
+    # This is a nested creatable and writable serializer.
+    # By default, nested serializers provide the ability to only retrieve data;
+    # To make them writable and updatable you must override the create and update methods in the parent serializer
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
