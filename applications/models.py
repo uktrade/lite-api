@@ -5,6 +5,7 @@ from django.db import models
 from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
+from common.models import TimestampableModel
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
@@ -89,7 +90,7 @@ class ExternalLocationOnApplication(models.Model):
     )
 
 
-class GoodOnApplication(models.Model):
+class GoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
     application = models.ForeignKey(StandardApplication, related_name="goods", on_delete=models.CASCADE)
