@@ -1,5 +1,6 @@
 from applications.libraries.get_applications import get_application
-from parties.models import UltimateEndUser, ThirdParty
+from parties.enums import PartyType
+from parties.models import Party
 
 
 def get_end_user(application_pk):
@@ -8,7 +9,7 @@ def get_end_user(application_pk):
 
 
 def get_ultimate_end_user(pk):
-    return UltimateEndUser.objects.get(pk=pk)
+    return Party.objects.get(pk=pk, type=PartyType.ULTIMATE)
 
 
 def get_consignee(application_pk):
@@ -17,4 +18,4 @@ def get_consignee(application_pk):
 
 
 def get_third_party(pk):
-    return ThirdParty.objects.get(pk=pk)
+    return Party.objects.get(pk=pk, type=PartyType.THIRD)

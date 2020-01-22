@@ -5,9 +5,9 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
+from parties.enums import PartyType, SubType, PartyRole
+from parties.models import Party
 from parties.models import PartyDocument
-from parties.enums import PartyType, SubType, ThirdPartyRole
-from parties.models import Party, UltimateEndUser, ThirdParty
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -79,7 +79,7 @@ class EndUserWithFlagsSerializer(EndUserSerializer):
 
 class UltimateEndUserSerializer(PartySerializer):
     class Meta:
-        model = UltimateEndUser
+        model = Party
         fields = (
             "id",
             "name",
@@ -100,7 +100,7 @@ class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
         return list(instance.flags.values("id", "name"))
 
     class Meta:
-        model = UltimateEndUser
+        model = Party
         fields = "__all__"
 
 
@@ -133,11 +133,11 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
 
 class ThirdPartySerializer(PartySerializer):
     role = KeyValueChoiceField(
-        choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
+        choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
     )
 
     class Meta:
-        model = ThirdParty
+        model = Party
         fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role")
 
 
@@ -148,7 +148,7 @@ class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
         return list(instance.flags.values("id", "name"))
 
     class Meta:
-        model = ThirdParty
+        model = Party
         fields = "__all__"
 
 

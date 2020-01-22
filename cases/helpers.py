@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from goods.models import Good
-from parties.models import UltimateEndUser, Party, ThirdParty
+from parties.models import Party
 from static.countries.models import Country
 from users.models import GovUser, GovNotification
 
@@ -78,13 +78,13 @@ def assign_field(application_field, advice, key):
     elif application_field == "country":
         advice.country = Country.objects.get(pk=key)
     elif application_field == "ultimate_end_user":
-        advice.ultimate_end_user = UltimateEndUser.objects.get(pk=key)
+        advice.ultimate_end_user = Party.objects.get(pk=key)
     elif application_field == "goods_type":
         advice.goods_type = GoodsType.objects.get(pk=key)
     elif application_field == "consignee":
         advice.consignee = Party.objects.get(pk=key)
     elif application_field == "third_party":
-        advice.third_party = ThirdParty.objects.get(pk=key)
+        advice.third_party = Party.objects.get(pk=key)
 
 
 def collate_advice(application_field, collection, case, user, advice_class):

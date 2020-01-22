@@ -14,7 +14,7 @@ from conf.decorators import (
 )
 from parties.enums import PartyType
 from parties.helpers import delete_party_document_if_exists
-from parties.models import UltimateEndUser, ThirdParty
+from parties.models import Party
 from parties.serializers import (
     EndUserSerializer,
     UltimateEndUserSerializer,
@@ -36,6 +36,7 @@ class ApplicationEndUser(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        data["type"] = PartyType.END
         case = application.get_case()
 
         serializer = EndUserSerializer(data=data)
@@ -115,6 +116,7 @@ class ApplicationUltimateEndUsers(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        data["type"] = PartyType.ULTIMATE
 
         serializer = UltimateEndUserSerializer(data=data)
         if not serializer.is_valid():
@@ -145,7 +147,7 @@ class RemoveApplicationUltimateEndUser(APIView):
         """
         try:
             ultimate_end_user = application.ultimate_end_users.get(id=ueu_pk)
-        except UltimateEndUser.DoesNotExist:
+        except Party.DoesNotExist:
             return JsonResponse(data={"errors": "ultimate end user not found"}, status=status.HTTP_404_NOT_FOUND,)
 
         application.ultimate_end_users.remove(ultimate_end_user.id)
@@ -173,10 +175,9 @@ class ApplicationConsignee(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
-        case = application.get_case()
-        print('\n\n\n')
-        print(data)
         data["type"] = PartyType.CONSIGNEE
+
+        case = application.get_case()
         serializer = ConsigneeSerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -260,6 +261,8 @@ class ApplicationThirdParties(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        data["type"] = PartyType.THIRD
+
         case = application.get_case()
 
         serializer = ThirdPartySerializer(data=data)
@@ -288,8 +291,8 @@ class RemoveThirdParty(APIView):
     def delete(self, request, application, tp_pk):
         """ Delete a third party and remove it from the application. """
         try:
-            third_party = application.third_parties.get(pk=tp_pk)
-        except ThirdParty.DoesNotExist:
+            third_party = application.third_parties.get(pk=tp_pk, type=PartyType.THIRD)
+        except Party.DoesNotExist:
             return JsonResponse(data={"errors": "third party not found"}, status=status.HTTP_404_NOT_FOUND,)
 
         application.third_parties.remove(third_party.id)

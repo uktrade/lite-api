@@ -5,8 +5,9 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
+from parties.enums import PartyType
 from parties.models import PartyDocument
-from parties.models import UltimateEndUser
+from parties.models import Party
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api.strings import Parties
@@ -98,7 +99,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no ultimate end users have been added
         """
-        pre_test_ueu_count = UltimateEndUser.objects.all().count()
+        pre_test_ueu_count = Party.objects.filter(type=PartyType.ULTIMATE).count()
         data = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
@@ -113,7 +114,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE).count(), pre_test_ueu_count)
 
     def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self,):
         """
@@ -196,7 +197,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(UltimateEndUser.objects.all().count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE).count(), 0)
         delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))

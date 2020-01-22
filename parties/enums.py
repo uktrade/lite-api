@@ -26,7 +26,7 @@ class SubType:
     ]
 
 
-class ThirdPartyRole:
+class PartyRole:
     INTERMEDIATE = "intermediate_consignee"
     END = "additional_end_user"
     AGENT = "agent"

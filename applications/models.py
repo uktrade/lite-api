@@ -9,7 +9,7 @@ from common.models import TimestampableModel
 from documents.models import Document
 from goods.models import Good
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.models import UltimateEndUser, ThirdParty, Party
+from parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.units.enums import Units
@@ -34,11 +34,11 @@ class StandardApplication(BaseApplication):
     end_user = models.ForeignKey(
         Party, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="application_ultimate_end_users")
+    ultimate_end_users = models.ManyToManyField(Party, related_name="application_ultimate_end_users")
     consignee = models.ForeignKey(
         Party, related_name="application_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="application_third_parties")
+    third_parties = models.ManyToManyField(Party, related_name="application_third_parties")
 
 
 class OpenApplication(BaseApplication):
@@ -50,11 +50,11 @@ class HmrcQuery(BaseApplication):
     end_user = models.ForeignKey(
         Party, related_name="hmrc_query_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="hmrc_query_ultimate_end_users")
+    ultimate_end_users = models.ManyToManyField(Party, related_name="hmrc_query_ultimate_end_users")
     consignee = models.ForeignKey(
         Party, related_name="hmrc_query_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="hmrc_query_third_parties")
+    third_parties = models.ManyToManyField(Party, related_name="hmrc_query_third_parties")
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
 
     objects = HmrcQueryManager()

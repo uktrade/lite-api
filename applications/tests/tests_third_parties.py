@@ -6,12 +6,11 @@ from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
-from parties.models import PartyDocument
-from parties.models import ThirdParty
+from lite_content.lite_api.strings import Parties
+from parties.enums import PartyType
+from parties.models import Party, PartyDocument
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from lite_content.lite_api.strings import Parties
 
 
 class ThirdPartiesOnDraft(DataTestClient):
@@ -110,7 +109,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        pre_test_third_party_count = ThirdParty.objects.all().count()
+        pre_test_third_party_count = Party.objects.all(type=PartyType.THIRD).count()
         data = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
@@ -124,7 +123,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(ThirdParty.objects.all().count(), pre_test_third_party_count)
+        self.assertEqual(Party.objects.filter(type=PartyType.THIRD).count(), pre_test_third_party_count)
 
         audit_qs = Audit.objects.all()
 
@@ -209,7 +208,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(remove_tp_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(ThirdParty.objects.all().count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.THIRD).count(), 0)
         delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))

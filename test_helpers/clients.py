@@ -33,9 +33,9 @@ from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.enums import SubType, PartyType, ThirdPartyRole
-from parties.models import UltimateEndUser, ThirdParty, Party
+from parties.enums import SubType, PartyType, PartyRole
 from parties.models import PartyDocument
+from parties.models import Party
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -208,7 +208,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_ultimate_end_user(name, organisation):
-        ultimate_end_user = UltimateEndUser(
+        ultimate_end_user = Party(
             name=name,
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",
@@ -236,13 +236,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_third_party(name, organisation):
-        third_party = ThirdParty(
+        third_party = Party(
             name=name,
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",
             website="www." + name + ".com",
             sub_type=SubType.GOVERNMENT,
-            role=ThirdPartyRole.AGENT,
+            role=PartyRole.AGENT,
             type=PartyType.THIRD,
             country=get_country("GB"),
         )
