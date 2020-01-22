@@ -33,9 +33,9 @@ from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartyRole
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
+from parties.models import EndUser, UltimateEndUser, ThirdParty, Party
+from parties.models import PartyDocument
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
 from queries.control_list_classifications.models import ControlListClassificationQuery
@@ -222,7 +222,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_consignee(name, organisation):
-        consignee = Consignee(
+        consignee = Party(
             name=name,
             organisation=organisation,
             address="42 Road, London, Buckinghamshire",

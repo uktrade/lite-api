@@ -7,7 +7,7 @@ from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
 from parties.models import PartyDocument
 from parties.enums import PartyType, SubType, ThirdPartyRole
-from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
+from parties.models import Party, EndUser, UltimateEndUser, ThirdParty
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -106,7 +106,7 @@ class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
 
 class ConsigneeSerializer(PartySerializer):
     class Meta:
-        model = Consignee
+        model = Party
         fields = (
             "id",
             "name",
@@ -127,7 +127,7 @@ class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
         return list(instance.flags.values("id", "name"))
 
     class Meta:
-        model = Consignee
+        model = Party
         fields = "__all__"
 
 

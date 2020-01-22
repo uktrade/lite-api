@@ -11,7 +11,7 @@ from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
+from parties.models import EndUser, UltimateEndUser, Party, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -161,7 +161,7 @@ class Advice(TimestampableModel):
     ultimate_end_user = models.ForeignKey(
         UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
     )
-    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name="consignee", null=True)
+    consignee = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="consignee", null=True)
     third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name="third_party", null=True)
 
     # Optional depending on type of advice

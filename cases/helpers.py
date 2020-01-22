@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from goods.models import Good
-from parties.models import UltimateEndUser, EndUser, Consignee, ThirdParty
+from parties.models import UltimateEndUser, EndUser, Party, ThirdParty
 from static.countries.models import Country
 from users.models import GovUser, GovNotification
 
@@ -82,7 +82,7 @@ def assign_field(application_field, advice, key):
     elif application_field == "goods_type":
         advice.goods_type = GoodsType.objects.get(pk=key)
     elif application_field == "consignee":
-        advice.consignee = Consignee.objects.get(pk=key)
+        advice.consignee = Party.objects.get(pk=key)
     elif application_field == "third_party":
         advice.third_party = ThirdParty.objects.get(pk=key)
 

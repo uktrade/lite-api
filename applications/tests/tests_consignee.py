@@ -4,7 +4,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from parties.models import PartyDocument, Consignee
+from parties.enums import PartyType
+from parties.models import PartyDocument, Party
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -109,8 +110,8 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.client.post(self.url, new_consignee, **self.exporter_headers)
         self.draft.refresh_from_db()
 
-        with self.assertRaises(Consignee.DoesNotExist):
-            Consignee.objects.get(id=old_consignee.id)
+        with self.assertRaises(Party.DoesNotExist):
+            Party.objects.get(id=old_consignee.id)
         delete_s3_function.assert_called_once()
 
     def test_set_consignee_on_open_draft_application_failure(self):
@@ -123,7 +124,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         consignee = self.draft.consignee
         self.draft.consignee = None
         self.draft.save()
-        Consignee.objects.filter(pk=consignee.pk).delete()
+        Party.objects.filter(pk=consignee.pk).delete()
         data = {
             "name": "Government of Paraguay",
             "address": "Asuncion",
@@ -138,7 +139,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Consignee.objects.all().count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.CONSIGNEE).count(), 0)
 
     def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self,):
         """
@@ -149,7 +150,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         end_user = self.draft.end_user
         self.draft.consignee = None
         self.draft.save()
-        Consignee.objects.filter(pk=end_user.pk).delete()
+        Party.objects.filter(pk=end_user.pk).delete()
 
         response = self.client.delete(self.url, **self.exporter_headers)
 
@@ -215,5 +216,5 @@ class ConsigneeOnDraftTests(DataTestClient):
         response = self.client.delete(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Consignee.objects.all().count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.CONSIGNEE).count(), 0)
         delete_s3_function.assert_called_once()

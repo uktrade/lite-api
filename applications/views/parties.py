@@ -12,6 +12,7 @@ from conf.decorators import (
     application_in_editable_state,
     allowed_application_types,
 )
+from parties.enums import PartyType
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import (
@@ -173,7 +174,9 @@ class ApplicationConsignee(APIView):
         data = request.data
         data["organisation"] = request.user.organisation.id
         case = application.get_case()
-
+        print('\n\n\n')
+        print(data)
+        data["type"] = PartyType.CONSIGNEE
         serializer = ConsigneeSerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

@@ -25,7 +25,8 @@ from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
+from parties.enums import PartyType
+from parties.models import EndUser, UltimateEndUser, Party, ThirdParty
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -304,7 +305,10 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
     ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
-    consignee = serializers.PrimaryKeyRelatedField(queryset=Consignee.objects.all(), required=False)
+    consignee = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.CONSIGNEE),
+        required=False
+    )
     third_party = serializers.PrimaryKeyRelatedField(queryset=ThirdParty.objects.all(), required=False)
 
     class Meta:
