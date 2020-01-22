@@ -123,4 +123,6 @@ class CaseStatusEnum:
 
     @classmethod
     def as_list(cls):
-        return [{"status": choice[0], "priority": cls.priority[choice[0]]} for choice in cls.choices]
+        choices = [{"key": choice[0], "value": choice[1], "priority": cls.priority[choice[0]]} for choice in cls.choices]
+        choices.sort(key=lambda x: x["priority"])
+        return choices
