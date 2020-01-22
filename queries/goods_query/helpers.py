@@ -1,6 +1,5 @@
 from conf.exceptions import NotFoundError
 from flags.enums import SystemFlags
-from flags.models import Flag
 from lite_content.lite_api import strings
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
