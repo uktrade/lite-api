@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "static.statuses",
     "static.units",
     "static.upload_document_for_tests",
+    "storages",
     "teams",
     "users",
 ]
@@ -136,6 +137,8 @@ AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION = env("AWS_REGION")
+AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 STREAMING_CHUNK_SIZE = 8192

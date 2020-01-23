@@ -40,3 +40,9 @@ class Document(TimestampableModel):
         if self.safe is False:
             self.delete_s3()
         return self.safe
+
+
+class TestDocument(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=1000, null=False, blank=False)
+    file = models.FileField()

@@ -7,8 +7,8 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseDocument
 from conf.authentication import GovAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
-from documents.libraries.s3_operations import document_download_stream, document_upload
-from documents.models import Document
+from documents.libraries.s3_operations import document_download_stream, get_file_from_request
+from documents.models import Document, TestDocument
 from documents.serializers import DocumentViewSerializer
 from lite_content.lite_api.strings import Documents
 
@@ -36,7 +36,12 @@ class UploadTest(APIView):
     parser_classes = (FileUploadParser,)
 
     def post(self, request):
-        document_upload(request)
+        found, file = get_file_from_request(request)
+        doc = TestDocument.objects.create(
+            name=file.name,
+            file=file
+        )
+        return JsonResponse({"document": "abc"}, status=status.HTTP_201_CREATED)
 
 
 class ExporterCaseDocumentDownload(APIView):

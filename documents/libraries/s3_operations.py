@@ -4,7 +4,6 @@ import uuid
 
 import boto3
 from django.http import StreamingHttpResponse
-from s3chunkuploader.file_handler import S3FileUploadHandler
 
 from conf.settings import env, STREAMING_CHUNK_SIZE
 
@@ -50,10 +49,10 @@ def document_download_stream(document):
     return response
 
 
-def document_upload(request):
+def get_file_from_request(request):
     if not request.FILES:
         return False, "No files attached"
     if len(request.FILES) != 1:
         return False, "Multiple files attached"
 
-    file = request.FILES["file"]
+    return True, request.FILES["file"]
