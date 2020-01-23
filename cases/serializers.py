@@ -109,32 +109,17 @@ class TinyCaseSerializer(serializers.Serializer):
     def get_organisation(self, instance):
         return instance.organisation.name
 
-    def get_users(self, instance):
-        case_assignments = CaseAssignment.objects.filter(case=instance).order_by("queue__name").select_related("queue")
-
-        if not self.context["is_system_queue"]:
-            case_assignments = case_assignments.filter(queue=self.context["queue_id"])
-
-        users = []
-
-        for case_assignment in case_assignments:
-            queue_users = [
-                {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
-                for first_name, last_name, email in case_assignment.users.values_list(
-                    "first_name", "last_name", "email"
-                )
-            ]
-
-            users.extend(queue_users)
-        return users
-
     def get_status(self, instance):
         return instance.status.status
+
+    def get_users(self, instance):
+        return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
 
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
@@ -151,6 +136,7 @@ class CaseDetailSerializer(CaseSerializer):
             "flags",
             "queues",
             "queue_names",
+            "users",
             "application",
             "query",
             "has_advice",
@@ -178,6 +164,9 @@ class CaseDetailSerializer(CaseSerializer):
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
+
+    def get_users(self, instance):
+        return instance.get_users()
 
     def get_has_advice(self, instance):
         has_advice = {"team": False, "my_team": False, "final": False}

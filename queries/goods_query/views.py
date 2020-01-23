@@ -8,6 +8,8 @@ from applications.libraries.application_helpers import can_status_can_be_set_by_
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from conf import constants
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
@@ -187,3 +189,14 @@ class GoodQueryManageStatus(APIView):
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class GeneratedDocuments(APIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GeneratedCaseDocumentExporterSerializer
+    queryset = GeneratedCaseDocument
+
+    def get(self, request, pk):
+        dataset = self.queryset.objects.filter(case__id=pk)
+        data = self.serializer_class(dataset, many=True).data
+        return JsonResponse(data={"generated_documents": data}, status=status.HTTP_200_OK)

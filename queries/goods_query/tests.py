@@ -214,6 +214,32 @@ class ControlListClassificationsQueryManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
+class ControlListClassificationsGeneratedDocumentsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.query = self.create_clc_query("This is a widget", self.organisation)
+        self.url = reverse("queries:goods_queries:generated_documents", kwargs={"pk": self.query.pk})
+
+    def test_get_generated_documents_none_success(self):
+        response = self.client.get(self.url, **self.exporter_headers)
+        results = response.json()["generated_documents"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(results), 0)
+
+    def test_get_generated_documents_success(self):
+        document_name = "Abc"
+        template = self.create_letter_template("Template", case_type=CaseTypeEnum.GOODS_QUERY)
+        self.create_generated_case_document(self.query, template, document_name=document_name)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        results = response.json()["generated_documents"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["name"], document_name)
+
+
 class PvGradingQueryCreateTests(DataTestClient):
     def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self):
         pv_graded_good = self.create_good(
