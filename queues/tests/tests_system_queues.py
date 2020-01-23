@@ -2,9 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import CaseAssignment
-from queues.constants import (
-    OPEN_CASES_QUEUE_ID,
-)
+from queues.constants import OPEN_CASES_QUEUE_ID
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient

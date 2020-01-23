@@ -170,7 +170,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
-        self.assertNotIn(str(self.application_cases[0].id), [x["id"] for x in response_data])
 
     def test_get_cases_filter_by_case_officer_not_assigned(self):
         """
@@ -192,6 +191,9 @@ class FilterAndSortTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
 
     def test_get_cases_filter_by_assigned_user(self):
         """
@@ -236,6 +238,9 @@ class FilterAndSortTests(DataTestClient):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
 
     def test_get_submitted_status_and_clc_type_cases(self):
         """
