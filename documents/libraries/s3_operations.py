@@ -36,7 +36,7 @@ def delete_file(s3_key):
 
 
 # Download
-def _generate_file(result):
+def _stream_file(result):
     for chunk in iter(lambda: result["Body"].read(STREAMING_CHUNK_SIZE), b""):
         yield chunk
 
@@ -44,6 +44,6 @@ def _generate_file(result):
 def document_download_stream(document):
     s3_response = get_object(document.s3_key)
     content_type = mimetypes.MimeTypes().guess_type(document.name)[0]
-    response = StreamingHttpResponse(_generate_file(s3_response), content_type=content_type)
+    response = StreamingHttpResponse(_stream_file(s3_response), content_type=content_type)
     response["Content-Disposition"] = f'attachment; filename="{document.name}"'
     return response
