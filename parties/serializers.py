@@ -50,23 +50,7 @@ class PartySerializer(serializers.ModelSerializer):
         return docs[0] if docs else None
 
 
-class EndUserSerializer(PartySerializer):
-    class Meta:
-        model = Party
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
-
-
-class EndUserWithFlagsSerializer(EndUserSerializer):
+class EndUserWithFlagsSerializer(PartySerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
