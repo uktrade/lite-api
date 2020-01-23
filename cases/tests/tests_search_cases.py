@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -151,7 +150,6 @@ class FilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
             self.assertEqual("clc_query", case_type)
 
-    @tag("only")
     def test_get_cases_filter_by_case_officer(self):
         """
         Given multiple cases exist with case officers attached and not attached
@@ -172,7 +170,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
 
-    @tag("only")
     def test_get_cases_filter_by_case_officer_not_assigned(self):
         """
         Given multiple cases exist with case officers attached and not attached
@@ -194,7 +191,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(all_cases) - 1)
 
-    @tag("only")
     def test_get_cases_filter_by_assigned_user(self):
         """
         Given multiple cases exist with users assigned and not assigned
@@ -216,7 +212,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
 
-    @tag("only")
     def test_get_cases_filter_by_assigned_user_not_assigned(self):
         """
         Given multiple cases exist with users assigned and not assigned
