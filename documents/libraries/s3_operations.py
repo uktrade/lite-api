@@ -4,6 +4,7 @@ import uuid
 
 import boto3
 from django.http import StreamingHttpResponse
+from s3chunkuploader.file_handler import S3FileUploadHandler
 
 from conf.settings import env, STREAMING_CHUNK_SIZE
 
@@ -47,3 +48,12 @@ def document_download_stream(document):
     response = StreamingHttpResponse(_generate_file(s3_response), content_type=content_type)
     response["Content-Disposition"] = f'attachment; filename="{document.name}"'
     return response
+
+
+def document_upload(request):
+    if not request.FILES:
+        return False, "No files attached"
+    if len(request.FILES) != 1:
+        return False, "Multiple files attached"
+
+    file = request.FILES["file"]

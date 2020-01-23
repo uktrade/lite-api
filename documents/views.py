@@ -1,12 +1,13 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework import status
+from rest_framework.parsers import FileUploadParser
 from rest_framework.views import APIView
 
 from cases.libraries.get_case import get_case
 from cases.models import CaseDocument
 from conf.authentication import GovAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
-from documents.libraries.s3_operations import document_download_stream
+from documents.libraries.s3_operations import document_download_stream, document_upload
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
 from lite_content.lite_api.strings import Documents
@@ -29,6 +30,13 @@ class DocumentDetail(APIView):
             return JsonResponse({"document": serializer.data})
         except Document.DoesNotExist:
             raise NotFoundError({"document": "Document not found"})
+
+
+class UploadTest(APIView):
+    parser_classes = (FileUploadParser,)
+
+    def post(self, request):
+        document_upload(request)
 
 
 class ExporterCaseDocumentDownload(APIView):
