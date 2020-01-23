@@ -1,15 +1,10 @@
-from django.http import JsonResponse, HttpResponse
-from rest_framework import status
+from django.http import JsonResponse
 from rest_framework.views import APIView
 
-from cases.libraries.get_case import get_case
-from cases.models import CaseDocument
-from conf.authentication import GovAuthentication, ExporterAuthentication
+from conf.authentication import GovAuthentication
 from conf.exceptions import NotFoundError
-from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
-from lite_content.lite_api.strings import Documents
 
 
 class DocumentDetail(APIView):
@@ -29,17 +24,3 @@ class DocumentDetail(APIView):
             return JsonResponse({"document": serializer.data})
         except Document.DoesNotExist:
             raise NotFoundError({"document": "Document not found"})
-
-
-class ExporterCaseDocumentDownload(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, case_pk, file_pk):
-        case = get_case(case_pk)
-        if case.organisation != request.user.organisation:
-            return HttpResponse(status.HTTP_401_UNAUTHORIZED)
-        try:
-            document = CaseDocument.objects.get(id=file_pk, case=case)
-            return document_download_stream(document)
-        except Document.DoesNotExist:
-            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
