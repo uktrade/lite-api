@@ -14,6 +14,11 @@ urlpatterns = [
     path("<uuid:pk>/activity/", activity.Activity.as_view(), name="activity"),
     path("<uuid:pk>/documents/", views.CaseDocuments.as_view(), name="documents"),
     path("<uuid:pk>/documents/<str:s3_key>/", views.CaseDocumentDetail.as_view(), name="document",),
+    path(
+        "<uuid:case_pk>/documents/<uuid:document_pk>/download/",
+        views.ExporterCaseDocumentDownload.as_view(),
+        name="document_download",
+    ),
     path("<uuid:pk>/user-advice/", views.CaseAdvice.as_view(), name="case_advice"),
     path("<uuid:pk>/team-advice/", views.CaseTeamAdvice.as_view(), name="case_team_advice",),
     path("<uuid:pk>/view-team-advice/<uuid:team_pk>/", views.ViewTeamAdvice.as_view(), name="view_team_advice",),
