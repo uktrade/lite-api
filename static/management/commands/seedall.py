@@ -15,7 +15,7 @@ SEED_COMMANDS = {
         "seedcasetypes",
         "temporary_give_existing_exporters_superuser_role",
     ],
-    "Dev": ["seedorgusers", "seedgovusers"],
+    "Dev": ["seedorgusers", "seedgovusers", "seeddemodata"],
     "Tests": [
         "seedcasestatuses",
         "seedrolepermissions",

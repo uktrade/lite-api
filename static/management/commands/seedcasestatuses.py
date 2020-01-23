@@ -14,7 +14,7 @@ class Command(SeedCommand):
     """
 
     help = "Creates case statuses and case statuses on case types"
-    info = "Seeded case statuses"
+    info = "Seeding case statuses"
     success = "Successfully seeded case statuses"
     seed_command = "seedcasestatuses"
 
