@@ -45,21 +45,21 @@ class Command(SeedCommand):
     def create_team(model: models.Model, rows: list):
         teams = {}
         for row in rows:
-            team = Team.objects.filter(name=row["name"])
+            team = Team.objects.filter(name__iexact=row["name"])
             if not team.exists():
-                team = model.objects.create(**row)
-                print(f"CREATED {model.__name__}: {dict(row)}")
+                team_id = model.objects.create(**row).id
+                print(f"CREATED Team: {dict(row)}")
             else:
-                team = team.first()
-            teams[row["name"]] = team
+                team_id = team.first().id
+            teams[row["name"]] = str(team_id)
         return teams
 
     @staticmethod
     def _create_queue_or_flag(model: models.Model, rows: list, teams):
         for row in rows:
-            row["team"] = teams[row["team"]]
-            obj = model.objects.filter(team_id=row["team"], name=row["name"])
+            obj = model.objects.filter(name__iexact=row["team_name"])
             if not obj.exists():
+                row["team_id"] = teams[row.pop("team_name")]
                 model.objects.create(**row)
                 print(f"CREATED {model.__name__}: {dict(row)}")
 

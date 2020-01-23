@@ -100,7 +100,7 @@ def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
         user_org = dict(
             email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
         )
-        print(f"CREATED: {user_org}")
+        print(f"CREATED ExporterUser: {user_org}")
 
 
 class SeedOrgUsersTests(SeedCommandTest):

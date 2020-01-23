@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0002_timestampable'),
+        ("flags", "0002_timestampable"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='flag',
-            name='name',
-            field=models.TextField(default='Untitled Flag', max_length=25),
+            model_name="flag", name="name", field=models.TextField(default="Untitled Flag", max_length=25),
         ),
     ]

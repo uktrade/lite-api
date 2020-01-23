@@ -51,7 +51,7 @@ class Command(SeedCommand):
                     last_name=gov_user.last_name,
                     role=gov_user.role.name,
                 )
-                print(f"CREATED: {gov_user}")
+                print(f"CREATED GovUser: {gov_user}")
 
 
 class SeedGovUserTests(SeedCommandTest):
