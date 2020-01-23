@@ -47,11 +47,11 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(id__in=updated_case_ids)
 
     def assigned_to_user(self, user):
-        if user:
-            assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-            return self.filter(id__in=assigned_to_user_case_ids)
-        else:
-            return self.filter(case_assignments=None)
+        assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
+        return self.filter(id__in=assigned_to_user_case_ids)
+
+    def not_assigned_to_any_user(self):
+        return self.filter(case_assignments=None)
 
     def assigned_as_case_officer(self, user):
         assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
@@ -133,8 +133,9 @@ class CaseManager(models.Manager):
 
         if assigned_user:
             if assigned_user == self.NOT_ASSIGNED:
-                assigned_user = None
-            case_qs = case_qs.assigned_to_user(user=assigned_user)
+                case_qs = case_qs.not_assigned_to_any_user()
+            else:
+                case_qs = case_qs.assigned_to_user(user=assigned_user)
 
         if case_officer:
             if case_officer == self.NOT_ASSIGNED:
