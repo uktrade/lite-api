@@ -160,7 +160,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
-        url = f'{reverse("cases:search")}?case_officer=' + str(self.gov_user.id)
+        url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -202,7 +202,7 @@ class FilterAndSortTests(DataTestClient):
         case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
         case_assignment.users.set([self.gov_user])
         case_assignment.save()
-        url = f'{reverse("cases:search")}?assigned_user=' + str(self.gov_user.id)
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
