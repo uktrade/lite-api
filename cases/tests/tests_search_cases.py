@@ -173,8 +173,8 @@ class FilterAndSortTests(DataTestClient):
     def test_get_cases_filter_by_case_officer_not_assigned(self):
         """
         Given multiple cases exist with case officers attached and not attached
-        When a user requests to view All Cases when the case officer is set to not_assigned
-        Then only cases with no assigned case officers are returned
+        When a user requests to view All Cases with no assigned case officer
+        Then only cases without an assigned case officer are returned
         """
 
         # Arrange
@@ -215,8 +215,8 @@ class FilterAndSortTests(DataTestClient):
     def test_get_cases_filter_by_assigned_user_not_assigned(self):
         """
         Given multiple cases exist with users assigned and not assigned
-        When a user requests to view All Cases when the assigned user is set to themselves
-        Then only cases with that assigned user are returned
+        When a user requests to view All Cases which have no assigned users
+        Then only cases with no assigned users are returned
         """
 
         # Arrange
