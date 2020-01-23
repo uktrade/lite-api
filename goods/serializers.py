@@ -26,7 +26,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
-    date_of_issue = serializers.DateField(required=True)
+    date_of_issue = serializers.DateField(allow_null=False)
 
     class Meta:
         model = PvGradingDetails
@@ -88,6 +88,15 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
+    """
+    This serializer contains a nested creatable and writable serializer: PvGradingDetailsSerializer.
+    By default, nested serializers provide the ability to only retrieve data;
+    To make them writable and updatable you must override the create and update methods in the parent serializer.
+
+    This serializer sometimes can contain OrderedDict instance types due to it's 'validate_only' nature.
+    Because of this, each 'get' override must check the instance type before creating queries
+    """
+
     description = serializers.CharField(
         max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
     )
@@ -107,10 +116,6 @@ class GoodSerializer(serializers.ModelSerializer):
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
-
-    # This is a nested creatable and writable serializer.
-    # By default, nested serializers provide the ability to only retrieve data;
-    # To make them writable and updatable you must override the create and update methods in the parent serializer
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
