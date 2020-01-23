@@ -89,7 +89,15 @@ class CaseManager(models.Manager):
         return CaseQuerySet(self.model, using=self.db)
 
     def search(
-        self, queue_id=None, user=None, status=None, case_type=None, sort=None, date_order=None,
+        self,
+        queue_id=None,
+        user=None,
+        status=None,
+        case_type=None,
+        sort=None,
+        assigned_user=None,
+        case_officer=None,
+        date_order=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -114,6 +122,16 @@ class CaseManager(models.Manager):
 
         if case_type:
             case_qs = case_qs.is_type(case_type=case_type)
+
+        if assigned_user:
+            if assigned_user == "not_assigned":
+                assigned_user = None
+            case_qs = case_qs.assigned_to_user(user=assigned_user)
+
+        if case_officer:
+            if case_officer == "not_assigned":
+                case_officer = None
+            case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
         if isinstance(date_order, str):
             case_qs = case_qs.order_by_date(date_order)
