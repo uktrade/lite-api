@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -149,6 +150,94 @@ class FilterAndSortTests(DataTestClient):
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
             self.assertEqual("clc_query", case_type)
+
+    @tag("only")
+    def test_get_cases_filter_by_case_officer(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases when the case officer is set to themselves
+        Then only cases of that type are returned
+        """
+
+        # Arrange
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer=' + str(self.gov_user.id)
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+
+    @tag("only")
+    def test_get_cases_filter_by_case_officer_not_assigned(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases when the case officer is set to not_assigned
+        Then only cases with no assigned case officers are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+
+    @tag("only")
+    def test_get_cases_filter_by_assigned_user(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases when the assigned user is set to themselves
+        Then only cases with that assigned user are returned
+        """
+
+        # Arrange
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user=' + str(self.gov_user.id)
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+
+    @tag("only")
+    def test_get_cases_filter_by_assigned_user_not_assigned(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases when the assigned user is set to themselves
+        Then only cases with that assigned user are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
 
     def test_get_submitted_status_and_clc_type_cases(self):
         """
