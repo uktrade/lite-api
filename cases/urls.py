@@ -17,7 +17,7 @@ urlpatterns = [
     path(
         "<uuid:case_pk>/documents/<uuid:document_pk>/download/",
         views.ExporterCaseDocumentDownload.as_view(),
-        name="document",
+        name="document_download",
     ),
     path("<uuid:pk>/user-advice/", views.CaseAdvice.as_view(), name="case_advice"),
     path("<uuid:pk>/team-advice/", views.CaseTeamAdvice.as_view(), name="case_team_advice",),
