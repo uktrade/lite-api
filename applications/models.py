@@ -104,7 +104,7 @@ class ExternalLocationOnApplication(models.Model):
 class GoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
-    application = models.ForeignKey(StandardApplication, related_name="goods", on_delete=models.CASCADE)
+    application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
