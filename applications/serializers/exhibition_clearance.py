@@ -72,3 +72,17 @@ class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
             "type",
             "status",
         )
+
+
+class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
+    name = CharField(
+        max_length=100,
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": strings.Goods.REF_NAME},
+    )
+
+    class Meta:
+        model = ExhibitionClearanceApplication
+        fields = GenericApplicationUpdateSerializer.Meta.fields
