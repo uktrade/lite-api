@@ -21,7 +21,7 @@ class CaseTypeEnum:
 
     @classmethod
     def as_list(cls):
-        return [{"value": choice[0], "title": choice[1],} for choice in cls.choices]
+        return [{"key": choice[0], "value": choice[1],} for choice in cls.choices]
 
 
 class AdviceType:
