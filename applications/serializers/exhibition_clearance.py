@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from lite_content.lite_api import strings
+from rest_framework.fields import CharField
 
 from applications.models import ApplicationDocument
 from applications.models import ExhibitionClearanceApplication
@@ -6,6 +8,7 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationViewSerializer,
+    GenericApplicationUpdateSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
