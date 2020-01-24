@@ -242,11 +242,7 @@ class ApplicationThirdParties(APIView):
         """
         Get third parties associated with a application
         """
-        third_party_data = PartySerializer(
-            application.third_parties,
-            many=True,
-            required_fields=('role',)
-        ).data
+        third_party_data = PartySerializer(application.third_parties, many=True, required_fields=("role",)).data
 
         return JsonResponse(data={"third_parties": third_party_data})
 

@@ -24,15 +24,29 @@ class PartySerializer(serializers.ModelSerializer):
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
-    role = KeyValueChoiceField(choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False)
+    role = KeyValueChoiceField(
+        choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
+    )
     flags = FlagSerializer(many=True, required=False)
 
     class Meta:
         model = Party
-        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role", "flags")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+            "role",
+            "flags",
+        )
 
     def __init__(self, *args, **kwargs):
-        required_fields = kwargs.pop('required_fields', 0)
+        required_fields = kwargs.pop("required_fields", 0)
 
         super(PartySerializer, self).__init__(*args, **kwargs)
 
@@ -40,7 +54,6 @@ class PartySerializer(serializers.ModelSerializer):
             for field, serializer_instance in self.fields.items():
                 if field in required_fields:
                     serializer_instance.required = True
-
 
     @staticmethod
     def validate_website(value):

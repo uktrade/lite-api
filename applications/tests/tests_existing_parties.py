@@ -24,7 +24,7 @@ class GetExistingPartiesTests(DataTestClient):
                 type=PartyType.END_USER,
                 country=self.country,
                 sub_type="government",
-                organisation=self.organisation
+                organisation=self.organisation,
             )
 
     def test_get_existing_parties(self):

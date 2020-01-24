@@ -158,9 +158,7 @@ class Advice(TimestampableModel):
     goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
     country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey(Party, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(
-        Party, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
-    )
+    ultimate_end_user = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,)
     consignee = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="consignee", null=True)
     third_party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="third_party", null=True)
 
