@@ -41,7 +41,7 @@ class ApplicationGoodsOnApplication(APIView):
     @allowed_application_types([ApplicationType.STANDARD_LICENCE])
     @authorised_users(ExporterUser)
     def get(self, request, application):
-        goods = GoodOnApplication.objects.filter(application=application).order_by("created_at")
+        goods = GoodOnApplication.objects.filter(application=application)
         goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={"goods": goods_data})
