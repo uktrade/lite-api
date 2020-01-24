@@ -40,16 +40,11 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
             "date_of_issue",
         )
 
-    def __init__(self, *args, **kwargs):
-        super(PvGradingDetailsSerializer, self).__init__(*args, **kwargs)
-
-        if not self.get_initial().get("grading"):
-            self.fields["custom_grading"] = serializers.CharField(
-                allow_blank=False, allow_null=False, error_messages={"blank": strings.Goods.NO_CUSTOM_GRADING_ERROR},
-            )
-
     def validate(self, data):
         validated_data = super(PvGradingDetailsSerializer, self).validate(data)
+
+        if not self.get_initial().get("grading") and not validated_data.get("custom_grading"):
+            raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
 
         if validated_data.get("grading") and validated_data.get("custom_grading"):
             raise serializers.ValidationError(
