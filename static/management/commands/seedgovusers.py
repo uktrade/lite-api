@@ -3,7 +3,7 @@ import json
 from django.db import transaction
 
 from conf.settings import env
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.management.SeedCommand import SeedCommand
 from teams.models import Team
 from users.models import GovUser, Role, Permission
 
@@ -27,6 +27,8 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
+        assert Role.objects.count(), "Role permissions must be seeded first!"
+
         super_user_role = Role.objects.get(id=SUPER_USER_ROLE_ID)
         # Default team
         team = Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)[0]
@@ -48,11 +50,3 @@ class Command(SeedCommand):
                 gov_user_data = dict(email=email, team=team, role=super_user_role)
                 GovUser.objects.create(**gov_user_data)
                 print(f"CREATED GovUser: {gov_user_data}")
-
-
-class SeedGovUserTests(SeedCommandTest):
-    def test_seed_gov_user(self):
-        self.seed_command(Command)
-        self.assertTrue(Permission.objects)
-        self.assertTrue(GovUser.objects)
-        self.assertTrue(Role.objects)

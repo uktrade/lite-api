@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from conf.constants import GovPermissions, ExporterPermissions
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.management.SeedCommand import SeedCommand
 from static.statuses.models import CaseStatus
 from users.enums import UserType
 from users.models import Permission, Role
@@ -80,9 +80,3 @@ class Command(SeedCommand):
         role.permissions.add(*permissions)
 
         role.save()
-
-
-class SeedPermissionsTests(SeedCommandTest):
-    def test_seed_org_users(self):
-        self.seed_command(Command)
-        self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))

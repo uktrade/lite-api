@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.management.SeedCommand import SeedCommand
 
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
@@ -28,10 +28,3 @@ class Command(SeedCommand):
 
         self.delete_unused_objects(CaseStatus, status_csv)
         self.delete_unused_objects(CaseStatusCaseType, case_to_status_csv)
-
-
-class SeedCaseStatusesTests(SeedCommandTest):
-    def test_seed_case_statuses(self):
-        self.seed_command(Command)
-        self.assertTrue(CaseStatus.objects.count() == len(Command.read_csv(STATUSES_FILE)))
-        self.assertTrue(CaseStatusCaseType.objects.count() == len(Command.read_csv(STATUS_ON_TYPE_FILE)))
