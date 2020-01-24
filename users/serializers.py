@@ -103,7 +103,13 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "email", "role", "organisation", "sites")
+        fields = (
+            "id",
+            "email",
+            "role",
+            "organisation",
+            "sites",
+        )
 
     def validate_email(self, email):
         if hasattr(self, "initial_data") and "organisation" in self.initial_data:
@@ -131,32 +137,44 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return role
 
     def create(self, validated_data):
-        organisation = validated_data.pop("organisation")
-        sites = validated_data.pop("sites")
-        role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        if "role" in validated_data:
-            role = validated_data.pop("role")
-        exporter, _ = ExporterUser.objects.get_or_create(email=validated_data["email"], defaults={**validated_data})
+        exporter_user = ExporterUser.objects.filter(email__iexact=validated_data["email"])
+        organisation = validated_data.pop("organisation", None)
+        sites = validated_data.pop("sites", None)
+        role = validated_data.pop("role", None)
 
-        if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
-            relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
-            relationship.save()
-            relationship.sites.set(sites)
+        if not exporter_user.exists():
+            exporter_user = ExporterUser.objects.create(**validated_data)
         else:
-            relationship = UserOrganisationRelationship(
-                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
-            )
-            relationship.save()
-            relationship.sites.set(sites)
+            exporter_user = exporter_user.first()
 
-        return exporter
+        user_org = UserOrganisationRelationship.objects.filter(user=exporter_user, organisation=organisation)
+
+        if not user_org.exists():
+            user_org = UserOrganisationRelationship(
+                user=exporter_user,
+                organisation=organisation,
+                role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID),
+            )
+            user_org.save()
+            user_org.sites.set(sites)
+        else:
+            user_org = user_org.first()
+            user_org.role = role or user_org.role
+            user_org.save()
+            user_org.sites.set(sites)
+
+        return exporter_user
 
     def update(self, instance, validated_data):
         """
         Update and return an existing `User` instance, given the validated data.
         """
-        instance.email = validated_data.get("email", instance.email)
-        instance.save()
+        email = validated_data.get("email")
+        if email:
+            exporter_user = ExporterUser.objects.filter(email__iexact=email)
+            if not exporter_user.exists():
+                instance.email = email
+                instance.save()
         return instance
 
 
