@@ -62,7 +62,7 @@ def get_application_update_serializer(application: BaseApplication):
         return OpenApplicationUpdateSerializer
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryUpdateSerializer
-    elif application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
         return ExhibitionClearanceUpdateSerializer
     else:
         raise BadRequestError(
