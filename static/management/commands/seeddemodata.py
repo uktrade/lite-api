@@ -55,7 +55,7 @@ class Command(SeedCommand):
     @staticmethod
     def _create_queue_or_flag(model: models.Model, rows: list, teams: dict):
         for row in rows:
-            obj = model.objects.filter(name__iexact=row["team_name"])
+            obj = model.objects.filter(name__iexact=row["name"])
             if not obj.exists():
                 row["team_id"] = teams[row.pop("team_name")]
                 model.objects.create(**row)
