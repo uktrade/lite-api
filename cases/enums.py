@@ -3,12 +3,14 @@ class CaseTypeEnum:
     CLC_QUERY = "clc_query"
     END_USER_ADVISORY_QUERY = "end_user_advisory_query"
     HMRC_QUERY = "hmrc_query"
+    EXHIBITION_CLEARANCE = "exhibition_clearance"
 
     choices = [
         (APPLICATION, "Application"),
         (CLC_QUERY, "CLC Query"),
         (END_USER_ADVISORY_QUERY, "End User Advisory Query"),
         (HMRC_QUERY, "HMRC Query"),
+        (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
     ]
 
     @classmethod

@@ -45,6 +45,17 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+class ExhibitionClearanceApplication(BaseApplication):
+    end_user = models.ForeignKey(
+        EndUser, related_name="application_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="application_ultimate_end_users")
+    consignee = models.ForeignKey(
+        Consignee, related_name="application_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="application_third_parties")
+
+
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     end_user = models.ForeignKey(
