@@ -15,6 +15,10 @@ from applications.serializers.standard_application import (
     StandardApplicationUpdateSerializer,
     StandardApplicationViewSerializer,
 )
+from applications.serializers.exhibition_clearance import (
+    ExhibitionClearanceCreateSerializer,
+    ExhibitionClearanceViewSerializer,
+)
 from conf.exceptions import BadRequestError
 from lite_content.lite_api import strings
 
@@ -26,6 +30,8 @@ def get_application_view_serializer(application: BaseApplication):
         return OpenApplicationViewSerializer
     elif application.application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryViewSerializer
+    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+        return ExhibitionClearanceViewSerializer
     else:
         raise BadRequestError(
             {
@@ -42,6 +48,8 @@ def get_application_create_serializer(application_type):
         return OpenApplicationCreateSerializer
     elif application_type == ApplicationType.HMRC_QUERY:
         return HmrcQueryCreateSerializer
+    elif application_type == ApplicationType.EXHIBITION_CLEARANCE:
+        return ExhibitionClearanceCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
 
