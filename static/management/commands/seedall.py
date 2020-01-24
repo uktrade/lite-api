@@ -13,9 +13,8 @@ SEED_COMMANDS = {
         "seedlayouts",
         "seedsystemflags",
         "seedcasetypes",
-        "temporary_give_existing_exporters_superuser_role",
     ],
-    "Dev": ["seedorgusers", "seedgovusers", "seeddemodata"],
+    "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
     "Tests": [
         "seedcasestatuses",
         "seedrolepermissions",
