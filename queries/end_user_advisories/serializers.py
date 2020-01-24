@@ -24,7 +24,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
-    end_user = PartySerializer(required_fields=("flags",))
+    end_user = PartySerializer()
     reasoning = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     contact_email = serializers.EmailField()
