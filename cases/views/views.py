@@ -35,11 +35,15 @@ from cases.serializers import (
     CaseOfficerUpdateSerializer,
 )
 from conf import constants
-from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
+from documents.libraries.s3_operations import document_download_stream
+from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
+from lite_content.lite_api.strings import Documents
 from parties.serializers import PartyWithFlagsSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -135,6 +139,20 @@ class CaseDocumentDetail(APIView):
         case_document = get_case_document(case, s3_key)
         serializer = CaseDocumentViewSerializer(case_document)
         return JsonResponse(data={"document": serializer.data}, status=status.HTTP_200_OK)
+
+
+class ExporterCaseDocumentDownload(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request, case_pk, document_pk):
+        case = get_case(case_pk)
+        if case.organisation != request.user.organisation:
+            return HttpResponse(status.HTTP_401_UNAUTHORIZED)
+        try:
+            document = CaseDocument.objects.get(id=document_pk, case=case)
+            return document_download_stream(document)
+        except Document.DoesNotExist:
+            raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
 
 
 class CaseAdvice(APIView):
