@@ -109,7 +109,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        third_party_qs = Party.objects.filter(type=PartyType.THIRD)
+        third_party_qs = Party.objects.filter(type=PartyType.THIRD_PARTY)
         pre_test_third_party_count = third_party_qs.count()
         data = {
             "name": "UK Government",
@@ -209,7 +209,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.delete(remove_tp_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Party.objects.filter(type=PartyType.THIRD).count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.THIRD_PARTY).count(), 0)
         delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))

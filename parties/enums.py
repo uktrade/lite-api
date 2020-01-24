@@ -1,14 +1,14 @@
 class PartyType:
     CONSIGNEE = "consignee"
-    END = "end_user"
-    ULTIMATE = "ultimate_end_user"
-    THIRD = "third_party"
+    END_USER = "end_user"
+    ULTIMATE_END_USER = "ultimate_end_user"
+    THIRD_PARTY = "third_party"
 
     choices = [
         (CONSIGNEE, "Consignee"),
-        (END, "End User"),
-        (ULTIMATE, "Ultimate End User"),
-        (THIRD, "Third Party"),
+        (END_USER, "End User"),
+        (ULTIMATE_END_USER, "Ultimate End User"),
+        (THIRD_PARTY, "Third Party"),
     ]
 
 

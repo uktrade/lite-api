@@ -200,7 +200,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             address="42 Road, London, Buckinghamshire",
             website="www." + name + ".com",
             sub_type=SubType.GOVERNMENT,
-            type=PartyType.END,
+            type=PartyType.END_USER,
             country=get_country("GB"),
         )
         end_user.save()
@@ -214,7 +214,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             address="42 Road, London, Buckinghamshire",
             website="www." + name + ".com",
             sub_type=SubType.GOVERNMENT,
-            type=PartyType.ULTIMATE,
+            type=PartyType.ULTIMATE_END_USER,
             country=get_country("GB"),
         )
         ultimate_end_user.save()
@@ -243,7 +243,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             website="www." + name + ".com",
             sub_type=SubType.GOVERNMENT,
             role=PartyRole.AGENT,
-            type=PartyType.THIRD,
+            type=PartyType.THIRD_PARTY,
             country=get_country("GB"),
         )
         third_party.save()

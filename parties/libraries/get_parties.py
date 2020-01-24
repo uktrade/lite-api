@@ -9,7 +9,7 @@ def get_end_user(application_pk):
 
 
 def get_ultimate_end_user(pk):
-    return Party.objects.get(pk=pk, type=PartyType.ULTIMATE)
+    return Party.objects.get(pk=pk, type=PartyType.ULTIMATE_END_USER)
 
 
 def get_consignee(application_pk):
@@ -18,4 +18,4 @@ def get_consignee(application_pk):
 
 
 def get_third_party(pk):
-    return Party.objects.get(pk=pk, type=PartyType.THIRD)
+    return Party.objects.get(pk=pk, type=PartyType.THIRD_PARTY)

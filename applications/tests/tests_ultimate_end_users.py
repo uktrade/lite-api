@@ -99,7 +99,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no ultimate end users have been added
         """
-        pre_test_ueu_count = Party.objects.filter(type=PartyType.ULTIMATE).count()
+        pre_test_ueu_count = Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count()
         data = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
@@ -114,7 +114,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE).count(), pre_test_ueu_count)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), pre_test_ueu_count)
 
     def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self,):
         """
@@ -197,7 +197,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response = self.client.delete(remove_ueu_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE).count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), 0)
         delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))

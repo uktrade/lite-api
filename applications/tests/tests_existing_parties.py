@@ -21,7 +21,7 @@ class GetExistingPartiesTests(DataTestClient):
         for party in self.parties:
             Party.objects.create(
                 **party,
-                type=PartyType.END,
+                type=PartyType.END_USER,
                 country=self.country,
                 sub_type="government",
                 organisation=self.organisation

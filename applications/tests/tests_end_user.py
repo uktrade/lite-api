@@ -62,7 +62,7 @@ class EndUserOnDraftTests(DataTestClient):
         """
         self.draft.end_user = None
         self.draft.save()
-        pre_test_end_user_count = Party.objects.filter(type=PartyType.END).count()
+        pre_test_end_user_count = Party.objects.filter(type=PartyType.END_USER).count()
         draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
             "name": "Government",
@@ -76,7 +76,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Party.objects.filter(type=PartyType.END).count(), pre_test_end_user_count)
+        self.assertEqual(Party.objects.filter(type=PartyType.END_USER).count(), pre_test_end_user_count)
 
     @parameterized.expand(
         [
@@ -151,7 +151,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Party.objects.filter(type=PartyType.END).count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.END_USER).count(), 0)
 
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
         """
@@ -303,5 +303,5 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.delete(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Party.objects.filter(type=PartyType.END).count(), 0)
+        self.assertEqual(Party.objects.filter(type=PartyType.END_USER).count(), 0)
         delete_s3_function.assert_called_once()
