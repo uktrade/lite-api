@@ -10,6 +10,11 @@ from parties.models import Party
 from parties.models import PartyDocument
 
 
+class FlagSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    id = serializers.CharField()
+
+
 class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
@@ -19,10 +24,23 @@ class PartySerializer(serializers.ModelSerializer):
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
+    role = KeyValueChoiceField(choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False)
+    flags = FlagSerializer(many=True, required=False)
 
     class Meta:
         model = Party
-        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type")
+        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role", "flags")
+
+    def __init__(self, *args, **kwargs):
+        required_fields = kwargs.pop('required_fields', 0)
+
+        super(PartySerializer, self).__init__(*args, **kwargs)
+
+        if required_fields:
+            for field, serializer_instance in self.fields.items():
+                if field in required_fields:
+                    serializer_instance.required = True
+
 
     @staticmethod
     def validate_website(value):
@@ -50,92 +68,6 @@ class PartySerializer(serializers.ModelSerializer):
         return docs[0] if docs else None
 
 
-class EndUserWithFlagsSerializer(PartySerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"
-
-
-class UltimateEndUserSerializer(PartySerializer):
-    class Meta:
-        model = Party
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
-
-
-class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"
-
-
-class ConsigneeSerializer(PartySerializer):
-    class Meta:
-        model = Party
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-        )
-
-
-class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"
-
-
-class ThirdPartySerializer(PartySerializer):
-    role = KeyValueChoiceField(
-        choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
-    )
-
-    class Meta:
-        model = Party
-        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role")
-
-
-class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"
-
-
 class PartyDocumentSerializer(serializers.ModelSerializer):
     party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
 
@@ -155,14 +87,3 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
-
-
-class PartyWithFlagsSerializer(PartySerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"

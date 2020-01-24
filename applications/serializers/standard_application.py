@@ -12,22 +12,16 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
-from parties.serializers import (
-    EndUserSerializer,
-    EndUserWithFlagsSerializer,
-    UltimateEndUserWithFlagsSerializer,
-    ThirdPartyWithFlagsSerializer,
-    ConsigneeWithFlagsSerializer,
-)
+from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserWithFlagsSerializer()
-    ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
-    third_parties = ThirdPartyWithFlagsSerializer(many=True)
-    consignee = ConsigneeWithFlagsSerializer()
+    end_user = PartySerializer(required_fields=("flags",))
+    ultimate_end_users = PartySerializer(many=True, required_fields=("flags",))
+    third_parties = PartySerializer(many=True, required_fields=("flags",))
+    consignee = PartySerializer(required_fields=("flags",))
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
@@ -50,7 +44,7 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_destinations(self, application):
         if application.end_user:
-            serializer = EndUserSerializer(application.end_user)
+            serializer = PartySerializer(application.end_user)
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}

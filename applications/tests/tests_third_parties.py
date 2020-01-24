@@ -109,7 +109,8 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        pre_test_third_party_count = Party.objects.all(type=PartyType.THIRD).count()
+        third_party_qs = Party.objects.filter(type=PartyType.THIRD)
+        pre_test_third_party_count = third_party_qs.count()
         data = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
@@ -123,7 +124,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Party.objects.filter(type=PartyType.THIRD).count(), pre_test_third_party_count)
+        self.assertEqual(third_party_qs.count(), pre_test_third_party_count)
 
         audit_qs = Audit.objects.all()
 

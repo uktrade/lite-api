@@ -11,22 +11,17 @@ from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from parties.serializers import (
-    EndUserSerializer,
-    UltimateEndUserSerializer,
-    ThirdPartySerializer,
-    ConsigneeSerializer,
-)
+from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
-    end_user = EndUserSerializer()
-    ultimate_end_users = UltimateEndUserSerializer(many=True)
-    third_parties = ThirdPartySerializer(many=True)
-    consignee = ConsigneeSerializer()
+    end_user = PartySerializer()
+    ultimate_end_users = PartySerializer(many=True)
+    third_parties = PartySerializer(many=True, required_fields=("role",))
+    consignee = PartySerializer()
     hmrc_organisation = TinyOrganisationViewSerializer()
     supporting_documentation = serializers.SerializerMethodField()
 

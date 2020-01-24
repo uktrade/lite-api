@@ -9,10 +9,10 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
 from cases.helpers import create_grouped_advice
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
-from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -44,7 +44,7 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents
-from parties.serializers import PartyWithFlagsSerializer
+from parties.serializers import PartySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -458,7 +458,7 @@ class Destination(APIView):
         if isinstance(destination, Country):
             serializer = CountryWithFlagsSerializer(destination)
         else:
-            serializer = PartyWithFlagsSerializer(destination)
+            serializer = PartySerializer(destination, required_fields=("flags",))
 
         return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
 

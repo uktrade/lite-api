@@ -15,12 +15,7 @@ from conf.decorators import (
 from parties.enums import PartyType
 from parties.helpers import delete_party_document_if_exists
 from parties.models import Party
-from parties.serializers import (
-    EndUserSerializer,
-    UltimateEndUserSerializer,
-    ConsigneeSerializer,
-    ThirdPartySerializer,
-)
+from parties.serializers import PartySerializer
 from users.models import ExporterUser
 
 
@@ -39,7 +34,7 @@ class ApplicationEndUser(APIView):
         data["type"] = PartyType.END
         case = application.get_case()
 
-        serializer = EndUserSerializer(data=data)
+        serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,7 +98,7 @@ class ApplicationUltimateEndUsers(APIView):
         """
         Get ultimate end users associated with a application
         """
-        ueu_data = UltimateEndUserSerializer(application.ultimate_end_users, many=True).data
+        ueu_data = PartySerializer(application.ultimate_end_users, many=True).data
 
         return JsonResponse(data={"ultimate_end_users": ueu_data})
 
@@ -118,7 +113,7 @@ class ApplicationUltimateEndUsers(APIView):
         data["organisation"] = request.user.organisation.id
         data["type"] = PartyType.ULTIMATE
 
-        serializer = UltimateEndUserSerializer(data=data)
+        serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -178,7 +173,7 @@ class ApplicationConsignee(APIView):
         data["type"] = PartyType.CONSIGNEE
 
         case = application.get_case()
-        serializer = ConsigneeSerializer(data=data)
+        serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -191,7 +186,6 @@ class ApplicationConsignee(APIView):
         if previous_consignee:
             delete_party_document_if_exists(previous_consignee)
             previous_consignee.delete()
-
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
@@ -248,7 +242,11 @@ class ApplicationThirdParties(APIView):
         """
         Get third parties associated with a application
         """
-        third_party_data = ThirdPartySerializer(application.third_parties, many=True).data
+        third_party_data = PartySerializer(
+            application.third_parties,
+            many=True,
+            required_fields=('role',)
+        ).data
 
         return JsonResponse(data={"third_parties": third_party_data})
 
@@ -265,7 +263,7 @@ class ApplicationThirdParties(APIView):
 
         case = application.get_case()
 
-        serializer = ThirdPartySerializer(data=data)
+        serializer = PartySerializer(data=data, required_fields=("role"))
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
