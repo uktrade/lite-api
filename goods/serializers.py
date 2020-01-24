@@ -26,7 +26,10 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
     issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
     reference = serializers.CharField(allow_blank=False, allow_null=False)
-    date_of_issue = serializers.DateField(allow_null=False)
+    date_of_issue = serializers.DateField(
+        allow_null=False,
+        error_messages={"invalid": "Enter the products date of issue and include a day, month, year."},
+    )
 
     class Meta:
         model = PvGradingDetails
@@ -43,7 +46,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(PvGradingDetailsSerializer, self).validate(data)
 
-        if not self.get_initial().get("grading") and not validated_data.get("custom_grading"):
+        if not validated_data.get("grading") and not validated_data.get("custom_grading"):
             raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
 
         if validated_data.get("grading") and validated_data.get("custom_grading"):
