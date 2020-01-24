@@ -27,7 +27,7 @@ class Command(SeedCommand):
         self.seed_queues(teams)
         self.seed_flags(teams)
 
-    def seed_teams(self):
+    def seed_teams(self) -> dict:
         teams_csv = self.read_csv(TEAMS_FILE)
         return self.create_team(Team, teams_csv)
 
@@ -40,7 +40,7 @@ class Command(SeedCommand):
         self._create_queue_or_flag(Flag, flags_csv, team_ids)
 
     @staticmethod
-    def create_team(model: models.Model, rows: list):
+    def create_team(model: models.Model, rows: list) -> dict:
         teams = {}
         for row in rows:
             team = Team.objects.filter(name__iexact=row["name"])
@@ -53,7 +53,7 @@ class Command(SeedCommand):
         return teams
 
     @staticmethod
-    def _create_queue_or_flag(model: models.Model, rows: list, teams):
+    def _create_queue_or_flag(model: models.Model, rows: list, teams: dict):
         for row in rows:
             obj = model.objects.filter(name__iexact=row["team_name"])
             if not obj.exists():
