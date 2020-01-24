@@ -151,6 +151,98 @@ class FilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
             self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
 
+    def test_get_cases_filter_by_case_officer(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases when the case officer is set to themselves
+        Then only cases of that type are returned
+        """
+
+        # Arrange
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_case_officer_not_assigned(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases with no assigned case officer
+        Then only cases without an assigned case officer are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_cases_filter_by_assigned_user(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases when the assigned user is set to themselves
+        Then only cases with that assigned user are returned
+        """
+
+        # Arrange
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_assigned_user_not_assigned(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases which have no assigned users
+        Then only cases with no assigned users are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
     def test_get_submitted_status_and_clc_type_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types
