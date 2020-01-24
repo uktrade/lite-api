@@ -175,6 +175,7 @@ class ApplicationConsignee(APIView):
         case = application.get_case()
 
         serializer = ConsigneeSerializer(data=data)
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

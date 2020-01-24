@@ -22,6 +22,8 @@ class Party(TimestampableModel):
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+    # FK is self referencing
+    copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
 
 
 class Consignee(Party):

@@ -19,10 +19,22 @@ class PartySerializer(serializers.ModelSerializer):
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
+    copy_of = relations.PrimaryKeyRelatedField(queryset=Party.objects.all(), allow_null=True, required=False)
 
     class Meta:
         model = Party
-        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+            "copy_of",
+        )
 
     @staticmethod
     def validate_website(value):
@@ -63,6 +75,7 @@ class EndUserSerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
+            "copy_of",
         )
 
 
@@ -90,6 +103,7 @@ class UltimateEndUserSerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
+            "copy_of",
         )
 
 
@@ -117,6 +131,7 @@ class ConsigneeSerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
+            "copy_of"
         )
 
 
@@ -138,7 +153,19 @@ class ThirdPartySerializer(PartySerializer):
 
     class Meta:
         model = ThirdParty
-        fields = ("id", "name", "address", "country", "website", "type", "organisation", "document", "sub_type", "role")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "country",
+            "website",
+            "type",
+            "organisation",
+            "document",
+            "sub_type",
+            "role",
+            "copy_of",
+        )
 
 
 class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
