@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('statuses', '0001_initial'),
+        ("statuses", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casestatuscasetype',
-            name='type',
-            field=models.CharField(choices=[('application', 'Application'), ('clc_query', 'CLC Query'), ('end_user_advisory_query', 'End User Advisory Query'), ('hmrc_query', 'HMRC Query'), ('exhibition_clearance', 'MOD Exhibition Clearance')], max_length=35),
+            model_name="casestatuscasetype",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("application", "Application"),
+                    ("clc_query", "CLC Query"),
+                    ("end_user_advisory_query", "End User Advisory Query"),
+                    ("hmrc_query", "HMRC Query"),
+                    ("exhibition_clearance", "MOD Exhibition Clearance"),
+                ],
+                max_length=35,
+            ),
         ),
     ]
