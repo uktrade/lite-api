@@ -99,6 +99,9 @@ class GoodOnApplication(TimestampableModel):
     value = models.DecimalField(max_digits=256, decimal_places=2)
     is_good_incorporated = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ["created_at"]
+
 
 class CountryOnApplication(models.Model):
     """

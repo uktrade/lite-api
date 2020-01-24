@@ -8,6 +8,10 @@ from documents.serializers import DocumentViewSerializer
 
 
 class DocumentDetail(APIView):
+    """
+    Get information about a Document
+    """
+
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
