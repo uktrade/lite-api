@@ -5,8 +5,8 @@ from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from conf.helpers import str_to_bool
-from queues.helpers import get_queue, get_queues
+from queues.helpers import get_queue
+from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer
 
 
@@ -16,13 +16,9 @@ class QueuesList(APIView):
 
     def get(self, request):
         """
-        Gets all queues.
-        Optionally includes the system defined, pseudo queues "All cases" and "Open cases"
+        Returns all queues
         """
-        queues = get_queues(
-            include_system_queues=str_to_bool(request.GET.get("include_system_queues", False)), user=request.user
-        )
-
+        queues = Queue.objects.all()
         serializer = QueueViewSerializer(queues, many=True)
         return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
 
@@ -46,7 +42,7 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance
         """
-        queue = get_queue(pk=pk, user=request.user)
+        queue = get_queue(pk=pk)
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_200_OK)
 

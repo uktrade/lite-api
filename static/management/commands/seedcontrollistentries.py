@@ -1,9 +1,8 @@
 from django.db import transaction
 from openpyxl import load_workbook
 
-from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.parser import parse_list_into_control_list_entries
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from static.management.SeedCommand import SeedCommand
 
 
 class Command(SeedCommand):
@@ -27,9 +26,3 @@ class Command(SeedCommand):
         # Loop through remaining sheets
         for sheet in wb.worksheets:
             parse_list_into_control_list_entries(sheet)
-
-
-class SeedControlListEntriesTests(SeedCommandTest):
-    def test_seed_control_list_entries(self):
-        self.seed_command(Command)
-        self.assertTrue(ControlListEntry.objects.count() > 3000)
