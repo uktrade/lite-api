@@ -137,33 +137,31 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return role
 
     def create(self, validated_data):
-        exporter_user = ExporterUser.objects.filter(email__iexact=validated_data["email"])
-        organisation = validated_data.pop("organisation", None)
-        sites = validated_data.pop("sites", None)
-        role = validated_data.pop("role", None)
+        organisation = validated_data.pop("organisation")
+        sites = validated_data.pop("sites")
+        role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
+        if "role" in validated_data:
+            role = validated_data.pop("role")
 
-        if not exporter_user.exists():
-            exporter_user = ExporterUser.objects.create(**validated_data)
+        exporter = ExporterUser.objects.filter(email__iexact=validated_data["email"])
+
+        if not exporter.exists():
+            exporter = ExporterUser.objects.create(**validated_data)
         else:
-            exporter_user = exporter_user.first()
+            exporter = exporter.first()
 
-        user_org = UserOrganisationRelationship.objects.filter(user=exporter_user, organisation=organisation)
-
-        if not user_org.exists():
-            user_org = UserOrganisationRelationship(
-                user=exporter_user,
-                organisation=organisation,
-                role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID),
+        if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
+            relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
+            relationship.save()
+            relationship.sites.set(sites)
+        else:
+            relationship = UserOrganisationRelationship(
+                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
             )
-            user_org.save()
-            user_org.sites.set(sites)
-        else:
-            user_org = user_org.first()
-            user_org.role = role or user_org.role
-            user_org.save()
-            user_org.sites.set(sites)
+            relationship.save()
+            relationship.sites.set(sites)
 
-        return exporter_user
+        return exporter
 
     def update(self, instance, validated_data):
         """
