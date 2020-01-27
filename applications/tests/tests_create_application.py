@@ -7,7 +7,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication
+from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication, ExhibitionClearanceApplication
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -32,6 +32,20 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(StandardApplication.objects.count(), 1)
+
+    def test_create_draft_exhibition_clearance_application_successful(self):
+        """
+        Ensure we can create a new Exhibition Clearance draft object
+        """
+        data = {
+            "name": "Test",
+            "application_type": ApplicationType.EXHIBITION_CLEARANCE,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
 
     def test_create_draft_open_application_successful(self):
         """
@@ -82,6 +96,8 @@ class DraftTests(DataTestClient):
             [{"application_type": ApplicationType.STANDARD_LICENCE, "export_type": ApplicationExportType.TEMPORARY,}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY,}],
             [{"name": "Test", "application_type": ApplicationType.STANDARD_LICENCE,}],
+            [{"application_type": ApplicationType.EXHIBITION_CLEARANCE,}],
+            [{"name": "Test",}]
         ]
     )
     def test_create_draft_failure(self, data):
