@@ -131,7 +131,7 @@ class ConsigneeSerializer(PartySerializer):
             "organisation",
             "document",
             "sub_type",
-            "copy_of"
+            "copy_of",
         )
 
 
