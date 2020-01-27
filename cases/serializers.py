@@ -30,6 +30,7 @@ from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
@@ -110,7 +111,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.organisation.name
 
     def get_status(self, instance):
-        return instance.status.status
+        return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
