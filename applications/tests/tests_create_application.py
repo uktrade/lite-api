@@ -7,7 +7,13 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from applications.models import StandardApplication, OpenApplication, HmrcQuery, BaseApplication, ExhibitionClearanceApplication
+from applications.models import (
+    StandardApplication,
+    OpenApplication,
+    HmrcQuery,
+    BaseApplication,
+    ExhibitionClearanceApplication,
+)
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -97,7 +103,7 @@ class DraftTests(DataTestClient):
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY,}],
             [{"name": "Test", "application_type": ApplicationType.STANDARD_LICENCE,}],
             [{"application_type": ApplicationType.EXHIBITION_CLEARANCE,}],
-            [{"name": "Test",}]
+            [{"name": "Test",}],
         ]
     )
     def test_create_draft_failure(self, data):
