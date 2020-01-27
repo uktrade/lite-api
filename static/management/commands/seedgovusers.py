@@ -45,8 +45,7 @@ class Command(SeedCommand):
 
         # Create all SEED_USERS and give them the super user role
         for email in json.loads(env("SEED_USERS")):
-            gov_user = GovUser.objects.filter(email__iexact=email)
-            if not gov_user.exists():
-                gov_user_data = dict(email=email, team=team, role=super_user_role)
-                GovUser.objects.create(**gov_user_data)
+            gov_user_data = dict(email=email, team=team, role=super_user_role)
+            gov_user, created = GovUser.objects.get_or_create(email__iexact=email, defaults=gov_user_data)
+            if created:
                 print(f"CREATED GovUser: {gov_user_data}")

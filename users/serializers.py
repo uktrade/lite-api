@@ -143,12 +143,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         if "role" in validated_data:
             role = validated_data.pop("role")
 
-        exporter = ExporterUser.objects.filter(email__iexact=validated_data["email"])
-
-        if not exporter.exists():
-            exporter = ExporterUser.objects.create(**validated_data)
-        else:
-            exporter = exporter.first()
+        exporter, _ = ExporterUser.objects.get_or_create(email__iexact=validated_data["email"], defaults=validated_data)
 
         if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)

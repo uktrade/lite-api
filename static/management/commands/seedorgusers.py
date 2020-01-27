@@ -81,15 +81,15 @@ def _get_exporter_users():
 
 
 def _create_exporter_user(exporter_user_email: str):
-    exporter_user = ExporterUser.objects.filter(email__iexact=exporter_user_email)
+    first_name, last_name = _extract_names_from_email(exporter_user_email)
+    exporter_user_data = dict(email=exporter_user_email, first_name=first_name, last_name=last_name)
 
-    if not exporter_user.exists():
-        first_name, last_name = _extract_names_from_email(exporter_user_email)
-        exporter_user_data = dict(email=exporter_user_email, first_name=first_name, last_name=last_name)
-        exporter_user = ExporterUser.objects.create(**exporter_user_data)
+    exporter_user, created = ExporterUser.objects.get_or_create(
+        email__iexact=exporter_user_email, defaults=exporter_user_data
+    )
+
+    if created:
         print(f"CREATED ExporterUser: {exporter_user_data}")
-    else:
-        exporter_user = exporter_user.first()
 
     return exporter_user
 
