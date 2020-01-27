@@ -283,7 +283,7 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": CaseStatusEnum.human_readable(case_status.status)},
+            payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
