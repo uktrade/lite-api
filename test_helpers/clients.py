@@ -18,7 +18,8 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
-    ExhibitionClearanceApplication)
+    ExhibitionClearanceApplication,
+)
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery

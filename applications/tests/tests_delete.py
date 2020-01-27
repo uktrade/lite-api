@@ -14,17 +14,9 @@ class DeleteApplication(DataTestClient):
             "HMRC": self.create_hmrc_query(self.organisation),
             "EXHIBITION": self.create_exhibition_clearance_application(self.organisation),
         }
-        self.users = {
-            "EXPORTER": self.exporter_headers,
-            "GOV": self.gov_headers,
-            "HMRC": self.hmrc_exporter_headers
-        }
+        self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
-    @parameterized.expand([
-        ("STANDARD", "EXPORTER"),
-        ("EXHIBITION", "EXPORTER"),
-        ("HMRC", "HMRC")
-    ])
+    @parameterized.expand([("STANDARD", "EXPORTER"), ("EXHIBITION", "EXPORTER"), ("HMRC", "HMRC")])
     def test_delete_draft_application_as_valid_user_success(self, application_type, user):
         draft = self.applications[application_type]
         headers = self.users[user]
@@ -36,11 +28,7 @@ class DeleteApplication(DataTestClient):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(number_of_applications - 1, BaseApplication.objects.all().count())
 
-    @parameterized.expand([
-        ("STANDARD", "GOV"),
-        ("EXHIBITION", "GOV"),
-        ("HMRC", "EXPORTER")
-    ])
+    @parameterized.expand([("STANDARD", "GOV"), ("EXHIBITION", "GOV"), ("HMRC", "EXPORTER")])
     def test_delete_draft_application_as_invalid_user_failure(self, application_type, user):
         draft = self.applications[application_type]
         headers = self.users[user]
@@ -52,11 +40,7 @@ class DeleteApplication(DataTestClient):
         self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
         self.assertEqual(number_of_applications, BaseApplication.objects.all().count())
 
-    @parameterized.expand([
-        ("STANDARD", "EXPORTER"),
-        ("EXHIBITION", "EXPORTER"),
-        ("HMRC", "HMRC")
-    ])
+    @parameterized.expand([("STANDARD", "EXPORTER"), ("EXHIBITION", "EXPORTER"), ("HMRC", "HMRC")])
     def test_delete_submitted_application_failure(self, application_type, user):
         draft = self.applications[application_type]
         headers = self.users[user]
