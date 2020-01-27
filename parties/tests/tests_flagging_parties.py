@@ -23,9 +23,7 @@ class PartyFlagsManagementTests(DataTestClient):
         self.team_destination_flag_1 = self.create_flag("Destination Flag 1", "Destination", self.team)
         self.team_destination_flag_2 = self.create_flag("Destination Flag 2", "Destination", self.team)
         self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
-        self.other_team_destination_flag = self.create_flag(
-            "Other Team Destination Flag", "Destination", self.other_team
-        )
+        self.other_team_destination_flag = self.create_flag("Other Team Dest Flag", "Destination", self.other_team)
         self.all_flags = [
             self.team_destination_flag_1,
             self.team_org_flag,

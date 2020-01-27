@@ -14,7 +14,7 @@ class Command(SeedCommand):
     """
 
     help = "Creates case statuses and case statuses on case types"
-    info = "Seeded case statuses"
+    info = "Seeding case statuses"
     success = "Successfully seeded case statuses"
     seed_command = "seedcasestatuses"
 
@@ -24,8 +24,6 @@ class Command(SeedCommand):
         self.update_or_create(CaseStatus, status_csv)
 
         case_to_status_csv = self.read_csv(STATUS_ON_TYPE_FILE)
-        for row in case_to_status_csv:
-            row["status"] = CaseStatus.objects.get(id=row["status"])
         self.update_or_create(CaseStatusCaseType, case_to_status_csv)
 
         self.delete_unused_objects(CaseStatus, status_csv)
