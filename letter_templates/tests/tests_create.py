@@ -31,7 +31,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY],
+            "case_types": [CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
@@ -43,7 +43,7 @@ class LetterTemplateCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(letter_template.name, data["name"])
         self.assertEqual(letter_template.layout.id, data["layout"])
-        self.assertIn(CaseTypeEnum.CLC_QUERY, letter_template.case_types.values_list("id", flat=True))
+        self.assertIn(CaseTypeEnum.GOODS_QUERY, letter_template.case_types.values_list("id", flat=True))
         self.assertIn(CaseTypeEnum.END_USER_ADVISORY_QUERY, letter_template.case_types.values_list("id", flat=True))
 
     def test_create_letter_templates_not_unique_name_failure(self):
@@ -51,12 +51,12 @@ class LetterTemplateCreateTests(DataTestClient):
         Fail as the name is not unique
         """
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
+        self.letter_template.case_types.set([CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 
         data = {
             "name": "SIEL",
-            "case_types": [CaseTypeEnum.CLC_QUERY],
+            "case_types": [CaseTypeEnum.GOODS_QUERY],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
@@ -71,7 +71,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.CLC_QUERY],
+            "case_types": [CaseTypeEnum.GOODS_QUERY],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [],
         }
@@ -86,7 +86,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.CLC_QUERY],
+            "case_types": [CaseTypeEnum.GOODS_QUERY],
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
 
@@ -114,7 +114,7 @@ class LetterTemplateCreateTests(DataTestClient):
             name = f"Test Template {i}"
             data = {
                 "name": name,
-                "case_types": [CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY],
+                "case_types": [CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY],
                 "layout": self.letter_layout.id,
                 "letter_paragraphs": [item.id for item in picklist_items],
             }

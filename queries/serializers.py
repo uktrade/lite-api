@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from queries.control_list_classifications.serializers import ControlListClassificationQuerySerializer
+from queries.goods_query.serializers import GoodsQuerySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer
 from queries.helpers import get_exporter_query
@@ -14,7 +14,7 @@ class QueryViewSerializer(serializers.ModelSerializer):
         if isinstance(instance, EndUserAdvisoryQuery):
             return EndUserAdvisoryListSerializer(instance=instance).data
         else:
-            return ControlListClassificationQuerySerializer(instance=instance).data
+            return GoodsQuerySerializer(instance=instance).data
 
     class Meta:
         model = Query

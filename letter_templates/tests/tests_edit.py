@@ -21,7 +21,7 @@ class LetterTemplateEditTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeEnum.CLC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
+        self.letter_template.case_types.set([CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
 
