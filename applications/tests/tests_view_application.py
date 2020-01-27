@@ -132,6 +132,24 @@ class DraftTests(DataTestClient):
             retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().id),
         )
 
+    def test_view_draft_exhibition_clearances_list_as_exporter_success(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_exhibition_clearance_application(self.organisation)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], application.name)
+        self.assertEqual(
+            response_data[0]["application_type"]["key"], application.application_type,
+        )
+        self.assertIsNotNone(response_data[0]["created_at"])
+        self.assertIsNotNone(response_data[0]["updated_at"])
+        self.assertIsNone(response_data[0]["submitted_at"])
+        self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
+
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
         application = self.create_exhibition_clearance_application(self.organisation)
 
