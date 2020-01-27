@@ -11,7 +11,8 @@ class DeleteApplication(DataTestClient):
         super().setUp()
         self.applications = {
             "STANDARD": self.create_standard_application(self.organisation),
-            "HMRC": self.create_hmrc_query(self.organisation)
+            "HMRC": self.create_hmrc_query(self.organisation),
+            "EXHIBITION": self.create_exhibition_clearance_application(self.organisation),
         }
         self.users = {
             "EXPORTER": self.exporter_headers,
@@ -21,6 +22,7 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand([
         ("STANDARD", "EXPORTER"),
+        ("EXHIBITION", "EXPORTER"),
         ("HMRC", "HMRC")
     ])
     def test_delete_draft_application_as_valid_user_success(self, application_type, user):
@@ -36,6 +38,7 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand([
         ("STANDARD", "GOV"),
+        ("EXHIBITION", "GOV"),
         ("HMRC", "EXPORTER")
     ])
     def test_delete_draft_application_as_invalid_user_failure(self, application_type, user):
@@ -51,6 +54,7 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand([
         ("STANDARD", "EXPORTER"),
+        ("EXHIBITION", "EXPORTER"),
         ("HMRC", "HMRC")
     ])
     def test_delete_submitted_application_failure(self, application_type, user):
