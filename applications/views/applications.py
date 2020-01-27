@@ -224,7 +224,7 @@ class ApplicationSubmission(APIView):
         serializer = get_application_update_serializer(application)
         serializer = serializer(application)
 
-        data = {"application": {**serializer.data}}
+        data = {"application": {"reference_code": application.reference_code, **serializer.data}}
 
         if not is_case_status_draft(previous_application_status.status):
             # Only create the audit if the previous application status was not `Draft`
