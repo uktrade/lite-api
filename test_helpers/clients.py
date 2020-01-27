@@ -534,7 +534,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.APPLICATION,
+            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 

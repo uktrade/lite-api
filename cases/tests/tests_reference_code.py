@@ -18,6 +18,12 @@ class ReferenceCode(DataTestClient):
 
         self.assertEquals(open_application.reference_code, "GBOIE/" + str(datetime.now().year) + "/0000001/P")
 
+    def test_exhibition_clearance_reference_code(self):
+        exhibition_clearance = self.create_exhibition_clearance_application(self.organisation)
+        exhibition_clearance = self.submit_application(exhibition_clearance)
+
+        self.assertEquals(exhibition_clearance.reference_code, "EXHC/" + str(datetime.now().year) + "/0000001")
+
     def test_hmrc_query_reference_code(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
         hmrc_query = self.submit_application(hmrc_query)

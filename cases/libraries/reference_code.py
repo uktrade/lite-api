@@ -51,6 +51,8 @@ def generate_reference_code(case):
         reference_code += "EUA" + SLASH
     elif case.type == CaseTypeEnum.HMRC_QUERY:
         reference_code += "CRE" + SLASH
+    elif case.type == CaseTypeEnum.EXHIBITION_CLEARANCE:
+        reference_code += "EXHC" + SLASH
 
     # Year
     reference_code += str(datetime.now().year) + SLASH
