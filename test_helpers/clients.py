@@ -485,7 +485,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_application_document(application)
 
     def add_good_on_application(self, application, organisation):
-        GoodOnApplication.objects.create(
+        self.good_on_application = GoodOnApplication.objects.create(
             good=self.create_controlled_good("a thing", organisation),
             application=application,
             quantity=10,
