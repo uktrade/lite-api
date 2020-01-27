@@ -289,7 +289,7 @@ class FilterAndSortTests(DataTestClient):
 
         # Assert ordering
         for case, expected_case in zip(response_data["cases"], all_cases_sorted):
-            self.assertEqual(case["status"], expected_case["status"])
+            self.assertEqual(case["status"]["key"], expected_case["status"])
 
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
@@ -322,7 +322,7 @@ class FilterAndSortTests(DataTestClient):
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
             self.assertEqual(case_type, "application")
             # Assert ordering
-            self.assertEqual(case["status"], expected_case["status"])
+            self.assertEqual(case["status"]["key"], expected_case["status"])
             self.assertEqual(case["id"], expected_case["id"])
 
 
