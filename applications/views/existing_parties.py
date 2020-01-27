@@ -1,3 +1,5 @@
+from django.db.models import Window, F
+from django.db.models.functions import FirstValue, RowNumber
 from rest_framework import generics
 
 from applications.libraries.get_applications import get_application
@@ -21,11 +23,33 @@ class ExistingParties(generics.ListCreateAPIView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
-        params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items()}
-        # Rename country to country__name for filter
-        if "country__contains" in params:
-            params["country__name__contains"] = params.pop("country__contains")
+        # params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items()}
+        # # Rename country to country__name for filter
+        # if "country__contains" in params:
+        #     params["country__name__contains"] = params.pop("country__contains")
+        #
+        # application_id = self.kwargs["pk"]
+        # application = get_application(application_id)
+        # return Party.objects.filter(organisation=application.organisation, **params)
 
         application_id = self.kwargs["pk"]
-        application = get_application(application_id)
-        return Party.objects.filter(organisation=application.organisation, **params)
+        organisation = get_application(application_id).organisation
+
+        # queryset = Party.objects.filter(organisation=organisation).annotate(
+        #     first_party=Window(
+        #         expression=RowNumber(), partition_by=["name", "copy_of_id"], order_by=F("created_at").desc(),
+        #     )
+        # )
+
+        queryset = (
+            Party.objects.filter(organisation=organisation)
+            .annotate(
+                first_party=Window(
+                    expression=FirstValue("id"), partition_by=["name", "copy_of_id"], order_by=F("created_at").desc(),
+                )
+            )
+            .values_list("first_party")
+            .distinct()
+        )
+
+        return None
