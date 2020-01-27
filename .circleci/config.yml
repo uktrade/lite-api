@@ -78,7 +78,9 @@ jobs:
 
       - run:
           name: Run code coverage
-          command: pipenv run ./manage.py coverage --threshold=80 --html=False
+          command: |
+            pipenv run ./manage.py coverage --threshold=80 --html=False
+            bash <(curl -s https://codecov.io/bash)
 
       - run:
           name: Run Bandit tests
