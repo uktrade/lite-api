@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Run code coverage
           command: |
-            pipenv run ./manage.py coverage --threshold=80 xml
+            pipenv run ./manage.py coverage xml --threshold=80
             bash <(curl -s https://codecov.io/bash)
 
       - run:

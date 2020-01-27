@@ -38,16 +38,16 @@ class Command(BaseCommand):
         self._show_report(report_type, threshold)
 
     def _gather_coverage(self, module_to_run_coverage_on, tests_to_run):
-        gather_coverage_command = (
+        gather_coverage_command = [
             "pipenv run coverage run --source=./"
             + (module_to_run_coverage_on if module_to_run_coverage_on else "")
             + " manage.py test --parallel=1"
-        )
+        ]
 
         if tests_to_run and tests_to_run != "all":
-            gather_coverage_command.append(tests_to_run)
+            gather_coverage_command.append(tests_to_ run)
 
-        print("\n`" + gather_coverage_command + "`\n")
+        print("\n`" + " ".join(gather_coverage_command) + "`\n")
         execute_bash_command(gather_coverage_command, shell=True)
 
     def _show_report(self, report_type, threshold):
