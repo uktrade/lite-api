@@ -26,9 +26,10 @@ from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCount
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
+from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus
-from goods.models import Good, GoodDocument
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
@@ -39,7 +40,7 @@ from parties.enums import SubType, PartyType, ThirdPartyRole
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
@@ -391,38 +392,69 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return picklist_item
 
     @staticmethod
-    def create_controlled_good(description: str, org: Organisation, control_code: str = "ML1") -> Good:
+    def create_good(
+        description: str,
+        org: Organisation,
+        is_good_controlled: str = GoodControlled.YES,
+        control_code: str = "ML1X",
+        is_pv_graded: str = GoodPvGraded.YES,
+        pv_grading_details: PvGradingDetails = None,
+    ) -> Good:
+        if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
+            pv_grading_details = PvGradingDetails.objects.create(
+                grading=None,
+                custom_grading="Custom Grading",
+                prefix="Prefix",
+                suffix="Suffix",
+                issuing_authority="Issuing Authority",
+                reference="ref123",
+                date_of_issue="2019-12-25",
+            )
+
         good = Good(
             description=description,
-            is_good_controlled=GoodControlled.YES,
+            is_good_controlled=is_good_controlled,
             control_code=control_code,
             part_number="123456",
             organisation=org,
+            comment=None,
+            report_summary=None,
+            is_pv_graded=is_pv_graded,
+            pv_grading_details=pv_grading_details,
         )
         good.save()
         return good
 
     @staticmethod
-    def create_clc_query(description, organisation):
-        good = Good(
-            description=description,
-            is_good_controlled=GoodControlled.UNSURE,
-            control_code="ML1",
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-        )
-        good.save()
+    def create_clc_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
 
-        clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text",
+        clc_query = GoodsQuery.objects.create(
+            clc_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.CLC_QUERY,
+            type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+        clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        clc_query.save()
         return clc_query
+
+    @staticmethod
+    def create_pv_grading_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.YES)
+
+        pv_grading_query = GoodsQuery.objects.create(
+            clc_raised_reasons=None,
+            pv_grading_raised_reasons="this is a test text",
+            good=good,
+            organisation=organisation,
+            type=CaseTypeEnum.GOODS_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )
+        pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        pv_grading_query.save()
+        return pv_grading_query
 
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level):
@@ -515,8 +547,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
         application.save()
 
-        self.add_good_on_application(application, organisation)
-        self.add_application_documents(application, safe_document)
+        # Add a good to the standard application
+        self.good_on_application = GoodOnApplication(
+            good=self.create_good("a thing", organisation),
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
+        self.good_on_application.save()
+
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_application_document(application)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()

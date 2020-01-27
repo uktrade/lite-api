@@ -17,12 +17,12 @@ class AddingGoodsOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.good = self.create_controlled_good("A good", self.organisation)
+        self.good = self.create_good("A good", self.organisation)
 
     def test_add_a_good_to_a_draft(self):
         good_name = "A good"
         self.create_standard_application(self.organisation)
-        self.create_controlled_good(good_name, self.organisation)
+        self.create_good(good_name, self.organisation)
 
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
@@ -54,7 +54,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
     def test_user_cannot_add_another_organisations_good_to_a_draft(self):
         good_name = "A good"
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        good = self.create_controlled_good(good_name, organisation_2)
+        good = self.create_good(good_name, organisation_2)
         self.create_good_document(
             good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -108,7 +108,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         good_name = "A good"
         draft = self.create_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
-        self.create_controlled_good(good_name, self.organisation)
+        self.create_good(good_name, self.organisation)
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -195,7 +195,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(response.json()["error"], strings.Goods.DOCUMENT_ERROR)
 
     def test_adding_good_with_reason_official_sensitive_success(self):
-        good = self.create_controlled_good("A good", self.organisation)
+        good = self.create_good("A good", self.organisation)
         good.missing_document_reason = GoodMissingDocumentReasons.OFFICIAL_SENSITIVE
         good.save()
         data = {
@@ -217,7 +217,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         Ensure all params have to be sent otherwise fail
         """
         self.create_standard_application(self.organisation)
-        self.create_controlled_good("A good", self.organisation)
+        self.create_good("A good", self.organisation)
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
