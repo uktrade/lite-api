@@ -45,7 +45,7 @@ class Command(BaseCommand):
         ]
 
         if tests_to_run and tests_to_run != "all":
-            gather_coverage_command.append(tests_to_ run)
+            gather_coverage_command.append(tests_to_run)
 
         print("\n`" + " ".join(gather_coverage_command) + "`\n")
         execute_bash_command(gather_coverage_command, shell=True)
