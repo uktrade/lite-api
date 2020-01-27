@@ -29,8 +29,9 @@ class RoleSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
     type = serializers.ChoiceField(choices=UserType.choices)
     name = serializers.CharField(max_length=30, error_messages={"blank": strings.Roles.BLANK_NAME},)
-    statuses = PrimaryKeyRelatedSerializerField(queryset=CaseStatus.objects.all(), many=True, required=False,
-                                                serializer=CaseStatusSerializer)
+    statuses = PrimaryKeyRelatedSerializerField(
+        queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
+    )
 
     class Meta:
         model = Role
