@@ -1,10 +1,8 @@
 from rest_framework import serializers
-
-from applications.serializers.document import ApplicationDocumentSerializer
-from lite_content.lite_api import strings
 from rest_framework.fields import CharField
 
 from applications.models import StandardApplication, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -12,6 +10,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
+from lite_content.lite_api import strings
 from parties.serializers import (
     EndUserSerializer,
     EndUserWithFlagsSerializer,
@@ -19,8 +18,6 @@ from parties.serializers import (
     ThirdPartyWithFlagsSerializer,
     ConsigneeWithFlagsSerializer,
 )
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
@@ -63,9 +60,7 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = StandardApplication

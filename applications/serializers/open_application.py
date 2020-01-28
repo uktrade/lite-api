@@ -14,8 +14,6 @@ from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
@@ -50,9 +48,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = OpenApplication
