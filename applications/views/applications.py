@@ -184,7 +184,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
-                data={"errors": strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         application.delete()
         return JsonResponse(data={"status": strings.Applications.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK)
