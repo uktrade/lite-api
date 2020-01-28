@@ -4,11 +4,11 @@ from copy import deepcopy
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from flags.enums import SystemFlags
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus
 from goods.models import Good
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
+from test_helpers.helpers import is_not_verified_flag_set_on_good
 
 URL = reverse("goods:goods")
 
@@ -55,11 +55,6 @@ def _assert_response_data(self, response_data, request_data):
             self.assertEqual(response_data_pv_grading_details[key], value)
 
 
-def _assert_not_verified_flag_is_set_on_good(self, good):
-    flags_on_good = [str(id) for id in good.flags.values_list("id", flat=True)]
-    self.assertIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
-
-
 class GoodsCreateGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -71,7 +66,7 @@ class GoodsCreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
-        _assert_not_verified_flag_is_set_on_good(self, Good.objects.first())
+        self.assertTrue(is_not_verified_flag_set_on_good(Good.objects.first()))
 
     def test_when_creating_a_good_with_pv_graded_and_controlled_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
@@ -83,7 +78,7 @@ class GoodsCreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
-        _assert_not_verified_flag_is_set_on_good(self, Good.objects.first())
+        self.assertTrue(is_not_verified_flag_set_on_good(Good.objects.first()))
 
     def test_when_creating_a_good_with_good_controlled_set_to_null_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = None
@@ -132,7 +127,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
-        _assert_not_verified_flag_is_set_on_good(self, Good.objects.first())
+        self.assertTrue(is_not_verified_flag_set_on_good(Good.objects.first()))
 
     def test_when_creating_a_good_with_a_null_control_code_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
@@ -167,7 +162,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
-        _assert_not_verified_flag_is_set_on_good(self, Good.objects.first())
+        self.assertTrue(is_not_verified_flag_set_on_good(Good.objects.first()))
 
     def test_when_creating_a_good_with_a_grading_then_created_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
@@ -179,7 +174,7 @@ class GoodsCreatePvGradedGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
-        _assert_not_verified_flag_is_set_on_good(self, Good.objects.first())
+        self.assertTrue(is_not_verified_flag_set_on_good(Good.objects.first()))
 
     def test_when_creating_a_good_with_a_null_grading_and_custom_grading_then_bad_response_is_returned(self):
         self.request_data["is_pv_graded"] = GoodPvGraded.YES

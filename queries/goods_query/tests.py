@@ -17,6 +17,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
+from test_helpers.helpers import is_not_verified_flag_set_on_good
 from users.models import Role, GovUser
 
 
@@ -106,8 +107,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.assertEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
-        flags_on_good = [str(id) for id in self.query.good.flags.values_list("id", flat=True)]
-        self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
+        self.assertFalse(is_not_verified_flag_set_on_good(self.query.good))
 
         case = self.query.get_case()
         # Check that an audit item has been added
@@ -126,8 +126,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
-        flags_on_good = [str(id) for id in self.query.good.flags.values_list("id", flat=True)]
-        self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
+        self.assertFalse(is_not_verified_flag_set_on_good(self.query.good))
 
         audit_qs = Audit.objects.all()
         self.assertEqual(audit_qs.count(), 2)
@@ -157,8 +156,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
-        flags_on_good = [str(id) for id in self.query.good.flags.values_list("id", flat=True)]
-        self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
+        self.assertFalse(is_not_verified_flag_set_on_good(self.query.good))
 
         # Check that an activity item has been added
         qs = Audit.objects.filter(
@@ -179,8 +177,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.query.good.status, GoodStatus.DRAFT)
-        flags_on_good = [str(id) for id in self.query.good.flags.values_list("id", flat=True)]
-        self.assertIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
+        self.assertTrue(is_not_verified_flag_set_on_good(self.query.good))
 
     def test_user_cannot_respond_to_clc_without_permissions(self):
         """
@@ -399,8 +396,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         self.assertTrue(SystemFlags.GOOD_CLC_QUERY_ID not in remaining_flags)
         self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
         self.assertEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
-        flags_on_good = [str(id) for id in self.clc_and_pv_query.good.flags.values_list("id", flat=True)]
-        self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
+        self.assertFalse(is_not_verified_flag_set_on_good(self.clc_and_pv_query.good))
 
         # Check that an audit item has been added
         audit_qs = Audit.objects.filter(
