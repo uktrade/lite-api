@@ -206,9 +206,7 @@ class GoodSerializer(serializers.ModelSerializer):
         if pv_grading_details:
             pv_grading_details = GoodSerializer._create_pv_grading_details(pv_grading_details)
 
-        good = Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
-        good.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-        return good
+        return Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
@@ -216,11 +214,10 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.control_code = validated_data.get("control_code", "")
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
-
-        if instance.status == GoodStatus.VERIFIED:
-            instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+
+        GoodSerializer._add_or_remove_not_yet_verified_system_flag(instance)
+
         instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
             is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
             pv_grading_details=validated_data.get("pv_grading_details"),
@@ -264,6 +261,13 @@ class GoodSerializer(serializers.ModelSerializer):
     def _delete_pv_grading_details(instance):
         instance.delete()
         return None
+
+    @staticmethod
+    def _add_or_remove_not_yet_verified_system_flag(instance):
+        if instance.status == GoodStatus.VERIFIED:
+            instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+        elif instance.status == GoodStatus.SUBMITTED:
+            instance.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):

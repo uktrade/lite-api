@@ -11,7 +11,7 @@ from test_helpers.helpers import is_not_verified_flag_set_on_good
 class GoodTests(DataTestClient):
     def test_submitted_good_changes_status(self):
         """
-        Test that the good's status is set to submitted
+        Test that the good's status is set to submitted and the 'is_not_verified' flag is added
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_standard_application(self.organisation)

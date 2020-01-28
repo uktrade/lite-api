@@ -25,7 +25,6 @@ class GoodFlagsManagementTests(DataTestClient):
         self.team_org_flag = self.create_flag("Org Flag 1", "Organisation", self.team)
         self.other_team_good_flag = self.create_flag("Other Team Good Flag", "Good", self.other_team)
         self.all_flags = [
-            Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID),
             self.team_good_flag_1,
             self.team_org_flag,
             self.team_good_flag_2,
@@ -44,8 +43,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         response = self.client.get(self.good_url, **self.gov_headers)
 
-        self.assertEqual(len(response.json()["good"]["flags"]), 1)
-        self.assertEqual(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, response.json()["good"]["flags"][0]["id"])
+        self.assertEqual(len(response.json()["good"]["flags"]), 0)
 
     def test_all_flags_for_good_are_returned(self):
         """
@@ -95,7 +93,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(1, len(self.good.flags.all()))
+        self.assertEquals(0, len(self.good.flags.all()))
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_user_cannot_assign_flags_that_are_not_good_level(self):
@@ -114,7 +112,7 @@ class GoodFlagsManagementTests(DataTestClient):
         response = self.client.put(self.good_flag_url, data, **self.gov_headers)
 
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
-        self.assertEquals(1, len(self.good.flags.all()))
+        self.assertEquals(0, len(self.good.flags.all()))
 
     def test_when_one_flag_is_removed_then_other_flags_are_unaffected(self):
         """

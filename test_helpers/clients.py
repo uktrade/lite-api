@@ -9,6 +9,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
+from applications.libraries.goods_on_applications import update_good_statuses_and_flags_on_application
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -282,10 +283,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
+        update_good_statuses_and_flags_on_application(application)
 
         return application
 
@@ -421,7 +419,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_pv_graded=is_pv_graded,
             pv_grading_details=pv_grading_details,
         )
-        good.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         good.save()
         return good
 
@@ -529,7 +526,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
-        application.save()
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(

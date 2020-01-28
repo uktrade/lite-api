@@ -21,6 +21,7 @@ from applications.libraries.application_helpers import (
     can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
+from applications.libraries.goods_on_applications import update_good_statuses_and_flags_on_application
 from applications.libraries.licence import get_default_duration
 from applications.models import GoodOnApplication, BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
@@ -31,7 +32,9 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication, Go
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus
+from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
@@ -214,11 +217,7 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
-                if good_on_application.good.status == GoodStatus.DRAFT:
-                    good_on_application.good.status = GoodStatus.SUBMITTED
-                    good_on_application.good.save()
+        update_good_statuses_and_flags_on_application(application)
 
         # Serialize for the response message
         serializer = get_application_update_serializer(application)
