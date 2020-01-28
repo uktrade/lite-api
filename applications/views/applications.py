@@ -23,7 +23,7 @@ from applications.libraries.application_helpers import (
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_good_statuses_and_flags_on_application
 from applications.libraries.licence import get_default_duration
-from applications.models import GoodOnApplication, BaseApplication, HmrcQuery, SiteOnApplication
+from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -32,9 +32,6 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication, Go
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
-from flags.enums import SystemFlags
-from goods.enums import GoodStatus
-from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site

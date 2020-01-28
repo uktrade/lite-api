@@ -36,7 +36,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def test_only_not_yet_verified_system_flag_for_good_is_returned(self):
         """
-        Given a Good with no user-assigned Flags assigned
+       Given a Good with no Flags assigned
         When a user requests the Good
         Then the correct Good with only the 'not yet verified' Flag is returned
         """
@@ -60,7 +60,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def test_user_can_add_good_level_flags_from_their_own_team(self):
         """
-        Given a Good with no user-assigned Flags
+        Given a Good with no Flags assigned
         When a user attempts to add a good-level Flag owned by their Team to the Good
         Then the Flag is successfully added
         """
@@ -74,13 +74,13 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data["flags"]), 1)  # the PUT response data only includes flags that were added
+        self.assertEquals(len(data["flags"]), 1)
         self.assertEquals(self.good.flags.count(), previous_flag_count + 1)
         self.assertTrue(self.team_good_flag_1 in self.good.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):
         """
-        Given a Good with no user-assigned Flags
+        Given a Good with no Flags assigned
         When a user attempts to add a good-level Flag not owned by their Team to the Good
         Then the Flag is not added
         """
@@ -98,7 +98,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
     def test_user_cannot_assign_flags_that_are_not_good_level(self):
         """
-        Given a Good with no user-assigned Flags
+        Given a Good with no Flags assigned
         When a user attempts to add a non-good-level Flag owned by their Team to the Good
         Then the Flag is not added
         """
