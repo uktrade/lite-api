@@ -33,6 +33,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             part_number="123456",
             organisation=self.organisation,
         )
+        self.good.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         self.good.save()
 
         self.data = {
