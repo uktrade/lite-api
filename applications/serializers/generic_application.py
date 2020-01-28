@@ -38,7 +38,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.REF_NAME},
     )
     application_type = KeyValueChoiceField(choices=ApplicationType.choices)
     export_type = serializers.SerializerMethodField()
@@ -140,7 +140,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.REF_NAME},
     )
     application_type = KeyValueChoiceField(
         choices=ApplicationType.choices, error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
@@ -174,7 +174,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.REF_NAME},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)

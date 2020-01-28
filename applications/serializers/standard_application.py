@@ -83,7 +83,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.REF_NAME},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
