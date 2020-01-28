@@ -15,9 +15,9 @@ class FlagsListTests(DataTestClient):
     def test_gov_user_can_see_only_filtered_case_level_and_team_flags(self):
         """
         Given Gov user
-        When searching for flags;
-        And only case-level and team-level flags are in the query params
-        Then case-level and team-level flags are returned
+        When searching for flags
+        And case-level and team-level flags are set in the query params
+        Then only the case-level and team-level flags are returned
         """
         other_team = self.create_team("Team")
 
