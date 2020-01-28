@@ -43,6 +43,8 @@ class DraftTests(DataTestClient):
         """
         Ensure we can create a new Exhibition Clearance draft object
         """
+        self.assertEqual(ExhibitionClearanceApplication.objects.count(), 0)
+
         data = {
             "name": "Test",
             "application_type": ApplicationType.EXHIBITION_CLEARANCE,
