@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import StandardApplication, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.models import StandardApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -12,7 +11,6 @@ from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from parties.serializers import (
-    EndUserSerializer,
     EndUserWithFlagsSerializer,
     UltimateEndUserWithFlagsSerializer,
     ThirdPartyWithFlagsSerializer,
@@ -44,17 +42,6 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
             "destinations",
             "additional_documents",
         )
-
-    def get_destinations(self, application):
-        if application.end_user:
-            serializer = EndUserSerializer(application.end_user)
-            return {"type": "end_user", "data": serializer.data}
-        else:
-            return {"type": "end_user", "data": ""}
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

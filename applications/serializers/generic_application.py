@@ -11,7 +11,8 @@ from applications.enums import (
     LicenceDuration,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication, ApplicationDenialReason
+from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
@@ -25,6 +26,7 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
+from parties.serializers import EndUserSerializer
 from users.libraries.notifications import (
     get_exporter_user_notification_total_count,
     get_exporter_user_notification_individual_count,
@@ -127,6 +129,17 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
             return {"type": "external_locations", "data": serializer.data}
 
         return {}
+
+    def get_destinations(self, application):
+        if application.end_user:
+            serializer = EndUserSerializer(application.end_user)
+            return {"type": "end_user", "data": serializer.data}
+        else:
+            return {"type": "end_user", "data": ""}
+
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):
