@@ -40,7 +40,13 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
 
 
 class PVGradingResponseSerializer(serializers.ModelSerializer):
-    grading = KeyValueChoiceField(choices=PvGrading.gov_choices, allow_null=False, allow_blank=False, required=True)
+    grading = KeyValueChoiceField(
+        choices=PvGrading.gov_choices,
+        allow_null=False,
+        allow_blank=False,
+        required=True,
+        error_messages={"invalid_choice": "Select a grading"},
+    )
     prefix = serializers.CharField(allow_blank=True, allow_null=True)
     suffix = serializers.CharField(allow_blank=True, allow_null=True)
 

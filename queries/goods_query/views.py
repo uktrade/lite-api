@@ -1,5 +1,6 @@
 import json
 
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -168,6 +169,7 @@ class GoodQueryPVGradingResponse(APIView):
 
     authentication_classes = (GovAuthentication,)
 
+    @transaction.atomic
     def put(self, request, pk):
         """ Respond to a control list classification."""
         assert_user_has_permission(request.user, constants.GovPermissions.RESPOND_PV_GRADING)
@@ -182,11 +184,12 @@ class GoodQueryPVGradingResponse(APIView):
         data = json.loads(request.body)
 
         # new serializer required
-        pv_grading_good_serializer = PVGradingResponseSerializer(query.good, data=data)
+        pv_grading_good_serializer = PVGradingResponseSerializer(data=data)
 
         if pv_grading_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                pv_grading_good_serializer.save()
+                query.good.is_pv_graded = GoodPvGraded.YES
+                query.good.pv_grading_details = pv_grading_good_serializer.save()
                 query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
                 query.save()
 
