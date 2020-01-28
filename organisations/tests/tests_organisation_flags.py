@@ -14,9 +14,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
         self.team_organisation_flag_1 = self.create_flag("Organisation Flag 1", "Organisation", self.team)
         self.team_organisation_flag_2 = self.create_flag("Organisation Flag 2", "Organisation", self.team)
         self.good_flag = self.create_flag("Good flag", "Good", self.team)
-        self.other_team_organisation_flag = self.create_flag(
-            "Other Team Organisation Flag", "Organisation", self.other_team
-        )
+        self.other_team_organisation_flag = self.create_flag("Other Team Org Flag", "Organisation", self.other_team)
         self.all_flags = [
             self.team_organisation_flag_1,
             self.team_organisation_flag_2,

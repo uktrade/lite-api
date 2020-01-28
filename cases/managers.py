@@ -48,11 +48,17 @@ class CaseQuerySet(models.QuerySet):
 
     def assigned_to_user(self, user):
         assigned_to_user_case_ids = get_assigned_to_user_case_ids(user)
-        return self.filter(id__in=assigned_to_user_case_ids, status__is_terminal=False)
+        return self.filter(id__in=assigned_to_user_case_ids)
+
+    def not_assigned_to_any_user(self):
+        return self.filter(case_assignments=None)
 
     def assigned_as_case_officer(self, user):
         assigned_as_case_officer_case_ids = get_assigned_as_case_officer_case_ids(user)
-        return self.filter(id__in=assigned_as_case_officer_case_ids, status__is_terminal=False)
+        return self.filter(id__in=assigned_as_case_officer_case_ids)
+
+    def not_terminal(self):
+        return self.filter(status__is_terminal=False)
 
     def has_status(self, status):
         return self.filter(status__status=status)
@@ -85,11 +91,21 @@ class CaseManager(models.Manager):
     functionality to the Case model.
     """
 
+    NOT_ASSIGNED = "not_assigned"
+
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
 
     def search(
-        self, queue_id=None, user=None, status=None, case_type=None, sort=None, date_order=None,
+        self,
+        queue_id=None,
+        user=None,
+        status=None,
+        case_type=None,
+        sort=None,
+        assigned_user=None,
+        case_officer=None,
+        date_order=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -103,9 +119,9 @@ class CaseManager(models.Manager):
         elif queue_id == UPDATED_CASES_QUEUE_ID:
             case_qs = case_qs.is_updated(user=user)
         elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
-            case_qs = case_qs.assigned_to_user(user=user)
+            case_qs = case_qs.assigned_to_user(user=user).not_terminal()
         elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
-            case_qs = case_qs.assigned_as_case_officer(user=user)
+            case_qs = case_qs.assigned_as_case_officer(user=user).not_terminal()
         elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
             case_qs = case_qs.in_queue(queue_id=queue_id)
 
@@ -114,6 +130,17 @@ class CaseManager(models.Manager):
 
         if case_type:
             case_qs = case_qs.is_type(case_type=case_type)
+
+        if assigned_user:
+            if assigned_user == self.NOT_ASSIGNED:
+                case_qs = case_qs.not_assigned_to_any_user()
+            else:
+                case_qs = case_qs.assigned_to_user(user=assigned_user)
+
+        if case_officer:
+            if case_officer == self.NOT_ASSIGNED:
+                case_officer = None
+            case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
         if isinstance(date_order, str):
             case_qs = case_qs.order_by_date(date_order)
@@ -145,11 +172,11 @@ class CaseManager(models.Manager):
         raise Exception(f"Application object not found from case: {case}")
 
     def get_query(self, case):
-        from queries.control_list_classifications.models import ControlListClassificationQuery
+        from queries.goods_query.models import GoodsQuery
 
         try:
-            return ControlListClassificationQuery.objects.get(query_ptr__case_ptr=case)
-        except ControlListClassificationQuery.DoesNotExist:
+            return GoodsQuery.objects.get(query_ptr__case_ptr=case)
+        except GoodsQuery.DoesNotExist:
             pass
 
         from queries.end_user_advisories.models import EndUserAdvisoryQuery

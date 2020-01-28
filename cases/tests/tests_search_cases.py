@@ -14,6 +14,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
+from cases.enums import CaseTypeEnum
 
 
 class FilterAndSortTests(DataTestClient):
@@ -67,7 +68,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + "?case_type=application"
+        url = f"{self.url}?case_type={CaseTypeEnum.APPLICATION}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -79,7 +80,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, "application")
+            self.assertEqual(case_type, CaseTypeEnum.APPLICATION)
 
     def test_get_clc_type_cases(self):
         """
@@ -89,7 +90,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + "?case_type=clc_query"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -102,7 +103,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, "clc_query")
+            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
 
     def test_get_submitted_status_cases(self):
         """
@@ -112,7 +113,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = self.url + "?case_type=clc_query"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -124,7 +125,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, "clc_query")
+            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
 
     def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
         """
@@ -136,7 +137,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = f'{reverse("cases:search")}?case_type=clc_query&status={case_status.status}&sort=status'
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS_QUERY}&status={case_status.status}&sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -148,7 +149,99 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual("clc_query", case_type)
+            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
+
+    def test_get_cases_filter_by_case_officer(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases when the case officer is set to themselves
+        Then only cases of that type are returned
+        """
+
+        # Arrange
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_case_officer_not_assigned(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases with no assigned case officer
+        Then only cases without an assigned case officer are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_cases_filter_by_assigned_user(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases when the assigned user is set to themselves
+        Then only cases with that assigned user are returned
+        """
+
+        # Arrange
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_assigned_user_not_assigned(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases which have no assigned users
+        Then only cases with no assigned users are returned
+        """
+
+        # Arrange
+        all_cases = self.application_cases + self.clc_cases
+        case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
+        case_assignment.users.set([self.gov_user])
+        case_assignment.save()
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned'
+
+        # Act
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
 
     def test_get_submitted_status_and_clc_type_cases(self):
         """
@@ -160,7 +253,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
-        url = self.url + "?case_type=clc_query&status=" + case_status.status
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}&status={case_status.status}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -172,7 +265,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, "clc_query")
+            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
 
     def test_get_cases_no_filter_sort_by_status_ascending(self):
         """
@@ -185,7 +278,7 @@ class FilterAndSortTests(DataTestClient):
         all_cases = self.application_cases + self.clc_cases
         all_cases = [{"status": case.status.status, "status_ordering": case.status.priority,} for case in all_cases]
         all_cases_sorted = sorted(all_cases, key=lambda k: k["status_ordering"])
-        url = self.url + "?sort=status"
+        url = f"{self.url}?sort=status"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -216,7 +309,7 @@ class FilterAndSortTests(DataTestClient):
             reverse=True,
         )
 
-        url = self.url + "?case_type=application&sort=-status"
+        url = f"{self.url}?case_type={CaseTypeEnum.APPLICATION}&sort=-status"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -253,7 +346,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
         )
         self.gov_user.send_notification(content_object=self.audit, case=self.case)
 
-        self.url = reverse("cases:search") + "?queue_id=" + UPDATED_CASES_QUEUE_ID
+        self.url = f'{reverse("cases:search")}?queue_id={UPDATED_CASES_QUEUE_ID}'
 
     def test_get_cases_on_updated_cases_queue_when_user_is_assigned_to_a_case_returns_expected_cases(self):
         # Create another case that does not have an update
@@ -314,7 +407,7 @@ class FilterUserAssignedCasesQueueTests(DataTestClient):
         self.case_assignment = CaseAssignment.objects.create(case=self.user_assigned_case, queue=self.queue)
         self.case_assignment.users.set([self.gov_user])
 
-        self.url = reverse("cases:search") + "?queue_id=" + MY_ASSIGNED_CASES_QUEUE_ID
+        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_CASES_QUEUE_ID}'
 
     def test_get_cases_on_user_assigned_to_case_queue_returns_expected_cases(self):
         response = self.client.get(self.url, **self.gov_headers)
@@ -349,7 +442,7 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
         self.case_officer_case.case_officer = self.gov_user
         self.case_officer_case.save()
 
-        self.url = reverse("cases:search") + "?queue_id=" + MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID
+        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID}'
 
     def test_get_cases_on_user_assigned_as_case_officer_queue_returns_expected_cases(self):
         response = self.client.get(self.url, **self.gov_headers)

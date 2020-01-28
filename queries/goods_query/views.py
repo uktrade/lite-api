@@ -1,64 +1,102 @@
 import json
 
-from django.http import JsonResponse, Http404
-from django.utils import timezone
+from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from conf import constants
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from goods.enums import GoodStatus
+from flags.enums import SystemFlags
+from flags.models import Flag
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.libraries.get_goods import get_good
+from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.helpers import update_goods_query_status
+from queries.goods_query.models import GoodsQuery
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
 
 
-class ControlListClassificationsList(APIView):
+class GoodsQueriesCreate(APIView):
+    """
+    Create a Goods Query which can contain a CLC part and a PV Grading part
+    """
+
     authentication_classes = (ExporterAuthentication,)
+
+    @staticmethod
+    def _check_request_for_errors(good: Good, is_clc_required: bool, is_pv_grading_required: bool):
+        errors = []
+        if GoodsQuery.objects.filter(good_id=good).exists():
+            errors += [strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR]
+
+        if good.status != GoodStatus.DRAFT:
+            errors += [{"status": strings.GoodsQuery.GOOD_DRAFT_STATUS_REQUIRED_ERROR}]
+
+        if not (is_clc_required or is_pv_grading_required):
+            errors += [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR]
+
+        return errors
 
     def post(self, request):
         """
-        Create a new CLC query case instance
+        Create a new GoodsQuery case instance
         """
-        data = JSONParser().parse(request)
+        data = request.data
         good = get_good(data["good_id"])
+
         data["organisation"] = request.user.organisation
 
-        # A CLC Query can only be created if the good is in draft status
-        if good.status != GoodStatus.DRAFT:
-            raise Http404
+        is_clc_required = good.is_good_controlled == GoodControlled.UNSURE
+        is_pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
 
-        good.status = GoodStatus.CLC_QUERY
-        good.control_code = data.get("not_sure_details_control_code")
+        errors = self._check_request_for_errors(good, is_clc_required, is_pv_grading_required)
+        if errors:
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        clc_query = ControlListClassificationQuery.objects.create(
-            details=data.get("not_sure_details_details"),
+        good.status = GoodStatus.QUERY
+        good.control_code = data.get("clc_control_code", None)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=data.get("clc_raised_reasons"),
+            pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            type=CaseTypeEnum.CLC_QUERY,
+            type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=timezone.now(),
         )
 
+        # attach flags based on what's required
+        if is_clc_required:
+            flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
+            goods_query.flags.add(flag)
+        if is_pv_grading_required:
+            flag = Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID)
+            goods_query.flags.add(flag)
+
         good.save()
-        clc_query.save()
+        goods_query.save()
 
-        return JsonResponse(data={"id": clc_query.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
 
 
-class ControlListClassificationDetail(APIView):
+class GoodQueryCLCResponse(APIView):
+    """
+    Respond to the CLC query part of a Goods Query
+    """
+
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
@@ -83,7 +121,8 @@ class ControlListClassificationDetail(APIView):
                 )
 
                 clc_good_serializer.save()
-                query.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+                query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+                query.status = update_goods_query_status(query)
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
@@ -123,7 +162,11 @@ class ControlListClassificationDetail(APIView):
         return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CLCManageStatus(APIView):
+class GoodQueryManageStatus(APIView):
+    """
+    Modify the status of a Goods Query
+    """
+
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
@@ -146,3 +189,14 @@ class CLCManageStatus(APIView):
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class GeneratedDocuments(APIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GeneratedCaseDocumentExporterSerializer
+    queryset = GeneratedCaseDocument
+
+    def get(self, request, pk):
+        dataset = self.queryset.objects.filter(case__id=pk)
+        data = self.serializer_class(dataset, many=True).data
+        return JsonResponse(data={"generated_documents": data}, status=status.HTTP_200_OK)

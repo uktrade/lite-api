@@ -21,9 +21,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.good_1 = self.create_controlled_good("this is a good", self.organisation)
+        self.good_1 = self.create_good("this is a good", self.organisation)
         self.good_1.flags.set([self.create_flag("New Flag", "Good", self.team)])
-        self.good_2 = self.create_controlled_good("this is a good as well", self.organisation)
+        self.good_2 = self.create_good("this is a good as well", self.organisation)
 
         role = Role(name="review_goods")
         role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])

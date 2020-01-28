@@ -11,8 +11,8 @@ class GoodFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         # Goods
-        self.good = self.create_controlled_good("a good", self.organisation)
-        self.good_2 = self.create_controlled_good("a second good", self.organisation)
+        self.good = self.create_good("a good", self.organisation)
+        self.good_2 = self.create_good("a second good", self.organisation)
 
         # Teams
         self.other_team = self.create_team("Team")

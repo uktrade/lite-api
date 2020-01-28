@@ -25,4 +25,3 @@ class Command(SeedCommand):
         Team.objects.get_or_create(id=DEFAULT_ID, name=TEAM_NAME)
         csv = self.read_csv(SYSTEM_FLAGS_FILE)
         self.update_or_create(Flag, csv)
-        self.delete_unused_objects(Flag, csv)

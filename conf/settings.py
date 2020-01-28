@@ -51,12 +51,13 @@ INSTALLED_APPS = [
     "parties",
     "picklists",
     "queries",
-    "queries.control_list_classifications",
+    "queries.goods_query",
     "queries.end_user_advisories",
     "queues",
     "rest_framework",
     "static",
     "static.control_list_entries",
+    "static.private_venture_gradings",
     "static.countries",
     "static.denial_reasons",
     "static.letter_layouts",
@@ -130,13 +131,17 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts
 
 DATABASES = {"default": env.db()}
 
+# Documents
 S3_CLIENT = "boto3"
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION = env("AWS_REGION")
-S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 
+S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
+STREAMING_CHUNK_SIZE = 8192
+
+# AV
 AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")

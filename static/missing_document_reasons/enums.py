@@ -13,10 +13,8 @@ class GoodMissingDocumentReasons:
 
     NO_DOCUMENT = "NO_DOCUMENT"
     OFFICIAL_SENSITIVE = "OFFICIAL_SENSITIVE"
-    COMMERCIALLY_SENSITIVE = "COMMERCIALLY_SENSITIVE"
 
     choices = [
         (NO_DOCUMENT, strings.Static.MissingDocuments.NO_DOCUMENT),
         (OFFICIAL_SENSITIVE, strings.Static.MissingDocuments.OFFICIAL_SENSITIVE),
-        (COMMERCIALLY_SENSITIVE, strings.Static.MissingDocuments.COMMERCIALLY_SENSITIVE),
     ]

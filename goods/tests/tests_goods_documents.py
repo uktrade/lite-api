@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 class GoodDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.good = self.create_controlled_good("this is a good", self.organisation)
+        self.good = self.create_good("this is a good", self.organisation)
         self.url = reverse("goods:documents", kwargs={"pk": self.good.id})
 
     def test_can_view_all_documents_on_a_good(self):

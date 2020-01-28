@@ -4,11 +4,11 @@ from conf.serializers import PrimaryKeyRelatedSerializerField
 from goods.serializers import GoodWithFlagsSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
-class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
+class GoodsQuerySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
     )
@@ -17,10 +17,11 @@ class ControlListClassificationQuerySerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
 
     class Meta:
-        model = ControlListClassificationQuery
+        model = GoodsQuery
         fields = (
             "id",
-            "details",
+            "clc_raised_reasons",
+            "pv_grading_raised_reasons",
             "good",
             "submitted_at",
             "organisation",
