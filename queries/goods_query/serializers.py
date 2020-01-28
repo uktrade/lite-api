@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from conf.serializers import PrimaryKeyRelatedSerializerField
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from goods.enums import PvGrading
+from goods.models import PvGradingDetails
 from goods.serializers import GoodWithFlagsSerializer
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -35,3 +37,18 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+
+class PVGradingResponseSerializer(serializers.ModelSerializer):
+    grading = KeyValueChoiceField(choices=PvGrading.gov_choices, allow_null=False, allow_blank=False, required=True)
+    prefix = serializers.CharField(allow_blank=True, allow_null=True)
+    suffix = serializers.CharField(allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = PvGradingDetails
+        fields = (
+            "id",
+            "prefix",
+            "grading",
+            "suffix",
+        )

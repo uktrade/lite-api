@@ -25,6 +25,7 @@ class AuditType(Enum):
     MOVE_CASE = "moved the case to: {queues}"
     REMOVE_CASE = "removed case from queues: {queues}"
     CLC_RESPONSE = "responded to the case"
+    PV_GRADING_RESPONSE = "responded to pv grading, grading set as {grading}"
     CREATED_CASE_NOTE = "added a case note: {case_note}"
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
     UPDATED_STATUS = "updated the status to: {status}"
