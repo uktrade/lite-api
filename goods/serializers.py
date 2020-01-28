@@ -4,6 +4,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
@@ -205,7 +206,9 @@ class GoodSerializer(serializers.ModelSerializer):
         if pv_grading_details:
             pv_grading_details = GoodSerializer._create_pv_grading_details(pv_grading_details)
 
-        return Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
+        good = Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
+        good.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+        return good
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
@@ -213,6 +216,10 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.control_code = validated_data.get("control_code", "")
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
+
+        if instance.status == GoodStatus.VERIFIED:
+            instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
+
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
         instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
             is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,

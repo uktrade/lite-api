@@ -22,7 +22,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         )
 
         self.good_1 = self.create_good("this is a good", self.organisation)
-        self.good_1.flags.set([self.create_flag("New Flag", "Good", self.team)])
+        self.good_1.flags.add(self.create_flag("New Flag", "Good", self.team))
         self.good_2 = self.create_good("this is a good as well", self.organisation)
 
         role = Role(name="review_goods")
@@ -162,7 +162,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         # since it has an invalid control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.flags.count(), 1)
+        self.assertEqual(verified_good.flags.count(), 2)
 
     def test_controlled_good_empty_control_code(self):
         """
@@ -181,7 +181,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         # since it has an empty control code, flags should not be removed
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.flags.count(), 1)
+        self.assertEqual(verified_good.flags.count(), 2)
 
     def test_user_cannot_review_good_without_permissions(self):
         """

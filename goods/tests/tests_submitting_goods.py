@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import GoodOnApplication
+from flags.enums import SystemFlags
 from goods.models import Good
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -19,7 +20,10 @@ class GoodTests(DataTestClient):
 
         self.client.put(url, **self.exporter_headers)
 
-        self.assertEqual(Good.objects.get().status, "submitted")
+        good = Good.objects.get()
+        self.assertEqual(good.status, "submitted")
+        flags_on_good = [str(id) for id in good.flags.values_list("id", flat=True)]
+        self.assertIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, flags_on_good)
 
     def test_submitted_good_cannot_be_edited(self):
         """

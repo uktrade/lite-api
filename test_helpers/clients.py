@@ -421,6 +421,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_pv_graded=is_pv_graded,
             pv_grading_details=pv_grading_details,
         )
+        good.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
         good.save()
         return good
 
