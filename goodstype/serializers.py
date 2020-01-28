@@ -85,7 +85,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name"))
+        return list(instance.flags.filter().values("id", "name"))
 
     class Meta:
         model = GoodsType
