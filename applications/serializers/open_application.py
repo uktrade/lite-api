@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import OpenApplication, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
