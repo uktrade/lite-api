@@ -4,7 +4,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from flags.enums import SystemFlags
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
@@ -215,9 +214,6 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
-
-        GoodSerializer._add_or_remove_not_yet_verified_system_flag(instance)
-
         instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
             is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
             pv_grading_details=validated_data.get("pv_grading_details"),
@@ -261,13 +257,6 @@ class GoodSerializer(serializers.ModelSerializer):
     def _delete_pv_grading_details(instance):
         instance.delete()
         return None
-
-    @staticmethod
-    def _add_or_remove_not_yet_verified_system_flag(instance):
-        if instance.status == GoodStatus.VERIFIED:
-            instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
-        elif instance.status == GoodStatus.SUBMITTED:
-            instance.flags.add(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
