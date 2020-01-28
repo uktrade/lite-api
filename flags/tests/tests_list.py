@@ -12,7 +12,7 @@ class FlagsListTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_gov_user_can_see_filtered_flags(self):
+    def test_gov_user_can_see_only_filtered_case_level_and_team_flags(self):
         other_team = self.create_team("Team")
 
         flag1 = self.create_flag("Flag1", "Case", self.team)
