@@ -40,10 +40,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         serializer = CountryWithFlagsSerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
-
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
