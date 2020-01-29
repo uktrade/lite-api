@@ -6,18 +6,12 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods_query', '0003_auto_20200114_1716'),
+        ("goods_query", "0003_auto_20200114_1716"),
     ]
 
     operations = [
+        migrations.AddField(model_name="goodsquery", name="clc_responded", field=models.BooleanField(default="False"),),
         migrations.AddField(
-            model_name='goodsquery',
-            name='clc_responded',
-            field=models.BooleanField(default='False'),
-        ),
-        migrations.AddField(
-            model_name='goodsquery',
-            name='pv_grading_responded',
-            field=models.BooleanField(default='False'),
+            model_name="goodsquery", name="pv_grading_responded", field=models.BooleanField(default="False"),
         ),
     ]
