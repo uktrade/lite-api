@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum
 from conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from goods.models import Good
 from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
@@ -396,3 +396,71 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
         )
         self.assertEqual(audit_qs.count(), 1)
+
+
+class PvGradingQueryRespondTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.query = self.create_pv_grading_query("This is a widget", self.organisation)
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.RESPOND_PV_GRADING.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.url = reverse("queries:goods_queries:pv_grading_query_response", kwargs={"pk": self.query.pk})
+
+        self.data = {
+            "prefix": "abc",
+            "grading": PvGrading.UK_SECRET,
+            "suffix": "123",
+            "comment": "the good is graded",
+        }
+
+    def test_respond_to_pv_grading_query_success(self):
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.query.good.pv_grading_details.prefix, self.data["prefix"])
+        self.assertEqual(self.query.good.pv_grading_details.grading, self.data["grading"])
+        self.assertEqual(self.query.good.pv_grading_details.suffix, self.data["suffix"])
+
+        case = self.query.get_case()
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 1)
+
+    def test_respond_to_pv_grading_query_no_grading_failure(self):
+        self.data.pop("grading")
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_respond_to_pv_grading_query_success_validate_only(self):
+        self.data["validate_only"] = True
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.query.good.pv_grading_details, None)
+
+        case = self.query.get_case()
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 0)
+
+    def test_user_cannot_respond_to_pv_grading_with_case_in_terminal_state(self):
+        self.query.status = CaseStatus.objects.get(status="finalised")
+        self.query.save()
+
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+
+        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
