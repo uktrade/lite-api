@@ -22,15 +22,15 @@ def initialize_good_or_goods_type_control_code_serializer(self):
 
 def update_good_or_goods_type_control_code_details(instance, validated_data):
     instance.comment = validated_data.get("comment")
-    if validated_data["report_summary"]:
-        instance.report_summary = validated_data.get("report_summary").text
-    else:
-        instance.report_summary = ""
+
+    report_summary = validated_data.get("report_summary")
+    instance.report_summary = report_summary.text if report_summary else ""
+
     instance.is_good_controlled = validated_data.get("is_good_controlled")
     if str_to_bool(instance.is_good_controlled):
         instance.control_code = validated_data.get("control_code")
     else:
         instance.control_code = ""
-    instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
 
+    instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
     return instance
