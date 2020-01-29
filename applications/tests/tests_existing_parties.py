@@ -29,7 +29,7 @@ class GetExistingPartiesTests(DataTestClient):
     @parameterized.expand(
         [("name", "Abc", 2), ("name", "blah", 0), ("address", "123 abc st.", 1), ("address", "456 abc st.", 1),]
     )
-    def test_get_existing_parties_with_filters(self, key, value, expected_results):
+    def test_get_existing_parties_with_name_and_address_filters(self, key, value, expected_results):
         params = f"?{key}={value}"
         response = self.client.get(self.url + params, **self.exporter_headers)
         results = response.data["results"]

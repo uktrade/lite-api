@@ -1,5 +1,5 @@
-from django.db.models import Window, F, ValueRange, Subquery
-from django.db.models.functions import FirstValue, RowNumber
+from django.db.models import Window, F
+from django.db.models.functions import FirstValue
 from rest_framework import generics
 
 from applications.libraries.get_applications import get_application
