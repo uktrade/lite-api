@@ -38,10 +38,10 @@ class GetExistingPartiesTests(DataTestClient):
             organisation=second_organisation,
         )
 
-        response_data = self.client.get(self.url, **self.exporter_headers).data['results']
-        response_data_ids = [party['id'] for party in response_data]
-        
-        self.assertEqual(Party.objects.count()-1, len(response_data))
+        response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
+        response_data_ids = [party["id"] for party in response_data]
+
+        self.assertEqual(Party.objects.count() - 1, len(response_data))
         self.assertNotIn(str(party.id), response_data_ids)
 
     @parameterized.expand(
@@ -104,12 +104,12 @@ class GetExistingPartiesTests(DataTestClient):
 
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
 
-        response_data_ids = [party['id'] for party in response_data]
+        response_data_ids = [party["id"] for party in response_data]
         expected_copy_id = Party.objects.all().filter(name="Mr Original", address="456 abc st.").get().id
         second_expected_copy_id = Party.objects.all().filter(name="Mr Copy").get().id
 
         # Party table data contains one duplicate, so results returned is 1 less than all parties
-        self.assertEqual(Party.objects.count()-1, len(response_data))
+        self.assertEqual(Party.objects.count() - 1, len(response_data))
         self.assertIn(str(expected_copy_id), response_data_ids)
         self.assertIn(str(second_expected_copy_id), response_data_ids)
         self.assertNotIn(str(original_party.id), response_data_ids)
@@ -133,7 +133,7 @@ class GetExistingPartiesTests(DataTestClient):
             country=self.country,
             sub_type="government",
             organisation=self.organisation,
-            copy_of_id=original_party.id
+            copy_of_id=original_party.id,
         )
 
         response = self.client.get(self.url + params, **self.exporter_headers)
@@ -141,4 +141,4 @@ class GetExistingPartiesTests(DataTestClient):
 
         # Only expecting the most recent 'Mr' filter match
         self.assertEqual(1, len(response_data))
-        self.assertEqual(str(copied_party.id), response_data[0]['id'])
+        self.assertEqual(str(copied_party.id), response_data[0]["id"])
