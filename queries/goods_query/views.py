@@ -123,6 +123,7 @@ class GoodQueryCLCResponse(APIView):
 
                 clc_good_serializer.save()
                 query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+                query.clc_responded = True
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
@@ -190,7 +191,10 @@ class GoodQueryPVGradingResponse(APIView):
             if not str_to_bool(data.get("validate_only")):
                 query.good.is_pv_graded = GoodPvGraded.YES
                 query.good.pv_grading_details = pv_grading_good_serializer.save()
+                query.good.grading_comment = data.get("comment", "")
+                query.good.save()
                 query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+                query.pv_grading_responded = True
                 query.save()
 
                 grading = (

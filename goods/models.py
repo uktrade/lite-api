@@ -46,7 +46,7 @@ class Good(TimestampableModel):
 
     # Gov
     comment = models.TextField(default=None, blank=True, null=True)
-    Grading_comment = models.TextField(default="", blank=True, null=True)
+    grading_comment = models.TextField(default="", blank=True, null=True)
     report_summary = models.TextField(default=None, blank=True, null=True)
 
 

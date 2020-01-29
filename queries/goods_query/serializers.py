@@ -28,6 +28,8 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
             "submitted_at",
             "organisation",
             "status",
+            "clc_responded",
+            "pv_grading_responded",
         )
 
     def get_status(self, instance):
