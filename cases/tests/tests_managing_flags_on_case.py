@@ -9,7 +9,7 @@ class CaseFlagsManagementTests(DataTestClient):
         super().setUp()
 
         # Cases
-        self.case = self.create_clc_query("Query", self.organisation)
+        self.case = self.create_end_user_advisory_case(note="note", reasoning="test", organisation=self.organisation)
 
         # Teams
         self.other_team = self.create_team("Team")

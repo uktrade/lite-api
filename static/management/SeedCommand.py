@@ -66,7 +66,7 @@ class SeedCommand(ABC, BaseCommand):
             obj = model.objects.filter(id=obj_id)
             if not obj.exists():
                 model.objects.create(**row)
-                print(f"CREATED: {dict(row)}")
+                print(f"CREATED {model.__name__}: {dict(row)}")
             else:
                 SeedCommand.update_if_not_equal(obj, row)
 
@@ -78,7 +78,7 @@ class SeedCommand(ABC, BaseCommand):
         obj = obj.exclude(**attributes)
         if obj.exists():
             obj.update(**attributes)
-            print(f"UPDATED: {dict(row)}")
+            print(f"UPDATED {obj.model.__name__}: {dict(row)}")
 
     @staticmethod
     def delete_unused_objects(model: models.Model, rows: list):

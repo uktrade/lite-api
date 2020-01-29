@@ -7,9 +7,10 @@ from conf.settings import env
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
-from users.enums import UserStatuses
-from users.models import ExporterUser, UserOrganisationRelationship
+from static.countries.models import Country
+from static.management.SeedCommand import SeedCommand
+from users.models import ExporterUser, UserOrganisationRelationship, Role
+
 
 ORGANISATIONS = [
     {"name": "Archway Communications", "type": OrganisationType.COMMERCIAL, "reg_no": "09876543",},
@@ -29,6 +30,9 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
+        assert Role.objects.count(), "Role permissions must be seeded first!"
+        assert Country.objects.count(), "Countries must be seeded first!"
+
         for org in ORGANISATIONS:
             organisation = seed_organisation(org)
             _seed_exporter_users_to_organisation(organisation)
@@ -78,9 +82,15 @@ def _get_exporter_users():
 
 def _create_exporter_user(exporter_user_email: str):
     first_name, last_name = _extract_names_from_email(exporter_user_email)
-    exporter_user = ExporterUser.objects.get_or_create(
-        email=exporter_user_email, first_name=first_name, last_name=last_name
-    )[0]
+    exporter_user_data = dict(email=exporter_user_email, first_name=first_name, last_name=last_name)
+
+    exporter_user, created = ExporterUser.objects.get_or_create(
+        email__iexact=exporter_user_email, defaults=exporter_user_data
+    )
+
+    if created:
+        print(f"CREATED ExporterUser: {exporter_user_data}")
+
     return exporter_user
 
 
@@ -93,21 +103,9 @@ def _extract_names_from_email(exporter_user_email: str):
 
 
 def _add_user_to_organisation(user: ExporterUser, organisation: Organisation):
-    user_org, created = UserOrganisationRelationship.objects.get_or_create(
-        user=user, organisation=organisation, status=UserStatuses.ACTIVE
-    )
-    if created:
-        user_org = dict(
-            email=user.email, first_name=user.first_name, last_name=user.last_name, organisation=organisation.name
-        )
-        print(f"CREATED: {user_org}")
+    user_org = UserOrganisationRelationship.objects.filter(user=user, organisation=organisation)
 
-
-class SeedOrgUsersTests(SeedCommandTest):
-    def test_seed_org_users(self):
-        self.seed_command(Command)
-        self.assertTrue(Organisation.objects)
-        self.assertTrue(Site.objects)
-        num_exporter_users = len(_get_exporter_users())
-        self.assertTrue(num_exporter_users == ExporterUser.objects.count())
-        self.assertTrue(num_exporter_users <= UserOrganisationRelationship.objects.count())
+    if not user_org.exists():
+        user_org_data = dict(email=user.email, organisation=organisation.name)
+        UserOrganisationRelationship.objects.create(user=user, organisation=organisation)
+        print(f"CREATED UserOrganisationRelationship: {user_org_data}")

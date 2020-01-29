@@ -19,9 +19,10 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
+from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
 from goods.serializers import (
     GoodSerializer,
@@ -35,7 +36,7 @@ from goods.serializers import (
 from goodstype.helpers import get_goods_type
 from goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
@@ -149,24 +150,17 @@ class GoodList(ListCreateAPIView):
 
         return queryset
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """
         Add a good to to an organisation
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
         data["status"] = GoodStatus.DRAFT
+
         serializer = GoodSerializer(data=data)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if "validate_only" in data and data["validate_only"] is True:
-            return HttpResponse(status=status.HTTP_200_OK)
-        else:
-            serializer.save()
-
-            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+        return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
 
 class GoodDocumentCriteriaCheck(APIView):
@@ -209,7 +203,7 @@ class GoodDetail(APIView):
             serializer = GoodSerializer(good, context={"exporter_user": request.user})
 
             # If there's a query with this good, update the notifications on it
-            query = ControlListClassificationQuery.objects.filter(good=good)
+            query = GoodsQuery.objects.filter(good=good)
             if query:
                 delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
         else:
@@ -230,16 +224,16 @@ class GoodDetail(APIView):
 
         data = request.data.copy()
 
-        if data.get("is_good_controlled") == "unsure":
+        if (
+            data.get("is_good_controlled") == GoodControlled.UNSURE
+            or data.get("is_pv_graded") == GoodPvGraded.GRADING_REQUIRED
+        ):
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 
         data["organisation"] = request.user.organisation.id
         serializer = GoodSerializer(instance=good, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"good": serializer.data})
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
 
     def delete(self, request, pk):
         good = get_good(pk)

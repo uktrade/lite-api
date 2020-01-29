@@ -1,5 +1,5 @@
 from conf.exceptions import NotFoundError
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 
 
@@ -9,8 +9,8 @@ def get_exporter_query(pk):
     a End User Classification Query depending on the PK given
     """
     try:
-        return ControlListClassificationQuery.objects.get(pk=pk)
-    except ControlListClassificationQuery.DoesNotExist:
+        return GoodsQuery.objects.get(pk=pk)
+    except GoodsQuery.DoesNotExist:
         try:
             return EndUserAdvisoryQuery.objects.get(pk=pk)
         except EndUserAdvisoryQuery.DoesNotExist:
