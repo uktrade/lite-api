@@ -5,7 +5,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
-from flags.enums import FlagStatuses
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType

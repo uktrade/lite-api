@@ -1,8 +1,7 @@
 from django.http import Http404
 
-from applications.enums import ApplicationType
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery, OpenApplication
+from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.serializers import FlagSerializer
