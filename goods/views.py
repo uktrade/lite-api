@@ -50,16 +50,14 @@ class GoodsListControlCode(APIView):
         Set control list codes on multiple goods.
         """
         assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
-
         application = BaseApplication.objects.get(id=case_pk)
-
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
                 data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = JSONParser().parse(request)
+        data = request.data
         objects = data.get("objects")
 
         if not isinstance(objects, list):
@@ -68,35 +66,28 @@ class GoodsListControlCode(APIView):
         if application.application_type == ApplicationType.STANDARD_LICENCE:
             serializer_class = ClcControlGoodSerializer
             get_good_func = get_good
-            controlled = data.get("is_good_controlled", "no").lower() == "yes"
         else:
             serializer_class = ClcControlGoodTypeSerializer
             get_good_func = get_goods_type
-            controlled = data.get("is_good_controlled", "false").lower() == "true"
 
         serializer = serializer_class(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        if serializer.is_valid():
-            error_occurred = False
-            case = get_case(case_pk)
+        case = get_case(case_pk)
+        errors = []
+        for pk in objects:
+            try:
+                good = get_good_func(pk=pk)
+                old_control_code = good.control_code or "No control code"
 
-            for pk in objects:
-                try:
-                    good = get_good_func(pk=pk)
-
-                    old_control_code = good.control_code
-                    if not old_control_code:
-                        old_control_code = "No control code"
-
-                    new_control_code = "No control code"
-                    if controlled:
-                        new_control_code = data.get("control_code", "No control code")
-
-                    serializer = serializer_class(good, data=data)
-                    if serializer.is_valid():
-                        serializer.save()
+                serializer = serializer_class(good, data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    new_control_code = good.control_code or "No control code"
 
                     if new_control_code != old_control_code:
+                        good.flags.clear()
                         audit_trail_service.create(
                             actor=request.user,
                             verb=AuditType.GOOD_REVIEWED,
@@ -108,15 +99,14 @@ class GoodsListControlCode(APIView):
                                 "old_control_code": old_control_code,
                             },
                         )
-                except Http404:
-                    error_occurred = True
+                errors += serializer.errors
+            except Http404:
+                errors += f"{strings.Goods.GOOD_NOT_FOUND_ERROR}: {pk}"
 
-            if not error_occurred:
-                return HttpResponse(status=status.HTTP_200_OK)
-            else:
-                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-        else:
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if errors:
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return HttpResponse(status=status.HTTP_200_OK)
 
 
 class GoodList(ListCreateAPIView):

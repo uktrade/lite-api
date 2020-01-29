@@ -98,11 +98,11 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_code, "")
+        self.good_1.refresh_from_db()
+        self.assertEqual(self.good_1.control_code, "")
 
         # determine that flags have been removed when good verified
-        self.assertEqual(verified_good.flags.count(), 0)
+        self.assertEqual(self.good_1.flags.count(), 0)
 
     def test_verify_multiple_goods_NLR(self):
         """
@@ -120,11 +120,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_code, "")
-
-        verified_good = Good.objects.get(pk=self.good_2.pk)
-        self.assertEqual(verified_good.control_code, "")
+        self.good_1.refresh_from_db()
+        self.good_2.refresh_from_db()
+        self.assertEqual(self.good_1.control_code, "")
+        self.assertEqual(self.good_2.control_code, "")
 
     def test_invalid_good_pk(self):
         """
@@ -140,7 +139,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_code, "")
@@ -307,6 +306,30 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         # determine that flags have been removed when good verified
         self.assertEqual(self.good_1.flags.count(), 0)
 
+    def test_verify_only_change_comment_doesnt_remove_flags(self):
+        """
+        Assert that not changing the control code does not remove the flags
+        """
+        self.good_1.is_good_controlled = "True"
+        self.good_1.control_code = "ML1a"
+        self.good_1.save()
+        data = {
+            "objects": self.good_1.pk,
+            "comment": "I Am Easy to Find",
+            "report_summary": self.report_summary.pk,
+            "control_code": "ML1a",
+            "is_good_controlled": "True",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        self.good_1.refresh_from_db()
+        self.assertEqual(self.good_1.control_code, "ML1a")
+
+        # determine that flags have not been removed when control code hasn't changed
+        self.assertEqual(self.good_1.flags.count(), 1)
+
     def test_verify_multiple_goods_NLR(self):
         """
         Post multiple goods to the endpoint, and check that the control code is not set if good is not controlled
@@ -343,7 +366,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.good_1.refresh_from_db()
         self.assertEqual(self.good_1.control_code, "")

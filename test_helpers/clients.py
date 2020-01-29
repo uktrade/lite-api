@@ -9,7 +9,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
-from applications.libraries.goods_on_applications import update_good_statuses_and_flags_on_application
+from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -283,7 +283,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_good_statuses_and_flags_on_application(application)
+        update_submitted_application_good_statuses_and_flags(application)
 
         return application
 

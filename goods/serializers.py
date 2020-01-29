@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.helpers import str_to_bool
+from common.libraries import (
+    initialize_good_or_goods_type_control_code_serializer,
+    update_good_or_goods_type_control_code_details,
+)
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
@@ -373,35 +376,10 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
+        initialize_good_or_goods_type_control_code_serializer(self)
 
-        # Only validate the control code if the good is controlled
-        if str_to_bool(self.get_initial().get("is_good_controlled")):
-            self.fields["control_code"] = ControlListEntryField(required=True, write_only=True)
-            self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
-                queryset=PicklistItem.objects.all(),
-                required=True,
-                error_messages={
-                    "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
-                    "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
-                },
-            )
-
-    # pylint: disable = W0221
     def update(self, instance, validated_data):
-        # Update the good's details
-        instance.comment = validated_data.get("comment")
-        if validated_data["report_summary"]:
-            instance.report_summary = validated_data.get("report_summary").text
-        else:
-            instance.report_summary = ""
-        instance.is_good_controlled = validated_data.get("is_good_controlled")
-        if instance.is_good_controlled == "yes":
-            instance.control_code = validated_data.get("control_code")
-        else:
-            instance.control_code = ""
+        instance = update_good_or_goods_type_control_code_details(instance, validated_data)
         instance.status = GoodStatus.VERIFIED
-        instance.flags.clear()
-
         instance.save()
-
         return instance

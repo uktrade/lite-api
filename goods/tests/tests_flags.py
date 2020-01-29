@@ -4,8 +4,6 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from cases.models import Case
-from flags.enums import SystemFlags
-from flags.models import Flag
 from test_helpers.clients import DataTestClient
 
 
@@ -34,16 +32,16 @@ class GoodFlagsManagementTests(DataTestClient):
         self.good_url = reverse("goods:good", kwargs={"pk": self.good.id})
         self.good_flag_url = reverse("flags:assign_flags")
 
-    def test_only_not_yet_verified_system_flag_for_good_is_returned(self):
+    def test_no_flags_for_good_are_returned(self):
         """
-       Given a Good with no Flags assigned
+        Given a Good with no Flags assigned
         When a user requests the Good
-        Then the correct Good with only the 'not yet verified' Flag is returned
+        Then the correct Good with an empty Flag list is returned
         """
 
         response = self.client.get(self.good_url, **self.gov_headers)
 
-        self.assertEqual(len(response.json()["good"]["flags"]), 0)
+        self.assertEqual([], response.json()["good"]["flags"])
 
     def test_all_flags_for_good_are_returned(self):
         """
@@ -64,7 +62,6 @@ class GoodFlagsManagementTests(DataTestClient):
         When a user attempts to add a good-level Flag owned by their Team to the Good
         Then the Flag is successfully added
         """
-        previous_flag_count = self.good.flags.count()
         data = {
             "level": "goods",
             "objects": [self.good.pk],
@@ -74,8 +71,7 @@ class GoodFlagsManagementTests(DataTestClient):
 
         self.client.put(self.good_flag_url, data, **self.gov_headers)
 
-        self.assertEquals(len(data["flags"]), 1)
-        self.assertEquals(self.good.flags.count(), previous_flag_count + 1)
+        self.assertEquals(len(data["flags"]), len(self.good.flags.all()))
         self.assertTrue(self.team_good_flag_1 in self.good.flags.all())
 
     def test_user_cannot_assign_flags_that_are_not_owned_by_their_team(self):

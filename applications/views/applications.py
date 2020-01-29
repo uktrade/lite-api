@@ -21,7 +21,7 @@ from applications.libraries.application_helpers import (
     can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
-from applications.libraries.goods_on_applications import update_good_statuses_and_flags_on_application
+from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
 from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
@@ -214,7 +214,7 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_good_statuses_and_flags_on_application(application)
+        update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
         serializer = get_application_update_serializer(application)
