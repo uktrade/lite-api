@@ -116,6 +116,7 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
         initialize_good_or_goods_type_control_code_serializer(self)
 
     def update(self, instance, validated_data):
+        instance.is_good_controlled = str_to_bool(validated_data.get("is_good_controlled"))
         instance = update_good_or_goods_type_control_code_details(instance, validated_data)
         instance.save()
         return instance

@@ -26,7 +26,6 @@ def update_good_or_goods_type_control_code_details(instance, validated_data):
     report_summary = validated_data.get("report_summary")
     instance.report_summary = report_summary.text if report_summary else ""
 
-    instance.is_good_controlled = validated_data.get("is_good_controlled")
     if str_to_bool(instance.is_good_controlled):
         instance.control_code = validated_data.get("control_code")
     else:
