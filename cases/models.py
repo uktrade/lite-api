@@ -51,7 +51,7 @@ class Case(TimestampableModel):
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
             self.reference_code = generate_reference_code(self)
 
-        if self.status.status in CaseStatusEnum.terminal_statuses():
+        if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
             self.queues.clear()
             CaseAssignment.objects.filter(case=self).delete()
