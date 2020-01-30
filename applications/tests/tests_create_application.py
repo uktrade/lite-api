@@ -110,7 +110,10 @@ class DraftTests(DataTestClient):
     )
     def test_create_draft_failure(self, data):
         """
-        Ensure we cannot create a new draft object with an invalid POST
+        Ensure we cannot create a new draft object with POST data that is missing required properties
+        Applications require: application_type, export_type & name
+        Exhibition clearances require: application_type & name
+        Above is a mixture of invalid combinations for these cases
         """
         response = self.client.post(self.url, data, **self.exporter_headers)
 

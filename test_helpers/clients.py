@@ -509,7 +509,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
-    def add_application_documents(self, application, safe_document):
+    def add_application_and_party_documents(self, application, safe_document):
         # Set the application party documents
         self.create_document_for_party(application.end_user, safe=safe_document)
         self.create_document_for_party(application.consignee, safe=safe_document)
@@ -548,7 +548,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         self.good_on_application.save()
 
-        self.add_application_documents(application, safe_document)
+        self.add_application_and_party_documents(application, safe_document)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
@@ -586,7 +586,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.good_on_application.save()
 
         # Set the application party documents
-        self.add_application_documents(application, safe_document)
+        self.add_application_and_party_documents(application, safe_document)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
