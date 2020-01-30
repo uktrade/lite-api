@@ -10,7 +10,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
-class EditApplicationTests(DataTestClient):
+class EditStandardApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.data = {"name": "new app name!"}
@@ -124,3 +124,51 @@ class EditApplicationTests(DataTestClient):
         self.assertEqual(audit_qs.count(), 4)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
+
+
+class EditExhibitionClearanceApplicationTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_exhibition_clearance_application(self.organisation)
+        self.url = reverse("applications:application", kwargs={"pk": self.application.id})
+        self.data = {"name": "abc"}
+
+    def test_edit_unsubmitted_application_name_success(self):
+        updated_at = self.application.updated_at
+
+        response = self.client.put(self.url, self.data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.application.name, self.data["name"])
+        self.assertNotEqual(self.application.updated_at, updated_at)
+        # Unsubmitted (draft) applications should not create audit entries when edited
+        self.assertEqual(Audit.objects.all().count(), 0)
+
+    @parameterized.expand(get_case_statuses(read_only=False))
+    def test_edit_application_name_in_editable_status_success(self, editable_status):
+        old_name = self.application.name
+        self.submit_application(self.application)
+        self.application.status = get_case_status_by_status(editable_status)
+        self.application.save()
+        updated_at = self.application.updated_at
+
+        response = self.client.put(self.url, self.data, **self.exporter_headers)
+        self.application.refresh_from_db()
+        audit_qs = Audit.objects.all()
+        audit_object = audit_qs.first()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.application.name, self.data["name"])
+        self.assertNotEqual(self.application.updated_at, updated_at)
+        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
+
+    @parameterized.expand(get_case_statuses(read_only=True))
+    def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
+        self.submit_application(self.application)
+        self.application.status = get_case_status_by_status(read_only_status)
+        self.application.save()
+
+        response = self.client.put(self.url, self.data, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
