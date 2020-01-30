@@ -53,7 +53,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self):
-        case = self.submit_application(self.standard_application)
+        self.submit_application(self.standard_application)
 
         data = {"status": CaseStatusEnum.WITHDRAWN}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
