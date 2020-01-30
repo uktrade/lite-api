@@ -33,18 +33,35 @@ class ExistingParties(generics.ListCreateAPIView):
         application_id = self.kwargs["pk"]
         application = get_application(application_id)
 
-        # Stage 1: Build a query for uncopied parties, i.e. parties that are not copies of other
-        # parties and have never been copied themselves
-        party_copy_of_ids = Party.objects.filter(copy_of_id__isnull=False).values("copy_of_id").distinct()
-        uncopied_parties = Party.objects.filter(
-            organisation=application.organisation, copy_of_id__isnull=True, **params
-        ).exclude(id__in=party_copy_of_ids)
+        uncopied_parties = self.get_uncopied_parties(application.organisation, params)
+        newest_copied_parties = self.get_newest_copied_parties(application.organisation, params)
 
-        # Stage 2: Build a query set using a Django window function to find the most recent parties that are copies.
-        # Essentially, we group copied parties by name and copy_of_id and for each grouping, get the id
-        # of the newest party in the group.  Then use that set of ids to get the corresponding list of parties
-        copied_party_ids = (
-            Party.objects.filter(organisation=application.organisation, copy_of_id__isnull=False, **params)
+        # Return the combined results from stages 1 and 2 above
+        return uncopied_parties.union(newest_copied_parties)
+
+    @staticmethod
+    def get_uncopied_parties(organisation, params):
+        """Get uncopied parties i.e. parties that are not copoes of other parties and have not been copied
+        themselves.
+        """
+        party_copy_of_ids = Party.objects.filter(copy_of_id__isnull=False).values("copy_of_id").distinct()
+        uncopied_parties = Party.objects.filter(organisation=organisation, copy_of_id__isnull=True, **params).exclude(
+            id__in=party_copy_of_ids
+        )
+
+        return uncopied_parties
+
+    @staticmethod
+    def get_newest_copied_parties(organisation, params):
+        """ Get the newest copied parties for each group.
+
+        Build a query set using a Django window function to find the most recent parties that are copies.
+        Essentially, we group copied parties by name and copy_of_id and for each grouping, get the id of the newest
+        party in the group and then use that set of ids to get the corresponding list of parties
+
+        """
+        newest_copied_party_ids_in_group = (
+            Party.objects.filter(organisation=organisation, copy_of_id__isnull=False, **params)
             .annotate(
                 first_party_id=Window(
                     expression=FirstValue("id"), partition_by=["name", "copy_of_id"], order_by=F("created_at").desc(),
@@ -53,7 +70,5 @@ class ExistingParties(generics.ListCreateAPIView):
             .values_list("first_party_id")
             .distinct()
         )
-        copied_parties = Party.objects.filter(id__in=copied_party_ids)
 
-        # Return the combined results from stages 1 and 2 above
-        return uncopied_parties.union(copied_parties)
+        return Party.objects.filter(id__in=newest_copied_party_ids_in_group)

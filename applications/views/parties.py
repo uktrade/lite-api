@@ -12,6 +12,7 @@ from conf.decorators import (
     application_in_editable_state,
     allowed_application_types,
 )
+from conf.helpers import str_to_bool
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
 from parties.serializers import (
@@ -114,16 +115,12 @@ class ApplicationUltimateEndUsers(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+        serializer = UltimateEndUserSerializer(data=data)
 
-        if "validate_only" in data and not isinstance(data["validate_only"], bool):
-            return JsonResponse(data={"error": ""}, status=status.HTTP_400_BAD_REQUEST,)
-
-        if "validate_only" in data and data["validate_only"] is True:
-            serializer = UltimateEndUserSerializer(data=data)
+        if str_to_bool(data.get("validate_only")):
             if serializer.is_valid():
                 return JsonResponse(data={"ultimate_end_user": serializer.initial_data}, status=status.HTTP_200_OK)
         else:
-            serializer = UltimateEndUserSerializer(data=data)
             if serializer.is_valid():
                 ultimate_end_user = serializer.save()
                 application.ultimate_end_users.add(ultimate_end_user.id)
@@ -227,7 +224,6 @@ class ApplicationConsignee(APIView):
         Delete a consignee and their document from an application
         """
         consignee = application.consignee
-        case = application.get_case()
 
         if not consignee:
             return JsonResponse(data={"errors": "consignee not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -240,7 +236,7 @@ class ApplicationConsignee(APIView):
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
-            target=case,
+            target=application.get_case(),
             payload={"party_type": consignee.type.replace("_", " "), "party_name": consignee.name,},
         )
 
@@ -269,17 +265,12 @@ class ApplicationThirdParties(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
-        case = application.get_case()
+        serializer = ThirdPartySerializer(data=data)
 
-        if "validate_only" in data and not isinstance(data["validate_only"], bool):
-            return JsonResponse(data={"error": ""}, status=status.HTTP_400_BAD_REQUEST,)
-
-        if "validate_only" in data and data["validate_only"] is True:
-            serializer = ThirdPartySerializer(data=data)
+        if str_to_bool(data.get("validate_only")):
             if serializer.is_valid():
                 return JsonResponse(data={"third_party": serializer.initial_data}, status=status.HTTP_200_OK)
         else:
-            serializer = ThirdPartySerializer(data=data)
             if serializer.is_valid():
                 third_party = serializer.save()
                 application.third_parties.add(third_party.id)
@@ -287,7 +278,7 @@ class ApplicationThirdParties(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.ADD_PARTY,
-                    target=case,
+                    target=application.get_case(),
                     payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name},
                 )
 

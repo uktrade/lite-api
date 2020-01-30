@@ -58,34 +58,58 @@ class ThirdPartiesOnDraft(DataTestClient):
         ]
 
         for count, third_party in enumerate(parties, 1):
-            self.client.post(self.url, third_party, **self.exporter_headers)
+            response = self.client.post(self.url, third_party, **self.exporter_headers)
+            response_party = response.json()["third_party"]
+
             self.assertEqual(self.draft.third_parties.count(), count)
+            self.assertEqual(third_party["name"], response_party["name"])
+            self.assertEqual(third_party["address"], response_party["address"])
+            self.assertEqual(third_party["country"], response_party["country"]["id"])
+            self.assertEqual(third_party["sub_type"], response_party["sub_type"]["key"])
+            self.assertEqual(third_party["role"], response_party["role"]["key"])
+            self.assertEqual(third_party["website"], response_party["website"])
 
         # Drafts do not create audit
         self.assertEqual(audit_qs.count(), 0)
         self.assertEqual(self.draft.third_parties.count(), len(parties))
 
-    def test_unsuccessful_add_third_party(self):
+    @parameterized.expand(
+        [
+            [
+                {},
+                {
+                    "errors": {
+                        "name": [Parties.REQUIRED_FIELD],
+                        "address": [Parties.REQUIRED_FIELD],
+                        "country": [Parties.REQUIRED_FIELD],
+                        "sub_type": [Parties.NULL_TYPE],
+                        "role": [Parties.ThirdParty.NULL_ROLE],
+                    }
+                },
+            ],
+            [
+                {
+                    "name": "UK Government",
+                    "address": "Westminster, London SW1A 0AA",
+                    "country": "GB",
+                    "website": "https://www.gov.uk",
+                },
+                {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}},
+            ],
+        ]
+    )
+    def test_unsuccessful_add_third_party(self, data, errors):
         """
         Given a standard draft has been created
         And the draft does not yet contain a third party
         When attempting to add an invalid third party
         Then the third party is not added to the draft
         """
-        data = {
-            "name": "UK Government",
-            "address": "Westminster, London SW1A 0AA",
-            "country": "GB",
-            "website": "https://www.gov.uk",
-        }
-
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response_data, {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}}
-        )
+        self.assertEqual(response_data, errors)
 
     def test_get_third_parties(self):
         third_party = self.draft.third_parties.first()
@@ -318,3 +342,4 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.draft.end_user.id, self.draft.third_parties.first().copy_of.id)
+        self.assertEqual(response.json()["third_party"]["copy_of"], str(third_party["copy_of"]))
