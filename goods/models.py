@@ -45,8 +45,8 @@ class Good(TimestampableModel):
     missing_document_reason = models.CharField(choices=GoodMissingDocumentReasons.choices, null=True, max_length=30)
 
     # Gov
-    comment = models.TextField(default=None, blank=True, null=True)
-    grading_comment = models.TextField(default=None, blank=True, null=True)
+    comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
 
