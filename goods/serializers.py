@@ -352,7 +352,7 @@ class GoodWithFlagsSerializer(GoodSerializer):
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    control_code = ControlListEntryField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
         allow_null=False,

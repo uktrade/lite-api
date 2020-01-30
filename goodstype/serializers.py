@@ -95,7 +95,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    control_code = ControlListEntryField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.BooleanField
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
