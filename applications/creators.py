@@ -140,6 +140,7 @@ def validate_application_ready_for_submission(application):
     if (
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+        and not hasattr(application, "is_goods_departed") and not application.is_goods_departed
     ):
         errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
