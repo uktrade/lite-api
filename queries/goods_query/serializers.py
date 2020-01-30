@@ -8,6 +8,10 @@ from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from queries.goods_query.models import GoodsQuery
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from users.libraries.notifications import (
+    get_exporter_user_notification_total_count,
+    get_exporter_user_notification_individual_count,
+)
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
@@ -60,3 +64,31 @@ class PVGradingResponseSerializer(serializers.ModelSerializer):
             "grading",
             "suffix",
         )
+
+
+class ExporterReadGoodQuerySerializer(serializers.ModelSerializer):
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoodsQuery
+        fields = (
+            "id",
+            "reference_code",
+            "clc_responded",
+            "clc_raised_reasons",
+            "pv_grading_responded",
+            "pv_grading_raised_reasons",
+            "exporter_user_notification_count",
+        )
+
+    def get_exporter_user_notification_count(self, instance):
+        if self.context.get("exporter_user"):
+            return (
+                get_exporter_user_notification_total_count(
+                    exporter_user=self.context.get("exporter_user"), case=instance
+                )
+                if self.context.get("total_count")
+                else get_exporter_user_notification_individual_count(
+                    exporter_user=self.context.get("exporter_user"), case=instance
+                )
+            )

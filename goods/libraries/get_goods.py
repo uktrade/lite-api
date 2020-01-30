@@ -41,25 +41,12 @@ def get_good_with_organisation(pk, organisation):
 
 
 def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, total_count: bool) -> dict:
-    query = {}
+    from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
+
     good_query = GoodsQuery.objects.filter(good__id=good.id)
-
     if good_query:
-        good_query = good_query.first()
-        query["id"] = good_query.id
-        query["reference_code"] = good_query.reference_code
-        query["clc_responded"] = good_query.clc_responded
-        query["clc_raised_reasons"] = good_query.clc_raised_reasons
-        query["pv_grading_responded"] = good_query.pv_grading_responded
-        query["pv_grading_raised_reasons"] = good_query.pv_grading_raised_reasons
+        serializer = ExporterReadGoodQuerySerializer(
+            instance=good_query.first(), context={"exporter_user": exporter_user, "total_count": total_count}
+        )
 
-        if exporter_user:
-            exporter_user_notification_count = (
-                get_exporter_user_notification_total_count(exporter_user=exporter_user, case=good_query)
-                if total_count
-                else get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=good_query)
-            )
-
-            query["exporter_user_notification_count"] = exporter_user_notification_count
-
-    return query
+        return serializer.data
