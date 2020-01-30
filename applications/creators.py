@@ -112,6 +112,11 @@ def _validate_standard_licence(draft, errors):
     return errors
 
 
+def _validate_exhibition_clearance(draft, errors):
+    # Temp as exhibition clearance is currently the same as standard but will change
+    return _validate_standard_licence(draft, errors)
+
+
 def _validate_open_licence(draft, errors):
     if len(CountryOnApplication.objects.filter(application=draft)) == 0:
         errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
@@ -145,6 +150,8 @@ def validate_application_ready_for_submission(application):
         _validate_open_licence(application, errors)
     elif application.application_type == ApplicationType.HMRC_QUERY:
         _validate_hmrc_query(application, errors)
+    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+        _validate_exhibition_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"
 

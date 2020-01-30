@@ -1,3 +1,4 @@
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -6,6 +7,7 @@ from rest_framework.validators import UniqueValidator
 from gov_users.enums import GovUserStatuses
 from organisations.models import Organisation
 from static.statuses.models import CaseStatus
+from static.statuses.serializers import CaseStatusSerializer
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserType
@@ -27,7 +29,9 @@ class RoleSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)
     type = serializers.ChoiceField(choices=UserType.choices)
     name = serializers.CharField(max_length=30, error_messages={"blank": strings.Roles.BLANK_NAME},)
-    statuses = PrimaryKeyRelatedField(queryset=CaseStatus.objects.all(), many=True, required=False)
+    statuses = PrimaryKeyRelatedSerializerField(
+        queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
+    )
 
     class Meta:
         model = Role

@@ -21,8 +21,9 @@ from applications.libraries.application_helpers import (
     can_status_can_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
+from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
-from applications.models import GoodOnApplication, BaseApplication, HmrcQuery, SiteOnApplication
+from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -31,7 +32,6 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication, Go
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
-from goods.enums import GoodStatus
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
@@ -184,10 +184,11 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
-                data={"errors": "Only draft applications can be deleted"}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         application.delete()
-        return JsonResponse(data={"status": "Draft application deleted"}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"status": strings.Applications.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK)
 
 
 class ApplicationSubmission(APIView):
@@ -214,17 +215,13 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
-                if good_on_application.good.status == GoodStatus.DRAFT:
-                    good_on_application.good.status = GoodStatus.SUBMITTED
-                    good_on_application.good.save()
+        update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
         serializer = get_application_update_serializer(application)
         serializer = serializer(application)
 
-        data = {"application": {**serializer.data}}
+        data = {"application": {"reference_code": application.reference_code, **serializer.data}}
 
         if not is_case_status_draft(previous_application_status.status):
             # Only create the audit if the previous application status was not `Draft`
@@ -283,7 +280,7 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": CaseStatusEnum.human_readable(case_status.status)},
+            payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
