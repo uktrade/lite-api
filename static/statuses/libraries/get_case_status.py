@@ -13,7 +13,7 @@ def get_case_status_by_status(status):
     try:
         return CaseStatus.objects.get(status=status)
     except CaseStatus.DoesNotExist:
-        raise NotFoundError({"case_status": f"{status} not found"})
+        raise NotFoundError({"case_status": [f"{status} isn't a valid status"]})
 
 
 def get_case_status_by_pk(pk):

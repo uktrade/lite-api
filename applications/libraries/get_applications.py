@@ -6,6 +6,7 @@ from applications.models import (
     OpenApplication,
     StandardApplication,
     HmrcQuery,
+    ExhibitionClearanceApplication,
 )
 
 
@@ -23,6 +24,8 @@ def get_application(pk, organisation_id=None):
             return OpenApplication.objects.get(pk=pk, **kwargs)
         elif application_type == ApplicationType.HMRC_QUERY:
             return HmrcQuery.objects.get(pk=pk)
+        elif application_type == ApplicationType.EXHIBITION_CLEARANCE:
+            return ExhibitionClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (
