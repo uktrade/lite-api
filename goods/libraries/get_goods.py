@@ -4,10 +4,6 @@ from django.http import Http404
 from conf.exceptions import NotFoundError
 from goods.models import Good, GoodDocument
 from queries.goods_query.models import GoodsQuery
-from users.libraries.notifications import (
-    get_exporter_user_notification_total_count,
-    get_exporter_user_notification_individual_count,
-)
 from users.models import ExporterUser
 
 
