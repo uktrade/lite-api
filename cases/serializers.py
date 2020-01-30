@@ -30,6 +30,7 @@ from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
@@ -110,7 +111,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.organisation.name
 
     def get_status(self, instance):
-        return instance.status.status
+        return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
@@ -154,7 +155,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.EXHIBITION_CLEARANCE]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data

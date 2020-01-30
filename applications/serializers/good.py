@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from applications.models import StandardApplication, GoodOnApplication
+from applications.models import BaseApplication, GoodOnApplication
 from conf.serializers import KeyValueChoiceField
 from goods.models import Good
 from goods.serializers import GoodSerializer
@@ -34,7 +34,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     good = PrimaryKeyRelatedField(queryset=Good.objects.all())
-    application = PrimaryKeyRelatedField(queryset=StandardApplication.objects.all())
+    application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     value = DecimalField(max_digits=256, decimal_places=2, error_messages={"invalid": strings.Goods.INVALID_VALUE})
     quantity = DecimalField(
         max_digits=256, decimal_places=6, error_messages={"invalid": strings.Goods.INVALID_QUANTITY}
