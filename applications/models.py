@@ -45,6 +45,17 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+class ExhibitionClearanceApplication(BaseApplication):
+    end_user = models.ForeignKey(
+        EndUser, related_name="clearance_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="clearance_ultimate_end_users")
+    consignee = models.ForeignKey(
+        Consignee, related_name="clearance_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="clearance_third_parties")
+
+
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     end_user = models.ForeignKey(
@@ -93,7 +104,7 @@ class ExternalLocationOnApplication(models.Model):
 class GoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
-    application = models.ForeignKey(StandardApplication, related_name="goods", on_delete=models.CASCADE)
+    application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
