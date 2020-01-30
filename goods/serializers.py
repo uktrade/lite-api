@@ -5,7 +5,6 @@ from common.libraries import (
     initialize_good_or_goods_type_control_code_serializer,
     update_good_or_goods_type_control_code_details,
 )
-from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
