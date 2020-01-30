@@ -295,3 +295,22 @@ class RolesAndPermissionsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotEqual(second_user.get_role(self.organisation), second_user_role)
+
+    def test_can_change_another_users_role_to_newly_created_role(self):
+        user_role = Role(name="new role", organisation=self.organisation)
+        user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
+        user_role.save()
+        second_user_role = Role(name="new role", organisation=self.organisation)
+        second_user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
+        second_user_role.save()
+        self.exporter_user.set_role(self.organisation, user_role)
+        second_user = self.create_exporter_user(self.organisation)
+
+        response = self.client.put(
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
+            data={"role": str(second_user_role.id)},
+            **self.exporter_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(second_user.get_role(self.organisation), user_role)
