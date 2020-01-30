@@ -65,7 +65,7 @@ class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.REF_NAME},
+        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
 
     class Meta:
