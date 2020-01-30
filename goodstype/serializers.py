@@ -19,8 +19,8 @@ from static.countries.serializers import CountrySerializer
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=DESCRIPTION_MAX_LENGTH)
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     is_good_controlled = serializers.BooleanField()
+    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
@@ -52,6 +52,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated",)
             else:
                 if hasattr(self, "initial_data"):
+                    self.initial_data["is_good_controlled"] = False
                     self.initial_data["is_good_incorporated"] = None
 
         # Only validate the control code if the good is controlled
