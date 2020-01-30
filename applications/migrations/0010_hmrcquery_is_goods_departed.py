@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0009_baseapplication_good_on_application'),
+        ("applications", "0009_baseapplication_good_on_application"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hmrcquery',
-            name='is_goods_departed',
-            field=models.BooleanField(default=False),
+            model_name="hmrcquery", name="is_goods_departed", field=models.BooleanField(default=False),
         ),
     ]
