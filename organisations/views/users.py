@@ -118,9 +118,12 @@ class UserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             # Cannot assign a role, you do not have access to
-            if data["role"] not in str(Roles.EXPORTER_PRESET_ROLES) and data["role"] not in filter_roles_by_user_role(
+            roles = filter_roles_by_user_role(
                 request.user, Role.objects.filter(organisation=org_pk), org_pk
-            ):
+            )
+
+            if data["role"] not in str(Roles.EXPORTER_PRESET_ROLES) and data["role"] not in [str(role.id) for role in
+                                                                                             roles]:
                 raise PermissionDenied()
 
         serializer = UserOrganisationRelationshipSerializer(instance=user_relationship, data=data, partial=True)
