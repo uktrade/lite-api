@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from cases.models import CaseAssignment
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -52,7 +53,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING))
 
     def test_exporter_set_application_status_withdrawn_when_application_not_terminal_success(self):
-        self.submit_application(self.standard_application)
+        case = self.submit_application(self.standard_application)
 
         data = {"status": CaseStatusEnum.WITHDRAWN}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
@@ -61,6 +62,30 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
+
+    @parameterized.expand(
+        [case_status for case_status in CaseStatusEnum.terminal_statuses() if case_status != CaseStatusEnum.FINALISED]
+    )
+    def test_gov_user_set_application_to_terminal_status_removes_case_from_queues_users_success(self, case_status):
+        """
+        When a case is set to a terminal status, its assigned users, case officer and queues should be removed
+        """
+        self.submit_application(self.standard_application)
+        self.standard_application.case_officer = self.gov_user
+        self.standard_application.save()
+        self.standard_application.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=self.standard_application, queue=self.queue)
+        case_assignment.users.set([self.gov_user])
+        data = {"status": case_status}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status.status, case_status)
+        self.assertEqual(self.standard_application.queues.count(), 0)
+        self.assertEqual(self.standard_application.case_officer, None)
+        self.assertEqual(CaseAssignment.objects.filter(case=self.standard_application).count(), 0)
 
     def test_exporter_set_application_status_withdrawn_when_application_terminal_failure(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
