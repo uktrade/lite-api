@@ -14,9 +14,9 @@ class EndUserAdvisoryUpdate(DataTestClient):
         )
         self.url = reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": self.end_user_advisory.id},)
 
-    def test_update_end_user_advisory_status_success(self):
+    def test_update_end_user_advisory_status_to_withdrawn_success(self):
         """
-        When a case is set to a terminal status, its assigned users, case officer and queues should be removed
+        When a case is set to a the withdrawn status, its assigned users, case officer and queues should be removed
         """
         self.end_user_advisory.case_officer = self.gov_user
         self.end_user_advisory.save()

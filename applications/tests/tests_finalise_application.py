@@ -49,7 +49,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_gov_user_finalise_application_removes_case_from_queues_and_users_from_case_success(self):
         """
-        When a case is set to a terminal status, its assigned users, case officer and queues should be removed
+        When a case is set to the finalised status, its assigned users, case officer and queues should be removed
         """
         self.standard_application.case_officer = self.gov_user
         self.standard_application.save()
